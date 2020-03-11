@@ -72,7 +72,7 @@ class MangaDex(BaseScraper):
             self.conn.commit()
 
     def scrape_service(self, service_id, feed_url, last_update, title_id=None):
-        feed = feedparser.parse(feed_url if not title_id else feed_url + f'/title_id/{title_id}')
+        feed = feedparser.parse(feed_url if not title_id else feed_url + f'/manga_id/{title_id}')
         titles = {}
         for post in feed.entries:
             m = self.CHAPTER_REGEX.match(post.get('title', ''))
