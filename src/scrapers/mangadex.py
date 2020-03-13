@@ -36,7 +36,7 @@ class Chapter:
 
 class MangaDex(BaseScraper):
     URL = 'https://mangadex.org'
-    CHAPTER_REGEX = re.compile(r'(?P<manga_title>.+?) - (((?:Volume (?P<volume>\d+),? )?Chapter (?P<chapter>\d+)(?:\.?(?P<decimal>\d+))?)|(?:(?P<chapter_title>.+?) -( Oneshot)?)$)')
+    CHAPTER_REGEX = re.compile(r'(?P<manga_title>.+) -($| (((?:Volume (?P<volume>\d+),? )?Chapter (?P<chapter>\d+)(?:\.?(?P<decimal>\d+))?)|(?:(?P<chapter_title>.+?)(( - )?Oneshot)?)$))')
     DESCRIPTION_REGEX = re.compile(r'Group: (?P<group>.+?) - Uploader: (?P<uploader>.+?) - Language: (?P<language>\w+)')
 
     def scrape_series(self, *args):
