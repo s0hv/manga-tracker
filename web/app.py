@@ -9,6 +9,7 @@ from psycopg2.extras import DictCursor
 from psycopg2.pool import ThreadedConnectionPool
 
 from web.exceptions import ConversionError
+from web.manga_extension import MangaEntryExtension, MangaExtension
 
 logger = logging.getLogger('debug')
 config = {
@@ -43,7 +44,10 @@ def to_int(val: [str, int], max_length=None):
         return val
 
     try:
-        return int(val[:max_length], 10)
+        if max_length and len(val) > max_length:
+            raise ConversionError('Value too long')
+
+        return int(val, 10)
     except (ValueError, TypeError):
         raise ConversionError('Failed to convert to int')
 
@@ -52,12 +56,14 @@ def get_feed(limit=40, manga_id=None):
     if limit is None:
         limit = 40
     else:
-        limit = to_int(limit)
+        limit = to_int(limit, max_length=2)
 
     if manga_id is not None:
         manga_id = to_int(manga_id, max_length=9)
+
     limit = min(max(0, limit), 40)
     fg = FeedGenerator()
+    fg.register_extension('manga', MangaExtension, MangaEntryExtension)
     fg.id('aaaa')
     fg.title('Test')
     fg.ttl(60)
@@ -66,20 +72,20 @@ def get_feed(limit=40, manga_id=None):
     fg.description('test desc')
 
     if manga_id:
-        sql = f'''SELECT c.chapter_id, m.title as manga_title, c.title, c.chapter_number, c.release_date, c.chapter_identifier, s.service_name, s.chapter_url_format, s.url
+        sql = f'''SELECT c.chapter_id, m.title as manga_title, m.manga_id, c.title, c.chapter_number, c.release_date, c.chapter_identifier, s.service_name, s.chapter_url_format, s.url
                   FROM chapters c INNER JOIN manga m on c.manga_id = m.manga_id INNER JOIN services s on c.service_id = s.service_id 
                   WHERE c.manga_id=%(manga_id)s AND c.release_date > NOW() - INTERVAL '1 hour'
                   UNION 
-                      (SELECT c.chapter_id, m.title as manga_title, c.title, c.chapter_number, c.release_date, c.chapter_identifier, s.service_name, s.chapter_url_format, s.url
+                      (SELECT c.chapter_id, m.title as manga_title, m.manga_id, c.title, c.chapter_number, c.release_date, c.chapter_identifier, s.service_name, s.chapter_url_format, s.url
                       FROM chapters c INNER JOIN manga m on c.manga_id = m.manga_id INNER JOIN services s on c.service_id = s.service_id WHERE c.manga_id=%(manga_id)s 
                       LIMIT %(limit)s - (SELECT COUNT(*) FROM chapters WHERE manga_id=%(manga_id)s AND  release_date > NOW() - INTERVAL '1 hour')) 
                   ORDER BY release_date DESC, chapter_number DESC'''
     else:
-        sql = f'''SELECT c.chapter_id, m.title as manga_title, c.title, c.chapter_number, c.release_date, c.chapter_identifier, s.service_name, s.chapter_url_format, s.url
+        sql = f'''SELECT c.chapter_id, m.title as manga_title, m.manga_id, c.title, c.chapter_number, c.release_date, c.chapter_identifier, s.service_name, s.chapter_url_format, s.url
                   FROM chapters c INNER JOIN manga m on c.manga_id = m.manga_id INNER JOIN services s on c.service_id = s.service_id 
                   WHERE c.release_date > NOW() - INTERVAL '1 hour'
                   UNION 
-                      (SELECT c.chapter_id, m.title as manga_title, c.title, c.chapter_number, c.release_date, c.chapter_identifier, s.service_name, s.chapter_url_format, s.url
+                      (SELECT c.chapter_id, m.title as manga_title, m.manga_id, c.title, c.chapter_number, c.release_date, c.chapter_identifier, s.service_name, s.chapter_url_format, s.url
                       FROM chapters c INNER JOIN manga m on c.manga_id = m.manga_id INNER JOIN services s on c.service_id = s.service_id 
                       LIMIT %(limit)s - (SELECT COUNT(*) FROM chapters WHERE release_date > NOW() - INTERVAL '1 hour')) 
                   ORDER BY release_date DESC, chapter_id DESC
@@ -101,6 +107,7 @@ def get_feed(limit=40, manga_id=None):
             fe.description(
                 f'{row["manga_title"]} - Chapter {row["chapter_number"]}')
             fe.published(row['release_date'].astimezone(tz=timezone.utc))
+            fe.manga.manga_id(str(row['manga_id']))
 
     return fg
 
