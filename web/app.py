@@ -1,17 +1,20 @@
-from gevent import monkey, pywsgi
-monkey.patch_all()
-import falcon
+import logging
+import os
 from contextlib import contextmanager
 
+import falcon
 from feedgen.feed import FeedGenerator
-from psycopg2.pool import ThreadedConnectionPool
 from psycopg2.extras import DictCursor
-import json
-import os
+from psycopg2.pool import ThreadedConnectionPool
 
-
-with open(os.path.join('..', 'config', 'config.json'), encoding='utf-8') as f:
-    config = json.load(f)
+logger = logging.getLogger('debug')
+config = {
+    'db_host': os.environ['DB_HOST'],
+    'db': os.environ['DB_NAME'],
+    'db_user': os.environ['DB_USER'],
+    'db_pass': os.environ['DB_PASSWORD'],
+    'db_port': os.environ['DB_PORT']
+}
 
 pool = ThreadedConnectionPool(3, 10,
                               host=config['db_host'],
@@ -61,11 +64,3 @@ class Handler:
 
         response.content_type = falcon.MEDIA_XML
         response.body = fg.rss_str(pretty=True)
-
-
-api = falcon.API(media_type=falcon.MEDIA_XML)
-api.add_route("/", Handler())
-port = 9090
-server = pywsgi.WSGIServer(("localhost", port), api)
-print(f'Live on http://localhost:{port}')
-server.serve_forever()

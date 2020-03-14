@@ -1,11 +1,11 @@
-from src.scrapers.base_scraper import BaseScraper
-
 import logging
 import re
 from datetime import datetime, timedelta
 
 import requests
 from psycopg2.extras import execute_batch
+
+from src.scrapers.base_scraper import BaseScraper
 
 logger = logging.getLogger('debug')
 
@@ -475,7 +475,7 @@ class MangaPlus(BaseScraper):
             chapter_number = self.parse_chapter(chapter.name)
             data.append([*base_values, chapter.sub_title, chapter_number, None, chapter.chapter_id, chapter.start_timestamp])
 
-        now = datetime.now()
+        now = datetime.utcnow()
         if series.next_timestamp:
             next_update = series.next_timestamp
         else:

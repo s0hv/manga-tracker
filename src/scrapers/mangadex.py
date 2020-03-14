@@ -1,15 +1,13 @@
-from src.scrapers.base_scraper import BaseScraper
-
 import logging
 import re
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 from time import mktime
-import feedparser
-from src.utils.utilities import update_chapter_interval
 
-import requests
-from psycopg2.extras import execute_batch
+import feedparser
 from psycopg2 import OperationalError, DatabaseError
+from psycopg2.extras import execute_batch
+
+from src.scrapers.base_scraper import BaseScraper
 
 logger = logging.getLogger('debug')
 
@@ -22,7 +20,7 @@ class Chapter:
         self.chapter = int(chapter) if chapter else 0
         self.volume = int(volume) if volume is not None else None
         self.decimal = int(decimal) if decimal else None
-        self.release_date = datetime.fromtimestamp(mktime(release_date)) if release_date else datetime.now()
+        self.release_date = datetime.fromtimestamp(mktime(release_date)) if release_date else datetime.utcnow()
         self.chapter_identifier = chapter_identifier
         self.manga_id = manga_id
         self.manga_title = manga_title
@@ -138,7 +136,7 @@ class MangaDex(BaseScraper):
                 cur.execute(sql, [(m,) for m in manga_ids])
 
             sql = 'UPDATE services SET last_check=%s WHERE service_id=%s'
-            now = datetime.now()
+            now = datetime.utcnow()
             cur.execute(sql, [now, service_id])
 
             sql = 'UPDATE service_whole SET last_check=%s, next_update=%s WHERE service_id=%s'
