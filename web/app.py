@@ -72,9 +72,9 @@ def get_feed(limit=40, manga_id=None):
     fg.description('test desc')
 
     if manga_id:
-        cte = 'WITH chapters_filtered AS (SELECT chapter_id, title, chapter_number, release_date, chapter_identifier, service_id, manga_id FROM chapters WHERE manga_id=%(manga_id)s)'
+        cte = 'WITH chapters_filtered AS (SELECT chapter_id, title, chapter_number, release_date, chapter_identifier, service_id, manga_id FROM chapters WHERE manga_id=%(manga_id)s ORDER BY  release_date DESC, chapter_number DESC)'
     else:
-        cte = 'WITH chapters_filtered AS (SELECT chapter_id, title, chapter_number, chapter_decimal,release_date, chapter_identifier, service_id, manga_id FROM chapters)'
+        cte = 'WITH chapters_filtered AS (SELECT chapter_id, title, chapter_number, chapter_decimal,release_date, chapter_identifier, service_id, manga_id FROM chapters ORDER BY release_date DESC, chapter_number DESC)'
 
     sql = cte + '''SELECT c.chapter_id, m.title as manga_title, m.manga_id, c.title, c.chapter_number, c.release_date, c.chapter_identifier, s.service_name, s.chapter_url_format, s.url
              FROM chapters_filtered c INNER JOIN manga m on c.manga_id = m.manga_id INNER JOIN services s on c.service_id = s.service_id 
