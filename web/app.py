@@ -72,17 +72,17 @@ def get_feed(limit=40, manga_id=None):
     fg.description('test desc')
 
     if manga_id:
-        cte = 'WITH chapters_filtered AS (SELECT chapter_id, title, chapter_number, release_date, chapter_identifier, service_id, manga_id FROM chapters WHERE manga_id=%(manga_id)s ORDER BY  release_date DESC, chapter_number DESC)'
+        cte = 'WITH chapters_filtered AS (SELECT chapter_id, title, chapter_number, chapter_decimal, release_date, chapter_identifier, service_id, manga_id FROM chapters WHERE manga_id=%(manga_id)s ORDER BY  release_date DESC, chapter_number DESC)'
     else:
-        cte = 'WITH chapters_filtered AS (SELECT chapter_id, title, chapter_number, chapter_decimal,release_date, chapter_identifier, service_id, manga_id FROM chapters ORDER BY release_date DESC, chapter_number DESC)'
+        cte = 'WITH chapters_filtered AS (SELECT chapter_id, title, chapter_number, chapter_decimal, release_date, chapter_identifier, service_id, manga_id FROM chapters ORDER BY release_date DESC, chapter_number DESC)'
 
-    sql = cte + '''SELECT c.chapter_id, m.title as manga_title, m.manga_id, c.title, c.chapter_number, c.release_date, c.chapter_identifier, s.service_name, s.chapter_url_format, s.url
+    sql = cte + '''SELECT c.chapter_id, m.title as manga_title, m.manga_id, m.release_interval, c.title, c.chapter_number, c.release_date, c.chapter_identifier, s.service_name, s.chapter_url_format, s.url
              FROM chapters_filtered c INNER JOIN manga m on c.manga_id = m.manga_id INNER JOIN services s on c.service_id = s.service_id 
              WHERE c.release_date > NOW() - INTERVAL '1 hour'
              UNION 
-                  (SELECT c.chapter_id, m.title as manga_title, m.manga_id, c.title, c.chapter_number, c.release_date, c.chapter_identifier, s.service_name, s.chapter_url_format, s.url
+                  (SELECT c.chapter_id, m.title as manga_title, m.manga_id, m.release_interval, c.title, c.chapter_number, c.release_date, c.chapter_identifier, s.service_name, s.chapter_url_format, s.url
                   FROM chapters_filtered c INNER JOIN manga m on c.manga_id = m.manga_id INNER JOIN services s on c.service_id = s.service_id
-                  LIMIT %(limit)s - (SELECT COUNT(*) FROM chapters_filtered WHERE release_date > NOW() - INTERVAL '1 hour')) 
+                  LIMIT %(limit)s)
              ORDER BY release_date DESC, chapter_number DESC'''
 
     with get_cursor() as cursor:
@@ -91,7 +91,9 @@ def get_feed(limit=40, manga_id=None):
             args['manga_id'] = manga_id
 
         cursor.execute(sql, args)
-        for row in reversed(cursor.fetchall()):
+        rows = cursor.fetchall()
+        print(len(rows), limit)
+        for row in reversed(rows):
             fe = fg.add_entry()
             fe.title(row['title'])
             fe.id(str(row['chapter_id']))
@@ -101,6 +103,9 @@ def get_feed(limit=40, manga_id=None):
             fe.published(row['release_date'].astimezone(tz=timezone.utc))
             fe.manga.manga_id(str(row['manga_id']))
             fe.manga.manga_title(row['manga_title'])
+
+            if row['release_interval']:
+                fe.manga.release_interval(row['release_interval'])
 
     return fg
 
