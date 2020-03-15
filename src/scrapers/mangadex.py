@@ -29,7 +29,7 @@ class Chapter:
 
     @property
     def title(self):
-        return self.chapter_title or f'{"Volume " + str(self.volume) + ", " if self.volume is not None else ""}Chapter {self.chapter}'
+        return self.chapter_title or f'{"Volume " + str(self.volume) + ", " if self.volume is not None else ""}Chapter {self.chapter}{"" if not self.decimal else "." + str(self.decimal)}'
 
 
 class MangaDex(BaseScraper):

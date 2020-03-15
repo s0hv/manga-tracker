@@ -72,24 +72,18 @@ def get_feed(limit=40, manga_id=None):
     fg.description('test desc')
 
     if manga_id:
-        sql = f'''SELECT c.chapter_id, m.title as manga_title, m.manga_id, c.title, c.chapter_number, c.release_date, c.chapter_identifier, s.service_name, s.chapter_url_format, s.url
-                  FROM chapters c INNER JOIN manga m on c.manga_id = m.manga_id INNER JOIN services s on c.service_id = s.service_id 
-                  WHERE c.manga_id=%(manga_id)s AND c.release_date > NOW() - INTERVAL '1 hour'
-                  UNION 
-                      (SELECT c.chapter_id, m.title as manga_title, m.manga_id, c.title, c.chapter_number, c.release_date, c.chapter_identifier, s.service_name, s.chapter_url_format, s.url
-                      FROM chapters c INNER JOIN manga m on c.manga_id = m.manga_id INNER JOIN services s on c.service_id = s.service_id WHERE c.manga_id=%(manga_id)s 
-                      LIMIT %(limit)s - (SELECT COUNT(*) FROM chapters WHERE manga_id=%(manga_id)s AND  release_date > NOW() - INTERVAL '1 hour')) 
-                  ORDER BY release_date DESC, chapter_number DESC'''
+        cte = 'WITH chapters_filtered AS (SELECT chapter_id, title, chapter_number, release_date, chapter_identifier, service_id, manga_id FROM chapters WHERE manga_id=%(manga_id)s)'
     else:
-        sql = f'''SELECT c.chapter_id, m.title as manga_title, m.manga_id, c.title, c.chapter_number, c.release_date, c.chapter_identifier, s.service_name, s.chapter_url_format, s.url
-                  FROM chapters c INNER JOIN manga m on c.manga_id = m.manga_id INNER JOIN services s on c.service_id = s.service_id 
-                  WHERE c.release_date > NOW() - INTERVAL '1 hour'
-                  UNION 
-                      (SELECT c.chapter_id, m.title as manga_title, m.manga_id, c.title, c.chapter_number, c.release_date, c.chapter_identifier, s.service_name, s.chapter_url_format, s.url
-                      FROM chapters c INNER JOIN manga m on c.manga_id = m.manga_id INNER JOIN services s on c.service_id = s.service_id 
-                      LIMIT %(limit)s - (SELECT COUNT(*) FROM chapters WHERE release_date > NOW() - INTERVAL '1 hour')) 
-                  ORDER BY release_date DESC, chapter_id DESC
-                  '''
+        cte = 'WITH chapters_filtered AS (SELECT chapter_id, title, chapter_number, chapter_decimal,release_date, chapter_identifier, service_id, manga_id FROM chapters)'
+
+    sql = cte + '''SELECT c.chapter_id, m.title as manga_title, m.manga_id, c.title, c.chapter_number, c.release_date, c.chapter_identifier, s.service_name, s.chapter_url_format, s.url
+             FROM chapters_filtered c INNER JOIN manga m on c.manga_id = m.manga_id INNER JOIN services s on c.service_id = s.service_id 
+             WHERE c.release_date > NOW() - INTERVAL '1 hour'
+             UNION 
+                  (SELECT c.chapter_id, m.title as manga_title, m.manga_id, c.title, c.chapter_number, c.release_date, c.chapter_identifier, s.service_name, s.chapter_url_format, s.url
+                  FROM chapters_filtered c INNER JOIN manga m on c.manga_id = m.manga_id INNER JOIN services s on c.service_id = s.service_id
+                  LIMIT %(limit)s - (SELECT COUNT(*) FROM chapters_filtered WHERE release_date > NOW() - INTERVAL '1 hour')) 
+             ORDER BY release_date DESC, chapter_number DESC'''
 
     with get_cursor() as cursor:
         args = {'limit': limit}
@@ -101,13 +95,12 @@ def get_feed(limit=40, manga_id=None):
             fe = fg.add_entry()
             fe.title(row['title'])
             fe.id(str(row['chapter_id']))
-            fe.link(href=row['chapter_url_format'].format(
-                row['chapter_identifier']))
+            fe.link(href=row['chapter_url_format'].format(row['chapter_identifier']))
             fe.source(title=row['service_name'], url=row['url'])
-            fe.description(
-                f'{row["manga_title"]} - Chapter {row["chapter_number"]}')
+            fe.description(f'{row["manga_title"]} - Chapter {row["chapter_number"]}')
             fe.published(row['release_date'].astimezone(tz=timezone.utc))
             fe.manga.manga_id(str(row['manga_id']))
+            fe.manga.manga_title(row['manga_title'])
 
     return fg
 

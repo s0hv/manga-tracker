@@ -11,13 +11,19 @@ class MangaExtension(BaseExtension):
 
 class MangaEntryExtension(BaseEntryExtension):
     def __init__(self):
-        self.__manga_id = None
+        self.__id = None
+        self.__title = None
 
     def extend_rss(self, entry):
-        if self.__manga_id:
+        if self.__id:
             manga_id = etree.SubElement(entry, '{%s}id' % MANGA_NS)
-            print(manga_id)
-            manga_id.text = self.__manga_id
+            manga_id.text = self.__id
+
+        if self.__title:
+            etree.SubElement(entry, '{%s}title' % MANGA_NS).text = self.__title
 
     def manga_id(self, manga_id=None):
-        self.__manga_id = manga_id
+        self.__id = manga_id
+
+    def manga_title(self, title=None):
+        self.__title = title
