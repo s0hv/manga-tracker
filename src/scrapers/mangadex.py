@@ -4,32 +4,72 @@ from datetime import datetime, timedelta
 from time import mktime
 
 import feedparser
-from psycopg2 import OperationalError, DatabaseError
 from psycopg2.extras import execute_batch
 
-from src.scrapers.base_scraper import BaseScraper
+from src.scrapers.base_scraper import BaseScraper, BaseChapter
+from src.utils.utilities import add_new_series
 
 logger = logging.getLogger('debug')
 
 
-class Chapter:
+class Chapter(BaseChapter):
     def __init__(self, chapter, chapter_identifier, manga_id, manga_title,
                  manga_url, chapter_title=None, release_date=None, volume=None,
                  decimal=None, group=None, **kwargs):
-        self.chapter_title = chapter_title or None
-        self.chapter = int(chapter) if chapter else 0
-        self.volume = int(volume) if volume is not None else None
-        self.decimal = int(decimal) if decimal else None
-        self.release_date = datetime.fromtimestamp(mktime(release_date)) if release_date else datetime.utcnow()
-        self.chapter_identifier = chapter_identifier
-        self.manga_id = manga_id
-        self.manga_title = manga_title
-        self.manga_url = manga_url
-        self.group = group
+        self._chapter_title = chapter_title or None
+        self._chapter_number = int(chapter) if chapter else 0
+        self._volume = int(volume) if volume is not None else None
+        self._decimal = int(decimal) if decimal else None
+        self._release_date = datetime.fromtimestamp(mktime(release_date)) if release_date else datetime.utcnow()
+        self._chapter_identifier = chapter_identifier
+        self._manga_id = manga_id
+        self._manga_title = manga_title
+        self._manga_url = manga_url
+        self._group = group
+
+    @property
+    def chapter_title(self):
+        return self._chapter_title
+
+    @property
+    def chapter_number(self):
+        return self._chapter_number
+
+    @property
+    def volume(self):
+        return self._volume
+
+    @property
+    def decimal(self):
+        return self._decimal
+
+    @property
+    def release_date(self):
+        return self._release_date
+
+    @property
+    def chapter_identifier(self):
+        return self._chapter_identifier
+
+    @property
+    def manga_id(self):
+        return self._manga_id
+
+    @property
+    def manga_title(self):
+        return self._manga_title
+
+    @property
+    def manga_url(self):
+        return self._manga_url
+
+    @property
+    def group(self):
+        return self._group
 
     @property
     def title(self):
-        return self.chapter_title or f'{"Volume " + str(self.volume) + ", " if self.volume is not None else ""}Chapter {self.chapter}{"" if not self.decimal else "." + str(self.decimal)}'
+        return self.chapter_title or f'{"Volume " + str(self.volume) + ", " if self.volume is not None else ""}Chapter {self.chapter_number}{"" if not self.decimal else "." + str(self.decimal)}'
 
 
 class MangaDex(BaseScraper):
@@ -39,35 +79,6 @@ class MangaDex(BaseScraper):
 
     def scrape_series(self, *args):
         pass
-
-    def add_new_series(self, chapters: dict, service_id):
-        for title_id, chapters_ in chapters.items():
-            sql = 'SELECT manga_id FROM manga WHERE LOWER(title)=LOWER(%s) LIMIT 2'
-            with self.conn.cursor() as cur:
-                chapter = chapters_[0]
-                cur.execute(sql, (chapter.manga_title,))
-                rows = cur.fetchmany(2)
-                if len(rows) == 2:
-                    logger.warning(f'Too many matches for manga {chapter.manga_title}')
-                    continue
-
-                if rows:
-                    row = rows[0]
-                    yield row[0], chapters_
-                    continue
-
-                sql = '''WITH manga_insert AS ( INSERT INTO manga (title) VALUES (%s) RETURNING manga_id) 
-                         INSERT INTO manga_service (manga_id, service_id, url, disabled, last_check, title_id) VALUES 
-                         ((SELECT manga_id FROM manga_insert), %s, %s, TRUE, NOW(), %s) RETURNING manga_id'''
-                try:
-                    cur.execute(sql, (chapter.manga_title,
-                                      service_id, chapter.manga_url, chapter.manga_id))
-                except (OperationalError, DatabaseError):
-                    logger.exception('Failed to insert new manga')
-                    continue
-
-                yield cur.fetchone()[0], chapters_
-            self.conn.commit()
 
     def scrape_service(self, service_id, feed_url, last_update, title_id=None):
         feed = feedparser.parse(feed_url if not title_id else feed_url + f'/manga_id/{title_id}')
@@ -111,16 +122,19 @@ class MangaDex(BaseScraper):
                 manga_id = row['manga_id']
                 manga_ids.add(manga_id)
                 for chapter in titles.pop(row['title_id']):
-                    data.append((manga_id, service_id, chapter.title, chapter.chapter,
+                    data.append((manga_id, service_id, chapter.title, chapter.chapter_number,
                                  chapter.decimal, chapter.chapter_identifier,
                                  chapter.release_date, chapter.group))
 
-        for manga_id, chapters in self.add_new_series(titles, service_id):
-            manga_ids.add(manga_id)
-            for chapter in chapters:
-                data.append((manga_id, service_id, chapter.title, chapter.chapter,
-                            chapter.decimal, chapter.chapter_identifier,
-                             chapter.release_date, chapter.group))
+        with self.conn.cursor() as cur:
+            for manga_id, chapters in add_new_series(cur, titles, service_id, True):
+                manga_ids.add(manga_id)
+                for chapter in chapters:
+                    data.append((manga_id, service_id, chapter.title, chapter.chapter_number,
+                                chapter.decimal, chapter.chapter_identifier,
+                                 chapter.release_date, chapter.group))
+
+        self.conn.commit()
 
         sql = 'INSERT INTO chapters (manga_id, service_id, title, chapter_number, chapter_decimal, chapter_identifier, release_date, "group") VALUES ' \
               '(%s, %s, %s, %s, %s, %s, %s, %s) ON CONFLICT DO NOTHING RETURNING manga_id'

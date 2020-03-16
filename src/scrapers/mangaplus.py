@@ -1,11 +1,12 @@
 import logging
 import re
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 import requests
 from psycopg2.extras import execute_batch
 
-from src.scrapers.base_scraper import BaseScraper
+from src.scrapers.base_scraper import BaseScraper, BaseChapter
+from src.utils.utilities import add_new_series
 
 logger = logging.getLogger('debug')
 
@@ -432,9 +433,61 @@ class Series(BaseObject):
                 self.skip_type(7 & i_)
 
 
+class ChapterWrapper(BaseChapter):
+    def __init__(self, chapter: Chapter, manga_title):
+        self._chapter = chapter
+        self._chapter_number = MangaPlus.parse_chapter(chapter.name)
+        self._manga_title = manga_title
+
+    @property
+    def chapter_title(self):
+        return self._chapter.sub_title
+
+    @property
+    def chapter_number(self):
+        return self._chapter_number
+
+    @property
+    def volume(self):
+        return None
+
+    @property
+    def decimal(self):
+        return None
+
+    @property
+    def release_date(self):
+        return datetime.fromtimestamp(self._chapter.start_timestamp, tz=timezone.utc)
+
+    @property
+    def chapter_identifier(self):
+        return self._chapter.chapter_id
+
+    @property
+    def manga_id(self):
+        return self._chapter.title_id
+
+    @property
+    def manga_title(self):
+        return self._manga_title
+
+    @property
+    def manga_url(self):
+        return MangaPlus.MANGA_URL.format(self.manga_id)
+
+    @property
+    def group(self):
+        return 'Shueisha'
+
+    @property
+    def title(self):
+        return self.chapter_title
+
+
 class MangaPlus(BaseScraper):
     API = 'https://jumpg-webapi.tokyo-cdn.com/api/title_detail?title_id={}'
     URL = 'https://mangaplus.shueisha.co.jp'
+    MANGA_URL = 'https://mangaplus.shueisha.co.jp/titles/{}'
     CHAPTER_REGEX = re.compile(r'#(\d+)')
 
     @staticmethod
@@ -445,10 +498,7 @@ class MangaPlus(BaseScraper):
 
         return int(match.groups()[0])
 
-    def scrape_service(self, *args, **kwargs):
-        pass
-
-    def scrape_series(self, title_id, service_id, manga_id):
+    def parse_series(self, title_id):
         try:
             r = requests.get(self.API.format(title_id))
         except requests.RequestException:
@@ -465,6 +515,43 @@ class MangaPlus(BaseScraper):
             logger.exception('Failed to decode series')
             return False
 
+        return series
+
+    def add_series(self, title_id):
+        series = self.parse_series(title_id)
+        if not series:
+            return series
+
+        sql = 'SELECT service_id FROM services WHERE url=%s'
+        with self.conn.cursor() as cur:
+            cur.execute(sql, (self.URL,))
+            service_id = cur.fetchone()
+            if not service_id:
+                logger.error('Could not find service id for Manga Plus')
+                return
+
+            service_id = service_id[0]
+
+            chapters = []
+            for chapter in [*series.first_chapter_list, *series.last_chapter_list]:
+                chapters.append(ChapterWrapper(chapter, series.title.name))
+
+            for manga_id, _ in add_new_series(cur,
+                                              {title_id: chapters},
+                                              service_id):
+                self.add_chapters(series, service_id, manga_id)
+
+    def scrape_service(self, *args, **kwargs):
+        pass
+
+    def scrape_series(self, title_id, service_id, manga_id):
+        series = self.parse_series(title_id)
+        if not series:
+            return series
+
+        return self.add_chapters(series, service_id, manga_id)
+
+    def add_chapters(self, series, service_id, manga_id):
         sql = 'INSERT INTO chapters (manga_id, service_id, title, chapter_number, chapter_decimal, chapter_identifier, release_date, "group") ' \
               'VALUES (%s, %s, %s, %s, %s, %s, to_timestamp(%s), \'Shueisha\') ON CONFLICT DO NOTHING '
 
@@ -479,7 +566,7 @@ class MangaPlus(BaseScraper):
         if series.next_timestamp:
             next_update = series.next_timestamp
         else:
-            next_update = int((now + timedelta(days=1)).timestamp())
+            next_update = int((now + timedelta(hours=4)).timestamp())
 
         with self.conn.cursor() as cursor:
             execute_batch(cursor, sql, data)
@@ -487,8 +574,8 @@ class MangaPlus(BaseScraper):
             sql = 'UPDATE manga_service SET last_check=%s, next_update=to_timestamp(%s) WHERE manga_id=%s AND service_id=%s'
             cursor.execute(sql, [now, next_update, manga_id, service_id])
 
-            sql = 'UPDATE services SET last_check=%s WHERE service_id=%s'
-            cursor.execute(sql, [now, service_id])
+            sql = "UPDATE services SET last_check=%(now)s, disabled_until=%(now)s + INTERVAL '1 hour' WHERE service_id=%(service_id)s"
+            cursor.execute(sql, {'now': now, 'service_id': service_id})
 
         self.conn.commit()
         return True

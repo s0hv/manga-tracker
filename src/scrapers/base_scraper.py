@@ -1,6 +1,52 @@
 import abc
 
 
+class BaseChapter(abc.ABC):
+    @property
+    def chapter_title(self):
+        raise NotImplementedError
+
+    @property
+    def chapter_number(self):
+        raise NotImplementedError
+
+    @property
+    def volume(self):
+        raise NotImplementedError
+
+    @property
+    def decimal(self):
+        raise NotImplementedError
+
+    @property
+    def release_date(self):
+        raise NotImplementedError
+
+    @property
+    def chapter_identifier(self):
+        raise NotImplementedError
+
+    @property
+    def manga_id(self):
+        raise NotImplementedError
+
+    @property
+    def manga_title(self):
+        raise NotImplementedError
+
+    @property
+    def manga_url(self):
+        raise NotImplementedError
+
+    @property
+    def group(self):
+        raise NotImplementedError
+
+    @property
+    def title(self):
+        raise NotImplementedError
+
+
 class BaseScraper(abc.ABC):
     def __init__(self, conn):
         self._conn = conn

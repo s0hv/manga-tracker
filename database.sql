@@ -13,10 +13,12 @@ CREATE TABLE services (
     url                 TEXT UNIQUE NOT NULL,
     chapter_url_format  TEXT NOT NULL,
     disabled            BOOL NOT NULL DEFAULT FALSE,
-    last_check          TIMESTAMP WITH TIME ZONE
+    last_check          TIMESTAMP WITH TIME ZONE,
+    disabled_until      TIMESTAMP WITH TIME ZONE
 );
 CREATE INDEX ON services (service_name);
 CREATE INDEX ON services (last_check);
+CREATE INDEX ON services (disabled_until);
 
 
 CREATE TABLE manga_service (
@@ -44,14 +46,16 @@ CREATE INDEX ON service_whole (next_update);
 
 
 CREATE TABLE chapters (
-    chapter_id      BIGSERIAL PRIMARY KEY,
-    manga_id        INT NOT NULL REFERENCES manga ON DELETE RESTRICT,
-    service_id      SMALLINT NOT NULL REFERENCES services ON DELETE RESTRICT,
-    title           TEXT NOT NULL,
-    chapter_number  INT NOT NULL,
-    chapter_decimal SMALLINT DEFAULT NULL,
-    release_date    TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    url             TEXT UNIQUE NOT NULL
+    chapter_id          BIGSERIAL PRIMARY KEY,
+    manga_id            INT NOT NULL REFERENCES manga ON DELETE RESTRICT,
+    service_id          SMALLINT NOT NULL REFERENCES services ON DELETE RESTRICT,
+    title               TEXT NOT NULL,
+    chapter_number      INT NOT NULL,
+    chapter_decimal     SMALLINT DEFAULT NULL,
+    release_date        TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    url                 TEXT UNIQUE NOT NULL,
+    chapter_identifier  TEXT NOT NULL,
+    "group"             TEXT
 );
 CREATE INDEX ON chapters (title);
 CREATE INDEX ON chapters (chapter_number);

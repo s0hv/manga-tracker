@@ -1,6 +1,11 @@
+import logging
 import re
 import statistics
-from datetime import timedelta
+from datetime import timedelta, datetime
+
+from psycopg2.extras import execute_values
+
+logger = logging.getLogger('debug')
 
 chapter_regex = re.compile(r'(\d+)(\.\d+)?')
 
@@ -66,6 +71,59 @@ def update_chapter_interval(cur, manga_id):
     interval = timedelta(seconds=interval)
     sql = 'UPDATE manga SET release_interval=%s WHERE manga_id=%s'
     cur.execute(sql, (interval, manga_id))
+
+
+def add_new_series(cur, manga_chapters: dict, service_id, disable_single_update: bool=False):
+    args = []
+    manga_titles = {}
+    for title_id, chapters in manga_chapters.items():
+        chapter = chapters[0]
+        manga_title = chapter.manga_title.lower()
+        args.append((manga_title,))
+        manga_titles[manga_title] = chapters
+
+    format_args = ','.join(['%s' for _ in manga_titles])
+    sql = f'SELECT MIN(manga_id), LOWER(title), COUNT(manga_id) FROM manga WHERE LOWER(title) IN ({format_args}) GROUP BY LOWER(title)'
+
+    cur.execute(sql, args)
+
+    for row in cur:
+        if row[2] == 1:
+            yield row[0], manga_titles.pop(row[1])
+            continue
+
+        logger.warning(f'Too many matches for manga {row[1]}')
+
+    if not manga_titles:
+        return
+
+    new_manga = []
+    titles = []
+    id2chapters = {}
+    for chapters in manga_titles.values():
+        titles.append((chapters[0].manga_title,))
+        new_manga.append(chapters)
+
+    sql = 'INSERT INTO manga (title) VALUES %s RETURNING manga_id, title'
+    rows = execute_values(cur, sql, titles, page_size=len(titles), fetch=True)
+
+    args = []
+    now = datetime.utcnow()
+    for row, chapters in zip(rows, new_manga):
+        chapter = chapters[0]
+        if chapter.manga_title != row[1]:
+            logger.warning(f'Inserted manga mismatch with {chapter}')
+            continue
+
+        args.append((row[0], service_id, chapter.manga_url, disable_single_update, now, chapter.manga_id))
+        id2chapters[row[0]] = chapters
+
+    sql = f'''INSERT INTO manga_service (manga_id, service_id, url, disabled, last_check, title_id) VALUES 
+             %s RETURNING manga_id'''
+
+    rows = execute_values(cur, sql, args, page_size=len(args), fetch=True)
+    for row in rows:
+        yield row[0], id2chapters[row[0]]
 
 
 if __name__ == '__main__':
