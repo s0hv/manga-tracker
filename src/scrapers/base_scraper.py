@@ -58,7 +58,7 @@ class BaseScraper(abc.ABC):
 
     def __init__(self, conn):
         self._conn = conn
-        if self._conn.get_parameter_status('timezone') != 'UTC':
+        if self.conn and self._conn.get_parameter_status('timezone') != 'UTC':
             with self._conn.cursor() as cur:
                 cur.execute("SET TIMEZONE TO 'UTC'")
 

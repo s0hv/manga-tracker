@@ -87,14 +87,20 @@ def add_new_series(cur, manga_chapters: dict, service_id, disable_single_update:
 
     cur.execute(sql, args)
 
+    already_exist = []
+    now = datetime.utcnow()
     for row in cur:
         if row[2] == 1:
-            yield row[0], manga_titles.pop(row[1])
+            chapters = manga_titles.pop(row[1])
+            yield row[0], chapters
+            already_exist.append((row[0], service_id, chapters[0].manga_url, disable_single_update, now, chapters[0].manga_id))
             continue
 
         logger.warning(f'Too many matches for manga {row[1]}')
 
     if not manga_titles:
+        sql = f'''INSERT INTO manga_service (manga_id, service_id, url, disabled, last_check, title_id) VALUES %s'''
+        execute_values(cur, sql, already_exist, page_size=len(already_exist))
         return
 
     new_manga = []
@@ -108,7 +114,6 @@ def add_new_series(cur, manga_chapters: dict, service_id, disable_single_update:
     rows = execute_values(cur, sql, titles, page_size=len(titles), fetch=True)
 
     args = []
-    now = datetime.utcnow()
     for row, chapters in zip(rows, new_manga):
         chapter = chapters[0]
         if chapter.manga_title != row[1]:
@@ -124,6 +129,31 @@ def add_new_series(cur, manga_chapters: dict, service_id, disable_single_update:
     rows = execute_values(cur, sql, args, page_size=len(args), fetch=True)
     for row in rows:
         yield row[0], id2chapters[row[0]]
+
+
+def update_service(cur, service_id, update_interval):
+    sql = 'UPDATE services SET last_check=%s WHERE service_id=%s'
+    now = datetime.utcnow()
+    cur.execute(sql, [now, service_id])
+
+    sql = 'UPDATE service_whole SET last_check=%s, next_update=%s WHERE service_id=%s'
+    cur.execute(sql, [now, now + update_interval, service_id])
+
+
+def find_added_titles(cur, title_ids):
+    format_ids = ','.join(['%s'] * len(title_ids))
+    sql = f'SELECT manga_id, title_id FROM manga_service WHERE title_id IN ({format_ids})'
+    cur.execute(sql, title_ids)
+    for row in cur:
+        yield row
+
+
+def update_latest_release(cur, data):
+    format_ids = ','.join(['%s'] * len(data))
+    sql = 'UPDATE manga m SET latest_release=c.release_date FROM ' \
+          f'(SELECT MAX(release_date), manga_id FROM chapters WHERE manga_id IN ({format_ids}) GROUP BY manga_id) as c(release_date, manga_id)' \
+          'WHERE m.manga_id=c.manga_id'
+    cur.execute(sql, data)
 
 
 if __name__ == '__main__':

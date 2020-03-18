@@ -60,3 +60,14 @@ CREATE TABLE chapters (
 CREATE INDEX ON chapters (title);
 CREATE INDEX ON chapters (chapter_number);
 CREATE INDEX ON chapters (release_date);
+CREATE UNIQUE INDEX ON chapters (service_id, chapter_identifier);
+
+CREATE OR REPLACE FUNCTION merge_manga(base INT, to_merge INT) RETURNS void AS
+$$
+BEGIN
+    UPDATE chapters SET manga_id=base WHERE manga_id=to_merge;
+    UPDATE manga_service SET manga_id=base WHERE manga_id=to_merge;
+    UPDATE manga SET latest_release=GREATEST(latest_release, (SELECT latest_release FROM manga WHERE manga_id=to_merge)) WHERE manga_id=base;
+    DELETE FROM manga WHERE manga_id=to_merge;
+END;
+$$ LANGUAGE plpgsql

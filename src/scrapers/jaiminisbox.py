@@ -1,6 +1,6 @@
 import logging
 import re
-from datetime import datetime, timedelta
+from datetime import datetime
 from time import mktime
 
 import feedparser
@@ -15,19 +15,22 @@ logger = logging.getLogger('debug')
 
 
 class Chapter(BaseChapter):
-    def __init__(self, chapter, chapter_identifier, manga_id, manga_title,
-                 manga_url, chapter_title=None, release_date=None, volume=None,
-                 decimal=None, group=None, **kwargs):
-        self._chapter_title = chapter_title or None
-        self._chapter_number = int(chapter) if chapter else 0
-        self._volume = int(volume) if volume is not None else None
-        self._decimal = int(decimal) if decimal else None
-        self._release_date = datetime.fromtimestamp(mktime(release_date)) if release_date else datetime.utcnow()
-        self._chapter_identifier = chapter_identifier
-        self._manga_id = manga_id
+    URL_REGEX = re.compile(r'https://jaiminisbox.com/reader/read/(?P<manga_id>.+?)/(?P<chapter_identifier>\w+/\d+/\d+/)')
+    MANGA_URL_PREFIX = 'https://jaiminisbox.com/reader/series/{}'
+
+    def __init__(self, chapter_number, url, chapter_title=None,
+                 manga_title=None, release_date=None):
+        self._chapter_number = chapter_number
+        self._chapter_title = chapter_title
         self._manga_title = manga_title
-        self._manga_url = manga_url
-        self._group = group
+        self._release_date = datetime.fromtimestamp(mktime(release_date)) if release_date else datetime.utcnow()
+
+        m = self.URL_REGEX.match(url)
+        m = m.groupdict()
+        manga_id = m['manga_id']
+        self._manga_url = self.MANGA_URL_PREFIX.format(manga_id)
+        self._manga_id = manga_id
+        self._chapter_identifier = manga_id + '/' + m['chapter_identifier']
 
     @property
     def chapter_title(self):
@@ -39,11 +42,11 @@ class Chapter(BaseChapter):
 
     @property
     def volume(self):
-        return self._volume
+        return None
 
     @property
     def decimal(self):
-        return self._decimal
+        return None
 
     @property
     def release_date(self):
@@ -67,50 +70,45 @@ class Chapter(BaseChapter):
 
     @property
     def group(self):
-        return self._group
+        return "Jaimini's Box"
 
     @property
     def title(self):
-        return self.chapter_title or f'{"Volume " + str(self.volume) + ", " if self.volume is not None else ""}Chapter {self.chapter_number}{"" if not self.decimal else "." + str(self.decimal)}'
+        return self.chapter_title or f'Chapter {self.chapter_number}'
 
 
-class MangaDex(BaseScraper):
-    URL = 'https://mangadex.org'
-    CHAPTER_REGEX = re.compile(r'(?P<manga_title>.+) -($| (((?:Volume (?P<volume>\d+),? )?Chapter (?P<chapter>\d+)(?:\.?(?P<decimal>\d+))?)|(?:(?P<chapter_title>.+?)(( - )?Oneshot)?)$))')
-    DESCRIPTION_REGEX = re.compile(r'Group: (?P<group>.+?) - Uploader: (?P<uploader>.+?) - Language: (?P<language>\w+)')
-    UPDATE_INTERVAL = timedelta(hours=1)
+class JaiminisBox(BaseScraper):
+    URL = 'https://jaiminisbox.com'
+    FEED_URL = 'https://jaiminisbox.com/reader/feeds'
+    CHAPTER_REGEX = re.compile(r'(?P<manga_title>.+?) +(?:(?:Chapter|Z=) ?(?P<chapter_number>\d+),?)(?::? (?P<chapter_title>.+))?')
 
-    def scrape_series(self, *args):
+    def scrape_series(self, title_id, service_id, manga_id):
         pass
 
     def scrape_service(self, service_id, feed_url, last_update, title_id=None):
-        feed = feedparser.parse(feed_url if not title_id else feed_url + f'/manga_id/{title_id}')
+        feed = feedparser.parse(self.FEED_URL)
         titles = {}
         for post in feed.entries:
             m = self.CHAPTER_REGEX.match(post.get('title', ''))
             if not m:
                 logger.warning(f'Could not parse title from {post}')
                 continue
-
             kwargs = m.groupdict()
-            kwargs['chapter_identifier'] = post.get('link', '').split('/')[-1]
-            manga_id = post.get('mangalink', '').split('/')[-1]
-            kwargs['manga_id'] = manga_id
 
-            if not kwargs['manga_id'] or not kwargs['chapter_identifier']:
-                logger.warning(f'Could not parse ids from {post}')
+            kwargs['url'] = post.link
+            kwargs['release_date'] = post.published_parsed
+
+            try:
+                chapter = Chapter(**kwargs)
+            except AttributeError:
+                logger.exception('Failed to create chapter')
                 continue
 
-            kwargs['manga_url'] = post.get('mangalink', '')
-            kwargs['release_date'] = post.get('published_parsed')
-            match = self.DESCRIPTION_REGEX.match(post.get('description', ''))
-            if match:
-                kwargs.update(match.groupdict())
-
+            manga_id = chapter.manga_id
             if manga_id in titles:
-                titles[manga_id].append(Chapter(**kwargs))
+                titles[manga_id].append(chapter)
             else:
-                titles[manga_id] = [Chapter(**kwargs)]
+                titles[manga_id] = [chapter]
 
         if not titles:
             with self.conn.cursor() as cur:
@@ -127,8 +125,8 @@ class MangaDex(BaseScraper):
                 manga_ids.add(manga_id)
                 for chapter in titles.pop(row['title_id']):
                     data.append((manga_id, service_id, chapter.title, chapter.chapter_number,
-                                 chapter.decimal, chapter.chapter_identifier,
-                                 chapter.release_date, chapter.group))
+                                 chapter.chapter_identifier, chapter.release_date,
+                                 chapter.group))
 
         if titles:
             with self.conn.cursor() as cur:
@@ -136,12 +134,12 @@ class MangaDex(BaseScraper):
                     manga_ids.add(manga_id)
                     for chapter in chapters:
                         data.append((manga_id, service_id, chapter.title, chapter.chapter_number,
-                                    chapter.decimal, chapter.chapter_identifier,
-                                     chapter.release_date, chapter.group))
+                                     chapter.chapter_identifier, chapter.release_date,
+                                     chapter.group))
 
             self.conn.commit()
 
-        sql = 'INSERT INTO chapters (manga_id, service_id, title, chapter_number, chapter_decimal, chapter_identifier, release_date, "group") VALUES ' \
+        sql = 'INSERT INTO chapters (manga_id, service_id, title, chapter_number, chapter_identifier, release_date, "group") VALUES ' \
               '%s ON CONFLICT DO NOTHING RETURNING manga_id'
 
         with self.conn.cursor() as cur:
@@ -154,3 +152,4 @@ class MangaDex(BaseScraper):
 
         self.conn.commit()
         return manga_ids
+
