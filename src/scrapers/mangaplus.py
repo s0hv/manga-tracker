@@ -489,6 +489,7 @@ class MangaPlus(BaseScraper):
     URL = 'https://mangaplus.shueisha.co.jp'
     MANGA_URL = 'https://mangaplus.shueisha.co.jp/titles/{}'
     CHAPTER_REGEX = re.compile(r'#(\d+)')
+    UPDATE_INTERVAL = timedelta(hours=1)
 
     @staticmethod
     def parse_chapter(chapter_number):
@@ -575,14 +576,16 @@ class MangaPlus(BaseScraper):
                 next_update = None
                 disabled = True
 
+        disabled_until = now + self.UPDATE_INTERVAL
+
         with self.conn.cursor() as cursor:
             execute_batch(cursor, sql, data)
 
             sql = 'UPDATE manga_service SET last_check=%s, next_update=to_timestamp(%s), disabled=%s WHERE manga_id=%s AND service_id=%s'
             cursor.execute(sql, [now, next_update, disabled, manga_id, service_id])
 
-            sql = "UPDATE services SET last_check=%(now)s, disabled_until=%(now)s + INTERVAL '1 hour' WHERE service_id=%(service_id)s"
-            cursor.execute(sql, {'now': now, 'service_id': service_id})
+            sql = "UPDATE services SET last_check=%s, disabled_until=%s WHERE service_id=%s"
+            cursor.execute(sql, [now, disabled_until, service_id])
 
         self.conn.commit()
         return True

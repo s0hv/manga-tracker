@@ -1,4 +1,5 @@
 import abc
+from datetime import timedelta
 
 
 class BaseChapter(abc.ABC):
@@ -48,6 +49,13 @@ class BaseChapter(abc.ABC):
 
 
 class BaseScraper(abc.ABC):
+    UPDATE_INTERVAL = timedelta(hours=1)
+    URL = None
+
+    def __init_subclass__(cls, **kwargs):
+        if cls.URL is None:
+            raise NotImplementedError("Service doesn't have the URL class property")
+
     def __init__(self, conn):
         self._conn = conn
         if self._conn.get_parameter_status('timezone') != 'UTC':
