@@ -563,16 +563,23 @@ class MangaPlus(BaseScraper):
             data.append([*base_values, chapter.sub_title, chapter_number, None, chapter.chapter_id, chapter.start_timestamp])
 
         now = datetime.utcnow()
+        next_update = int((now + timedelta(hours=4)).timestamp())
+        disabled = False
         if series.next_timestamp:
             next_update = series.next_timestamp
-        else:
-            next_update = int((now + timedelta(hours=4)).timestamp())
+        elif series.non_appearance_info:
+            release_info = series.non_appearance_info.lower()
+            if 'hiatus' in release_info:
+                next_update = int((now + timedelta(days=1)).timestamp())
+            elif 'completed' in release_info:
+                next_update = None
+                disabled = True
 
         with self.conn.cursor() as cursor:
             execute_batch(cursor, sql, data)
 
-            sql = 'UPDATE manga_service SET last_check=%s, next_update=to_timestamp(%s) WHERE manga_id=%s AND service_id=%s'
-            cursor.execute(sql, [now, next_update, manga_id, service_id])
+            sql = 'UPDATE manga_service SET last_check=%s, next_update=to_timestamp(%s), disabled=%s WHERE manga_id=%s AND service_id=%s'
+            cursor.execute(sql, [now, next_update, disabled, manga_id, service_id])
 
             sql = "UPDATE services SET last_check=%(now)s, disabled_until=%(now)s + INTERVAL '1 hour' WHERE service_id=%(service_id)s"
             cursor.execute(sql, {'now': now, 'service_id': service_id})
