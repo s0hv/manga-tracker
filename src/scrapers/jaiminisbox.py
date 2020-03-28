@@ -19,8 +19,10 @@ class Chapter(BaseChapter):
     MANGA_URL_PREFIX = 'https://jaiminisbox.com/reader/series/{}'
 
     def __init__(self, chapter_number, url, chapter_title=None,
-                 manga_title=None, release_date=None, **_):
+                 manga_title=None, release_date=None, chapter_decimal=None,
+                 **_):
         self._chapter_number = chapter_number
+        self._chapter_decimal = chapter_decimal
         self._chapter_title = chapter_title
         self._manga_title = manga_title
         self._release_date = datetime.fromtimestamp(mktime(release_date)) if release_date else datetime.utcnow()
@@ -30,7 +32,7 @@ class Chapter(BaseChapter):
         manga_id = m['manga_id']
         self._manga_url = self.MANGA_URL_PREFIX.format(manga_id)
         self._manga_id = manga_id
-        self._chapter_identifier = manga_id + '/' + m['chapter_identifier']
+        self._chapter_identifier = manga_id + '/' + m['chapter_identifier'] + str(self._chapter_decimal or 0)
 
     @property
     def chapter_title(self):
@@ -46,7 +48,7 @@ class Chapter(BaseChapter):
 
     @property
     def decimal(self):
-        return None
+        return self._chapter_decimal
 
     @property
     def release_date(self):
@@ -80,7 +82,7 @@ class Chapter(BaseChapter):
 class JaiminisBox(BaseScraper):
     URL = 'https://jaiminisbox.com'
     FEED_URL = 'https://jaiminisbox.com/reader/feeds'
-    CHAPTER_REGEX = re.compile(r'(?P<manga_title>.+?) +(?:(?:Chapter|Z=) ?(?P<chapter_number>\d+),?)(?::? (?P<chapter_title>.+))?')
+    CHAPTER_REGEX = re.compile(r'(?P<manga_title>.+?) +(?:(?:Chapter|Z=) ?(?P<chapter_number>\d+)(?:\.(?P<chapter_decimal>\d))?,?)(?::? (?P<chapter_title>.+))?')
 
     def scrape_series(self, title_id, service_id, manga_id):
         pass
@@ -132,7 +134,7 @@ class JaiminisBox(BaseScraper):
                 manga_ids.add(manga_id)
                 for chapter in titles.pop(row['title_id']):
                     data.append((manga_id, service_id, chapter.title, chapter.chapter_number,
-                                 chapter.chapter_identifier, chapter.release_date,
+                                 chapter.decimal, chapter.chapter_identifier, chapter.release_date,
                                  chapter.group))
 
         if titles:
@@ -141,12 +143,12 @@ class JaiminisBox(BaseScraper):
                     manga_ids.add(manga_id)
                     for chapter in chapters:
                         data.append((manga_id, service_id, chapter.title, chapter.chapter_number,
-                                     chapter.chapter_identifier, chapter.release_date,
-                                     chapter.group))
+                                     chapter.decimal, chapter.chapter_identifier,
+                                     chapter.release_date, chapter.group))
 
             self.conn.commit()
 
-        sql = 'INSERT INTO chapters (manga_id, service_id, title, chapter_number, chapter_identifier, release_date, "group") VALUES ' \
+        sql = 'INSERT INTO chapters (manga_id, service_id, title, chapter_number, chapter_decimal, chapter_identifier, release_date, "group") VALUES ' \
               '%s ON CONFLICT DO NOTHING RETURNING manga_id'
 
         with self.conn.cursor() as cur:
