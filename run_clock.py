@@ -1,20 +1,14 @@
 import logging
-import sys
-
-logger = logging.getLogger('debug')
-logger.setLevel(logging.DEBUG)
-handler = logging.StreamHandler(sys.stdout)
-handler.setFormatter(logging.Formatter('[{module}][{asctime}] [Thread: {thread}] [{levelname}]:{message}', datefmt='%Y-%m-%d %H:%M:%S', style='{'))
-logger.addHandler(handler)
-
-
 from datetime import datetime, timedelta
 
 from apscheduler.schedulers.blocking import BlockingScheduler
 from pytz import utc
 
+import setup_logging
 from src.scheduler import UpdateScheduler
 
+setup_logging.setup()
+logger = logging.getLogger('debug')
 
 scheduler = BlockingScheduler(timezone=utc, logger=logger)
 JOB_ID = 'MANGA_UPDATE'
