@@ -38,6 +38,58 @@ class UpdateScheduler:
     def conn(self):
         return self._conn
 
+    def force_run(self, service_id, manga_id=None):
+        if manga_id is not None:
+            sql = "SELECT ms.service_id, s.url, ms.title_id, ms.manga_id " \
+                  "FROM manga_service ms " \
+                  "INNER JOIN services s ON s.service_id=ms.service_id " \
+                  "WHERE s.service_id=%s AND ms.manga_id=%s"
+            with self.conn.cursor() as cursor:
+                cursor.execute(sql, (service_id, manga_id))
+                row = cursor.fetchone()
+                if not row:
+                    logger.debug(f'Failed to find manga {manga_id} from service {service_id}')
+                    return
+
+                Scraper = SCRAPERS.get(row['url'])
+                if not Scraper:
+                    logger.error(f'Failed to find scraper for {row}')
+                    return
+
+                scraper = Scraper(self.conn)
+
+                logger.info(f'Updating {row["title_id"]}')
+                if not scraper.scrape_series(row["title_id"], row['service_id'], row['manga_id']):
+                    logger.error(f'Failed to scrape series {row}')
+
+                return row['manga_id']
+
+        else:
+            sql = """SELECT s.service_id, sw.feed_url, s.url
+                     FROM service_whole sw INNER JOIN services s on sw.service_id = s.service_id
+                     WHERE s.service_id=%s"""
+
+            manga_ids = set()
+            with self.conn.cursor() as cursor:
+                cursor.execute(sql, (service_id,))
+                row = cursor.fetchone()
+                if not row:
+                    logger.debug(f'Failed to find service {service_id}')
+                    return
+
+            Scraper = SCRAPERS.get(row['url'])
+            if not Scraper:
+                logger.error(f'Failed to find scraper for {row}')
+                return
+
+            scraper = Scraper(self.conn)
+            logger.info(f'Updating service {row["url"]}')
+            retval = scraper.scrape_service(row['service_id'], row['feed_url'], None)
+            if retval:
+                manga_ids.update(retval)
+
+            return manga_ids
+
     def run_once(self):
         sql = "SELECT ms.service_id, s.url, array_agg(ms.title_id) title_ids, array_agg(ms.manga_id) manga_ids " \
               "FROM manga_service ms " \
@@ -58,7 +110,7 @@ class UpdateScheduler:
                 scraper = Scraper(self.conn)
 
                 for title_id, manga_id in zip(row['title_ids'][:batch_size], row['manga_ids'][:batch_size]):
-                    logger.info(f'Updating {title_id}')
+                    logger.info(f'Updating {title_id} on service {row["service_id"]}')
                     if scraper.scrape_series(title_id, row['service_id'], manga_id):
                         manga_ids.add(manga_id)
                     else:
@@ -87,6 +139,7 @@ class UpdateScheduler:
             if retval:
                 manga_ids.update(retval)
 
+        logger.info(f"Updating interval of {len(manga_ids)} manga")
         with self.conn.cursor() as cursor:
             for manga_id in manga_ids:
                 update_chapter_interval(cursor, manga_id)

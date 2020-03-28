@@ -8,7 +8,7 @@ from psycopg2.extras import execute_values
 
 from src.scrapers.base_scraper import BaseScraper, BaseChapter
 from src.utils.utilities import (add_new_series, update_service,
-                                 find_added_titles,
+                                 find_added_titles, match_title,
                                  update_latest_release)
 
 logger = logging.getLogger('debug')
@@ -17,7 +17,7 @@ logger = logging.getLogger('debug')
 class Chapter(BaseChapter):
     def __init__(self, chapter, chapter_identifier, manga_id, manga_title,
                  manga_url, chapter_title=None, release_date=None, volume=None,
-                 decimal=None, group=None, **kwargs):
+                 decimal=None, group=None, **_):
         self._chapter_title = chapter_title or None
         self._chapter_number = int(chapter) if chapter else 0
         self._volume = int(volume) if volume is not None else None
@@ -87,12 +87,19 @@ class MangaDex(BaseScraper):
         feed = feedparser.parse(feed_url if not title_id else feed_url + f'/manga_id/{title_id}')
         titles = {}
         for post in feed.entries:
-            m = self.CHAPTER_REGEX.match(post.get('title', ''))
+            title = post.get('title', '')
+            m = self.CHAPTER_REGEX.match(title)
             if not m:
-                logger.warning(f'Could not parse title from {post}')
-                continue
+                logger.warning(f'Could not parse title from {title or post}')
+                m = match_title(title)
+                logger.info(f"Parsed title with universal regex: {m}")
+                if not m:
+                    continue
 
-            kwargs = m.groupdict()
+                kwargs = m
+            else:
+                kwargs = m.groupdict()
+
             kwargs['chapter_identifier'] = post.get('link', '').split('/')[-1]
             manga_id = post.get('mangalink', '').split('/')[-1]
             kwargs['manga_id'] = manga_id

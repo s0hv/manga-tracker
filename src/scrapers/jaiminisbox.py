@@ -8,7 +8,7 @@ from psycopg2.extras import execute_values
 
 from src.scrapers.base_scraper import BaseScraper, BaseChapter
 from src.utils.utilities import (add_new_series, update_service,
-                                 find_added_titles,
+                                 find_added_titles, match_title,
                                  update_latest_release)
 
 logger = logging.getLogger('debug')
@@ -19,7 +19,7 @@ class Chapter(BaseChapter):
     MANGA_URL_PREFIX = 'https://jaiminisbox.com/reader/series/{}'
 
     def __init__(self, chapter_number, url, chapter_title=None,
-                 manga_title=None, release_date=None):
+                 manga_title=None, release_date=None, **_):
         self._chapter_number = chapter_number
         self._chapter_title = chapter_title
         self._manga_title = manga_title
@@ -89,11 +89,18 @@ class JaiminisBox(BaseScraper):
         feed = feedparser.parse(self.FEED_URL)
         titles = {}
         for post in feed.entries:
-            m = self.CHAPTER_REGEX.match(post.get('title', ''))
+            title = post.get('title', '')
+            m = self.CHAPTER_REGEX.match(title)
             if not m:
-                logger.warning(f'Could not parse title from {post}')
-                continue
-            kwargs = m.groupdict()
+                logger.warning(f'Could not parse title from {title or post} with site native regex')
+                m = match_title(title)
+                logger.info(f"Parsed title with universal regex: {m}")
+                if not m:
+                    continue
+
+                kwargs = m
+            else:
+                kwargs = m.groupdict()
 
             kwargs['url'] = post.link
             kwargs['release_date'] = post.published_parsed

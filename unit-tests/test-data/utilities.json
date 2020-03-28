@@ -1,0 +1,235 @@
+[
+  {
+    "string": "Kekkon surutte, hontou desu ka? Adventure 2: Do we have to announce the wedding?",
+    "correct": {
+      "manga_title": "Kekkon surutte, hontou desu ka?",
+      "volume_number": null,
+      "chapter_number": null,
+      "chapter_number2": "2",
+      "chapter_decimal": null,
+      "chapter_decimal2": null,
+      "chapter_title": "Do we have to announce the wedding?"
+    }
+  },
+
+  {
+    "string": "The Second Coming of Gluttony Chapter 33",
+    "correct": {
+      "manga_title": "The Second Coming of Gluttony",
+      "volume_number": null,
+      "chapter_number": "33",
+      "chapter_number2": null,
+      "chapter_decimal": null,
+      "chapter_decimal2": null,
+      "chapter_title": null
+    }
+  },
+
+  {
+    "string": "The Cucko's Fiancee Chapter 9: Can We Spend Our Mornings Together...?",
+    "correct": {
+      "manga_title": "The Cucko's Fiancee",
+      "volume_number": null,
+      "chapter_number": "9",
+      "chapter_number2": null,
+      "chapter_decimal": null,
+      "chapter_decimal2": null,
+      "chapter_title": "Can We Spend Our Mornings Together...?"
+    }
+  },
+
+  {
+    "string": "Adabana Chapter 1: Confession",
+    "correct": {
+      "manga_title": "Adabana",
+      "volume_number": null,
+      "chapter_number": "1",
+      "chapter_number2": null,
+      "chapter_decimal": null,
+      "chapter_decimal2": null,
+      "chapter_title": "Confession"
+    }
+  },
+
+  {
+    "string": "Kaguya Wants to be Confessed to Chapter 171.1: Vol 17 Extras",
+    "correct": {
+      "manga_title": "Kaguya Wants to be Confessed to",
+      "volume_number": null,
+      "chapter_number": "171",
+      "chapter_number2": null,
+      "chapter_decimal": "1",
+      "chapter_decimal2": null,
+      "chapter_title": "Vol 17 Extras"
+    }
+  },
+
+  {
+    "string": "The 100 Girlfriends Who Really, Really, Really, Really, Really Love You Chapter 10: The Mysterious Senpai Inside the Chemistry Room",
+    "correct": {
+      "manga_title": "The 100 Girlfriends Who Really, Really, Really, Really, Really Love You",
+      "volume_number": null,
+      "chapter_number": "10",
+      "chapter_number2": null,
+      "chapter_decimal": null,
+      "chapter_decimal2": null,
+      "chapter_title": "The Mysterious Senpai Inside the Chemistry Room"
+    }
+  },
+
+  {
+    "string": "Kekkon surutte, hontou desu ka? Z=2: Do we have to announce the wedding?",
+    "correct": {
+      "manga_title": "Kekkon surutte, hontou desu ka?",
+      "volume_number": null,
+      "chapter_number": null,
+      "chapter_number2": "2",
+      "chapter_decimal": null,
+      "chapter_decimal2": null,
+      "chapter_title": "Do we have to announce the wedding?"
+    }
+  },
+
+  {
+    "string": "Sword Art Online - Lycoris - Volume 1, Chapter 1",
+    "correct": {
+      "manga_title": "Sword Art Online - Lycoris",
+      "volume_number": "1",
+      "chapter_number": "1",
+      "chapter_number2": null,
+      "chapter_decimal": null,
+      "chapter_decimal2": null,
+      "chapter_title": null
+    }
+  },
+
+  {
+    "string": "Honkai Impact 3rd - Volume 8, Chapter 7",
+    "correct": {
+      "manga_title": "Honkai Impact 3rd",
+      "volume_number": "8",
+      "chapter_number": "7",
+      "chapter_number2": null,
+      "chapter_decimal": null,
+      "chapter_decimal2": null,
+      "chapter_title": null
+    }
+  },
+
+  {
+    "string": "Honkai Impact 3rd z 3: title",
+    "correct": {
+      "manga_title": "Honkai Impact 3rd",
+      "volume_number": null,
+      "chapter_number": null,
+      "chapter_number2": "3",
+      "chapter_decimal": null,
+      "chapter_decimal2": null,
+      "chapter_title": "title"
+    }
+  },
+
+  {
+    "string": "Kedamono Kareshi - Volume 3, Chapter 20.1",
+    "correct": {
+      "manga_title": "Kedamono Kareshi",
+      "volume_number": "3",
+      "chapter_number": "20",
+      "chapter_number2": null,
+      "chapter_decimal": "1",
+      "chapter_decimal2": null,
+      "chapter_title": null
+    }
+  },
+
+  {
+    "string": "Ookami-san to Shinizokonai - Oneshot",
+    "correct": {
+      "manga_title": "Ookami-san to Shinizokonai",
+      "volume_number": null,
+      "chapter_number": null,
+      "chapter_number2": null,
+      "chapter_decimal": null,
+      "chapter_decimal2": null,
+      "chapter_title": "Oneshot"
+    }
+  },
+
+  {
+    "string": "These Two Will Be Married In 100 Days - Chapter 9",
+    "correct": {
+      "manga_title": "These Two Will Be Married In 100 Days",
+      "volume_number": null,
+      "chapter_number": "9",
+      "chapter_number2": null,
+      "chapter_decimal": null,
+      "chapter_decimal2": null,
+      "chapter_title": null
+    }
+  },
+
+  {
+    "string": "Azur Lane - Commander Ramune: AL's Northern Parliament (Doujinshi) - Chapter 10",
+    "correct": {
+      "manga_title": "Azur Lane - Commander Ramune: AL's Northern Parliament (Doujinshi)",
+      "volume_number": null,
+      "chapter_number": "10",
+      "chapter_number2": null,
+      "chapter_decimal": null,
+      "chapter_decimal2": null,
+      "chapter_title": null
+    }
+  },
+
+  {
+    "string": "Kekkon surutte, hontou desu ka? Adventure 2.3: Do we have to announce the wedding?",
+    "correct": {
+      "manga_title": "Kekkon surutte, hontou desu ka?",
+      "volume_number": null,
+      "chapter_number": null,
+      "chapter_number2": "2",
+      "chapter_decimal": null,
+      "chapter_decimal2": "3",
+      "chapter_title": "Do we have to announce the wedding?"
+    }
+  },
+
+  {
+    "string": "Honkai Impact 3rd z 3.8: title",
+    "correct": {
+      "manga_title": "Honkai Impact 3rd",
+      "volume_number": null,
+      "chapter_number": null,
+      "chapter_number2": "3",
+      "chapter_decimal": null,
+      "chapter_decimal2": "8",
+      "chapter_title": "title"
+    }
+  },
+
+  {
+    "string": "",
+    "correct": {
+      "manga_title": "",
+      "volume_number": null,
+      "chapter_number": "",
+      "chapter_number2": null,
+      "chapter_decimal": null,
+      "chapter_decimal2": null,
+      "chapter_title": ""
+    }
+  },
+
+  {
+    "string": "",
+    "correct": {
+      "manga_title": "",
+      "volume_number": null,
+      "chapter_number": "",
+      "chapter_number2": null,
+      "chapter_decimal": null,
+      "chapter_decimal2": null,
+      "chapter_title": ""
+    }
+  }
+]

@@ -1,8 +1,15 @@
 import logging
 import sys
-from datetime import datetime, timezone
+from argparse import ArgumentParser
 
 from src.scheduler import UpdateScheduler
+
+parser = ArgumentParser()
+parser.add_argument('--service', type=int, nargs='?', required=True)
+parser.add_argument('--manga', type=int, nargs='?', required=False, default=None)
+
+args = parser.parse_args()
+print(args)
 
 logger = logging.getLogger('debug')
 logger.setLevel(logging.DEBUG)
@@ -11,4 +18,4 @@ handler.setFormatter(logging.Formatter('[{module}][{asctime}] [Thread: {thread}]
 logger.addHandler(handler)
 
 scheduler = UpdateScheduler()
-print((scheduler.run_once()-datetime.utcnow().replace(tzinfo=timezone.utc).astimezone(tz=timezone.utc)))
+scheduler.force_run(args.service, args.manga)
