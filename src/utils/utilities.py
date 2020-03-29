@@ -32,6 +32,7 @@ def match_title(s: str):
     match = match.groupdict()
     match['chapter_number'] = match['chapter_number'] or match.pop('chapter_number2')
     match['chapter_decimal'] = match['chapter_decimal'] or match.pop('chapter_decimal')
+    logger.info(f"Parsed title with universal regex: {match}")
     return match
 
 

@@ -94,12 +94,12 @@ class JaiminisBox(BaseScraper):
             title = post.get('title', '')
             m = self.CHAPTER_REGEX.match(title)
             if not m:
-                logger.warning(f'Could not parse title from {title or post} with site native regex')
                 m = match_title(title)
-                logger.info(f"Parsed title with universal regex: {m}")
                 if not m:
+                    logger.warning(f'Could not parse title from {title or post} with site native regex')
                     continue
 
+                logger.info(f'Fallback to universal regex successful on {title or post}')
                 kwargs = m
             else:
                 kwargs = m.groupdict()
