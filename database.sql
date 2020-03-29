@@ -1,11 +1,20 @@
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
 CREATE TABLE manga (
     manga_id            SERIAL PRIMARY KEY,
     title               TEXT NOT NULL,
     release_interval    INTERVAL DEFAULT NULL,
-    fixed_interval      BOOL DEFAULT FALSE,
     latest_release      TIMESTAMP WITH TIME ZONE DEFAULT NULL
 );
-CREATE INDEX ON manga (manga_id);
+CREATE INDEX textsearch_fuzzy_title ON manga USING gin (title gin_trgm_ops);
+
+CREATE TABLE manga_alias (
+    manga_id INT NOT NULL REFERENCES manga ON DELETE CASCADE,
+    title TEXT NOT NULL,
+    PRIMARY KEY (manga_id, title)
+);
+CREATE INDEX textsearch_fuzzy_alias_title ON manga_alias USING gin (title gin_trgm_ops);
+
 
 CREATE TABLE services (
     service_id          SMALLSERIAL PRIMARY KEY,
