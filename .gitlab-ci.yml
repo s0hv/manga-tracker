@@ -8,4 +8,4 @@ stages:
 
 test:
   script:
-    - python src/unit-tests/utilities.py
+    - python unit-tests/utilities.py
