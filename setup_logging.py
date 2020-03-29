@@ -12,3 +12,4 @@ def setup(name='debug'):
         '{color}[{module}][{asctime}] [Thread: {thread}] [{levelname}]:{colorend} {message}',
         datefmt='%Y-%m-%d %H:%M:%S', style='{'))
     logger.addHandler(handler)
+    return logger

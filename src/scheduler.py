@@ -139,12 +139,14 @@ class UpdateScheduler:
             if retval:
                 manga_ids.update(retval)
 
-        logger.info(f"Updating interval of {len(manga_ids)} manga")
-        with self.conn.cursor() as cursor:
-            for manga_id in manga_ids:
-                update_chapter_interval(cursor, manga_id)
+        if manga_ids:
+            logger.debug(f"Updating interval of {len(manga_ids)} manga")
+            with self.conn.cursor() as cursor:
+                for manga_id in manga_ids:
+                    update_chapter_interval(cursor, manga_id)
 
-        self.conn.commit()
+            self.conn.commit()
+
         sql = 'SELECT LEAST(MIN(ms.next_update), (SELECT MIN(sw.next_update) FROM service_whole sw)) FROM manga_service ms'
         with self.conn.cursor() as cursor:
             cursor.execute(sql)
