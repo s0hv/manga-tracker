@@ -7,9 +7,9 @@ import feedparser
 from psycopg2.extras import execute_values
 
 from src.scrapers.base_scraper import BaseScraper, BaseChapter
-from src.utils.utilities import (add_new_series, update_service,
-                                 find_added_titles, match_title,
-                                 update_latest_release)
+from src.utils.dbutils import (add_new_series, update_service,
+                               find_added_titles, update_latest_release)
+from src.utils.utilities import match_title
 
 logger = logging.getLogger('debug')
 

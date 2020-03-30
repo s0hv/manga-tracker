@@ -8,7 +8,7 @@ import psycopg2
 from psycopg2.extras import DictCursor
 
 from src.scrapers.scraper_resolver import SCRAPERS
-from src.utils.utilities import update_chapter_interval
+from src.utils.dbutils import update_chapter_interval
 
 logger = logging.getLogger('debug')
 

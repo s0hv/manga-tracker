@@ -6,7 +6,7 @@ import requests
 from psycopg2.extras import execute_batch
 
 from src.scrapers.base_scraper import BaseScraper, BaseChapter
-from src.utils.utilities import add_new_series
+from src.utils.dbutils import add_new_series
 
 logger = logging.getLogger('debug')
 
