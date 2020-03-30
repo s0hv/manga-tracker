@@ -6,7 +6,7 @@ import requests
 from psycopg2.extras import execute_batch
 
 from src.scrapers.base_scraper import BaseScraper, BaseChapter
-from src.utils.dbutils import add_new_series
+from src.utils.utilities import random_timedelta
 
 logger = logging.getLogger('debug')
 
@@ -489,7 +489,10 @@ class MangaPlus(BaseScraper):
     URL = 'https://mangaplus.shueisha.co.jp'
     MANGA_URL = 'https://mangaplus.shueisha.co.jp/titles/{}'
     CHAPTER_REGEX = re.compile(r'#(\d+)')
-    UPDATE_INTERVAL = timedelta(hours=1)
+
+    @staticmethod
+    def min_update_interval():
+        return random_timedelta(timedelta(minutes=15), timedelta(minutes=30))
 
     @staticmethod
     def parse_chapter(chapter_number):
@@ -537,9 +540,9 @@ class MangaPlus(BaseScraper):
             for chapter in [*series.first_chapter_list, *series.last_chapter_list]:
                 chapters.append(ChapterWrapper(chapter, series.title.name))
 
-            for manga_id, _ in add_new_series(cur,
-                                              {title_id: chapters},
-                                              service_id):
+            for manga_id, _ in self.dbutil.add_new_series(cur,
+                                                          {title_id: chapters},
+                                                          service_id):
                 self.add_chapters(series, service_id, manga_id)
 
     def scrape_service(self, *args, **kwargs):
@@ -576,16 +579,11 @@ class MangaPlus(BaseScraper):
                 next_update = None
                 disabled = True
 
-        disabled_until = now + self.UPDATE_INTERVAL
-
         with self.conn.cursor() as cursor:
             execute_batch(cursor, sql, data)
 
             sql = 'UPDATE manga_service SET last_check=%s, next_update=to_timestamp(%s), disabled=%s WHERE manga_id=%s AND service_id=%s'
             cursor.execute(sql, [now, next_update, disabled, manga_id, service_id])
-
-            sql = "UPDATE services SET last_check=%s, disabled_until=%s WHERE service_id=%s"
-            cursor.execute(sql, [now, disabled_until, service_id])
 
         self.conn.commit()
         return True

@@ -8,7 +8,7 @@ import psycopg2
 from psycopg2.extras import DictCursor
 
 from src.scrapers.scraper_resolver import SCRAPERS
-from src.utils.dbutils import update_chapter_interval
+from src.utils.dbutils import DbUtil
 
 logger = logging.getLogger('debug')
 
@@ -30,6 +30,7 @@ class UpdateScheduler:
                                       dbname=config['db'],
                                       cursor_factory=DictCursor)
         self._conn.set_client_encoding('UTF8')
+        self._dbutil = DbUtil(self._conn)
         if self._conn.get_parameter_status('timezone') != 'UTC':
             with self._conn.cursor() as cur:
                 cur.execute("SET TIMEZONE TO 'UTC'")
@@ -37,6 +38,10 @@ class UpdateScheduler:
     @property
     def conn(self):
         return self._conn
+
+    @property
+    def dbutil(self):
+        return self._dbutil
 
     def force_run(self, service_id, manga_id=None):
         if manga_id is not None:
@@ -56,7 +61,7 @@ class UpdateScheduler:
                     logger.error(f'Failed to find scraper for {row}')
                     return
 
-                scraper = Scraper(self.conn)
+                scraper = Scraper(self.conn, self.dbutil)
 
                 logger.info(f'Updating {row["title_id"]}')
                 if not scraper.scrape_series(row["title_id"], row['service_id'], row['manga_id']):
@@ -82,7 +87,7 @@ class UpdateScheduler:
                 logger.error(f'Failed to find scraper for {row}')
                 return
 
-            scraper = Scraper(self.conn)
+            scraper = Scraper(self.conn, self.dbutil)
             logger.info(f'Updating service {row["url"]}')
             retval = scraper.scrape_service(row['service_id'], row['feed_url'], None)
             if retval:
@@ -107,14 +112,18 @@ class UpdateScheduler:
                     logger.error(f'Failed to find scraper for {row}')
                     continue
 
-                scraper = Scraper(self.conn)
+                scraper = Scraper(self.conn, self.dbutil)
 
                 for title_id, manga_id in zip(row['title_ids'][:batch_size], row['manga_ids'][:batch_size]):
                     logger.info(f'Updating {title_id} on service {row["service_id"]}')
-                    if scraper.scrape_series(title_id, row['service_id'], manga_id):
-                        manga_ids.add(manga_id)
-                    else:
-                        logger.error(f'Failed to scrape series {row}')
+                    try:
+                        if scraper.scrape_series(title_id, row['service_id'], manga_id):
+                            manga_ids.add(manga_id)
+                        else:
+                            logger.error(f'Failed to scrape series {row}')
+                    except psycopg2.Error:
+                        logger.exception(f'Database error while updating manga {title_id} on service {row["service_id"]}')
+
                     time.sleep(random.randint(5, 10))
 
         sql = """SELECT s.service_id, sw.feed_url, s.url
@@ -133,9 +142,15 @@ class UpdateScheduler:
                 logger.error(f'Failed to find scraper for {row}')
                 continue
 
-            scraper = Scraper(self.conn)
+            scraper = Scraper(self.conn, self.dbutil)
             logger.info(f'Updating service {service[2]}')
-            retval = scraper.scrape_service(service[0], service[1], None)
+            try:
+                retval = scraper.scrape_service(service[0], service[1], None)
+            except psycopg2.Error:
+                logger.exception(f'Database error while scraping {service[1]}')
+                continue
+
+            scraper.set_checked(service[0])
             if retval:
                 manga_ids.update(retval)
 
@@ -143,9 +158,7 @@ class UpdateScheduler:
             logger.debug(f"Updating interval of {len(manga_ids)} manga")
             with self.conn.cursor() as cursor:
                 for manga_id in manga_ids:
-                    update_chapter_interval(cursor, manga_id)
-
-            self.conn.commit()
+                    self.dbutil.update_chapter_interval(cursor, manga_id)
 
         sql = 'SELECT LEAST(MIN(ms.next_update), (SELECT MIN(sw.next_update) FROM service_whole sw)) FROM manga_service ms'
         with self.conn.cursor() as cursor:

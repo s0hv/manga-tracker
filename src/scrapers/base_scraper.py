@@ -1,5 +1,10 @@
 import abc
-from datetime import timedelta
+import logging
+from datetime import timedelta, datetime
+
+import psycopg2
+
+logger = logging.getLogger('debug')
 
 
 class BaseChapter(abc.ABC):
@@ -56,15 +61,34 @@ class BaseScraper(abc.ABC):
         if cls.URL is None:
             raise NotImplementedError("Service doesn't have the URL class property")
 
-    def __init__(self, conn):
+    def __init__(self, conn, dbutil):
         self._conn = conn
-        if self.conn and self._conn.get_parameter_status('timezone') != 'UTC':
-            with self._conn.cursor() as cur:
-                cur.execute("SET TIMEZONE TO 'UTC'")
+        self._dbutil = dbutil
 
     @property
     def conn(self):
         return self._conn
+
+    @property
+    def dbutil(self):
+        return self._dbutil
+
+    def set_checked(self, service_id):
+        with self.conn.cursor() as cursor:
+            now = datetime.utcnow()
+            disabled_until = now + self.min_update_interval()
+            sql = "UPDATE services SET last_check=%s, disabled_until=%s WHERE service_id=%s"
+            try:
+                cursor.execute(sql, [datetime.utcnow(), disabled_until, service_id])
+            except psycopg2.Error:
+                logger.exception(f'Failed to update last check of {service_id}')
+                return
+
+        self.conn.commit()
+
+    @staticmethod
+    def min_update_interval():
+        raise NotImplementedError
 
     @abc.abstractmethod
     def scrape_series(self, title_id, service_id, manga_id):

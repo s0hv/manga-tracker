@@ -1,5 +1,9 @@
 import logging
+import random
 import re
+from datetime import timedelta
+
+from src.errors import FeedHttpError, InvalidFeedError
 
 logger = logging.getLogger('debug')
 
@@ -51,3 +55,29 @@ def round_seconds(sec, accuracy):
         return sec+accuracy
     return sec
 
+
+def random_timedelta(low, high):
+    """
+    Args:
+        low (timedelta or int): Lower bound of the time as timedelta or seconds
+        high (timedelta or int): Upper bound of the time as timedelta or seconds
+
+    Returns:
+        timedelta: A random timedelta between low and high
+    """
+
+    if isinstance(low, timedelta):
+        low = low.total_seconds()
+    if isinstance(high, timedelta):
+        high = high.total_seconds()
+
+    return timedelta(seconds=random.randint(low, high))
+
+
+def is_valid_feed(feed):
+    if hasattr(feed, 'status'):
+        if feed.status != 200:
+            raise FeedHttpError(f'Failed to get feed. Status: {feed.status}')
+
+    if feed.bozo:
+        raise InvalidFeedError('Invalid feed returned', feed.bozo_exception)

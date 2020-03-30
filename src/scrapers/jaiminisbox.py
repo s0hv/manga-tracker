@@ -4,12 +4,12 @@ from datetime import datetime
 from time import mktime
 
 import feedparser
+import psycopg2
 from psycopg2.extras import execute_values
 
+from src.errors import FeedHttpError, InvalidFeedError
 from src.scrapers.base_scraper import BaseScraper, BaseChapter
-from src.utils.dbutils import (add_new_series, update_service,
-                               find_added_titles, update_latest_release)
-from src.utils.utilities import match_title
+from src.utils.utilities import match_title, is_valid_feed
 
 logger = logging.getLogger('debug')
 
@@ -87,8 +87,23 @@ class JaiminisBox(BaseScraper):
     def scrape_series(self, title_id, service_id, manga_id):
         pass
 
+    @staticmethod
+    def min_update_interval():
+        return JaiminisBox.UPDATE_INTERVAL
+
     def scrape_service(self, service_id, feed_url, last_update, title_id=None):
         feed = feedparser.parse(self.FEED_URL)
+        try:
+            is_valid_feed(feed)
+        except (FeedHttpError, InvalidFeedError):
+            logger.exception(f'Failed to fetch feed {feed_url}')
+
+            try:
+                self.dbutil.update_service_whole(None, service_id, self.min_update_interval())
+            except psycopg2.Error:
+                logger.exception(f'Failed to update service {feed_url}')
+            return
+
         titles = {}
         for post in feed.entries:
             title = post.get('title', '')
@@ -120,16 +135,16 @@ class JaiminisBox(BaseScraper):
                 titles[manga_id] = [chapter]
 
         if not titles:
-            with self.conn.cursor() as cur:
-                update_service(cur, service_id, self.UPDATE_INTERVAL)
-
-            self.conn.commit()
+            try:
+                self.dbutil.update_service_whole(None, service_id, self.min_update_interval())
+            except psycopg2.Error:
+                logger.exception(f'Failed to update service {feed_url}')
             return
 
         data = []
         manga_ids = set()
         with self.conn.cursor() as cur:
-            for row in find_added_titles(cur, tuple(titles.keys())):
+            for row in self.dbutil.find_added_titles(cur, tuple(titles.keys())):
                 manga_id = row['manga_id']
                 manga_ids.add(manga_id)
                 for chapter in titles.pop(row['title_id']):
@@ -139,14 +154,12 @@ class JaiminisBox(BaseScraper):
 
         if titles:
             with self.conn.cursor() as cur:
-                for manga_id, chapters in add_new_series(cur, titles, service_id, True):
+                for manga_id, chapters in self.dbutil.add_new_series(cur, titles, service_id, True):
                     manga_ids.add(manga_id)
                     for chapter in chapters:
                         data.append((manga_id, service_id, chapter.title, chapter.chapter_number,
                                      chapter.decimal, chapter.chapter_identifier,
                                      chapter.release_date, chapter.group))
-
-            self.conn.commit()
 
         sql = 'INSERT INTO chapters (manga_id, service_id, title, chapter_number, chapter_decimal, chapter_identifier, release_date, "group") VALUES ' \
               '%s ON CONFLICT DO NOTHING RETURNING manga_id'
@@ -155,10 +168,9 @@ class JaiminisBox(BaseScraper):
             manga_ids = execute_values(cur, sql, data, page_size=len(data), fetch=True)
             manga_ids = {r['manga_id'] for r in manga_ids}
             if manga_ids:
-                update_latest_release(cur, [(m,) for m in manga_ids])
+                self.dbutil.update_latest_release(cur, [(m,) for m in manga_ids])
 
-            update_service(cur, service_id, self.UPDATE_INTERVAL)
+            self.dbutil.update_service_whole(cur, service_id, self.min_update_interval())
 
-        self.conn.commit()
         return manga_ids
 

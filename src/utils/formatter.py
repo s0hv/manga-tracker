@@ -18,6 +18,14 @@ class LoggingFormatter(logging.Formatter):
         if override_colors:
             self.colors.update(override_colors)
 
+    @staticmethod
+    def get_color(**kwargs):
+        color = get_color("", **kwargs)
+        if color:
+            return color[:-4]
+
+        return color
+
     def format(self, record):
         """
         Format the specified record as text.
@@ -33,9 +41,9 @@ class LoggingFormatter(logging.Formatter):
         record.message = record.getMessage()
         if self.usesTime():
             record.asctime = self.formatTime(record, self.datefmt)
-        color = get_color("", **self.colors.get(record.levelno, {}))
+        color = self.get_color(**self.colors.get(record.levelno, {}))
         if color:
-            record.color = color[:-4]
+            record.color = color
             record.colorend = '\x1b[0m'
 
         s = self.formatMessage(record)
@@ -47,7 +55,7 @@ class LoggingFormatter(logging.Formatter):
         if record.exc_text:
             if s[-1:] != "\n":
                 s = s + "\n"
-            color = get_color(**self.colors.get('EXCEPTION', {}))
+            color = self.get_color(**self.colors.get('EXCEPTION', {}))
             if color:
                 s = s + color + record.exc_text + '\x1b[0m'
             else:
