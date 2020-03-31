@@ -121,7 +121,7 @@ class DbUtil:
             args.append((manga_title,))
             manga_titles[manga_title] = chapters
 
-        format_args = ','.join(['%s' for _ in manga_titles])
+        format_args = ','.join(['%s' for _ in args])
         sql = f'SELECT MIN(manga_id), LOWER(title), COUNT(manga_id) FROM manga WHERE LOWER(title) IN ({format_args}) GROUP BY LOWER(title)'
 
         cur.execute(sql, args)
