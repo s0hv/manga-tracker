@@ -26,9 +26,6 @@ def optional_transaction(f):
 class DbUtil:
     def __init__(self, conn):
         self._conn = conn
-        if self.conn and self._conn.get_parameter_status('timezone') != 'UTC':
-            with self._conn.cursor() as cur:
-                cur.execute("SET TIMEZONE TO 'UTC'")
 
     @property
     def conn(self):
@@ -67,6 +64,16 @@ class DbUtil:
             return cur.fetchall()
 
         return cur
+
+    @optional_transaction
+    def update_manga_next_update(self, cur, service_id, manga_id, next_update):
+        sql = 'UPDATE manga_service SET next_update=%s WHERE manga_id=%s AND service_id=%s'
+        cur.execute(sql, (next_update, manga_id, service_id))
+
+    @optional_transaction
+    def set_service_updates(self, cur, service_id, disabled_until):
+        sql = 'UPDATE services SET disabled_until=%s WHERE service_id=%s'
+        cur.execute(sql, (disabled_until, service_id))
 
     @optional_transaction
     def update_chapter_interval(self, cur, manga_id):

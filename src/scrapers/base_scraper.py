@@ -79,7 +79,7 @@ class BaseScraper(abc.ABC):
             disabled_until = now + self.min_update_interval()
             sql = "UPDATE services SET last_check=%s, disabled_until=%s WHERE service_id=%s"
             try:
-                cursor.execute(sql, [datetime.utcnow(), disabled_until, service_id])
+                cursor.execute(sql, (datetime.utcnow(), disabled_until, service_id))
             except psycopg2.Error:
                 logger.exception(f'Failed to update last check of {service_id}')
                 return
