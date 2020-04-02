@@ -52,7 +52,8 @@ class UpdateScheduler:
         manga_ids = set()
         errors = 0
 
-        for idx, title_id, manga_id in enumerate(manga_info):
+        idx = 0
+        for title_id, manga_id in manga_info:
             logger.info(f'Updating {title_id} on service {service_id}')
             try:
                 if scraper.scrape_series(title_id, service_id, manga_id):
@@ -68,7 +69,8 @@ class UpdateScheduler:
             if errors > 1:
                 break
 
-            if idx != len(manga_info)-1:
+            idx += 1
+            if idx != len(manga_info):
                 time.sleep(rng.randint(5, 30))
 
         scraper.set_checked(service_id)
