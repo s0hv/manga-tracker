@@ -9,7 +9,7 @@ import psycopg2
 from psycopg2.extras import DictCursor
 from psycopg2.pool import ThreadedConnectionPool
 
-from src.scrapers.scraper_resolver import SCRAPERS
+from src.scrapers import SCRAPERS
 from src.utils.dbutils import DbUtil
 
 logger = logging.getLogger('debug')
@@ -137,7 +137,7 @@ class UpdateScheduler:
         sql = "SELECT ms.service_id, s.url, array_agg(ms.title_id) title_ids, array_agg(ms.manga_id) manga_ids " \
               "FROM manga_service ms " \
               "INNER JOIN services s ON s.service_id=ms.service_id " \
-              "WHERE NOT (s.disabled OR ms.disabled) AND s.disabled_until < NOW() AND (ms.next_update IS NULL OR ms.next_update < NOW()) GROUP BY ms.service_id, s.url"
+              "WHERE NOT (s.disabled OR ms.disabled) AND (s.disabled_until IS NULL OR s.disabled_until < NOW()) AND (ms.next_update IS NULL OR ms.next_update < NOW()) GROUP BY ms.service_id, s.url"
 
         with conn.cursor() as cursor:
             cursor.execute(sql)

@@ -1,7 +1,7 @@
 import logging
 import re
+from calendar import timegm
 from datetime import datetime, timedelta
-from time import mktime
 
 import feedparser
 import psycopg2
@@ -22,7 +22,7 @@ class Chapter(BaseChapter):
         self._chapter_number = int(chapter) if chapter else 0
         self._volume = int(volume) if volume is not None else None
         self._decimal = int(decimal) if decimal else None
-        self._release_date = datetime.fromtimestamp(mktime(release_date)) if release_date else datetime.utcnow()
+        self._release_date = datetime.utcfromtimestamp(timegm(release_date)) if release_date else datetime.utcnow()
         self._chapter_identifier = chapter_identifier
         self._manga_id = manga_id
         self._manga_title = manga_title

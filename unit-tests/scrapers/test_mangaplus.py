@@ -1,7 +1,22 @@
 import json
 import os
 import unittest
-from src.scrapers.mangaplus import Series
+from base64 import b64decode
+
+from src.scrapers.mangaplus.mangaplus import ResponseWrapper
+
+
+def find_dict_inequality(d1, d2):
+    if d1 == d2:
+        return True
+
+    for k in d1:
+        if d1[k] != d2[k]:
+            print(d1[k], d2[k])
+            print(f"{k} doesn't match")
+            return False
+
+    return True
 
 
 class TestMangaPlusParser(unittest.TestCase):
@@ -10,21 +25,13 @@ class TestMangaPlusParser(unittest.TestCase):
         with open(os.path.join('unit-tests', 'test-data', 'mangaplus.json'), encoding='utf-8') as f:
             self.test_cases = json.load(f)
 
-    def check_series(self, ignore_when_none=False):
-        for case in self.test_cases:
-            data = case['data']
-            correct = case['correct']
-            series = Series(data)
-            series.decode()
-            series_dict = series.__dict__()
-            self.assertTrue(Series.compare_obj(series_dict, correct, ignore_when_none),
-                            "Series objects don't exactly match each other")
-
-    def test_series_exact(self):
-        self.check_series()
-
     def test_series(self):
-        self.check_series(True)
+        for case in self.test_cases:
+            correct = case['correct']
+            resp = ResponseWrapper(b64decode(case['data']))
+            series_dict = resp.title_detail_view.to_dict()
+            self.assertTrue(find_dict_inequality(series_dict, correct),
+                            "Series objects don't exactly match each other")
 
 
 if __name__ == '__main__':

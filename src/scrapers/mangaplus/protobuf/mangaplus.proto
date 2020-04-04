@@ -1,0 +1,86 @@
+enum Language {
+	ENGLISH = 0;
+}
+
+enum UpdateTiming {
+	NOT_REGULARLY = 0;
+	MONDAY = 1;
+	TUESDAY = 2;
+	WEDNESDAY = 3;
+	THURSDAY = 4;
+	FRIDAY = 5;
+	SATURDAY = 6;
+	SUNDAY = 7;
+	DAY = 8;
+}
+
+enum Action {
+	DEFAULT = 0;
+	UNAUTHORIZED = 1;
+	MAINTENANCE = 2;
+	GEOIP_BLOCKING = 3;
+}
+
+message Popup {
+	optional string subject = 1;
+	optional string body = 2;
+}
+
+message Title {
+	required uint32 title_id = 1;
+	required string name = 2;
+	optional string author = 3;
+	optional string portrait_image_url = 4;
+	optional string landscape_image_url = 5;
+	optional uint32 view_count = 6;
+	optional Language language = 7 [default = ENGLISH];
+}
+
+message Chapter {
+	required uint32 title_id = 1;
+	required uint32 chapter_id = 2;
+	required string name = 3;
+	optional string sub_title = 4;
+	optional string thumbnail_url = 5;
+	optional uint32 start_timestamp = 6;
+	optional uint32 end_timestamp = 7;
+}
+
+message TitleDetailView {
+	optional Title title = 1;
+	optional string title_image_url = 2;
+	optional string overview = 3;
+	optional string background_image_url = 4;
+	optional uint32 next_timestamp = 5;
+	optional UpdateTiming update_timing = 6 [default = DAY];
+	optional string viewing_period_description = 7;
+	optional string non_appearance_info = 8;
+	repeated Chapter first_chapter_list = 9;
+	repeated Chapter last_chapter_list = 10;
+	repeated Title recommended_titles = 12;
+	optional bool is_simul_release = 14 [default = true];
+	optional bool chapters_descending = 17 [default = true];
+}
+
+message AllTitlesView {
+	repeated Title titles = 1;
+}
+
+message SuccessResult {
+	oneof result {
+		AllTitlesView titles = 5;
+		TitleDetailView title_detail = 8;
+	}
+}
+
+message ErrorResult {
+	optional Action action = 1;
+	optional Popup english_popup = 2;
+	optional Popup spanish_popup = 3;
+	optional string debug_info = 4;
+}
+
+message Response {
+	optional SuccessResult success_result = 1;
+	optional ErrorResult error_result = 2;
+}

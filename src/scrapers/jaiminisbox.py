@@ -1,7 +1,7 @@
 import logging
 import re
+from calendar import timegm
 from datetime import datetime
-from time import mktime
 
 import feedparser
 import psycopg2
@@ -25,7 +25,7 @@ class Chapter(BaseChapter):
         self._chapter_decimal = chapter_decimal
         self._chapter_title = chapter_title
         self._manga_title = manga_title
-        self._release_date = datetime.fromtimestamp(mktime(release_date)) if release_date else datetime.utcnow()
+        self._release_date = datetime.utcfromtimestamp(timegm(release_date)) if release_date else datetime.utcnow()
 
         m = self.URL_REGEX.match(url)
         m = m.groupdict()
