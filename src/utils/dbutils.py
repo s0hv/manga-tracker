@@ -144,9 +144,12 @@ class DbUtil:
 
             logger.warning(f'Too many matches for manga {row[1]}')
 
-        if not manga_titles:
-            sql = f'''INSERT INTO manga_service (manga_id, service_id, url, disabled, last_check, title_id) VALUES %s'''
+        if already_exist:
+            sql = '''INSERT INTO manga_service (manga_id, service_id, url, disabled, last_check, title_id) VALUES %s 
+                     ON CONFLICT DO NOTHING'''
             execute_values(cur, sql, already_exist, page_size=len(already_exist))
+
+        if not manga_titles:
             return
 
         new_manga = []
@@ -169,7 +172,7 @@ class DbUtil:
             args.append((row[0], service_id, chapter.manga_url, disable_single_update, now, chapter.manga_id))
             id2chapters[row[0]] = chapters
 
-        sql = f'''INSERT INTO manga_service (manga_id, service_id, url, disabled, last_check, title_id) VALUES 
+        sql = '''INSERT INTO manga_service (manga_id, service_id, url, disabled, last_check, title_id) VALUES 
                  %s RETURNING manga_id'''
 
         rows = execute_values(cur, sql, args, page_size=len(args), fetch=True)
