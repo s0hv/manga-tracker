@@ -143,34 +143,37 @@ class JaiminisBox(BaseScraper):
 
         data = []
         manga_ids = set()
-        with self.conn.cursor() as cur:
-            for row in self.dbutil.find_added_titles(cur, tuple(titles.keys())):
-                manga_id = row['manga_id']
-                manga_ids.add(manga_id)
-                for chapter in titles.pop(row['title_id']):
-                    data.append((manga_id, service_id, chapter.title, chapter.chapter_number,
-                                 chapter.decimal, chapter.chapter_identifier, chapter.release_date,
-                                 chapter.group))
+        with self.conn:
+            with self.conn.cursor() as cur:
+                for row in self.dbutil.find_added_titles(cur, tuple(titles.keys())):
+                    manga_id = row['manga_id']
+                    manga_ids.add(manga_id)
+                    for chapter in titles.pop(row['title_id']):
+                        data.append((manga_id, service_id, chapter.title, chapter.chapter_number,
+                                     chapter.decimal, chapter.chapter_identifier, chapter.release_date,
+                                     chapter.group))
 
         if titles:
-            with self.conn.cursor() as cur:
-                for manga_id, chapters in self.dbutil.add_new_series(cur, titles, service_id, True):
-                    manga_ids.add(manga_id)
-                    for chapter in chapters:
-                        data.append((manga_id, service_id, chapter.title, chapter.chapter_number,
-                                     chapter.decimal, chapter.chapter_identifier,
-                                     chapter.release_date, chapter.group))
+            with self.conn:
+                with self.conn.cursor() as cur:
+                    for manga_id, chapters in self.dbutil.add_new_series(cur, titles, service_id, True):
+                        manga_ids.add(manga_id)
+                        for chapter in chapters:
+                            data.append((manga_id, service_id, chapter.title, chapter.chapter_number,
+                                         chapter.decimal, chapter.chapter_identifier,
+                                         chapter.release_date, chapter.group))
 
         sql = 'INSERT INTO chapters (manga_id, service_id, title, chapter_number, chapter_decimal, chapter_identifier, release_date, "group") VALUES ' \
               '%s ON CONFLICT DO NOTHING RETURNING manga_id'
 
-        with self.conn.cursor() as cur:
-            manga_ids = execute_values(cur, sql, data, page_size=len(data), fetch=True)
-            manga_ids = {r['manga_id'] for r in manga_ids}
-            if manga_ids:
-                self.dbutil.update_latest_release(cur, [(m,) for m in manga_ids])
+        with self.conn:
+            with self.conn.cursor() as cur:
+                manga_ids = execute_values(cur, sql, data, page_size=len(data), fetch=True)
+                manga_ids = {r['manga_id'] for r in manga_ids}
+                if manga_ids:
+                    self.dbutil.update_latest_release(cur, [(m,) for m in manga_ids])
 
-            self.dbutil.update_service_whole(cur, service_id, self.min_update_interval())
+                self.dbutil.update_service_whole(cur, service_id, self.min_update_interval())
 
         return manga_ids
 

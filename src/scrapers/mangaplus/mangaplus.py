@@ -266,21 +266,22 @@ class MangaPlus(BaseScraper):
             return series
 
         sql = 'SELECT service_id FROM services WHERE url=%s'
-        with self.conn.cursor() as cur:
-            cur.execute(sql, (self.URL,))
-            service_id = cur.fetchone()
-            if not service_id:
-                logger.error('Could not find service id for Manga Plus')
-                return
+        with self.conn:
+            with self.conn.cursor() as cur:
+                cur.execute(sql, (self.URL,))
+                service_id = cur.fetchone()
+                if not service_id:
+                    logger.error('Could not find service id for Manga Plus')
+                    return
 
-            service_id = service_id[0]
+                service_id = service_id[0]
 
-            chapters = [*series.first_chapter_list, *series.last_chapter_list]
+                chapters = [*series.first_chapter_list, *series.last_chapter_list]
 
-            for manga_id, _ in self.dbutil.add_new_series(cur,
-                                                          {title_id: chapters},
-                                                          service_id):
-                self.add_chapters(series, service_id, manga_id)
+                for manga_id, _ in self.dbutil.add_new_series(cur,
+                                                              {title_id: chapters},
+                                                              service_id):
+                    self.add_chapters(series, service_id, manga_id)
 
     def scrape_service(self, *args, **kwargs):
         pass
@@ -315,11 +316,11 @@ class MangaPlus(BaseScraper):
                 next_update = None
                 disabled = True
 
-        with self.conn.cursor() as cursor:
-            execute_batch(cursor, sql, data)
+        with self.conn:
+            with self.conn.cursor() as cursor:
+                execute_batch(cursor, sql, data)
 
-            sql = 'UPDATE manga_service SET last_check=%s, next_update=%s, disabled=%s WHERE manga_id=%s AND service_id=%s'
-            cursor.execute(sql, [now, next_update, disabled, manga_id, service_id])
+                sql = 'UPDATE manga_service SET last_check=%s, next_update=%s, disabled=%s WHERE manga_id=%s AND service_id=%s'
+                cursor.execute(sql, [now, next_update, disabled, manga_id, service_id])
 
-        self.conn.commit()
         return True

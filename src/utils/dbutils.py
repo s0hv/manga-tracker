@@ -17,8 +17,9 @@ def optional_transaction(f):
         if cur:
             return f(self, cur, *args, **kwargs)
 
-        with self.conn.cursor() as cur:
-            return f(self, cur, *args, **kwargs)
+        with self.conn:
+            with self.conn.cursor() as cur:
+                return f(self, cur, *args, **kwargs)
 
     return wrapper
 
