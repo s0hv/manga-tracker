@@ -8,7 +8,7 @@ from feedgen.feed import FeedGenerator
 from psycopg2.extras import DictCursor
 from psycopg2.pool import ThreadedConnectionPool
 
-from web.exceptions import ConversionError
+from web.exceptions import ConversionError, NotFound
 from web.manga_extension import MangaEntryExtension, MangaExtension
 
 logger = logging.getLogger('debug')
@@ -52,7 +52,7 @@ def to_int(val: [str, int], max_length=None):
         raise ConversionError('Failed to convert to int')
 
 
-def get_feed(limit=40, manga_id=None):
+def get_feed(limit=40, manga_id=None, service_id=None, user_id=None):
     if limit is None:
         limit = 40
     else:
@@ -60,6 +60,13 @@ def get_feed(limit=40, manga_id=None):
 
     if manga_id is not None:
         manga_id = to_int(manga_id, max_length=9)
+
+    if service_id is not None:
+        service_id = to_int(service_id, max_length=6)
+
+    if user_id is not None:
+        if len(user_id) != 32:
+            raise NotFound
 
     limit = min(max(0, limit), 40)
     fg = FeedGenerator()
@@ -71,24 +78,46 @@ def get_feed(limit=40, manga_id=None):
     fg.link(href='test')
     fg.description('test desc')
 
-    if manga_id:
-        cte = 'WITH chapters_filtered AS (SELECT chapter_id, title, chapter_number, chapter_decimal, release_date, chapter_identifier, service_id, manga_id FROM chapters WHERE manga_id=%(manga_id)s ORDER BY  release_date DESC, chapter_number DESC)'
-    else:
-        cte = 'WITH chapters_filtered AS (SELECT chapter_id, title, chapter_number, chapter_decimal, release_date, chapter_identifier, service_id, manga_id FROM chapters ORDER BY release_date DESC, chapter_number DESC)'
+    whereclause = []
+    join = ''
+    cte = 'WITH chapters_filtered AS (SELECT chapter_id, title, chapter_number, chapter_decimal, release_date, chapter_identifier, c.service_id, c.manga_id FROM chapters c {} {} ORDER BY release_date DESC, chapter_number DESC)'
 
-    sql = cte + '''SELECT c.chapter_id, m.title as manga_title, m.manga_id, m.release_interval, c.title, c.chapter_number, c.chapter_decimal, c.release_date, c.chapter_identifier, s.service_name, s.chapter_url_format, s.url
-             FROM chapters_filtered c INNER JOIN manga m on c.manga_id = m.manga_id INNER JOIN services s on c.service_id = s.service_id 
-             WHERE c.release_date > NOW() - INTERVAL '1 hour'
-             UNION 
-                  (SELECT c.chapter_id, m.title as manga_title, m.manga_id, m.release_interval, c.title, c.chapter_number, c.chapter_decimal, c.release_date, c.chapter_identifier, s.service_name, s.chapter_url_format, s.url
-                  FROM chapters_filtered c INNER JOIN manga m on c.manga_id = m.manga_id INNER JOIN services s on c.service_id = s.service_id
-                  LIMIT %(limit)s)
-             ORDER BY release_date DESC, chapter_number DESC'''
+    if user_id:
+        whereclause.append('u.user_uuid=%(user_id)s::uuid')
+        join = 'INNER JOIN user_follows uf ON c.manga_id = uf.manga_id AND (uf.service_id IS NULL OR c.service_id=uf.service_id) ' \
+               'INNER JOIN users u ON u.user_id=uf.user_id'
+    else:
+        if manga_id:
+            whereclause.append('c.manga_id=%(manga_id)s')
+        if service_id:
+            whereclause.append('c.service_id=%(service_id)%')
+
+    if whereclause:
+        whereclause = 'WHERE ' + ' AND '.join(whereclause)
+    else:
+        whereclause = ''
+
+    cte = cte.format(join, whereclause)
+
+    sql = cte +\
+      ''' 
+         SELECT c.chapter_id, m.title as manga_title, m.manga_id, m.release_interval, c.title, c.chapter_number, c.chapter_decimal, c.release_date, c.chapter_identifier, s.service_name, s.chapter_url_format, s.url
+         FROM chapters_filtered c INNER JOIN manga m on c.manga_id = m.manga_id INNER JOIN services s on c.service_id = s.service_id 
+         WHERE c.release_date > NOW() - INTERVAL '1 hour'
+         UNION 
+              (SELECT c.chapter_id, m.title as manga_title, m.manga_id, m.release_interval, c.title, c.chapter_number, c.chapter_decimal, c.release_date, c.chapter_identifier, s.service_name, s.chapter_url_format, s.url
+              FROM chapters_filtered c INNER JOIN manga m on c.manga_id = m.manga_id INNER JOIN services s on c.service_id = s.service_id
+              LIMIT %(limit)s)
+         ORDER BY release_date DESC, chapter_number DESC'''
 
     with get_cursor() as cursor:
         args = {'limit': limit}
         if manga_id:
             args['manga_id'] = manga_id
+        if service_id:
+            args['service_id'] = service_id
+        if user_id:
+            args['user_id'] = user_id
 
         cursor.execute(sql, args)
         rows = cursor.fetchall()
@@ -118,6 +147,9 @@ class Handler:
             resp.status = falcon.HTTP_400
             resp.content_type = falcon.MEDIA_JSON
             resp.media = {'Error': str(e)}
+            return
+        except NotFound:
+            resp.status = falcon.HTTP_404
             return
 
         resp.status = falcon.HTTP_200

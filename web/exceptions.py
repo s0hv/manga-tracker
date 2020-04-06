@@ -4,3 +4,7 @@ class BaseWebException(Exception):
 
 class ConversionError(BaseWebException):
     pass
+
+
+class NotFound(BaseWebException):
+    pass

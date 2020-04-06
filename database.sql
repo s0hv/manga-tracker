@@ -1,4 +1,6 @@
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 CREATE TABLE manga (
     manga_id            SERIAL PRIMARY KEY,
@@ -71,6 +73,49 @@ CREATE INDEX ON chapters (chapter_number);
 CREATE INDEX ON chapters (release_date);
 CREATE UNIQUE INDEX ON chapters (service_id, chapter_identifier);
 
+CREATE TABLE users (
+    user_id     SERIAL PRIMARY KEY,
+    username    VARCHAR(50) NOT NULL,
+    email       VARCHAR(100) NOT NULL UNIQUE,
+    pwhash      TEXT NOT NULL,  -- max password length 72
+    user_uuid   uuid DEFAULT uuid_generate_v4() UNIQUE,  -- used for rss identification
+    joined_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- table under construction
+CREATE TABLE user_tokens (
+    user_id INT NOT NULL REFERENCES users ON DELETE CASCADE,
+    token TEXT NOT NULL UNIQUE,
+    expires_at TIMESTAMP NOT NULL
+);
+
+CREATE OR REPLACE FUNCTION add_user(username VARCHAR(50), email VARCHAR(100), "password" VARCHAR(72))
+RETURNS INT AS
+$$
+DECLARE _user_id INT;
+BEGIN
+    INSERT INTO users (username, email, pwhash) VALUES (username, email, crypt("password", gen_salt('bf'))) RETURNING user_id INTO _user_id;
+    RETURN _user_id;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TABLE user_follows (
+    manga_id    INT NOT NULL REFERENCES manga ON DELETE CASCADE,
+    service_id  SMALLINT DEFAULT NULL REFERENCES services ON DELETE CASCADE,
+    user_id     INT REFERENCES users ON DELETE CASCADE
+);
+
+-- We need to indexes since we want to be able to set service_id to null while keeping it unique
+CREATE UNIQUE INDEX unique_user_follows_key  ON user_follows (manga_id, user_id, service_id) WHERE service_id IS NOT NULL;
+CREATE UNIQUE INDEX unique_user_follows_key2 ON user_follows (manga_id, user_id) WHERE service_id IS NULL;
+
+-- table under construction
+CREATE TABLE sessions (
+    user_id INT NOT NULL REFERENCES users (user_id),
+    session_token uuid NOT NULL DEFAULT uuid_generate_v4() UNIQUE
+);
+
+
 CREATE OR REPLACE FUNCTION merge_manga(base INT, to_merge INT) RETURNS void AS
 $$
 BEGIN
@@ -79,4 +124,4 @@ BEGIN
     UPDATE manga SET latest_release=GREATEST(latest_release, (SELECT latest_release FROM manga WHERE manga_id=to_merge)) WHERE manga_id=base;
     DELETE FROM manga WHERE manga_id=to_merge;
 END;
-$$ LANGUAGE plpgsql
+$$ LANGUAGE plpgsql;
