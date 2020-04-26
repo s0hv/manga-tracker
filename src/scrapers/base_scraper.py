@@ -52,6 +52,9 @@ class BaseChapter(abc.ABC):
     def title(self):
         raise NotImplementedError
 
+    def __str__(self):
+        return f'{self.manga_title} / {self.manga_id}'
+
 
 class BaseScraper(abc.ABC):
     UPDATE_INTERVAL = timedelta(hours=1)

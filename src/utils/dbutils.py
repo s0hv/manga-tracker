@@ -121,18 +121,36 @@ class DbUtil:
 
     @staticmethod
     def add_new_series(cur, manga_chapters: dict, service_id, disable_single_update: bool=False):
-        args = []
         manga_titles = {}
+        duplicates = set()
+
         for title_id, chapters in manga_chapters.items():
             chapter = chapters[0]
             manga_title = chapter.manga_title.lower()
-            args.append((manga_title,))
+            if manga_title in duplicates:
+                continue
+
+            # In case of multiple titles with the same name ignore and resolve manually
+            if manga_title in manga_titles:
+                logger.warning(f'2 or more series with same name found {chapter} AND {manga_titles[manga_title][0]}')
+                manga_titles.pop(manga_title)
+                duplicates.add(manga_title)
+                continue
+
             manga_titles[manga_title] = chapters
 
+        args = [(x,) for x in manga_titles.keys()]
         format_args = ','.join(['%s' for _ in args])
-        sql = f'SELECT MIN(manga_id), LOWER(title), COUNT(manga_id) FROM manga WHERE LOWER(title) IN ({format_args}) GROUP BY LOWER(title)'
+        # This sql filters out manga in this service already. This is because
+        # this function assumes all series added in this function are new
+        sql = f'SELECT MIN(manga.manga_id), LOWER(title), COUNT(manga.manga_id) ' \
+              f'FROM manga LEFT JOIN manga_service ms ON ms.service_id=%s AND manga.manga_id=ms.manga_id ' \
+              f'WHERE ms.manga_id IS NULL AND LOWER(title) IN ({format_args}) GROUP BY LOWER(title)'
 
-        cur.execute(sql, args)
+        cur.execute(sql, (service_id, *args))
+
+        if duplicates:
+            logger.warning(f'All duplicates found {duplicates}')
 
         already_exist = []
         now = datetime.utcnow()
@@ -140,21 +158,22 @@ class DbUtil:
             if row[2] == 1:
                 chapters = manga_titles.pop(row[1])
                 yield row[0], chapters
-                already_exist.append((row[0], service_id, chapters[0].manga_url, disable_single_update, now, chapters[0].manga_id))
+                already_exist.append((row[0], service_id, disable_single_update, now, chapters[0].manga_id))
                 continue
 
             logger.warning(f'Too many matches for manga {row[1]}')
 
+        new_manga = []
+        titles = []
+
         if already_exist:
-            sql = '''INSERT INTO manga_service (manga_id, service_id, url, disabled, last_check, title_id) VALUES %s 
+            sql = '''INSERT INTO manga_service (manga_id, service_id, disabled, last_check, title_id) VALUES %s 
                      ON CONFLICT DO NOTHING'''
             execute_values(cur, sql, already_exist, page_size=len(already_exist))
 
         if not manga_titles:
             return
 
-        new_manga = []
-        titles = []
         id2chapters = {}
         for chapters in manga_titles.values():
             titles.append((chapters[0].manga_title,))
@@ -170,10 +189,10 @@ class DbUtil:
                 logger.warning(f'Inserted manga mismatch with {chapter}')
                 continue
 
-            args.append((row[0], service_id, chapter.manga_url, disable_single_update, now, chapter.manga_id))
+            args.append((row[0], service_id, disable_single_update, now, chapter.manga_id))
             id2chapters[row[0]] = chapters
 
-        sql = '''INSERT INTO manga_service (manga_id, service_id, url, disabled, last_check, title_id) VALUES 
+        sql = '''INSERT INTO manga_service (manga_id, service_id, disabled, last_check, title_id) VALUES 
                  %s RETURNING manga_id'''
 
         rows = execute_values(cur, sql, args, page_size=len(args), fetch=True)
