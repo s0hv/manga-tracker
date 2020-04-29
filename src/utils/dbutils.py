@@ -223,3 +223,35 @@ class DbUtil:
               f'(SELECT MAX(release_date), manga_id FROM chapters WHERE manga_id IN ({format_ids}) GROUP BY manga_id) as c(release_date, manga_id)' \
               'WHERE m.manga_id=c.manga_id'
         cur.execute(sql, data)
+
+    @optional_transaction
+    def update_latest_chapter(self, cur, data):
+        """
+        Updates the latest chapter and next chapter estimates for the given manga that contain new chapters
+        Args:
+            cur: Optional database cursor
+            data: iterable of tuples or lists [manga_id, latest_chapter, release_date]
+
+        Returns:
+            None
+        """
+        if not data:
+            return
+
+        format_ids = ','.join(['%s'] * len(data))
+        sql = f'SELECT latest_chapter, manga_id FROM manga WHERE manga_id IN ({format_ids})'
+        cur.execute(sql, [d[0] for d in data])
+        rows = cur.fetchall()
+        if not rows:
+            return
+
+        # Filter latest chapters
+        rows = {r[1]: r[0] for r in rows}
+        data = [d for d in data if rows[d[0]] is None or rows[d[0]] < d[1]]
+        if not data:
+            return
+
+        sql = 'UPDATE manga m SET latest_chapter=c.latest_chapter, estimated_release=c.release_date + release_interval FROM ' \
+              ' (VALUES %s) as c(manga_id, latest_chapter, release_date) ' \
+              'WHERE c.manga_id=m.manga_id'
+        execute_values(cur, sql, data)

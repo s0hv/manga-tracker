@@ -81,3 +81,26 @@ def is_valid_feed(feed):
 
     if feed.bozo:
         raise InvalidFeedError('Invalid feed returned', feed.bozo_exception)
+
+
+def get_latest_chapters(rows):
+    """
+    From a set of rows get the ones with the highest chapter number and smallest release date
+    Args:
+        rows: A result row or iterable of dicts
+
+    Returns:
+        dict: of rows with the highest chapter number and smallest release date for a single manga
+    """
+    chapter_data = {}
+    for row in rows:
+        if row['chapter_decimal'] is not None:
+            continue
+        manga_id = row['manga_id']
+        if manga_id in chapter_data:
+            if chapter_data[manga_id][1] < row['chapter_number'] or chapter_data[manga_id][2] > row['release_date']:
+                continue
+
+        chapter_data[manga_id] = (row['manga_id'], row['chapter_number'], row['release_date'])
+
+    return chapter_data

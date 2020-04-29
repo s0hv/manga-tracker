@@ -9,7 +9,7 @@ from psycopg2.extras import execute_values
 
 from src.errors import FeedHttpError, InvalidFeedError
 from src.scrapers.base_scraper import BaseScraper, BaseChapter
-from src.utils.utilities import match_title, is_valid_feed
+from src.utils.utilities import match_title, is_valid_feed, get_latest_chapters
 
 logger = logging.getLogger('debug')
 
@@ -164,16 +164,18 @@ class JaiminisBox(BaseScraper):
                                          chapter.release_date, chapter.group))
 
         sql = 'INSERT INTO chapters (manga_id, service_id, title, chapter_number, chapter_decimal, chapter_identifier, release_date, "group") VALUES ' \
-              '%s ON CONFLICT DO NOTHING RETURNING manga_id'
+              '%s ON CONFLICT DO NOTHING RETURNING manga_id, chapter_number, chapter_decimal, release_date'
 
         with self.conn:
             with self.conn.cursor() as cur:
-                manga_ids = execute_values(cur, sql, data, page_size=len(data), fetch=True)
-                manga_ids = {r['manga_id'] for r in manga_ids}
+                rows = execute_values(cur, sql, data, page_size=len(data), fetch=True)
+                manga_ids = {r['manga_id'] for r in rows}
                 if manga_ids:
                     self.dbutil.update_latest_release(cur, [(m,) for m in manga_ids])
+                    self.dbutil.update_latest_chapter(cur, tuple(c for c in get_latest_chapters(rows).values()))
 
                 self.dbutil.update_service_whole(cur, service_id, self.min_update_interval())
+
 
         return manga_ids
 

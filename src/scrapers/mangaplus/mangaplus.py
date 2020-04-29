@@ -316,11 +316,22 @@ class MangaPlus(BaseScraper):
                 next_update = None
                 disabled = True
 
+        newest_chapter = None
+        for c in series.last_chapter_list:
+            if not newest_chapter:
+                newest_chapter = c
+                continue
+
+            if c.chapter_number > newest_chapter.chapter_number:
+                newest_chapter = c
+
         with self.conn:
             with self.conn.cursor() as cursor:
                 execute_batch(cursor, sql, data)
 
                 sql = 'UPDATE manga_service SET last_check=%s, next_update=%s, disabled=%s WHERE manga_id=%s AND service_id=%s'
                 cursor.execute(sql, [now, next_update, disabled, manga_id, service_id])
+                if newest_chapter:
+                    self.dbutil.update_latest_chapter(cursor, ((manga_id, newest_chapter.chapter_number, newest_chapter.release_date),))
 
         return True
