@@ -1,0 +1,19 @@
+{
+  "env": {
+    "test": {
+      "presets": [
+        "next/babel"
+      ]
+    },
+    "development": {
+      "presets": [
+        "next/babel"
+      ]
+    },
+    "production": {
+      "presets": [
+        "next/babel"
+      ]
+    }
+  }
+}
