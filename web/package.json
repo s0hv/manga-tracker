@@ -4,12 +4,12 @@
   "private": true,
   "license": "MIT",
   "dependencies": {
-    "@material-ui/core": "^4.9.11",
+    "@material-ui/core": "^4.9.12",
     "@material-ui/icons": "^4.9.1",
-    "@material-ui/lab": "^4.0.0-alpha.50",
+    "@material-ui/lab": "^4.0.0-alpha.51",
     "@material-ui/system": "^4.9.10",
     "body-parser": "^1.19.0",
-    "concurrently": "^5.1.0",
+    "concurrently": "^5.2.0",
     "cookie-parser": "^1.4.5",
     "crypto": "^1.0.1",
     "express": "^4.17.1",
@@ -19,19 +19,17 @@
     "lodash.throttle": "^4.1.1",
     "lru-cache": "^5.1.1",
     "mangadex-full-api": "^3.6.1",
-    "next": "^9.3.5",
+    "next": "^9.3.6",
     "node-fetch": "^2.6.0",
     "nodemon": "^2.0.3",
     "npm": "^6.14.4",
     "passport": "^0.4.1",
     "passport-local": "^1.0.0",
-    "pg": "^8.0.2",
+    "pg": "^8.0.3",
     "pg-format": "^1.0.4",
     "rate-limiter-flexible": "^2.1.4",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
-    "react-router-dom": "^5.1.2",
-    "react-scripts": "3.4.1",
     "rss": "git+https://github.com/s0hv/node-rss.git"
   },
   "nodemonConfig": {
@@ -41,7 +39,6 @@
   "scripts": {
     "start": "next dev",
     "build": "next build",
-    "eject": "react-scripts eject",
     "server": "concurrently \\\"nodemon --watch src --exec npm run build\\\" \\\"nodemon --watch api/* --watch db/* --watch server.js server.js\\\"",
     "server-dev": "nodemon --watch api/* --watch db/* --watch server.js server.js",
     "deploy": "npm run build && nodemon --watch api/* --watch db/* --watch server.js server.js",
@@ -72,6 +69,6 @@
     "cookie": "^0.4.1",
     "dotenv": "^8.2.0",
     "identity-obj-proxy": "^3.0.0",
-    "jest": "^25.5.3"
+    "jest": "^25.5.4"
   }
 }

@@ -1,9 +1,8 @@
-const { Feed } = require("feed");
 const RSS = require('rss');
 const { getLatestReleases } = require("../db/db");
 
 function createFeed(rows) {
-    const feed2 = new RSS({
+    const feed = new RSS({
         title: "Manga releases",
         description: "Latest manga releases",
         id: "localhost",
@@ -16,7 +15,7 @@ function createFeed(rows) {
     });
 
     rows.forEach(row => {
-        feed2.item({
+        feed.item({
             title: row.title,
             guid: row.chapter_id,
             url: row.chapter_url_format.replace("{}", row.chapter_identifier),
@@ -31,35 +30,7 @@ function createFeed(rows) {
         })
     });
 
-    return feed2.xml({indent: true});
-
-    const feed = new Feed({
-        title: "Manga releases",
-        description: "Latest manga releases",
-        id: "localhost",
-        link: "localhost",
-        feedLinks: {
-            rss: "localhost:3000/rss",
-            atom: "localhost:3000/atom",
-            json: "localhost:3000/json"
-        }
-    });
-
-    rows.forEach(row => {
-        feed.addItem({
-            title: row.title,
-            id: row.chapter_id,
-            link: row.chapter_url_format.replace("{}", row.chapter_identifier),
-            description: `${row.manga_title} - Chapter ${row.chapter_number}`,
-            published: row.release_date,
-            manga: {
-                manga_id: row.manga_id,
-                manga_title: row.manga_title
-            }
-        })
-    });
-
-    return feed.rss2();
+    return feed.xml({indent: true});
 }
 
 module.exports = function (app) {

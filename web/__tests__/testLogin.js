@@ -3,6 +3,7 @@
 import serverPromise from '../server';
 import fetch from 'node-fetch'
 
+const pool = require('./../db')
 const { redis } = require('./../utils/ratelimits')
 
 const cookie = require('cookie');
@@ -112,6 +113,10 @@ describe('Login flow', () => {
   });
 
   test('Valid user', async () => {
+    // Make sure user exists
+    await pool.query(`INSERT INTO users (username, email, pwhash) VALUES ('test', $1, crypt($2, gen_salt('bf'))) ON CONFLICT DO NOTHING `,
+        [realUser.email, realUser.password]);
+
     // Check login with a real user
     let res = await fetch(`${addr}/api/login`, {
       ...loginOpts,
@@ -201,6 +206,6 @@ describe('Login flow', () => {
 
 afterAll(() => {
   httpServer.close();
-  require('./../db').end()
+  pool.end()
   redis.disconnect()
 })
