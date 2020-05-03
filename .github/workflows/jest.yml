@@ -49,7 +49,7 @@ jobs:
       run: npm ci
 
     - name: Initialize database
-      run: psql -d $DB_NAME -h $DB_HOST -f ../database.sql
+      run: docker exec -d postgres psql -d $DB_NAME -h $DB_HOST -f ../database.sql
 
     - name: Run jest
       run: npm run test
