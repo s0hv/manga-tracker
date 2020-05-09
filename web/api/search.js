@@ -20,7 +20,7 @@ module.exports.quickSearch = function (searchWords, cb) {
     pool.query(sql, [searchWords])
         .then(res => cb(res.rows))
         .catch(err => {
-            console.log(err);
+            console.error(err);
             cb(null);
         });
 }

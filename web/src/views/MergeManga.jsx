@@ -55,7 +55,7 @@ function MergeManga(props) {
       .then(res => res.json())
       .then(cb)
       .catch(err => {
-        console.log(err);
+        console.error(err);
         cb({});
       })
   }
@@ -83,9 +83,7 @@ function MergeManga(props) {
     return (
       <li key={index} >
         <div{...props} onClick={(e) => {
-          console.log(e.currentTarget.parentElement, e.currentTarget.blur);
           e.currentTarget.parentElement.blur();
-
           getMangaData(option.manga_id, setManga);
         }}>{option.title}</div>
       </li>

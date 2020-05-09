@@ -11,6 +11,9 @@ const { checkAuth, authenticate, requiresUser } = require('./db/auth');
 const { quickSearch } = require('./api/search');
 const { bruteforce, rateLimiter } = require('./utils/ratelimits');
 
+const sessionDebug = require('debug')('session-debug');
+const debug = require('debug')('debug');
+
 passport.use(new LocalStrategy({
         usernameField: 'email',
         passwordField: 'password',
@@ -28,6 +31,8 @@ passport.deserializeUser(function(user, done) {
 });
 
 const dev = process.env.NODE_ENV !== 'production';
+if (!dev && !process.env.SESSION_SECRET) throw new Error('No session secret given');
+
 nextApp = next({ dev: dev, dir: __dirname });
 const handle = nextApp.getRequestHandler();
 
@@ -42,15 +47,20 @@ module.exports = nextApp.prepare()
     server.sessionStore = store;
 
     server.use(require('body-parser').urlencoded({extended: true}));
-    server.use(require('cookie-parser')());
+    !dev && server.enable('trust-proxy')
+    server.use(require('cookie-parser')(null, {
+        secure: !dev
+    }));
     server.use(session({
         name: 'sess',
         cookie: {
             maxAge: 7200000,
             sameSite: 'strict',
             httpOnly: true,
+            secure: !dev
         },
-        secret: 'secret',
+        proxy: !dev,
+        secret: dev ? 'secret' : process.env.SESSION_SECRET,
         resave: false,
         saveUninitialized: false,
 
@@ -72,18 +82,16 @@ module.exports = nextApp.prepare()
                     sameSite: 'strict',
                 });
             }
-            console.log('Done')
             res.redirect('/');
         });
 
     server.get('/api/quicksearch', (req, res) => {
         if (!req.query.query) {
-            console.log('none')
             return res.json([]);
         }
 
         quickSearch(req.query.query, (results) => {
-            console.log(results);
+            debug(results);
             res.json(results || []);
         })
     });
@@ -93,7 +101,7 @@ module.exports = nextApp.prepare()
     require('./api/user')(server);
 
     server.get('/login', requiresUser, (req, res) => {
-        console.log(req.session.user_id);
+        sessionDebug(req.session.user_id);
         if (req.isAuthenticated()) {
             res.redirect('/');
             return;
@@ -110,7 +118,6 @@ module.exports = nextApp.prepare()
     })
 
     server.get('/manga/:manga_id(\\d+)', requiresUser, (req, res) => {
-        console.log('params', req.params);
         if (req.user) {
             getUserFollows(req.user.user_id, req.params.manga_id)
                 .then(rows => {
@@ -132,7 +139,7 @@ module.exports = nextApp.prepare()
     });
 
     server.get('/*', requiresUser, (req, res) => {
-        console.log('User', req.user);
+        sessionDebug('User', req.user);
         return handle(req, res);
     });
 

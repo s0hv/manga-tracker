@@ -3,6 +3,8 @@ const { requiresUser } = require('./../db/auth');
 const { Manga, Util, link: Link, Chapter, Group } = require("mangadex-full-api");
 const MANGADEX_ID = 2; // Id of the mangadex service in the database
 
+const debug = require('debug')('debug');
+
 // Fill that only does an api request
 Manga.prototype.apiFill = function (id) {
     const jsonAPI = "https://mangadex.org/api/manga/";
@@ -28,7 +30,7 @@ Chapter.prototype._parse = function(data) {
 
 function fetchExtraInfo(mangadexId, mangaId, cb) {
     const manga = new Manga();
-    console.info(`Fetching extra info for ${mangaId} ${mangadexId}`);
+    debug(`Fetching extra info for ${mangaId} ${mangadexId}`);
     manga.apiFill(mangadexId)
         .then(() => {
             const sql = `INSERT INTO manga_info (manga_id, cover, artist, author, bw, mu, mal, amz, ebj, engtl, raw, nu, kt, ap, al)
@@ -93,7 +95,7 @@ function fetchExtraInfo(mangadexId, mangaId, cb) {
                                         ON CONFLICT (service_id, chapter_identifier) DO UPDATE SET title=EXCLUDED.title`;
                     pool.query(chapterSql, slice.flat())
                         .then(res => {
-                            console.log(res.rowCount);
+                            debug(res.rowCount);
                         })
                         .catch(err => console.error(err));
                 }

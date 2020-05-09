@@ -6,6 +6,8 @@ import {blue} from "@material-ui/core/colors";
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import Head from 'next/head';
 
+const sessionDebug = require('debug')('session-debug');
+
 
 const MyApp = function ({ Component, pageProps, props }) {
   React.useEffect(() => {
@@ -17,7 +19,6 @@ const MyApp = function ({ Component, pageProps, props }) {
 
 
   const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
-  console.log(prefersDarkMode);
 
   const theme = React.useMemo(
     () =>
@@ -47,9 +48,12 @@ const MyApp = function ({ Component, pageProps, props }) {
 }
 
 MyApp.getInitialProps = async function ({ ctx }) {
-  console.log('Initial props', ctx.req.user);
+  sessionDebug('Initial props', ctx.req?.user);
   return {
-    props: {user: ctx.req.user?.username}, // will be passed to the page component as props
+    props: {
+      user: ctx.req?.user?.username,
+      statusCode: ctx.res?.statusCode || 200,
+    }, // will be passed to the page component as props
   }
 }
 

@@ -275,7 +275,6 @@ function useSearch(props) {
       'aria-labelledby': `${id}-label`,
       ref: handleListboxRef,
       onMouseDown: (event) => {
-        console.log(event);
         // Prevent blur
         event.preventDefault();
       },

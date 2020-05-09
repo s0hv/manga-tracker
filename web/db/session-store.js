@@ -1,5 +1,7 @@
 const LRU = require("lru-cache");
 
+const sessionDebug = require('debug')('session-debug');
+
 module.exports = function (session) {
     const Store = session.Store;
 
@@ -54,7 +56,7 @@ module.exports = function (session) {
         }
 
         destroy(sid, cb = noop) {
-            console.debug('Delete session', sid, this.cache.peek(sid));
+            sessionDebug('Delete session', sid, this.cache.peek(sid));
             this.cache.del(sid);
             const sql = `DELETE FROM sessions WHERE session_id=$1`
             this.conn.query(sql, [sid])

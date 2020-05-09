@@ -3,8 +3,9 @@
 import serverPromise from '../server';
 import fetch from 'node-fetch'
 
-const pool = require('./../db')
-const { redis } = require('./../utils/ratelimits')
+const pool = require('./../db');
+const { redis } = require('./../utils/ratelimits');
+const signature = require('cookie-signature')
 
 const cookie = require('cookie');
 
@@ -141,7 +142,7 @@ describe('Login flow', () => {
     });
     expect(res.headers.get('set-cookie')).toBeTruthy();
     expect(res.headers.get('location')).toEqual(addr + '/')
-    // Make sure remember me cookie wasn't set
+    // Make sure remember me cookie was set
     cookies = checkCookies(res, ['sess', 'auth']);
 
     res = await fetch(`${addr}/api/authCheck`, {
@@ -201,7 +202,53 @@ describe('Login flow', () => {
     expect(res.status).toStrictEqual(429);
     expect((await res.json()).error.nextValidRequestDate).not.toEqual(resp.error.nextValidRequestDate)
 
-  })
+  });
+
+  test('Logout', async () => {
+    // Make sure user exists
+    await pool.query(`INSERT INTO users (username, email, pwhash) VALUES ('test', $1, crypt($2, gen_salt('bf'))) ON CONFLICT DO NOTHING `,
+        [realUser.email, realUser.password]);
+
+    // Check login with a real user
+    let res = await fetch(`${addr}/api/login`, {
+      ...loginOpts,
+      body: createBody({...realUser, rememberme: 'on'})
+    });
+    expect(res.headers.get('set-cookie')).toBeTruthy();
+    expect(res.headers.get('location')).toEqual(addr + '/')
+    // Make sure remember me cookie was set
+    let cookies = checkCookies(res, ['sess', 'auth']);
+
+    res = await fetch(`${addr}/api/logout`, {
+      method: 'post',
+      redirect: 'manual',
+      headers: {
+        cookie: `${cookies.auth};${cookies.sess}`
+      }
+    });
+
+    checkCookies(res, [], ['sess', 'auth']);
+
+    let sql = `SELECT 1 FROM auth_tokens INNER JOIN users u ON auth_tokens.user_id = u.user_id 
+               WHERE user_uuid=$1 AND lookup=$2 AND hashed_token=encode(digest($3, 'sha256'), 'hex')`;
+    const [lookup, token, uuidb64] = cookie.parse(cookies.auth).auth.split(';', 3);
+    const uuid = Buffer.from(uuidb64, 'base64').toString('ascii');
+
+    let rows = await pool.query(sql, [uuid, lookup, token]);
+    expect(rows.rowCount).toStrictEqual(0);
+
+    let raw = cookie.parse(cookies.sess).sess;
+    expect(raw.substr(0, 2)).toStrictEqual('s:');
+
+    // development secret value is just secret
+    let val = signature.unsign(raw.slice(2), 'secret');
+    console.log(val);
+    expect(val).toBeTruthy();
+
+    sql = `SELECT 1 FROM sessions WHERE session_id=$1`;
+    rows = await pool.query(sql, [val]);
+    expect(rows.rowCount).toStrictEqual(0);
+  });
 });
 
 afterAll(() => {

@@ -1,25 +1,26 @@
 import React from 'react';
+import {makeStyles} from "@material-ui/core/styles";
+import Typography from "@material-ui/core/Typography";
 
+const useStyles = makeStyles(theme => ({
+  root: {
+    textAlign: 'center',
+    height: '50vh',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  }
+  })
+);
 
-function App({ user }) {
+function App() {
+  const classes = useStyles();
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a href="/login">
-          {user || 'Login'}
-        </a>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className={classes.root}>
+      <Typography variant='h1'>
+        Home page
+      </Typography>
     </div>
   );
 }

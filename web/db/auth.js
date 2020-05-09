@@ -3,6 +3,8 @@ const LRU = require("lru-cache");
 const crypto = require('crypto');
 const { bruteforce } = require('./../utils/ratelimits');
 
+const sessionDebug = require('debug')('session-debug');
+
 const userCache = new LRU(({
                 max: 50,
                 maxAge: 86400000, // 1 day in ms
@@ -102,7 +104,7 @@ function getUser(uid, cb) {
             cb(val, null);
         })
         .catch(err => {
-            console.log(err);
+            console.error(err);
             cb(null, err);
         });
 }
@@ -120,7 +122,7 @@ module.exports.checkAuth =  function(app) {
         if (req.session.user_id || !req.cookies.auth) return next();
         bruteforce.prevent(req, res, () => {
 
-            console.debug('Checking auth from db');
+            sessionDebug('Checking auth from db');
             const sql = `SELECT u.user_id, u.username, u.user_uuid FROM auth_tokens INNER JOIN users u on u.user_id=auth_tokens.user_id 
                          WHERE expires_at > NOW() AND user_uuid=$1 AND 
                                lookup=$2 AND hashed_token=encode(digest($3, 'sha256'), 'hex')`;
@@ -140,7 +142,7 @@ module.exports.checkAuth =  function(app) {
             pool.query(sql, [uuid, lookup, token])
                 .then(sqlRes => {
                     if (sqlRes.rowCount === 0) {
-                        console.log('Session not found. Clearing cookie')
+                        sessionDebug('Session not found. Clearing cookie')
                         res.clearCookie('auth');
                         req.session.user_id = undefined;
 
@@ -150,11 +152,11 @@ module.exports.checkAuth =  function(app) {
 
                         pool.query(checkLookup, [uuid, lookup])
                             .then(res2 => {
-                                if (res2.rowCount === 0) return;
+                                if (res2.rowCount === 0) return next();
                                 // TODO Display warning
                                 clearUserAuthTokens(res2.rows[0].user_id, () => {
                                     app.sessionStore.clearUserSessions(res2.rows[0].user_id, () => {
-                                        console.log("Invalid auth token found for user. Sessions cleared");
+                                        sessionDebug("Invalid auth token found for user. Sessions cleared");
                                         next()
                                     })
                                 })
@@ -190,12 +192,23 @@ module.exports.checkAuth =  function(app) {
                 .catch(err => {
                     req.session.user_id = undefined;
                     if (err.code === '22P02') return next(err);
-                    console.log(err);
+                    console.error(err);
                     next(err);
                 })
         });
     }
 }
+
+function clearUserAuthToken(uid, auth, cb) {
+    const [lookup, token] = auth.split(';', 3);
+
+    const sql = `DELETE FROM auth_tokens WHERE user_id=$1 AND lookup=$2 AND hashed_token=encode(digest($3, 'sha256'), 'hex')`;
+    pool.query(sql, [uid, lookup, token])
+        .then(() => cb(null))
+        .catch(err => cb(err));
+}
+
+module.exports.clearUserAuthToken = clearUserAuthToken;
 
 function clearUserAuthTokens(uid, cb) {
     const sql = `DELETE FROM auth_tokens WHERE user_id=$1`;

@@ -47,7 +47,7 @@ function PartialManga(props) {
     mangaData,
   } = props;
 
-  console.log('manga data', mangaData);
+  console.debug('manga data', mangaData);
 
   if (!mangaData.manga_id) return null;
 

@@ -53,7 +53,7 @@ module.exports = function (app) {
                 res.send(Buffer.from(createFeed(rows.rows)));
             })
             .catch(err => {
-                console.log(err);
+                console.error(err);
                 res.status(500).send("500 ISE");
             });
     });

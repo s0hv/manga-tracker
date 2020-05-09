@@ -1,5 +1,9 @@
-const { requiresUser, clearUserAuthTokens, generateAuthToken } = require('./../db/auth');
+const sessionDebug = require('debug')('session-debug');
+
+const { requiresUser, clearUserAuthTokens, generateAuthToken, clearUserAuthToken } = require('./../db/auth');
 const pool = require('./../db');
+
+
 
 const MAX_USERNAME_LENGTH = 100;
 // Rudimentary email check that check that your email is in the format of a@b.c
@@ -12,7 +16,7 @@ module.exports = function (app) {
             res.status(401).json({error: 'Not logged in'});
             return;
         }
-        console.log(req.body);
+        sessionDebug(req.body);
 
         const args = [req.user.user_id];
         const cols = [];
@@ -83,7 +87,7 @@ module.exports = function (app) {
                     res.status(401).json({error: 'Invalid credentials'});
                     return;
                 }
-                console.log(req.cookies.auth)
+                sessionDebug(req.cookies.auth)
 
                 if (pw) {
                     function regen() {
@@ -117,5 +121,22 @@ module.exports = function (app) {
                 console.error(err);
                 res.status(400).json({error: 'Invalid values given'});
             })
-    })
+    });
+
+    app.post('/api/logout', requiresUser, (req, res) => {
+        if (!req.user.user_id) return res.redirect('/');
+
+        req.session.destroy((err) => {
+            if (err) console.error(err);
+            if (req.cookies.auth) {
+                clearUserAuthToken(req.user.user_id, req.cookies.auth, () => {
+                    res.clearCookie('auth');
+                    res.redirect('/');
+                });
+                return;
+            }
+
+            res.redirect('/');
+        })
+    });
 }

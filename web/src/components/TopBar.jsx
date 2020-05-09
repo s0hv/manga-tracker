@@ -1,14 +1,17 @@
 import React from 'react';
 import {makeStyles} from "@material-ui/core/styles";
-import AppBar from '@material-ui/core/AppBar';
-import Toolbar from '@material-ui/core/Toolbar';
-import IconButton from '@material-ui/core/IconButton';
-import Typography from '@material-ui/core/Typography';
-import SearchInput from './Search';
-import MenuItem from '@material-ui/core/MenuItem';
-import Menu from '@material-ui/core/Menu';
 import AccountCircle from '@material-ui/icons/AccountCircle';
+import {
+  AppBar,
+  Button,
+  IconButton,
+  Menu,
+  MenuItem,
+  Toolbar,
+  Typography,
+} from '@material-ui/core';
 import Link from 'next/Link';
+import SearchInput from './Search';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -33,6 +36,11 @@ const useStyles = makeStyles((theme) => ({
     marginLeft: theme.spacing(2),
     float: "right",
   },
+  loginButton: {
+    position: "relative",
+    marginLeft: theme.spacing(3),
+    float: "right",
+  },
   popper: {
     zIndex: theme.zIndex.modal,
     marginTop: '10px',
@@ -42,6 +50,16 @@ const useStyles = makeStyles((theme) => ({
     },
   },
 }));
+
+const MenuButton = React.forwardRef(({ href, prefetch, as, ...props }, ref) => {
+  return (
+    <Link href={href} prefetch={prefetch} as={as}>
+      <MenuItem {...props} ref={ref}>
+        {props.children}
+      </MenuItem>
+    </Link>
+  )
+})
 
 function TopBar({ user }) {
   const classes = useStyles();
@@ -56,6 +74,22 @@ function TopBar({ user }) {
     setAnchorEl(null);
   };
 
+  const handleLogout = () => {
+    handleClose();
+    fetch('api/logout', {
+      method: 'post',
+      credentials: 'include',
+    })
+      .then(res => {
+        console.log(res)
+        window.location.replace(res.url);
+      })
+      .catch(err => {
+        window.location.reload();
+        console.error(err);
+      })
+  }
+
 
   return (
     <div className={classes.root}>
@@ -66,7 +100,7 @@ function TopBar({ user }) {
           </Typography>
           <div className={classes.grow}/>
           <SearchInput id="title-search"/>
-          {user &&
+          {(user &&
           <div className={classes.profileIcon}>
             <IconButton
                 aria-label="account of current user"
@@ -95,14 +129,20 @@ function TopBar({ user }) {
                 open={open}
                 onClose={handleClose}
             >
-              <Link href='/profile' prefetch={false}>
-                <MenuItem onClick={handleClose}>
-                    Profile
-                </MenuItem>
-              </Link>
+              <MenuButton href='/profile' prefetch={false} onClick={handleClose}>
+                Profile
+              </MenuButton>
+              <MenuItem onClick={handleLogout}>
+                Logout
+              </MenuItem>
             </Menu>
           </div>
-          }
+          ) ||
+          <Link href='/login' prefetch={false}>
+            <Button variant='outlined' className={classes.loginButton}>
+              Login
+            </Button>
+          </Link>}
         </Toolbar>
       </AppBar>
     </div>
