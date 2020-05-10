@@ -50,7 +50,6 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 const dateOptions = { weekday: 'short', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
-const host = process.env.HOST || 'http://localhost:3000';
 
 
 function Manga (props) {
@@ -81,8 +80,8 @@ function Manga (props) {
   }, [mangaData.manga_id, mangaData.chapters?.length])
 
   const followUnfollow = (service_id) => {
-    const url = service_id ? `${host}/api/user/follows?manga_id=${mangaData.manga_id}&service_id=${service_id}` :
-                             `${host}/api/user/follows?manga_id=${mangaData.manga_id}`;
+    const url = service_id ? `/api/user/follows?manga_id=${mangaData.manga_id}&service_id=${service_id}` :
+                             `/api/user/follows?manga_id=${mangaData.manga_id}`;
     return throttle((event) => {
       const target = event.target;
       switch (target.textContent.toLowerCase()) {

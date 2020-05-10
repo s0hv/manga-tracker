@@ -2,8 +2,6 @@ import MergeManga from '../../views/MergeManga';
 import React from "react";
 
 
-const host = process.env.HOST || 'http://localhost:3000';
-
 const MergeMangaPage = function (props) {
     const {
         user,

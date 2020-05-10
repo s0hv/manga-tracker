@@ -9,8 +9,6 @@ import Grid from '@material-ui/core/Grid'
 import Search from "../components/Search";
 import PartialManga from "../components/PartialManga";
 
-const host = process.env.HOST || 'http://localhost:3000';
-
 const useStyles = makeStyles((theme) => ({
   root: {
     minHeight: '400px',
@@ -51,7 +49,7 @@ function MergeManga(props) {
   const [result, setResult] = React.useState({});
 
   const getMangaData = (manga_id, cb) => {
-    fetch(`${host}/api/manga/${manga_id}`)
+    fetch(`/api/manga/${manga_id}`)
       .then(res => res.json())
       .then(cb)
       .catch(err => {
@@ -62,7 +60,7 @@ function MergeManga(props) {
 
   const mergeManga = () => {
     if (!manga1.manga_id || !manga2.manga_id || manga1.manga_id == manga2.manga_id) return;
-    fetch(`${host}/api/manga/merge/?base=${manga1.manga_id}&to_merge=${manga2.manga_id}`,
+    fetch(`/api/manga/merge/?base=${manga1.manga_id}&to_merge=${manga2.manga_id}`,
       {credentials: 'include', method: 'post'})
       .then(res => {
         if (res.status != 200) {
