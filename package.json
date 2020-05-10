@@ -47,7 +47,8 @@
     "extends": "react-app"
   },
   "cacheDirectories": [
-    ".next/cache/"
+    ".next/cache/",
+    "web/.next/cache/"
   ],
   "browserslist": {
     "production": [
