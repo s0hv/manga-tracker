@@ -20,7 +20,7 @@ module.exports = {
 
   testPathIgnorePatterns: ['/node_modules/', '/.next/', '<rootDir>/.next/'],
   transform: {
-    '^.+\\.(js|jsx|ts|tsx)$': '/node_modules/babel-jest',
+    '^.+\\.(js|jsx|ts|tsx)$': '<rootDir>/node_modules/babel-jest',
   },
   transformIgnorePatterns: [
     '/node_modules/',
