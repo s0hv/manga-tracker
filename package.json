@@ -34,14 +34,15 @@
     "rss": "git+https://github.com/s0hv/node-rss.git"
   },
   "scripts": {
-    "start": "next dev",
+    "start": "cd web && next dev",
     "build": "next build",
-    "server": "node server.js",
-    "server-dev": "nodemon --watch api/* --watch db/* --watch server.js server.js",
-    "deploy": "npm run build && node server.js",
+    "server": "cd web && node server.js",
+    "server-dev": "cd web && nodemon --watch api/* --watch db/* --watch server.js server.js",
+    "deploy": "cd web && npm run build && node server.js",
+    "deploy-heroku": "cd web && npm run build && node server.js",
     "backend-only": "nodemon --watch api/* --watch db/* --watch server.js server.js",
-    "test": "jest",
-    "initDb": "node initDb.js"
+    "test": "cd web && jest",
+    "initDb": "node web/initDb.js"
   },
   "eslintConfig": {
     "extends": "react-app"
