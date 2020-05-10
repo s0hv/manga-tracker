@@ -10,7 +10,7 @@ const redis = new Redis({
 });
 
 redis.on('error', err => {
-    console.err('Redis error', err);
+    console.error('Redis error', err);
 });
 
 const rateLimiterMemory = new RateLimiterMemory({
