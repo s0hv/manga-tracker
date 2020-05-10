@@ -3,7 +3,7 @@ const { RateLimiterRedis, RateLimiterMemory } = require('rate-limiter-flexible')
 const ExpressBruteFlexible = require('rate-limiter-flexible/lib/ExpressBruteFlexible');
 
 const redis = new Redis({
-    host: process.env.REDIS_HOST,
+    host: process.env.REDIS_HOST || process.env.REDIS_URL,
     port: process.env.REDIS_PORT,
     enableOfflineQueue: process.env.NODE_ENV !== 'production',
     showFriendlyErrorStack: process.env.NODE_ENV !== 'production'
