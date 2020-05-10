@@ -95,8 +95,11 @@ class JaiminisBox(BaseScraper):
         feed = feedparser.parse(self.FEED_URL)
         try:
             is_valid_feed(feed)
-        except (FeedHttpError, InvalidFeedError):
-            logger.exception(f'Failed to fetch feed {feed_url}')
+        except (FeedHttpError, InvalidFeedError) as e:
+            if isinstance(e, FeedHttpError):
+                logger.info(str(e))
+            else:
+                logger.exception(f'Failed to fetch feed {feed_url}')
 
             try:
                 self.dbutil.update_service_whole(None, service_id, self.min_update_interval())
