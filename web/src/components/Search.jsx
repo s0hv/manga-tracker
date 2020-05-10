@@ -12,7 +12,7 @@ import Popper from '@material-ui/core/Popper'
 import Paper from '@material-ui/core/Paper'
 import IconButton from "@material-ui/core/IconButton";
 
-import Link from 'next/Link';
+import Link from 'next/link';
 import throttle from 'lodash/throttle';
 
 const useStyles = makeStyles((theme) => ({

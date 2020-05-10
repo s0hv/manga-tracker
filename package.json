@@ -38,8 +38,7 @@
     "build": "cd web && next build",
     "server": "cd web && node server.js",
     "server-dev": "cd web && nodemon --watch api/* --watch db/* --watch server.js server.js",
-    "deploy": "cd web && npm run build && node server.js",
-    "deploy-heroku": "cd web && npm run build && node server.js",
+    "deploy": "cd web && node server.js",
     "backend-only": "nodemon --watch api/* --watch db/* --watch server.js server.js",
     "test": "cd web && jest",
     "initDb": "node web/initDb.js"
