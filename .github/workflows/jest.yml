@@ -6,10 +6,6 @@ on:
   pull_request:
     branch: [ master, development ]
 
-defaults:
-  run:
-    working-directory: web
-
 jobs:
   build:
 
