@@ -123,7 +123,7 @@ module.exports = nextApp.prepare()
     server.get('/manga/:manga_id(\\d+)', requiresUser, (req, res) => {
         getManga(req.params.manga_id, 50, (err, data) => {
             if (err) {
-                res.status(err);
+                res.status(err).end();
                 handle(req, res);
                 return;
             } else {
@@ -134,6 +134,7 @@ module.exports = nextApp.prepare()
                 getUserFollows(req.user.user_id, req.params.manga_id)
                     .then(rows => {
                         req.user_follows = rows.rows.map(row => row.service_id);
+                        handle(req, res);
                     })
                     .catch(err => {
                         if (!(err.code === '22003')) {
@@ -141,7 +142,6 @@ module.exports = nextApp.prepare()
                             res.redirect('/404');
                             return;
                         }
-
                         handle(req, res);
                     });
                 return;
