@@ -35,7 +35,7 @@
   },
   "scripts": {
     "start": "cd web && next dev",
-    "build": "next build",
+    "build": "cd web && next build",
     "server": "cd web && node server.js",
     "server-dev": "cd web && nodemon --watch api/* --watch db/* --watch server.js server.js",
     "deploy": "cd web && npm run build && node server.js",
