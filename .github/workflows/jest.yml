@@ -2,9 +2,9 @@ name: Tests
 
 on:
   push:
-    branch: development
+    branch: [ master, development ]
   pull_request:
-    branch: development
+    branch: [ master, development ]
 
 defaults:
   run:
