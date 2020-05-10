@@ -8,7 +8,7 @@
   },
   "scripts": {
     "postinstall": "cd web && npm install",
-    "heroku-postinstall": "cd web && npm run build",
+    "heroku-postbuild": "cd web && npm run build",
     "deploy": "cd web && npm run deploy",
     "server-dev": "cd web && npm run server-dev"
   },
@@ -17,6 +17,7 @@
   },
   "cacheDirectories": [
     ".next/cache/",
-    "web/.next/cache/"
+    "web/.next/cache/",
+    "web/node_modules"
   ]
 }
