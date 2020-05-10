@@ -41,7 +41,7 @@
     "deploy": "node server.js",
     "backend-only": "nodemon --watch api/* --watch db/* --watch server.js server.js",
     "test": "jest",
-    "initDb": "node web/initDb.js"
+    "initDb": "node initDb.js"
   },
   "eslintConfig": {
     "extends": "react-app"
