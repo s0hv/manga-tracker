@@ -1,9 +1,6 @@
 import Manga from '../../views/Manga';
 import React from "react";
-import fetch from 'node-fetch'
 
-
-const host = process.env.HOST || 'http://localhost:3000';
 
 const MangaPage = function (props) {
     const {
@@ -18,19 +15,17 @@ const MangaPage = function (props) {
 }
 
 export async function getServerSideProps(ctx) {
-    const response = await fetch(`${host}/api/manga/${ctx.params.manga_id}?chapters=50`);
-    const data = await response.json();
-    if (data.error) {
+    const manga = ctx.req?.manga_data;
+    if (!manga) {
         ctx.res.redirect('/404');
         return {props: {}};
     }
+    let data = JSON.parse(JSON.stringify(manga))
 
     return {
         props: {
-            manga: {
-              ...data
-            },
-            follows: ctx.req.user_follows || null,
+            manga: data,
+            follows: ctx.req?.user_follows || null,
         }
     }
 }
