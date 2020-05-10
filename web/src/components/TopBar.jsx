@@ -16,7 +16,7 @@ import {
   Toolbar,
   Typography,
 } from '@material-ui/core';
-import Link from 'next/Link';
+import Link from 'next/link';
 import SearchInput from './Search';
 
 const useStyles = makeStyles((theme) => ({
