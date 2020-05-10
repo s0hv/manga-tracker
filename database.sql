@@ -104,7 +104,7 @@ CREATE TABLE users (
     pwhash      TEXT NOT NULL,  -- max password length 72
     user_uuid   uuid DEFAULT uuid_generate_v4() UNIQUE,  -- used for rss identification
     joined_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    dark_theme  BOOL NOT NULL DEFAULT TRUE,
+    theme       SMALLINT NOT NULL DEFAULT 0,
     admin       BOOl DEFAULT FALSE
 );
 
@@ -121,7 +121,6 @@ CREATE TABLE sessions (
     user_id     INT REFERENCES users ON DELETE CASCADE,
     session_id  TEXT PRIMARY KEY,
     expires_at  TIMESTAMP NOT NULL,
-    dark_theme  BOOL DEFAULT NULL,
     data        json
 );
 

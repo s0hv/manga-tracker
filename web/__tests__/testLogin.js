@@ -242,7 +242,6 @@ describe('Login flow', () => {
 
     // development secret value is just secret
     let val = signature.unsign(raw.slice(2), 'secret');
-    console.log(val);
     expect(val).toBeTruthy();
 
     sql = `SELECT 1 FROM sessions WHERE session_id=$1`;

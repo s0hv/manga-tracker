@@ -4,6 +4,7 @@ const crypto = require('crypto');
 const { bruteforce } = require('./../utils/ratelimits');
 
 const sessionDebug = require('debug')('session-debug');
+const authInfo = require('debug')('auth-info');
 
 const userCache = new LRU(({
                 max: 50,
@@ -51,7 +52,7 @@ function regenerateAuthToken(uid, lookup, user_uuid, cb) {
 module.exports.authenticate = function (req, email, password, cb) {
     if (password.length > 72) return cb(null, false);
 
-    let sql = `SELECT user_id, username, user_uuid FROM users WHERE email=$1 AND pwhash=crypt($2, pwhash)`
+    let sql = `SELECT user_id, username, user_uuid, theme FROM users WHERE email=$1 AND pwhash=crypt($2, pwhash)`
     pool.query(sql, [email, password])
         .then(res => {
         if (res.rowCount === 0) {
@@ -68,7 +69,12 @@ module.exports.authenticate = function (req, email, password, cb) {
                     return cb(err, false);
                 }
                 req.session.user_id = row.user_id;
-                userCache.set(row.user_id, {user_id: row.user_id, username: row.username, uuid: row.user_uuid});
+                userCache.set(row.user_id, {
+                    user_id: row.user_id,
+                    username: row.username,
+                    uuid: row.user_uuid,
+                    theme: row.theme
+                });
                 return cb(null, token);
             });
 }
@@ -94,12 +100,17 @@ function getUser(uid, cb) {
     let user = userCache.get(uid);
     if (user) return cb(user, null);
 
-    const sql = `SELECT username, user_uuid FROM users WHERE user_id=$1`;
+    const sql = `SELECT username, user_uuid, theme FROM users WHERE user_id=$1`;
     pool.query(sql, [uid])
          .then(res => {
             if (res.rowCount === 0) return cb(null, null);
             const row = res.rows[0];
-            const val = {username: row.username, uuid: row.user_uuid, user_id: uid}
+            const val = {
+                username: row.username,
+                uuid: row.user_uuid,
+                user_id: uid,
+                theme: row.theme
+            }
             userCache.set(uid, val);
             cb(val, null);
         })
@@ -122,8 +133,8 @@ module.exports.checkAuth =  function(app) {
         if (req.session.user_id || !req.cookies.auth) return next();
         bruteforce.prevent(req, res, () => {
 
-            sessionDebug('Checking auth from db');
-            const sql = `SELECT u.user_id, u.username, u.user_uuid FROM auth_tokens INNER JOIN users u on u.user_id=auth_tokens.user_id 
+            authInfo('Checking auth from db for', req.cookies.auth);
+            const sql = `SELECT u.user_id, u.username, u.user_uuid, u.theme FROM auth_tokens INNER JOIN users u on u.user_id=auth_tokens.user_id 
                          WHERE expires_at > NOW() AND user_uuid=$1 AND 
                                lookup=$2 AND hashed_token=encode(digest($3, 'sha256'), 'hex')`;
 
@@ -166,7 +177,12 @@ module.exports.checkAuth =  function(app) {
                     }
 
                     const row = sqlRes.rows[0];
-                    userCache.set(row.user_id, {user_id: row.user_id, username: row.username, uuid: row.user_uuid});
+                    userCache.set(row.user_id, {
+                        user_id: row.user_id,
+                        username: row.username,
+                        uuid: row.user_uuid,
+                        theme: row.theme
+                    });
                     // Try to regen session
                     req.session.regenerate((err)=>{
                         if (err) {
@@ -218,3 +234,9 @@ function clearUserAuthTokens(uid, cb) {
 }
 
 module.exports.clearUserAuthTokens = clearUserAuthTokens;
+
+module.exports.modifyCacheUser = (uid, modifications) => {
+    const user = userCache.get(uid);
+    if (!user) return;
+    userCache.set(uid, {...user, ...modifications});
+}

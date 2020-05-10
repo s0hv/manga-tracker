@@ -28,6 +28,9 @@ const useStyles = makeStyles((theme) => ({
     display: 'flex',
     justifyContent: 'space-between',
   },
+  listOpener: {
+    color: theme.palette.primary.contrastText
+  }
 }));
 
 export default function (props) {
@@ -63,7 +66,7 @@ export default function (props) {
       className={classes.root}
     >
       <ListItem button onClick={handleClick} className={classes.mainItem}>
-        <ListItemText primary="Manga sources" />
+        <ListItemText primary="Manga sources" className={classes.listOpener}/>
         {open ? <ExpandLess /> : <ExpandMore />}
       </ListItem>
       <Collapse in={open} timeout="auto" unmountOnExit>

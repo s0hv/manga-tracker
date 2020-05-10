@@ -1,6 +1,12 @@
 import React from 'react';
 import {makeStyles} from "@material-ui/core/styles";
-import AccountCircle from '@material-ui/icons/AccountCircle';
+import {
+  AccountCircle,
+  Brightness3 as MoonIcon,
+  ExitToApp as ExitToAppIcon,
+  Person as PersonIcon,
+  WbSunny as SunIcon
+} from '@material-ui/icons';
 import {
   AppBar,
   Button,
@@ -49,6 +55,9 @@ const useStyles = makeStyles((theme) => ({
       width: '450px',
     },
   },
+  menuItemIcon: {
+    marginRight: theme.spacing(1),
+  }
 }));
 
 const MenuButton = React.forwardRef(({ href, prefetch, as, ...props }, ref) => {
@@ -61,7 +70,12 @@ const MenuButton = React.forwardRef(({ href, prefetch, as, ...props }, ref) => {
   )
 })
 
-function TopBar({ user }) {
+function TopBar(props) {
+  const {
+    user,
+    activeTheme,
+    setTheme
+  } = props;
   const classes = useStyles();
   const [anchorEl, setAnchorEl] = React.useState(null);
   const open = Boolean(anchorEl);
@@ -73,6 +87,17 @@ function TopBar({ user }) {
   const handleClose = () => {
     setAnchorEl(null);
   };
+
+  const handleThemeChange = () => {
+    handleClose();
+    const val = activeTheme === 1 ? 2 : 1
+    setTheme(val);
+    fetch( `/api/settings/theme?value=${val}`, {
+      method: 'post',
+      credentials: 'include'
+    })
+      .catch(console.error)
+  }
 
   const handleLogout = () => {
     handleClose();
@@ -95,9 +120,11 @@ function TopBar({ user }) {
     <div className={classes.root}>
       <AppBar position="static">
         <Toolbar>
-          <Typography className={classes.title} variant="h6" noWrap>
-            Manga tracker
-          </Typography>
+          <Link href='/' prefetch={false}>
+            <Typography className={classes.title} variant="h6" noWrap>
+              Manga tracker
+            </Typography>
+          </Link>
           <div className={classes.grow}/>
           <SearchInput id="title-search"/>
           {(user &&
@@ -130,10 +157,14 @@ function TopBar({ user }) {
                 onClose={handleClose}
             >
               <MenuButton href='/profile' prefetch={false} onClick={handleClose}>
-                Profile
+                <PersonIcon className={classes.menuItemIcon}/> Profile
               </MenuButton>
+              <MenuItem onClick={handleThemeChange}>
+                { activeTheme === 2 ? <SunIcon className={classes.menuItemIcon}/> : <MoonIcon className={classes.menuItemIcon}/>}
+                Switch to {activeTheme === 2 ? 'light' : 'dark'} theme
+              </MenuItem>
               <MenuItem onClick={handleLogout}>
-                Logout
+                <ExitToAppIcon className={classes.menuItemIcon}/> Logout
               </MenuItem>
             </Menu>
           </div>

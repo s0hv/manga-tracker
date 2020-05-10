@@ -31,6 +31,8 @@ passport.deserializeUser(function(user, done) {
 });
 
 const dev = process.env.NODE_ENV !== 'production';
+// Turn off when not using this app with a reverse proxy like heroku
+const reverseProxy = !dev;
 if (!dev && !process.env.SESSION_SECRET) throw new Error('No session secret given');
 
 nextApp = next({ dev: dev, dir: __dirname });
@@ -47,7 +49,7 @@ module.exports = nextApp.prepare()
     server.sessionStore = store;
 
     server.use(require('body-parser').urlencoded({extended: true}));
-    !dev && server.enable('trust-proxy')
+    reverseProxy && server.enable('trust-proxy')
     server.use(require('cookie-parser')(null, {
         secure: !dev
     }));
@@ -59,7 +61,7 @@ module.exports = nextApp.prepare()
             httpOnly: true,
             secure: !dev
         },
-        proxy: !dev,
+        proxy: reverseProxy,
         secret: dev ? 'secret' : process.env.SESSION_SECRET,
         resave: false,
         saveUninitialized: false,
@@ -91,7 +93,6 @@ module.exports = nextApp.prepare()
         }
 
         quickSearch(req.query.query, (results) => {
-            debug(results);
             res.json(results || []);
         })
     });
@@ -99,6 +100,7 @@ module.exports = nextApp.prepare()
     require('./api/rss')(server);
     require('./api/manga')(server);
     require('./api/user')(server);
+    require('./api/settings')(server);
 
     server.get('/login', requiresUser, (req, res) => {
         sessionDebug(req.session.user_id);

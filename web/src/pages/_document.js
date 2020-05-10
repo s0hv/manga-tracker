@@ -1,25 +1,18 @@
 import React from 'react';
 import Document, {Head, Html, Main, NextScript} from 'next/document';
 import {createMuiTheme, ServerStyleSheets} from '@material-ui/core/styles';
-import {red} from '@material-ui/core/colors';
+import {blue} from '@material-ui/core/colors';
 
 // Create a theme instance.
 const theme = createMuiTheme({
   palette: {
-    primary: {
-      main: '#556cd6',
-    },
-    secondary: {
-      main: '#19857b',
-    },
-    error: {
-      main: red.A400,
-    },
+      type: 'dark',
+      primary: blue,
     background: {
-      default: '#fff',
-    },
+        default: '#282c34'
+    }
   },
-});
+})
 
 
 export default class MyDocument extends Document {

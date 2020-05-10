@@ -39,6 +39,13 @@ const bruteOpts = {
     keyPrefix: 'brtfrc'
 };
 
+const mangadexLimiter = new RateLimiterMemory({
+  points: 3,
+  duration: 6,
+});
+
+module.exports.mangadexLimiter = mangadexLimiter;
+
 const bruteforce = new ExpressBruteFlexible(
   ExpressBruteFlexible.LIMITER_TYPES.REDIS,
   bruteOpts

@@ -15,23 +15,36 @@ const MyApp = function ({ Component, pageProps, props }) {
     if (jssStyles) {
       jssStyles.parentElement.removeChild(jssStyles);
     }
-  }, [])
+    doUpdate(!update)
+  }, []);
+
+  const [theme, setTheme] = React.useState(props.theme);
+  const [user, setUser] = React.useState(props.user);
+  // Without doing update after server side styles are removed stuff just doesn't work properly
+  const [update, doUpdate] = React.useState(false);
+  
+  function childSetTheme(val) {
+    setTheme(val)
+  }
 
 
-  const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
+  const prefersDarkMode = theme === 0 ? useMediaQuery('(prefers-color-scheme: dark)') : theme === 2;
+  props.setTheme = childSetTheme;
+  props.activeTheme = prefersDarkMode ? 2 : 1;
+  props.user = user;
 
-  const theme = React.useMemo(
+  const activeTheme = React.useMemo(
     () =>
       createMuiTheme({
         palette: {
             type: prefersDarkMode ? 'dark' : 'light',
             primary: blue,
           background: {
-              default: '#282c34'
+              default: prefersDarkMode ? '#282c34' : undefined
           }
         },
       }),
-    [prefersDarkMode],
+    [prefersDarkMode, update],
   );
 
   return (
@@ -40,20 +53,26 @@ const MyApp = function ({ Component, pageProps, props }) {
         <title>My page</title>
         <meta name="viewport" content="minimum-scale=1, initial-scale=1, width=device-width" />
       </Head>
-      <ThemeProvider theme={theme}>
+      <ThemeProvider theme={activeTheme}>
           <CssBaseline/>
-          <Root Component={Component} pageProps={pageProps} props={props}/>
+          <Root Component={Component} pageProps={pageProps} props={props} setTheme={childSetTheme}/>
       </ThemeProvider>
-    </React.Fragment>);
+    </React.Fragment>
+  );
 }
 
 MyApp.getInitialProps = async function ({ ctx }) {
-  sessionDebug('Initial props', ctx.req?.user);
+  if (!ctx.req) {
+    return {props: {statusCode: 200}}
+  }
+  sessionDebug('Initial props', ctx.req.user);
+  const req = ctx.req;
   return {
     props: {
-      user: ctx.req?.user?.username,
+      user: req.user,
+      theme: req.user?.theme || req.session?.theme || 0,
       statusCode: ctx.res?.statusCode || 200,
-    }, // will be passed to the page component as props
+    },
   }
 }
 

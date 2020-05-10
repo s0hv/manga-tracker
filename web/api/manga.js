@@ -1,6 +1,8 @@
+const { Manga, Util, link: Link, Chapter, Group } = require("mangadex-full-api");
 const pool = require('./../db');
 const { requiresUser } = require('./../db/auth');
-const { Manga, Util, link: Link, Chapter, Group } = require("mangadex-full-api");
+const { mangadexLimiter } = require('./../utils/ratelimits')
+
 const MANGADEX_ID = 2; // Id of the mangadex service in the database
 
 const debug = require('debug')('debug');
@@ -29,80 +31,85 @@ Chapter.prototype._parse = function(data) {
 }
 
 function fetchExtraInfo(mangadexId, mangaId, cb) {
-    const manga = new Manga();
-    debug(`Fetching extra info for ${mangaId} ${mangadexId}`);
-    manga.apiFill(mangadexId)
+    mangadexLimiter.consume('mangadex', 1)
         .then(() => {
-            const sql = `INSERT INTO manga_info (manga_id, cover, artist, author, bw, mu, mal, amz, ebj, engtl, raw, nu, kt, ap, al)
-                         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15) RETURNING *`;
-            const vals = [
-                mangaId,
-                manga.getFullURL('cover'),
-                manga.artists[0],
-                manga.authors[0],
-                manga.links.bw,
-                manga.links.mu,
-                manga.links.mal,
-                manga.links.amz,
-                manga.links.ebj,
-                manga.links.engtl,
-                manga.links.raw,
-                manga.links.nu,
-                manga.links.kt,
-                manga.links.ap,
-                manga.links.al
-            ]
 
-            pool.query(sql, vals)
-                .then(res => {
-                    const row = res.rows[0];
-                    if (!row) return cb({});
-                    cb(row);
-                })
-                .catch(err => {
-                    console.error(err);
-                    cb({});
-                });
+        const manga = new Manga();
+        debug(`Fetching extra info for ${mangaId} ${mangadexId}`);
+        manga.apiFill(mangadexId)
+            .then(() => {
+                const sql = `INSERT INTO manga_info (manga_id, cover, artist, author, bw, mu, mal, amz, ebj, engtl, raw, nu, kt, ap, al)
+                             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15) RETURNING *`;
+                const vals = [
+                    mangaId,
+                    manga.getFullURL('cover'),
+                    manga.artists[0],
+                    manga.authors[0],
+                    manga.links.bw,
+                    manga.links.mu,
+                    manga.links.mal,
+                    manga.links.amz,
+                    manga.links.ebj,
+                    manga.links.engtl,
+                    manga.links.raw,
+                    manga.links.nu,
+                    manga.links.kt,
+                    manga.links.ap,
+                    manga.links.al
+                ]
 
-            // Might as well update chapter titles and add missing chapters while we're at it
-            if (manga.chapters) {
-                const chapters = manga.chapters.filter(c=>c.language==='GB').map(c => {
-                    const chapter = c.chapter ? c.chapter.toString() : '0';
-                    return [
-                        mangaId, MANGADEX_ID,
-                        c.title || `${c.volume !== undefined ? 'Volume ' + c.volume + ', ' : ''}${'Chapter ' + chapter}`,
-                        chapter.split('.')[0], parseInt(chapter.split('.')[1]) || null,
-                        new Date(c.timestamp*1000), c.id, c.firstGroupName
-                    ];
-                });
+                pool.query(sql, vals)
+                    .then(res => {
+                        const row = res.rows[0];
+                        if (!row) return cb({});
+                        cb(row);
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        cb({});
+                    });
 
-                if (chapters.length === 0) return;
+                // Might as well update chapter titles and add missing chapters while we're at it
+                if (manga.chapters) {
+                    const chapters = manga.chapters.filter(c=>c.language==='GB').map(c => {
+                        const chapter = c.chapter ? c.chapter.toString() : '0';
+                        return [
+                            mangaId, MANGADEX_ID,
+                            c.title || `${c.volume !== undefined ? 'Volume ' + c.volume + ', ' : ''}${'Chapter ' + chapter}`,
+                            chapter.split('.')[0], parseInt(chapter.split('.')[1]) || null,
+                            new Date(c.timestamp*1000), c.id, c.firstGroupName
+                        ];
+                    });
 
-                const chunkSize = 50;
+                    if (chapters.length === 0) return;
 
-                // This is a fucking stupid way to do bulk inserts but i don't wanna install
-                // another lib just to do a single bulk insert
-                for (let idx=0; idx < chapters.length; idx += chunkSize) {
-                    const values = [];
-                    const slice = chapters.slice(idx, idx+chunkSize)
+                    const chunkSize = 50;
 
-                    for (let i=0; i<slice.length; i++) {
-                        const x = i*8;
-                        values.push(`($${x+1}, $${x+2}, $${x+3}, $${x+4}, $${x+5}, $${x+6}, $${x+7}, $${x+8})`)
+                    // This is a fucking stupid way to do bulk inserts but i don't wanna install
+                    // another lib just to do a single bulk insert
+                    for (let idx=0; idx < chapters.length; idx += chunkSize) {
+                        const values = [];
+                        const slice = chapters.slice(idx, idx+chunkSize)
+
+                        for (let i=0; i<slice.length; i++) {
+                            const x = i*8;
+                            values.push(`($${x+1}, $${x+2}, $${x+3}, $${x+4}, $${x+5}, $${x+6}, $${x+7}, $${x+8})`)
+                        }
+                        const chapterSql = `INSERT INTO chapters (manga_id, service_id, title, chapter_number, chapter_decimal, release_date, chapter_identifier, "group") 
+                                            VALUES ${values.join(',')}
+                                            ON CONFLICT (service_id, chapter_identifier) DO UPDATE SET title=EXCLUDED.title`;
+                        pool.query(chapterSql, slice.flat())
+                            .then(res => {
+                                debug(res.rowCount);
+                            })
+                            .catch(err => console.error(err));
                     }
-                    const chapterSql = `INSERT INTO chapters (manga_id, service_id, title, chapter_number, chapter_decimal, release_date, chapter_identifier, "group") 
-                                        VALUES ${values.join(',')}
-                                        ON CONFLICT (service_id, chapter_identifier) DO UPDATE SET title=EXCLUDED.title`;
-                    pool.query(chapterSql, slice.flat())
-                        .then(res => {
-                            debug(res.rowCount);
-                        })
-                        .catch(err => console.error(err));
-                }
 
-            }
-        })
-        .catch(() => cb({}));
+                }
+            })
+            .catch(() => cb({}));
+    })
+        .catch(() => cb({}))
 }
 
 function formatLinks(row) {

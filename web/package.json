@@ -36,7 +36,7 @@
   "scripts": {
     "start": "next dev",
     "build": "next build",
-    "server": "concurrently \\\"nodemon --watch src --exec npm run build\\\" \\\"nodemon --watch api/* --watch db/* --watch server.js server.js\\\"",
+    "server": "node server.js",
     "server-dev": "nodemon --watch api/* --watch db/* --watch server.js server.js",
     "deploy": "npm run build && node server.js",
     "backend-only": "nodemon --watch api/* --watch db/* --watch server.js server.js",

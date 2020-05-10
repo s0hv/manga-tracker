@@ -28,7 +28,7 @@ module.exports = function (session) {
                 return cb(null, sess);
             }
 
-            const sql = `SELECT user_id, session_id, data as cookie, EXTRACT(EPOCH FROM expires_at - CURRENT_TIMESTAMP)*1000 as maxage
+            const sql = `SELECT user_id, data, EXTRACT(EPOCH FROM expires_at - CURRENT_TIMESTAMP)*1000 as maxage
                           FROM sessions 
                           WHERE session_id=$1`;
 
@@ -37,8 +37,8 @@ module.exports = function (session) {
                     if (res.rowCount === 1) {
                         const row = res.rows[0];
                         // TODO Check set behavior
-                        this.cache.set(sid, row, row.maxage);
-                        return cb(null, row);
+                        this.cache.set(sid, {...row.data, user_id: row.user_id}, row.maxage);
+                        return cb(null, {...row.data, user_id: row.user_id});
                     }
 
                     return cb(null, null);
@@ -50,7 +50,7 @@ module.exports = function (session) {
             this.cache.set(sid, session);
             const sql = `INSERT INTO sessions (user_id, session_id, data, expires_at) VALUES ($1, $2, $3, $4)
                          ON CONFLICT (session_id) DO UPDATE SET user_id=$1, data=$3, expires_at=$4`;
-            this.conn.query(sql, [session.user_id, sid, session.cookie && session.cookie.data, session.cookie._expires])
+            this.conn.query(sql, [session.user_id, sid, session, session.cookie._expires])
                 .then(() => cb(null))
                 .catch(err => cb(err));
         }

@@ -45,22 +45,28 @@ function Copyright(props) {
 }
 
 export default function ({ Component, pageProps, props }) {
-    const classes = useStyles();
+  const {
+    statusCode,
+    activeTheme,
+    user,
+    setTheme
+  } = props
+  const classes = useStyles();
 
-    if (props.statusCode != 200) {
-      return <Component {...pageProps} />;
-    }
+  if (statusCode != 200) {
+    return <Component {...pageProps} />;
+  }
 
-    return (
-      <div className={classes.root}>
-        <TopBar user={props.user}/>
-        <Component {...pageProps} isAuthenticated={Boolean(props.user)} />
-        <div className={classes.container}>
-          <footer className={classes.footer}>
-            <Divider className={classes.divider} variant='middle'/>
-            <Copyright className={classes.copyright}/>
-          </footer>
-        </div>
+  return (
+    <div className={classes.root}>
+      <TopBar user={user} setTheme={setTheme} activeTheme={activeTheme}/>
+      <Component {...pageProps} isAuthenticated={Boolean(user)} />
+      <div className={classes.container}>
+        <footer className={classes.footer}>
+          <Divider className={classes.divider} variant='middle'/>
+          <Copyright className={classes.copyright}/>
+        </footer>
       </div>
-    )
+    </div>
+  )
 }
