@@ -17,7 +17,6 @@
   },
   "cacheDirectories": [
     "web/.next/cache/",
-    "web/node_modules/",
     "node_modules/"
   ]
 }
