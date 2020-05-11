@@ -150,6 +150,13 @@ module.exports = nextApp.prepare()
         });
     });
 
+    server.get('/follows', requiresUser, (req, res) => {
+        console.log(req.user)
+        if (!req.user) return res.status(404).redirect('404');
+
+        res.redirect(`/rss/${req.user.uuid.replace(/-/g, '')}`);
+    })
+
     server.get('/*', requiresUser, (req, res) => {
         sessionDebug('User', req.user);
         return handle(req, res);

@@ -34,14 +34,14 @@ function createFeed(rows) {
 }
 
 module.exports = function (app) {
-    app.get('/rss', (req, res) => {
-        let user_id = req.query.user;
-        if (user_id && user_id.length !== 32) {
+    app.get('/rss/:user?', (req, res) => {
+        let uuid = req.params.user;
+        if (uuid && uuid.length !== 32) {
             res.status(404).send("404");
             return;
         }
 
-        getLatestReleases(req.query.service_id, req.query.manga_id, user_id)
+        getLatestReleases(req.query.service_id, req.query.manga_id, uuid)
             .then(rows => {
                 if (!rows || rows.rowCount === 0) {
                     res.status(404).send("404");

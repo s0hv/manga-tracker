@@ -39,6 +39,7 @@ export default function (props) {
     followUnfollow = () => {},
     userFollows = [],
     isAuthenticated = false,
+    classesProp = [],
   } = props;
 
   const classes = useStyles();
@@ -63,7 +64,7 @@ export default function (props) {
     <List
       component="nav"
       aria-labelledby="nested-list-subheader"
-      className={classes.root}
+      className={`${classes.root} ${classesProp.join(' ')}`}
     >
       <ListItem button onClick={handleClick} className={classes.mainItem}>
         <ListItemText primary="Manga sources" className={classes.listOpener}/>
