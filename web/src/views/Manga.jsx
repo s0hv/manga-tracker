@@ -31,21 +31,47 @@ const useStyles = makeStyles((theme) => ({
     maxWidth: '250px',
     maxHeight: '355px',
     [theme.breakpoints.down('sm')]: {
-      width: '75%'
+      maxWidth: '180px'
+    },
+    [theme.breakpoints.down('xs')]: {
+      maxWidth: '125px'
     }
   },
   details: {
     display: 'flex',
   },
   detailText: {
-    marginLeft: '5px'
+    marginLeft: '5px',
+    [theme.breakpoints.down('sm')]: {
+      marginLeft: '3px'
+    },
   },
-  infoTable : {
+  infoTable: {
     marginLeft: '30px',
     marginTop: '3px',
+    [theme.breakpoints.down('sm')]: {
+      marginLeft: '20px'
+    },
+    [theme.breakpoints.down('xs')]: {
+      marginLeft: '10px'
+    },
+  },
+  sourceList: {
+    marginLeft: '35px',
+    [theme.breakpoints.down('sm')]: {
+      marginLeft: '23px'
+    },
+    [theme.breakpoints.down('xs')]: {
+      marginLeft: '13px'
+    },
+  },
+  followButton: {
+    marginTop: theme.spacing(2),
+    marginBottom: theme.spacing(2),
   },
   paper: {
     padding: '1em',
+    minWidth: '440px',
   }
 }));
 
@@ -167,15 +193,21 @@ function Manga (props) {
               </tbody>
             </table>
             <MangaSourceList
-                items={mangaData.services}
-                userFollows={userFollows}
-                isAuthenticated={isAuthenticated}
-                followUnfollow={followUnfollow}
+              classesProp={[classes.sourceList]}
+              items={mangaData.services}
+              userFollows={userFollows}
+              isAuthenticated={isAuthenticated}
+              followUnfollow={followUnfollow}
             />
           </Grid>
         </div>
         {isAuthenticated &&
-          <Button variant='contained' color='primary' onClick={followUnfollow(null)}>
+          <Button
+              variant='contained'
+              color='primary'
+              onClick={followUnfollow(null)}
+              className={classes.followButton}
+          >
             {userFollows.indexOf(null) < 0 ? 'Follow' : 'Unfollow'}
           </Button>}
 

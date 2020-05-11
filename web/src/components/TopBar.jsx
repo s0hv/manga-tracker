@@ -2,8 +2,10 @@ import React from 'react';
 import {makeStyles} from "@material-ui/core/styles";
 import {
   AccountCircle,
+  Bookmarks as BookmarksIcon,
   Brightness3 as MoonIcon,
   ExitToApp as ExitToAppIcon,
+  Home as HomeIcon,
   Person as PersonIcon,
   WbSunny as SunIcon
 } from '@material-ui/icons';
@@ -37,6 +39,15 @@ const useStyles = makeStyles((theme) => ({
       display: 'none',
     }
   },
+  titleIcon: {
+    flexGrow: 1,
+    marginRight: theme.spacing(1),
+    justifyContent: 'flex-start',
+
+    [theme.breakpoints.up(500)]: {
+      display: 'none',
+    },
+  },
   profileIcon: {
     position: "relative",
     marginLeft: theme.spacing(2),
@@ -60,15 +71,15 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-const MenuButton = React.forwardRef(({ href, prefetch, as, ...props }, ref) => {
+const LinkComponent = React.forwardRef(({ href, prefetch, as, Component, ...props }, ref) => {
   return (
     <Link href={href} prefetch={prefetch} as={as}>
-      <MenuItem {...props} ref={ref}>
+      <Component {...props} ref={ref}>
         {props.children}
-      </MenuItem>
+      </Component>
     </Link>
   )
-})
+});
 
 function TopBar(props) {
   const {
@@ -125,6 +136,17 @@ function TopBar(props) {
               Manga tracker
             </Typography>
           </Link>
+          <LinkComponent
+              Component={IconButton}
+              href='/'
+              prefetch={false}
+              className={classes.titleIcon}
+              aria-label="return to home page"
+              aria-controls="menu-appbar"
+              color="inherit"
+          >
+            <HomeIcon />
+          </LinkComponent>
           <div className={classes.grow}/>
           <SearchInput id="title-search"/>
           {(user &&
@@ -156,13 +178,16 @@ function TopBar(props) {
                 open={open}
                 onClose={handleClose}
             >
-              <MenuButton href='/profile' prefetch={false} onClick={handleClose}>
+              <LinkComponent Component={MenuItem} href='/profile' prefetch={false} onClick={handleClose}>
                 <PersonIcon className={classes.menuItemIcon}/> Profile
-              </MenuButton>
+              </LinkComponent>
               <MenuItem onClick={handleThemeChange}>
                 { activeTheme === 2 ? <SunIcon className={classes.menuItemIcon}/> : <MoonIcon className={classes.menuItemIcon}/>}
                 Switch to {activeTheme === 2 ? 'light' : 'dark'} theme
               </MenuItem>
+              <LinkComponent Component={MenuItem} href='/follows' prefetch={false} onClick={handleClose}>
+                <BookmarksIcon className={classes.menuItemIcon}/> Follows
+              </LinkComponent>
               <MenuItem onClick={handleLogout}>
                 <ExitToAppIcon className={classes.menuItemIcon}/> Logout
               </MenuItem>
