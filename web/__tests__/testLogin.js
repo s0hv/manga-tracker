@@ -30,7 +30,7 @@ function createBody(opts) {
 
 function checkCookies(res, required= [], notAllowed= []) {
   const cookies = {};
-  res.headers.raw()['set-cookie'].forEach(c => {
+  (res.headers.raw()['set-cookie'] || []).forEach(c => {
     const parsed = cookie.parse(c)
     for (let i=0; i<required.length; i++) {
       if (parsed[required[i]] !== undefined) {
@@ -162,8 +162,8 @@ describe('Login flow', () => {
 
     // Make sure session id and token were regenerated
     expect(cookie.parse(newCookies.sess).sess).not.toStrictEqual(cookie.parse(cookies.sess).sess);
-    const oldAuth = cookie.parse(cookies.auth);
-    const auth = cookie.parse(newCookies.auth);
+    let oldAuth = cookie.parse(cookies.auth);
+    let auth = cookie.parse(newCookies.auth);
     expect(oldAuth.auth).not.toStrictEqual(auth.auth);
     expect(auth.expiry).toEqual(oldAuth.expiry);
 
@@ -175,6 +175,20 @@ describe('Login flow', () => {
     });
     expect(await res.json()).not.toStrictEqual({user: null});
 
+    // Make sure the new token works
+    res = await fetch(`${addr}/api/authCheck`, {
+      headers: {
+        cookie: newCookies.auth
+      }
+    });
+    const newestCookies = checkCookies(res, ['auth', 'sess']);
+    // Make sure session id and token were regenerated
+    expect(cookie.parse(newCookies.sess).sess).not.toStrictEqual(cookie.parse(newestCookies.sess).sess);
+    oldAuth = cookie.parse(newestCookies.auth);
+    auth = cookie.parse(newCookies.auth);
+    expect(oldAuth.auth).not.toStrictEqual(auth.auth);
+    expect(auth.expiry).toEqual(oldAuth.expiry);
+
     // Make sure the old token was invalidated
     res = await fetch(`${addr}/api/authCheck`, {
       headers: {
@@ -184,7 +198,6 @@ describe('Login flow', () => {
     newCookies = checkCookies(res, ['auth']);
     expect(cookie.parse(newCookies.auth).auth).toBeFalsy();
     expect(await res.json()).toStrictEqual({user: null});
-
   });
 
   test('Login rate limit', async () => {
