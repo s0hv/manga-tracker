@@ -112,7 +112,7 @@ function TopBar(props) {
 
   const handleLogout = () => {
     handleClose();
-    fetch('api/logout', {
+    fetch('/api/logout', {
       method: 'post',
       credentials: 'include',
     })
