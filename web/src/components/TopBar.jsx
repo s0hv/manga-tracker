@@ -194,11 +194,22 @@ function TopBar(props) {
             </Menu>
           </div>
           ) ||
-          <Link href='/login' prefetch={false}>
-            <Button variant='outlined' className={classes.loginButton}>
-              Login
-            </Button>
-          </Link>}
+          <React.Fragment>
+            <Link href='/login' prefetch={false}>
+              <Button variant='outlined' className={classes.loginButton}>
+                Login
+              </Button>
+            </Link>
+            <IconButton
+              aria-label="theme switcher"
+              aria-controls="menu-appbar"
+              aria-haspopup="true"
+              onClick={handleThemeChange}
+              color="inherit"
+            >
+              {activeTheme === 2 ? <SunIcon className={classes.menuItemIcon}/> : <MoonIcon className={classes.menuItemIcon}/>}
+            </IconButton>
+          </React.Fragment>}
         </Toolbar>
       </AppBar>
     </div>
