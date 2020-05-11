@@ -168,8 +168,8 @@ BEGIN
     WITH old AS (
         SELECT latest_release, latest_chapter FROM manga WHERE manga_id=to_merge
     )
-    UPDATE manga SET latest_release=GREATEST(latest_release, old.latest_release),
-                     latest_chapter=GREATEST(latest_chapter, old.latest_chapter)
+    UPDATE manga SET latest_release=GREATEST(latest_release, (SELECT latest_release FROM old)),
+                     latest_chapter=GREATEST(latest_chapter, (SELECT latest_chapter FROM old))
     WHERE manga_id=base;
 
     DELETE FROM manga WHERE manga_id=to_merge;
