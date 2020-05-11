@@ -16,8 +16,8 @@
     "extends": "react-app"
   },
   "cacheDirectories": [
-    ".next/cache/",
     "web/.next/cache/",
-    "web/node_modules"
+    "web/node_modules/",
+    "node_modules/"
   ]
 }
