@@ -1,10 +1,12 @@
 import logging
 import re
+import time
 from calendar import timegm
 from datetime import datetime, timedelta
 
 import feedparser
 import psycopg2
+import requests
 from psycopg2.extras import execute_values
 
 from src.errors import FeedHttpError, InvalidFeedError
@@ -78,7 +80,8 @@ class MangaDex(BaseScraper):
     URL = 'https://mangadex.org'
     CHAPTER_REGEX = re.compile(r'(?P<manga_title>.+) -($| (((?:Volume (?P<volume>\d+),? )?Chapter (?P<chapter>\d+)(?:\.?(?P<decimal>\d+))?)|(?:(?P<chapter_title>.+?)(( - )?Oneshot)?)$))')
     DESCRIPTION_REGEX = re.compile(r'Group: (?P<group>.+?) - Uploader: (?P<uploader>.+?) - Language: (?P<language>\w+)')
-    UPDATE_INTERVAL = timedelta(hours=1)
+    UPDATE_INTERVAL = timedelta(minutes=30)
+    MANGADEX_API = 'https://mangadex.org/api'
 
     @staticmethod
     def min_update_interval():
@@ -100,8 +103,35 @@ class MangaDex(BaseScraper):
                 logger.exception(f'Failed to update service {feed_url}')
             return
 
+        with self.conn as conn:
+            with conn.cursor() as cur:
+                sql = 'SELECT MAX(t.ci) FROM (SELECT chapter_identifier::int as ci FROM chapters WHERE service_id=2 ORDER BY chapter_id DESC LIMIT 100) t'
+                cur.execute(sql, service_id)
+                last_id = cur.fetchone()[0]
+
         titles = {}
-        for post in feed.entries:
+        entries = feed.entries
+        id_found = False
+
+        # Get chapters only past the point of the latest chapter to reduce
+        # the amount chapter ids increase in the database when conflict happens
+        if last_id:
+            temp_entries = []
+            for entry in entries:
+                entry_id = int(entry.id.split('/')[-1])
+                if entry_id <= last_id:
+                    id_found = True
+                    break
+
+                temp_entries.append(entry)
+
+            if id_found:
+                entries = temp_entries
+
+        if not entries:
+            return
+
+        for post in entries:
             title = post.get('title', '')
             m = self.CHAPTER_REGEX.match(title)
             if not m:
@@ -144,11 +174,13 @@ class MangaDex(BaseScraper):
 
         data = []
         manga_ids = set()
+        mangadex_ids = {}
         with self.conn:
             with self.conn.cursor() as cur:
                 for row in self.dbutil.find_added_titles(cur, tuple(titles.keys())):
                     manga_id = row['manga_id']
                     manga_ids.add(manga_id)
+                    mangadex_ids[manga_id] = row['title_id']
                     for chapter in titles.pop(row['title_id']):
                         data.append((manga_id, service_id, chapter.title, chapter.chapter_number,
                                      chapter.decimal, chapter.chapter_identifier,
@@ -159,13 +191,14 @@ class MangaDex(BaseScraper):
                 with self.conn.cursor() as cur:
                     for manga_id, chapters in self.dbutil.add_new_series(cur, titles, service_id, True):
                         manga_ids.add(manga_id)
+                        mangadex_ids[manga_id] = chapter.manga_id
                         for chapter in chapters:
                             data.append((manga_id, service_id, chapter.title, chapter.chapter_number,
                                         chapter.decimal, chapter.chapter_identifier,
                                          chapter.release_date, chapter.group))
 
         sql = 'INSERT INTO chapters (manga_id, service_id, title, chapter_number, chapter_decimal, chapter_identifier, release_date, "group") VALUES ' \
-              '%s ON CONFLICT DO NOTHING RETURNING manga_id, chapter_number, chapter_decimal, release_date'
+              '%s ON CONFLICT DO NOTHING RETURNING manga_id, chapter_number, chapter_decimal, release_date, chapter_identifier'
 
         with self.conn:
             with self.conn.cursor() as cur:
@@ -174,7 +207,63 @@ class MangaDex(BaseScraper):
                 if manga_ids:
                     self.dbutil.update_latest_release(cur, [(m,) for m in manga_ids])
                     self.dbutil.update_latest_chapter(cur, tuple(c for c in get_latest_chapters(rows).values()))
+                    self.update_chapter_infos([mangadex_ids[i] for i in mangadex_ids], [c['chapter_identifier'] for c in rows])
 
                 self.dbutil.update_service_whole(cur, service_id, self.UPDATE_INTERVAL)
 
         return manga_ids
+
+    def update_chapter_infos(self, title_ids, chapter_ids):
+        if not title_ids:
+            return
+
+        url = self.MANGADEX_API + '/manga/{}'
+        headers = {}
+        fails = 0
+        chapters = []
+
+        for title_id in title_ids:
+            try:
+                r = requests.get(url.format(title_id), headers=headers)
+            except requests.RequestException:
+                logger.error('Failed to fetch manga data from mangadex api')
+                return
+
+            if 'set-cookie' in r.headers:
+                cookies = r.headers['set-cookie']
+                headers['cookies'] = cookies
+
+            data = r.json()
+
+            if data.get('status') != 'OK':
+                fails += 1
+                if fails > 2:
+                    return
+                continue
+
+            for chapter_id in data.get('chapter', {}):
+                if chapter_id not in chapter_ids:
+                    continue
+
+                chapter = data['chapter'][chapter_id]
+                title = chapter.get('title')
+                if not title:
+                    continue
+
+                chapters.append((
+                    title,
+                    chapter_id
+                ))
+
+            time.sleep(0.1)
+
+        if not chapters:
+            return
+
+        sql = 'UPDATE chapters SET title=c.title ' \
+              'FROM (VALUES %s) as c(title, chapter_identifier) ' \
+              'WHERE c.chapter_identifier=chapters.chapter_identifier'
+
+        with self.conn:
+            with self.conn.cursor() as cur:
+                execute_values(cur, sql, chapters, page_size=500)
