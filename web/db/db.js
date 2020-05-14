@@ -27,16 +27,16 @@ function getLatestReleases(service_id, manga_id, user_uuid) {
 
     const sql = `
         WITH chapters_filtered AS (
-            SELECT chapter_id, title, chapter_number, chapter_decimal, release_date, chapter_identifier, c.service_id, c.manga_id 
+            SELECT chapter_id, title, chapter_number, chapter_decimal, release_date, chapter_identifier, c.service_id, c.manga_id, c."group"
             FROM chapters c ${joins.join(' ')}
             ${where.length > 0 ? 'WHERE ' + where.join(' AND ') : ''}
             ORDER BY release_date DESC, chapter_number DESC
         )
-        SELECT c.chapter_id, m.title as manga_title, m.manga_id, m.release_interval, c.title, c.chapter_number, c.chapter_decimal, c.release_date, c.chapter_identifier, s.service_name, s.chapter_url_format, s.url
+        SELECT c.chapter_id, m.title as manga_title, m.manga_id, m.release_interval, c.title, c.chapter_number, c.chapter_decimal, c.release_date, c.chapter_identifier, s.service_name, s.chapter_url_format, s.url, c."group"
         FROM chapters_filtered c INNER JOIN manga m on c.manga_id = m.manga_id INNER JOIN services s on c.service_id = s.service_id 
         WHERE c.release_date > NOW() - INTERVAL '1 hour'
         UNION 
-              (SELECT c.chapter_id, m.title as manga_title, m.manga_id, m.release_interval, c.title, c.chapter_number, c.chapter_decimal, c.release_date, c.chapter_identifier, s.service_name, s.chapter_url_format, s.url
+              (SELECT c.chapter_id, m.title as manga_title, m.manga_id, m.release_interval, c.title, c.chapter_number, c.chapter_decimal, c.release_date, c.chapter_identifier, s.service_name, s.chapter_url_format, s.url, c."group"
               FROM chapters_filtered c INNER JOIN manga m on c.manga_id = m.manga_id INNER JOIN services s on c.service_id = s.service_id
               LIMIT 30)
         ORDER BY release_date DESC, chapter_number DESC`;
