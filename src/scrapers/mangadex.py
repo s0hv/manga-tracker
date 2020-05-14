@@ -11,6 +11,7 @@ from psycopg2.extras import execute_values
 
 from src.errors import FeedHttpError, InvalidFeedError
 from src.scrapers.base_scraper import BaseScraper, BaseChapter
+from src.utils.feedparsing import get_latest_entries
 from src.utils.utilities import match_title, is_valid_feed, get_latest_chapters
 
 logger = logging.getLogger('debug')
@@ -105,30 +106,28 @@ class MangaDex(BaseScraper):
 
         with self.conn as conn:
             with conn.cursor() as cur:
-                sql = 'SELECT MAX(t.ci) FROM (SELECT chapter_identifier::int as ci FROM chapters WHERE service_id=2 ORDER BY chapter_id DESC LIMIT 100) t'
-                cur.execute(sql, service_id)
+                sql = 'SELECT last_id::int FROM service_whole WHERE service_id=%s'
+                cur.execute(sql, (service_id,))
                 last_id = cur.fetchone()[0]
 
         titles = {}
-        entries = feed.entries
-        id_found = False
+
+        def get_id(entry_):
+            return int(entry_.id.split('/')[-1])
+
+        def comp_id(entry_id, last_id):
+            return entry_id <= last_id
 
         # Get chapters only past the point of the latest chapter to reduce
         # the amount chapter ids increase in the database when conflict happens
-        if last_id:
-            temp_entries = []
-            for entry in entries:
-                entry_id = int(entry.id.split('/')[-1])
-                if entry_id <= last_id:
-                    id_found = True
-                    break
-
-                temp_entries.append(entry)
-
-            if id_found:
-                entries = temp_entries
+        entries = get_latest_entries(feed.entries, last_id, get_id, comp_id)
 
         if not entries:
+            logger.info('No new entries found')
+            try:
+                self.dbutil.update_service_whole(None, service_id, self.min_update_interval())
+            except psycopg2.Error:
+                logger.exception(f'Failed to update service {feed_url}')
             return
 
         for post in entries:
@@ -191,7 +190,8 @@ class MangaDex(BaseScraper):
                 with self.conn.cursor() as cur:
                     for manga_id, chapters in self.dbutil.add_new_series(cur, titles, service_id, True):
                         manga_ids.add(manga_id)
-                        mangadex_ids[manga_id] = chapter.manga_id
+                        if chapters:
+                            mangadex_ids[manga_id] = chapters[0].manga_id
                         for chapter in chapters:
                             data.append((manga_id, service_id, chapter.title, chapter.chapter_number,
                                         chapter.decimal, chapter.chapter_identifier,
@@ -209,6 +209,8 @@ class MangaDex(BaseScraper):
                     self.dbutil.update_latest_chapter(cur, tuple(c for c in get_latest_chapters(rows).values()))
                     self.update_chapter_infos([mangadex_ids[i] for i in mangadex_ids], [c['chapter_identifier'] for c in rows])
 
+                sql = 'UPDATE service_whole SET last_id=%s WHERE service_id=%s'
+                cur.execute(sql, (str(get_id(feed.entries[0])), service_id))
                 self.dbutil.update_service_whole(cur, service_id, self.UPDATE_INTERVAL)
 
         return manga_ids

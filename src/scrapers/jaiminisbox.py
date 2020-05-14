@@ -9,6 +9,7 @@ from psycopg2.extras import execute_values
 
 from src.errors import FeedHttpError, InvalidFeedError
 from src.scrapers.base_scraper import BaseScraper, BaseChapter
+from src.utils.feedparsing import get_latest_entries
 from src.utils.utilities import match_title, is_valid_feed, get_latest_chapters
 
 logger = logging.getLogger('debug')
@@ -107,8 +108,23 @@ class JaiminisBox(BaseScraper):
                 logger.exception(f'Failed to update service {feed_url}')
             return
 
+        with self.conn as conn:
+            with conn.cursor() as cur:
+                sql = 'SELECT last_id FROM service_whole WHERE service_id=%s'
+                cur.execute(sql, (service_id,))
+                last_id = cur.fetchone()[0]
+
         titles = {}
-        for post in feed.entries:
+        entries = get_latest_entries(feed.entries, last_id)
+        if not entries:
+            logger.info('No new entries found')
+            try:
+                self.dbutil.update_service_whole(None, service_id, self.min_update_interval())
+            except psycopg2.Error:
+                logger.exception(f'Failed to update service {feed_url}')
+            return
+
+        for post in entries:
             title = post.get('title', '')
             m = self.CHAPTER_REGEX.match(title)
             if not m:
@@ -176,6 +192,9 @@ class JaiminisBox(BaseScraper):
                 if manga_ids:
                     self.dbutil.update_latest_release(cur, [(m,) for m in manga_ids])
                     self.dbutil.update_latest_chapter(cur, tuple(c for c in get_latest_chapters(rows).values()))
+
+                sql = 'UPDATE service_whole SET last_id=%s WHERE service_id=%s'
+                cur.execute(sql, (feed.entries[0].id, service_id))
 
                 self.dbutil.update_service_whole(cur, service_id, self.min_update_interval())
 

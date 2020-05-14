@@ -13,4 +13,9 @@ print(args)
 setup_logging.setup()
 
 scheduler = UpdateScheduler()
-scheduler.force_run(args.service, args.manga)
+#scheduler.force_run(args.service, args.manga)
+from src.scrapers import MangaPlus
+from src.utils.dbutils import DbUtil
+
+with scheduler.conn() as conn:
+    MangaPlus(conn, DbUtil(conn)).add_series(100037)
