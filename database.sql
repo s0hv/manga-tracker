@@ -76,7 +76,8 @@ CREATE TABLE service_whole (
     service_id  SMALLINT REFERENCES services ON DELETE RESTRICT,
     feed_url    TEXT UNIQUE NOT NULL,
     last_check  TIMESTAMP WITH TIME ZONE,
-    next_update TIMESTAMP WITH TIME ZONE
+    next_update TIMESTAMP WITH TIME ZONE,
+    last_id     TEXT DEFAULT NULL
 );
 CREATE INDEX ON service_whole (next_update);
 
