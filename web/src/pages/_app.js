@@ -1,6 +1,10 @@
 import Root from '../components/Root';
 import React from "react";
-import {createMuiTheme, ThemeProvider} from "@material-ui/core/styles";
+import {
+  createMuiTheme,
+  responsiveFontSizes,
+  ThemeProvider
+} from "@material-ui/core/styles";
 import CssBaseline from '@material-ui/core/CssBaseline';
 import {blue} from "@material-ui/core/colors";
 import useMediaQuery from '@material-ui/core/useMediaQuery';
@@ -35,7 +39,7 @@ const MyApp = function ({ Component, pageProps, props }) {
 
   const activeTheme = React.useMemo(
     () =>
-      createMuiTheme({
+      responsiveFontSizes(createMuiTheme({
         palette: {
             type: prefersDarkMode ? 'dark' : 'light',
             primary: blue,
@@ -43,7 +47,7 @@ const MyApp = function ({ Component, pageProps, props }) {
               default: prefersDarkMode ? '#282c34' : undefined
           }
         },
-      }),
+      })),
     [prefersDarkMode, update],
   );
 

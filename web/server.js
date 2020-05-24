@@ -123,7 +123,7 @@ module.exports = nextApp.prepare()
     server.get('/manga/:manga_id(\\d+)', requiresUser, (req, res) => {
         getManga(req.params.manga_id, 50, (err, data) => {
             if (err) {
-                res.status(err).end();
+                res.status(err);
                 handle(req, res);
                 return;
             } else {

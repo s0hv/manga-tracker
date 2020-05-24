@@ -23,7 +23,6 @@ const useStyles = makeStyles((theme) => ({
     textAlign: 'left',
     paddingBottom: '10px',
     [theme.breakpoints.down('sm')]:{
-      ...theme.typography.h5,
       width: '100%'
     }
   },
@@ -72,7 +71,13 @@ const useStyles = makeStyles((theme) => ({
   paper: {
     padding: '1em',
     minWidth: '440px',
-  }
+  },
+  titleColumn: {
+    minWidth: '175px',
+  },
+  releaseColumn: {
+    minWidth: '150px',
+  },
 }));
 
 const dateOptions = { weekday: 'short', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
@@ -216,9 +221,9 @@ function Manga (props) {
           <Table className={classes.table} aria-label='simple table'>
             <TableHead>
               <TableRow>
-                <TableCell>Title</TableCell>
+                <TableCell className={classes.titleColumn}>Title</TableCell>
                 <TableCell>Chapter</TableCell>
-                <TableCell>Released</TableCell>
+                <TableCell className={classes.releaseColumn}>Released</TableCell>
                 <TableCell>Group</TableCell>
               </TableRow>
             </TableHead>
