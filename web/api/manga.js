@@ -8,7 +8,7 @@ const MANGADEX_ID = 2; // Id of the mangadex service in the database
 module.exports = function (app) {
     app.get('/api/manga/:manga_id(\\d+)', (req, res) => {
         const chapterSql = `(SELECT json_agg(ch) FROM 
-                                (SELECT title, chapter_number, release_date, "group", service_id, chapter_identifier as chapter_url FROM chapters WHERE manga_id=$1 ORDER BY release_date DESC LIMIT $2) ch) 
+                                (SELECT title, chapter_number, release_date, "group", service_id, chapter_identifier as chapter_url FROM chapters WHERE manga_id=$1 ORDER BY chapter_number DESC, chapter_decimal DESC NULLS LAST LIMIT $2) ch) 
                              as chapters,`
         let limit = parseInt(req.query.chapters)
         const args = [req.params.manga_id];

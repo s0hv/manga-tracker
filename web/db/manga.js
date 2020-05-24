@@ -125,7 +125,7 @@ module.exports.formatLinks = formatLinks;
 
 function getManga(mangaId, chapters, cb) {
     const chapterSql = `(SELECT json_agg(ch) FROM 
-                            (SELECT title, chapter_number, release_date, "group", service_id, chapter_identifier as chapter_url FROM chapters WHERE manga_id=$1 ORDER BY release_date DESC LIMIT $2) ch) 
+                            (SELECT title, chapter_number, release_date, "group", service_id, chapter_identifier as chapter_url FROM chapters WHERE manga_id=$1 ORDER BY chapter_number DESC, chapter_decimal DESC NULLS LAST LIMIT $2) ch) 
                          as chapters,`
     const args = [mangaId];
     let limit = parseInt(chapters);
