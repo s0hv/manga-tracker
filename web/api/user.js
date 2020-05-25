@@ -3,6 +3,7 @@ const sessionDebug = require('debug')('session-debug');
 const { requiresUser, clearUserAuthTokens, generateAuthToken, clearUserAuthToken } = require('./../db/auth');
 const pool = require('./../db');
 
+const dev = process.env.NODE_ENV !== 'production';
 
 
 const MAX_USERNAME_LENGTH = 100;
@@ -105,6 +106,7 @@ module.exports = function (app) {
                                 if (err || !token) return res.status(500).json({error: 'Internal server error'});
                                 res.cookie('auth', token, {
                                             maxAge: 2592000000, // 30d in ms
+                                            secure: !dev,
                                             httpOnly: true,
                                             sameSite: 'strict',
                                 });
