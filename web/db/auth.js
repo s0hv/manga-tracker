@@ -12,6 +12,7 @@ const userCache = new LRU(({
                 noDisposeOnSet: true,
                 updateAgeOnGet: true,
 }));
+const dev = process.env.NODE_ENV !== 'production';
 
 function generateAuthToken(uid, user_uuid, cb) {
     crypto.randomBytes(32+9, (err, buf) => {
@@ -207,6 +208,7 @@ module.exports.checkAuth =  function(app) {
                             req.session.user_id = row.user_id;
                             res.cookie('auth', token, {
                                 httpOnly: true,
+                                secure: !dev,
                                 sameSite: 'strict',
                                 expires: expiresAt
                             });

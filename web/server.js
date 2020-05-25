@@ -51,9 +51,7 @@ module.exports = nextApp.prepare()
 
     server.use(require('body-parser').urlencoded({extended: true}));
     reverseProxy && server.enable('trust-proxy')
-    server.use(require('cookie-parser')(null, {
-        secure: !dev
-    }));
+    server.use(require('cookie-parser')(null));
     server.use(session({
         name: 'sess',
         cookie: {
@@ -82,6 +80,7 @@ module.exports = nextApp.prepare()
                 res.cookie('auth', req.user, {
                     maxAge: 2592000000, // 30d in ms
                     httpOnly: true,
+                    secure: !dev,
                     sameSite: 'strict',
                 });
             }
