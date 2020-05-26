@@ -137,7 +137,7 @@ module.exports.checkAuth =  function(app) {
             // TODO Maybe fix the race condition when 2 requests are done back to back
             //  with the same token from the same ip. Or maybe by some other criteria
 
-            authInfo('Checking auth from db for', req.cookies.auth);
+            authInfo('Checking auth from db for', req.originalUrl, req.cookies.auth);
             const sql = `SELECT u.user_id, u.username, u.user_uuid, u.theme FROM auth_tokens INNER JOIN users u on u.user_id=auth_tokens.user_id 
                          WHERE expires_at > NOW() AND user_uuid=$1 AND 
                                lookup=$2 AND hashed_token=encode(digest($3, 'sha256'), 'hex')`;

@@ -29,7 +29,7 @@ Chapter.prototype._parse = function(data) {
     this.firstGroupName = data.group_name;
 }
 
-function fetchExtraInfo(mangadexId, mangaId, cb) {
+function fetchExtraInfo(mangadexId, mangaId, cb, chapterIds, addChapters=true) {
     mangadexLimiter.consume('mangadex', 1)
         .then(() => {
 
@@ -69,8 +69,9 @@ function fetchExtraInfo(mangadexId, mangaId, cb) {
                     });
 
                 // Might as well update chapter titles and add missing chapters while we're at it
-                if (manga.chapters) {
-                    const chapters = manga.chapters.filter(c=>c.language==='GB').map(c => {
+                if (addChapters && manga.chapters) {
+                    const alreadyExists = new Set(chapterIds);
+                    const chapters = manga.chapters.filter(c=>c.language==='GB' && !alreadyExists.has(c.id.toString())).map(c => {
                         const chapter = c.chapter ? c.chapter.toString() : '0';
                         return [
                             mangaId, MANGADEX_ID,
@@ -162,7 +163,9 @@ function getManga(mangaId, chapters, cb) {
                     extra => {
                         formatLinks(extra);
                         cb(null, {...row, ...extra});
-                    });
+                    },
+                    limit ? row.chapters.map(c => c.chapter_url) : null,
+                    Boolean(limit));
                 return;
             }
 

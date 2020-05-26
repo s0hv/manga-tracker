@@ -47,7 +47,9 @@ module.exports = function (app) {
                         extra => {
                             formatLinks(extra);
                             res.json({...row, ...extra});
-                        });
+                        },
+                        limit ? row.chapters.map(c => c.chapter_url) : null,
+                        Boolean(limit));
                     return;
                 }
 
