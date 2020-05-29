@@ -184,7 +184,7 @@ class UpdateScheduler:
             for service in services:
                 Scraper = SCRAPERS.get(service['url'])
                 if not Scraper:
-                    logger.error(f'Failed to find scraper for {row}')
+                    logger.error(f'Failed to find scraper for {service}')
                     continue
 
                 scraper = Scraper(conn, DbUtil(conn))
@@ -203,6 +203,7 @@ class UpdateScheduler:
                 logger.debug(f"Updating interval of {len(manga_ids)} manga")
                 dbutil = DbUtil(conn)
                 with conn.cursor() as cursor:
+                    dbutil.update_latest_release(cursor, list(manga_ids))
                     for manga_id in manga_ids:
                         dbutil.update_chapter_interval(cursor, manga_id)
 

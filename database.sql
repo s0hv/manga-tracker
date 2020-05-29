@@ -64,12 +64,14 @@ CREATE TABLE manga_service (
     disabled        BOOL NOT NULL DEFAULT FALSE,
     last_check      TIMESTAMP WITH TIME ZONE,
     latest_chapter  INT DEFAULT NULL,
+    latest_decimal  INT DEFAULT NULL,
     next_update     TIMESTAMP WITH TIME ZONE,
 
     PRIMARY KEY (manga_id, service_id)
 );
 CREATE INDEX ON manga_service (last_check);
 CREATE INDEX ON manga_service (next_update);
+CREATE INDEX ON manga_service (disabled);
 
 
 CREATE TABLE service_whole (

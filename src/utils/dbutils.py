@@ -72,6 +72,26 @@ class DbUtil:
         cur.execute(sql, (next_update, manga_id, service_id))
 
     @optional_transaction
+    def get_service_manga(self, cur, service_id, include_only=None):
+        if include_only:
+            # TODO filter by given manga
+            args = (service_id,)
+            sql = 'SELECT manga_id, title_id, last_check, latest_chapter, latest_decimal FROM manga_service WHERE service_id=%s'
+        else:
+            args = (service_id,)
+            sql = 'SELECT manga_id, title_id, last_check, latest_chapter, latest_decimal FROM manga_service WHERE service_id=%s'
+
+        cur.execute(sql, args)
+        return cur.fetchall()
+
+    @optional_transaction
+    def get_service(self, cur, service_url):
+        sql = 'SELECT service_id FROM services WHERE url=%s'
+        cur.execute(sql, (service_url,))
+        row = cur.fetchone()
+        return row[0] if row else None
+
+    @optional_transaction
     def set_service_updates(self, cur, service_id, disabled_until):
         sql = 'UPDATE services SET disabled_until=%s WHERE service_id=%s'
         cur.execute(sql, (disabled_until, service_id))
@@ -121,6 +141,18 @@ class DbUtil:
 
     @staticmethod
     def add_new_series(cur, manga_chapters: dict, service_id, disable_single_update: bool=False):
+        """
+
+        Args:
+            cur:
+            manga_chapters (dict): title_id: chapters.
+                chapters must have a single element with the attributes manga_title and title_id
+            service_id:
+            disable_single_update:
+
+        Returns:
+
+        """
         manga_titles = {}
         duplicates = set()
 
@@ -158,7 +190,7 @@ class DbUtil:
             if row[2] == 1:
                 chapters = manga_titles.pop(row[1])
                 yield row[0], chapters
-                already_exist.append((row[0], service_id, disable_single_update, now, chapters[0].manga_id))
+                already_exist.append((row[0], service_id, disable_single_update, now, chapters[0].title_id))
                 continue
 
             logger.warning(f'Too many matches for manga {row[1]}')
@@ -189,7 +221,7 @@ class DbUtil:
                 logger.warning(f'Inserted manga mismatch with {chapter}')
                 continue
 
-            args.append((row[0], service_id, disable_single_update, now, chapter.manga_id))
+            args.append((row[0], service_id, disable_single_update, now, chapter.title_id))
             id2chapters[row[0]] = chapters
 
         sql = '''INSERT INTO manga_service (manga_id, service_id, disabled, last_check, title_id) VALUES 
