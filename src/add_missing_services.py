@@ -33,6 +33,6 @@ with conn:
         for row in cur:
             SCRAPERS.pop(row[0], None)
 
-    for Scraper in SCRAPERS.items():
+    for Scraper in SCRAPERS.values():
         scraper = Scraper(conn, DbUtil(conn))
         scraper.add_service()
