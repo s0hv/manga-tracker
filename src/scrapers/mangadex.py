@@ -57,7 +57,7 @@ class Chapter(BaseChapter):
         return self._chapter_identifier
 
     @property
-    def manga_id(self):
+    def title_id(self):
         return self._manga_id
 
     @property
@@ -191,7 +191,7 @@ class MangaDex(BaseScraper):
                     for manga_id, chapters in self.dbutil.add_new_series(cur, titles, service_id, True):
                         manga_ids.add(manga_id)
                         if chapters:
-                            mangadex_ids[manga_id] = chapters[0].manga_id
+                            mangadex_ids[manga_id] = chapters[0].title_id
                         for chapter in chapters:
                             data.append((manga_id, service_id, chapter.title, chapter.chapter_number,
                                         chapter.decimal, chapter.chapter_identifier,
@@ -205,7 +205,6 @@ class MangaDex(BaseScraper):
                 rows = execute_values(cur, sql, data, page_size=len(data), fetch=True)
                 manga_ids = {r['manga_id'] for r in rows}
                 if manga_ids:
-                    self.dbutil.update_latest_release(cur, [(m,) for m in manga_ids])
                     self.dbutil.update_latest_chapter(cur, tuple(c for c in get_latest_chapters(rows).values()))
                     self.update_chapter_infos([mangadex_ids[i] for i in mangadex_ids], [c['chapter_identifier'] for c in rows])
 
@@ -228,7 +227,7 @@ class MangaDex(BaseScraper):
             try:
                 r = requests.get(url.format(title_id), headers=headers)
             except requests.RequestException:
-                logger.error('Failed to fetch manga data from mangadex api')
+                logger.exception('Failed to fetch manga data from mangadex api')
                 return
 
             if 'set-cookie' in r.headers:
@@ -269,3 +268,6 @@ class MangaDex(BaseScraper):
         with self.conn:
             with self.conn.cursor() as cur:
                 execute_values(cur, sql, chapters, page_size=500)
+
+    def add_service(self):
+        raise NotImplementedError('Mangadex needs to be added manually as you need a valid rss feed url')

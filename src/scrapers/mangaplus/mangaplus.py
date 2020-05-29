@@ -196,7 +196,7 @@ class ChapterWrapper(BaseChapter):
         return self._chapter.chapter_id
 
     @property
-    def manga_id(self):
+    def title_id(self):
         return self._chapter.title_id
 
     @property
@@ -205,7 +205,7 @@ class ChapterWrapper(BaseChapter):
 
     @property
     def manga_url(self):
-        return MangaPlus.MANGA_URL.format(self.manga_id)
+        return MangaPlus.MANGA_URL.format(self.title_id)
 
     @property
     def group(self):
@@ -217,7 +217,7 @@ class ChapterWrapper(BaseChapter):
 
     def to_dict(self):
         return {
-            'title_id': self.manga_id,
+            'title_id': self.title_id,
             'chapter_id': self.chapter_identifier,
             'name': self._chapter.name,
             'sub_title': self.chapter_title,
@@ -232,6 +232,7 @@ class MangaPlus(BaseScraper):
     URL = 'https://mangaplus.shueisha.co.jp'
     MANGA_URL = 'https://mangaplus.shueisha.co.jp/titles/{}'
     CHAPTER_REGEX = re.compile(r'#(\d+)')
+    CHAPTER_URL_FORMAT = 'https://mangaplus.shueisha.co.jp/viewer/{}'
 
     @staticmethod
     def min_update_interval():

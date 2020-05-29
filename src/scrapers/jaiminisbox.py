@@ -60,7 +60,7 @@ class Chapter(BaseChapter):
         return self._chapter_identifier
 
     @property
-    def manga_id(self):
+    def title_id(self):
         return self._manga_id
 
     @property
@@ -147,7 +147,7 @@ class JaiminisBox(BaseScraper):
                 logger.exception('Failed to create chapter')
                 continue
 
-            manga_id = chapter.manga_id
+            manga_id = chapter.title_id
             if manga_id in titles:
                 titles[manga_id].append(chapter)
             else:
@@ -190,7 +190,6 @@ class JaiminisBox(BaseScraper):
                 rows = execute_values(cur, sql, data, page_size=len(data), fetch=True)
                 manga_ids = {r['manga_id'] for r in rows}
                 if manga_ids:
-                    self.dbutil.update_latest_release(cur, [(m,) for m in manga_ids])
                     self.dbutil.update_latest_chapter(cur, tuple(c for c in get_latest_chapters(rows).values()))
 
                 sql = 'UPDATE service_whole SET last_id=%s WHERE service_id=%s'
@@ -198,6 +197,7 @@ class JaiminisBox(BaseScraper):
 
                 self.dbutil.update_service_whole(cur, service_id, self.min_update_interval())
 
-
         return manga_ids
 
+    def add_service(self):
+        return self.add_service_whole()

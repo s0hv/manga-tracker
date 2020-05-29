@@ -33,7 +33,7 @@ class BaseChapter(abc.ABC):
         raise NotImplementedError
 
     @property
-    def manga_id(self):
+    def title_id(self):
         raise NotImplementedError
 
     @property
@@ -53,12 +53,15 @@ class BaseChapter(abc.ABC):
         raise NotImplementedError
 
     def __str__(self):
-        return f'{self.manga_title} / {self.manga_id}'
+        return f'{self.manga_title} / {self.title_id}'
 
 
 class BaseScraper(abc.ABC):
     UPDATE_INTERVAL = timedelta(hours=1)
     URL = None
+    FEED_URL = None
+    NAME = None
+    CHAPTER_URL_FORMAT = ''
 
     def __init_subclass__(cls, **kwargs):
         if cls.URL is None:
@@ -100,3 +103,31 @@ class BaseScraper(abc.ABC):
     @abc.abstractmethod
     def scrape_service(self, service_id, feed_url, last_update, title_id=None):
         raise NotImplementedError
+
+    def add_service(self):
+        sql = 'SELECT 1 FROM services WHERE url=%s'
+        with self.conn.cursor() as cur:
+            cur.execute(sql, (self.URL,))
+            if cur.fetchone():
+                logger.info(f'Service {self.NAME} already exists')
+                return
+
+        logger.info(f'Adding service {self.NAME} {self.URL}')
+        sql = 'INSERT INTO services (service_name, url, disabled, last_check, chapter_url_format, disabled_until) VALUES ' \
+              '(%s, %s, FALSE, NULL, %s, NULL) RETURNING service_id'
+        with self.conn:
+            with self.conn.cursor() as cur:
+                cur.execute(sql, (self.NAME, self.URL, self.CHAPTER_URL_FORMAT))
+                return cur.fetchone()[0]
+
+    def add_service_whole(self):
+        service_id = BaseScraper.add_service(self)
+        if not service_id:
+            return
+        with self.conn:
+            with self.conn.cursor() as cur:
+                sql = 'INSERT INTO service_whole (service_id, feed_url, last_check, next_update, last_id) VALUES ' \
+                      '(%s, %s, NULL, NULL, NULL)'
+                cur.execute(sql, (service_id, self.FEED_URL))
+
+        return service_id
