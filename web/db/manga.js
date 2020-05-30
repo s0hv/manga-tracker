@@ -164,7 +164,7 @@ function getManga(mangaId, chapters, cb) {
                         formatLinks(extra);
                         cb(null, {...row, ...extra});
                     },
-                    limit ? row.chapters.map(c => c.chapter_url) : null,
+                    (limit && row.chapters) ? row.chapters.map(c => c.chapter_url) : null,
                     Boolean(limit));
                 return;
             }
