@@ -199,6 +199,8 @@ class UpdateScheduler:
                 if retval:
                     manga_ids.update(retval)
 
+        # Start new transaction to make sure everything was committed
+        with self.conn() as conn:
             if manga_ids:
                 logger.debug(f"Updating interval of {len(manga_ids)} manga")
                 dbutil = DbUtil(conn)
