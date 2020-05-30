@@ -63,3 +63,4 @@ jobs:
 
       REDIS_HOST: redis
       REDIS_PORT: 6379
+      DEBUG: debug,session-*,auth-info
