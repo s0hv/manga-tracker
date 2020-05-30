@@ -233,6 +233,7 @@ class MangaPlus(BaseScraper):
     MANGA_URL = 'https://mangaplus.shueisha.co.jp/titles/{}'
     CHAPTER_REGEX = re.compile(r'#(\d+)')
     CHAPTER_URL_FORMAT = 'https://mangaplus.shueisha.co.jp/viewer/{}'
+    MANGA_URL_FORMAT = 'https://mangaplus.shueisha.co.jp/titles/{}'
 
     @staticmethod
     def min_update_interval():

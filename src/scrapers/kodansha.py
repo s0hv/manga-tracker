@@ -66,6 +66,7 @@ class KodanshaComics(BaseScraper):
     URL = 'https://kodanshacomics.com'
     FEED_URL = 'https://kodanshacomics.com/simulpubs'
     NAME = 'Kodansha Comics'
+    MANGA_URL_FORMAT = 'https://kodanshacomics.com/series/{}'
 
     @staticmethod
     def min_update_interval():
