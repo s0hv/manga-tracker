@@ -23,7 +23,7 @@ const useStyles = makeStyles((theme) => ({
     bottom: theme.spacing(2),
     position: 'absolute',
     width: '100%',
-    paddingTop: theme.spacing(10),
+    marginTop: theme.spacing(10),
   },
   copyright: {
     marginLeft: theme.spacing(3),

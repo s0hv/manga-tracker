@@ -83,6 +83,8 @@ class MangaDex(BaseScraper):
     DESCRIPTION_REGEX = re.compile(r'Group: (?P<group>.+?) - Uploader: (?P<uploader>.+?) - Language: (?P<language>\w+)')
     UPDATE_INTERVAL = timedelta(minutes=30)
     MANGADEX_API = 'https://mangadex.org/api'
+    CHAPTER_URL_FORMAT = 'https://mangadex.org/chapter/{}'
+    MANGA_URL_FORMAT = 'https://mangadex.org/title/{}'
 
     @staticmethod
     def min_update_interval():

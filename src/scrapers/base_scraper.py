@@ -62,6 +62,7 @@ class BaseScraper(abc.ABC):
     FEED_URL = None
     NAME = None
     CHAPTER_URL_FORMAT = ''
+    MANGA_URL_FORMAT = ''
 
     def __init_subclass__(cls, **kwargs):
         if cls.URL is None:
@@ -113,11 +114,11 @@ class BaseScraper(abc.ABC):
                 return
 
         logger.info(f'Adding service {self.NAME} {self.URL}')
-        sql = 'INSERT INTO services (service_name, url, disabled, last_check, chapter_url_format, disabled_until) VALUES ' \
-              '(%s, %s, FALSE, NULL, %s, NULL) RETURNING service_id'
+        sql = 'INSERT INTO services (service_name, url, disabled, last_check, chapter_url_format, manga_url_format, disabled_until) VALUES ' \
+              '(%s, %s, FALSE, NULL, %s, %s, NULL) RETURNING service_id'
         with self.conn:
             with self.conn.cursor() as cur:
-                cur.execute(sql, (self.NAME, self.URL, self.CHAPTER_URL_FORMAT))
+                cur.execute(sql, (self.NAME, self.URL, self.CHAPTER_URL_FORMAT, self.MANGA_URL_FORMAT))
                 return cur.fetchone()[0]
 
     def add_service_whole(self):

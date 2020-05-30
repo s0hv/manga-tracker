@@ -48,6 +48,7 @@ CREATE TABLE services (
     service_name        TEXT NOT NULL,
     url                 TEXT UNIQUE NOT NULL,
     chapter_url_format  TEXT NOT NULL,
+    manga_url_format    TEXT NOT NULL,
     disabled            BOOL NOT NULL DEFAULT FALSE,
     last_check          TIMESTAMP WITH TIME ZONE,
     disabled_until      TIMESTAMP WITH TIME ZONE

@@ -1,13 +1,16 @@
 import React from 'react';
 import ExpandMore from '@material-ui/icons/ExpandMore';
 import ExpandLess from '@material-ui/icons/ExpandLess';
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
-import ListItemText from '@material-ui/core/ListItemText';
-import Collapse from '@material-ui/core/Collapse';
-import {makeStyles} from '@material-ui/core/styles';
-import Typography from '@material-ui/core/Typography';
-import Button from '@material-ui/core/Button';
+import {
+  Button,
+  Collapse,
+  Link,
+  List,
+  ListItem,
+  ListItemText,
+  makeStyles,
+  Typography
+} from '@material-ui/core';
 
 
 const useStyles = makeStyles((theme) => ({
@@ -51,7 +54,9 @@ export default function (props) {
   function renderItem(item, index) {
     return (
       <ListItem className={classes.nested} key={index}>
-        <Typography>{item.name}</Typography>
+        <Typography>
+          <Link href={item.url.replace('{}', item.title_id)} target='_blank'>{item.name}</Link>
+        </Typography>
         {isAuthenticated &&
           <Button variant='contained' color='primary' onClick={followUnfollow(item.service_id)}>
             {userFollows.indexOf(item.service_id) < 0 ? 'Follow' : 'Unfollow'}

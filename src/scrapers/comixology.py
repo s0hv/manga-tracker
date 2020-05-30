@@ -110,6 +110,7 @@ class ComiXology(BaseScraper):
     URL = 'https://www.comixology.com'
     NAME = 'ComiXology'
     CHAPTER_URL_FORMAT = 'https://www.comixology.com/chapter/digital-comic/{}'
+    MANGA_URL_FORMAT = 'https://www.comixology.com/series/comics-series/{}'
 
     def __init__(self, conn, dbutil):
         super().__init__(conn, dbutil)
