@@ -157,6 +157,7 @@ class ComiXology(BaseScraper):
 
     def update_selected_manga(self, manga_links):
         now = datetime.utcnow()
+        updated = 0
         if self.service_id is None:
             self.service_id = self.dbutil.get_service(None, self.URL)
 
@@ -195,10 +196,17 @@ class ComiXology(BaseScraper):
             if max_id:
                 chapters = [c for c in chapters if not c.invalid and int(c.chapter_identifier) > max_id]
 
+            if not chapters:
+                continue
+
             if len(chapters) > 1:
                 now = self.get_chapter_release_date(chapters[0].url) or now
 
             latest_chapter = manga.latest_chapter
+            # If special chapter like extra manually get latest chapter
+            if latest_chapter == -1:
+                latest_chapter = max(chapters, key=lambda c: c.chapter_number)
+
             last_chapter = None
             for idx, chapter in enumerate(chapters):
                 if chapter.invalid:
@@ -240,5 +248,7 @@ class ComiXology(BaseScraper):
                     cur.execute(sql, (manga.manga_id, self.service_id, manga.title_id))
 
             self.wait()
+            updated += 1
 
         self.set_checked(self.service_id)
+        return updated

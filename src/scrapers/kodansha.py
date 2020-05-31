@@ -27,7 +27,11 @@ class Manga:
     def __init__(self, manga_element, release_interval):
         self.title = manga_element.cssselect('cite')[0].text
         ch = manga_element.cssselect('.simulpub-card__badge span')[0].text.split('.')
-        self.latest_chapter = int(ch[0])
+        if ch[0].lower() == 'ex':
+            self.latest_chapter = -1
+        else:
+            self.latest_chapter = int(ch[0])
+
         self.chapter_decimal = None
         if len(ch) > 1:
             self.chapter_decimal = int(ch[1])
@@ -154,12 +158,14 @@ class KodanshaComics(BaseScraper):
 
                 scraper = scrapers[source.base_url]
                 try:
-                    scraper.update_selected_manga((source,))
+                    updated_count = scraper.update_selected_manga((source,))
                 except:
                     logger.exception(f'Failed to update service {source.manga_url}')
                     continue
 
-                updated += 1
+                # Only increase if update was done
+                if updated_count > 0:
+                    updated += 1
 
             if 0 < updated and updated >= len(manga.sources) - non_existing:
                 updated_manga.append(manga)

@@ -223,9 +223,10 @@ class MangaDex(BaseScraper):
         url = self.MANGADEX_API + '/manga/{}'
         headers = {}
         fails = 0
+        sleep = 0.1
         chapters = []
 
-        for title_id in title_ids:
+        for idx, title_id in enumerate(title_ids):
             try:
                 r = requests.get(url.format(title_id), headers=headers)
             except requests.RequestException:
@@ -258,7 +259,11 @@ class MangaDex(BaseScraper):
                     chapter_id
                 ))
 
-            time.sleep(0.1)
+            if idx % 10 == 0:
+                time.sleep(1)
+                sleep += 0.2
+            else:
+                time.sleep(sleep)
 
         if not chapters:
             return
