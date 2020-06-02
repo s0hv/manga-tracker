@@ -70,7 +70,7 @@ module.exports = nextApp.prepare()
 
     server.use(passport.initialize());
     server.use(checkAuth(server));
-    server.use('/api/*', rateLimiter)
+    server.use('/api/*', rateLimiter);
 
     server.use('/api/login', bruteforce.prevent);
     server.post('/api/login',
@@ -122,9 +122,7 @@ module.exports = nextApp.prepare()
     server.get('/manga/:manga_id(\\d+)', requiresUser, (req, res) => {
         getManga(req.params.manga_id, 50, (err, data) => {
             if (err) {
-                res.status(err);
-                handle(req, res);
-                return;
+                req.error = err;
             } else {
                 req.manga_data = data;
             }

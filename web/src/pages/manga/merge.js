@@ -1,28 +1,18 @@
 import MergeManga from '../../views/MergeManga';
 import React from "react";
+import withError from "./../../utils/withError";
 
-
-const MergeMangaPage = function (props) {
-    const {
-        user,
-        isAuthenticated = false,
-    } = props
-
-    if (!isAuthenticated) return null;
-
-    return <MergeManga user={{...user}} isAuthenticated={isAuthenticated} />;
+const MergeMangaPage = function () {
+    return <MergeManga />;
 }
 
 export async function getServerSideProps(ctx) {
     if (!(ctx.req.user && ctx.req.user.user_id === 1)) {
-        ctx.res.redirect('/404');
-        return {props: {}};
+        return {props: {error: 404}};
     }
 
     return {
-        props: {
-            user: ctx.req.user,
-        }
+        props: {}
     }
 }
-export default MergeMangaPage;
+export default withError(MergeMangaPage);

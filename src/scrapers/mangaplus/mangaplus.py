@@ -5,6 +5,7 @@ from datetime import datetime, timedelta, timezone
 import requests
 from psycopg2.extras import execute_batch
 
+from src.enums import Status
 from src.scrapers.base_scraper import BaseScraper, BaseChapter
 from src.utils.utilities import random_timedelta
 from .protobuf import mangaplus_pb2
@@ -308,6 +309,7 @@ class MangaPlus(BaseScraper):
         now = datetime.utcnow()
         next_update = now + timedelta(hours=4)
         disabled = False
+        completed = False
         if series.next_timestamp:
             next_update = series.next_timestamp
         elif series.non_appearance_info:
@@ -317,6 +319,7 @@ class MangaPlus(BaseScraper):
             elif 'completed' in release_info:
                 next_update = None
                 disabled = True
+                completed = True
 
         newest_chapter = None
         for c in series.last_chapter_list:
@@ -335,5 +338,13 @@ class MangaPlus(BaseScraper):
                 cursor.execute(sql, [now, next_update, disabled, manga_id, service_id])
                 if newest_chapter:
                     self.dbutil.update_latest_chapter(cursor, ((manga_id, newest_chapter.chapter_number, newest_chapter.release_date),))
+
+                if completed:
+                    sql = 'INSERT INTO manga_info (manga_id, status, artist, author) VALUES (%s, %s, %s, %s) ON CONFLICT (manga_id) DO UPDATE SET status=EXCLUDED.status'
+                    author = series.title.author.split(' / ')
+                    artist = ''
+                    if len(author) > 1:
+                        artist = author[1]
+                    cursor.execute(sql, (manga_id, Status.COMPLETED, artist, author[0]))
 
         return True
