@@ -1,6 +1,6 @@
 import Manga from '../../views/Manga';
 import React from "react";
-
+import withError from "./../../utils/withError";
 
 const MangaPage = function (props) {
     const {
@@ -9,16 +9,14 @@ const MangaPage = function (props) {
         isAuthenticated = false,
     } = props
 
-    if (!manga) return null;
-
     return <Manga mangaData={{...manga}} isAuthenticated={isAuthenticated} userFollows={follows}/>;
 }
 
 export async function getServerSideProps(ctx) {
     const manga = ctx.req?.manga_data;
-    if (!manga) {
-        ctx.res.redirect('/404');
-        return {props: {}};
+    const error = ctx.req?.error;
+    if (!manga || error) {
+        return {props: {error: error?.status || 404}};
     }
     let data = JSON.parse(JSON.stringify(manga))
 
@@ -29,4 +27,4 @@ export async function getServerSideProps(ctx) {
         }
     }
 }
-export default MangaPage;
+export default withError(MangaPage);

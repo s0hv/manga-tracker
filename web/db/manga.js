@@ -1,6 +1,7 @@
 const { Manga, Util, link: Link, Chapter } = require("mangadex-full-api");
 const pool = require('./../db');
-const { mangadexLimiter } = require('./../utils/ratelimits')
+const { mangadexLimiter } = require('./../utils/ratelimits');
+const { HttpError } = require('./../utils/errors');
 
 const MANGADEX_ID = 2; // Id of the mangadex service in the database
 
@@ -37,8 +38,23 @@ function fetchExtraInfo(mangadexId, mangaId, cb, chapterIds, addChapters=true) {
         debug(`Fetching extra info for ${mangaId} ${mangadexId}`);
         manga.apiFill(mangadexId)
             .then(() => {
-                const sql = `INSERT INTO manga_info (manga_id, cover, artist, author, bw, mu, mal, amz, ebj, engtl, raw, nu, kt, ap, al)
-                             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15) RETURNING *`;
+                const sql = `INSERT INTO manga_info as mi (manga_id, cover, artist, author, bw, mu, mal, amz, ebj, engtl, raw, nu, kt, ap, al)
+                             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15) 
+                             ON CONFLICT (manga_id) DO UPDATE SET cover=excluded.cover, 
+                                                                  artist=COALESCE(excluded.artist, mi.artist), 
+                                                                  author=COALESCE(excluded.author, mi.author),
+                                                                  bw=excluded.bw,
+                                                                  mu=excluded.mu,
+                                                                  mal=excluded.mal,
+                                                                  amz=excluded.amz,
+                                                                  ebj=excluded.ebj,
+                                                                  engtl=excluded.engtl,
+                                                                  raw=excluded.raw,
+                                                                  nu=excluded.nu,
+                                                                  kt=excluded.kt,
+                                                                  ap=excluded.ap,
+                                                                  al=excluded.al
+                             RETURNING *`;
                 const vals = [
                     mangaId,
                     manga.getFullURL('cover'),
@@ -151,14 +167,14 @@ function getManga(mangaId, chapters, cb) {
     pool.query(sql, args)
         .then(rows => {
             if (!(rows.rowCount > 0)) {
-                cb(404, null);
+                cb(HttpError(404), null);
                 return;
             }
 
             const row = rows.rows[0];
 
             const mdIdx = row.services.findIndex(v => v.service_id === MANGADEX_ID);
-            if (!row.info_exists && mdIdx >= 0) {
+            if ((!row.info_exists || !row.cover) && mdIdx >= 0) {
                 fetchExtraInfo(row.services[mdIdx].title_id, mangaId,
                     extra => {
                         formatLinks(extra);
@@ -175,11 +191,11 @@ function getManga(mangaId, chapters, cb) {
         .catch(err => {
             // integer overflow
             if (err.code === '22003' || err.code === '22P02') {
-                cb(404, null);
+                cb(HttpError(404, "Integer out of range"), null);
                 return;
             }
             console.error(err);
-            cb(500, null)
+            cb(HttpError(500), null)
         })
 }
 

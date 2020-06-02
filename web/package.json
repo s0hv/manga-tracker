@@ -39,7 +39,7 @@
     "server": "node server.js",
     "server-dev": "nodemon --watch api/* --watch db/* --watch server.js server.js",
     "deploy": "node server.js",
-    "backend-only": "nodemon --watch api/* --watch db/* --watch server.js server.js",
+    "backend-only": "nodemon --watch api/* --watch db/* --watch utils/* --watch server.js server.js",
     "test": "jest",
     "initDb": "node initDb.js"
   },

@@ -36,12 +36,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 
-function MergeManga(props) {
-  const {
-    isAuthenticated,
-    user,
-  } = props;
-
+function MergeManga() {
   const classes = useStyles();
 
   const [manga1, setManga1] = React.useState({});
@@ -51,7 +46,9 @@ function MergeManga(props) {
   const getMangaData = (manga_id, cb) => {
     fetch(`/api/manga/${manga_id}`)
       .then(res => res.json())
-      .then(cb)
+      .then(js => {
+        cb(js.manga);
+      })
       .catch(err => {
         console.error(err);
         cb({});
