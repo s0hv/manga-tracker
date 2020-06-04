@@ -87,20 +87,11 @@ module.exports = nextApp.prepare()
             res.redirect('/');
         });
 
-    server.get('/api/quicksearch', (req, res) => {
-        if (!req.query.query) {
-            return res.json([]);
-        }
-
-        quickSearch(req.query.query, (results) => {
-            res.json(results || []);
-        })
-    });
-
     require('./api/rss')(server);
     require('./api/manga')(server);
     require('./api/user')(server);
     require('./api/settings')(server);
+    require('./api/search')(server);
 
     server.get('/login', requiresUser, (req, res) => {
         sessionDebug(req.session.user_id);
