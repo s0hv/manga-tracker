@@ -10,14 +10,14 @@ CREATE TABLE manga (
     estimated_release   TIMESTAMP WITH TIME ZONE DEFAULT NULL,
     latest_chapter      INT DEFAULT NULL
 );
-CREATE INDEX textsearch_fuzzy_title ON manga USING gin (title gin_trgm_ops);
+CREATE INDEX textsearch_fuzzy_title ON manga USING gin (REPLACE(title, '-', ' ') gin_trgm_ops);
 
 CREATE TABLE manga_alias (
     manga_id INT NOT NULL REFERENCES manga ON DELETE CASCADE,
     title TEXT NOT NULL,
     PRIMARY KEY (manga_id, title)
 );
-CREATE INDEX textsearch_fuzzy_alias_title ON manga_alias USING gin (title gin_trgm_ops);
+CREATE INDEX textsearch_fuzzy_alias_title ON manga_alias USING gin (REPLACE(title, '-', ' ') gin_trgm_ops);
 
 
 CREATE TABLE manga_info (
