@@ -51,36 +51,37 @@ class UpdateScheduler:
 
     def scrape_service(self, service_id, Scraper, manga_info):
         with self.conn() as conn:
-            scraper = Scraper(conn, DbUtil(conn))
-            rng = random.Random()
-            manga_ids = set()
-            errors = 0
+            with conn:
+                scraper = Scraper(conn, DbUtil(conn))
+                rng = random.Random()
+                manga_ids = set()
+                errors = 0
 
-            idx = 0
-            for title_id, manga_id in manga_info:
-                logger.info(f'Updating {title_id} on service {service_id}')
-                try:
-                    if scraper.scrape_series(title_id, service_id, manga_id):
-                        manga_ids.add(manga_id)
-                    else:
+                idx = 0
+                for title_id, manga_id in manga_info:
+                    logger.info(f'Updating {title_id} on service {service_id}')
+                    try:
+                        if scraper.scrape_series(title_id, service_id, manga_id):
+                            manga_ids.add(manga_id)
+                        else:
+                            errors += 1
+                            logger.error(f'Failed to scrape series {manga_info}')
+                    except psycopg2.Error:
+                        conn.rollback()
+                        logger.exception(f'Database error while updating manga {title_id} on service {service_id}')
+                        scraper.dbutil.update_manga_next_update(None, service_id, manga_id, scraper.min_update_interval())
                         errors += 1
-                        logger.error(f'Failed to scrape series {manga_info}')
-                except psycopg2.Error:
-                    conn.rollback()
-                    logger.exception(f'Database error while updating manga {title_id} on service {service_id}')
-                    scraper.dbutil.update_manga_next_update(None, service_id, manga_id, scraper.min_update_interval())
-                    errors += 1
 
-                if errors > 1:
-                    break
+                    if errors > 1:
+                        break
 
-                idx += 1
-                if idx != len(manga_info):
-                    time.sleep(rng.randint(5, 30))
+                    idx += 1
+                    if idx != len(manga_info):
+                        time.sleep(rng.randint(5, 30))
 
-            scraper.set_checked(service_id)
+                scraper.set_checked(service_id)
 
-            return manga_ids
+                return manga_ids
 
     def force_run(self, service_id, manga_id=None):
         with self.conn() as conn:
@@ -104,9 +105,10 @@ class UpdateScheduler:
                     scraper = Scraper(conn, DbUtil(conn))
 
                     logger.info(f'Updating {row["title_id"]}')
-                    if not scraper.scrape_series(row["title_id"], row['service_id'],
-                                                 row['manga_id']):
-                        logger.error(f'Failed to scrape series {row}')
+                    with conn:
+                        if not scraper.scrape_series(row["title_id"], row['service_id'],
+                                                     row['manga_id']):
+                            logger.error(f'Failed to scrape series {row}')
 
                     return row['manga_id']
 
@@ -130,7 +132,8 @@ class UpdateScheduler:
 
                 scraper = Scraper(conn, DbUtil(conn))
                 logger.info(f'Updating service {row["url"]}')
-                retval = scraper.scrape_service(row['service_id'], row['feed_url'], None)
+                with conn:
+                    retval = scraper.scrape_service(row['service_id'], row['feed_url'], None)
                 if retval:
                     manga_ids.update(retval)
 
@@ -189,27 +192,28 @@ class UpdateScheduler:
 
                 scraper = Scraper(conn, DbUtil(conn))
                 logger.info(f'Updating service {service[2]}')
-                try:
-                    retval = scraper.scrape_service(service[0], service[1], None)
-                except psycopg2.Error:
-                    logger.exception(f'Database error while scraping {service[1]}')
-                    continue
+
+                with conn:
+                    try:
+                        retval = scraper.scrape_service(service[0], service[1], None)
+                    except psycopg2.Error:
+                        logger.exception(f'Database error while scraping {service[1]}')
+                        continue
 
                 scraper.set_checked(service[0])
                 if retval:
                     manga_ids.update(retval)
 
-        # Start new transaction to make sure everything was committed
-        with self.conn() as conn:
-            if manga_ids:
-                logger.debug(f"Updating interval of {len(manga_ids)} manga")
-                dbutil = DbUtil(conn)
-                with conn.cursor() as cursor:
-                    dbutil.update_latest_release(cursor, list(manga_ids))
-                    for manga_id in manga_ids:
-                        dbutil.update_chapter_interval(cursor, manga_id)
-
             conn.commit()
+
+            with conn:
+                if manga_ids:
+                    logger.debug(f"Updating interval of {len(manga_ids)} manga")
+                    dbutil = DbUtil(conn)
+                    with conn.cursor() as cursor:
+                        dbutil.update_latest_release(cursor, list(manga_ids))
+                        for manga_id in manga_ids:
+                            dbutil.update_chapter_interval(cursor, manga_id)
 
             sql = 'SELECT LEAST(MIN(ms.next_update), (SELECT MIN(sw.next_update) FROM service_whole sw)) FROM manga_service ms'
             with conn.cursor() as cursor:
