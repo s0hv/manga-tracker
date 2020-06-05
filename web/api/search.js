@@ -33,7 +33,7 @@ function mangaSearch(keywords) {
                     ORDER BY ma.title ILIKE $1 || '%' DESC, title <-> $1
                     LIMIT 1)
                 )
-                SELECT * FROM manga LEFT JOIN manga_info mi ON manga.manga_id = mi.manga_id
+                SELECT *, manga.manga_id FROM manga LEFT JOIN manga_info mi ON manga.manga_id = mi.manga_id
                 WHERE manga.manga_id=(SELECT manga_id FROM tmp ORDER BY main LIMIT 1)`;
 
     return pool.query(sql, [keywords.replace('-', ' ')]);
