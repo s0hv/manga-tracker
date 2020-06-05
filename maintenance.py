@@ -29,3 +29,12 @@ with scheduler.conn() as conn:
         if args.update_interval:
             logger.info(f'Updating interval for {args.update_interval}')
             dbutil.update_chapter_interval(cur, args.update_interval)
+
+    print('Commit changes? (y/n)')
+    resp = input().strip().lower()
+    if resp in ('y', 'yes'):
+        print('Committing changes')
+        conn.commit()
+    else:
+        print('Rolling back changes')
+        conn.rollback()
