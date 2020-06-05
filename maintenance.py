@@ -25,10 +25,16 @@ if args.production:
 scheduler = UpdateScheduler()
 with scheduler.conn() as conn:
     dbutil = DbUtil(conn)
-    with conn.cursor() as cur:
-        if args.update_interval:
-            logger.info(f'Updating interval for {args.update_interval}')
-            dbutil.update_chapter_interval(cur, args.update_interval)
+    try:
+        with conn.cursor() as cur:
+            if args.update_interval:
+                logger.info(f'Updating interval for {args.update_interval}')
+                dbutil.update_chapter_interval(cur, args.update_interval)
+
+    except Exception:
+        logger.exception('Failed to execute commands. Rolling back')
+        conn.rollback()
+        raise
 
     print('Commit changes? (y/n)')
     resp = input().strip().lower()
