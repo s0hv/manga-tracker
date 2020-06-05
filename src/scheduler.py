@@ -15,19 +15,19 @@ from src.utils.dbutils import DbUtil
 
 logger = logging.getLogger('debug')
 
-config = {
-    'db_host': os.environ['DB_HOST'],
-    'db': os.environ['DB_NAME'],
-    'db_user': os.environ['DB_USER'],
-    'db_pass': os.environ['DB_PASSWORD'],
-    'db_port': os.environ['DB_PORT']
-}
-
 
 class UpdateScheduler:
     MAX_POOLS = 5
 
     def __init__(self):
+        config = {
+            'db_host': os.environ['DB_HOST'],
+            'db': os.environ['DB_NAME'],
+            'db_user': os.environ['DB_USER'],
+            'db_pass': os.environ['DB_PASSWORD'],
+            'db_port': os.environ['DB_PORT']
+        }
+
         self.pool = ThreadedConnectionPool(1, self.MAX_POOLS,
                                             host=config['db_host'],
                                             port=config['db_port'],
@@ -208,6 +208,8 @@ class UpdateScheduler:
                     dbutil.update_latest_release(cursor, list(manga_ids))
                     for manga_id in manga_ids:
                         dbutil.update_chapter_interval(cursor, manga_id)
+
+            conn.commit()
 
             sql = 'SELECT LEAST(MIN(ms.next_update), (SELECT MIN(sw.next_update) FROM service_whole sw)) FROM manga_service ms'
             with conn.cursor() as cursor:

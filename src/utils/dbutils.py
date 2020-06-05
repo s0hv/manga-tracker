@@ -98,7 +98,7 @@ class DbUtil:
 
     @optional_transaction
     def update_chapter_interval(self, cur, manga_id):
-        sql = 'SELECT MIN(release_date) release_date, chapter_number FROM chapters WHERE manga_id=%s GROUP BY chapter_number ORDER BY chapter_number DESC LIMIT 30'
+        sql = 'SELECT MIN(release_date) release_date, chapter_number FROM chapters WHERE manga_id=%s GROUP BY chapter_number, chapter_decimal ORDER BY chapter_number DESC, chapter_decimal DESC NULLS LAST LIMIT 30'
         cur.execute(sql, (manga_id,))
         chapters = []
         last = None
@@ -114,6 +114,7 @@ class DbUtil:
             chapters.append(c)
 
         if len(chapters) < 2:
+            logger.debug(f'Not enough chapters to calculate release interval for {manga_id}')
             return
 
         intervals = []
@@ -127,6 +128,7 @@ class DbUtil:
             intervals.append(t)
 
         if not intervals:
+            logger.debug(f'Not enough valid intervals to calculate release interval for {manga_id}')
             return
 
         try:
@@ -137,6 +139,7 @@ class DbUtil:
 
         interval = timedelta(seconds=interval)
         sql = 'UPDATE manga SET release_interval=%s WHERE manga_id=%s'
+        logger.debug(f'Interval for {manga_id} set to {interval}')
         cur.execute(sql, (interval, manga_id))
 
     @staticmethod
