@@ -72,7 +72,7 @@ module.exports = function (app) {
         mangaSearch(req.query.query)
             .then(rows => {
                 if (rows.rowCount === 0) {
-                    return res.json({error: {status: 404, message: 'Not found'}});
+                    return res.json({manga: null});
                 }
                 const row = rows.rows[0];
                 res.json({manga: row});
