@@ -7,6 +7,7 @@ from psycopg2.extras import execute_values
 from src.utils.utilities import round_seconds
 
 logger = logging.getLogger('debug')
+maintenance = logging.getLogger('maintenance')
 
 
 def optional_transaction(f):
@@ -114,7 +115,7 @@ class DbUtil:
             chapters.append(c)
 
         if len(chapters) < 2:
-            logger.debug(f'Not enough chapters to calculate release interval for {manga_id}')
+            maintenance.info(f'Not enough chapters to calculate release interval for {manga_id}')
             return
 
         intervals = []
@@ -128,7 +129,7 @@ class DbUtil:
             intervals.append(t)
 
         if not intervals:
-            logger.debug(f'Not enough valid intervals to calculate release interval for {manga_id}')
+            maintenance.info(f'Not enough valid intervals to calculate release interval for {manga_id}')
             return
 
         try:
@@ -139,7 +140,7 @@ class DbUtil:
 
         interval = timedelta(seconds=interval)
         sql = 'UPDATE manga SET release_interval=%s WHERE manga_id=%s'
-        logger.debug(f'Interval for {manga_id} set to {interval}')
+        maintenance.info(f'Interval for {manga_id} set to {interval}')
         cur.execute(sql, (interval, manga_id))
 
     @staticmethod
@@ -290,3 +291,24 @@ class DbUtil:
               ' (VALUES %s) as c(manga_id, latest_chapter, release_date) ' \
               'WHERE c.manga_id=m.manga_id'
         execute_values(cur, sql, data)
+
+    @optional_transaction
+    def update_estimated_release(self, cur, manga_id):
+        sql = 'WITH tmp AS (SELECT MAX(chapter_number) as chn FROM chapters WHERE manga_id=%(manga)s) ' \
+              'UPDATE manga SET estimated_release=(' \
+              ' SELECT MIN(release_date) FROM chapters ' \
+              '     WHERE manga_id=%(manga)s AND ' \
+              '           chapter_number=(SELECT chn FROM tmp) AND ' \
+              '           chapter_decimal IS NOT DISTINCT FROM (SELECT MAX(chapter_decimal) FROM chapters WHERE manga_id= %(manga)s AND chapter_number=(SELECT chn FROM tmp))' \
+              ') + release_interval ' \
+              'WHERE manga_id=%(manga)s AND release_interval IS NOT NULL ' \
+              'RETURNING estimated_release, (SELECT estimated_release FROM manga WHERE manga_id=%(manga)s) as estimated_release_old'
+
+        cur.execute(sql, {'manga': manga_id})
+        rows = cur.fetchall()
+        if not rows:
+            maintenance.info("Nothing updated because manga id doesn't exist or release_interval was NULL")
+            return
+
+        row = rows[0]
+        maintenance.info(f'Set estimated release from {row["estimated_release_old"]} to {row["estimated_release"]}')
