@@ -4,10 +4,13 @@ from argparse import ArgumentParser
 import setup_logging
 from src.scheduler import UpdateScheduler, DbUtil
 
-logger = setup_logging.setup()
+setup_logging.setup('debug')
+logger = setup_logging.setup('maintenance')
 
 parser = ArgumentParser()
-parser.add_argument('--update-interval', '-ui', type=int)
+parser.add_argument('--manga', '-m', type=int, required=True)
+parser.add_argument('--update-interval', '-ui', action='store_true')
+parser.add_argument('--update-estimate', '-ue', action='store_true')
 parser.add_argument('--production', '-p', action='store_true')
 
 args = parser.parse_args()
@@ -28,8 +31,12 @@ with scheduler.conn() as conn:
     try:
         with conn.cursor() as cur:
             if args.update_interval:
-                logger.info(f'Updating interval for {args.update_interval}')
-                dbutil.update_chapter_interval(cur, args.update_interval)
+                logger.info(f'Updating interval for {args.manga}')
+                dbutil.update_chapter_interval(cur, args.manga)
+
+            if args.update_estimate:
+                logger.info(f'Updating estimate for {args.manga}')
+                dbutil.update_estimated_release(cur, args.manga)
 
     except Exception:
         logger.exception('Failed to execute commands. Rolling back')
