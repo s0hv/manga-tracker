@@ -3,6 +3,7 @@ import re
 import time
 from calendar import timegm
 from datetime import datetime, timedelta
+from json.decoder import JSONDecodeError
 
 import feedparser
 import psycopg2
@@ -237,7 +238,14 @@ class MangaDex(BaseScraper):
                 cookies = r.headers['set-cookie']
                 headers['cookies'] = cookies
 
-            data = r.json()
+            try:
+                data = r.json()
+            except JSONDecodeError:
+                logger.error(f'Failed to json decode {r.content}')
+                fails += 1
+                if fails > 2:
+                    return
+                continue
 
             if data.get('status') != 'OK':
                 fails += 1
