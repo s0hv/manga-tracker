@@ -6,8 +6,8 @@ const MergeMangaPage = function () {
     return <MergeManga />;
 }
 
-export async function getServerSideProps(ctx) {
-    if (!(ctx.req.user && ctx.req.user.user_id === 1)) {
+export async function getServerSideProps( { req } ) {
+    if (!(req.user && req.user.admin)) {
         return {props: {error: 404}};
     }
 

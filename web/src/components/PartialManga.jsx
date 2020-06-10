@@ -1,8 +1,5 @@
 import React from 'react';
-import Typography from '@material-ui/core/Typography';
-import {makeStyles} from "@material-ui/core/styles";
-import Grid from '@material-ui/core/Grid'
-import Tooltip from "@material-ui/core/Tooltip";
+import {Grid, makeStyles, Tooltip, Typography,} from '@material-ui/core';
 import MangaSourceList from "./MangaSourceList";
 
 const dateOptions = { weekday: 'short', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
@@ -47,8 +44,6 @@ function PartialManga(props) {
     mangaData,
   } = props;
 
-  console.debug('manga data', mangaData);
-
   if (!mangaData.manga_id) return null;
 
   const classes = useStyles();
@@ -59,7 +54,6 @@ function PartialManga(props) {
   const estimated_release = mangaData.estimated_release ?
     new Date(mangaData.estimated_release) :
     null;
-
 
   return (
     <div>

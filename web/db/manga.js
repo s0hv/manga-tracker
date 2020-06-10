@@ -23,12 +23,22 @@ Manga.prototype.apiFill = function (id) {
         }).catch(reject);
     });
 }
-
-Chapter.prototype._parseOld = Chapter.prototype._parse;
-Chapter.prototype._parse = function(data) {
-    this._parseOld(data);
+/**
+ * Took me forever to debug this but since this gets compiled it sets the
+ * oldParse function twice. First it's set to the base implementation and the
+ * new function is as it's below. Then it will replace oldParse with this method
+ * and replace the normal parse with the compiled one.
+ * This is what you get for doing weird hacks to get your way around :(
+ */
+if (Chapter.prototype._oldParse === undefined) {
+    Chapter.prototype._oldParse = Chapter.prototype._parse;
+}
+Chapter.prototype._parse = function newParse(data) {
+    this._oldParse.toString();
+    this._oldParse(data);
     this.firstGroupName = data.group_name;
 }
+
 
 function fetchExtraInfo(mangadexId, mangaId, cb, chapterIds, addChapters=true) {
     mangadexLimiter.consume('mangadex', 1)
@@ -123,7 +133,10 @@ function fetchExtraInfo(mangadexId, mangaId, cb, chapterIds, addChapters=true) {
 
                 }
             })
-            .catch(() => cb({}));
+            .catch((err) => {
+                console.error(err);
+                cb({})
+            });
     })
         .catch(() => cb({}))
 }
@@ -140,7 +153,7 @@ function formatLinks(row) {
 }
 module.exports.formatLinks = formatLinks;
 
-function getManga(mangaId, chapters, cb) {
+function getManga(mangaId, chapters) {
     const chapterSql = `(SELECT json_agg(ch) FROM 
                             (SELECT title, chapter_number, release_date, "group", service_id, chapter_identifier as chapter_url FROM chapters WHERE manga_id=$1 ORDER BY chapter_number DESC, chapter_decimal DESC NULLS LAST LIMIT $2) ch) 
                          as chapters,`
@@ -152,6 +165,7 @@ function getManga(mangaId, chapters, cb) {
     } else {
         limit = false;
     }
+
     const sql = `SELECT manga.manga_id, title, release_interval, latest_release, estimated_release, manga.latest_chapter,
                         array_agg(json_build_object('title_id', ms.title_id, 'service_id', ms.service_id, 'name', s.service_name, 'url_format', chapter_url_format, 'url', s.manga_url_format)) as services,
                         mi.cover, mi.status, mi.artist, mi.author,
@@ -164,39 +178,67 @@ function getManga(mangaId, chapters, cb) {
                  WHERE manga.manga_id=$1
                  GROUP BY manga.manga_id, mi.manga_id`;
 
-    pool.query(sql, args)
+    return pool.query(sql, args)
         .then(rows => {
             if (!(rows.rowCount > 0)) {
-                cb(HttpError(404), null);
-                return;
+                return new Promise((resolve, reject) => reject(HttpError(400)));
             }
 
             const row = rows.rows[0];
 
             const mdIdx = row.services.findIndex(v => v.service_id === MANGADEX_ID);
             if ((!row.info_exists || !row.cover) && mdIdx >= 0) {
-                fetchExtraInfo(row.services[mdIdx].title_id, mangaId,
+                return new Promise(resolve => {
+                    fetchExtraInfo(row.services[mdIdx].title_id, mangaId,
                     extra => {
                         formatLinks(extra);
-                        cb(null, {...row, ...extra});
+                        resolve({...row, ...extra});
                     },
                     (limit && row.chapters) ? row.chapters.map(c => c.chapter_url) : null,
                     Boolean(limit));
-                return;
+                })
             }
 
             formatLinks(row);
-            cb(null, row);
+            return new Promise(resolve => resolve(row));
         })
         .catch(err => {
             // integer overflow
             if (err.code === '22003' || err.code === '22P02') {
-                cb(HttpError(404, "Integer out of range"), null);
-                return;
+                return new Promise((resolve, reject) => reject(HttpError(404, "Integer out of range")));
             }
             console.error(err);
-            cb(HttpError(500), null)
+            return new Promise((resolve, reject) => reject(HttpError(500)));
+        });
+}
+module.exports.getManga = getManga;
+
+function getFollows(userId) {
+    if (!userId) {
+        return new Promise((resolve, reject) => reject(HttpError(404)));
+    }
+
+    const sql = `SELECT m.title, mi.cover, m.manga_id,
+                        (SELECT json_agg(s) FROM (SELECT ms.service_id, service_name, ms.title_id, manga_url_format as url FROM services INNER JOIN manga_service ms ON services.service_id = ms.service_id WHERE ms.manga_id=m.manga_id) s) as services,
+                        json_agg(uf.service_id) as followed_services
+                 FROM user_follows uf
+                        INNER JOIN manga m ON uf.manga_id = m.manga_id
+                        LEFT JOIN manga_info mi ON m.manga_id = mi.manga_id
+                 WHERE user_id=$1
+                 GROUP BY uf.manga_id, m.manga_id, mi.manga_id`
+
+    return pool.query(sql, [userId])
+        .then(res => {
+            return new Promise((resolve) => resolve(res.rows));
         })
+        .catch(err => {
+            // integer overflow
+            if (err.code === '22003' || err.code === '22P02') {
+                return new Promise((resolve, reject) => reject(HttpError(404, "Integer out of range")));
+            }
+            console.error(err);
+            return new Promise((resolve, reject) => reject(HttpError(500)));
+        });
 }
 
-module.exports.getManga = getManga;
+module.exports.getFollows = getFollows;

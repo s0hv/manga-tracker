@@ -1,14 +1,15 @@
 import React from 'react';
-import Paper from '@material-ui/core/Paper';
-import {makeStyles} from "@material-ui/core/styles";
-import LinearProgress from '@material-ui/core/LinearProgress';
-
-import FormHelperText from "@material-ui/core/FormHelperText";
-import TextField from "@material-ui/core/TextField";
-import Button from "@material-ui/core/Button";
-import Container from "@material-ui/core/Container";
+import {
+  Button,
+  Container,
+  FormHelperText,
+  LinearProgress,
+  makeStyles,
+  Paper,
+  Snackbar,
+  TextField
+} from '@material-ui/core';
 import MuiAlert from '@material-ui/lab/Alert';
-import Snackbar from '@material-ui/core/Snackbar';
 
 // Rudimentary email check that check that your email is in the format of a@b.c
 // I know you apparently can have multiple @ signs in your email but I don't care and filter those out
