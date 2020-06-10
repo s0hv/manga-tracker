@@ -1,21 +1,24 @@
-import fetch from 'cross-fetch';
 import React from 'react';
-import Typography from '@material-ui/core/Typography';
-import Container from '@material-ui/core/Container';
-import {makeStyles} from "@material-ui/core/styles";
-import Button from "@material-ui/core/Button";
-import Table from '@material-ui/core/Table';
-import TableBody from '@material-ui/core/TableBody';
-import TableCell from '@material-ui/core/TableCell';
-import TableContainer from '@material-ui/core/TableContainer';
-import TableHead from '@material-ui/core/TableHead';
-import TableRow from '@material-ui/core/TableRow';
-import Paper from '@material-ui/core/Paper'
-import Grid from '@material-ui/core/Grid'
-import Tooltip from "@material-ui/core/Tooltip";
-import Link from "@material-ui/core/Link";
+import {
+  Button,
+  Container,
+  Grid,
+  Link,
+  makeStyles,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Tooltip,
+  Typography,
+} from '@material-ui/core';
+
 import MangaSourceList from "../components/MangaSourceList";
-import throttle from 'lodash.throttle';
+import {followUnfollow} from "./../utils/utilities";
+
 
 const useStyles = makeStyles((theme) => ({
   title: {
@@ -110,37 +113,6 @@ function Manga (props) {
     })
   }, [mangaData.manga_id, mangaData.chapters?.length])
 
-  const followUnfollow = (service_id) => {
-    const url = service_id ? `/api/user/follows?manga_id=${mangaData.manga_id}&service_id=${service_id}` :
-                             `/api/user/follows?manga_id=${mangaData.manga_id}`;
-    return throttle((event) => {
-      const target = event.target;
-      switch (target.textContent.toLowerCase()) {
-        case 'follow':
-          fetch(url, {credentials: 'include', method: 'put'})
-              .then(res => {
-                if (res.status === 200) {
-                  target.textContent = 'Unfollow';
-                }
-              });
-          break;
-
-        case "unfollow":
-          fetch(url, {credentials: 'include', method: 'delete'})
-              .then(res => {
-                if (res.status === 200) {
-                  target.textContent = 'Follow';
-                }
-              });
-          break;
-
-        default:
-          target.textContent = 'Follow';
-          return;
-      }
-    }, 200, {trailing: false});
-  }
-
   return (
     <Container maxWidth='lg'>
       <Paper className={classes.paper}>
@@ -202,7 +174,7 @@ function Manga (props) {
               items={mangaData.services}
               userFollows={userFollows}
               isAuthenticated={isAuthenticated}
-              followUnfollow={followUnfollow}
+              followUnfollow={(serviceId) => followUnfollow(mangaData.manga_id, serviceId)}
             />
           </Grid>
         </div>
@@ -210,7 +182,7 @@ function Manga (props) {
           <Button
               variant='contained'
               color='primary'
-              onClick={followUnfollow(null)}
+              onClick={followUnfollow(mangaData.manga_id, null)}
               className={classes.followButton}
           >
             {userFollows.indexOf(null) < 0 ? 'Follow' : 'Unfollow'}
@@ -232,9 +204,9 @@ function Manga (props) {
                 <TableRow key={index}>
                   <TableCell component='th' scope='row'>
                     <Link href={row.url} target='_blank' style={{textDecoration: 'none'}}>
-                      <div>
+                      <span>
                         {row.title}
-                      </div>
+                      </span>
                     </Link>
                     </TableCell>
                   <TableCell>{row.chapter_number}</TableCell>

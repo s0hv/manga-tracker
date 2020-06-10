@@ -1,18 +1,20 @@
 import fetch from 'cross-fetch';
 import React from 'react';
-import {fade, makeStyles} from "@material-ui/core/styles";
-import SearchIcon from "@material-ui/icons/Search";
 import {
+  fade,
+  IconButton,
+  InputBase,
+  makeStyles,
+  Paper,
+  Popper,
   setRef,
   unstable_useId as useId,
   useEventCallback,
-} from "@material-ui/core/utils";
-import InputBase from '@material-ui/core/InputBase';
-import Popper from '@material-ui/core/Popper'
-import Paper from '@material-ui/core/Paper'
-import IconButton from "@material-ui/core/IconButton";
+} from "@material-ui/core";
 
-import Link from 'next/link';
+import {Search as SearchIcon,} from '@material-ui/icons'
+
+import NextLink from 'next/link';
 import throttle from 'lodash/throttle';
 
 const useStyles = makeStyles((theme) => ({
@@ -362,9 +364,9 @@ export default function SearchInput(props) {
     ((option, index, props) => {
       return (
         <li key={index} >
-          <Link href="/manga/[id]" as={`/manga/${option.manga_id}`} prefetch={false}>
+          <NextLink href="/manga/[id]" as={`/manga/${option.manga_id}`} prefetch={false}>
             <div {...props}>{option.title}</div>
-          </Link>
+          </NextLink>
         </li>
       );
     });

@@ -49,7 +49,6 @@ module.exports = function (app) {
                     return;
                 }
 
-                //console.log(rows);
                 res.set('Content-Type', 'application/rss+xml');
                 res.send(Buffer.from(createFeed(rows.rows)));
             })

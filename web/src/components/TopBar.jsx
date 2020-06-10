@@ -1,5 +1,4 @@
 import React from 'react';
-import {makeStyles} from "@material-ui/core/styles";
 import {
   AccountCircle,
   Bookmarks as BookmarksIcon,
@@ -13,12 +12,13 @@ import {
   AppBar,
   Button,
   IconButton,
+  makeStyles,
   Menu,
   MenuItem,
   Toolbar,
   Typography,
 } from '@material-ui/core';
-import Link from 'next/link';
+import NextLink from 'next/link';
 import SearchInput from './Search';
 
 const useStyles = makeStyles((theme) => ({
@@ -37,7 +37,8 @@ const useStyles = makeStyles((theme) => ({
     marginRight: theme.spacing(2),
     [theme.breakpoints.down(500)]: {
       display: 'none',
-    }
+    },
+    cursor: 'pointer',
   },
   titleIcon: {
     flexGrow: 1,
@@ -68,16 +69,22 @@ const useStyles = makeStyles((theme) => ({
   },
   menuItemIcon: {
     marginRight: theme.spacing(1),
+  },
+  menuLink: {
+    textDecoration: 'none',
+    color: 'inherit',
   }
 }));
 
-const LinkComponent = React.forwardRef(({ href, prefetch, as, Component, ...props }, ref) => {
+const LinkComponent = React.forwardRef(({ href, prefetch, as, Component, children, passHref=false, ...props }, ref) => {
   return (
-    <Link href={href} prefetch={prefetch} as={as}>
-      <Component {...props} ref={ref}>
-        {props.children}
-      </Component>
-    </Link>
+    <NextLink href={href} prefetch={prefetch} as={as} passHref={passHref}>
+      <a style={{textDecoration: 'none', color:'inherit'}}>
+        <Component {...props} ref={ref}>
+          {children}
+        </Component>
+      </a>
+    </NextLink>
   )
 });
 
@@ -131,11 +138,11 @@ function TopBar(props) {
     <div className={classes.root}>
       <AppBar position="static">
         <Toolbar>
-          <Link href='/' prefetch={false}>
+          <NextLink href='/' prefetch={false}>
             <Typography className={classes.title} variant="h6" noWrap>
               Manga tracker
             </Typography>
-          </Link>
+          </NextLink>
           <LinkComponent
               Component={IconButton}
               href='/'
@@ -178,14 +185,14 @@ function TopBar(props) {
                 open={open}
                 onClose={handleClose}
             >
-              <LinkComponent Component={MenuItem} href='/profile' prefetch={false} onClick={handleClose}>
+              <LinkComponent Component={MenuItem} href='/profile' prefetch={false} onClick={handleClose} passHref>
                 <PersonIcon className={classes.menuItemIcon}/> Profile
               </LinkComponent>
               <MenuItem onClick={handleThemeChange}>
                 { activeTheme === 2 ? <SunIcon className={classes.menuItemIcon}/> : <MoonIcon className={classes.menuItemIcon}/>}
                 Switch to {activeTheme === 2 ? 'light' : 'dark'} theme
               </MenuItem>
-              <LinkComponent Component={MenuItem} href='/follows' prefetch={false} onClick={handleClose}>
+              <LinkComponent Component={MenuItem} href='/follows' prefetch={false} onClick={handleClose} passHref>
                 <BookmarksIcon className={classes.menuItemIcon}/> Follows
               </LinkComponent>
               <MenuItem onClick={handleLogout}>
@@ -195,15 +202,13 @@ function TopBar(props) {
           </div>
           ) ||
           <React.Fragment>
-            <Link href='/login' prefetch={false}>
+            <NextLink href='/login' prefetch={false}>
               <Button variant='outlined' className={classes.loginButton}>
                 Login
               </Button>
-            </Link>
+            </NextLink>
             <IconButton
-              aria-label="theme switcher"
-              aria-controls="menu-appbar"
-              aria-haspopup="true"
+              aria-label="Switch theme"
               onClick={handleThemeChange}
               color="inherit"
             >

@@ -6,10 +6,7 @@ const LocalStrategy = require('passport-local');
 
 const pool = require('./db');
 const PostgresStore = require('./db/session-store')(session);
-const { getUserFollows } = require('./db/db');
 const { checkAuth, authenticate, requiresUser } = require('./db/auth');
-const { getManga } = require('./db/manga');
-const { quickSearch } = require('./api/search');
 const { bruteforce, rateLimiter } = require('./utils/ratelimits');
 
 const sessionDebug = require('debug')('session-debug');
@@ -102,48 +99,25 @@ module.exports = nextApp.prepare()
         return nextApp.render(req, res, '/login');
     });
 
-    server.get('/_next/*', (req, res) => {
+    server.use((req, res, next) => {if (!req.originalUrl.startsWith('/_next/static')) debug(req.originalUrl); next();});
+
+    server.get('/_next/static/*', (req, res) => {
+        return handle(req, res);
+    });
+
+    server.use('/_next/*', rateLimiter);
+    // inject user data into getServerSideProps
+    server.get('/_next/*', requiresUser, (req, res) => {
         return handle(req, res);
     });
 
     server.get('/api/authCheck', requiresUser, (req, res) => {
         res.json({user: req.user});
-    })
-
-    server.get('/manga/:manga_id(\\d+)', requiresUser, (req, res) => {
-        getManga(req.params.manga_id, 50, (err, data) => {
-            if (err) {
-                req.error = err;
-            } else {
-                req.manga_data = data;
-            }
-
-            if (req.user) {
-                getUserFollows(req.user.user_id, req.params.manga_id)
-                    .then(rows => {
-                        req.user_follows = rows.rows.map(row => row.service_id);
-                        handle(req, res);
-                    })
-                    .catch(err => {
-                        if (!(err.code === '22003')) {
-                            console.error(err);
-                            res.redirect('/404');
-                            return;
-                        }
-                        handle(req, res);
-                    });
-                return;
-            }
-            return handle(req, res);
-        });
     });
 
-    server.get('/follows', requiresUser, (req, res) => {
-        console.log(req.user)
-        if (!req.user) return res.status(404).redirect('404');
-
-        res.redirect(`/rss/${req.user.uuid.replace(/-/g, '')}`);
-    })
+    server.get('/manga/:manga_id(\\d+)', requiresUser, (req, res) => {
+        return handle(req, res);
+    });
 
     server.get('/*', requiresUser, (req, res) => {
         sessionDebug('User', req.user);

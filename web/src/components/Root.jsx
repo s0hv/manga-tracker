@@ -1,7 +1,6 @@
 import TopBar from '../components/TopBar'
 import React from "react";
-import {makeStyles} from "@material-ui/styles";
-import {Divider, Link, Typography} from '@material-ui/core'
+import {Divider, Link, makeStyles, Typography,} from "@material-ui/core";
 
 
 const useStyles = makeStyles((theme) => ({
