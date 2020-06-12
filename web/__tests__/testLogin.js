@@ -1,13 +1,16 @@
+/* eslint-disable no-await-in-loop */
 /* eslint-env jest */
 
+import fetch from 'node-fetch';
+
 import serverPromise from '../server';
-import fetch from 'node-fetch'
 
-const pool = require('./../db');
-const { redis } = require('./../utils/ratelimits');
-const signature = require('cookie-signature')
-
+const signature = require('cookie-signature');
 const cookie = require('cookie');
+
+const pool = require('../db');
+const { redis } = require('../utils/ratelimits');
+
 
 
 let httpServer;
@@ -20,7 +23,7 @@ beforeAll(async () => {
 
 beforeEach(async () => {
   await redis.flushall();
-})
+});
 
 function createBody(opts) {
   const params = new URLSearchParams();
@@ -31,12 +34,12 @@ function createBody(opts) {
 function checkCookies(res, required= [], notAllowed= []) {
   const cookies = {};
   (res.headers.raw()['set-cookie'] || []).forEach(c => {
-    const parsed = cookie.parse(c)
+    const parsed = cookie.parse(c);
     for (let i=0; i<required.length; i++) {
       if (parsed[required[i]] !== undefined) {
         cookies[required[i]] = c;
         required.splice(i, 1);
-        return
+        return;
       }
     }
 
@@ -54,63 +57,66 @@ function checkCookies(res, required= [], notAllowed= []) {
 }
 
 describe('Login flow', () => {
-
   const loginOpts = {
     method: 'post',
     redirect: 'manual',
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8',
-    }
-  }
+    },
+  };
   const realUser = {
     email: 't@t.t',
-    password: '1234'
-  }
+    password: '1234',
+  };
 
   const fakeUser = {
     email: 'a@b.c',
-    password: 'aaaaaaa'
-  }
+    password: 'aaaaaaa',
+  };
 
   const wrongPassword = {
     email: 't@t.t',
-    password: 'aaaaaaa'
-  }
+    password: 'aaaaaaa',
+  };
 
   const wrongEmail = {
     email: 'wrong@t.t',
-    password: '1234'
-  }
+    password: '1234',
+  };
 
   const tooLongPassword = {
     email: 'wrong@t.t',
-    password: '123412341234123412341234123412341234123412341234'.repeat(3)
-  }
+    password: '123412341234123412341234123412341234123412341234'.repeat(3),
+  };
 
   test('Invalid logins', async () => {
     let res = await fetch(`${addr}/api/authCheck`);
-    expect(await res.json()).toStrictEqual({user: null});
+    expect(await res.json()).toStrictEqual({ user: null });
 
-
-    for (let body of [wrongEmail, wrongPassword, fakeUser, tooLongPassword])
+    // eslint-disable-next-line no-restricted-syntax
+    for (const body of [wrongEmail, wrongPassword, fakeUser, tooLongPassword]) {
+      // eslint-disable-next-line nonblock-statement-body-position
       res = await fetch(`${addr}/api/login`, {
         ...loginOpts,
-        body: createBody(body)
+        body: createBody(body),
       });
-      expect(res.headers.get('set-cookie')).toBeFalsy();
-      expect(await res.text()).toContain('Unauthorized')
+      expect(res.headers.get('set-cookie'))
+        .toBeFalsy();
+      expect(await res.text())
+        .toContain('Unauthorized');
 
       res = await fetch(`${addr}/api/authCheck`);
-      expect(await res.json()).toStrictEqual({user: null});
-
+      expect(await res.json())
+        .toStrictEqual({ user: null });
+    }
     // Test completely invalid login token
     res = await fetch(`${addr}/api/authCheck`, {
       headers: {
-        cookies: encodeURIComponent('aeffaf;argregtrsegikogtgetrh;arteiogfjaoeirjg')
-      }
+        cookies: encodeURIComponent('aeffaf;argregtrsegikogtgetrh;arteiogfjaoeirjg'),
+      },
     });
     expect(res.headers.get('set-cookie')).toBeFalsy();
-    expect(await res.json()).toStrictEqual({user: null});
+    expect(await res.json()).toStrictEqual({ user: null });
   });
 
   test('Valid user', async () => {
@@ -121,42 +127,42 @@ describe('Login flow', () => {
     // Check login with a real user
     let res = await fetch(`${addr}/api/login`, {
       ...loginOpts,
-      body: createBody(realUser)
+      body: createBody(realUser),
     });
     expect(res.headers.get('set-cookie')).toBeTruthy();
-    expect(res.headers.get('location')).toEqual(addr + '/')
+    expect(res.headers.get('location')).toEqual(addr + '/');
     // Make sure remember me cookie wasn't set
     let cookies = checkCookies(res, ['sess'], ['auth']);
 
     res = await fetch(`${addr}/api/authCheck`, {
       headers: {
-        cookie: cookies.sess
-      }
+        cookie: cookies.sess,
+      },
     });
-    expect(await res.json()).not.toStrictEqual({user: null});
+    expect(await res.json()).not.toStrictEqual({ user: null });
 
     // Check login with a real user and remember me on
     res = await fetch(`${addr}/api/login`, {
       ...loginOpts,
-      body: createBody({...realUser, rememberme: 'on'})
+      body: createBody({ ...realUser, rememberme: 'on' }),
     });
     expect(res.headers.get('set-cookie')).toBeTruthy();
-    expect(res.headers.get('location')).toEqual(addr + '/')
+    expect(res.headers.get('location')).toEqual(addr + '/');
     // Make sure remember me cookie was set
     cookies = checkCookies(res, ['sess', 'auth']);
 
     res = await fetch(`${addr}/api/authCheck`, {
       headers: {
-        cookie: cookies.sess
-      }
+        cookie: cookies.sess,
+      },
     });
-    expect(await res.json()).not.toStrictEqual({user: null});
+    expect(await res.json()).not.toStrictEqual({ user: null });
 
 
     res = await fetch(`${addr}/api/authCheck`, {
       headers: {
-        cookie: cookies.auth
-      }
+        cookie: cookies.auth,
+      },
     });
     let newCookies = checkCookies(res, ['sess', 'auth']);
 
@@ -170,16 +176,16 @@ describe('Login flow', () => {
     // Check that the given session works
     res = await fetch(`${addr}/api/authCheck`, {
       headers: {
-        cookie: newCookies.sess
-      }
+        cookie: newCookies.sess,
+      },
     });
-    expect(await res.json()).not.toStrictEqual({user: null});
+    expect(await res.json()).not.toStrictEqual({ user: null });
 
     // Make sure the new token works
     res = await fetch(`${addr}/api/authCheck`, {
       headers: {
-        cookie: newCookies.auth
-      }
+        cookie: newCookies.auth,
+      },
     });
     const newestCookies = checkCookies(res, ['auth', 'sess']);
     // Make sure session id and token were regenerated
@@ -192,29 +198,28 @@ describe('Login flow', () => {
     // Make sure the old token was invalidated
     res = await fetch(`${addr}/api/authCheck`, {
       headers: {
-        cookie: cookies.auth
-      }
+        cookie: cookies.auth,
+      },
     });
     newCookies = checkCookies(res, ['auth']);
     expect(cookie.parse(newCookies.auth).auth).toBeFalsy();
-    expect(await res.json()).toStrictEqual({user: null});
+    expect(await res.json()).toStrictEqual({ user: null });
   });
 
   test('Login rate limit', async () => {
     for (let i=0; i < 15; i++) {
-      await fetch(`${addr}/api/login`, {method: 'post'});
+      await fetch(`${addr}/api/login`, { method: 'post' });
     }
 
     // Make sure rate limiting activated
-    let res = await fetch(`${addr}/api/login`, {method: 'post'});
+    let res = await fetch(`${addr}/api/login`, { method: 'post' });
     expect(res.status).toStrictEqual(429);
-    let resp = await res.json();
+    const resp = await res.json();
 
     // Make sure rate limits increase for each failed attempt
-    res = await fetch(`${addr}/api/login`, {method: 'post'});
+    res = await fetch(`${addr}/api/login`, { method: 'post' });
     expect(res.status).toStrictEqual(429);
-    expect((await res.json()).error.nextValidRequestDate).not.toEqual(resp.error.nextValidRequestDate)
-
+    expect((await res.json()).error.nextValidRequestDate).not.toEqual(resp.error.nextValidRequestDate);
   });
 
   test('Logout', async () => {
@@ -225,19 +230,19 @@ describe('Login flow', () => {
     // Check login with a real user
     let res = await fetch(`${addr}/api/login`, {
       ...loginOpts,
-      body: createBody({...realUser, rememberme: 'on'})
+      body: createBody({ ...realUser, rememberme: 'on' }),
     });
     expect(res.headers.get('set-cookie')).toBeTruthy();
-    expect(res.headers.get('location')).toEqual(addr + '/')
+    expect(res.headers.get('location')).toEqual(addr + '/');
     // Make sure remember me cookie was set
-    let cookies = checkCookies(res, ['sess', 'auth']);
+    const cookies = checkCookies(res, ['sess', 'auth']);
 
     res = await fetch(`${addr}/api/logout`, {
       method: 'post',
       redirect: 'manual',
       headers: {
-        cookie: `${cookies.auth};${cookies.sess}`
-      }
+        cookie: `${cookies.auth};${cookies.sess}`,
+      },
     });
 
     checkCookies(res, [], ['sess', 'auth']);
@@ -250,11 +255,11 @@ describe('Login flow', () => {
     let rows = await pool.query(sql, [uuid, lookup, token]);
     expect(rows.rowCount).toStrictEqual(0);
 
-    let raw = cookie.parse(cookies.sess).sess;
+    const raw = cookie.parse(cookies.sess).sess;
     expect(raw.substr(0, 2)).toStrictEqual('s:');
 
     // development secret value is just secret
-    let val = signature.unsign(raw.slice(2), 'secret');
+    const val = signature.unsign(raw.slice(2), 'secret');
     expect(val).toBeTruthy();
 
     sql = `SELECT 1 FROM sessions WHERE session_id=$1`;
@@ -265,6 +270,6 @@ describe('Login flow', () => {
 
 afterAll(() => {
   httpServer.close();
-  pool.end()
-  redis.disconnect()
-})
+  pool.end();
+  redis.disconnect();
+});

@@ -1,10 +1,11 @@
-const pool = require('.');
-const LRU = require("lru-cache");
+const LRU = require('lru-cache');
 const crypto = require('crypto');
-const { bruteforce } = require('./../utils/ratelimits');
 
 const sessionDebug = require('debug')('session-debug');
 const authInfo = require('debug')('auth-info');
+
+const { bruteforce } = require('../utils/ratelimits');
+const pool = require('.');
 
 const userCache = new LRU(({
                 max: 50,
@@ -14,7 +15,7 @@ const userCache = new LRU(({
 }));
 const dev = process.env.NODE_ENV !== 'production';
 
-function generateAuthToken(uid, user_uuid, cb) {
+function generateAuthToken(uid, userUUID, cb) {
     crypto.randomBytes(32+9, (err, buf) => {
     if (err) {
         return cb(err, false);
@@ -26,13 +27,13 @@ function generateAuthToken(uid, user_uuid, cb) {
     const sql = `INSERT INTO auth_tokens (user_id, hashed_token, expires_at, lookup) VALUES ($1, encode(digest($2, 'sha256'), 'hex'), $3, $4)`;
     const age = 2592e+6; // 30 days
     pool.query(sql, [uid, token, new Date(Date.now() + age), lookup])
-        .then(() => cb(null, `${lookup};${token};${Buffer.from(user_uuid).toString('base64')}`))
-        .catch(err => cb(err, false));
+        .then(() => cb(null, `${lookup};${token};${Buffer.from(userUUID).toString('base64')}`))
+        .catch(sqlErr => cb(sqlErr, false));
     });
 }
 module.exports.generateAuthToken = generateAuthToken;
 
-function regenerateAuthToken(uid, lookup, user_uuid, cb) {
+function regenerateAuthToken(uid, lookup, userUUID, cb) {
     crypto.randomBytes(32, (err, buf) => {
     if (err) {
         return cb(err, false);
@@ -44,16 +45,16 @@ function regenerateAuthToken(uid, lookup, user_uuid, cb) {
     pool.query(sql, [uid, lookup, token])
         .then(res => {
             if (res.rowCount === 0 || res.rows.length === 0) return cb(null, false);
-            cb(null, `${lookup};${token};${Buffer.from(user_uuid).toString('base64')}`, res.rows[0].expires_at)
+            cb(null, `${lookup};${token};${Buffer.from(userUUID).toString('base64')}`, res.rows[0].expires_at);
         })
-        .catch(err => cb(err, false))
+        .catch(sqlErr => cb(sqlErr, false));
     });
 }
 
-module.exports.authenticate = function (req, email, password, cb) {
+module.exports.authenticate = (req, email, password, cb) => {
     if (password.length > 72) return cb(null, false);
 
-    let sql = `SELECT user_id, username, user_uuid, theme, admin FROM users WHERE email=$1 AND pwhash=crypt($2, pwhash)`
+    const sql = `SELECT user_id, username, user_uuid, theme, admin FROM users WHERE email=$1 AND pwhash=crypt($2, pwhash)`;
     pool.query(sql, [email, password])
         .then(res => {
         if (res.rowCount === 0) {
@@ -61,45 +62,45 @@ module.exports.authenticate = function (req, email, password, cb) {
         }
         const row = res.rows[0];
 
-        function setUser(row, token) {
+        function setUser(currentRow, token) {
             // Try to regen session
-            req.session.regenerate((err)=>{
+            req.session.regenerate((err) => {
                 if (err) {
                     console.error(err);
                     req.session.user_id = undefined;
                     return cb(err, false);
                 }
-                req.session.user_id = row.user_id;
-                userCache.set(row.user_id, {
-                    user_id: row.user_id,
-                    username: row.username,
-                    uuid: row.user_uuid,
-                    theme: row.theme,
-                    admin: row.admin,
+                req.session.user_id = currentRow.user_id;
+                userCache.set(currentRow.user_id, {
+                    user_id: currentRow.user_id,
+                    username: currentRow.username,
+                    uuid: currentRow.user_uuid,
+                    theme: currentRow.theme,
+                    admin: currentRow.admin,
                 });
                 return cb(null, token);
             });
 }
 
-        if (req.body.rememberme !== "on") {
+        if (req.body.rememberme !== 'on') {
             return setUser(row, true);
         }
 
         generateAuthToken(row.user_id, row.user_uuid, (err, token) => {
             if (err) return cb(err, false);
-            setUser(row, token)
-        })
+            setUser(row, token);
+        });
         })
         .catch(err => {
             console.error(err);
             cb(err, false);
         });
-}
+};
 
 function getUser(uid, cb) {
     if (!uid) return cb(null, null);
 
-    let user = userCache.get(uid);
+    const user = userCache.get(uid);
     if (user) return cb(user, null);
 
     const sql = `SELECT username, user_uuid, theme, admin FROM users WHERE user_id=$1`;
@@ -113,7 +114,7 @@ function getUser(uid, cb) {
                 user_id: uid,
                 theme: row.theme,
                 admin: row.admin,
-            }
+            };
             userCache.set(uid, val);
             cb(val, null);
         })
@@ -124,21 +125,31 @@ function getUser(uid, cb) {
 }
 module.exports.getUser = getUser;
 
-module.exports.requiresUser = function(req, res, next) {
+module.exports.requiresUser = (req, res, next) => {
     getUser(req.session.user_id, (user, err) => {
-        req.user = user
+        req.user = user;
         next(err);
     });
-}
+};
 
-module.exports.checkAuth =  function(app) {
-    return function (req, res, next) {
+function clearUserAuthTokens(uid, cb) {
+    const sql = `DELETE FROM auth_tokens WHERE user_id=$1`;
+    pool.query(sql, [uid])
+        .then(() => cb(null))
+        .catch(err => cb(err));
+}
+module.exports.clearUserAuthTokens = clearUserAuthTokens;
+
+// eslint-disable-next-line arrow-body-style
+module.exports.checkAuth = (app) => {
+    return function checkAuth(req, res, next) {
         // We don't need to check authentication for resources generated by next.js
         if (req.session.user_id ||
             !req.cookies.auth ||
             (req.originalUrl.startsWith('/_next/static')) ||
             req.originalUrl.startsWith('/robots.txt') ||
             req.originalUrl.startsWith('/favicon.')) return next();
+
         bruteforce.prevent(req, res, () => {
             // TODO Maybe fix the race condition when 2 requests are done back to back
             //  with the same token from the same ip. Or maybe by some other criteria
@@ -153,6 +164,7 @@ module.exports.checkAuth =  function(app) {
             If found associate current session with user and regenerate session id (this is important)
             If something fails or user isn't found we remove possible user id from session and continue
              */
+            // eslint-disable-next-line prefer-const
             let [lookup, token, uuid] = req.cookies.auth.split(';', 3);
             if (!uuid) {
                 res.clearCookie('auth');
@@ -168,7 +180,7 @@ module.exports.checkAuth =  function(app) {
             pool.query(sql, [uuid, lookup, token])
                 .then(sqlRes => {
                     if (sqlRes.rowCount === 0) {
-                        sessionDebug('Session not found. Clearing cookie')
+                        sessionDebug('Session not found. Clearing cookie');
                         res.clearCookie('auth');
                         req.session.user_id = undefined;
 
@@ -182,12 +194,12 @@ module.exports.checkAuth =  function(app) {
                                 // TODO Display warning
                                 clearUserAuthTokens(res2.rows[0].user_id, () => {
                                     app.sessionStore.clearUserSessions(res2.rows[0].user_id, () => {
-                                        sessionDebug("Invalid auth token found for user. Sessions cleared");
-                                        next()
-                                    })
-                                })
+                                        sessionDebug('Invalid auth token found for user. Sessions cleared');
+                                        next();
+                                    });
+                                });
                             })
-                            .catch(next)
+                            .catch(next);
                         return;
                     }
 
@@ -196,30 +208,30 @@ module.exports.checkAuth =  function(app) {
                         user_id: row.user_id,
                         username: row.username,
                         uuid: row.user_uuid,
-                        theme: row.theme
+                        theme: row.theme,
                     });
                     // Try to regen session
-                    req.session.regenerate((err)=>{
+                    req.session.regenerate((err) => {
                         if (err) {
                             req.session.user_id = undefined;
                             return next(err);
                         }
-                        regenerateAuthToken(row.user_id, lookup, uuid, (err, token, expiresAt) => {
-                            if (err || !token) {
-                                console.error('Failed to regenerate/change token', err);
-                                return next(err);
+                        regenerateAuthToken(row.user_id, lookup, uuid, (regenErr, newToken, expiresAt) => {
+                            if (regenErr || !newToken) {
+                                console.error('Failed to regenerate/change token', regenErr);
+                                return next(regenErr);
                             }
-                            authInfo('regen', token)
+                            authInfo('regen', newToken);
 
                             req.session.user_id = row.user_id;
-                            res.cookie('auth', token, {
+                            res.cookie('auth', newToken, {
                                 httpOnly: true,
                                 secure: !dev,
                                 sameSite: 'strict',
-                                expires: expiresAt
+                                expires: expiresAt,
                             });
                             return next();
-                        })
+                        });
                     });
                 })
                 .catch(err => {
@@ -227,10 +239,10 @@ module.exports.checkAuth =  function(app) {
                     if (err.code === '22P02') return next(err);
                     console.error(err);
                     next(err);
-                })
+                });
         });
-    }
-}
+    };
+};
 
 function clearUserAuthToken(uid, auth, cb) {
     const [lookup, token] = auth.split(';', 3);
@@ -240,20 +252,10 @@ function clearUserAuthToken(uid, auth, cb) {
         .then(() => cb(null))
         .catch(err => cb(err));
 }
-
 module.exports.clearUserAuthToken = clearUserAuthToken;
-
-function clearUserAuthTokens(uid, cb) {
-    const sql = `DELETE FROM auth_tokens WHERE user_id=$1`;
-    pool.query(sql, [uid])
-        .then(() => cb(null))
-        .catch(err => cb(err));
-}
-
-module.exports.clearUserAuthTokens = clearUserAuthTokens;
 
 module.exports.modifyCacheUser = (uid, modifications) => {
     const user = userCache.get(uid);
     if (!user) return;
-    userCache.set(uid, {...user, ...modifications});
-}
+    userCache.set(uid, { ...user, ...modifications });
+};

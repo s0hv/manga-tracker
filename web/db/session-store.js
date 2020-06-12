@@ -1,11 +1,12 @@
-const LRU = require("lru-cache");
+const LRU = require('lru-cache');
 
 const sessionDebug = require('debug')('session-debug');
 
-module.exports = function (session) {
-    const Store = session.Store;
+module.exports = (expressSession) => {
+    // eslint-disable-next-line prefer-destructuring
+    const Store = expressSession.Store;
 
-    const noop = () => {}
+    const noop = () => {};
 
     class PostgresStore extends Store {
         constructor(options = {}) {
@@ -23,7 +24,7 @@ module.exports = function (session) {
         }
 
         get(sid, cb = noop) {
-            let sess = this.cache.get(sid);
+            const sess = this.cache.get(sid);
             if (sess) {
                 return cb(null, sess);
             }
@@ -37,8 +38,8 @@ module.exports = function (session) {
                     if (res.rowCount === 1) {
                         const row = res.rows[0];
                         // TODO Check set behavior
-                        this.cache.set(sid, {...row.data, user_id: row.user_id}, row.maxage);
-                        return cb(null, {...row.data, user_id: row.user_id});
+                        this.cache.set(sid, { ...row.data, user_id: row.user_id }, row.maxage);
+                        return cb(null, { ...row.data, user_id: row.user_id });
                     }
 
                     return cb(null, null);
@@ -58,7 +59,7 @@ module.exports = function (session) {
         destroy(sid, cb = noop) {
             sessionDebug('Delete session', sid, this.cache.peek(sid));
             this.cache.del(sid);
-            const sql = `DELETE FROM sessions WHERE session_id=$1`
+            const sql = 'DELETE FROM sessions WHERE session_id=$1';
             this.conn.query(sql, [sid])
                 .then(() => cb(null))
                 .catch(err => cb(err));
@@ -73,8 +74,8 @@ module.exports = function (session) {
         }
 
         clearUserSessions(uid, cb = noop) {
-            const sql = `DELETE FROM sessions WHERE user_id=$1`;
-            this.cache.forEach((sess, key) => {if (sess.user_id === uid) this.cache.del(key)});
+            const sql = 'DELETE FROM sessions WHERE user_id=$1';
+            this.cache.forEach((sess, key) => { if (sess.user_id === uid) this.cache.del(key); });
             this.conn.query(sql, [uid])
                 .then(() => cb(null))
                 .catch(err => cb(err));
@@ -82,4 +83,4 @@ module.exports = function (session) {
     }
 
     return PostgresStore;
-}
+};

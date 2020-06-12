@@ -10,47 +10,48 @@ import {
   setRef,
   unstable_useId as useId,
   useEventCallback,
-} from "@material-ui/core";
+} from '@material-ui/core';
+import PropTypes from 'prop-types';
 
-import {Search as SearchIcon,} from '@material-ui/icons'
+import {Search as SearchIcon} from '@material-ui/icons';
 
 import NextLink from 'next/link';
 import throttle from 'lodash/throttle';
 
 const useStyles = makeStyles((theme) => ({
   search: {
-    position: "relative",
+    position: 'relative',
     borderRadius: theme.shape.borderRadius,
     backgroundColor: fade(theme.palette.common.white, 0.15),
     '&:hover': {
       backgroundColor: fade(theme.palette.common.white, 0.25),
     },
-    width: "auto",
+    width: 'auto',
     [theme.breakpoints.down(400)]: {
 
-    }
+    },
   },
   searchIcon: {
-    display: "flex",
-    height: "100%",
-    alignContent: "center",
-    alignItems: "center",
-    justifyContent: "center",
-    position: "absolute",
+    display: 'flex',
+    height: '100%',
+    alignContent: 'center',
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'absolute',
   },
   inputRoot: {
-    color: "inherit",
+    color: 'inherit',
   },
   inputInput: {
-    width: "100%",
+    width: '100%',
     marginLeft: '1em',
     transition: theme.transitions.create('width'),
     [theme.breakpoints.up('sm')]: {
       width: '16em',
       '&:focus': {
-        width: '24em'
-      }
-    }
+        width: '24em',
+      },
+    },
   },
   text: {
   },
@@ -109,23 +110,6 @@ function useSearch(props) {
   const inputRef = React.useRef(null);
   const listboxRef = React.useRef(null);
   const [anchorEl, setAnchorEl] = React.useState(null);
-
-
-  const handleListboxRef = useEventCallback((node) => {
-    setRef(listboxRef, node);
-
-    if (!node) {
-      return;
-    }
-
-    // Automatically select the first option as the listbox become visible.
-    if (highlightedIndexRef.current === -1) {
-      changeHighlightedIndex('reset');
-    } else {
-      // Restore the focus to the correct option.
-      setHighlightedIndex(highlightedIndexRef.current);
-    }
-  });
 
   const setHighlightedIndex = useEventCallback((index) => {
     highlightedIndexRef.current = index;
@@ -209,6 +193,22 @@ function useSearch(props) {
     setHighlightedIndex(getNextIndex());
   });
 
+  const handleListboxRef = useEventCallback((node) => {
+    setRef(listboxRef, node);
+
+    if (!node) {
+      return;
+    }
+
+    // Automatically select the first option as the listbox become visible.
+    if (highlightedIndexRef.current === -1) {
+      changeHighlightedIndex('reset');
+    } else {
+      // Restore the focus to the correct option.
+      setHighlightedIndex(highlightedIndexRef.current);
+    }
+  });
+
   const handleOptionMouseOver = (event) => {
     const index = Number(event.currentTarget.getAttribute('data-option-index'));
     setHighlightedIndex(index, 'mouse');
@@ -235,12 +235,13 @@ function useSearch(props) {
           break;
         }
 
+        // eslint-disable-next-line no-case-declarations
         const option = listboxRef.current.querySelector(`[data-option-index="${highlightedIndexRef.current}"]`);
         if (!option) {
           return;
         }
 
-        option.click()
+        option.click();
         break;
       case 'Escape':
         if (popupOpen) {
@@ -281,16 +282,14 @@ function useSearch(props) {
         event.preventDefault();
       },
     }),
-    getOptionProps: ({ index }) => {
-      return {
+    getOptionProps: ({ index }) => ({
         key: index,
         tabIndex: -1,
         role: 'option',
         id: `${id}-option-${index}`,
         onMouseOver: handleOptionMouseOver,
         'data-option-index': index,
-      };
-    },
+      }),
     id,
     anchorEl,
     setAnchorEl,
@@ -317,9 +316,9 @@ export default function SearchInput(props) {
     id,
     anchorEl,
     setAnchorEl,
-  } = useSearch({...props,
+  } = useSearch({ ...props,
                         open: open && options.length > 0,
-                        options
+                        options,
   });
 
   const classes = useStyles();
@@ -329,8 +328,7 @@ export default function SearchInput(props) {
   };
 
   const throttleFetch = React.useMemo(
-    () =>
-      throttle((query, cb) => {
+    () => throttle((query, cb) => {
         fetch('/api/quicksearch?query=' + encodeURIComponent(query))
           .then(res => res.json())
           .then(js => cb(js))
@@ -352,24 +350,21 @@ export default function SearchInput(props) {
         setOptions(results || []);
         setOpen(Boolean(results));
       }
-
     });
 
     return () => {
       active = false;
     };
-  }, [inputValue, fetch]);
+  }, [inputValue, throttleFetch]);
 
   const renderListOption = renderItem ||
-    ((option, index, props) => {
-      return (
-        <li key={index} >
-          <NextLink href="/manga/[id]" as={`/manga/${option.manga_id}`} prefetch={false}>
-            <div {...props}>{option.title}</div>
-          </NextLink>
-        </li>
-      );
-    });
+    ((option, index, titleProps) => (
+      <li key={index}>
+        <NextLink href='/manga/[id]' as={`/manga/${option.manga_id}`} prefetch={false}>
+          <div {...titleProps}>{option.title}</div>
+        </NextLink>
+      </li>
+      ));
 
   return (
     <div
@@ -389,36 +384,45 @@ export default function SearchInput(props) {
           ...inputClasses,
         }}
         endAdornment={(
-            <IconButton>
-              <SearchIcon/>
-            </IconButton>
+          <IconButton>
+            <SearchIcon />
+          </IconButton>
           )}
         inputProps={{
           'aria-label': 'search',
           ...getInputProps(),
         }}
       />
-      {open && options.length > 0 && anchorEl ?
-      <Popper
-        className={classes.popper}
-        open
-        placement="bottom-end"
-        role="presentation"
-        anchorEl={anchorEl}
-        {...(closeOnClick && {onClick: () => setOpen(false)})}
-        {...popperProps}
-      >
-        <Paper className={classes.paper}>
-          <ul
-            className={classes.listbox}
-            {...getListboxProps()}
-          >
-            {options.map((option, index) => {
-              return renderListOption(option, index, {...getOptionProps({index}), className: classes.option});
-            })}
-          </ul>
-        </Paper>
-      </Popper>  : null}
+      {open && options.length > 0 && anchorEl ? (
+        <Popper
+          className={classes.popper}
+          open
+          placement='bottom-end'
+          role='presentation'
+          anchorEl={anchorEl}
+          {...(closeOnClick && { onClick: () => setOpen(false) })}
+          {...popperProps}
+        >
+          <Paper className={classes.paper}>
+            <ul
+              className={classes.listbox}
+              {...getListboxProps()}
+            >
+              {options.map((option, index) => renderListOption(option, index, { ...getOptionProps({ index }), className: classes.option }))}
+            </ul>
+          </Paper>
+        </Popper>
+      ) : null}
     </div>
   );
 }
+
+SearchInput.propTypes = {
+  placeholder: PropTypes.string,
+  renderItem: PropTypes.func,
+  // eslint-disable-next-line react/forbid-prop-types
+  inputClasses: PropTypes.object,
+  // eslint-disable-next-line react/forbid-prop-types
+  popperProps: PropTypes.object,
+  closeOnClick: PropTypes.bool,
+};

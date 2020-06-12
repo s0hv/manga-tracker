@@ -11,5 +11,5 @@ const pool = new Pool({
     connectionTimeoutMillis: 2000,
 });
 
-console.debug('DB loaded')
+console.debug('DB loaded');
 module.exports = pool;

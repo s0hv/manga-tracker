@@ -1,17 +1,16 @@
 import React from 'react';
-import {makeStyles} from "@material-ui/core/styles";
-import Typography from "@material-ui/core/Typography";
+import {makeStyles} from '@material-ui/core/styles';
+import Typography from '@material-ui/core/Typography';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles(() => ({
   root: {
     textAlign: 'center',
     height: '50vh',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-  }
-  })
-);
+  },
+}));
 
 function App() {
   const classes = useStyles();
@@ -26,10 +25,9 @@ function App() {
 }
 
 function MainApp({ user }) {
-
   return (
-    <App user={user}/>
-  )
+    <App user={user} />
+  );
 }
 
 export default MainApp;

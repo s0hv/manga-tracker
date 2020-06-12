@@ -9,8 +9,8 @@ import {
   Typography,
 } from '@material-ui/core';
 
-import Search from "../components/Search";
-import PartialManga from "../components/PartialManga";
+import Search from '../components/Search';
+import PartialManga from '../components/PartialManga';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -22,12 +22,12 @@ const useStyles = makeStyles((theme) => ({
     width: '48%',
   },
   searchInput: {
-    width: "100%",
+    width: '100%',
     marginLeft: '1em',
   },
   inputRoot: {
-    width: "100%",
-    color: "inherit",
+    width: '100%',
+    color: 'inherit',
   },
   mergeButton: {
     padding: theme.spacing(2),
@@ -35,7 +35,7 @@ const useStyles = makeStyles((theme) => ({
   },
   errorMessage: {
     marginTop: theme.spacing(2),
-  }
+  },
 }));
 
 
@@ -46,8 +46,8 @@ function MergeManga() {
   const [manga2, setManga2] = React.useState({});
   const [result, setResult] = React.useState({});
 
-  const getMangaData = (manga_id, cb) => {
-    fetch(`/api/manga/${manga_id}`)
+  const getMangaData = (mangaId, cb) => {
+    fetch(`/api/manga/${mangaId}`)
       .then(res => res.json())
       .then(js => {
         cb(js.manga);
@@ -55,38 +55,42 @@ function MergeManga() {
       .catch(err => {
         console.error(err);
         cb({});
-      })
-  }
+      });
+  };
 
   const mergeManga = () => {
-    if (!manga1.manga_id || !manga2.manga_id || manga1.manga_id == manga2.manga_id) return;
+    if (!manga1.manga_id || !manga2.manga_id || manga1.manga_id === manga2.manga_id) return;
     fetch(`/api/manga/merge/?base=${manga1.manga_id}&to_merge=${manga2.manga_id}`,
-      {credentials: 'include', method: 'post'})
+      { credentials: 'include', method: 'post' })
       .then(res => {
-        if (res.status != 200) {
-          setResult({error: true, message: `${res.status} ${res.statusText}`});
+        if (res.status !== 200) {
+          setResult({ error: true, message: `${res.status} ${res.statusText}` });
           return;
         }
         return res.json();
       })
       .then(json => {
         if (!json) return;
-        setResult({message: `Moved ${json.alias_count} aliase(s) and ${json.chapter_count} chapter(s)`});
+        setResult({ message: `Moved ${json.alias_count} aliase(s) and ${json.chapter_count} chapter(s)` });
         setManga2({});
       })
-      .catch(err => setResult({error: true, message: err.message}));
-  }
+      .catch(err => setResult({ error: true, message: err.message }));
+  };
 
-  const renderItem = (setManga) => (option, index, props) => {
-    return (
-      <li key={index} >
-        <div{...props} onClick={(e) => {
+  const renderItem = (setManga) => (option, index, props) => (
+    <li key={index}>
+      {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events,jsx-a11y/no-static-element-interactions */}
+      <div
+        {...props}
+        onClick={(e) => {
           e.currentTarget.parentElement.blur();
           getMangaData(option.manga_id, setManga);
-        }}>{option.title}</div>
-      </li>
-    );
-  }
+        }}
+      >
+        {option.title}
+      </div>
+    </li>
+  );
 
   return (
     <Container maxWidth='xl'>
@@ -103,12 +107,12 @@ function MergeManga() {
               }}
               closeOnClick
               popperProps={{
-                placement: 'bottom-start'
+                placement: 'bottom-start',
               }}
               renderItem={renderItem(setManga1)}
 
             />
-            <PartialManga mangaData={manga1} showId/>
+            <PartialManga mangaData={manga1} showId />
           </div>
           <div className={classes.mangaView}>
             <Search
@@ -118,7 +122,7 @@ function MergeManga() {
               }}
               closeOnClick
               popperProps={{
-                placement: 'bottom-start'
+                placement: 'bottom-start',
               }}
               renderItem={renderItem(setManga2)}
             />
@@ -137,6 +141,6 @@ function MergeManga() {
         </Grid>
       </Paper>
     </Container>
-  )
+  );
 }
 export default MergeManga;

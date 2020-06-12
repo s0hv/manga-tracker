@@ -1,6 +1,7 @@
 import throttle from 'lodash.throttle';
 
 
+// eslint-disable-next-line import/prefer-default-export
 export const followUnfollow = (mangaId, serviceId) => {
   const url = serviceId ? `/api/user/follows?manga_id=${mangaId}&service_id=${serviceId}` :
                            `/api/user/follows?manga_id=${mangaId}`;
@@ -8,7 +9,7 @@ export const followUnfollow = (mangaId, serviceId) => {
     const target = event.target;
     switch (target.textContent.toLowerCase()) {
       case 'follow':
-        fetch(url, {credentials: 'include', method: 'put'})
+        fetch(url, { credentials: 'include', method: 'put' })
             .then(res => {
               if (res.status === 200) {
                 target.textContent = 'Unfollow';
@@ -16,8 +17,8 @@ export const followUnfollow = (mangaId, serviceId) => {
             });
         break;
 
-      case "unfollow":
-        fetch(url, {credentials: 'include', method: 'delete'})
+      case 'unfollow':
+        fetch(url, { credentials: 'include', method: 'delete' })
             .then(res => {
               if (res.status === 200) {
                 target.textContent = 'Follow';
@@ -27,7 +28,6 @@ export const followUnfollow = (mangaId, serviceId) => {
 
       default:
         target.textContent = 'Follow';
-        return;
     }
-  }, 200, {trailing: false});
-}
+  }, 200, { trailing: false });
+};

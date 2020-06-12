@@ -9,8 +9,9 @@ import {
   ListItem,
   ListItemText,
   makeStyles,
-  Typography
+  Typography,
 } from '@material-ui/core';
+import PropTypes from 'prop-types';
 
 
 const useStyles = makeStyles((theme) => ({
@@ -32,11 +33,11 @@ const useStyles = makeStyles((theme) => ({
     justifyContent: 'space-between',
   },
   listOpener: {
-    color: theme.palette.primary.contrastText
-  }
+    color: theme.palette.primary.contrastText,
+  },
 }));
 
-export default function (props) {
+function MangaSourceList(props) {
   const {
     items = [],
     followUnfollow = () => {},
@@ -57,31 +58,40 @@ export default function (props) {
         <Typography>
           <Link href={item.url.replace('{}', item.title_id)} target='_blank'>{item.name}</Link>
         </Typography>
-        {isAuthenticated &&
+        {isAuthenticated && (
           <Button variant='contained' color='primary' onClick={followUnfollow(item.service_id)}>
             {userFollows.indexOf(item.service_id) < 0 ? 'Follow' : 'Unfollow'}
-          </Button>}
+          </Button>
+        )}
       </ListItem>
-    )
+    );
   }
 
   return (
     <List
-      component="nav"
-      aria-labelledby="nested-list-subheader"
+      component='nav'
+      aria-labelledby='nested-list-subheader'
       className={`${classes.root} ${classesProp.join(' ')}`}
     >
       <ListItem button onClick={handleClick} className={classes.mainItem}>
-        <ListItemText primary="Manga sources" className={classes.listOpener}/>
+        <ListItemText primary='Manga sources' className={classes.listOpener} />
         {open ? <ExpandLess /> : <ExpandMore />}
       </ListItem>
-      <Collapse in={open} timeout="auto" unmountOnExit>
-        <List component="div" disablePadding>
-          {items.map((item, index) => {
-            return renderItem(item, index);
-          })}
+      <Collapse in={open} timeout='auto' unmountOnExit>
+        <List component='div' disablePadding>
+          {items.map((item, index) => renderItem(item, index))}
         </List>
       </Collapse>
     </List>
   );
 }
+
+MangaSourceList.propTypes = {
+  items: PropTypes.arrayOf(PropTypes.object),
+  followUnfollow: PropTypes.func,
+  userFollows: PropTypes.arrayOf(PropTypes.number),
+  isAuthenticated: PropTypes.bool,
+  classesProp: PropTypes.arrayOf(PropTypes.string),
+};
+
+export default MangaSourceList;

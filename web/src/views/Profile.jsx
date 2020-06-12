@@ -7,7 +7,7 @@ import {
   makeStyles,
   Paper,
   Snackbar,
-  TextField
+  TextField,
 } from '@material-ui/core';
 import MuiAlert from '@material-ui/lab/Alert';
 
@@ -32,12 +32,12 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 function Alert(props) {
-  return <MuiAlert elevation={6} variant="filled" {...props} />;
+  return <MuiAlert elevation={6} variant='filled' {...props} />;
 }
 
 function ProfileView(props) {
   const {
-    user = {}
+    user = {},
   } = props;
 
   const [newPass, setNewPass] = React.useState(false);
@@ -58,15 +58,15 @@ function ProfileView(props) {
     setAlertOpen(false);
   };
 
-  const handleNewPassword = function (event) {
+  const handleNewPassword = event => {
     if (event.target.value.length > 0) {
-      setNewPass(true)
+      setNewPass(true);
       return;
     }
     setNewPass(false);
-  }
+  };
 
-  const handleEmailChanged = function (event) {
+  const handleEmailChanged = event => {
     if (event.target.value.length > 0) {
       if (!emailChanged) setEmailChanged(true);
       setValidEmail(emailRegex.test(event.target.value));
@@ -75,15 +75,15 @@ function ProfileView(props) {
 
     setEmailChanged(false);
     setValidEmail(true);
-  }
+  };
 
-  const handleSubmit = function (event) {
+  const handleSubmit = event => {
     const data = new FormData(event.target);
     const body = new URLSearchParams();
     data.forEach((value, key) => body.append(key, value));
     setLoading(true);
 
-    fetch("/api/profile",
+    fetch('/api/profile',
       {
         method: 'post',
         body: body.toString(),
@@ -91,10 +91,9 @@ function ProfileView(props) {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8',
         },
-      }
-    )
+      })
       .then(res => {
-        //setLoading(false);
+        // setLoading(false);
         setAlertOpen(true);
         if (res.status === 200) return;
         return res.json();
@@ -107,110 +106,110 @@ function ProfileView(props) {
       });
 
       event.preventDefault();
-  }
+  };
 
   const passwordRequired = newPass || emailChanged;
 
   return (
-    <Container maxWidth="lg">
+    <Container maxWidth='lg'>
       <Paper className={classes.root}>
-        <Container component="main" maxWidth="xs">
+        <Container component='main' maxWidth='xs'>
           <form
             id='profileEditForm'
             className={classes.form}
             noValidate
-            action="/api/profile"
-            method="post"
+            action='/api/profile'
+            method='post'
             onSubmit={handleSubmit}
           >
             <TextField
-              variant="outlined"
-              margin="normal"
+              variant='outlined'
+              margin='normal'
               required
               fullWidth
-              id="username"
-              label="Username"
-              name="username"
+              id='username'
+              label='Username'
+              name='username'
               autoFocus
               defaultValue={user.username}
             />
             <TextField
-              variant="outlined"
-              margin="normal"
+              variant='outlined'
+              margin='normal'
               fullWidth
-              id="email"
-              label="Email Address"
-              name="email"
-              autoComplete="email"
+              id='email'
+              label='Email Address'
+              name='email'
+              autoComplete='email'
               autoFocus
               onChange={handleEmailChanged}
             />
-            {emailChanged && !validEmail &&
+            {emailChanged && !validEmail && (
             <FormHelperText error>
               Invalid email address
             </FormHelperText>
-            }
+          )}
             <TextField
-              variant="outlined"
-              margin="normal"
+              variant='outlined'
+              margin='normal'
               required={passwordRequired}
               fullWidth
-              name="password"
-              label="Password"
-              type="password"
-              id="current-password"
+              name='password'
+              label='Password'
+              type='password'
+              id='current-password'
               onChange={event => setPasswordGiven(event.target.value.length > 0)}
-              autoComplete="current-password"
+              autoComplete='current-password'
             />
-            {passwordRequired && !passwordGiven &&
+            {passwordRequired && !passwordGiven && (
             <FormHelperText error>
               Old password required
             </FormHelperText>
-            }
+          )}
             <TextField
-              variant="outlined"
-              margin="normal"
+              variant='outlined'
+              margin='normal'
               required
               fullWidth
-              name="newPassword"
-              label="New password"
-              type="password"
-              id="new-password"
-              autoComplete="new-password"
+              name='newPassword'
+              label='New password'
+              type='password'
+              id='new-password'
+              autoComplete='new-password'
               onChange={handleNewPassword}
             />
             <TextField
-              variant="outlined"
-              margin="normal"
+              variant='outlined'
+              margin='normal'
               required
               fullWidth
-              name="repeatPassword"
-              label="New password again"
-              type="password"
-              id="repeat-password"
-              autoComplete="new-password">
-            </TextField>
+              name='repeatPassword'
+              label='New password again'
+              type='password'
+              id='repeat-password'
+              autoComplete='new-password'
+            />
             <Button
-              type="submit"
+              type='submit'
               fullWidth
-              //disabled={requirePassword}
-              variant="contained"
-              color="primary"
+              // disabled={requirePassword}
+              variant='contained'
+              color='primary'
               className={classes.submit}
             >
               Update profile
             </Button>
-            {loading && <LinearProgress variant="query" />}
+            {loading && <LinearProgress variant='query' />}
             <Snackbar open={alertOpen} autoHideDuration={8000} onClose={handleAlertClose}>
               <Alert severity={error ? 'error' : 'success'} onClose={handleAlertClose}>
-                { error ? error : 'Successfully edited profile' }
+                { error || 'Successfully edited profile' }
               </Alert>
             </Snackbar>
           </form>
         </Container>
       </Paper>
     </Container>
-  )
+  );
 }
 
 export default ProfileView;

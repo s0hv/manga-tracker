@@ -24,6 +24,7 @@ CREATE TABLE manga_info (
     manga_id    INT REFERENCES manga ON DELETE RESTRICT PRIMARY KEY,
     cover       TEXT DEFAULT NULL,
     status      SMALLINT DEFAULT 0 NOT NULL,
+    last_updated TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     artist      TEXT DEFAULT NULL,
     author      TEXT DEFAULT NULL,

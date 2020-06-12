@@ -1,0 +1,73 @@
+{
+    "extends": [
+        "airbnb",
+        "airbnb/hooks",
+        "plugin:react/recommended",
+        "plugin:import/errors",
+        "plugin:import/warnings",
+        "plugin:jsx-a11y/recommended"
+    ],
+    "parser": "babel-eslint",
+    "parserOptions": {
+        "ecmaVersion": 2018,
+        "sourceType": "module",
+        "ecmaFeatures": {
+            "jsx": true
+        }
+    },
+    "plugins": ["react", "react-hooks"],
+    "rules": {
+        "semi": ["warn", "always", {"omitLastInOneLineBlock": true}],
+        "quotes": ["warn", "single", {
+            "avoidEscape": true,
+            "allowTemplateLiterals": true
+        }],
+        "jsx-quotes": ["error", "prefer-single"],
+        "linebreak-style": "off",
+        "no-multiple-empty-lines": "off",
+        "no-underscore-dangle": "off",
+        "indent": "off",
+        "comma-dangle": "warn",
+        "prefer-template": "off",
+        "arrow-parens": "off",
+        "no-console": "off",
+        "object-curly-newline": "off",
+        "prefer-promise-reject-errors": "off",
+        "consistent-return": "off",
+        "radix": "off",
+        "space-infix-ops": "off",
+        "no-plusplus": "off",
+        "no-param-reassign": "off",
+        "object-shorthand": "off",
+        "react/jsx-filename-extension": [1, { "extensions": [".js", ".jsx"] }],
+        "react/display-name": 1,
+        "object-curly-spacing": ["warn", "always", {
+            "arraysInObjects":  false,
+            "objectsInObjects":  false
+        }],
+        "max-len": "off",
+        "no-inner-declarations": "off",
+        "operator-linebreak": ["warn", "after"],
+        "react/require-default-props": "off",
+        "react/jsx-props-no-spreading": "off",
+        "jsx-a11y/anchor-is-valid": "off",
+        "react/jsx-one-expression-per-line": "off",
+        "react/jsx-fragments": "off",
+        "react/prop-types": "off",
+        "prefer-destructuring": "off"
+    },
+    "env": {
+        "browser": true,
+        "node": true,
+        "jest": true
+    },
+    "settings": {
+        "react": {
+            "version": "detect"
+        }
+    },
+    "globals": {
+        "React": "writable"
+    },
+    "ignorePatterns": [".*", "public/*", "__mocks__/*"]
+}

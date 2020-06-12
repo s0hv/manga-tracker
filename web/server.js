@@ -1,30 +1,32 @@
-const express = require('express')
-const next = require('next')
+/* eslint-disable global-require */
+const express = require('express');
+const next_ = require('next');
 const session = require('express-session');
 const passport = require('passport');
 const LocalStrategy = require('passport-local');
+
+const sessionDebug = require('debug')('session-debug');
+const debug = require('debug')('debug');
 
 const pool = require('./db');
 const PostgresStore = require('./db/session-store')(session);
 const { checkAuth, authenticate, requiresUser } = require('./db/auth');
 const { bruteforce, rateLimiter } = require('./utils/ratelimits');
 
-const sessionDebug = require('debug')('session-debug');
-const debug = require('debug')('debug');
-
 passport.use(new LocalStrategy({
         usernameField: 'email',
         passwordField: 'password',
-        passReqToCallback: true
+        passReqToCallback: true,
     },
-    authenticate
+    authenticate,
+// eslint-disable-next-line function-paren-newline
 ));
 
-passport.serializeUser(function(user, done) {
+passport.serializeUser((user, done) => {
   done(null, user);
 });
 
-passport.deserializeUser(function(user, done) {
+passport.deserializeUser((user, done) => {
   done(null, user);
 });
 
@@ -33,7 +35,7 @@ const dev = process.env.NODE_ENV !== 'production';
 const reverseProxy = !dev;
 if (!dev && !process.env.SESSION_SECRET) throw new Error('No session secret given');
 
-nextApp = next({ dev: dev, dir: __dirname });
+const nextApp = next_({ dev: dev, dir: __dirname });
 const handle = nextApp.getRequestHandler();
 
 module.exports = nextApp.prepare()
@@ -46,8 +48,9 @@ module.exports = nextApp.prepare()
         });
     server.sessionStore = store;
 
-    server.use(require('body-parser').urlencoded({extended: true}));
-    reverseProxy && server.enable('trust-proxy')
+    server.use(require('body-parser').urlencoded({ extended: true }));
+    if (reverseProxy) server.enable('trust-proxy');
+
     server.use(require('cookie-parser')(null));
     server.use(session({
         name: 'sess',
@@ -55,7 +58,7 @@ module.exports = nextApp.prepare()
             maxAge: 7200000,
             sameSite: 'strict',
             httpOnly: true,
-            secure: !dev
+            secure: !dev,
         },
         proxy: reverseProxy,
         secret: dev ? 'secret' : process.env.SESSION_SECRET,
@@ -72,8 +75,8 @@ module.exports = nextApp.prepare()
     server.use('/api/login', bruteforce.prevent);
     server.post('/api/login',
         passport.authenticate('local'),
-        function (req, res) {
-            if (req.body.rememberme === "on") {
+        (req, res) => {
+            if (req.body.rememberme === 'on') {
                 res.cookie('auth', req.user, {
                     maxAge: 2592000000, // 30d in ms
                     httpOnly: true,
@@ -99,35 +102,26 @@ module.exports = nextApp.prepare()
         return nextApp.render(req, res, '/login');
     });
 
-    server.use((req, res, next) => {if (!req.originalUrl.startsWith('/_next/static')) debug(req.originalUrl); next();});
+    server.use((req, res, next) => { if (!req.originalUrl.startsWith('/_next/static')) debug(req.originalUrl); next() });
 
-    server.get('/_next/static/*', (req, res) => {
-        return handle(req, res);
-    });
+    server.get('/_next/static/*', (req, res) => handle(req, res));
 
     server.use('/_next/*', rateLimiter);
     // inject user data into getServerSideProps
-    server.get('/_next/*', requiresUser, (req, res) => {
-        return handle(req, res);
-    });
+    server.get('/_next/*', requiresUser, (req, res) => handle(req, res));
 
     server.get('/api/authCheck', requiresUser, (req, res) => {
-        res.json({user: req.user});
+        res.json({ user: req.user });
     });
 
-    server.get('/manga/:manga_id(\\d+)', requiresUser, (req, res) => {
-        return handle(req, res);
-    });
+    server.get('/manga/:manga_id(\\d+)', requiresUser, (req, res) => handle(req, res));
 
     server.get('/*', requiresUser, (req, res) => {
         sessionDebug('User', req.user);
         return handle(req, res);
     });
 
-    server.get('*', (req, res) => {
-        //console.log(req.path);
-        return handle(req, res);
-    });
+    server.get('*', (req, res) => handle(req, res));
 
     const port = process.env.PORT || 3000;
     return server.listen(port, () => {
