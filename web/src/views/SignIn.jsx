@@ -16,7 +16,7 @@ import LockOutlinedIcon from '@material-ui/icons/LockOutlined';
 import MuiAlert from '@material-ui/lab/Alert';
 
 function Alert(props) {
-  return <MuiAlert elevation={6} variant="filled" {...props} />;
+  return <MuiAlert elevation={6} variant='filled' {...props} />;
 }
 
 const useStyles = makeStyles((theme) => ({
@@ -44,12 +44,12 @@ export default function SignIn() {
   const [alertOpen, setAlertOpen] = React.useState(false);
   const [error, setError] = React.useState(null);
 
-  const handleSubmit = function (event) {
+  const handleSubmit = event => {
     const data = new FormData(event.target);
     const body = new URLSearchParams();
     data.forEach((value, key) => body.append(key, value));
 
-    fetch("/api/login",
+    fetch('/api/login',
       {
         method: 'post',
         body: body.toString(),
@@ -58,8 +58,7 @@ export default function SignIn() {
           'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8',
         },
         redirect: 'follow',
-      }
-    )
+      })
       .then(res => {
         console.debug(res);
         if (res.status === 200) {
@@ -69,9 +68,9 @@ export default function SignIn() {
         console.debug(res.status);
         return res.text();
       })
-      .then(error => {
-        if (!error) return;
-        setError(error);
+      .then(err => {
+        if (!err) return;
+        setError(err);
         setAlertOpen(true);
       })
       .catch(err => {
@@ -81,7 +80,7 @@ export default function SignIn() {
       });
 
     event.preventDefault();
-  }
+  };
 
   const handleAlertClose = (event, reason) => {
     if (reason === 'clickaway') {
@@ -92,75 +91,79 @@ export default function SignIn() {
   };
 
   return (
-    <Container component="main" maxWidth="xs">
+    <Container component='main' maxWidth='xs'>
       <div className={classes.paper}>
         <Avatar className={classes.avatar}>
           <LockOutlinedIcon />
         </Avatar>
-        <Typography component="h1" variant="h5">
+        <Typography component='h1' variant='h5'>
           Sign in
         </Typography>
         <form
           className={classes.form}
           noValidate
-          action="/api/login"
-          method="post"
+          action='/api/login'
+          method='post'
           onSubmit={handleSubmit}
         >
           <TextField
-            variant="outlined"
-            margin="normal"
+            variant='outlined'
+            margin='normal'
             required
             fullWidth
-            id="email"
-            label="Email Address"
-            name="email"
-            autoComplete="email"
+            id='email'
+            label='Email Address'
+            name='email'
+            autoComplete='email'
             autoFocus
           />
           <TextField
-            variant="outlined"
-            margin="normal"
+            variant='outlined'
+            margin='normal'
             required
             fullWidth
-            name="password"
-            label="Password"
-            type="password"
-            id="password"
-            autoComplete="current-password"
+            name='password'
+            label='Password'
+            type='password'
+            id='password'
+            autoComplete='current-password'
           />
           <FormControlLabel
-            control={<Checkbox
-                name="rememberme"
-                id="rememberme"
-                type="checkbox"
-                value="on"
-                color="primary" />}
-            label="Remember me"
+            control={(
+              <Checkbox
+                name='rememberme'
+                id='rememberme'
+                type='checkbox'
+                value='on'
+                color='primary'
+              />
+            )}
+            label='Remember me'
           />
           <Button
-            type="submit"
+            type='submit'
             fullWidth
-            variant="contained"
-            color="primary"
+            variant='contained'
+            color='primary'
             className={classes.submit}
           >
             Sign In
           </Button>
           <Grid container>
             <Grid item xs>
-              <Link href="#" variant="body2">
+              <Link href='#' variant='body2'>
                 Forgot password?
               </Link>
             </Grid>
             <Grid item>
-              <Link href="#" variant="body2">
+              <Link href='#' variant='body2'>
+                {/* eslint-disable-next-line react/jsx-curly-brace-presence */}
                 {"Don't have an account? Sign Up"}
               </Link>
             </Grid>
           </Grid>
           <Snackbar open={alertOpen} autoHideDuration={8000} onClose={handleAlertClose}>
-            <Alert severity={'error'} onClose={handleAlertClose}>
+            <Alert severity='error' onClose={handleAlertClose}>
               { error }
             </Alert>
           </Snackbar>

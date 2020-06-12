@@ -5,15 +5,15 @@ const ExpressBruteFlexible = require('rate-limiter-flexible/lib/ExpressBruteFlex
 let redisArgs;
 if (process.env.REDIS_URL) {
     redisArgs = [process.env.REDIS_URL, {
-    enableOfflineQueue: process.env.NODE_ENV !== 'production',
-    showFriendlyErrorStack: process.env.NODE_ENV !== 'production'
-}]
+        enableOfflineQueue: process.env.NODE_ENV !== 'production',
+        showFriendlyErrorStack: process.env.NODE_ENV !== 'production',
+    }];
 } else {
     redisArgs = [{
         host: process.env.REDIS_HOST,
         port: process.env.REDIS_PORT || process.env.REDIS_URL,
         enableOfflineQueue: process.env.NODE_ENV !== 'production',
-        showFriendlyErrorStack: process.env.NODE_ENV !== 'production'
+        showFriendlyErrorStack: process.env.NODE_ENV !== 'production',
     }];
 }
 const redis = new Redis(...redisArgs);
@@ -36,8 +36,8 @@ const rateLimitOpts = {
     keyPrefix: 'rlflx',
     inmemoryBlockOnConsumed: 300,
     inmemoryBlockDuration: 60,
-    insuranceLimiter: rateLimiterMemory
-}
+    insuranceLimiter: rateLimiterMemory,
+};
 
 const bruteOpts = {
     freeRetries: 10,
@@ -45,7 +45,7 @@ const bruteOpts = {
     maxWait: 50000, // 50 seconds
     lifetime: 100, // 100 seconds
     storeClient: redis,
-    keyPrefix: 'brtfrc'
+    keyPrefix: 'brtfrc',
 };
 
 const mangadexLimiter = new RateLimiterMemory({
@@ -57,7 +57,7 @@ module.exports.mangadexLimiter = mangadexLimiter;
 
 const bruteforce = new ExpressBruteFlexible(
   ExpressBruteFlexible.LIMITER_TYPES.REDIS,
-  bruteOpts
+  bruteOpts,
 );
 
 const rateLimiterRedis = new RateLimiterRedis(rateLimitOpts);
@@ -70,7 +70,7 @@ const rateLimiter = (req, res, next) => {
         .catch(() => {
             res.status(429).send('Too Many Requests');
         });
-}
+};
 
 module.exports.bruteforce = bruteforce;
 module.exports.rateLimiter = rateLimiter;

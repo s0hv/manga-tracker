@@ -1,13 +1,13 @@
-const pool = require('./../db');
-const { requiresUser } = require('./../db/auth');
-const { getManga } = require('./../db/manga');
+const pool = require('../db');
+const { requiresUser } = require('../db/auth');
+const { getManga } = require('../db/manga');
 
 
-module.exports = function (app) {
+module.exports = app => {
     app.get('/api/manga/:manga_id(\\d+)', (req, res) => {
-        let limit = parseInt(req.query.chapters);
+        const limit = parseInt(req.query.chapters);
         getManga(req.params.manga_id, limit)
-            .then()
+            .then();
 
         getManga(req.params.manga_id, limit, (err, rows) => {
             if (err) {
@@ -15,14 +15,13 @@ module.exports = function (app) {
                     error: {
                         statusCode: err.status,
                         message: err.message,
-                    }
+                    },
                 });
                 return;
             }
 
-            res.json({manga: rows});
+            res.json({ manga: rows });
         });
-
     });
 
     app.put('/api/user/follows', requiresUser, (req, res) => {
@@ -43,7 +42,7 @@ module.exports = function (app) {
                     return;
                 }
                 res.status(500).end();
-            })
+            });
     });
 
     app.delete('/api/user/follows', requiresUser, (req, res) => {
@@ -66,7 +65,7 @@ module.exports = function (app) {
         pool.query(sql, args)
             .then(rows => {
                 if (rows.rowCount === 0) return res.status(404).end();
-                res.status(200).end()
+                res.status(200).end();
             })
             .catch(err => {
                 if (err.code === '22003' || err.code === '22P02') {
@@ -74,7 +73,7 @@ module.exports = function (app) {
                     return;
                 }
                 res.status(500).end();
-            })
+            });
     });
 
     app.post('/api/manga/merge', requiresUser, (req, res) => {
@@ -83,7 +82,7 @@ module.exports = function (app) {
             return;
         }
         if (!req.query.base || !req.query.to_merge || req.query.base === req.query.to_merge) {
-            res.status(400).json({error: 'Given ids were equal or not all ids were given'});
+            res.status(400).json({ error: 'Given ids were equal or not all ids were given' });
             return;
         }
 
@@ -91,17 +90,17 @@ module.exports = function (app) {
         pool.query(sql, [req.query.base, req.query.to_merge])
             .then(rows => {
                 if (rows.rowCount === 0) {
-                    return res.status(400).json({error: 'No modifications done'})
+                    return res.status(400).json({ error: 'No modifications done' });
                 }
                 res.status(200).json(rows.rows[0]);
             })
             .catch(err => {
                 if (err.code === '22003' || err.code === '22P02') {
-                    res.status(400).json({error: 'Failed to parse given ids'});
+                    res.status(400).json({ error: 'Failed to parse given ids' });
                     return;
                 }
 
-                res.status(500).json({error: 'Internal server error'});
+                res.status(500).json({ error: 'Internal server error' });
             });
-    })
-}
+    });
+};

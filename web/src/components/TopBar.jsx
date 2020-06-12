@@ -6,7 +6,7 @@ import {
   ExitToApp as ExitToAppIcon,
   Home as HomeIcon,
   Person as PersonIcon,
-  WbSunny as SunIcon
+  WbSunny as SunIcon,
 } from '@material-ui/icons';
 import {
   AppBar,
@@ -18,6 +18,7 @@ import {
   Toolbar,
   Typography,
 } from '@material-ui/core';
+import PropTypes from 'prop-types';
 import NextLink from 'next/link';
 import SearchInput from './Search';
 
@@ -50,14 +51,14 @@ const useStyles = makeStyles((theme) => ({
     },
   },
   profileIcon: {
-    position: "relative",
+    position: 'relative',
     marginLeft: theme.spacing(2),
-    float: "right",
+    float: 'right',
   },
   loginButton: {
-    position: "relative",
+    position: 'relative',
     marginLeft: theme.spacing(3),
-    float: "right",
+    float: 'right',
   },
   popper: {
     zIndex: theme.zIndex.modal,
@@ -73,26 +74,25 @@ const useStyles = makeStyles((theme) => ({
   menuLink: {
     textDecoration: 'none',
     color: 'inherit',
-  }
+  },
 }));
 
-const LinkComponent = React.forwardRef(({ href, prefetch, as, Component, children, passHref=false, ...props }, ref) => {
-  return (
-    <NextLink href={href} prefetch={prefetch} as={as} passHref={passHref}>
-      <a style={{textDecoration: 'none', color:'inherit'}}>
-        <Component {...props} ref={ref}>
-          {children}
-        </Component>
-      </a>
-    </NextLink>
-  )
-});
+// eslint-disable-next-line react/display-name,react/prop-types
+const LinkComponent = React.forwardRef(({ href, prefetch, as, Component, children, passHref=false, ...props }, ref) => (
+  <NextLink href={href} prefetch={prefetch} as={as} passHref={passHref}>
+    <a style={{ textDecoration: 'none', color: 'inherit' }}>
+      <Component {...props} ref={ref}>
+        {children}
+      </Component>
+    </a>
+  </NextLink>
+  ));
 
 function TopBar(props) {
   const {
     user,
     activeTheme,
-    setTheme
+    setTheme,
   } = props;
   const classes = useStyles();
   const [anchorEl, setAnchorEl] = React.useState(null);
@@ -108,14 +108,14 @@ function TopBar(props) {
 
   const handleThemeChange = () => {
     handleClose();
-    const val = activeTheme === 1 ? 2 : 1
+    const val = activeTheme === 1 ? 2 : 1;
     setTheme(val);
-    fetch( `/api/settings/theme?value=${val}`, {
+    fetch(`/api/settings/theme?value=${val}`, {
       method: 'post',
-      credentials: 'include'
+      credentials: 'include',
     })
-      .catch(console.error)
-  }
+      .catch(console.error);
+  };
 
   const handleLogout = () => {
     handleClose();
@@ -124,83 +124,83 @@ function TopBar(props) {
       credentials: 'include',
     })
       .then(res => {
-        console.log(res)
+        console.log(res);
         window.location.replace(res.url);
       })
       .catch(err => {
         window.location.reload();
         console.error(err);
-      })
-  }
-
+      });
+  };
 
   return (
     <div className={classes.root}>
-      <AppBar position="static">
+      <AppBar position='static'>
         <Toolbar>
           <NextLink href='/' prefetch={false}>
-            <Typography className={classes.title} variant="h6" noWrap>
+            <Typography className={classes.title} variant='h6' noWrap>
               Manga tracker
             </Typography>
           </NextLink>
           <LinkComponent
-              Component={IconButton}
-              href='/'
-              prefetch={false}
-              className={classes.titleIcon}
-              aria-label="return to home page"
-              aria-controls="menu-appbar"
-              color="inherit"
+            Component={IconButton}
+            href='/'
+            prefetch={false}
+            className={classes.titleIcon}
+            aria-label='return to home page'
+            aria-controls='menu-appbar'
+            color='inherit'
           >
             <HomeIcon />
           </LinkComponent>
-          <div className={classes.grow}/>
-          <SearchInput id="title-search"/>
-          {(user &&
+          <div className={classes.grow} />
+          <SearchInput id='title-search' />
+          {(user && (
           <div className={classes.profileIcon}>
             <IconButton
-                aria-label="account of current user"
-                aria-controls="menu-appbar"
-                aria-haspopup="true"
-                onClick={handleClick}
-                color="inherit"
+              aria-label='account of current user'
+              aria-controls='menu-appbar'
+              aria-haspopup='true'
+              onClick={handleClick}
+              color='inherit'
             >
-              <AccountCircle fontSize='large'/>
+              <AccountCircle fontSize='large' />
             </IconButton>
             <Menu
-                id="menu-appbar"
-                disableScrollLock={true}
-                anchorEl={anchorEl}
-                elevation={0}
-                getContentAnchorEl={null}
-                anchorOrigin={{
-                  vertical: 'bottom',
-                  horizontal: 'right',
-                }}
-                keepMounted
-                transformOrigin={{
-                  vertical: 'top',
-                  horizontal: 'right',
-                }}
-                open={open}
-                onClose={handleClose}
+              id='menu-appbar'
+              disableScrollLock
+              anchorEl={anchorEl}
+              elevation={0}
+              getContentAnchorEl={null}
+              anchorOrigin={{
+                vertical: 'bottom',
+                horizontal: 'right',
+              }}
+              keepMounted
+              transformOrigin={{
+                vertical: 'top',
+                horizontal: 'right',
+              }}
+              open={open}
+              onClose={handleClose}
             >
               <LinkComponent Component={MenuItem} href='/profile' prefetch={false} onClick={handleClose} passHref>
-                <PersonIcon className={classes.menuItemIcon}/> Profile
+                <PersonIcon className={classes.menuItemIcon} /> Profile
               </LinkComponent>
               <MenuItem onClick={handleThemeChange}>
-                { activeTheme === 2 ? <SunIcon className={classes.menuItemIcon}/> : <MoonIcon className={classes.menuItemIcon}/>}
+                { activeTheme === 2 ? <SunIcon className={classes.menuItemIcon} /> : <MoonIcon className={classes.menuItemIcon} />}
                 Switch to {activeTheme === 2 ? 'light' : 'dark'} theme
               </MenuItem>
               <LinkComponent Component={MenuItem} href='/follows' prefetch={false} onClick={handleClose} passHref>
-                <BookmarksIcon className={classes.menuItemIcon}/> Follows
+                <BookmarksIcon className={classes.menuItemIcon} /> Follows
               </LinkComponent>
               <MenuItem onClick={handleLogout}>
-                <ExitToAppIcon className={classes.menuItemIcon}/> Logout
+                <ExitToAppIcon className={classes.menuItemIcon} /> Logout
               </MenuItem>
             </Menu>
           </div>
-          ) ||
+        )
+          ) || (
           <React.Fragment>
             <NextLink href='/login' prefetch={false}>
               <Button variant='outlined' className={classes.loginButton}>
@@ -208,17 +208,24 @@ function TopBar(props) {
               </Button>
             </NextLink>
             <IconButton
-              aria-label="Switch theme"
+              aria-label='Switch theme'
               onClick={handleThemeChange}
-              color="inherit"
+              color='inherit'
             >
-              {activeTheme === 2 ? <SunIcon className={classes.menuItemIcon}/> : <MoonIcon className={classes.menuItemIcon}/>}
+              {activeTheme === 2 ? <SunIcon className={classes.menuItemIcon} /> : <MoonIcon className={classes.menuItemIcon} />}
             </IconButton>
-          </React.Fragment>}
+          </React.Fragment>
+        )}
         </Toolbar>
       </AppBar>
     </div>
   );
 }
 
+TopBar.propTypes = {
+  // eslint-disable-next-line react/forbid-prop-types
+  user: PropTypes.object,
+  activeTheme: PropTypes.number,
+  setTheme: PropTypes.func,
+};
 export default TopBar;

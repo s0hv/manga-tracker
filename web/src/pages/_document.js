@@ -1,3 +1,4 @@
+/* eslint-disable */
 import React from 'react';
 import Document, {Head, Html, Main, NextScript} from 'next/document';
 import {createMuiTheme, ServerStyleSheets} from '@material-ui/core/styles';

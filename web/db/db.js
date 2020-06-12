@@ -1,27 +1,27 @@
 const pool = require('.');
 
-function getLatestReleases(service_id, manga_id, user_uuid) {
+function getLatestReleases(serviceId, mangaId, userUUID) {
     const joins = [];
     const where = [];
     const args = [];
     let paramNumber = 1;
-    if (user_uuid) {
+    if (userUUID) {
         joins.push(`INNER JOIN user_follows uf ON c.manga_id = uf.manga_id AND (uf.service_id IS NULL OR c.service_id=uf.service_id) 
                     INNER JOIN users u ON u.user_id=uf.user_id`);
         where.push(`u.user_uuid=$${paramNumber}::uuid`);
-        args.push(user_uuid);
+        args.push(userUUID);
         paramNumber++;
     }
 
-    if (manga_id) {
+    if (mangaId) {
         where.push(`c.manga_id=$${paramNumber}`);
-        args.push(manga_id);
+        args.push(mangaId);
         paramNumber++;
     }
 
-    if (service_id) {
+    if (serviceId) {
         where.push(`c.service_id=$${paramNumber}`);
-        args.push(service_id);
+        args.push(serviceId);
         paramNumber++;
     }
 
@@ -44,9 +44,9 @@ function getLatestReleases(service_id, manga_id, user_uuid) {
     return pool.query(sql, args);
 }
 
-function getUserFollows(user_id, manga_id) {
-    const sql = `SELECT service_id FROM user_follows WHERE user_id=$1 AND manga_id=$2`;
-    return pool.query(sql, [user_id, manga_id]);
+function getUserFollows(userId, mangaId) {
+    const sql = 'SELECT service_id FROM user_follows WHERE user_id=$1 AND manga_id=$2';
+    return pool.query(sql, [userId, mangaId]);
 }
 
-module.exports = { getLatestReleases, getUserFollows }
+module.exports = { getLatestReleases, getUserFollows };

@@ -1,5 +1,5 @@
 import React from 'react';
-import {makeStyles} from "@material-ui/core/styles";
+import {makeStyles} from '@material-ui/core/styles';
 import {
   Button,
   Container,
@@ -11,9 +11,9 @@ import {
   Typography
 } from '@material-ui/core';
 import NextLink from 'next/link';
-import chunk from 'lodash.chunk'
+import chunk from 'lodash.chunk';
 
-import {followUnfollow} from "./../utils/utilities";
+import {followUnfollow} from '../utils/utilities';
 
 
 const useStyles = makeStyles((theme) => ({
@@ -36,11 +36,11 @@ const useStyles = makeStyles((theme) => ({
     maxWidth: '200px',
     height: '250px',
     [theme.breakpoints.down('sm')]: {
-      maxWidth: '180px'
+      maxWidth: '180px',
     },
     [theme.breakpoints.down('xs')]: {
-      maxWidth: '125px'
-    }
+      maxWidth: '125px',
+    },
   },
   serviceList: {
     overflow: 'auto',
@@ -52,12 +52,12 @@ const useStyles = makeStyles((theme) => ({
   },
   serviceName: {
     marginRight: theme.spacing(2),
-  }
+  },
 }));
 
 function Follows(props) {
     const {
-    follows = []
+    follows = [],
   } = props;
 
   const classes = useStyles();
@@ -81,45 +81,42 @@ function Follows(props) {
               </a>
             </NextLink>
             <List className={classes.serviceList}>
-              <ListItem key={'0'} className={classes.followService}>
-                <ListItemText primary='All services' className={classes.serviceName}/>
+              <ListItem key='0' className={classes.followService}>
+                <ListItemText primary='All services' className={classes.serviceName} />
                 <Button variant='contained' color='primary' onClick={followUnfollow(follow.manga_id)}>
-                      {followedServices.indexOf(null) < 0 ? 'Follow' : 'Unfollow'}
+                  {followedServices.indexOf(null) < 0 ? 'Follow' : 'Unfollow'}
                 </Button>
               </ListItem>
-              {follow.services.map((service, index) => {
-                return (
-                  <ListItem key={`${index+1}`} className={classes.followService}>
-                    <ListItemText primary={service.service_name} className={classes.serviceName}/>
-                    <Button variant='contained' color='primary' onClick={followUnfollow(follow.manga_id, service.service_id)}>
-                      {followedServices.indexOf(service.service_id) < 0 ? 'Follow' : 'Unfollow'}
-                    </Button>
-                  </ListItem>
-                )
-              })}
+              {follow.services.map((service, index) => (
+                <ListItem key={`${index+1}`} className={classes.followService}>
+                  <ListItemText primary={service.service_name} className={classes.serviceName} />
+                  <Button variant='contained' color='primary' onClick={followUnfollow(follow.manga_id, service.service_id)}>
+                    {followedServices.indexOf(service.service_id) < 0 ? 'Follow' : 'Unfollow'}
+                  </Button>
+                </ListItem>
+                ))}
             </List>
           </div>
         </Paper>
       </Grid>
     );
-  }
+  };
 
   return (
 
     <Container maxWidth='lg'>
       <Paper className={classes.root}>
         <Grid container spacing={1}>
-          {chunk(follows, rowWidth).map((rowFollows, index) => {
-            return (
-              <Grid container item xs={12} spacing={3} key={index}>
-                {rowFollows.map(renderFollow)}
-              </Grid>
-            )
-          })}
+          {chunk(follows, rowWidth).map((rowFollows, index) => (
+            // eslint-disable-next-line react/no-array-index-key
+            <Grid container item xs={12} spacing={3} key={index}>
+              {rowFollows.map(renderFollow)}
+            </Grid>
+          ))}
         </Grid>
       </Paper>
     </Container>
-  )
+  );
 }
 
 export default Follows;

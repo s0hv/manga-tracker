@@ -1,6 +1,8 @@
-import TopBar from '../components/TopBar'
-import React from "react";
-import {Divider, Link, makeStyles, Typography,} from "@material-ui/core";
+/* eslint-disable */
+import React from 'react';
+import {Divider, Link, makeStyles, Typography} from '@material-ui/core';
+import PropTypes from 'prop-types';
+import TopBar from './TopBar';
 
 
 const useStyles = makeStyles((theme) => ({
@@ -12,7 +14,7 @@ const useStyles = makeStyles((theme) => ({
     position: 'relative',
   },
   container: {
-    paddingTop: theme.spacing(10)
+    paddingTop: theme.spacing(10),
   },
   divider: {
     marginTop: theme.spacing(5),
@@ -27,7 +29,7 @@ const useStyles = makeStyles((theme) => ({
   copyright: {
     marginLeft: theme.spacing(3),
     bottom: theme.spacing(2),
-  }
+  },
 }));
 
 function Copyright(props) {
@@ -36,36 +38,49 @@ function Copyright(props) {
       { 'Copyright © '}
       <Link color='inherit' href='https://github.com/s0hv'>
         s0hv
-      </Link>{' '}
+      </Link>
+      { ' ' }
       {new Date().getFullYear()}
       {'.'}
     </Typography>
-  )
+  );
 }
 
-export default function ({ Component, pageProps, props }) {
+export default function Layout({ Component, pageProps, props }) {
   const {
     statusCode,
     activeTheme,
     user,
-    setTheme
-  } = props
+    setTheme,
+  } = props;
   const classes = useStyles();
 
-  if (statusCode != 200) {
+  if (statusCode !== 200) {
     return <Component {...pageProps} />;
   }
 
   return (
     <div className={classes.root}>
-      <TopBar user={user} setTheme={setTheme} activeTheme={activeTheme}/>
+      <TopBar user={user} setTheme={setTheme} activeTheme={activeTheme} />
       <Component {...pageProps} isAuthenticated={Boolean(user)} />
       <div className={classes.container}>
         <footer className={classes.footer}>
-          <Divider className={classes.divider} variant='middle'/>
-          <Copyright className={classes.copyright}/>
+          <Divider className={classes.divider} variant='middle' />
+          <Copyright className={classes.copyright} />
         </footer>
       </div>
     </div>
-  )
+  );
 }
+
+Layout.propTypes = {
+  Component: PropTypes.elementType,
+  // eslint-disable-next-line react/forbid-prop-types
+  pageProps: PropTypes.object,
+  props: PropTypes.shape({
+    statusCode: PropTypes.number,
+    activeTheme: PropTypes.number,
+    user: PropTypes.object,
+    setTheme: PropTypes.func,
+  }),
+};

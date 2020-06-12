@@ -12,9 +12,6 @@
     "deploy": "cd web && npm run deploy",
     "server-dev": "cd web && npm run server-dev"
   },
-  "eslintConfig": {
-    "extends": "react-app"
-  },
   "cacheDirectories": [
     "web/.next/cache/",
     "node_modules/"

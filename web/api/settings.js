@@ -1,17 +1,17 @@
-const { requiresUser, modifyCacheUser } = require('./../db/auth');
-const pool = require('./../db');
+const { requiresUser, modifyCacheUser } = require('../db/auth');
+const pool = require('../db');
 
 
-module.exports = function (app) {
+module.exports = app => {
     app.post('/api/settings/theme', requiresUser, (req, res) => {
         if (!req.query.value) {
-            res.status(400).json({error: 'Query parameter "value" missing'});
+            res.status(400).json({ error: 'Query parameter "value" missing' });
             return;
         }
 
-        let val = parseInt(req.query.value);
-        if (isNaN(val) || val < 0 || val > 127) {
-            res.status(400).json({error: `Query parameter "value" has an invalid value of ${val}`});
+        const val = Number(req.query.value);
+        if (Number.isNaN(val) || val < 0 || val > 127) {
+            res.status(400).json({ error: `Query parameter "value" has an invalid value of ${val}` });
             return;
         }
 
@@ -19,7 +19,7 @@ module.exports = function (app) {
             const sql = `UPDATE users SET theme=$1 WHERE user_id=$2`;
             pool.query(sql, [val, req.user.user_id])
                 .then(() => {
-                    modifyCacheUser(parseInt(req.user.user_id), {theme: val});
+                    modifyCacheUser(parseInt(req.user.user_id), { theme: val });
                     res.status(200).end();
                 })
                 .catch(err => {
@@ -32,4 +32,4 @@ module.exports = function (app) {
         req.session.theme = val;
         res.status(200).end();
     });
-}
+};

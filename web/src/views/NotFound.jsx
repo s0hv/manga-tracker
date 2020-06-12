@@ -1,5 +1,5 @@
 import React from 'react';
-import {makeStyles, Paper, Typography,} from '@material-ui/core'
+import {makeStyles, Paper, Typography} from '@material-ui/core';
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -14,7 +14,7 @@ const useStyles = makeStyles((theme) => ({
   text: {
     textAlign: 'center',
     color: theme.palette.text.primary,
-    alignItems: 'center'
+    alignItems: 'center',
   },
 }));
 
@@ -22,10 +22,10 @@ export default function NotFound() {
   const classes = useStyles();
 
   return (
-      <Paper className={classes.paper} square={true}>
-        <Typography className={classes.text} component="h1" variant="h1">
-          404 Not found
-        </Typography>
-      </Paper>
+    <Paper className={classes.paper} square>
+      <Typography className={classes.text} component='h1' variant='h1'>
+        404 Not found
+      </Typography>
+    </Paper>
   );
 }

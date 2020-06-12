@@ -1,4 +1,5 @@
 const pool = require('../db');
+const { getManga } = require('./manga');
 
 function search(keywords, limit) {
         const sql = `WITH tmp as (
@@ -49,7 +50,7 @@ function quickSearch(searchWords, cb) {
         });
 }
 
-module.exports = function (app) {
+module.exports = app => {
     app.get('/api/quicksearch', (req, res) => {
         if (!req.query.query) {
             return res.json([]);
@@ -57,29 +58,32 @@ module.exports = function (app) {
 
         quickSearch(req.query.query, (results) => {
             res.json(results || []);
-        })
+        });
     });
 
     app.get('/api/search', (req, res) => {
         if (!req.query.query) {
-            return res.json({error: {status: 400, message: 'No search query specified'}});
+            return res.json({ error: { status: 400, message: 'No search query specified' }});
         }
 
         if (req.query.query.length > 300) {
-            return res.json({error: {status: 400, message: 'Search query too long (over 300 characters). If this long names exist report this bug.'}});
+            return res.json({ error: { status: 400, message: 'Search query too long (over 300 characters). If this long names exist report this bug.' }});
         }
 
         mangaSearch(req.query.query)
             .then(rows => {
                 if (rows.rowCount === 0) {
-                    return res.json({manga: null});
+                    return res.json({ manga: null });
                 }
                 const row = rows.rows[0];
-                res.json({manga: row});
+                res.json({ manga: row });
+                if ((!row.last_updated || (Date.now() - row.last_updated)/8.64E7 > 14)) {
+                    getManga(row.manga_id, 50);
+                }
             })
             .catch(err => {
                 console.error(err);
-                res.json({error: {status: 500, message: 'Internal server error. Try again later'}});
-            })
+                res.json({ error: { status: 500, message: 'Internal server error. Try again later' }});
+            });
     });
-}
+};

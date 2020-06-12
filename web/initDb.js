@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 const { Client } = require('pg');
 const fs = require('fs');
 const path = require('path');
@@ -12,6 +13,6 @@ client.connect();
 const sql = fs.readFileSync(path.join(__dirname, '..', 'database.sql'));
 
 client.query(sql.toString(), [], (err, res) => {
-    client.end()
+    client.end();
 });
 
