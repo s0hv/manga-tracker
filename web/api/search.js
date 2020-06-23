@@ -1,5 +1,5 @@
 const pool = require('../db');
-const { getManga } = require('./manga');
+const { getManga } = require('../db/manga');
 
 function search(keywords, limit) {
         const sql = `WITH tmp as (
@@ -67,7 +67,7 @@ module.exports = app => {
         }
 
         if (req.query.query.length > 300) {
-            return res.json({ error: { status: 400, message: 'Search query too long (over 300 characters). If this long names exist report this bug.' }});
+            return res.json({ error: { status: 400, message: 'Search query too long (over 300 characters). If manga names this long exist report this bug.' }});
         }
 
         mangaSearch(req.query.query)
