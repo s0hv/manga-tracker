@@ -8,7 +8,7 @@ from src.utils.utilities import universal_chapter_regex
 class TestUtilities(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        with open(os.path.join('unit-tests', 'test-data', 'utilities.json'), encoding='utf-8') as f:
+        with open(os.path.join(os.path.dirname(__file__), 'utilities.json'), encoding='utf-8') as f:
             self.test_cases = json.load(f)
 
     def test_regex(self):

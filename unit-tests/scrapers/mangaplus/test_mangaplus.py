@@ -22,7 +22,7 @@ def find_dict_inequality(d1, d2):
 class TestMangaPlusParser(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        with open(os.path.join('unit-tests', 'test-data', 'mangaplus.json'), encoding='utf-8') as f:
+        with open(os.path.join(os.path.dirname(__file__), 'mangaplus.json'), encoding='utf-8') as f:
             self.test_cases = json.load(f)
 
     def test_series(self):

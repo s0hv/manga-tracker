@@ -238,7 +238,7 @@ class MangaPlus(BaseScraper):
 
     @staticmethod
     def min_update_interval():
-        return random_timedelta(timedelta(minutes=15), timedelta(minutes=30))
+        return random_timedelta(timedelta(minutes=10), timedelta(minutes=20))
 
     @staticmethod
     def parse_chapter(chapter_number):
