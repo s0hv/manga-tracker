@@ -65,7 +65,7 @@ describe('Login flow', () => {
     },
   };
   const realUser = {
-    email: 't@t.t',
+    email: 'test@test.test',
     password: '1234',
   };
 
