@@ -199,6 +199,10 @@ class UpdateScheduler:
                     except psycopg2.Error:
                         logger.exception(f'Database error while scraping {service[1]}')
                         continue
+                    except:
+                        logger.exception(f'Failed to scrape service {service[1]}')
+                        scraper.set_checked(service[0])
+                        continue
 
                 scraper.set_checked(service[0])
                 if retval:

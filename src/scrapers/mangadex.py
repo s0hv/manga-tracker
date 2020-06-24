@@ -94,45 +94,8 @@ class MangaDex(BaseScraper):
     def scrape_series(self, *args):
         pass
 
-    def scrape_service(self, service_id, feed_url, last_update, title_id=None):
-        feed = feedparser.parse(feed_url if not title_id else feed_url + f'/manga_id/{title_id}')
-        try:
-            is_valid_feed(feed)
-        except (FeedHttpError, InvalidFeedError):
-            logger.exception(f'Failed to fetch feed {feed_url}')
-
-            try:
-                self.dbutil.update_service_whole(None, service_id, self.min_update_interval())
-            except psycopg2.Error:
-                logger.exception(f'Failed to update service {feed_url}')
-            return
-
-        with self.conn as conn:
-            with conn.cursor() as cur:
-                sql = 'SELECT last_id::int FROM service_whole WHERE service_id=%s'
-                cur.execute(sql, (service_id,))
-                last_id = cur.fetchone()[0]
-
-        titles = {}
-
-        def get_id(entry_):
-            return int(entry_.id.split('/')[-1])
-
-        def comp_id(entry_id, last_id):
-            return entry_id <= last_id
-
-        # Get chapters only past the point of the latest chapter to reduce
-        # the amount chapter ids increase in the database when conflict happens
-        entries = get_latest_entries(feed.entries, last_id, get_id, comp_id)
-
-        if not entries:
-            logger.info('No new entries found')
-            try:
-                self.dbutil.update_service_whole(None, service_id, self.min_update_interval())
-            except psycopg2.Error:
-                logger.exception(f'Failed to update service {feed_url}')
-            return
-
+    def parse_feed(self, entries, return_list=False):
+        titles = [] if return_list else {}
         for post in entries:
             title = post.get('title', '')
             m = self.CHAPTER_REGEX.match(title)
@@ -162,10 +125,55 @@ class MangaDex(BaseScraper):
             if match:
                 kwargs.update(match.groupdict())
 
+            if return_list:
+                titles.append(Chapter(**kwargs))
+                continue
+
             if manga_id in titles:
                 titles[manga_id].append(Chapter(**kwargs))
             else:
                 titles[manga_id] = [Chapter(**kwargs)]
+
+        return titles
+
+    def scrape_service(self, service_id, feed_url, last_update, title_id=None):
+        feed = feedparser.parse(feed_url if not title_id else feed_url + f'/manga_id/{title_id}')
+        try:
+            is_valid_feed(feed)
+        except (FeedHttpError, InvalidFeedError):
+            logger.exception(f'Failed to fetch feed {feed_url}')
+
+            try:
+                self.dbutil.update_service_whole(None, service_id, self.min_update_interval())
+            except psycopg2.Error:
+                logger.exception(f'Failed to update service {feed_url}')
+            return
+
+        with self.conn as conn:
+            with conn.cursor() as cur:
+                sql = 'SELECT last_id::int FROM service_whole WHERE service_id=%s'
+                cur.execute(sql, (service_id,))
+                last_id = cur.fetchone()[0]
+
+        def get_id(entry_):
+            return int(entry_.id.split('/')[-1])
+
+        def comp_id(entry_id, last_id):
+            return entry_id <= last_id
+
+        # Get chapters only past the point of the latest chapter to reduce
+        # the amount chapter ids increase in the database when conflict happens
+        entries = get_latest_entries(feed.entries, last_id, get_id, comp_id)
+
+        if not entries:
+            logger.info('No new entries found')
+            try:
+                self.dbutil.update_service_whole(None, service_id, self.min_update_interval())
+            except psycopg2.Error:
+                logger.exception(f'Failed to update service {feed_url}')
+            return
+
+        titles = self.parse_feed(entries)
 
         if not titles:
             try:

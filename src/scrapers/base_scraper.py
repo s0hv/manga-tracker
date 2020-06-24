@@ -9,46 +9,57 @@ logger = logging.getLogger('debug')
 
 class BaseChapter(abc.ABC):
     @property
+    @abc.abstractmethod
     def chapter_title(self):
         raise NotImplementedError
 
     @property
+    @abc.abstractmethod
     def chapter_number(self):
         raise NotImplementedError
 
     @property
+    @abc.abstractmethod
     def volume(self):
         raise NotImplementedError
 
     @property
+    @abc.abstractmethod
     def decimal(self):
         raise NotImplementedError
 
     @property
+    @abc.abstractmethod
     def release_date(self):
         raise NotImplementedError
 
     @property
+    @abc.abstractmethod
     def chapter_identifier(self):
         raise NotImplementedError
 
     @property
+    @abc.abstractmethod
     def title_id(self):
         raise NotImplementedError
 
     @property
+    @abc.abstractmethod
     def manga_title(self):
         raise NotImplementedError
 
     @property
+    @abc.abstractmethod
     def manga_url(self):
         raise NotImplementedError
 
     @property
+    @abc.abstractmethod
     def group(self):
         raise NotImplementedError
 
     @property
+    @abc.abstractmethod
     def title(self):
         raise NotImplementedError
 
