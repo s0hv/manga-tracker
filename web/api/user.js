@@ -1,4 +1,5 @@
 const sessionDebug = require('debug')('session-debug');
+const userDebug = require('debug')('user-debug');
 
 const { requiresUser, clearUserAuthTokens, generateAuthToken, clearUserAuthToken } = require('../db/auth');
 const pool = require('../db');
@@ -130,6 +131,8 @@ module.exports = app => {
 
     app.post('/api/logout', requiresUser, (req, res) => {
         if (!req.user.user_id) return res.redirect('/');
+
+        userDebug('Logging out user', req.user.user_id);
 
         req.session.destroy((err) => {
             if (err) console.error(err);

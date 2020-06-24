@@ -24,6 +24,7 @@ module.exports = (expressSession) => {
         }
 
         get(sid, cb = noop) {
+            sessionDebug('Create session', sid);
             const sess = this.cache.get(sid);
             if (sess) {
                 return cb(null, sess);
@@ -44,7 +45,10 @@ module.exports = (expressSession) => {
 
                     return cb(null, null);
                 })
-                .catch(err => cb(err, null));
+                .catch(err => {
+                    sessionDebug('Failed to create session', sid, err);
+                    cb(err, null);
+                });
         }
 
         set(sid, session, cb = noop) {
@@ -53,7 +57,10 @@ module.exports = (expressSession) => {
                          ON CONFLICT (session_id) DO UPDATE SET user_id=$1, data=$3, expires_at=$4`;
             this.conn.query(sql, [session.user_id, sid, session, session.cookie._expires])
                 .then(() => cb(null))
-                .catch(err => cb(err));
+                .catch(err => {
+                    sessionDebug('Failed to edit session', sid, err);
+                    cb(err);
+                });
         }
 
         destroy(sid, cb = noop) {
@@ -62,7 +69,10 @@ module.exports = (expressSession) => {
             const sql = 'DELETE FROM sessions WHERE session_id=$1';
             this.conn.query(sql, [sid])
                 .then(() => cb(null))
-                .catch(err => cb(err));
+                .catch(err => {
+                    sessionDebug('Failed to delete session', err);
+                    cb(err);
+                });
         }
 
         touch(sid, session, cb = noop) {
@@ -78,7 +88,10 @@ module.exports = (expressSession) => {
             this.cache.forEach((sess, key) => { if (sess.user_id === uid) this.cache.del(key); });
             this.conn.query(sql, [uid])
                 .then(() => cb(null))
-                .catch(err => cb(err));
+                .catch(err => {
+                    sessionDebug('Failed to clear user sessions with id', uid, err);
+                    cb(err);
+                });
         }
     }
 
