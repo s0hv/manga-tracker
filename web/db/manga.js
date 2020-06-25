@@ -42,7 +42,7 @@ Chapter.prototype._parse = function newParse(data) {
 };
 
 
-function fetchExtraInfo(mangadexId, mangaId, cb, chapterIds, addChapters = true) {
+function fetchExtraInfo(mangadexId, mangaId, cb, chapterIds, addChapters = true, limitChapters) {
     mangadexLimiter.consume('mangadex', 1)
         .then(() => {
         const manga = new Manga();
@@ -99,7 +99,15 @@ function fetchExtraInfo(mangadexId, mangaId, cb, chapterIds, addChapters = true)
                 // Might as well update chapter titles and add missing chapters while we're at it
                 if (addChapters && manga.chapters) {
                     const alreadyExists = new Set(chapterIds);
-                    const chapters = manga.chapters.filter(c => c.language === 'GB' && !alreadyExists.has(c.id.toString())).map(c => {
+
+                    const chapters = (!limitChapters ?
+                        manga.chapters.filter(c => c.language === 'GB' && !alreadyExists.has(c.id.toString())) :
+                        manga.chapters.filter(c => c.language === 'GB')
+                            // Not sorted by default
+                            .sort((a, b) => (a.chapter < b.chapter ? 1 : -1))
+                            .slice(0, alreadyExists.size * 0.9)
+                            .filter(c => !alreadyExists.has(c.id.toString()))
+                    ).map(c => {
                         const chapter = c.chapter ? c.chapter.toString() : '0';
                         return [
                             mangaId, MANGADEX_ID,
@@ -110,6 +118,8 @@ function fetchExtraInfo(mangadexId, mangaId, cb, chapterIds, addChapters = true)
                     });
 
                     if (chapters.length === 0) return;
+
+                    debug(`Adding ${chapters.length} mangadex chapters to manga ${mangaId} ${manga.title}`);
 
                     const chunkSize = 50;
 
@@ -195,8 +205,9 @@ function getManga(mangaId, chapters) {
                         formatLinks(extra);
                         resolve({ ...row, ...extra });
                     },
-                    (limit && row.chapters) ? row.chapters.map(c => c.chapter_url) : null,
-                    Boolean(limit) && !row.last_updated);
+                    (limit && row.chapters) ? row.chapters.filter(c => c.service_id === MANGADEX_ID).map(c => c.chapter_url) : null,
+                      Boolean(limit),
+                      Boolean(row.last_updated));
                 });
             }
 

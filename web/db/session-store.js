@@ -24,11 +24,11 @@ module.exports = (expressSession) => {
         }
 
         get(sid, cb = noop) {
-            sessionDebug('Create session', sid);
             const sess = this.cache.get(sid);
             if (sess) {
                 return cb(null, sess);
             }
+            sessionDebug('Get session from db', sid);
 
             const sql = `SELECT user_id, data, EXTRACT(EPOCH FROM expires_at - CURRENT_TIMESTAMP)*1000 as maxage
                           FROM sessions 
@@ -52,6 +52,7 @@ module.exports = (expressSession) => {
         }
 
         set(sid, session, cb = noop) {
+            sessionDebug('Edit session', sid);
             this.cache.set(sid, session);
             const sql = `INSERT INTO sessions (user_id, session_id, data, expires_at) VALUES ($1, $2, $3, $4)
                          ON CONFLICT (session_id) DO UPDATE SET user_id=$1, data=$3, expires_at=$4`;
@@ -84,6 +85,7 @@ module.exports = (expressSession) => {
         }
 
         clearUserSessions(uid, cb = noop) {
+            sessionDebug('Clearing all user sessions from user', uid);
             const sql = 'DELETE FROM sessions WHERE user_id=$1';
             this.cache.forEach((sess, key) => { if (sess.user_id === uid) this.cache.del(key); });
             this.conn.query(sql, [uid])
