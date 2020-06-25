@@ -13,11 +13,13 @@ from src.utils.utilities import random_timedelta
 logger = logging.getLogger('debug')
 title_regex = re.compile(r'https:\\/\\/www\.comixology\.com\\/cart\\/add\\/subscription\\/(\d+)\\/0\?actionType=comic&actionId=\d+')
 extra_regex = re.compile(r'.+? extra (\d+)\.(\d+)', re.I)
+extra_chapter_regex = re.compile(r'extra, (\d+)\.?(\d+)?', re.I)
 
 
 class Chapter(BaseChapter):
     def __init__(self, chapter_element, manga_title):
         title = chapter_element.cssselect('.content-info .content-subtitle')[0].text or ''
+        title = title.strip()
 
         if title.lower().startswith('vol'):
             self.invalid = True
@@ -34,12 +36,16 @@ class Chapter(BaseChapter):
                 logger.warning(f'Empty title for {manga_title} actual title {title}. Might be an extra issue')
             title = title.split(':')[-1] if ':' in title else 'Extra'
 
+        special_match = extra_chapter_regex.match(ch[0])
+        if special_match:
+            ch = special_match.groups()
+
         try:
             self._chapter_number = int(ch[0] or 0)
         except ValueError:
             self._chapter_number = 0
         self._chapter_decimal = None
-        if len(ch) > 1:
+        if len(ch) > 1 and ch[1] is not None:
             self._chapter_decimal = int(ch[1])
 
         self._title = title

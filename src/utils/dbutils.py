@@ -140,7 +140,7 @@ class DbUtil:
 
         interval = timedelta(seconds=interval)
         sql = 'UPDATE manga SET release_interval=%s WHERE manga_id=%s'
-        maintenance.info(f'Interval for {manga_id} set to {interval}')
+        logger.info(f'Interval for {manga_id} set to {interval}')
         cur.execute(sql, (interval, manga_id))
 
     @staticmethod

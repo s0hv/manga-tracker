@@ -94,6 +94,13 @@ class JaiminisBox(BaseScraper):
     def min_update_interval():
         return JaiminisBox.UPDATE_INTERVAL
 
+    def set_checked(self, service_id):
+        try:
+            super().set_checked(service_id)
+            self.dbutil.update_service_whole(None, service_id, self.min_update_interval())
+        except psycopg2.Error:
+            logger.exception(f'Failed to update service {service_id}')
+
     def scrape_service(self, service_id, feed_url, last_update, title_id=None):
         feed = feedparser.parse(self.FEED_URL)
         try:
@@ -103,11 +110,6 @@ class JaiminisBox(BaseScraper):
                 logger.info(str(e))
             else:
                 logger.exception(f'Failed to fetch feed {feed_url}')
-
-            try:
-                self.dbutil.update_service_whole(None, service_id, self.min_update_interval())
-            except psycopg2.Error:
-                logger.exception(f'Failed to update service {feed_url}')
             return
 
         with self.conn as conn:
@@ -120,10 +122,6 @@ class JaiminisBox(BaseScraper):
         entries = get_latest_entries(feed.entries, last_id)
         if not entries:
             logger.info('No new entries found')
-            try:
-                self.dbutil.update_service_whole(None, service_id, self.min_update_interval())
-            except psycopg2.Error:
-                logger.exception(f'Failed to update service {feed_url}')
             return
 
         for post in entries:
@@ -196,8 +194,6 @@ class JaiminisBox(BaseScraper):
 
                 sql = 'UPDATE service_whole SET last_id=%s WHERE service_id=%s'
                 cur.execute(sql, (feed.entries[0].id, service_id))
-
-                self.dbutil.update_service_whole(cur, service_id, self.min_update_interval())
 
         return manga_ids
 
