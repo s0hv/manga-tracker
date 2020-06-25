@@ -1,7 +1,9 @@
 import logging
+import re
 from abc import ABC
 from datetime import timedelta, datetime
 
+import psycopg2
 import requests
 from lxml import etree
 from psycopg2.extras import execute_values
@@ -24,9 +26,17 @@ class Source:
 
 
 class Manga:
+    SPECIAL_RE = re.compile(r'(\d+)\+ex', re.I)
+
     def __init__(self, manga_element, release_interval):
         self.title = manga_element.cssselect('cite')[0].text
-        ch = manga_element.cssselect('.simulpub-card__badge span')[0].text.split('.')
+        ch = manga_element.cssselect('.simulpub-card__badge span')[0].text
+        match = self.SPECIAL_RE.match(ch)
+        if match:
+            ch = match.groups()
+        else:
+            ch = ch.split('.')
+
         if ch[0].lower() == 'ex':
             self.latest_chapter = -1
         else:
@@ -79,10 +89,16 @@ class KodanshaComics(BaseScraper):
     def scrape_series(self, title_id, service_id, manga_id):
         return
 
+    def set_checked(self, service_id):
+        try:
+            super().set_checked(service_id)
+            self.dbutil.update_service_whole(None, service_id, self.min_update_interval())
+        except psycopg2.Error:
+            logger.exception(f'Failed to update service {service_id}')
+
     def scrape_service(self, service_id, feed_url, last_update, title_id=None):
         r = requests.get(feed_url)
         if r.status_code != 200:
-            self.dbutil.update_service_whole(None, service_id, self.min_update_interval())
             return
 
         root = etree.HTML(r.text)
@@ -90,7 +106,6 @@ class KodanshaComics(BaseScraper):
         manga_intervals = root.cssselect('.simulpubs__list-sections .simulpubs-list-section')
         if not manga_intervals:
             logger.warning(f'No manga found for {self.URL}')
-            self.dbutil.update_service_whole(None, service_id, self.min_update_interval())
             return
 
         mangas = []
@@ -178,8 +193,6 @@ class KodanshaComics(BaseScraper):
                           f'FROM (VALUES %s) as c(latest_chapter, latest_decimal, service_id, manga_id)' \
                           'WHERE ms.service_id=c.service_id AND ms.manga_id=c.manga_id'
                     execute_values(cur, sql, ((m.latest_chapter, m.chapter_decimal, service_id, m.manga_id) for m in updated_manga))
-
-        self.dbutil.update_service_whole(None, service_id, self.min_update_interval())
 
         return {m.manga_id for m in updated_manga}
 

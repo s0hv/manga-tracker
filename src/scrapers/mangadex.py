@@ -94,6 +94,13 @@ class MangaDex(BaseScraper):
     def scrape_series(self, *args):
         pass
 
+    def set_checked(self, service_id):
+        try:
+            super().set_checked(service_id)
+            self.dbutil.update_service_whole(None, service_id, self.min_update_interval())
+        except psycopg2.Error:
+            logger.exception(f'Failed to update service {service_id}')
+
     def parse_feed(self, entries, return_list=False):
         titles = [] if return_list else {}
         for post in entries:
@@ -142,11 +149,6 @@ class MangaDex(BaseScraper):
             is_valid_feed(feed)
         except (FeedHttpError, InvalidFeedError):
             logger.exception(f'Failed to fetch feed {feed_url}')
-
-            try:
-                self.dbutil.update_service_whole(None, service_id, self.min_update_interval())
-            except psycopg2.Error:
-                logger.exception(f'Failed to update service {feed_url}')
             return
 
         with self.conn as conn:
@@ -167,19 +169,12 @@ class MangaDex(BaseScraper):
 
         if not entries:
             logger.info('No new entries found')
-            try:
-                self.dbutil.update_service_whole(None, service_id, self.min_update_interval())
-            except psycopg2.Error:
-                logger.exception(f'Failed to update service {feed_url}')
             return
 
         titles = self.parse_feed(entries)
 
         if not titles:
-            try:
-                self.dbutil.update_service_whole(None, service_id, self.min_update_interval())
-            except psycopg2.Error:
-                logger.exception(f'Failed to update service {feed_url}')
+            logger.info('No new entries parsed')
             return
 
         data = []
@@ -221,7 +216,6 @@ class MangaDex(BaseScraper):
 
                 sql = 'UPDATE service_whole SET last_id=%s WHERE service_id=%s'
                 cur.execute(sql, (str(get_id(feed.entries[0])), service_id))
-                self.dbutil.update_service_whole(cur, service_id, self.UPDATE_INTERVAL)
 
         return manga_ids
 
