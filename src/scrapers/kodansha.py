@@ -37,7 +37,8 @@ class Manga:
         else:
             ch = ch.split('.')
 
-        if ch[0].lower() == 'ex':
+        # TODO find actual fix for EX2
+        if ch[0].lower().startswith('ex'):
             self.latest_chapter = -1
         else:
             self.latest_chapter = int(ch[0])
