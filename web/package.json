@@ -49,7 +49,7 @@
     "server-dev": "nodemon --watch api/* --watch db/* --watch server.js server.js",
     "deploy": "node server.js",
     "analyze": "cross-env ANALYZE=true next build",
-    "test": "jest",
+    "test": "jest --forceExit",
     "coverage": "jest --coverage",
     "initDb": "node initDb.js"
   },
