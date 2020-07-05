@@ -40,7 +40,6 @@
         "no-param-reassign": "off",
         "object-shorthand": "off",
         "react/jsx-filename-extension": [1, { "extensions": [".js", ".jsx"] }],
-        "react/display-name": 1,
         "object-curly-spacing": ["warn", "always", {
             "arraysInObjects":  false,
             "objectsInObjects":  false
@@ -54,7 +53,14 @@
         "react/jsx-one-expression-per-line": "off",
         "react/jsx-fragments": "off",
         "react/prop-types": "off",
-        "prefer-destructuring": "off"
+        "prefer-destructuring": "off",
+        "global-require": "off",
+        "prefer-default-export": "off",
+        "import/prefer-default-export": "off",
+        "react/jsx-key": "off",
+        "no-unused-vars": "warn",
+        "no-unused-expressions": "off",
+        "react/display-name": "off"
     },
     "env": {
         "browser": true,

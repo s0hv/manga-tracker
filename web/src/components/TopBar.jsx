@@ -6,20 +6,22 @@ import {
   ExitToApp as ExitToAppIcon,
   Home as HomeIcon,
   Person as PersonIcon,
+  ViewList as ViewListIcon,
   WbSunny as SunIcon,
 } from '@material-ui/icons';
 import {
   AppBar,
   Button,
   IconButton,
-  makeStyles,
   Menu,
   MenuItem,
   Toolbar,
   Typography,
 } from '@material-ui/core';
+import {makeStyles} from '@material-ui/core/styles';
 import PropTypes from 'prop-types';
 import NextLink from 'next/link';
+
 import SearchInput from './Search';
 
 const useStyles = makeStyles((theme) => ({
@@ -194,6 +196,11 @@ function TopBar(props) {
               <LinkComponent Component={MenuItem} href='/follows' prefetch={false} onClick={handleClose} passHref>
                 <BookmarksIcon className={classes.menuItemIcon} /> Follows
               </LinkComponent>
+              {user.admin && (
+                <LinkComponent Component={MenuItem} href='/admin/services' prefetch={false} onClick={handleClose} passHref>
+                  <ViewListIcon className={classes.menuItemIcon} /> Services
+                </LinkComponent>
+              )}
               <MenuItem onClick={handleLogout}>
                 <ExitToAppIcon className={classes.menuItemIcon} /> Logout
               </MenuItem>

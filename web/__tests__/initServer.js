@@ -1,0 +1,15 @@
+export default async () => {
+  jest.mock('./../db/auth', () => ({
+    ...jest.requireActual('./../db/auth'),
+    requiresUser: jest.fn().mockImplementation(jest.requireActual('./../db/auth').requiresUser),
+  }));
+  const serverPromise = require('../server');
+  process.env.PORT = '0';
+  const httpServer = await serverPromise;
+  expect(httpServer).toBeDefined();
+
+  return {
+    httpServer,
+    addr: `http://localhost:${httpServer.address().port}`,
+  };
+};

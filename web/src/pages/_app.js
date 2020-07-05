@@ -1,13 +1,16 @@
 /* eslint-disable react/destructuring-assignment */
 import React from 'react';
+import {MuiPickersUtilsProvider} from '@material-ui/pickers';
 import {
   createMuiTheme,
   responsiveFontSizes,
   ThemeProvider,
 } from '@material-ui/core/styles';
-import CssBaseline from '@material-ui/core/CssBaseline';
 import {blue} from '@material-ui/core/colors';
-import useMediaQuery from '@material-ui/core/useMediaQuery';
+import {CssBaseline, useMediaQuery} from '@material-ui/core';
+import DateFnsUtils from '@date-io/date-fns';
+import enLocale from 'date-fns/locale/en-GB';
+
 import Head from 'next/head';
 import Root from '../components/Root';
 
@@ -63,7 +66,9 @@ function MainApp({ Component, pageProps, props }) {
       </Head>
       <ThemeProvider theme={activeTheme}>
         <CssBaseline />
-        <Root Component={Component} pageProps={pageProps} props={props} setTheme={childSetTheme} />
+        <MuiPickersUtilsProvider utils={DateFnsUtils} locale={enLocale}>
+          <Root Component={Component} pageProps={pageProps} props={props} setTheme={childSetTheme} />
+        </MuiPickersUtilsProvider>
       </ThemeProvider>
     </React.Fragment>
   );

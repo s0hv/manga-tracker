@@ -4,7 +4,6 @@ import {
   Container,
   Grid,
   Link,
-  makeStyles,
   Paper,
   Table,
   TableBody,
@@ -15,6 +14,7 @@ import {
   Tooltip,
   Typography,
 } from '@material-ui/core';
+import {makeStyles} from '@material-ui/core/styles';
 
 import MangaSourceList from '../components/MangaSourceList';
 import {followUnfollow} from '../utils/utilities';

@@ -8,7 +8,7 @@ import {
   ListItem,
   ListItemText,
   Paper,
-  Typography
+  Typography,
 } from '@material-ui/core';
 import NextLink from 'next/link';
 import chunk from 'lodash.chunk';

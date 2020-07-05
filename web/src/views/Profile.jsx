@@ -4,12 +4,12 @@ import {
   Container,
   FormHelperText,
   LinearProgress,
-  makeStyles,
   Paper,
   Snackbar,
   TextField,
 } from '@material-ui/core';
 import MuiAlert from '@material-ui/lab/Alert';
+import {makeStyles} from '@material-ui/core/styles';
 
 // Rudimentary email check that check that your email is in the format of a@b.c
 // I know you apparently can have multiple @ signs in your email but I don't care and filter those out

@@ -1,6 +1,8 @@
 import React from 'react';
-import {Grid, makeStyles, Tooltip, Typography} from '@material-ui/core';
+import {Grid, Tooltip, Typography} from '@material-ui/core';
+import {makeStyles} from '@material-ui/core/styles';
 import PropTypes from 'prop-types';
+
 import MangaSourceList from './MangaSourceList';
 
 const dateOptions = { weekday: 'short', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
