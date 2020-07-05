@@ -1,4 +1,4 @@
 module.exports = () => ({
   prepare: () => Promise.resolve(),
-  getRequestHandler: () => (req, res) => res.send('Welcome to Next.js!')
+  getRequestHandler: () => (req, res) => res.status(404).send('Not found')
 })

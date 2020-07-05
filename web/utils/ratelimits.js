@@ -63,8 +63,8 @@ const bruteforce = new ExpressBruteFlexible(
 const rateLimiterRedis = new RateLimiterRedis(rateLimitOpts);
 
 const rateLimiter = (req, res, next) => {
-    const key = req.user ? req.user.user_id : req.ip;
-    const pointsToConsume = req.user ? 1 : 5;
+    const key = req.session ? req.session.user_id : req.ip;
+    const pointsToConsume = req.session.user_id ? 1 : 5;
     rateLimiterRedis.consume(key, pointsToConsume)
         .then(() => next())
         .catch(() => {

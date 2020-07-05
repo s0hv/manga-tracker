@@ -7,13 +7,13 @@ import {
   FormControlLabel,
   Grid,
   Link,
-  makeStyles,
   Snackbar,
   TextField,
   Typography,
 } from '@material-ui/core';
-import LockOutlinedIcon from '@material-ui/icons/LockOutlined';
+import {LockOutlined as LockOutlinedIcon} from '@material-ui/icons';
 import MuiAlert from '@material-ui/lab/Alert';
+import {makeStyles} from '@material-ui/core/styles';
 
 function Alert(props) {
   return <MuiAlert elevation={6} variant='filled' {...props} />;

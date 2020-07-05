@@ -14,6 +14,21 @@ module.exports = {
   // The directory where Jest should store its cached dependency information
   // cacheDirectory: "",
 
+  // A path to a module which exports an async function that is triggered once before all test suites
+  // globalSetup: undefined,
+
+  // A path to a module which exports an async function that is triggered once after all test suites
+  // globalTeardown: undefined,
+
+  // A set of global variables that need to be available in all test environments
+  // globals: {},
+
+  // The glob patterns Jest uses to detect test files
+  testMatch: [
+     '**/__tests__/**/test*.[jt]s?(x)',
+     '**/?(*.)+(spec|test).[tj]s?(x)',
+   ],
+
   // Automatically clear mock calls and instances between every test
   clearMocks: true,
   setupFilesAfterEnv: ['<rootDir>/setupTests.js'],
@@ -69,15 +84,6 @@ module.exports = {
 
   // Force coverage collection from ignored files using an array of glob patterns
   // forceCoverageMatch: [],
-
-  // A path to a module which exports an async function that is triggered once before all test suites
-  // globalSetup: undefined,
-
-  // A path to a module which exports an async function that is triggered once after all test suites
-  // globalTeardown: undefined,
-
-  // A set of global variables that need to be available in all test environments
-  // globals: {},
 
   // The maximum amount of workers used to run your tests. Can be specified as % or a number. E.g. maxWorkers: 10% will use 10% of your CPU amount + 1 as the maximum worker number. maxWorkers: 2 will use a maximum of 2 workers.
   // maxWorkers: "50%",
@@ -158,12 +164,6 @@ module.exports = {
 
   // Adds a location field to test results
   // testLocationInResults: false,
-
-  // The glob patterns Jest uses to detect test files
-  // testMatch: [
-  //   "**/__tests__/**/*.[jt]s?(x)",
-  //   "**/?(*.)+(spec|test).[tj]s?(x)"
-  // ],
 
   // An array of regexp pattern strings that are matched against all test paths, matched tests are skipped
   // testPathIgnorePatterns: [

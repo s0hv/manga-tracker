@@ -2,23 +2,27 @@
 /* eslint-env jest */
 
 import fetch from 'node-fetch';
-
-import serverPromise from '../server';
+import initServer from './initServer';
+import stopServer from './stopServer';
 
 const signature = require('cookie-signature');
 const cookie = require('cookie');
+const debug = require('debug')('debug');
 
 const pool = require('../db');
 const { redis } = require('../utils/ratelimits');
 
-
-
-let httpServer;
 let addr;
+let httpServer;
 
 beforeAll(async () => {
-  httpServer = await serverPromise;
-  addr = `http://localhost:${httpServer.address().port}`;
+  ({ addr, httpServer } = await initServer());
+});
+
+afterAll(async () => {
+  pool.end();
+  redis.disconnect();
+  await stopServer(httpServer);
 });
 
 beforeEach(async () => {
@@ -100,14 +104,11 @@ describe('Login flow', () => {
         ...loginOpts,
         body: createBody(body),
       });
-      expect(res.headers.get('set-cookie'))
-        .toBeFalsy();
-      expect(await res.text())
-        .toContain('Unauthorized');
+      expect(res.headers.get('set-cookie')).toBeFalsy();
+      expect(await res.text()).toContain('Unauthorized');
 
       res = await fetch(`${addr}/api/authCheck`);
-      expect(await res.json())
-        .toStrictEqual({ user: null });
+      expect(await res.json()).toStrictEqual({ user: null });
     }
     // Test completely invalid login token
     res = await fetch(`${addr}/api/authCheck`, {
@@ -150,6 +151,7 @@ describe('Login flow', () => {
     expect(res.headers.get('location')).toEqual(addr + '/');
     // Make sure remember me cookie was set
     cookies = checkCookies(res, ['sess', 'auth']);
+    await res.text();
 
     res = await fetch(`${addr}/api/authCheck`, {
       headers: {
@@ -165,6 +167,7 @@ describe('Login flow', () => {
       },
     });
     let newCookies = checkCookies(res, ['sess', 'auth']);
+    await res.text();
 
     // Make sure session id and token were regenerated
     expect(cookie.parse(newCookies.sess).sess).not.toStrictEqual(cookie.parse(cookies.sess).sess);
@@ -262,14 +265,10 @@ describe('Login flow', () => {
     const val = signature.unsign(raw.slice(2), 'secret');
     expect(val).toBeTruthy();
 
-    sql = `SELECT 1 FROM sessions WHERE session_id=$1`;
+    sql = `SELECT * FROM sessions WHERE session_id=$1`;
     rows = await pool.query(sql, [val]);
+    if (rows.rowCount > 0) debug(rows.rows);
+
     expect(rows.rowCount).toStrictEqual(0);
   });
-});
-
-afterAll(() => {
-  httpServer.close();
-  pool.end();
-  redis.disconnect();
 });

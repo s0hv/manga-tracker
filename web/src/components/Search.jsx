@@ -1,16 +1,11 @@
-import fetch from 'cross-fetch';
 import React from 'react';
+import {IconButton, InputBase, Paper, Popper,} from '@material-ui/core';
 import {
-  fade,
-  IconButton,
-  InputBase,
-  makeStyles,
-  Paper,
-  Popper,
   setRef,
   unstable_useId as useId,
   useEventCallback,
-} from '@material-ui/core';
+} from '@material-ui/core/utils';
+import {fade, makeStyles} from '@material-ui/core/styles';
 import PropTypes from 'prop-types';
 
 import {Search as SearchIcon} from '@material-ui/icons';
