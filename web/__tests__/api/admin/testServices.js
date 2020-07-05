@@ -22,6 +22,7 @@ describe('Edit service endpoint', () => {
         method: 'post',
       });
       expect(res.status).toStrictEqual(403);
+      await res.text();
     });
   });
 
@@ -32,12 +33,14 @@ describe('Edit service endpoint', () => {
         method: 'post',
       });
       expect(res.status).toStrictEqual(400);
+      await res.text();
     });
   });
 
   it('returns not found on GET', async () => {
     const res = await fetch(`${addr}/api/admin/editService`);
     expect(res.status).toStrictEqual(404);
+    await res.text();
   });
 
   it('returns unauthorized without login', async () => {
