@@ -134,6 +134,7 @@ describe('Login flow', () => {
     expect(res.headers.get('location')).toEqual(addr + '/');
     // Make sure remember me cookie wasn't set
     let cookies = checkCookies(res, ['sess'], ['auth']);
+    await res.text();
 
     res = await fetch(`${addr}/api/authCheck`, {
       headers: {
@@ -191,6 +192,7 @@ describe('Login flow', () => {
       },
     });
     const newestCookies = checkCookies(res, ['auth', 'sess']);
+    await res.text();
     // Make sure session id and token were regenerated
     expect(cookie.parse(newCookies.sess).sess).not.toStrictEqual(cookie.parse(newestCookies.sess).sess);
     oldAuth = cookie.parse(newestCookies.auth);
@@ -239,6 +241,7 @@ describe('Login flow', () => {
     expect(res.headers.get('location')).toEqual(addr + '/');
     // Make sure remember me cookie was set
     const cookies = checkCookies(res, ['sess', 'auth']);
+    await res.text();
 
     res = await fetch(`${addr}/api/logout`, {
       method: 'post',
@@ -249,6 +252,7 @@ describe('Login flow', () => {
     });
 
     checkCookies(res, [], ['sess', 'auth']);
+    await res.text();
 
     let sql = `SELECT 1 FROM auth_tokens INNER JOIN users u ON auth_tokens.user_id = u.user_id 
                WHERE user_uuid=$1 AND lookup=$2 AND hashed_token=encode(digest($3, 'sha256'), 'hex')`;
