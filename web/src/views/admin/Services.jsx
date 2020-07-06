@@ -1,6 +1,6 @@
 import React from 'react';
-import {Checkbox, Container, Paper,} from '@material-ui/core';
-import {format, formatDistanceToNowStrict,} from 'date-fns';
+import { Checkbox, Container, Paper, TableContainer } from '@material-ui/core';
+import { format, formatDistanceToNowStrict } from 'date-fns';
 import enLocale from 'date-fns/locale/en-GB';
 
 import EditableDateTimePicker
@@ -95,8 +95,8 @@ function Services(props) {
   };
 
   return (
-    <Container maxWidth='lg'>
-      <Paper>
+    <Container maxWidth='lg' style={{ minWidth: '950px' }}>
+      <TableContainer component={Paper}>
         <MaterialTable
           columns={columns}
           data={data}
@@ -104,7 +104,7 @@ function Services(props) {
           editable
           onSaveRow={onSaveRow}
         />
-      </Paper>
+      </TableContainer>
     </Container>
   );
 }
