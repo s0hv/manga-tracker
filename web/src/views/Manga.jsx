@@ -14,10 +14,10 @@ import {
   Tooltip,
   Typography,
 } from '@material-ui/core';
-import {makeStyles} from '@material-ui/core/styles';
+import { makeStyles } from '@material-ui/core/styles';
 
 import MangaSourceList from '../components/MangaSourceList';
-import {followUnfollow} from '../utils/utilities';
+import { followUnfollow } from '../utils/utilities';
 
 
 const useStyles = makeStyles((theme) => ({
@@ -76,10 +76,10 @@ const useStyles = makeStyles((theme) => ({
     minWidth: '440px',
   },
   titleColumn: {
-    minWidth: '175px',
+    minWidth: '225px',
   },
   releaseColumn: {
-    minWidth: '150px',
+    minWidth: '200px',
   },
 }));
 
