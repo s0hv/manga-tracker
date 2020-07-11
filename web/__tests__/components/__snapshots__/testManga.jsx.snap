@@ -53,7 +53,7 @@ exports[`Manga page should render correctly should render correctly 1`] = `
                   onTouchStart={[Function]}
                   title="Sun, 05 Jul 2020 16:00:00 GMT"
                 >
-                  test date
+                  2020-07-05T16:00:00.000Z
                 </p>
               </td>
             </tr>
@@ -85,7 +85,7 @@ exports[`Manga page should render correctly should render correctly 1`] = `
                 <p
                   className="MuiTypography-root makeStyles-detailText-4 MuiTypography-body1"
                 >
-                  test date
+                  2020-07-12T16:00:00.000Z
                 </p>
               </td>
             </tr>
@@ -242,7 +242,7 @@ exports[`Manga page should render correctly should render correctly 1`] = `
               aria-sort={null}
               className="MuiTableCell-root MuiTableCell-body"
             >
-              test date
+              2020-07-05T16:00:00.000Z
             </td>
             <td
               aria-sort={null}
@@ -288,7 +288,7 @@ exports[`Manga page should render correctly should render correctly 1`] = `
               aria-sort={null}
               className="MuiTableCell-root MuiTableCell-body"
             >
-              test date
+              2020-06-26T17:01:00.000Z
             </td>
             <td
               aria-sort={null}
@@ -334,7 +334,7 @@ exports[`Manga page should render correctly should render correctly 1`] = `
               aria-sort={null}
               className="MuiTableCell-root MuiTableCell-body"
             >
-              test date
+              2020-06-26T16:00:00.000Z
             </td>
             <td
               aria-sort={null}
@@ -380,7 +380,7 @@ exports[`Manga page should render correctly should render correctly 1`] = `
               aria-sort={null}
               className="MuiTableCell-root MuiTableCell-body"
             >
-              test date
+              2020-06-21T16:00:00.000Z
             </td>
             <td
               aria-sort={null}
@@ -449,7 +449,7 @@ exports[`Manga page should render correctly should render correctly when logged 
                   onTouchStart={[Function]}
                   title="Sun, 05 Jul 2020 16:00:00 GMT"
                 >
-                  test date
+                  2020-07-05T16:00:00.000Z
                 </p>
               </td>
             </tr>
@@ -481,7 +481,7 @@ exports[`Manga page should render correctly should render correctly when logged 
                 <p
                   className="MuiTypography-root makeStyles-detailText-4 MuiTypography-body1"
                 >
-                  test date
+                  2020-07-12T16:00:00.000Z
                 </p>
               </td>
             </tr>
@@ -665,7 +665,7 @@ exports[`Manga page should render correctly should render correctly when logged 
               aria-sort={null}
               className="MuiTableCell-root MuiTableCell-body"
             >
-              test date
+              2020-07-05T16:00:00.000Z
             </td>
             <td
               aria-sort={null}
@@ -711,7 +711,7 @@ exports[`Manga page should render correctly should render correctly when logged 
               aria-sort={null}
               className="MuiTableCell-root MuiTableCell-body"
             >
-              test date
+              2020-06-26T17:01:00.000Z
             </td>
             <td
               aria-sort={null}
@@ -757,7 +757,7 @@ exports[`Manga page should render correctly should render correctly when logged 
               aria-sort={null}
               className="MuiTableCell-root MuiTableCell-body"
             >
-              test date
+              2020-06-26T16:00:00.000Z
             </td>
             <td
               aria-sort={null}
@@ -803,7 +803,7 @@ exports[`Manga page should render correctly should render correctly when logged 
               aria-sort={null}
               className="MuiTableCell-root MuiTableCell-body"
             >
-              test date
+              2020-06-21T16:00:00.000Z
             </td>
             <td
               aria-sort={null}
