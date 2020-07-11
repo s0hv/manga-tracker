@@ -85,7 +85,9 @@ describe('Manga page should render correctly', () => {
   const follows = [1];
 
   jest.spyOn(Date.prototype, 'toLocaleString')
-    .mockImplementation(jest.fn(() => 'test date'));
+    .mockImplementation(jest.fn(function toLocaleString() {
+      return this.toISOString();
+  }));
 
   it('should render correctly', () => {
     const tree = renderer
