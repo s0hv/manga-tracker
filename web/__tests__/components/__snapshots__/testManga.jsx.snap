@@ -242,7 +242,7 @@ exports[`Manga page should render correctly should render correctly 1`] = `
               aria-sort={null}
               className="MuiTableCell-root MuiTableCell-body"
             >
-              2020-07-05T16:00:00.000Z
+              2020-07-05T13:00:00.000Z
             </td>
             <td
               aria-sort={null}
@@ -288,7 +288,7 @@ exports[`Manga page should render correctly should render correctly 1`] = `
               aria-sort={null}
               className="MuiTableCell-root MuiTableCell-body"
             >
-              2020-06-26T17:01:00.000Z
+              2020-06-26T14:01:59.000Z
             </td>
             <td
               aria-sort={null}
@@ -334,53 +334,7 @@ exports[`Manga page should render correctly should render correctly 1`] = `
               aria-sort={null}
               className="MuiTableCell-root MuiTableCell-body"
             >
-              2020-06-26T16:00:00.000Z
-            </td>
-            <td
-              aria-sort={null}
-              className="MuiTableCell-root MuiTableCell-body"
-            >
-              Shueisha
-            </td>
-          </tr>
-          <tr
-            className="MuiTableRow-root"
-            role={null}
-          >
-            <th
-              aria-sort={null}
-              className="MuiTableCell-root MuiTableCell-body"
-              role="cell"
-              scope="row"
-            >
-              <a
-                className="MuiTypography-root MuiLink-root MuiLink-underlineHover MuiTypography-colorPrimary"
-                href="https://mangaplus.shueisha.co.jp/viewer/1007023"
-                onBlur={[Function]}
-                onFocus={[Function]}
-                style={
-                  Object {
-                    "textDecoration": "none",
-                  }
-                }
-                target="_blank"
-              >
-                <span>
-                  Z=155: Science is Elegant
-                </span>
-              </a>
-            </th>
-            <td
-              aria-sort={null}
-              className="MuiTableCell-root MuiTableCell-body"
-            >
-              155
-            </td>
-            <td
-              aria-sort={null}
-              className="MuiTableCell-root MuiTableCell-body"
-            >
-              2020-06-21T16:00:00.000Z
+              2020-06-26T13:00:00.000Z
             </td>
             <td
               aria-sort={null}
@@ -665,7 +619,7 @@ exports[`Manga page should render correctly should render correctly when logged 
               aria-sort={null}
               className="MuiTableCell-root MuiTableCell-body"
             >
-              2020-07-05T16:00:00.000Z
+              2020-07-05T13:00:00.000Z
             </td>
             <td
               aria-sort={null}
@@ -711,7 +665,7 @@ exports[`Manga page should render correctly should render correctly when logged 
               aria-sort={null}
               className="MuiTableCell-root MuiTableCell-body"
             >
-              2020-06-26T17:01:00.000Z
+              2020-06-26T14:01:59.000Z
             </td>
             <td
               aria-sort={null}
@@ -757,53 +711,7 @@ exports[`Manga page should render correctly should render correctly when logged 
               aria-sort={null}
               className="MuiTableCell-root MuiTableCell-body"
             >
-              2020-06-26T16:00:00.000Z
-            </td>
-            <td
-              aria-sort={null}
-              className="MuiTableCell-root MuiTableCell-body"
-            >
-              Shueisha
-            </td>
-          </tr>
-          <tr
-            className="MuiTableRow-root"
-            role={null}
-          >
-            <th
-              aria-sort={null}
-              className="MuiTableCell-root MuiTableCell-body"
-              role="cell"
-              scope="row"
-            >
-              <a
-                className="MuiTypography-root MuiLink-root MuiLink-underlineHover MuiTypography-colorPrimary"
-                href="https://mangaplus.shueisha.co.jp/viewer/1007023"
-                onBlur={[Function]}
-                onFocus={[Function]}
-                style={
-                  Object {
-                    "textDecoration": "none",
-                  }
-                }
-                target="_blank"
-              >
-                <span>
-                  Z=155: Science is Elegant
-                </span>
-              </a>
-            </th>
-            <td
-              aria-sort={null}
-              className="MuiTableCell-root MuiTableCell-body"
-            >
-              155
-            </td>
-            <td
-              aria-sort={null}
-              className="MuiTableCell-root MuiTableCell-body"
-            >
-              2020-06-21T16:00:00.000Z
+              2020-06-26T13:00:00.000Z
             </td>
             <td
               aria-sort={null}
