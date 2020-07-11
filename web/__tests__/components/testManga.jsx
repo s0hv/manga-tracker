@@ -84,6 +84,11 @@ describe('Manga page should render correctly', () => {
     };
   const follows = [1];
 
+  jest.spyOn(Date.prototype, 'toLocaleString')
+    .mockImplementation(jest.fn(function toLocaleString() {
+      return this.toUTCString();
+    }));
+
   it('should render correctly', () => {
     const tree = renderer
       .create(<Manga mangaData={{ ...manga }} isAuthenticated={false} />)
