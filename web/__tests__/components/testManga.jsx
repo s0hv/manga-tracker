@@ -86,7 +86,7 @@ describe('Manga page should render correctly', () => {
 
   jest.spyOn(Date.prototype, 'toLocaleString')
     .mockImplementation(jest.fn(function toLocaleString() {
-      return this.toUTCString();
+      return 'test date';
     }));
 
   it('should render correctly', () => {
