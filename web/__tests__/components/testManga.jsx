@@ -47,7 +47,7 @@ describe('Manga page should render correctly', () => {
         {
           title: 'Z=157: Same Time, Same Place',
           chapter_number: 157,
-          release_date: '2020-07-05T16:00:00',
+          release_date: 1593964800000,
           group: 'Shueisha',
           service_id: 1,
           chapter_url: '1007322',
@@ -55,7 +55,7 @@ describe('Manga page should render correctly', () => {
         {
           title: 'Z=156: Two Scientists',
           chapter_number: 156,
-          release_date: '2020-06-26T17:01:59',
+          release_date: 1593190919000,
           group: 'MangaPlus',
           service_id: 2,
           chapter_url: '938629',
@@ -63,7 +63,7 @@ describe('Manga page should render correctly', () => {
         {
           title: 'Z=156: Two Scientists',
           chapter_number: 156,
-          release_date: '2020-06-26T16:00:00',
+          release_date: 1593187200000,
           group: 'Shueisha',
           service_id: 1,
           chapter_url: '1007024',
