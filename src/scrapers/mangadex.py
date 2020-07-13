@@ -163,11 +163,12 @@ class MangaDex(BaseScraper):
         def comp_id(entry_id, last_id):
             return entry_id <= last_id
 
-        logger.info('Latest id is %', last_id)
+        logger.info('Latest id is %s', last_id)
         logger.info('New latest id will be %s. %s %s', get_id(feed.entries[0]), 'Largest id is', max(map(get_id, feed.entries)))
         # Get chapters only past the point of the latest chapter to reduce
         # the amount chapter ids increase in the database when conflict happens
-        entries = get_latest_entries(feed.entries, last_id, get_id, comp_id)
+        entries = get_latest_entries(list(sorted(feed.entries, key=get_id, reverse=True)), last_id, get_id, comp_id)
+        logger.info('Actual latest id %s', get_id(entries[0]))
 
         if not entries:
             logger.info('No new entries found')
