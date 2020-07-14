@@ -1,5 +1,5 @@
 import React from 'react';
-import {makeStyles} from '@material-ui/core/styles';
+import { makeStyles } from '@material-ui/core/styles';
 import {
   Button,
   Container,
@@ -11,9 +11,8 @@ import {
   Typography,
 } from '@material-ui/core';
 import NextLink from 'next/link';
-import chunk from 'lodash.chunk';
 
-import {followUnfollow} from '../utils/utilities';
+import { followUnfollow } from '../utils/utilities';
 
 
 const useStyles = makeStyles((theme) => ({
@@ -33,6 +32,7 @@ const useStyles = makeStyles((theme) => ({
     display: 'flex',
   },
   thumbnail: {
+    paddingLeft: theme.spacing(2),
     maxWidth: '200px',
     height: '250px',
     [theme.breakpoints.down('sm')]: {
@@ -40,6 +40,7 @@ const useStyles = makeStyles((theme) => ({
     },
     [theme.breakpoints.down('xs')]: {
       maxWidth: '125px',
+      height: '175px',
     },
   },
   serviceList: {
@@ -61,13 +62,14 @@ function Follows(props) {
   } = props;
 
   const classes = useStyles();
-  const rowWidth = 2;
+  const columnsXs = 1;
+  const columnsMd = 2;
 
   const renderFollow = (follow) => {
     const followedServices = follow.followed_services;
 
     return (
-      <Grid item xs={12/rowWidth} key={follow.manga_id}>
+      <Grid item xs={12/columnsXs} md={12/columnsMd} key={follow.manga_id}>
         <Paper className={classes.followCard}>
           <Typography className={classes.followTitle}>{follow.title}</Typography>
           <div className={classes.followContent}>
@@ -104,15 +106,10 @@ function Follows(props) {
 
   return (
 
-    <Container maxWidth='lg'>
+    <Container maxWidth='lg' minWidth={400}>
       <Paper className={classes.root}>
         <Grid container spacing={1}>
-          {chunk(follows, rowWidth).map((rowFollows, index) => (
-            // eslint-disable-next-line react/no-array-index-key
-            <Grid container item xs={12} spacing={3} key={index}>
-              {rowFollows.map(renderFollow)}
-            </Grid>
-          ))}
+          {follows.map(renderFollow)}
         </Grid>
       </Paper>
     </Container>
