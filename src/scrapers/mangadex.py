@@ -168,12 +168,13 @@ class MangaDex(BaseScraper):
         # Get chapters only past the point of the latest chapter to reduce
         # the amount chapter ids increase in the database when conflict happens
         entries = get_latest_entries(list(sorted(feed.entries, key=get_id, reverse=True)), last_id, get_id, comp_id)
-        logger.info('Actual latest id %s', get_id(entries[0]))
 
         if not entries:
             logger.info('No new entries found')
             return
 
+        logger.info('Actual latest id %s', get_id(entries[0]))
+        logger.info('New chapters are %s', str(list(map(get_id, entries))))
         titles = self.parse_feed(entries)
 
         if not titles:
