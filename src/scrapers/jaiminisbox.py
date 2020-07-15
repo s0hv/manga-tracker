@@ -124,6 +124,8 @@ class JaiminisBox(BaseScraper):
             logger.info('No new entries found')
             return
 
+        logger.info('Found %s new chapters', len(entries))
+
         for post in entries:
             title = post.get('title', '')
             m = self.CHAPTER_REGEX.match(title)
@@ -192,6 +194,7 @@ class JaiminisBox(BaseScraper):
                 if manga_ids:
                     self.dbutil.update_latest_chapter(cur, tuple(c for c in get_latest_chapters(rows).values()))
 
+                logger.info('Setting latest id %s', feed.entries[0].id)
                 sql = 'UPDATE service_whole SET last_id=%s WHERE service_id=%s'
                 cur.execute(sql, (feed.entries[0].id, service_id))
 

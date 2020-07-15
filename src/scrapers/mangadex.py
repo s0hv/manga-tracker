@@ -3,6 +3,7 @@ import re
 import time
 from calendar import timegm
 from datetime import datetime, timedelta
+from itertools import groupby
 from json.decoder import JSONDecodeError
 
 import feedparser
@@ -12,7 +13,6 @@ from psycopg2.extras import execute_values
 
 from src.errors import FeedHttpError, InvalidFeedError
 from src.scrapers.base_scraper import BaseScraper, BaseChapter
-from src.utils.feedparsing import get_latest_entries
 from src.utils.utilities import match_title, is_valid_feed, get_latest_chapters
 
 logger = logging.getLogger('debug')
@@ -77,6 +77,18 @@ class Chapter(BaseChapter):
     def title(self):
         return self.chapter_title or f'{"Volume " + str(self.volume) + ", " if self.volume is not None else ""}Chapter {self.chapter_number}{"" if not self.decimal else "." + str(self.decimal)}'
 
+    def __hash__(self):
+        return hash(self.chapter_identifier)
+
+    def __eq__(self, other):
+        if isinstance(other, Chapter):
+            return other.chapter_identifier == self.chapter_identifier
+        else:
+            return self.chapter_identifier == other
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
 
 class MangaDex(BaseScraper):
     URL = 'https://mangadex.org'
@@ -101,11 +113,27 @@ class MangaDex(BaseScraper):
         except psycopg2.Error:
             logger.exception(f'Failed to update service {service_id}')
 
-    def parse_feed(self, entries, return_list=False):
+    def get_only_latest_entries(self, service_id, entries):
+        try:
+            sql = 'SELECT chapter_identifier FROM chapters WHERE service_id=%s ORDER BY chapter_id DESC LIMIT 150'
+            with self.conn as conn:
+                with conn.cursor() as cur:
+                    cur.execute(sql, (service_id,))
+                    chapters = set(r[0] for r in cur)
+
+            return set(entries).difference(chapters)
+
+        except:
+            logger.exception('Failed to get old chapters')
+            raise
+            return entries
+
+    @staticmethod
+    def parse_feed(entries, return_list=False):
         titles = [] if return_list else {}
         for post in entries:
             title = post.get('title', '')
-            m = self.CHAPTER_REGEX.match(title)
+            m = MangaDex.CHAPTER_REGEX.match(title)
             if not m:
                 m = match_title(title)
                 if not m:
@@ -128,7 +156,7 @@ class MangaDex(BaseScraper):
 
             kwargs['manga_url'] = post.get('mangalink', '')
             kwargs['release_date'] = post.get('published_parsed')
-            match = self.DESCRIPTION_REGEX.match(post.get('description', ''))
+            match = MangaDex.DESCRIPTION_REGEX.match(post.get('description', ''))
             if match:
                 kwargs.update(match.groupdict())
 
@@ -151,35 +179,18 @@ class MangaDex(BaseScraper):
             logger.exception(f'Failed to fetch feed {feed_url}')
             return
 
-        with self.conn as conn:
-            with conn.cursor() as cur:
-                sql = 'SELECT last_id::int FROM service_whole WHERE service_id=%s'
-                cur.execute(sql, (service_id,))
-                last_id = cur.fetchone()[0]
-
-        def get_id(entry_):
-            return int(entry_.id.split('/')[-1])
-
-        def comp_id(entry_id, last_id):
-            return entry_id <= last_id
-
-        logger.info('Latest id is %s', last_id)
-        logger.info('New latest id will be %s. %s %s', get_id(feed.entries[0]), 'Largest id is', max(map(get_id, feed.entries)))
-        # Get chapters only past the point of the latest chapter to reduce
-        # the amount chapter ids increase in the database when conflict happens
-        entries = get_latest_entries(list(sorted(feed.entries, key=get_id, reverse=True)), last_id, get_id, comp_id)
+        entries = self.get_only_latest_entries(service_id, self.parse_feed(feed.entries, True))
 
         if not entries:
             logger.info('No new entries found')
             return
 
-        logger.info('Actual latest id %s', get_id(entries[0]))
-        logger.info('New chapters are %s', str(list(map(get_id, entries))))
-        titles = self.parse_feed(entries)
+        logger.info('%s new chapters found', len(entries))
 
-        if not titles:
-            logger.info('No new entries parsed')
-            return
+        titles = {}
+        # Must be sorted for groupby to work, as it only splits the list each time the key changes
+        for k, g in groupby(sorted(entries, key=Chapter.title_id.fget), Chapter.title_id.fget):
+            titles[k] = list(g)
 
         data = []
         manga_ids = set()
@@ -217,9 +228,6 @@ class MangaDex(BaseScraper):
                 if manga_ids:
                     self.dbutil.update_latest_chapter(cur, tuple(c for c in get_latest_chapters(rows).values()))
                     self.update_chapter_infos([mangadex_ids[i] for i in mangadex_ids], [c['chapter_identifier'] for c in rows])
-
-                sql = 'UPDATE service_whole SET last_id=%s WHERE service_id=%s'
-                cur.execute(sql, (str(get_id(feed.entries[0])), service_id))
 
         return manga_ids
 
