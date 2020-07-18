@@ -58,6 +58,8 @@ module.exports = {
     '**/*.{js,jsx,ts,tsx}',
     '!**/*.d.ts',
     '!**/node_modules/**',
+    '!**/.next/**',
+    '!**/coverage/**',
   ],
 
   // An array of regexp pattern strings used to skip coverage collection
