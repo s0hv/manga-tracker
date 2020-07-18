@@ -107,9 +107,10 @@ function Manga(props) {
     const serviceMap = {};
     mangaData.services.forEach(service => { serviceMap[service.service_id] = service.url_format });
     return mangaData.chapters.map(chapter => {
-      chapter.release_date = chapter.release_date ? new Date(chapter.release_date).toLocaleString('en-GB', dateOptions) : 'Unknown';
-      chapter.url = serviceMap[chapter.service_id].replace('{}', chapter.chapter_url);
-      return chapter;
+      const newChapter = { ...chapter };
+      newChapter.release_date = chapter.release_date ? new Date(chapter.release_date).toLocaleString('en-GB', dateOptions) : 'Unknown';
+      newChapter.url = serviceMap[chapter.service_id].replace('{}', chapter.chapter_url);
+      return newChapter;
     });
   }, [mangaData.chapters, mangaData.services]);
 

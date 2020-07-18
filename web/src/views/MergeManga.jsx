@@ -1,7 +1,6 @@
-import fetch from 'cross-fetch';
 import React from 'react';
-import {Button, Container, Grid, Paper, Typography,} from '@material-ui/core';
-import {makeStyles} from '@material-ui/core/styles';
+import { Button, Container, Grid, Paper, Typography } from '@material-ui/core';
+import { makeStyles } from '@material-ui/core/styles';
 
 import Search from '../components/Search';
 import PartialManga from '../components/PartialManga';
