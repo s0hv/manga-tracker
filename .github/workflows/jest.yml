@@ -51,8 +51,16 @@ jobs:
     - name: Initialize database
       run: npm run initDb
 
-    - name: Run jest
-      run: npm run test
+    - name: Run jest and generate coverage
+      run: npm run test:ci
+
+    - name: Upload coverage to Codecov
+    - uses: codecov/codecov-action@v1
+      with:
+        file: ./coverage/coverage-final.json
+        flags: frontend
+        env_vars: NODE,WEB
+        name: Frontend coverage
 
     env:
       DB_HOST: postgres

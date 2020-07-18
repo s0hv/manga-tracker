@@ -51,7 +51,8 @@
     "deploy": "node server.js",
     "analyze": "cross-env ANALYZE=true next build",
     "test": "jest --forceExit",
-    "coverage": "jest --coverage",
+    "test:ci": "jest --forceExit --ci --coverage",
+    "coverage": "jest --forceExit --coverage",
     "initDb": "node initDb.js"
   },
   "cacheDirectories": [
