@@ -2,7 +2,10 @@ import React from 'react';
 import renderer from 'react-test-renderer';
 import Services from '../../../src/views/admin/Services';
 
+import { mockUTCDates } from '../../utils';
+
 describe('Services page should render correctly', () => {
+  mockUTCDates();
   const services = [
     {
       id: 2,
