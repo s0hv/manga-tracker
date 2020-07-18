@@ -10,7 +10,7 @@ import EditableCheckbox from '../../components/MaterialTable/EditableCheckbox';
 
 function Services(props) {
   const {
-    services,
+    services = [],
   } = props;
 
   // Format date strings back to dates for sorting

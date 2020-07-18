@@ -55,7 +55,7 @@ describe('Manga page should render correctly', () => {
         {
           title: 'Z=156: Two Scientists',
           chapter_number: 156,
-          release_date: 1593190919000,
+          release_date: null,
           group: 'MangaPlus',
           service_id: 2,
           chapter_url: '938629',
@@ -69,6 +69,41 @@ describe('Manga page should render correctly', () => {
           chapter_url: '1007024',
         },
       ],
+    };
+  const emptyManga = { manga_id: 2,
+      title: 'Dr. STONE',
+      release_interval: {
+        days: 7,
+      },
+      latest_release: null,
+      estimated_release: null,
+      latest_chapter: null,
+      services: [
+        {
+          title_id: '100010',
+          service_id: 1,
+          name: 'MANGA Plus',
+          url_format: 'https://mangaplus.shueisha.co.jp/viewer/{}',
+          url: 'https://mangaplus.shueisha.co.jp/titles/{}',
+        },
+      ],
+      cover: null,
+      status: 0,
+      artist: 'Boichi',
+      author: 'Inagaki Riichiro',
+      last_updated: null,
+      bw: 'https://bookwalker.jp/series/114645',
+      mu: 'https://www.mangaupdates.com/series.html?id=139601',
+      mal: null,
+      amz: 'https://www.amazon.co.jp/gp/product/B075F8JBQ1',
+      ebj: 'https://www.ebookjapan.jp/ebj/413780/',
+      engtl: 'https://www.viz.com/dr-stone',
+      raw: 'null',
+      nu: 'https://www.novelupdates.com/series/null',
+      kt: 'https://kitsu.io/manga/38860',
+      ap: 'https://www.anime-planet.com/manga/dr-stone',
+      al: 'https://anilist.co/manga/98416',
+      chapters: [],
     };
   const follows = [1];
 
@@ -86,8 +121,16 @@ describe('Manga page should render correctly', () => {
   });
 
   it('should render correctly when logged in', () => {
-       const tree = renderer
+    const tree = renderer
       .create(<Manga mangaData={{ ...manga }} isAuthenticated follows={follows} />)
+      .toJSON();
+
+    expect(tree).toMatchSnapshot();
+  });
+
+  it('should render correctly with little data', () => {
+    const tree = renderer
+      .create(<Manga mangaData={{ ...emptyManga }} />)
       .toJSON();
 
     expect(tree).toMatchSnapshot();
