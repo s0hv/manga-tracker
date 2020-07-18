@@ -307,6 +307,9 @@ exports[`Services page should render correctly should render correctly with serv
                     />
                   </svg>
                 </span>
+                <span
+                  className="MuiTouchRipple-root"
+                />
               </button>
             </div>
           </td>
@@ -428,6 +431,9 @@ exports[`Services page should render correctly should render correctly with serv
                     />
                   </svg>
                 </span>
+                <span
+                  className="MuiTouchRipple-root"
+                />
               </button>
             </div>
           </td>
@@ -549,6 +555,9 @@ exports[`Services page should render correctly should render correctly with serv
                     />
                   </svg>
                 </span>
+                <span
+                  className="MuiTouchRipple-root"
+                />
               </button>
             </div>
           </td>
@@ -670,6 +679,9 @@ exports[`Services page should render correctly should render correctly with serv
                     />
                   </svg>
                 </span>
+                <span
+                  className="MuiTouchRipple-root"
+                />
               </button>
             </div>
           </td>
@@ -791,6 +803,9 @@ exports[`Services page should render correctly should render correctly with serv
                     />
                   </svg>
                 </span>
+                <span
+                  className="MuiTouchRipple-root"
+                />
               </button>
             </div>
           </td>
