@@ -66,6 +66,18 @@ class BaseChapter(abc.ABC):
     def __str__(self):
         return f'{self.manga_title} / {self.title_id}'
 
+    def __hash__(self):
+        return hash(self.chapter_identifier)
+
+    def __eq__(self, other):
+        if isinstance(other, BaseChapter):
+            return other.chapter_identifier == self.chapter_identifier
+        else:
+            return self.chapter_identifier == other
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
 
 class BaseScraper(abc.ABC):
     UPDATE_INTERVAL = timedelta(hours=1)

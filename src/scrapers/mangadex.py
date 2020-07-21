@@ -1,10 +1,12 @@
 import logging
 import re
 import time
+import typing
 from calendar import timegm
 from datetime import datetime, timedelta
 from itertools import groupby
 from json.decoder import JSONDecodeError
+from typing import Dict, Collection, Iterable
 
 import feedparser
 import psycopg2
@@ -77,18 +79,6 @@ class Chapter(BaseChapter):
     def title(self):
         return self.chapter_title or f'{"Volume " + str(self.volume) + ", " if self.volume is not None else ""}Chapter {self.chapter_number}{"" if not self.decimal else "." + str(self.decimal)}'
 
-    def __hash__(self):
-        return hash(self.chapter_identifier)
-
-    def __eq__(self, other):
-        if isinstance(other, Chapter):
-            return other.chapter_identifier == self.chapter_identifier
-        else:
-            return self.chapter_identifier == other
-
-    def __ne__(self, other):
-        return not self.__eq__(other)
-
 
 class MangaDex(BaseScraper):
     URL = 'https://mangadex.org'
@@ -100,7 +90,7 @@ class MangaDex(BaseScraper):
     MANGA_URL_FORMAT = 'https://mangadex.org/title/{}'
 
     @staticmethod
-    def min_update_interval():
+    def min_update_interval() -> timedelta:
         return MangaDex.UPDATE_INTERVAL
 
     def scrape_series(self, *args):
@@ -113,7 +103,7 @@ class MangaDex(BaseScraper):
         except psycopg2.Error:
             logger.exception(f'Failed to update service {service_id}')
 
-    def get_only_latest_entries(self, service_id, entries):
+    def get_only_latest_entries(self, service_id, entries: Iterable[Chapter]) -> Collection[Chapter]:
         try:
             sql = 'SELECT chapter_identifier FROM chapters WHERE service_id=%s ORDER BY chapter_id DESC LIMIT 150'
             with self.conn as conn:
@@ -125,11 +115,10 @@ class MangaDex(BaseScraper):
 
         except:
             logger.exception('Failed to get old chapters')
-            raise
-            return entries
+            return list(entries)
 
     @staticmethod
-    def parse_feed(entries, return_list=False):
+    def parse_feed(entries: typing.Iterable[dict], return_list: bool = False) -> typing.Union[Dict[str, Collection[Chapter]], Collection[Chapter]]:
         titles = [] if return_list else {}
         for post in entries:
             title = post.get('title', '')
@@ -171,7 +160,7 @@ class MangaDex(BaseScraper):
 
         return titles
 
-    def scrape_service(self, service_id, feed_url, last_update, title_id=None):
+    def scrape_service(self, service_id: int, feed_url: str, last_update, title_id: int = None):
         feed = feedparser.parse(feed_url if not title_id else feed_url + f'/manga_id/{title_id}')
         try:
             is_valid_feed(feed)
@@ -185,7 +174,7 @@ class MangaDex(BaseScraper):
             logger.info('No new entries found')
             return
 
-        logger.info('%s new chapters found', len(entries))
+        logger.info('%s new chapters found. %s', len(entries), [e.chapter_identifier for e in entries])
 
         titles = {}
         # Must be sorted for groupby to work, as it only splits the list each time the key changes
@@ -231,7 +220,7 @@ class MangaDex(BaseScraper):
 
         return manga_ids
 
-    def update_chapter_infos(self, title_ids, chapter_ids):
+    def update_chapter_infos(self, title_ids: Iterable[str], chapter_ids: Iterable[str]):
         if not title_ids:
             return
 
