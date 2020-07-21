@@ -1,6 +1,5 @@
 import logging
 import re
-from abc import ABC
 from datetime import timedelta, datetime
 
 import psycopg2
@@ -63,7 +62,7 @@ class Manga:
         return f'{self.title} by {self.author}'
 
 
-class Chapter(BaseChapter, ABC):
+class Chapter(BaseChapter):
     def __init__(self, manga: Manga):
         self._title_id = manga.title_id
         self._manga_title = manga.title
@@ -75,6 +74,42 @@ class Chapter(BaseChapter, ABC):
     @property
     def manga_title(self):
         return self._manga_title
+
+    @property
+    def chapter_title(self):
+        return
+
+    @property
+    def chapter_number(self):
+        return
+
+    @property
+    def volume(self):
+        return
+
+    @property
+    def decimal(self):
+        return
+
+    @property
+    def release_date(self):
+        return
+
+    @property
+    def chapter_identifier(self):
+        return
+
+    @property
+    def manga_url(self):
+        return
+
+    @property
+    def group(self):
+        return
+
+    @property
+    def title(self):
+        return
 
 
 class KodanshaComics(BaseScraper):
