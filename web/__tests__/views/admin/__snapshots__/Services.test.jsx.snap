@@ -332,14 +332,14 @@ exports[`Services page should render correctly should render correctly with serv
             className="MuiTableCell-root MuiTableCell-body"
             role="cell"
           >
-            Jul 15th, 16:35 - 3 days ago
+            Jul 15th, 16:35 - 1 day ago
           </td>
           <td
             aria-sort={null}
             className="MuiTableCell-root MuiTableCell-body"
             role="cell"
           >
-            Jul 15th, 17:05 - 3 days ago
+            Jul 15th, 17:05 - 1 day ago
           </td>
           <td
             aria-sort={null}
@@ -456,7 +456,7 @@ exports[`Services page should render correctly should render correctly with serv
             className="MuiTableCell-root MuiTableCell-body"
             role="cell"
           >
-            Jul 15th, 15:51 - 3 days ago
+            Jul 15th, 15:51 - 1 day ago
           </td>
           <td
             aria-sort={null}
@@ -587,7 +587,7 @@ exports[`Services page should render correctly should render correctly with serv
             className="MuiTableCell-root MuiTableCell-body"
             role="cell"
           >
-            Jul 15th, 17:46 - 3 days ago
+            Jul 15th, 17:46 - 1 day ago
           </td>
           <td
             aria-sort={null}
@@ -704,14 +704,14 @@ exports[`Services page should render correctly should render correctly with serv
             className="MuiTableCell-root MuiTableCell-body"
             role="cell"
           >
-            Jul 15th, 15:51 - 3 days ago
+            Jul 15th, 15:51 - 1 day ago
           </td>
           <td
             aria-sort={null}
             className="MuiTableCell-root MuiTableCell-body"
             role="cell"
           >
-            Jul 15th, 16:51 - 3 days ago
+            Jul 15th, 16:51 - 1 day ago
           </td>
           <td
             aria-sort={null}
@@ -828,7 +828,7 @@ exports[`Services page should render correctly should render correctly with serv
             className="MuiTableCell-root MuiTableCell-body"
             role="cell"
           >
-            Jul 15th, 15:51 - 3 days ago
+            Jul 15th, 15:51 - 1 day ago
           </td>
           <td
             aria-sort={null}
