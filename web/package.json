@@ -52,8 +52,7 @@
     "analyze": "cross-env ANALYZE=true next build",
     "test": "jest --forceExit",
     "test:ci": "jest --forceExit --ci --coverage",
-    "coverage": "jest --forceExit --coverage",
-    "initDb": "node initDb.js"
+    "coverage": "jest --forceExit --coverage"
   },
   "cacheDirectories": [
     ".next/cache/"

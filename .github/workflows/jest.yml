@@ -52,7 +52,7 @@ jobs:
       run: npm ci
 
     - name: Initialize database
-      run: npm run initDb
+      run: cd .. && npm run migrate:up
 
     - name: Run jest and generate coverage
       run: npm run test:ci
