@@ -1,13 +1,19 @@
+from typing import Collection, TypeVar, Callable, Any, List, Union
+
+T = TypeVar('T')
+E = TypeVar('E')
+
+
 def default_get_id(entry):
     return entry.id
 
 
-def default_compare_id(entry_id, last_id):
+def default_compare_id(entry_id: T, last_id: T):
     return entry_id == last_id
 
 
-def get_latest_entries(entries, last_id, get_id=default_get_id,
-                       comp_id=default_compare_id, sort_f=None):
+def get_latest_entries(entries: Collection[E], last_id: T, get_id: Callable[[Any], T] = default_get_id,
+                       comp_id: Callable[[T, T], bool] = default_compare_id, sort_f=None) -> Union[Collection[E], List[E]]:
     """
 
     Args:

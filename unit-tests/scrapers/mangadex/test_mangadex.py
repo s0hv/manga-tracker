@@ -12,8 +12,7 @@ class MyTestCase(unittest.TestCase):
     @staticmethod
     def parse_testfile():
         p = os.path.join(os.path.dirname(__file__), 'feed.xml')
-        mangadex = MangaDex(None, None)
-        return mangadex.parse_feed(feedparser.parse(p).entries, return_list=True)
+        return MangaDex.parse_feed(feedparser.parse(p).entries)
 
     @staticmethod
     def read_test_data():

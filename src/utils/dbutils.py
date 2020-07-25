@@ -1,40 +1,48 @@
 import logging
 import statistics
 from datetime import datetime, timedelta
+from typing import Union, Any, Protocol, Optional, List, Dict, Generator, Tuple, \
+    Collection
 
-from psycopg2.extras import execute_values
+from psycopg2.extensions import connection as Connection, cursor as Cursor
+from psycopg2.extras import execute_values, DictRow
 
+from src.scrapers import base_scraper
 from src.utils.utilities import round_seconds
 
 logger = logging.getLogger('debug')
 maintenance = logging.getLogger('maintenance')
 
 
-def optional_transaction(f):
+class TransactionFunction(Protocol):
+    def __call__(self, cur: Cursor, *args, **kwargs) -> Any: ...
+
+
+def optional_transaction(f: TransactionFunction):
     """
     Decorator that makes the cursor parameter optional
     """
-    def wrapper(self, cur, *args, **kwargs):
-        if cur:
+    def wrapper(self, cur: Union[Cursor, Any], *args, **kwargs):
+        if isinstance(cur, Cursor):
             return f(self, cur, *args, **kwargs)
 
         with self.conn:
-            with self.conn.cursor() as cur:
-                return f(self, cur, *args, **kwargs)
+            with self.conn.cursor() as innerCur:
+                return f(self, innerCur, cur, *args, **kwargs)
 
     return wrapper
 
 
 class DbUtil:
-    def __init__(self, conn):
+    def __init__(self, conn: Connection):
         self._conn = conn
 
     @property
-    def conn(self):
+    def conn(self) -> Connection:
         return self._conn
 
     @staticmethod
-    def fuzzy_search_manga(cur, title: str, limit: int=10, return_rows: bool=True):
+    def fuzzy_search_manga(cur: Cursor, title: str, limit: int = 10, return_rows: bool = True) -> Union[Cursor, List[DictRow]]:
         """
         Does a fuzzy search of manga and returns the closest matches
         Args:
@@ -68,12 +76,12 @@ class DbUtil:
         return cur
 
     @optional_transaction
-    def update_manga_next_update(self, cur, service_id, manga_id, next_update):
+    def update_manga_next_update(self, cur: Cursor, service_id: int, manga_id: int, next_update: datetime):
         sql = 'UPDATE manga_service SET next_update=%s WHERE manga_id=%s AND service_id=%s'
         cur.execute(sql, (next_update, manga_id, service_id))
 
     @optional_transaction
-    def get_service_manga(self, cur, service_id, include_only=None):
+    def get_service_manga(self, cur: Cursor, service_id: int, include_only=None) -> list:
         if include_only:
             # TODO filter by given manga
             args = (service_id,)
@@ -86,19 +94,19 @@ class DbUtil:
         return cur.fetchall()
 
     @optional_transaction
-    def get_service(self, cur, service_url):
+    def get_service(self, cur: Cursor, service_url: str) -> Optional[DictRow]:
         sql = 'SELECT service_id FROM services WHERE url=%s'
         cur.execute(sql, (service_url,))
         row = cur.fetchone()
         return row[0] if row else None
 
     @optional_transaction
-    def set_service_updates(self, cur, service_id, disabled_until):
+    def set_service_updates(self, cur: Cursor, service_id: int, disabled_until: datetime):
         sql = 'UPDATE services SET disabled_until=%s WHERE service_id=%s'
         cur.execute(sql, (disabled_until, service_id))
 
     @optional_transaction
-    def update_chapter_interval(self, cur, manga_id):
+    def update_chapter_interval(self, cur: Cursor, manga_id: int) -> None:
         sql = 'SELECT MIN(release_date) release_date, chapter_number FROM chapters WHERE manga_id=%s GROUP BY chapter_number, chapter_decimal ORDER BY chapter_number DESC, chapter_decimal DESC NULLS LAST LIMIT 30'
         cur.execute(sql, (manga_id,))
         chapters = []
@@ -144,7 +152,8 @@ class DbUtil:
         cur.execute(sql, (interval, manga_id))
 
     @staticmethod
-    def add_new_series(cur, manga_chapters: dict, service_id, disable_single_update: bool=False):
+    def add_new_series(cur: Cursor, manga_chapters: Dict[str, List['base_scraper.BaseChapter']],
+                       service_id: int, disable_single_update: bool = False) -> Optional[Generator[Tuple[int, List['base_scraper.BaseChapter']], None, None]]:
         """
 
         Args:
@@ -236,7 +245,7 @@ class DbUtil:
             yield row[0], id2chapters[row[0]]
 
     @optional_transaction
-    def update_service_whole(self, cur, service_id, update_interval):
+    def update_service_whole(self, cur: Cursor, service_id: int, update_interval: timedelta) -> None:
         sql = 'UPDATE services SET last_check=%s WHERE service_id=%s'
         now = datetime.utcnow()
         cur.execute(sql, [now, service_id])
@@ -245,7 +254,7 @@ class DbUtil:
         cur.execute(sql, [now, now + update_interval, service_id])
 
     @staticmethod
-    def find_added_titles(cur, title_ids):
+    def find_added_titles(cur: Cursor, title_ids: Collection[str]) -> Generator[DictRow, None, None]:
         format_ids = ','.join(['%s'] * len(title_ids))
         sql = f'SELECT manga_id, title_id FROM manga_service WHERE title_id IN ({format_ids})'
         cur.execute(sql, title_ids)
@@ -253,7 +262,7 @@ class DbUtil:
             yield row
 
     @optional_transaction
-    def update_latest_release(self, cur, data):
+    def update_latest_release(self, cur: Cursor, data: Collection[int]) -> None:
         format_ids = ','.join(['%s'] * len(data))
         sql = 'UPDATE manga m SET latest_release=c.release_date FROM ' \
               f'(SELECT MAX(release_date), manga_id FROM chapters WHERE manga_id IN ({format_ids}) GROUP BY manga_id) as c(release_date, manga_id)' \
@@ -261,7 +270,7 @@ class DbUtil:
         cur.execute(sql, data)
 
     @optional_transaction
-    def update_latest_chapter(self, cur, data):
+    def update_latest_chapter(self, cur: Cursor, data: Collection[Tuple[int, int, datetime]]) -> None:
         """
         Updates the latest chapter and next chapter estimates for the given manga that contain new chapters
         Args:
@@ -293,7 +302,7 @@ class DbUtil:
         execute_values(cur, sql, data)
 
     @optional_transaction
-    def update_estimated_release(self, cur, manga_id):
+    def update_estimated_release(self, cur: Cursor, manga_id: int) -> None:
         sql = 'WITH tmp AS (SELECT MAX(chapter_number) as chn FROM chapters WHERE manga_id=%(manga)s) ' \
               'UPDATE manga SET estimated_release=(' \
               ' SELECT MIN(release_date) FROM chapters ' \

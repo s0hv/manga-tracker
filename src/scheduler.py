@@ -69,7 +69,7 @@ class UpdateScheduler:
                     except psycopg2.Error:
                         conn.rollback()
                         logger.exception(f'Database error while updating manga {title_id} on service {service_id}')
-                        scraper.dbutil.update_manga_next_update(None, service_id, manga_id, scraper.min_update_interval())
+                        scraper.dbutil.update_manga_next_update(service_id, manga_id, scraper.min_update_interval())
                         errors += 1
 
                     if errors > 1:

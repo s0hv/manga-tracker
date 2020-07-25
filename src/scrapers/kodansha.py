@@ -1,6 +1,7 @@
 import logging
 import re
 from datetime import timedelta, datetime
+from typing import Optional
 
 import psycopg2
 import requests
@@ -27,7 +28,7 @@ class Source:
 class Manga:
     SPECIAL_RE = re.compile(r'(\d+)\+ex', re.I)
 
-    def __init__(self, manga_element, release_interval):
+    def __init__(self, manga_element: etree.ElementBase, release_interval: timedelta):
         self.title = manga_element.cssselect('cite')[0].text
         ch = manga_element.cssselect('.simulpub-card__badge span')[0].text
         match = self.SPECIAL_RE.match(ch)
@@ -68,48 +69,48 @@ class Chapter(BaseChapter):
         self._manga_title = manga.title
 
     @property
-    def title_id(self):
+    def title_id(self) -> str:
         return self._title_id
 
     @property
-    def manga_title(self):
+    def manga_title(self) -> str:
         return self._manga_title
 
     @property
-    def chapter_title(self):
+    def chapter_title(self) -> None:
+        return None
+
+    @property
+    def chapter_number(self) -> None:
         return
 
     @property
-    def chapter_number(self):
+    def volume(self) -> None:
         return
 
     @property
-    def volume(self):
+    def decimal(self) -> None:
         return
 
     @property
-    def decimal(self):
+    def release_date(self) -> None:
         return
 
     @property
-    def release_date(self):
+    def chapter_identifier(self) -> None:
         return
 
     @property
-    def chapter_identifier(self):
+    def manga_url(self) -> None:
         return
 
     @property
-    def manga_url(self):
+    def group(self) -> None:
         return
 
     @property
-    def group(self):
-        return
-
-    @property
-    def title(self):
-        return
+    def title(self) -> str:
+        return ''
 
 
 class KodanshaComics(BaseScraper):
@@ -119,20 +120,20 @@ class KodanshaComics(BaseScraper):
     MANGA_URL_FORMAT = 'https://kodanshacomics.com/series/{}'
 
     @staticmethod
-    def min_update_interval():
+    def min_update_interval() -> timedelta:
         return random_timedelta(timedelta(hours=1), timedelta(hours=2))
 
-    def scrape_series(self, title_id, service_id, manga_id):
+    def scrape_series(self, title_id, service_id, manga_id) -> None:
         return
 
-    def set_checked(self, service_id):
+    def set_checked(self, service_id: int) -> None:
         try:
             super().set_checked(service_id)
-            self.dbutil.update_service_whole(None, service_id, self.min_update_interval())
+            self.dbutil.update_service_whole(service_id, self.min_update_interval())
         except psycopg2.Error:
             logger.exception(f'Failed to update service {service_id}')
 
-    def scrape_service(self, service_id, feed_url, last_update, title_id=None):
+    def scrape_service(self, service_id: int, feed_url: str, last_update: Optional[datetime], title_id: Optional[str] = None):
         r = requests.get(feed_url)
         if r.status_code != 200:
             return
@@ -166,7 +167,7 @@ class KodanshaComics(BaseScraper):
                 manga = Manga(manga_element, release_interval)
                 mangas.append(manga)
 
-        old_manga = self.dbutil.get_service_manga(None, service_id)
+        old_manga = self.dbutil.get_service_manga(service_id)
         old_manga = {r['title_id']: r for r in old_manga}
         new_series = {manga.title_id: manga for manga in mangas if manga.title_id not in old_manga}
         mangas_to_update = []
@@ -232,5 +233,5 @@ class KodanshaComics(BaseScraper):
 
         return {m.manga_id for m in updated_manga}
 
-    def add_service(self):
-        self.add_service_whole()
+    def add_service(self) -> Optional[int]:
+        return self.add_service_whole()

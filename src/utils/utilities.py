@@ -1,7 +1,10 @@
 import logging
 import random
 import re
-from datetime import timedelta
+from datetime import timedelta, datetime
+from typing import Optional, Tuple, Union, Iterable, Dict
+
+from psycopg2.extras import DictRow
 
 from src.errors import FeedHttpError, InvalidFeedError
 
@@ -24,7 +27,7 @@ universal_chapter_regex = \
                re.IGNORECASE)
 
 
-def match_title(s: str):
+def match_title(s: str) -> Optional[Dict[str, str]]:
     match = universal_chapter_regex.match(s)
     if not match:
         return
@@ -36,7 +39,7 @@ def match_title(s: str):
     return match
 
 
-def parse_chapter_number(chapter_number: str):
+def parse_chapter_number(chapter_number: str) -> Tuple[Optional[str], Optional[str]]:
     match = chapter_regex.match(chapter_number)
     if not match:
         return None, None
@@ -48,7 +51,7 @@ def parse_chapter_number(chapter_number: str):
     return n, d
 
 
-def round_seconds(sec, accuracy):
+def round_seconds(sec: int, accuracy: int) -> int:
     left = sec % accuracy
     sec -= left
     if left > accuracy//2:
@@ -56,7 +59,7 @@ def round_seconds(sec, accuracy):
     return sec
 
 
-def random_timedelta(low, high):
+def random_timedelta(low: Union[timedelta, int], high: Union[timedelta, int]) -> timedelta:
     """
     Args:
         low (timedelta or int): Lower bound of the time as timedelta or seconds
@@ -74,7 +77,7 @@ def random_timedelta(low, high):
     return timedelta(seconds=random.randint(low, high))
 
 
-def is_valid_feed(feed):
+def is_valid_feed(feed) -> None:
     if hasattr(feed, 'status'):
         if feed.status != 200:
             raise FeedHttpError(f'Failed to get feed. Status: {feed.status}')
@@ -83,7 +86,7 @@ def is_valid_feed(feed):
         raise InvalidFeedError('Invalid feed returned', feed.bozo_exception)
 
 
-def get_latest_chapters(rows):
+def get_latest_chapters(rows: Iterable[Union[dict, DictRow]]) -> Dict[str, Tuple[int, int, datetime]]:
     """
     From a set of rows get the ones with the highest chapter number and smallest release date
     Args:
