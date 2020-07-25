@@ -4,13 +4,17 @@
   "private": true,
   "license": "MIT",
   "dependencies": {
+    "db-migrate": "^0.11.11",
+    "db-migrate-pg": "^1.2.2",
     "nodemon": "^2.0.3"
   },
   "scripts": {
     "postinstall": "cd web && npm install",
-    "heroku-postbuild": "cd web && npm run build",
+    "heroku-postbuild": "npm run migrate:up && cd web && npm run build",
     "deploy": "cd web && npm run deploy",
-    "server-dev": "cd web && npm run server-dev"
+    "server-dev": "cd web && npm run server-dev",
+    "create-migration": "db-migrate --config migrations-config.json create update --sql-file",
+    "migrate:up": "db-migrate --config migrations-config.json up"
   },
   "cacheDirectories": [
     "web/.next/cache/",

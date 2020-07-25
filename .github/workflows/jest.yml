@@ -3,6 +3,9 @@ name: Tests
 on:
   push:
     branch: [ master, development ]
+    paths-ignore:
+      - 'src/**'
+      - 'scripts/**'
   pull_request:
     branch: [ master, development ]
 
@@ -46,10 +49,12 @@ jobs:
     - uses: actions/checkout@v2
 
     - name: Install deps
-      run: npm ci
+      run: |
+        npm ci
+        cd .. && npm ci
 
     - name: Initialize database
-      run: npm run initDb
+      run: cd .. && npm run migrate:up
 
     - name: Run jest and generate coverage
       run: npm run test:ci

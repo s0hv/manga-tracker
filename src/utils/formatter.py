@@ -4,7 +4,7 @@ from colors import color as get_color
 
 
 class LoggingFormatter(logging.Formatter):
-    def __init__(self, fmt=None, datefmt=None, style='%', override_colors: dict=None):
+    def __init__(self, fmt=None, datefmt=None, style='%', override_colors: dict = None):
         super().__init__(fmt, datefmt, style)
 
         self.colors = {logging.NOTSET: {'fg': 'default'},

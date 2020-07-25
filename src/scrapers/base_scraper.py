@@ -1,66 +1,70 @@
 import abc
 import logging
 from datetime import timedelta, datetime
+from typing import Optional
 
 import psycopg2
+from psycopg2.extensions import connection as Connection
+
+from src.utils.dbutils import DbUtil
 
 logger = logging.getLogger('debug')
 
 
-class BaseChapter(abc.ABC):
+class BaseChapter(metaclass=abc.ABCMeta):
     @property
     @abc.abstractmethod
-    def chapter_title(self):
+    def chapter_title(self) -> Optional[str]:
         raise NotImplementedError
 
     @property
     @abc.abstractmethod
-    def chapter_number(self):
+    def chapter_number(self) -> Optional[int]:
         raise NotImplementedError
 
     @property
     @abc.abstractmethod
-    def volume(self):
+    def volume(self) -> Optional[int]:
         raise NotImplementedError
 
     @property
     @abc.abstractmethod
-    def decimal(self):
+    def decimal(self) -> Optional[int]:
         raise NotImplementedError
 
     @property
     @abc.abstractmethod
-    def release_date(self):
+    def release_date(self) -> Optional[datetime]:
         raise NotImplementedError
 
     @property
     @abc.abstractmethod
-    def chapter_identifier(self):
+    def chapter_identifier(self) -> Optional[str]:
         raise NotImplementedError
 
     @property
     @abc.abstractmethod
-    def title_id(self):
+    def title_id(self) -> Optional[str]:
         raise NotImplementedError
 
     @property
     @abc.abstractmethod
-    def manga_title(self):
+    def manga_title(self) -> Optional[str]:
         raise NotImplementedError
 
     @property
     @abc.abstractmethod
-    def manga_url(self):
+    def manga_url(self) -> Optional[str]:
         raise NotImplementedError
 
     @property
     @abc.abstractmethod
-    def group(self):
+    def group(self) -> Optional[str]:
         raise NotImplementedError
 
     @property
     @abc.abstractmethod
-    def title(self):
+    def title(self) -> str:
         raise NotImplementedError
 
     def __str__(self):
@@ -79,31 +83,31 @@ class BaseChapter(abc.ABC):
         return not self.__eq__(other)
 
 
-class BaseScraper(abc.ABC):
-    UPDATE_INTERVAL = timedelta(hours=1)
-    URL = None
-    FEED_URL = None
-    NAME = None
-    CHAPTER_URL_FORMAT = ''
-    MANGA_URL_FORMAT = ''
+class BaseScraper(metaclass=abc.ABCMeta):
+    UPDATE_INTERVAL: timedelta = timedelta(hours=1)
+    URL: str = None
+    FEED_URL: str = None
+    NAME: str = None
+    CHAPTER_URL_FORMAT: str = ''
+    MANGA_URL_FORMAT: str = ''
 
     def __init_subclass__(cls, **kwargs):
         if cls.URL is None:
             raise NotImplementedError("Service doesn't have the URL class property")
 
-    def __init__(self, conn, dbutil):
+    def __init__(self, conn, dbutil: DbUtil):
         self._conn = conn
         self._dbutil = dbutil
 
     @property
-    def conn(self):
+    def conn(self) -> Connection:
         return self._conn
 
     @property
-    def dbutil(self):
+    def dbutil(self) -> DbUtil:
         return self._dbutil
 
-    def set_checked(self, service_id):
+    def set_checked(self, service_id: int) -> None:
         with self.conn.cursor() as cursor:
             now = datetime.utcnow()
             disabled_until = now + self.min_update_interval()
@@ -117,15 +121,15 @@ class BaseScraper(abc.ABC):
         self.conn.commit()
 
     @staticmethod
-    def min_update_interval():
+    def min_update_interval() -> timedelta:
         raise NotImplementedError
 
     @abc.abstractmethod
-    def scrape_series(self, title_id, service_id, manga_id):
+    def scrape_series(self, title_id: str, service_id: int, manga_id: int):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def scrape_service(self, service_id, feed_url, last_update, title_id=None):
+    def scrape_service(self, service_id: int, feed_url: str, last_update: Optional[datetime], title_id: Optional[str] = None):
         raise NotImplementedError
 
     def add_service(self):
@@ -144,7 +148,7 @@ class BaseScraper(abc.ABC):
                 cur.execute(sql, (self.NAME, self.URL, self.CHAPTER_URL_FORMAT, self.MANGA_URL_FORMAT))
                 return cur.fetchone()[0]
 
-    def add_service_whole(self):
+    def add_service_whole(self) -> Optional[int]:
         service_id = BaseScraper.add_service(self)
         if not service_id:
             return

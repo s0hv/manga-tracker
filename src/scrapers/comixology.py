@@ -2,12 +2,14 @@ import logging
 import re
 import time
 from datetime import timedelta, datetime
+from typing import Optional, Iterable, Union
 
 import requests
 from lxml import etree
 from psycopg2.extras import execute_values
 
 from src.scrapers.base_scraper import BaseScraper, BaseChapter
+from src.utils.dbutils import DbUtil
 from src.utils.utilities import random_timedelta
 
 logger = logging.getLogger('debug')
@@ -17,7 +19,7 @@ extra_chapter_regex = re.compile(r'extra, (\d+)\.?(\d+)?', re.I)
 
 
 class Chapter(BaseChapter):
-    def __init__(self, chapter_element, manga_title):
+    def __init__(self, chapter_element: etree.ElementBase, manga_title: str):
         title = chapter_element.cssselect('.content-info .content-subtitle')[0].text or ''
         title = title.strip()
 
@@ -64,51 +66,51 @@ class Chapter(BaseChapter):
         self._manga_title = manga_title
         self.release_date_maybe = None
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'{self.manga_title} chapter {self.chapter_number}: {self.title}'
 
     @property
-    def chapter_title(self):
+    def chapter_title(self) -> str:
         return self._title
 
     @property
-    def chapter_number(self):
+    def chapter_number(self) -> int:
         return self._chapter_number
 
     @property
-    def volume(self):
+    def volume(self) -> None:
         return None
 
     @property
-    def decimal(self):
+    def decimal(self) -> Optional[int]:
         return self._chapter_decimal
 
     @property
-    def release_date(self):
+    def release_date(self) -> Optional[datetime]:
         return self.release_date_maybe
 
     @property
-    def chapter_identifier(self):
+    def chapter_identifier(self) -> str:
         return self._chapter_identifier
 
     @property
-    def title_id(self):
+    def title_id(self) -> str:
         return self._title_id
 
     @property
-    def manga_title(self):
+    def manga_title(self) -> str:
         return self._manga_title
 
     @property
-    def manga_url(self):
+    def manga_url(self) -> None:
         return None
 
     @property
-    def group(self):
+    def group(self) -> str:
         return 'comiXology'
 
     @property
-    def title(self):
+    def title(self) -> str:
         return self.chapter_title
 
 
@@ -118,16 +120,16 @@ class ComiXology(BaseScraper):
     CHAPTER_URL_FORMAT = 'https://www.comixology.com/chapter/digital-comic/{}'
     MANGA_URL_FORMAT = 'https://www.comixology.com/series/comics-series/{}'
 
-    def __init__(self, conn, dbutil):
+    def __init__(self, conn, dbutil: DbUtil):
         super().__init__(conn, dbutil)
         self.service_id = None
 
     @staticmethod
-    def min_update_interval():
+    def min_update_interval() -> timedelta:
         return random_timedelta(timedelta(hours=1), timedelta(hours=2))
 
     @staticmethod
-    def wait():
+    def wait() -> None:
         time.sleep(random_timedelta(timedelta(seconds=2), timedelta(seconds=10)).total_seconds())
 
     def scrape_series(self, title_id, service_id, manga_id):
@@ -136,7 +138,7 @@ class ComiXology(BaseScraper):
     def scrape_service(self, service_id, feed_url, last_update, title_id=None):
         pass
 
-    def get_chapter_release_date(self, url):
+    def get_chapter_release_date(self, url: str) -> Optional[datetime]:
         r = requests.get(url)
         if r.status_code == 429:
             logger.error(f'Ratelimited on {self.URL}')
@@ -161,11 +163,11 @@ class ComiXology(BaseScraper):
             except IndexError:
                 return
 
-    def update_selected_manga(self, manga_links):
+    def update_selected_manga(self, manga_links: Iterable) -> Union[None, int, bool]:
         now = datetime.utcnow()
         updated = 0
         if self.service_id is None:
-            self.service_id = self.dbutil.get_service(None, self.URL)
+            self.service_id = self.dbutil.get_service(self.URL)
 
         if not self.service_id:
             logger.warning(f'No service found with {self.URL}')

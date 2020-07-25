@@ -1,7 +1,8 @@
 import logging
 import re
 from calendar import timegm
-from datetime import datetime
+from datetime import datetime, timedelta
+from typing import Optional, Dict, Any
 
 import feedparser
 import psycopg2
@@ -36,47 +37,47 @@ class Chapter(BaseChapter):
         self._chapter_identifier = manga_id + '/' + m['chapter_identifier'] + str(self._chapter_decimal or 0)
 
     @property
-    def chapter_title(self):
+    def chapter_title(self) -> Optional[str]:
         return self._chapter_title
 
     @property
-    def chapter_number(self):
+    def chapter_number(self) -> int:
         return self._chapter_number
 
     @property
-    def volume(self):
+    def volume(self) -> None:
         return None
 
     @property
-    def decimal(self):
+    def decimal(self) -> Optional[int]:
         return self._chapter_decimal
 
     @property
-    def release_date(self):
+    def release_date(self) -> datetime:
         return self._release_date
 
     @property
-    def chapter_identifier(self):
+    def chapter_identifier(self) -> str:
         return self._chapter_identifier
 
     @property
-    def title_id(self):
+    def title_id(self) -> str:
         return self._manga_id
 
     @property
-    def manga_title(self):
+    def manga_title(self) -> str:
         return self._manga_title
 
     @property
-    def manga_url(self):
+    def manga_url(self) -> str:
         return self._manga_url
 
     @property
-    def group(self):
+    def group(self) -> str:
         return "Jaimini's Box"
 
     @property
-    def title(self):
+    def title(self) -> str:
         return self.chapter_title or f'Chapter {self.chapter_number}'
 
 
@@ -91,17 +92,17 @@ class JaiminisBox(BaseScraper):
         pass
 
     @staticmethod
-    def min_update_interval():
+    def min_update_interval() -> timedelta:
         return JaiminisBox.UPDATE_INTERVAL
 
-    def set_checked(self, service_id):
+    def set_checked(self, service_id: int) -> None:
         try:
             super().set_checked(service_id)
-            self.dbutil.update_service_whole(None, service_id, self.min_update_interval())
+            self.dbutil.update_service_whole(service_id, self.min_update_interval())
         except psycopg2.Error:
             logger.exception(f'Failed to update service {service_id}')
 
-    def scrape_service(self, service_id, feed_url, last_update, title_id=None):
+    def scrape_service(self, service_id: int, feed_url: str, last_update: Optional[datetime], title_id: Optional[str] = None):
         feed = feedparser.parse(self.FEED_URL)
         try:
             is_valid_feed(feed)
@@ -129,6 +130,7 @@ class JaiminisBox(BaseScraper):
         for post in entries:
             title = post.get('title', '')
             m = self.CHAPTER_REGEX.match(title)
+            kwargs: Dict[str, Any]
             if not m:
                 m = match_title(title)
                 if not m:
@@ -157,7 +159,7 @@ class JaiminisBox(BaseScraper):
 
         if not titles:
             try:
-                self.dbutil.update_service_whole(None, service_id, self.min_update_interval())
+                self.dbutil.update_service_whole(service_id, self.min_update_interval())
             except psycopg2.Error:
                 logger.exception(f'Failed to update service {feed_url}')
             return
@@ -200,5 +202,5 @@ class JaiminisBox(BaseScraper):
 
         return manga_ids
 
-    def add_service(self):
+    def add_service(self) -> Optional[int]:
         return self.add_service_whole()

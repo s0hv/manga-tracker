@@ -1,6 +1,7 @@
 import logging
 import re
 from datetime import datetime, timedelta, timezone
+from typing import Optional, List, Union
 
 import requests
 from psycopg2.extras import execute_batch
@@ -18,34 +19,34 @@ class TitleWrapper:
         self._title = title
 
     @property
-    def title_id(self):
+    def title_id(self) -> int:
         return self._title.title_id
 
     @property
-    def name(self):
+    def name(self) -> str:
         return self._title.name
 
     @property
-    def author(self):
+    def author(self) -> Optional[str]:
         return self._title.author
 
     @property
-    def portrait_image_url(self):
+    def portrait_image_url(self) -> Optional[str]:
         return self._title.portrait_image_url
 
     @property
-    def landscape_image_url(self):
+    def landscape_image_url(self) -> Optional[str]:
         return self._title.landscape_image_url
 
     @property
-    def view_count(self):
+    def view_count(self) -> Optional[int]:
         return self._title.view_count
 
     @property
-    def language(self):
-        return mangaplus_pb2.Language.Name(self._title.language)
+    def language(self) -> str:
+        return mangaplus_pb2.Title.Language.Name(self._title.language)
 
-    def to_dict(self):
+    def to_dict(self) -> dict:
         return {
             'title_id': self.title_id,
             'name': self.name,
@@ -62,63 +63,63 @@ class TitleDetailViewWrapper:
         self._title_detail = title_detail
 
     @property
-    def title(self):
+    def title(self) -> TitleWrapper:
         return TitleWrapper(self._title_detail.title)
 
     @property
-    def title_image_url(self):
+    def title_image_url(self) -> Optional[str]:
         return self._title_detail.title_image_url
 
     @property
-    def overview(self):
+    def overview(self) -> Optional[str]:
         return self._title_detail.overview
 
     @property
-    def background_image_url(self):
+    def background_image_url(self) -> Optional[str]:
         return self._title_detail.background_image_url
 
     @property
-    def next_timestamp(self):
-        if self._title_detail.HasField('next_timestamp'):
+    def next_timestamp(self) -> Optional[datetime]:
+        if self._title_detail.next_timestamp:
             return datetime.utcfromtimestamp(self._title_detail.next_timestamp)
 
     @property
-    def update_timing(self):
-        return mangaplus_pb2.UpdateTiming.Name(self._title_detail.update_timing)
+    def update_timing(self) -> str:
+        return mangaplus_pb2.TitleDetailView.UpdateTiming.Name(self._title_detail.update_timing)
 
     @property
-    def viewing_period_description(self):
+    def viewing_period_description(self) -> Optional[str]:
         return self._title_detail.viewing_period_description
 
     @property
-    def non_appearance_info(self):
+    def non_appearance_info(self) -> Optional[str]:
         return self._title_detail.non_appearance_info
 
     @property
-    def first_chapter_list(self):
+    def first_chapter_list(self) -> List['ChapterWrapper']:
         title_name = self.title.name
         return [ChapterWrapper(c, title_name) for c in
                 self._title_detail.first_chapter_list]
 
     @property
-    def last_chapter_list(self):
+    def last_chapter_list(self) -> List['ChapterWrapper']:
         title_name = self.title.name
         return [ChapterWrapper(c, title_name) for c in
                 self._title_detail.last_chapter_list]
 
     @property
-    def recommended_titles(self):
+    def recommended_titles(self) -> List[TitleWrapper]:
         return [TitleWrapper(t) for t in self._title_detail.recommended_titles]
 
     @property
-    def is_simul_release(self):
+    def is_simul_release(self) -> Optional[bool]:
         return self._title_detail.is_simul_release
 
     @property
-    def chapters_descending(self):
+    def chapters_descending(self) -> Optional[bool]:
         return self._title_detail.chapters_descending
 
-    def to_dict(self):
+    def to_dict(self) -> dict:
         return {
             'title': self.title.to_dict(),
             'title_image_url': self.title_image_url,
@@ -141,21 +142,17 @@ class ResponseWrapper:
         self._response.ParseFromString(data)
 
     @property
-    def success_result(self):
+    def success_result(self) -> Optional[mangaplus_pb2.SuccessResult]:
         if self._response.HasField('success_result'):
             return self._response.success_result
 
-        return
-
     @property
-    def error_result(self):
+    def error_result(self) -> Optional[mangaplus_pb2.ErrorResult]:
         if self._response.HasField('error_result'):
             return self._response.error_result
 
-        return
-
     @property
-    def title_detail_view(self):
+    def title_detail_view(self) -> Optional[TitleDetailViewWrapper]:
         res = self.success_result
         if not res or not res.HasField('title_detail'):
             return
@@ -170,53 +167,53 @@ class ChapterWrapper(BaseChapter):
         self._manga_title = manga_title
 
     @property
-    def chapter_title(self):
+    def chapter_title(self) -> Optional[str]:
         return self._chapter.sub_title
 
     @property
-    def chapter_number(self):
+    def chapter_number(self) -> int:
         return self._chapter_number
 
     @property
-    def volume(self):
+    def volume(self) -> None:
         return None
 
     @property
-    def decimal(self):
+    def decimal(self) -> None:
         return None
 
     @property
-    def release_date(self):
-        if self._chapter.HasField('start_timestamp'):
+    def release_date(self) -> datetime:
+        if self._chapter.start_timestamp:
             return datetime.utcfromtimestamp(self._chapter.start_timestamp)
 
         return datetime.utcnow()
 
     @property
-    def chapter_identifier(self):
-        return self._chapter.chapter_id
+    def chapter_identifier(self) -> str:
+        return str(self._chapter.chapter_id)
 
     @property
-    def title_id(self):
-        return self._chapter.title_id
+    def title_id(self) -> str:
+        return str(self._chapter.title_id)
 
     @property
-    def manga_title(self):
+    def manga_title(self) -> str:
         return self._manga_title
 
     @property
-    def manga_url(self):
+    def manga_url(self) -> str:
         return MangaPlus.MANGA_URL.format(self.title_id)
 
     @property
-    def group(self):
+    def group(self) -> str:
         return 'Shueisha'
 
     @property
-    def title(self):
-        return self.chapter_title
+    def title(self) -> str:
+        return self.chapter_title or f'Chapter {self.chapter_number}'
 
-    def to_dict(self):
+    def to_dict(self) -> dict:
         return {
             'title_id': self.title_id,
             'chapter_id': self.chapter_identifier,
@@ -237,18 +234,18 @@ class MangaPlus(BaseScraper):
     MANGA_URL_FORMAT = 'https://mangaplus.shueisha.co.jp/titles/{}'
 
     @staticmethod
-    def min_update_interval():
+    def min_update_interval() -> timedelta:
         return random_timedelta(timedelta(minutes=10), timedelta(minutes=20))
 
     @staticmethod
-    def parse_chapter(chapter_number):
+    def parse_chapter(chapter_number) -> int:
         match = MangaPlus.CHAPTER_REGEX.match(chapter_number)
         if not match:
             raise ValueError('Invalid chapter number given')
 
         return int(match.groups()[0])
 
-    def parse_series(self, title_id):
+    def parse_series(self, title_id: str) -> Union[bool, Optional[TitleDetailViewWrapper]]:
         try:
             r = requests.get(self.API.format(title_id))
         except requests.RequestException:
@@ -263,9 +260,9 @@ class MangaPlus(BaseScraper):
 
         return title_detail
 
-    def add_series(self, title_id):
+    def add_series(self, title_id: str) -> Optional[bool]:
         series = self.parse_series(title_id)
-        if not series:
+        if not isinstance(series, TitleDetailViewWrapper):
             return series
 
         sql = 'SELECT service_id FROM services WHERE url=%s'
@@ -289,14 +286,14 @@ class MangaPlus(BaseScraper):
     def scrape_service(self, *args, **kwargs):
         pass
 
-    def scrape_series(self, title_id, service_id, manga_id):
+    def scrape_series(self, title_id: str, service_id: int, manga_id: int):
         series = self.parse_series(title_id)
-        if not series:
+        if not isinstance(series, TitleDetailViewWrapper):
             return series
 
         return self.add_chapters(series, service_id, manga_id)
 
-    def add_chapters(self, series, service_id, manga_id):
+    def add_chapters(self, series: TitleDetailViewWrapper, service_id: int, manga_id: int) -> Optional[bool]:
         sql = 'INSERT INTO chapters (manga_id, service_id, title, chapter_number, chapter_decimal, chapter_identifier, release_date, "group") ' \
               'VALUES (%s, %s, %s, %s, %s, %s, %s, \'Shueisha\') ON CONFLICT DO NOTHING '
 

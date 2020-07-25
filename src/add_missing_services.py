@@ -34,5 +34,5 @@ with conn:
             SCRAPERS.pop(row[0], None)
 
     for Scraper in SCRAPERS.values():
-        scraper = Scraper(conn, DbUtil(conn))
+        scraper = Scraper(conn, DbUtil(conn))  # type: ignore[abstract]
         scraper.add_service()

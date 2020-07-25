@@ -6,7 +6,7 @@ from calendar import timegm
 from datetime import datetime, timedelta
 from itertools import groupby
 from json.decoder import JSONDecodeError
-from typing import Dict, Collection, Iterable
+from typing import Dict, Collection, Iterable, Optional, List, Any
 
 import feedparser
 import psycopg2
@@ -21,9 +21,10 @@ logger = logging.getLogger('debug')
 
 
 class Chapter(BaseChapter):
-    def __init__(self, chapter, chapter_identifier, manga_id, manga_title,
-                 manga_url, chapter_title=None, release_date=None, volume=None,
-                 decimal=None, group=None, **_):
+    def __init__(self, chapter: Optional[str], chapter_identifier: str, manga_id: str,
+                 manga_title: str, manga_url: str, chapter_title: Optional[str] = None,
+                 release_date: Optional[time.struct_time] = None, volume: Optional[int] = None,
+                 decimal: Optional[int] = None, group: Optional[str] = None, **_):
         self._chapter_title = chapter_title or None
         self._chapter_number = int(chapter) if chapter else 0
         self._volume = int(volume) if volume is not None else None
@@ -36,47 +37,47 @@ class Chapter(BaseChapter):
         self._group = group
 
     @property
-    def chapter_title(self):
+    def chapter_title(self) -> Optional[str]:
         return self._chapter_title
 
     @property
-    def chapter_number(self):
+    def chapter_number(self) -> int:
         return self._chapter_number
 
     @property
-    def volume(self):
+    def volume(self) -> Optional[int]:
         return self._volume
 
     @property
-    def decimal(self):
+    def decimal(self) -> Optional[int]:
         return self._decimal
 
     @property
-    def release_date(self):
+    def release_date(self) -> datetime:
         return self._release_date
 
     @property
-    def chapter_identifier(self):
+    def chapter_identifier(self) -> str:
         return self._chapter_identifier
 
     @property
-    def title_id(self):
+    def title_id(self) -> str:
         return self._manga_id
 
     @property
-    def manga_title(self):
+    def manga_title(self) -> str:
         return self._manga_title
 
     @property
-    def manga_url(self):
+    def manga_url(self) -> str:
         return self._manga_url
 
     @property
-    def group(self):
+    def group(self) -> Optional[str]:
         return self._group
 
     @property
-    def title(self):
+    def title(self) -> str:
         return self.chapter_title or f'{"Volume " + str(self.volume) + ", " if self.volume is not None else ""}Chapter {self.chapter_number}{"" if not self.decimal else "." + str(self.decimal)}'
 
 
@@ -96,14 +97,14 @@ class MangaDex(BaseScraper):
     def scrape_series(self, *args):
         pass
 
-    def set_checked(self, service_id):
+    def set_checked(self, service_id: int) -> None:
         try:
             super().set_checked(service_id)
-            self.dbutil.update_service_whole(None, service_id, self.min_update_interval())
+            self.dbutil.update_service_whole(service_id, self.min_update_interval())
         except psycopg2.Error:
             logger.exception(f'Failed to update service {service_id}')
 
-    def get_only_latest_entries(self, service_id, entries: Iterable[Chapter]) -> Collection[Chapter]:
+    def get_only_latest_entries(self, service_id: int, entries: Iterable[Chapter]) -> Collection[Chapter]:
         try:
             sql = 'SELECT chapter_identifier FROM chapters WHERE service_id=%s ORDER BY chapter_id DESC LIMIT 150'
             with self.conn as conn:
@@ -118,11 +119,12 @@ class MangaDex(BaseScraper):
             return list(entries)
 
     @staticmethod
-    def parse_feed(entries: typing.Iterable[dict], return_list: bool = False) -> typing.Union[Dict[str, Collection[Chapter]], Collection[Chapter]]:
-        titles = [] if return_list else {}
+    def parse_feed(entries: typing.Iterable[dict]) -> List[Chapter]:
+        titles = []
         for post in entries:
             title = post.get('title', '')
             m = MangaDex.CHAPTER_REGEX.match(title)
+            kwargs: Dict[str, Any]
             if not m:
                 m = match_title(title)
                 if not m:
@@ -149,18 +151,11 @@ class MangaDex(BaseScraper):
             if match:
                 kwargs.update(match.groupdict())
 
-            if return_list:
-                titles.append(Chapter(**kwargs))
-                continue
-
-            if manga_id in titles:
-                titles[manga_id].append(Chapter(**kwargs))
-            else:
-                titles[manga_id] = [Chapter(**kwargs)]
+            titles.append(Chapter(**kwargs))
 
         return titles
 
-    def scrape_service(self, service_id: int, feed_url: str, last_update, title_id: int = None):
+    def scrape_service(self, service_id: int, feed_url: str, last_update: Optional[datetime], title_id: Optional[str] = None):
         feed = feedparser.parse(feed_url if not title_id else feed_url + f'/manga_id/{title_id}')
         try:
             is_valid_feed(feed)
@@ -168,7 +163,7 @@ class MangaDex(BaseScraper):
             logger.exception(f'Failed to fetch feed {feed_url}')
             return
 
-        entries = self.get_only_latest_entries(service_id, self.parse_feed(feed.entries, True))
+        entries = self.get_only_latest_entries(service_id, self.parse_feed(feed.entries))
 
         if not entries:
             logger.info('No new entries found')
@@ -176,10 +171,10 @@ class MangaDex(BaseScraper):
 
         logger.info('%s new chapters found. %s', len(entries), [e.chapter_identifier for e in entries])
 
-        titles = {}
+        titles: Dict[str, List[Chapter]] = {}
         # Must be sorted for groupby to work, as it only splits the list each time the key changes
-        for k, g in groupby(sorted(entries, key=Chapter.title_id.fget), Chapter.title_id.fget):
-            titles[k] = list(g)
+        for k, g in groupby(sorted(entries, key=Chapter.title_id.fget), Chapter.title_id.fget):  # type: ignore
+            titles[k] = list(g)  # type: ignore[index]
 
         data = []
         manga_ids = set()
@@ -244,7 +239,7 @@ class MangaDex(BaseScraper):
             try:
                 data = r.json()
             except JSONDecodeError:
-                logger.error(f'Failed to json decode {r.content}')
+                logger.error(f'Failed to json decode {str(r.content)}')
                 fails += 1
                 if fails > 2:
                     return
