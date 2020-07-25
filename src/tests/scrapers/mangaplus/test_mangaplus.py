@@ -12,7 +12,8 @@ def find_dict_inequality(d1, d2):
 
     for k in d1:
         if d1[k] != d2[k]:
-            print(d1[k], d2[k])
+            print(d1[k])
+            print(d2[k])
             print(f"{k} doesn't match")
             return False
 

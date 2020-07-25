@@ -44,7 +44,7 @@ class TitleWrapper:
 
     @property
     def language(self) -> str:
-        return mangaplus_pb2.Language.Name(self._title.language)
+        return mangaplus_pb2.Title.Language.Name(self._title.language)
 
     def to_dict(self) -> dict:
         return {
@@ -80,12 +80,12 @@ class TitleDetailViewWrapper:
 
     @property
     def next_timestamp(self) -> Optional[datetime]:
-        if self._title_detail.HasField('next_timestamp'):
+        if self._title_detail.next_timestamp:
             return datetime.utcfromtimestamp(self._title_detail.next_timestamp)
 
     @property
     def update_timing(self) -> str:
-        return mangaplus_pb2.UpdateTiming.Name(self._title_detail.update_timing)
+        return mangaplus_pb2.TitleDetailView.UpdateTiming.Name(self._title_detail.update_timing)
 
     @property
     def viewing_period_description(self) -> Optional[str]:
@@ -184,7 +184,7 @@ class ChapterWrapper(BaseChapter):
 
     @property
     def release_date(self) -> datetime:
-        if self._chapter.HasField('start_timestamp'):
+        if self._chapter.start_timestamp:
             return datetime.utcfromtimestamp(self._chapter.start_timestamp)
 
         return datetime.utcnow()
