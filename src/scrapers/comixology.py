@@ -207,6 +207,9 @@ class ComiXology(BaseScraper):
             if not chapters:
                 continue
 
+            logger.info('Adding %s chapters to comixology with manga id %s, %s',
+                        len(chapters), manga_id, manga.title)
+
             if len(chapters) > 1:
                 now = self.get_chapter_release_date(chapters[0].url) or now
 
@@ -222,6 +225,7 @@ class ComiXology(BaseScraper):
 
                 chapter.release_date_maybe = now
 
+                # If extra set chapter number as previous chapter
                 if chapter.chapter_number == 0 and idx+1 != len(old_chapters):
                     chapter._chapter_number = old_chapters[idx+1].chapter_number
                     chapter._chapter_decimal = 5

@@ -26,24 +26,30 @@ class Source:
 
 
 class Manga:
-    SPECIAL_RE = re.compile(r'(\d+)\+ex', re.I)
+    SPECIAL_RE = re.compile(r'(?:ex)?\+?(\d+)\+?(?:ex)?', re.I)
 
     def __init__(self, manga_element: etree.ElementBase, release_interval: timedelta):
         self.title = manga_element.cssselect('cite')[0].text
+        self.chapter_decimal = None
+
         ch = manga_element.cssselect('.simulpub-card__badge span')[0].text
-        match = self.SPECIAL_RE.match(ch)
+
+        match = None
+        if 'ex' in ch.lower():
+            match = self.SPECIAL_RE.match(ch)
+
         if match:
             ch = match.groups()
+            self.chapter_decimal = 5
         else:
             ch = ch.split('.')
 
-        # TODO find actual fix for EX2
-        if ch[0].lower().startswith('ex'):
+        # If special chapter, set latest chapter to -1
+        if 'ex' in ch[0].lower():
             self.latest_chapter = -1
         else:
             self.latest_chapter = int(ch[0])
 
-        self.chapter_decimal = None
         if len(ch) > 1:
             self.chapter_decimal = int(ch[1])
         self.author = manga_element.cssselect('.proper-noun')[0].text
@@ -187,6 +193,7 @@ class KodanshaComics(BaseScraper):
 
         scrapers = {}
         updated_manga = []
+        logger.info('%s manga to update on kodansha', len(mangas_to_update))
         for manga in mangas_to_update[:8]:
             updated = 0
             non_existing = 0
@@ -223,6 +230,7 @@ class KodanshaComics(BaseScraper):
                 updated_manga.append(manga)
 
         if updated_manga:
+            logger.info('%s manga actually updated on kodansha', len(mangas_to_update))
             with self.conn:
                 with self.conn.cursor() as cur:
                     self.dbutil.update_latest_chapter(cur, [(m.manga_id, m.latest_chapter, m.release_date) for m in updated_manga])
