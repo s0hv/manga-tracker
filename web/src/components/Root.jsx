@@ -1,7 +1,7 @@
 /* eslint-disable */
 import React from 'react';
-import {Divider, Link, Typography} from '@material-ui/core';
-import {makeStyles} from '@material-ui/core/styles';
+import { Divider, Link, Typography } from '@material-ui/core';
+import { makeStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types';
 
 import TopBar from './TopBar';
@@ -48,7 +48,7 @@ function Copyright(props) {
   );
 }
 
-export default function Layout({ Component, pageProps, props }) {
+export default function Layout({ Component, pageProps, props = {} }) {
   const {
     statusCode,
     activeTheme,
