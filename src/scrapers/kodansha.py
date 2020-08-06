@@ -234,7 +234,7 @@ class KodanshaComics(BaseScraper):
             with self.conn:
                 with self.conn.cursor() as cur:
                     self.dbutil.update_latest_chapter(cur, [(m.manga_id, m.latest_chapter, m.release_date) for m in updated_manga])
-                    sql = 'UPDATE manga_service ms SET last_check=CURRENT_TIMESTAMP, latest_chapter=c.latest_chapter ' \
+                    sql = 'UPDATE manga_service ms SET last_check=CURRENT_TIMESTAMP, latest_chapter=c.latest_chapter, latest_decimal=c.latest_decimal ' \
                           f'FROM (VALUES %s) as c(latest_chapter, latest_decimal, service_id, manga_id)' \
                           'WHERE ms.service_id=c.service_id AND ms.manga_id=c.manga_id'
                     execute_values(cur, sql, ((m.latest_chapter, m.chapter_decimal, service_id, m.manga_id) for m in updated_manga))
