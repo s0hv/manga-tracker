@@ -13,7 +13,8 @@
     "heroku-postbuild": "npm run migrate:up && cd web && npm run build",
     "deploy": "cd web && npm run deploy",
     "server-dev": "cd web && npm run server-dev",
-    "create-migration": "db-migrate --config migrations-config.json create update --sql-file",
+    "create-migration": "db-migrate --config migrations-config.json create",
+    "create-migration:test": "db-migrate --config migrations-config.json create:test",
     "migrate:up": "db-migrate --config migrations-config.json up"
   },
   "cacheDirectories": [

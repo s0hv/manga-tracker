@@ -7,5 +7,6 @@
     "host": {"ENV":  "DB_HOST"},
     "database": {"ENV":  "DB_NAME"},
     "port": {"ENV":  "DB_PORT"}
-  }
+  },
+  "sql-file": true
 }
