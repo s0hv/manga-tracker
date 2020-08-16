@@ -33,6 +33,12 @@ $unbuffer pm2 delete $process_name |& tee -a $filename
 
 echo "Running git pull" |& tee -a $filename
 $unbuffer git pull |& tee -a $filename
+if [ ${PIPESTATUS[0]} -ne 0 ]
+  then
+    echo -e >&2 "${RED}Failed to git pull${NC}" |& tee -a $filename
+    exit 1
+fi
+
 source venv/bin/activate
 
 echo "Upgrading requirements" |& tee -a $filename
