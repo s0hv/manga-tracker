@@ -115,6 +115,7 @@ class Chapter(BaseChapter):
 
 
 class ComiXology(BaseScraper):
+    ID = 5
     URL = 'https://www.comixology.com'
     NAME = 'ComiXology'
     CHAPTER_URL_FORMAT = 'https://www.comixology.com/chapter/digital-comic/{}'

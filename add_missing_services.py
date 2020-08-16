@@ -28,7 +28,7 @@ conn = psycopg2.connect(host=config['db_host'],
                         cursor_factory=DictCursor)
 with conn:
     with conn.cursor() as cur:
-        sql = 'SELECT url FROM services'
+        sql = 'SELECT url, service_id FROM services'
         cur.execute(sql)
         for row in cur:
             SCRAPERS.pop(row[0], None)

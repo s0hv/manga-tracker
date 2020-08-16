@@ -10,7 +10,6 @@ NC='\033[0m' # No Color
 
 cd "$(dirname "$0")"/..
 
-echo dirname
 if [ ! -f venv/bin/activate ]
   then
     echo -e >&2 "${RED}No virtual environment found in venv/bin/activate. Install a virtual environment first${NC}" |& tee -a $filename

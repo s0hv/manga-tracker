@@ -82,7 +82,9 @@ class Chapter(BaseChapter):
 
 
 class MangaDex(BaseScraper):
+    ID = 2
     URL = 'https://mangadex.org'
+    FEED_URL = 'REPLACE ME'  # Temp url that will be replaced in the database
     CHAPTER_REGEX = re.compile(r'(?P<manga_title>.+) -($| (((?:Volume (?P<volume>\d+),? )?Chapter (?P<chapter>\d+)(?:\.?(?P<decimal>\d+))?)|(?:(?P<chapter_title>.+?)(( - )?Oneshot)?)$))')
     DESCRIPTION_REGEX = re.compile(r'Group: (?P<group>.+?) - Uploader: (?P<uploader>.+?) - Language: (?P<language>\w+)')
     UPDATE_INTERVAL = timedelta(minutes=30)
@@ -283,4 +285,5 @@ class MangaDex(BaseScraper):
                 execute_values(cur, sql, chapters, page_size=500)
 
     def add_service(self):
-        raise NotImplementedError('Mangadex needs to be added manually as you need a valid rss feed url')
+        self.add_service_whole()
+        logger.error('Mangadex feed url must be changed in the service_whole table before use')

@@ -226,6 +226,7 @@ class ChapterWrapper(BaseChapter):
 
 
 class MangaPlus(BaseScraper):
+    ID = 1
     API = 'https://jumpg-webapi.tokyo-cdn.com/api/title_detail?title_id={}'
     URL = 'https://mangaplus.shueisha.co.jp'
     MANGA_URL = 'https://mangaplus.shueisha.co.jp/titles/{}'

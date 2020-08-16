@@ -120,6 +120,7 @@ class Chapter(BaseChapter):
 
 
 class KodanshaComics(BaseScraper):
+    ID = 4
     URL = 'https://kodanshacomics.com'
     FEED_URL = 'https://kodanshacomics.com/simulpubs'
     NAME = 'Kodansha Comics'

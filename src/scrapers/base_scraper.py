@@ -84,6 +84,7 @@ class BaseChapter(metaclass=abc.ABCMeta):
 
 
 class BaseScraper(metaclass=abc.ABCMeta):
+    ID: int = None
     UPDATE_INTERVAL: timedelta = timedelta(hours=1)
     URL: str = None
     FEED_URL: str = None
@@ -92,6 +93,9 @@ class BaseScraper(metaclass=abc.ABCMeta):
     MANGA_URL_FORMAT: str = ''
 
     def __init_subclass__(cls, **kwargs):
+        if cls.ID is None:
+            raise NotImplementedError("Service doesn't have the ID class property")
+
         if cls.URL is None:
             raise NotImplementedError("Service doesn't have the URL class property")
 
@@ -133,19 +137,19 @@ class BaseScraper(metaclass=abc.ABCMeta):
         raise NotImplementedError
 
     def add_service(self):
-        sql = 'SELECT 1 FROM services WHERE url=%s'
+        sql = 'SELECT 1 FROM services WHERE url=%s OR service_id=%s'
         with self.conn.cursor() as cur:
-            cur.execute(sql, (self.URL,))
+            cur.execute(sql, (self.URL, self.ID))
             if cur.fetchone():
-                logger.info(f'Service {self.NAME} already exists')
+                logger.error(f'Service {self.NAME} already exists with duplicate url {self.URL} or id {self.ID}')
                 return
 
         logger.info(f'Adding service {self.NAME} {self.URL}')
-        sql = 'INSERT INTO services (service_name, url, disabled, last_check, chapter_url_format, manga_url_format, disabled_until) VALUES ' \
-              '(%s, %s, FALSE, NULL, %s, %s, NULL) RETURNING service_id'
+        sql = 'INSERT INTO services (service_id, service_name, url, disabled, last_check, chapter_url_format, manga_url_format, disabled_until) VALUES ' \
+              '(%s, %s, %s, FALSE, NULL, %s, %s, NULL) RETURNING service_id'
         with self.conn:
             with self.conn.cursor() as cur:
-                cur.execute(sql, (self.NAME, self.URL, self.CHAPTER_URL_FORMAT, self.MANGA_URL_FORMAT))
+                cur.execute(sql, (self.ID, self.NAME, self.URL, self.CHAPTER_URL_FORMAT, self.MANGA_URL_FORMAT))
                 return cur.fetchone()[0]
 
     def add_service_whole(self) -> Optional[int]:

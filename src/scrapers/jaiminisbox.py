@@ -82,6 +82,7 @@ class Chapter(BaseChapter):
 
 
 class JaiminisBox(BaseScraper):
+    ID = 3
     URL = 'https://jaiminisbox.com'
     FEED_URL = 'https://jaiminisbox.com/reader/feeds'
     CHAPTER_REGEX = re.compile(r'(?P<manga_title>.+?) +(?:(?:Chapter|Z=) ?(?P<chapter_number>\d+)(?:\.(?P<chapter_decimal>\d))?,?)(?::? (?P<chapter_title>.+))?')
