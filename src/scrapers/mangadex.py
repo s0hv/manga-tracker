@@ -108,7 +108,7 @@ class MangaDex(BaseScraper):
 
     def get_only_latest_entries(self, service_id: int, entries: Iterable[Chapter]) -> Collection[Chapter]:
         try:
-            sql = 'SELECT chapter_identifier FROM chapters WHERE service_id=%s ORDER BY chapter_id DESC LIMIT 150'
+            sql = 'SELECT chapter_identifier FROM chapters WHERE service_id=%s ORDER BY chapter_id DESC LIMIT 400'
             with self.conn as conn:
                 with conn.cursor() as cur:
                     cur.execute(sql, (service_id,))
