@@ -64,7 +64,7 @@ exports[`Partial manga should render correctly Should render correctly when show
                 onTouchStart={[Function]}
                 title="Sun, 05 Jul 2020 16:00:00 GMT"
               >
-                Sun, July 5, 2020, 07:00 PM
+                2020-07-05T16:00:00.000Z
               </p>
             </td>
           </tr>
@@ -96,7 +96,7 @@ exports[`Partial manga should render correctly Should render correctly when show
               <p
                 className="MuiTypography-root makeStyles-detailText-4 MuiTypography-body1"
               >
-                Sun, July 12, 2020, 07:00 PM
+                2020-07-12T16:00:00.000Z
               </p>
             </td>
           </tr>
@@ -221,7 +221,7 @@ exports[`Partial manga should render correctly Should render correctly with inpu
                 onTouchStart={[Function]}
                 title="Sun, 05 Jul 2020 16:00:00 GMT"
               >
-                Sun, July 5, 2020, 07:00 PM
+                2020-07-05T16:00:00.000Z
               </p>
             </td>
           </tr>
@@ -253,7 +253,7 @@ exports[`Partial manga should render correctly Should render correctly with inpu
               <p
                 className="MuiTypography-root makeStyles-detailText-4 MuiTypography-body1"
               >
-                Sun, July 12, 2020, 07:00 PM
+                2020-07-12T16:00:00.000Z
               </p>
             </td>
           </tr>

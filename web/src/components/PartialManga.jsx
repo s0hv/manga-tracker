@@ -5,6 +5,7 @@ import PropTypes from 'prop-types';
 
 import MangaSourceList from './MangaSourceList';
 
+// TODO: switch to date-fns
 const dateOptions = { weekday: 'short', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
 
 const useStyles = makeStyles((theme) => ({
