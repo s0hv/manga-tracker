@@ -1,5 +1,5 @@
 import React from 'react';
-import {useSortBy, useTable} from 'react-table';
+import { useSortBy, useTable } from 'react-table';
 import {
   Table,
   TableBody,
@@ -8,9 +8,9 @@ import {
   TableRow,
   TableSortLabel,
 } from '@material-ui/core';
-import {makeStyles} from '@material-ui/core/styles';
+import { makeStyles } from '@material-ui/core/styles';
 
-import {useEditable} from './useEditable';
+import { useEditable } from './useEditable';
 
 const useStyles = makeStyles(() => ({
   editCell: {

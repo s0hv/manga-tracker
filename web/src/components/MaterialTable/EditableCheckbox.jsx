@@ -1,6 +1,6 @@
 import React from 'react';
-import {Checkbox,} from '@material-ui/core';
-import {processCellEdit} from './useEditable';
+import { Checkbox } from '@material-ui/core';
+import { processCellEdit } from './useEditable';
 
 /**
  * Checkbox component that modifies react table state when edited, allowing

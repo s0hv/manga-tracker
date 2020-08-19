@@ -57,7 +57,7 @@ module.exports.mangadexLimiter = mangadexLimiter;
 
 const bruteforce = new ExpressBruteFlexible(
   ExpressBruteFlexible.LIMITER_TYPES.REDIS,
-  bruteOpts,
+  bruteOpts
 );
 
 const rateLimiterRedis = new RateLimiterRedis(rateLimitOpts);

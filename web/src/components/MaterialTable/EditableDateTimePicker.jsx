@@ -1,7 +1,7 @@
 import React from 'react';
-import {KeyboardDateTimePicker} from '@material-ui/pickers';
+import { KeyboardDateTimePicker } from '@material-ui/pickers';
 
-import {processCellEdit} from './useEditable';
+import { processCellEdit } from './useEditable';
 
 /**
  * KeyboardDateTimePicker that saves it's state in a react table row

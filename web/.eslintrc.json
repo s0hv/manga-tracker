@@ -27,7 +27,13 @@
         "no-multiple-empty-lines": "off",
         "no-underscore-dangle": "off",
         "indent": "off",
-        "comma-dangle": "warn",
+        "comma-dangle": ["warn", {
+            "arrays": "always-multiline",
+            "objects": "always-multiline",
+            "imports": "always-multiline",
+            "exports": "always-multiline",
+            "functions": "never"
+        }],
         "prefer-template": "off",
         "arrow-parens": "off",
         "no-console": "off",

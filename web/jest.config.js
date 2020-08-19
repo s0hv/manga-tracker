@@ -45,6 +45,9 @@ module.exports = {
     '^.+\\.module\\.(css|sass|scss)$': 'identity-obj-proxy',
   },
 
+  // A list of paths to snapshot serializer modules Jest should use for snapshot testing
+  snapshotSerializers: ['enzyme-to-json/serializer'],
+
   // Indicates whether the coverage information should be collected while executing the test
   // collectCoverage: false,
 
@@ -60,6 +63,7 @@ module.exports = {
     '!**/node_modules/**',
     '!**/.next/**',
     '!**/coverage/**',
+    '!**/__tests__/**',
   ],
 
   // An array of regexp pattern strings used to skip coverage collection
@@ -154,9 +158,6 @@ module.exports = {
 
   // A list of paths to modules that run some code to configure or set up the testing framework before each test
   // setupFilesAfterEnv: [],
-
-  // A list of paths to snapshot serializer modules Jest should use for snapshot testing
-  // snapshotSerializers: [],
 
   // The test environment that will be used for testing
   // testEnvironment: "node",

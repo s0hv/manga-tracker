@@ -18,11 +18,11 @@ import {
   Toolbar,
   Typography,
 } from '@material-ui/core';
-import {makeStyles} from '@material-ui/core/styles';
+import { makeStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types';
 import NextLink from 'next/link';
 
-import SearchInput from './Search';
+import MangaSearch from './MangaSearch';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -156,7 +156,7 @@ function TopBar(props) {
             <HomeIcon />
           </LinkComponent>
           <div className={classes.grow} />
-          <SearchInput id='title-search' />
+          <MangaSearch id='title-search' />
           {(user && (
           <div className={classes.profileIcon}>
             <IconButton

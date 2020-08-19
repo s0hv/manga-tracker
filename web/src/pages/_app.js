@@ -1,13 +1,13 @@
 /* eslint-disable react/destructuring-assignment */
 import React from 'react';
-import {MuiPickersUtilsProvider} from '@material-ui/pickers';
+import { MuiPickersUtilsProvider } from '@material-ui/pickers';
 import {
   createMuiTheme,
   responsiveFontSizes,
   ThemeProvider,
 } from '@material-ui/core/styles';
-import {blue} from '@material-ui/core/colors';
-import {CssBaseline, useMediaQuery} from '@material-ui/core';
+import { blue } from '@material-ui/core/colors';
+import { CssBaseline, useMediaQuery } from '@material-ui/core';
 import DateFnsUtils from '@date-io/date-fns';
 import enLocale from 'date-fns/locale/en-GB';
 
@@ -55,7 +55,7 @@ function MainApp({ Component, pageProps, props }) {
           },
         },
       })),
-    [prefersDarkMode],
+    [prefersDarkMode]
   );
 
   return (

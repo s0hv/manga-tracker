@@ -1,5 +1,12 @@
 /* eslint-env jest */
 
+import { MuiPickersUtilsProvider } from '@material-ui/pickers';
+import DateFnsUtils from '@date-io/date-fns';
+import enLocale from 'date-fns/locale/en-GB';
+import React from 'react';
+import { act } from 'react-dom/test-utils';
+
+
 export const adminUser = {
   user_id: 99,
   user_uuid: 'f6382674-efbd-4746-b3be-77566c337a8b',
@@ -77,4 +84,19 @@ export async function withUser(userObject, cb) {
     // Restore the original function
     requiresUser.mockImplementation(jest.requireActual('./../db/auth').requiresUser);
   }
+}
+
+export async function editInput(input, value) {
+  await act(async () => {
+    input.simulate('change', { target: { value }, currentTarget: { value }});
+    input.instance().value = value;
+  });
+}
+
+export function withRoot(Component) {
+  return (
+    <MuiPickersUtilsProvider utils={DateFnsUtils} locale={enLocale}>
+      {Component}
+    </MuiPickersUtilsProvider>
+  );
 }

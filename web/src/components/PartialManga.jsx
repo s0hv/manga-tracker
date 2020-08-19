@@ -1,6 +1,6 @@
 import React from 'react';
-import {Grid, Tooltip, Typography} from '@material-ui/core';
-import {makeStyles} from '@material-ui/core/styles';
+import { Grid, Tooltip, Typography } from '@material-ui/core';
+import { makeStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types';
 
 import MangaSourceList from './MangaSourceList';
@@ -49,7 +49,7 @@ function PartialManga(props) {
 
   const classes = useStyles();
 
-  if (!mangaData.manga_id) return null;
+  if (!mangaData || !mangaData.manga_id) return null;
 
   const latestRelease = mangaData.latest_release ?
     new Date(mangaData.latest_release) :

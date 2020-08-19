@@ -3,10 +3,11 @@ import { Checkbox, Container, Paper, TableContainer } from '@material-ui/core';
 import { format, formatDistanceToNowStrict } from 'date-fns';
 import enLocale from 'date-fns/locale/en-GB';
 
-import EditableDateTimePicker
-  from '../../components/MaterialTable/EditableDateTimePicker';
-import MaterialTable from '../../components/MaterialTable/MaterialTable';
-import EditableCheckbox from '../../components/MaterialTable/EditableCheckbox';
+import {
+  EditableCheckbox,
+  EditableDateTimePicker,
+  MaterialTable,
+} from '../../components/MaterialTable';
 
 function Services(props) {
   const {

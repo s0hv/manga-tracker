@@ -26,7 +26,7 @@ passport.use(new LocalStrategy({
     passwordField: 'password',
     passReqToCallback: true,
   },
-  authenticate,
+  authenticate
 // eslint-disable-next-line function-paren-newline
 ));
 

@@ -278,6 +278,7 @@ exports[`Services page should render correctly should render correctly with serv
               <button
                 className="MuiButtonBase-root MuiIconButton-root"
                 disabled={false}
+                name="edit"
                 onBlur={[Function]}
                 onClick={[Function]}
                 onDragLeave={[Function]}
@@ -402,6 +403,7 @@ exports[`Services page should render correctly should render correctly with serv
               <button
                 className="MuiButtonBase-root MuiIconButton-root"
                 disabled={false}
+                name="edit"
                 onBlur={[Function]}
                 onClick={[Function]}
                 onDragLeave={[Function]}
@@ -526,6 +528,7 @@ exports[`Services page should render correctly should render correctly with serv
               <button
                 className="MuiButtonBase-root MuiIconButton-root"
                 disabled={false}
+                name="edit"
                 onBlur={[Function]}
                 onClick={[Function]}
                 onDragLeave={[Function]}
@@ -650,6 +653,7 @@ exports[`Services page should render correctly should render correctly with serv
               <button
                 className="MuiButtonBase-root MuiIconButton-root"
                 disabled={false}
+                name="edit"
                 onBlur={[Function]}
                 onClick={[Function]}
                 onDragLeave={[Function]}
@@ -774,6 +778,7 @@ exports[`Services page should render correctly should render correctly with serv
               <button
                 className="MuiButtonBase-root MuiIconButton-root"
                 disabled={false}
+                name="edit"
                 onBlur={[Function]}
                 onClick={[Function]}
                 onDragLeave={[Function]}

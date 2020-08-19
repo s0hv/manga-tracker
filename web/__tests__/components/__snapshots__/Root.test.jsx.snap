@@ -18,14 +18,12 @@ exports[`Root component should render correctly Should render with empty input a
         <h6
           className="MuiTypography-root makeStyles-title-8 MuiTypography-h6 MuiTypography-noWrap"
           onClick={[Function]}
-          onMouseEnter={[Function]}
         >
           Manga tracker
         </h6>
         <a
           href="/"
           onClick={[Function]}
-          onMouseEnter={[Function]}
           style={
             Object {
               "color": "inherit",
@@ -137,7 +135,6 @@ exports[`Root component should render correctly Should render with empty input a
           onKeyDown={[Function]}
           onKeyUp={[Function]}
           onMouseDown={[Function]}
-          onMouseEnter={[Function]}
           onMouseLeave={[Function]}
           onMouseUp={[Function]}
           onTouchEnd={[Function]}

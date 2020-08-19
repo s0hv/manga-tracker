@@ -1,17 +1,13 @@
-import React from 'react';
-import {IconButton, InputBase, Paper, Popper,} from '@material-ui/core';
-import {
-  setRef,
-  unstable_useId as useId,
-  useEventCallback,
-} from '@material-ui/core/utils';
-import {fade, makeStyles} from '@material-ui/core/styles';
+import React, { useCallback } from 'react';
+import { IconButton, InputBase, Paper, Popper } from '@material-ui/core';
+import { setRef, useEventCallback, } from '@material-ui/core/utils';
+import { fade, makeStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types';
 
-import {Search as SearchIcon} from '@material-ui/icons';
+import { Search as SearchIcon } from '@material-ui/icons';
 
 import NextLink from 'next/link';
-import throttle from 'lodash/throttle';
+import throttle from 'lodash.throttle';
 
 const useStyles = makeStyles((theme) => ({
   search: {
@@ -96,11 +92,10 @@ const useStyles = makeStyles((theme) => ({
 function useSearch(props) {
   const {
     options,
-    id: idProp,
+    id,
     open: popupOpen,
   } = props;
 
-  const id = useId(idProp);
   const highlightedIndexRef = React.useRef(-1);
   const inputRef = React.useRef(null);
   const listboxRef = React.useRef(null);
@@ -291,7 +286,7 @@ function useSearch(props) {
   };
 }
 
-export default function SearchInput(props) {
+export default function MangaSearch(props) {
   const {
     placeholder = 'Search…',
     renderItem,
@@ -318,9 +313,9 @@ export default function SearchInput(props) {
 
   const classes = useStyles();
 
-  const handleChange = (event) => {
+  const handleChange = useCallback((event) => {
     setInputValue(event.target.value);
-  };
+  }, []);
 
   const throttleFetch = React.useMemo(
     () => throttle((query, cb) => {
@@ -329,7 +324,7 @@ export default function SearchInput(props) {
           .then(js => cb(js))
           .catch(cb(null));
       }, 200),
-    [],
+    []
   );
 
   React.useEffect(() => {
@@ -354,7 +349,7 @@ export default function SearchInput(props) {
 
   const renderListOption = renderItem ||
     ((option, index, titleProps) => (
-      <li key={index}>
+      <li key={option.manga_id}>
         <NextLink href='/manga/[id]' as={`/manga/${option.manga_id}`} prefetch={false}>
           <div {...titleProps}>{option.title}</div>
         </NextLink>
@@ -412,7 +407,7 @@ export default function SearchInput(props) {
   );
 }
 
-SearchInput.propTypes = {
+MangaSearch.propTypes = {
   placeholder: PropTypes.string,
   renderItem: PropTypes.func,
   // eslint-disable-next-line react/forbid-prop-types
