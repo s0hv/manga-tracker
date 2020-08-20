@@ -49,7 +49,7 @@
     "test": "jest --forceExit",
     "test:ci": "jest --forceExit --ci --coverage",
     "coverage": "jest --forceExit --coverage",
-    "lint": "eslint ."
+    "lint": "eslint --ext .jsx --ext .js ."
   },
   "cacheDirectories": [
     ".next/cache/"

@@ -35,7 +35,7 @@ describe('Root component should render correctly', () => {
           user: {},
           setTheme: () => null,
         }}
-      />,
+      />
     ).html();
 
     expect(tree).toMatchSnapshot();

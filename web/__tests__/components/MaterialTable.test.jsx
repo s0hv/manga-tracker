@@ -11,7 +11,7 @@ import {
   defaultOnSaveRow,
   EditableCheckbox,
   EditableDateTimePicker,
-  MaterialTable
+  MaterialTable,
 } from '../../src/components/MaterialTable';
 import { editInput, mockUTCDates, withRoot } from '../utils';
 

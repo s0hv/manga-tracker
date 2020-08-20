@@ -4,9 +4,10 @@ import { makeStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types';
 
 import MangaSourceList from './MangaSourceList';
-
-// TODO: switch to date-fns
-const dateOptions = { weekday: 'short', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+import {
+  defaultDateDistanceToNow,
+  defaultDateFormat
+} from '../utils/utilities';
 
 const useStyles = makeStyles((theme) => ({
   title: {
@@ -56,9 +57,7 @@ function PartialManga(props) {
     new Date(mangaData.latest_release) :
     null;
 
-  const estimatedRelease = mangaData.estimated_release ?
-    new Date(mangaData.estimated_release) :
-    null;
+  const estimatedRelease = new Date(mangaData.estimated_release);
 
   return (
     <div>
@@ -89,7 +88,9 @@ function PartialManga(props) {
                 <td>
                   <Tooltip title={latestRelease ? latestRelease.toUTCString() : 'Unknown'}>
                     <Typography className={classes.detailText}>
-                      {latestRelease ? latestRelease.toLocaleString('en-GB', dateOptions) : 'Unknown'}
+                      {latestRelease ?
+                        defaultDateFormat(latestRelease) + ' - ' + defaultDateDistanceToNow(latestRelease) :
+                        'Unknown'}
                     </Typography>
                   </Tooltip>
                 </td>
@@ -108,7 +109,7 @@ function PartialManga(props) {
                 <td><Typography>Estimated next release:</Typography></td>
                 <td>
                   <Typography className={classes.detailText}>
-                    {estimatedRelease ? estimatedRelease.toLocaleString('en-GB', dateOptions) : 'Unknown'}
+                    {defaultDateFormat(estimatedRelease)}
                   </Typography>
                 </td>
               </tr>

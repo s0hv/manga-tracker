@@ -64,6 +64,7 @@ module.exports = {
     '!**/.next/**',
     '!**/coverage/**',
     '!**/__tests__/**',
+    '!**/*.config.js',
   ],
 
   // An array of regexp pattern strings used to skip coverage collection

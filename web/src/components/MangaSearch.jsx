@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react';
 import { IconButton, InputBase, Paper, Popper } from '@material-ui/core';
-import { setRef, useEventCallback, } from '@material-ui/core/utils';
+import { setRef, useEventCallback } from '@material-ui/core/utils';
 import { fade, makeStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types';
 

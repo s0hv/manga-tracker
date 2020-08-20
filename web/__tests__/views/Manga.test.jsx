@@ -1,8 +1,10 @@
 import React from 'react';
 import renderer from 'react-test-renderer';
 import Manga from '../../src/views/Manga';
+import { mockUTCDates } from '../utils';
 
 describe('Manga page should render correctly', () => {
+  mockUTCDates();
   const manga = { manga_id: 1,
       title: 'Dr. STONE',
       release_interval: {
@@ -106,11 +108,6 @@ describe('Manga page should render correctly', () => {
       chapters: [],
     };
   const follows = [1];
-
-  jest.spyOn(Date.prototype, 'toLocaleString')
-    .mockImplementation(jest.fn(function toLocaleString() {
-      return this.toISOString();
-  }));
 
   it('should render correctly', () => {
     const tree = renderer

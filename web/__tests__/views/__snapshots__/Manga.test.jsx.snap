@@ -53,7 +53,7 @@ exports[`Manga page should render correctly should render correctly 1`] = `
                   onTouchStart={[Function]}
                   title="Sun, 05 Jul 2020 16:00:00 GMT"
                 >
-                  2020-07-05T16:00:00.000Z
+                  Jul 5th 2020, 16:00 - 1 day ago
                 </p>
               </td>
             </tr>
@@ -85,7 +85,7 @@ exports[`Manga page should render correctly should render correctly 1`] = `
                 <p
                   className="MuiTypography-root makeStyles-detailText-4 MuiTypography-body1"
                 >
-                  2020-07-12T16:00:00.000Z
+                  Jul 12th 2020, 16:00
                 </p>
               </td>
             </tr>
@@ -243,7 +243,7 @@ exports[`Manga page should render correctly should render correctly 1`] = `
               aria-sort={null}
               className="MuiTableCell-root MuiTableCell-body"
             >
-              2020-07-05T16:00:00.000Z
+              Jul 5th 2020, 16:00
             </td>
             <td
               aria-sort={null}
@@ -337,7 +337,7 @@ exports[`Manga page should render correctly should render correctly 1`] = `
               aria-sort={null}
               className="MuiTableCell-root MuiTableCell-body"
             >
-              2020-06-26T16:00:00.000Z
+              Jun 26th 2020, 16:00
             </td>
             <td
               aria-sort={null}
@@ -406,7 +406,7 @@ exports[`Manga page should render correctly should render correctly when logged 
                   onTouchStart={[Function]}
                   title="Sun, 05 Jul 2020 16:00:00 GMT"
                 >
-                  2020-07-05T16:00:00.000Z
+                  Jul 5th 2020, 16:00 - 1 day ago
                 </p>
               </td>
             </tr>
@@ -438,7 +438,7 @@ exports[`Manga page should render correctly should render correctly when logged 
                 <p
                   className="MuiTypography-root makeStyles-detailText-4 MuiTypography-body1"
                 >
-                  2020-07-12T16:00:00.000Z
+                  Jul 12th 2020, 16:00
                 </p>
               </td>
             </tr>
@@ -623,7 +623,7 @@ exports[`Manga page should render correctly should render correctly when logged 
               aria-sort={null}
               className="MuiTableCell-root MuiTableCell-body"
             >
-              2020-07-05T16:00:00.000Z
+              Jul 5th 2020, 16:00
             </td>
             <td
               aria-sort={null}
@@ -717,7 +717,7 @@ exports[`Manga page should render correctly should render correctly when logged 
               aria-sort={null}
               className="MuiTableCell-root MuiTableCell-body"
             >
-              2020-06-26T16:00:00.000Z
+              Jun 26th 2020, 16:00
             </td>
             <td
               aria-sort={null}

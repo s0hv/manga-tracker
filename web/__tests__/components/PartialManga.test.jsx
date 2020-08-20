@@ -7,10 +7,6 @@ import PartialManga from '../../src/components/PartialManga';
 
 describe('Partial manga should render correctly', () => {
   mockUTCDates();
-  jest.spyOn(Date.prototype, 'toLocaleString')
-    .mockImplementation(jest.fn(function toLocaleString() {
-      return this.toISOString();
-  }));
 
   const manga = { manga_id: 1,
       title: 'Dr. STONE',

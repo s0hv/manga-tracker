@@ -17,7 +17,11 @@ import {
 import { makeStyles } from '@material-ui/core/styles';
 
 import MangaSourceList from '../components/MangaSourceList';
-import { followUnfollow } from '../utils/utilities';
+import {
+  defaultDateDistanceToNow,
+  defaultDateFormat,
+  followUnfollow
+} from '../utils/utilities';
 
 
 const useStyles = makeStyles((theme) => ({
@@ -83,9 +87,6 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-// TODO: switch to date-fns
-const dateOptions = { weekday: 'short', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
-
 
 function Manga(props) {
   const {
@@ -99,9 +100,7 @@ function Manga(props) {
       new Date(mangaData.latest_release) :
       null;
 
-  const estimatedRelease = mangaData.estimated_release ?
-    new Date(mangaData.estimated_release) :
-    null;
+  const estimatedRelease = new Date(mangaData.estimated_release);
 
   const mangaChapters = React.useMemo(() => {
     if (!mangaData.chapters) return null;
@@ -109,7 +108,7 @@ function Manga(props) {
     mangaData.services.forEach(service => { serviceMap[service.service_id] = service.url_format });
     return mangaData.chapters.map(chapter => {
       const newChapter = { ...chapter };
-      newChapter.release_date = chapter.release_date ? new Date(chapter.release_date).toLocaleString('en-GB', dateOptions) : 'Unknown';
+      newChapter.release_date = defaultDateFormat(new Date(chapter.release_date));
       newChapter.url = serviceMap[chapter.service_id].replace('{}', chapter.chapter_url);
       return newChapter;
     });
@@ -138,7 +137,9 @@ function Manga(props) {
                   <td>
                     <Tooltip title={latestRelease ? latestRelease.toUTCString() : 'Unknown'}>
                       <Typography className={classes.detailText}>
-                        {(latestRelease ? latestRelease.toLocaleString('en-GB', dateOptions) : 'Unknown')}
+                        {latestRelease ?
+                          defaultDateFormat(latestRelease) + ' - ' + defaultDateDistanceToNow(latestRelease) :
+                          'Unknown'}
                       </Typography>
                     </Tooltip>
                   </td>
@@ -157,7 +158,7 @@ function Manga(props) {
                   <td><Typography>Estimated next release:</Typography></td>
                   <td>
                     <Typography className={classes.detailText}>
-                      {estimatedRelease ? estimatedRelease.toLocaleString('en-GB', dateOptions) : 'Unknown'}
+                      {defaultDateFormat(estimatedRelease)}
                     </Typography>
                   </td>
                 </tr>

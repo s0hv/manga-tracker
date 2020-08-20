@@ -2,8 +2,6 @@ import { format, formatDistanceToNowStrict } from 'date-fns';
 import enLocale from 'date-fns/locale/en-GB';
 import throttle from 'lodash.throttle';
 
-
-// eslint-disable-next-line import/prefer-default-export
 export const followUnfollow = (mangaId, serviceId) => {
   const url = serviceId ? `/api/user/follows?manga_id=${mangaId}&service_id=${serviceId}` :
                            `/api/user/follows?manga_id=${mangaId}`;
@@ -39,14 +37,18 @@ export function jsonSerializable(value) {
   return JSON.parse(JSON.stringify(value));
 }
 
-export function defaultDateFormat(date, ifUndefined='Unknown') {
-  if (!date || Number.isNaN(date.getTime())) return ifUndefined;
+function dateIsInvalid(date) {
+  return !date || Number.isNaN(date.getTime()) || date.getTime() === 0;
+}
 
-  format(date, 'MMM do, HH:mm', { locale: enLocale });
+export function defaultDateFormat(date, ifUndefined='Unknown') {
+  if (dateIsInvalid(date)) return ifUndefined;
+
+  return format(date, 'MMM do yyyy, HH:mm', { locale: enLocale });
 }
 
 export function defaultDateDistanceToNow(date, ifUndefined='Unknown') {
-  if (!date || Number.isNaN(date.getTime())) return ifUndefined;
+  if (dateIsInvalid(date)) return ifUndefined;
 
   return formatDistanceToNowStrict(date, { addSuffix: true });
 }
