@@ -232,8 +232,11 @@ function getFollows(userId) {
         return new Promise((resolve, reject) => reject(HttpError(404)));
     }
 
-    const sql = `SELECT m.title, mi.cover, m.manga_id,
-                        (SELECT json_agg(s) FROM (SELECT ms.service_id, service_name, ms.title_id, manga_url_format as url FROM services INNER JOIN manga_service ms ON services.service_id = ms.service_id WHERE ms.manga_id=m.manga_id) s) as services,
+    const sql = `SELECT m.title, mi.cover, m.manga_id, m.latest_release, m.latest_chapter,
+                        (SELECT json_agg(s) FROM (
+                            SELECT ms.service_id, service_name, ms.title_id, manga_url_format as url 
+                            FROM services INNER JOIN manga_service ms ON services.service_id = ms.service_id 
+                            WHERE ms.manga_id=m.manga_id) s) as services,
                         json_agg(uf.service_id) as followed_services
                  FROM user_follows uf
                         INNER JOIN manga m ON uf.manga_id = m.manga_id

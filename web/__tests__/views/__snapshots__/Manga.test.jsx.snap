@@ -220,6 +220,7 @@ exports[`Manga page should render correctly should render correctly 1`] = `
                 href="https://mangaplus.shueisha.co.jp/viewer/1007322"
                 onBlur={[Function]}
                 onFocus={[Function]}
+                rel="noopener noreferrer"
                 style={
                   Object {
                     "textDecoration": "none",
@@ -266,6 +267,7 @@ exports[`Manga page should render correctly should render correctly 1`] = `
                 href="https://mangadex.org/chapter/938629"
                 onBlur={[Function]}
                 onFocus={[Function]}
+                rel="noopener noreferrer"
                 style={
                   Object {
                     "textDecoration": "none",
@@ -312,6 +314,7 @@ exports[`Manga page should render correctly should render correctly 1`] = `
                 href="https://mangaplus.shueisha.co.jp/viewer/1007024"
                 onBlur={[Function]}
                 onFocus={[Function]}
+                rel="noopener noreferrer"
                 style={
                   Object {
                     "textDecoration": "none",
@@ -597,6 +600,7 @@ exports[`Manga page should render correctly should render correctly when logged 
                 href="https://mangaplus.shueisha.co.jp/viewer/1007322"
                 onBlur={[Function]}
                 onFocus={[Function]}
+                rel="noopener noreferrer"
                 style={
                   Object {
                     "textDecoration": "none",
@@ -643,6 +647,7 @@ exports[`Manga page should render correctly should render correctly when logged 
                 href="https://mangadex.org/chapter/938629"
                 onBlur={[Function]}
                 onFocus={[Function]}
+                rel="noopener noreferrer"
                 style={
                   Object {
                     "textDecoration": "none",
@@ -689,6 +694,7 @@ exports[`Manga page should render correctly should render correctly when logged 
                 href="https://mangaplus.shueisha.co.jp/viewer/1007024"
                 onBlur={[Function]}
                 onFocus={[Function]}
+                rel="noopener noreferrer"
                 style={
                   Object {
                     "textDecoration": "none",

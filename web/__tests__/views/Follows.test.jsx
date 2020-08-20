@@ -1,6 +1,9 @@
 import React from 'react';
 import renderer from 'react-test-renderer';
 import Follows from '../../src/views/Follows';
+import { mockUTCDates } from '../utils';
+
+mockUTCDates();
 
 describe('Follows page should render correctly', () => {
   const follows = [
@@ -8,6 +11,8 @@ describe('Follows page should render correctly', () => {
       title: 'Dr. STONE',
       cover: 'https://mangadex.org/images/manga/20882.jpg?1585634146',
       manga_id: 1,
+      latest_chapter: 90,
+      latest_release: '2020-08-20T15:36:07.865Z',
       services: [
         {
           service_id: 1,
@@ -47,6 +52,7 @@ describe('Follows page should render correctly', () => {
       title: 'Kengan Omega',
       cover: 'https://mangadex.org/images/manga/33538.jpg?1593474917',
       manga_id: 64,
+      latest_chapter: 10,
       services: [
         {
           service_id: 2,

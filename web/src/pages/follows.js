@@ -2,6 +2,7 @@
 import React from 'react';
 import withError from '../utils/withError';
 import Follows from '../views/Follows';
+import { jsonSerializable } from '../utils/utilities';
 
 const MangaPage = function MangaPage(props) {
   const {
@@ -28,7 +29,7 @@ export async function getServerSideProps({ req }) {
 
   return {
     props: {
-      follows: follows,
+      follows: jsonSerializable(follows),
     },
   };
 }

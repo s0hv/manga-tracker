@@ -3,7 +3,6 @@
 exports[`Follows page should render correctly should render correctly with follows 1`] = `
 <div
   className="MuiContainer-root MuiContainer-maxWidthLg"
-  minWidth={400}
 >
   <div
     className="MuiPaper-root makeStyles-root-1 MuiPaper-elevation1 MuiPaper-rounded"
@@ -33,128 +32,168 @@ exports[`Follows page should render correctly should render correctly with follo
             >
               <img
                 alt="Dr. STONE"
-                className="makeStyles-thumbnail-5"
+                className="makeStyles-thumbnail-6"
                 src="https://mangadex.org/images/manga/20882.jpg?1585634146"
               />
             </a>
-            <ul
-              className="MuiList-root makeStyles-serviceList-6 MuiList-padding"
+            <div
+              className="makeStyles-followDetails-5"
             >
-              <li
-                className="MuiListItem-root makeStyles-followService-7 MuiListItem-gutters"
-                disabled={false}
+              <table>
+                <tbody>
+                  <tr>
+                    <td>
+                      <p
+                        className="MuiTypography-root MuiTypography-body1"
+                      >
+                        Latest release: 
+                      </p>
+                    </td>
+                    <td>
+                      <p
+                        className="MuiTypography-root MuiTypography-body1"
+                      >
+                        1 day ago
+                      </p>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <p
+                        className="MuiTypography-root MuiTypography-body1"
+                      >
+                        Latest chapter: 
+                      </p>
+                    </td>
+                    <td>
+                      <p
+                        className="MuiTypography-root MuiTypography-body1"
+                      >
+                        90
+                      </p>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+              <ul
+                className="MuiList-root makeStyles-serviceList-7 MuiList-padding"
               >
-                <div
-                  className="MuiListItemText-root makeStyles-serviceName-8"
-                >
-                  <span
-                    className="MuiTypography-root MuiListItemText-primary MuiTypography-body1 MuiTypography-displayBlock"
-                  >
-                    All services
-                  </span>
-                </div>
-                <button
-                  className="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary"
+                <li
+                  className="MuiListItem-root makeStyles-followService-8"
                   disabled={false}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onDragLeave={[Function]}
-                  onFocus={[Function]}
-                  onKeyDown={[Function]}
-                  onKeyUp={[Function]}
-                  onMouseDown={[Function]}
-                  onMouseLeave={[Function]}
-                  onMouseUp={[Function]}
-                  onTouchEnd={[Function]}
-                  onTouchMove={[Function]}
-                  onTouchStart={[Function]}
-                  tabIndex={0}
-                  type="button"
                 >
-                  <span
-                    className="MuiButton-label"
+                  <div
+                    className="MuiListItemText-root makeStyles-serviceName-9"
                   >
-                    Unfollow
-                  </span>
-                </button>
-              </li>
-              <li
-                className="MuiListItem-root makeStyles-followService-7 MuiListItem-gutters"
-                disabled={false}
-              >
-                <div
-                  className="MuiListItemText-root makeStyles-serviceName-8"
-                >
-                  <span
-                    className="MuiTypography-root MuiListItemText-primary MuiTypography-body1 MuiTypography-displayBlock"
+                    <span
+                      className="MuiTypography-root MuiListItemText-primary MuiTypography-body1 MuiTypography-displayBlock"
+                    >
+                      All services
+                    </span>
+                  </div>
+                  <button
+                    className="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary"
+                    disabled={false}
+                    onBlur={[Function]}
+                    onClick={[Function]}
+                    onDragLeave={[Function]}
+                    onFocus={[Function]}
+                    onKeyDown={[Function]}
+                    onKeyUp={[Function]}
+                    onMouseDown={[Function]}
+                    onMouseLeave={[Function]}
+                    onMouseUp={[Function]}
+                    onTouchEnd={[Function]}
+                    onTouchMove={[Function]}
+                    onTouchStart={[Function]}
+                    tabIndex={0}
+                    type="button"
                   >
-                    MANGA Plus
-                  </span>
-                </div>
-                <button
-                  className="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary"
+                    <span
+                      className="MuiButton-label"
+                    >
+                      Unfollow
+                    </span>
+                  </button>
+                </li>
+                <li
+                  className="MuiListItem-root makeStyles-followService-8"
                   disabled={false}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onDragLeave={[Function]}
-                  onFocus={[Function]}
-                  onKeyDown={[Function]}
-                  onKeyUp={[Function]}
-                  onMouseDown={[Function]}
-                  onMouseLeave={[Function]}
-                  onMouseUp={[Function]}
-                  onTouchEnd={[Function]}
-                  onTouchMove={[Function]}
-                  onTouchStart={[Function]}
-                  tabIndex={0}
-                  type="button"
                 >
-                  <span
-                    className="MuiButton-label"
+                  <div
+                    className="MuiListItemText-root makeStyles-serviceName-9"
                   >
-                    Unfollow
-                  </span>
-                </button>
-              </li>
-              <li
-                className="MuiListItem-root makeStyles-followService-7 MuiListItem-gutters"
-                disabled={false}
-              >
-                <div
-                  className="MuiListItemText-root makeStyles-serviceName-8"
-                >
-                  <span
-                    className="MuiTypography-root MuiListItemText-primary MuiTypography-body1 MuiTypography-displayBlock"
+                    <span
+                      className="MuiTypography-root MuiListItemText-primary MuiTypography-body1 MuiTypography-displayBlock"
+                    >
+                      MANGA Plus
+                    </span>
+                  </div>
+                  <button
+                    className="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary"
+                    disabled={false}
+                    onBlur={[Function]}
+                    onClick={[Function]}
+                    onDragLeave={[Function]}
+                    onFocus={[Function]}
+                    onKeyDown={[Function]}
+                    onKeyUp={[Function]}
+                    onMouseDown={[Function]}
+                    onMouseLeave={[Function]}
+                    onMouseUp={[Function]}
+                    onTouchEnd={[Function]}
+                    onTouchMove={[Function]}
+                    onTouchStart={[Function]}
+                    tabIndex={0}
+                    type="button"
                   >
-                    MangaDex
-                  </span>
-                </div>
-                <button
-                  className="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary"
+                    <span
+                      className="MuiButton-label"
+                    >
+                      Unfollow
+                    </span>
+                  </button>
+                </li>
+                <li
+                  className="MuiListItem-root makeStyles-followService-8"
                   disabled={false}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onDragLeave={[Function]}
-                  onFocus={[Function]}
-                  onKeyDown={[Function]}
-                  onKeyUp={[Function]}
-                  onMouseDown={[Function]}
-                  onMouseLeave={[Function]}
-                  onMouseUp={[Function]}
-                  onTouchEnd={[Function]}
-                  onTouchMove={[Function]}
-                  onTouchStart={[Function]}
-                  tabIndex={0}
-                  type="button"
                 >
-                  <span
-                    className="MuiButton-label"
+                  <div
+                    className="MuiListItemText-root makeStyles-serviceName-9"
                   >
-                    Follow
-                  </span>
-                </button>
-              </li>
-            </ul>
+                    <span
+                      className="MuiTypography-root MuiListItemText-primary MuiTypography-body1 MuiTypography-displayBlock"
+                    >
+                      MangaDex
+                    </span>
+                  </div>
+                  <button
+                    className="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary"
+                    disabled={false}
+                    onBlur={[Function]}
+                    onClick={[Function]}
+                    onDragLeave={[Function]}
+                    onFocus={[Function]}
+                    onKeyDown={[Function]}
+                    onKeyUp={[Function]}
+                    onMouseDown={[Function]}
+                    onMouseLeave={[Function]}
+                    onMouseUp={[Function]}
+                    onTouchEnd={[Function]}
+                    onTouchMove={[Function]}
+                    onTouchStart={[Function]}
+                    tabIndex={0}
+                    type="button"
+                  >
+                    <span
+                      className="MuiButton-label"
+                    >
+                      Follow
+                    </span>
+                  </button>
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
       </div>
@@ -180,90 +219,130 @@ exports[`Follows page should render correctly should render correctly with follo
             >
               <img
                 alt="Shuumatsu no Valkyrie"
-                className="makeStyles-thumbnail-5"
+                className="makeStyles-thumbnail-6"
                 src="https://mangadex.org/images/manga/33537.jpg?1591183509"
               />
             </a>
-            <ul
-              className="MuiList-root makeStyles-serviceList-6 MuiList-padding"
+            <div
+              className="makeStyles-followDetails-5"
             >
-              <li
-                className="MuiListItem-root makeStyles-followService-7 MuiListItem-gutters"
-                disabled={false}
+              <table>
+                <tbody>
+                  <tr>
+                    <td>
+                      <p
+                        className="MuiTypography-root MuiTypography-body1"
+                      >
+                        Latest release: 
+                      </p>
+                    </td>
+                    <td>
+                      <p
+                        className="MuiTypography-root MuiTypography-body1"
+                      >
+                        Unknown
+                      </p>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <p
+                        className="MuiTypography-root MuiTypography-body1"
+                      >
+                        Latest chapter: 
+                      </p>
+                    </td>
+                    <td>
+                      <p
+                        className="MuiTypography-root MuiTypography-body1"
+                      >
+                        No chapters
+                      </p>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+              <ul
+                className="MuiList-root makeStyles-serviceList-7 MuiList-padding"
               >
-                <div
-                  className="MuiListItemText-root makeStyles-serviceName-8"
-                >
-                  <span
-                    className="MuiTypography-root MuiListItemText-primary MuiTypography-body1 MuiTypography-displayBlock"
-                  >
-                    All services
-                  </span>
-                </div>
-                <button
-                  className="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary"
+                <li
+                  className="MuiListItem-root makeStyles-followService-8"
                   disabled={false}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onDragLeave={[Function]}
-                  onFocus={[Function]}
-                  onKeyDown={[Function]}
-                  onKeyUp={[Function]}
-                  onMouseDown={[Function]}
-                  onMouseLeave={[Function]}
-                  onMouseUp={[Function]}
-                  onTouchEnd={[Function]}
-                  onTouchMove={[Function]}
-                  onTouchStart={[Function]}
-                  tabIndex={0}
-                  type="button"
                 >
-                  <span
-                    className="MuiButton-label"
+                  <div
+                    className="MuiListItemText-root makeStyles-serviceName-9"
                   >
-                    Unfollow
-                  </span>
-                </button>
-              </li>
-              <li
-                className="MuiListItem-root makeStyles-followService-7 MuiListItem-gutters"
-                disabled={false}
-              >
-                <div
-                  className="MuiListItemText-root makeStyles-serviceName-8"
-                >
-                  <span
-                    className="MuiTypography-root MuiListItemText-primary MuiTypography-body1 MuiTypography-displayBlock"
+                    <span
+                      className="MuiTypography-root MuiListItemText-primary MuiTypography-body1 MuiTypography-displayBlock"
+                    >
+                      All services
+                    </span>
+                  </div>
+                  <button
+                    className="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary"
+                    disabled={false}
+                    onBlur={[Function]}
+                    onClick={[Function]}
+                    onDragLeave={[Function]}
+                    onFocus={[Function]}
+                    onKeyDown={[Function]}
+                    onKeyUp={[Function]}
+                    onMouseDown={[Function]}
+                    onMouseLeave={[Function]}
+                    onMouseUp={[Function]}
+                    onTouchEnd={[Function]}
+                    onTouchMove={[Function]}
+                    onTouchStart={[Function]}
+                    tabIndex={0}
+                    type="button"
                   >
-                    MangaDex
-                  </span>
-                </div>
-                <button
-                  className="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary"
+                    <span
+                      className="MuiButton-label"
+                    >
+                      Unfollow
+                    </span>
+                  </button>
+                </li>
+                <li
+                  className="MuiListItem-root makeStyles-followService-8"
                   disabled={false}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onDragLeave={[Function]}
-                  onFocus={[Function]}
-                  onKeyDown={[Function]}
-                  onKeyUp={[Function]}
-                  onMouseDown={[Function]}
-                  onMouseLeave={[Function]}
-                  onMouseUp={[Function]}
-                  onTouchEnd={[Function]}
-                  onTouchMove={[Function]}
-                  onTouchStart={[Function]}
-                  tabIndex={0}
-                  type="button"
                 >
-                  <span
-                    className="MuiButton-label"
+                  <div
+                    className="MuiListItemText-root makeStyles-serviceName-9"
                   >
-                    Follow
-                  </span>
-                </button>
-              </li>
-            </ul>
+                    <span
+                      className="MuiTypography-root MuiListItemText-primary MuiTypography-body1 MuiTypography-displayBlock"
+                    >
+                      MangaDex
+                    </span>
+                  </div>
+                  <button
+                    className="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary"
+                    disabled={false}
+                    onBlur={[Function]}
+                    onClick={[Function]}
+                    onDragLeave={[Function]}
+                    onFocus={[Function]}
+                    onKeyDown={[Function]}
+                    onKeyUp={[Function]}
+                    onMouseDown={[Function]}
+                    onMouseLeave={[Function]}
+                    onMouseUp={[Function]}
+                    onTouchEnd={[Function]}
+                    onTouchMove={[Function]}
+                    onTouchStart={[Function]}
+                    tabIndex={0}
+                    type="button"
+                  >
+                    <span
+                      className="MuiButton-label"
+                    >
+                      Follow
+                    </span>
+                  </button>
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
       </div>
@@ -289,90 +368,130 @@ exports[`Follows page should render correctly should render correctly with follo
             >
               <img
                 alt="Kengan Omega"
-                className="makeStyles-thumbnail-5"
+                className="makeStyles-thumbnail-6"
                 src="https://mangadex.org/images/manga/33538.jpg?1593474917"
               />
             </a>
-            <ul
-              className="MuiList-root makeStyles-serviceList-6 MuiList-padding"
+            <div
+              className="makeStyles-followDetails-5"
             >
-              <li
-                className="MuiListItem-root makeStyles-followService-7 MuiListItem-gutters"
-                disabled={false}
+              <table>
+                <tbody>
+                  <tr>
+                    <td>
+                      <p
+                        className="MuiTypography-root MuiTypography-body1"
+                      >
+                        Latest release: 
+                      </p>
+                    </td>
+                    <td>
+                      <p
+                        className="MuiTypography-root MuiTypography-body1"
+                      >
+                        Unknown
+                      </p>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <p
+                        className="MuiTypography-root MuiTypography-body1"
+                      >
+                        Latest chapter: 
+                      </p>
+                    </td>
+                    <td>
+                      <p
+                        className="MuiTypography-root MuiTypography-body1"
+                      >
+                        10
+                      </p>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+              <ul
+                className="MuiList-root makeStyles-serviceList-7 MuiList-padding"
               >
-                <div
-                  className="MuiListItemText-root makeStyles-serviceName-8"
-                >
-                  <span
-                    className="MuiTypography-root MuiListItemText-primary MuiTypography-body1 MuiTypography-displayBlock"
-                  >
-                    All services
-                  </span>
-                </div>
-                <button
-                  className="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary"
+                <li
+                  className="MuiListItem-root makeStyles-followService-8"
                   disabled={false}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onDragLeave={[Function]}
-                  onFocus={[Function]}
-                  onKeyDown={[Function]}
-                  onKeyUp={[Function]}
-                  onMouseDown={[Function]}
-                  onMouseLeave={[Function]}
-                  onMouseUp={[Function]}
-                  onTouchEnd={[Function]}
-                  onTouchMove={[Function]}
-                  onTouchStart={[Function]}
-                  tabIndex={0}
-                  type="button"
                 >
-                  <span
-                    className="MuiButton-label"
+                  <div
+                    className="MuiListItemText-root makeStyles-serviceName-9"
                   >
-                    Unfollow
-                  </span>
-                </button>
-              </li>
-              <li
-                className="MuiListItem-root makeStyles-followService-7 MuiListItem-gutters"
-                disabled={false}
-              >
-                <div
-                  className="MuiListItemText-root makeStyles-serviceName-8"
-                >
-                  <span
-                    className="MuiTypography-root MuiListItemText-primary MuiTypography-body1 MuiTypography-displayBlock"
+                    <span
+                      className="MuiTypography-root MuiListItemText-primary MuiTypography-body1 MuiTypography-displayBlock"
+                    >
+                      All services
+                    </span>
+                  </div>
+                  <button
+                    className="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary"
+                    disabled={false}
+                    onBlur={[Function]}
+                    onClick={[Function]}
+                    onDragLeave={[Function]}
+                    onFocus={[Function]}
+                    onKeyDown={[Function]}
+                    onKeyUp={[Function]}
+                    onMouseDown={[Function]}
+                    onMouseLeave={[Function]}
+                    onMouseUp={[Function]}
+                    onTouchEnd={[Function]}
+                    onTouchMove={[Function]}
+                    onTouchStart={[Function]}
+                    tabIndex={0}
+                    type="button"
                   >
-                    MangaDex
-                  </span>
-                </div>
-                <button
-                  className="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary"
+                    <span
+                      className="MuiButton-label"
+                    >
+                      Unfollow
+                    </span>
+                  </button>
+                </li>
+                <li
+                  className="MuiListItem-root makeStyles-followService-8"
                   disabled={false}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onDragLeave={[Function]}
-                  onFocus={[Function]}
-                  onKeyDown={[Function]}
-                  onKeyUp={[Function]}
-                  onMouseDown={[Function]}
-                  onMouseLeave={[Function]}
-                  onMouseUp={[Function]}
-                  onTouchEnd={[Function]}
-                  onTouchMove={[Function]}
-                  onTouchStart={[Function]}
-                  tabIndex={0}
-                  type="button"
                 >
-                  <span
-                    className="MuiButton-label"
+                  <div
+                    className="MuiListItemText-root makeStyles-serviceName-9"
                   >
-                    Follow
-                  </span>
-                </button>
-              </li>
-            </ul>
+                    <span
+                      className="MuiTypography-root MuiListItemText-primary MuiTypography-body1 MuiTypography-displayBlock"
+                    >
+                      MangaDex
+                    </span>
+                  </div>
+                  <button
+                    className="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary"
+                    disabled={false}
+                    onBlur={[Function]}
+                    onClick={[Function]}
+                    onDragLeave={[Function]}
+                    onFocus={[Function]}
+                    onKeyDown={[Function]}
+                    onKeyUp={[Function]}
+                    onMouseDown={[Function]}
+                    onMouseLeave={[Function]}
+                    onMouseUp={[Function]}
+                    onTouchEnd={[Function]}
+                    onTouchMove={[Function]}
+                    onTouchStart={[Function]}
+                    tabIndex={0}
+                    type="button"
+                  >
+                    <span
+                      className="MuiButton-label"
+                    >
+                      Follow
+                    </span>
+                  </button>
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
       </div>
@@ -384,7 +503,6 @@ exports[`Follows page should render correctly should render correctly with follo
 exports[`Follows page should render correctly should render correctly without follows 1`] = `
 <div
   className="MuiContainer-root MuiContainer-maxWidthLg"
-  minWidth={400}
 >
   <div
     className="MuiPaper-root makeStyles-root-1 MuiPaper-elevation1 MuiPaper-rounded"

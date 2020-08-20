@@ -10,7 +10,7 @@ import {
   ListItemText,
   Typography,
 } from '@material-ui/core';
-import {makeStyles} from '@material-ui/core/styles';
+import { makeStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types';
 
 
@@ -56,7 +56,7 @@ function MangaSourceList(props) {
     return (
       <ListItem className={classes.nested} key={index}>
         <Typography>
-          <Link href={item.url.replace('{}', item.title_id)} target='_blank'>{item.name}</Link>
+          <Link href={item.url.replace('{}', item.title_id)} target='_blank' rel='noopener noreferrer'>{item.name}</Link>
         </Typography>
         {isAuthenticated && (
           <Button variant='contained' color='primary' onClick={followUnfollow(item.service_id)}>

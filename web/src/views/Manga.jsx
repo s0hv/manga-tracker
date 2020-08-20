@@ -207,7 +207,7 @@ function Manga(props) {
                 // eslint-disable-next-line react/no-array-index-key
                 <TableRow key={index}>
                   <TableCell component='th' scope='row'>
-                    <Link href={row.url} target='_blank' style={{ textDecoration: 'none' }}>
+                    <Link href={row.url} target='_blank' style={{ textDecoration: 'none' }} rel='noopener noreferrer'>
                       <span>
                         {row.title}
                       </span>

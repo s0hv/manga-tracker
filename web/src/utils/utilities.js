@@ -1,3 +1,5 @@
+import { format, formatDistanceToNowStrict } from 'date-fns';
+import enLocale from 'date-fns/locale/en-GB';
 import throttle from 'lodash.throttle';
 
 
@@ -31,3 +33,20 @@ export const followUnfollow = (mangaId, serviceId) => {
     }
   }, 200, { trailing: false });
 };
+
+// This seems to be faster than a custom recursive function  according to my measurements
+export function jsonSerializable(value) {
+  return JSON.parse(JSON.stringify(value));
+}
+
+export function defaultDateFormat(date, ifUndefined='Unknown') {
+  if (!date || Number.isNaN(date.getTime())) return ifUndefined;
+
+  format(date, 'MMM do, HH:mm', { locale: enLocale });
+}
+
+export function defaultDateDistanceToNow(date, ifUndefined='Unknown') {
+  if (!date || Number.isNaN(date.getTime())) return ifUndefined;
+
+  return formatDistanceToNowStrict(date, { addSuffix: true });
+}
