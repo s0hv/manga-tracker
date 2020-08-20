@@ -82,7 +82,8 @@ module.exports = nextApp.prepare()
     server.use(checkAuth(server));
 
     server.use((req, res, next) => {
-      if (!req.originalUrl.startsWith('/_next/static')) debug(req.originalUrl);
+      debug(req.originalUrl);
+      // if (!req.originalUrl.startsWith('/_next/static')) debug(req.originalUrl);
       next();
     });
 
