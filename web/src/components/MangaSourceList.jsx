@@ -12,6 +12,7 @@ import {
 } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types';
+import { useUser } from '../utils/useUser';
 
 
 const useStyles = makeStyles((theme) => ({
@@ -42,10 +43,10 @@ function MangaSourceList(props) {
     items = [],
     followUnfollow = () => {},
     userFollows = [],
-    isAuthenticated = false,
     classesProp = [],
   } = props;
 
+  const { isAuthenticated } = useUser();
   const classes = useStyles();
   const [open, setOpen] = React.useState(false);
   const handleClick = () => {
@@ -90,7 +91,6 @@ MangaSourceList.propTypes = {
   items: PropTypes.arrayOf(PropTypes.object),
   followUnfollow: PropTypes.func,
   userFollows: PropTypes.arrayOf(PropTypes.number),
-  isAuthenticated: PropTypes.bool,
   classesProp: PropTypes.arrayOf(PropTypes.string),
 };
 

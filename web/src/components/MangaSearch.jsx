@@ -251,7 +251,7 @@ function useSearch(props) {
 
   return {
     getRootProps: (other = {}) => ({
-       onKeyDown: handleKeyDown(other),
+      onKeyDown: handleKeyDown(other),
     }),
 
     getInputProps: () => ({
@@ -273,13 +273,13 @@ function useSearch(props) {
       },
     }),
     getOptionProps: ({ index }) => ({
-        key: index,
-        tabIndex: -1,
-        role: 'option',
-        id: `${id}-option-${index}`,
-        onMouseOver: handleOptionMouseOver,
-        'data-option-index': index,
-      }),
+      key: index,
+      tabIndex: -1,
+      role: 'option',
+      id: `${id}-option-${index}`,
+      onMouseOver: handleOptionMouseOver,
+      'data-option-index': index,
+    }),
     id,
     anchorEl,
     setAnchorEl,
@@ -307,8 +307,8 @@ export default function MangaSearch(props) {
     anchorEl,
     setAnchorEl,
   } = useSearch({ ...props,
-                        open: open && options.length > 0,
-                        options,
+    open: open && options.length > 0,
+    options,
   });
 
   const classes = useStyles();
@@ -319,11 +319,11 @@ export default function MangaSearch(props) {
 
   const throttleFetch = React.useMemo(
     () => throttle((query, cb) => {
-        fetch('/api/quicksearch?query=' + encodeURIComponent(query))
-          .then(res => res.json())
-          .then(js => cb(js))
-          .catch(cb(null));
-      }, 200),
+      fetch('/api/quicksearch?query=' + encodeURIComponent(query))
+        .then(res => res.json())
+        .then(js => cb(js))
+        .catch(cb(null));
+    }, 200),
     []
   );
 
@@ -354,7 +354,7 @@ export default function MangaSearch(props) {
           <div {...titleProps}>{option.title}</div>
         </NextLink>
       </li>
-      ));
+    ));
 
   return (
     <div

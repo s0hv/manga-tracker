@@ -1,4 +1,8 @@
 export default async (httpServer) => {
-  httpServer.close();
-  return Promise.resolve();
+  console.log('Closing server');
+  const { redis } = require('../utils/ratelimits');
+  const { pool } = require('../db');
+  await new Promise(resolve => httpServer.close(resolve));
+  redis.disconnect();
+  await pool.end();
 };

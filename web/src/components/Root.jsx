@@ -52,7 +52,6 @@ export default function Layout({ Component, pageProps, props = {} }) {
   const {
     statusCode,
     activeTheme,
-    user,
     setTheme,
   } = props;
   const classes = useStyles();
@@ -63,8 +62,8 @@ export default function Layout({ Component, pageProps, props = {} }) {
 
   return (
     <div className={classes.root}>
-      <TopBar user={user} setTheme={setTheme} activeTheme={activeTheme} />
-      <Component {...pageProps} isAuthenticated={Boolean(user)} />
+      <TopBar setTheme={setTheme} activeTheme={activeTheme} />
+      <Component {...pageProps} />
       <div className={classes.container}>
         <footer className={classes.footer}>
           <Divider className={classes.divider} variant='middle' />

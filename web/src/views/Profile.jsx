@@ -105,7 +105,7 @@ function ProfileView(props) {
         setError('Unknown error');
       });
 
-      event.preventDefault();
+    event.preventDefault();
   };
 
   const passwordRequired = newPass || emailChanged;
@@ -148,7 +148,7 @@ function ProfileView(props) {
             <FormHelperText error>
               Invalid email address
             </FormHelperText>
-          )}
+            )}
             <TextField
               variant='outlined'
               margin='normal'
@@ -165,7 +165,7 @@ function ProfileView(props) {
             <FormHelperText error>
               Old password required
             </FormHelperText>
-          )}
+            )}
             <TextField
               variant='outlined'
               margin='normal'

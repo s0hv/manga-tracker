@@ -15,7 +15,8 @@
     "server-dev": "cd web && npm run server-dev",
     "create-migration": "db-migrate --config migrations-config.json create",
     "create-migration:test": "db-migrate --config migrations-config.json create:test",
-    "migrate:up": "db-migrate --config migrations-config.json up"
+    "migrate:up": "db-migrate --config migrations-config.json up",
+    "migrate:test": "db-migrate --config migrations-config.json up:test"
   },
   "cacheDirectories": [
     "web/.next/cache/",

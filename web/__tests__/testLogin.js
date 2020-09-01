@@ -9,7 +9,7 @@ const signature = require('cookie-signature');
 const cookie = require('cookie');
 const debug = require('debug')('debug');
 
-const pool = require('../db');
+const db = require('../db');
 const { redis } = require('../utils/ratelimits');
 
 let addr;
@@ -20,8 +20,6 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  pool.end();
-  redis.disconnect();
   await stopServer(httpServer);
 });
 
@@ -122,8 +120,8 @@ describe('Login flow', () => {
 
   test('Valid user', async () => {
     // Make sure user exists
-    await pool.query(`INSERT INTO users (username, email, pwhash) VALUES ('test', $1, crypt($2, gen_salt('bf'))) ON CONFLICT DO NOTHING `,
-        [realUser.email, realUser.password]);
+    await db.query(`INSERT INTO users (username, email, pwhash) VALUES ('test', $1, crypt($2, gen_salt('bf'))) ON CONFLICT DO NOTHING `,
+      [realUser.email, realUser.password]);
 
     // Check login with a real user
     let res = await fetch(`${addr}/api/login`, {
@@ -229,8 +227,8 @@ describe('Login flow', () => {
 
   test('Logout', async () => {
     // Make sure user exists
-    await pool.query(`INSERT INTO users (username, email, pwhash) VALUES ('test', $1, crypt($2, gen_salt('bf'))) ON CONFLICT DO NOTHING `,
-        [realUser.email, realUser.password]);
+    await db.query(`INSERT INTO users (username, email, pwhash) VALUES ('test', $1, crypt($2, gen_salt('bf'))) ON CONFLICT DO NOTHING `,
+      [realUser.email, realUser.password]);
 
     // Check login with a real user
     let res = await fetch(`${addr}/api/login`, {
@@ -259,7 +257,7 @@ describe('Login flow', () => {
     const [lookup, token, uuidb64] = cookie.parse(cookies.auth).auth.split(';', 3);
     const uuid = Buffer.from(uuidb64, 'base64').toString('ascii');
 
-    let rows = await pool.query(sql, [uuid, lookup, token]);
+    let rows = await db.query(sql, [uuid, lookup, token]);
     expect(rows.rowCount).toStrictEqual(0);
 
     const raw = cookie.parse(cookies.sess).sess;
@@ -270,7 +268,7 @@ describe('Login flow', () => {
     expect(val).toBeTruthy();
 
     sql = `SELECT * FROM sessions WHERE session_id=$1`;
-    rows = await pool.query(sql, [val]);
+    rows = await db.query(sql, [val]);
     if (rows.rowCount > 0) debug(rows.rows);
 
     expect(rows.rowCount).toStrictEqual(0);

@@ -23,6 +23,7 @@ import PropTypes from 'prop-types';
 import NextLink from 'next/link';
 
 import MangaSearch from './MangaSearch';
+import { useUser } from '../utils/useUser';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -88,14 +89,15 @@ const LinkComponent = React.forwardRef(({ href, prefetch, as, Component, childre
       </Component>
     </a>
   </NextLink>
-  ));
+));
 
 function TopBar(props) {
   const {
-    user,
     activeTheme,
     setTheme,
   } = props;
+
+  const { user } = useUser();
   const classes = useStyles();
   const [anchorEl, setAnchorEl] = React.useState(null);
   const open = Boolean(anchorEl);
@@ -126,7 +128,6 @@ function TopBar(props) {
       credentials: 'include',
     })
       .then(res => {
-        console.log(res);
         window.location.replace(res.url);
       })
       .catch(err => {
@@ -206,7 +207,7 @@ function TopBar(props) {
               </MenuItem>
             </Menu>
           </div>
-        )
+          )
           ) || (
           <React.Fragment>
             <NextLink href='/login' prefetch={false}>
@@ -222,7 +223,7 @@ function TopBar(props) {
               {activeTheme === 2 ? <SunIcon className={classes.menuItemIcon} /> : <MoonIcon className={classes.menuItemIcon} />}
             </IconButton>
           </React.Fragment>
-        )}
+          )}
         </Toolbar>
       </AppBar>
     </div>
@@ -230,8 +231,6 @@ function TopBar(props) {
 }
 
 TopBar.propTypes = {
-  // eslint-disable-next-line react/forbid-prop-types
-  user: PropTypes.object,
   activeTheme: PropTypes.number,
   setTheme: PropTypes.func,
 };

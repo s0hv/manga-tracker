@@ -6,7 +6,7 @@ import PropTypes from 'prop-types';
 import MangaSourceList from './MangaSourceList';
 import {
   defaultDateDistanceToNow,
-  defaultDateFormat
+  defaultDateFormat,
 } from '../utils/utilities';
 
 const useStyles = makeStyles((theme) => ({
@@ -82,7 +82,7 @@ function PartialManga(props) {
                 <td><Typography>Manga id:</Typography></td>
                 <td><Typography className={classes.detailText}>{mangaData.manga_id}</Typography></td>
               </tr>
-            )}
+              )}
               <tr>
                 <td><Typography>Latest release:</Typography></td>
                 <td>
@@ -100,8 +100,8 @@ function PartialManga(props) {
                 <td>
                   <Typography className={classes.detailText}>
                     {(mangaData.release_interval ?
-                        `${mangaData.release_interval?.days || 0} days ${mangaData.release_interval?.hours || 0} hours` :
-                        'Unknown')}
+                      `${mangaData.release_interval?.days || 0} days ${mangaData.release_interval?.hours || 0} hours` :
+                      'Unknown')}
                   </Typography>
                 </td>
               </tr>
@@ -126,7 +126,6 @@ function PartialManga(props) {
           <div className={classes.sourceList}>
             <MangaSourceList
               items={mangaData.services}
-              isAuthenticated={false}
             />
           </div>
         </Grid>

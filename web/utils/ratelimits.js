@@ -2,24 +2,22 @@ const Redis = require('ioredis');
 const { RateLimiterRedis, RateLimiterMemory } = require('rate-limiter-flexible');
 const ExpressBruteFlexible = require('rate-limiter-flexible/lib/ExpressBruteFlexible');
 
-let redisArgs;
+let redisArgs = [{
+  host: process.env.REDIS_HOST,
+  port: process.env.REDIS_PORT || process.env.REDIS_URL,
+  enableOfflineQueue: process.env.NODE_ENV !== 'production',
+  showFriendlyErrorStack: process.env.NODE_ENV !== 'production',
+}];
 if (process.env.REDIS_URL) {
-    redisArgs = [process.env.REDIS_URL, {
-        enableOfflineQueue: process.env.NODE_ENV !== 'production',
-        showFriendlyErrorStack: process.env.NODE_ENV !== 'production',
-    }];
-} else {
-    redisArgs = [{
-        host: process.env.REDIS_HOST,
-        port: process.env.REDIS_PORT || process.env.REDIS_URL,
-        enableOfflineQueue: process.env.NODE_ENV !== 'production',
-        showFriendlyErrorStack: process.env.NODE_ENV !== 'production',
-    }];
+  redisArgs = [process.env.REDIS_URL, {
+    enableOfflineQueue: process.env.NODE_ENV !== 'production',
+    showFriendlyErrorStack: process.env.NODE_ENV !== 'production',
+  }];
 }
 const redis = new Redis(...redisArgs);
 
 redis.on('error', err => {
-    console.error('Redis error', err);
+  console.error('Redis error', err);
 });
 
 const rateLimiterMemory = new RateLimiterMemory({
@@ -28,24 +26,24 @@ const rateLimiterMemory = new RateLimiterMemory({
 });
 
 const rateLimitOpts = {
-    storeClient: redis,
-    points: 300,
-    duration: 60,
+  storeClient: redis,
+  points: 300,
+  duration: 60,
 
-    execEvenly: false,
-    keyPrefix: 'rlflx',
-    inmemoryBlockOnConsumed: 300,
-    inmemoryBlockDuration: 60,
-    insuranceLimiter: rateLimiterMemory,
+  execEvenly: false,
+  keyPrefix: 'rlflx',
+  inmemoryBlockOnConsumed: 300,
+  inmemoryBlockDuration: 60,
+  insuranceLimiter: rateLimiterMemory,
 };
 
 const bruteOpts = {
-    freeRetries: 10,
-    minWait: 1000, // 1 second
-    maxWait: 50000, // 50 seconds
-    lifetime: 100, // 100 seconds
-    storeClient: redis,
-    keyPrefix: 'brtfrc',
+  freeRetries: 10,
+  minWait: 1000, // 1 second
+  maxWait: 50000, // 50 seconds
+  lifetime: 100, // 100 seconds
+  storeClient: redis,
+  keyPrefix: 'brtfrc',
 };
 
 const mangadexLimiter = new RateLimiterMemory({
@@ -63,13 +61,13 @@ const bruteforce = new ExpressBruteFlexible(
 const rateLimiterRedis = new RateLimiterRedis(rateLimitOpts);
 
 const rateLimiter = (req, res, next) => {
-    const key = req.session ? req.session.user_id : req.ip;
-    const pointsToConsume = req.session.user_id ? 1 : 5;
-    rateLimiterRedis.consume(key, pointsToConsume)
-        .then(() => next())
-        .catch(() => {
-            res.status(429).send('Too Many Requests');
-        });
+  const key = req.session ? req.session.user_id : req.ip;
+  const pointsToConsume = req.session.user_id ? 1 : 5;
+  rateLimiterRedis.consume(key, pointsToConsume)
+    .then(() => next())
+    .catch(() => {
+      res.status(429).send('Too Many Requests');
+    });
 };
 
 module.exports.bruteforce = bruteforce;

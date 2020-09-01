@@ -8,8 +8,11 @@ export default async () => {
   const httpServer = await serverPromise;
   expect(httpServer).toBeDefined();
 
+  const addr = `http://localhost:${httpServer.address().port}`;
+  console.log('Testing address', addr);
+
   return {
     httpServer,
-    addr: `http://localhost:${httpServer.address().port}`,
+    addr,
   };
 };

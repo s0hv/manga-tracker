@@ -4,26 +4,26 @@ import throttle from 'lodash.throttle';
 
 export const followUnfollow = (mangaId, serviceId) => {
   const url = serviceId ? `/api/user/follows?manga_id=${mangaId}&service_id=${serviceId}` :
-                           `/api/user/follows?manga_id=${mangaId}`;
+    `/api/user/follows?manga_id=${mangaId}`;
   return throttle((event) => {
     const target = event.target;
     switch (target.textContent.toLowerCase()) {
       case 'follow':
         fetch(url, { credentials: 'include', method: 'put' })
-            .then(res => {
-              if (res.status === 200) {
-                target.textContent = 'Unfollow';
-              }
-            });
+          .then(res => {
+            if (res.status === 200) {
+              target.textContent = 'Unfollow';
+            }
+          });
         break;
 
       case 'unfollow':
         fetch(url, { credentials: 'include', method: 'delete' })
-            .then(res => {
-              if (res.status === 200) {
-                target.textContent = 'Follow';
-              }
-            });
+          .then(res => {
+            if (res.status === 200) {
+              target.textContent = 'Follow';
+            }
+          });
         break;
 
       default:
@@ -33,22 +33,22 @@ export const followUnfollow = (mangaId, serviceId) => {
 };
 
 // This seems to be faster than a custom recursive function  according to my measurements
-export function jsonSerializable(value) {
-  return JSON.parse(JSON.stringify(value));
-}
+export const jsonSerializable = (value) => JSON.parse(JSON.stringify(value));
 
 function dateIsInvalid(date) {
   return !date || Number.isNaN(date.getTime()) || date.getTime() === 0;
 }
 
-export function defaultDateFormat(date, ifUndefined='Unknown') {
+export const defaultDateFormat = (date, ifUndefined='Unknown') => {
   if (dateIsInvalid(date)) return ifUndefined;
 
   return format(date, 'MMM do yyyy, HH:mm', { locale: enLocale });
-}
+};
 
-export function defaultDateDistanceToNow(date, ifUndefined='Unknown') {
+export const defaultDateDistanceToNow = (date, ifUndefined='Unknown') => {
   if (dateIsInvalid(date)) return ifUndefined;
 
   return formatDistanceToNowStrict(date, { addSuffix: true });
-}
+};
+
+export const noop = () => {};

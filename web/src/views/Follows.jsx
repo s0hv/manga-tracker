@@ -64,7 +64,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 function Follows(props) {
-    const {
+  const {
     follows = [],
   } = props;
 
@@ -126,7 +126,7 @@ function Follows(props) {
                       {followedServices.indexOf(service.service_id) < 0 ? 'Follow' : 'Unfollow'}
                     </Button>
                   </ListItem>
-                  ))}
+                ))}
               </List>
             </div>
           </div>

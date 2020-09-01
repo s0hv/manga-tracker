@@ -16,19 +16,21 @@ const LocalStrategy = require('passport-local');
 const sessionDebug = require('debug')('session-debug');
 const debug = require('debug')('debug');
 
-const pool = require('./db');
+const db = require('./db');
 const PostgresStore = require('./db/session-store')(session);
 const { checkAuth, authenticate, requiresUser } = require('./db/auth');
 const { bruteforce, rateLimiter } = require('./utils/ratelimits');
 
-passport.use(new LocalStrategy({
-    usernameField: 'email',
-    passwordField: 'password',
-    passReqToCallback: true,
-  },
-  authenticate
-// eslint-disable-next-line function-paren-newline
-));
+passport.use(
+  new LocalStrategy(
+    {
+      usernameField: 'email',
+      passwordField: 'password',
+      passReqToCallback: true,
+    },
+    authenticate
+  )
+);
 
 passport.serializeUser((user, done) => {
   done(null, user);
@@ -52,7 +54,7 @@ module.exports = nextApp.prepare()
     if (reverseProxy) server.enable('trust-proxy');
 
     const store = new PostgresStore({
-      conn: pool,
+      conn: db.pool,
       cacheSize: 30,
       maxAge: 7200000,
     });
@@ -108,6 +110,7 @@ module.exports = nextApp.prepare()
     require('./api/settings')(server);
     require('./api/search')(server);
     require('./api/admin/services')(server);
+    require('./api/chapter')(server);
 
     server.get('/login', requiresUser, (req, res) => {
       sessionDebug(req.session.user_id);

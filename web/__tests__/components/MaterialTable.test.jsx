@@ -32,7 +32,6 @@ const columns = [
         variant='inline'
         ampm={false}
         value={row.values.editableTime}
-        onError={console.log}
         row={row}
         state={state}
         cell={cell}

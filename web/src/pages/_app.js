@@ -1,5 +1,5 @@
 /* eslint-disable react/destructuring-assignment */
-import React from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { MuiPickersUtilsProvider } from '@material-ui/pickers';
 import {
   createMuiTheme,
@@ -13,6 +13,7 @@ import enLocale from 'date-fns/locale/en-GB';
 
 import Head from 'next/head';
 import Root from '../components/Root';
+import { UserProvider } from '../utils/useUser';
 
 
 const sessionDebug = require('debug')('session-debug');
@@ -20,14 +21,10 @@ const sessionDebug = require('debug')('session-debug');
 
 function MainApp({ Component, pageProps, props }) {
   const [theme, setTheme] = React.useState(props.theme);
-  // Without doing update after server side styles are removed stuff just doesn't work properly
-  // const [update, doUpdate] = React.useState(false);
-  // eslint-disable-next-line no-unused-vars
-  const [user] = React.useState(props.user);
+  const [user, setUser] = React.useState(props.user);
+  useEffect(() => setUser(props.user), [props.user]);
 
-  function childSetTheme(val) {
-    setTheme(val);
-  }
+  const childSetTheme = useCallback((val) => setTheme(val), []);
 
   React.useEffect(() => {
     const jssStyles = document.querySelector('#jss-server-side');
@@ -41,33 +38,34 @@ function MainApp({ Component, pageProps, props }) {
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const tempDark = useMediaQuery('(prefers-color-scheme: dark)');
   const prefersDarkMode = theme === 0 ? tempDark : theme === 2;
-  props.setTheme = childSetTheme;
   props.activeTheme = prefersDarkMode ? 2 : 1;
   props.user = user;
 
   const activeTheme = React.useMemo(
     () => responsiveFontSizes(createMuiTheme({
-        palette: {
-            type: prefersDarkMode ? 'dark' : 'light',
-            primary: blue,
-          background: {
-              default: prefersDarkMode ? '#282c34' : undefined,
-          },
+      palette: {
+        type: prefersDarkMode ? 'dark' : 'light',
+        primary: blue,
+        background: {
+          default: prefersDarkMode ? '#282c34' : undefined,
         },
-      })),
+      },
+    })),
     [prefersDarkMode]
   );
 
   return (
     <React.Fragment>
       <Head>
-        <title>My page</title>
+        <title>Manga tracker</title>
         <meta name='viewport' content='minimum-scale=1, initial-scale=1, width=device-width' />
       </Head>
       <ThemeProvider theme={activeTheme}>
         <CssBaseline />
         <MuiPickersUtilsProvider utils={DateFnsUtils} locale={enLocale}>
-          <Root Component={Component} pageProps={pageProps} props={props} setTheme={childSetTheme} />
+          <UserProvider value={user}>
+            <Root Component={Component} pageProps={pageProps} props={props} setTheme={childSetTheme} />
+          </UserProvider>
         </MuiPickersUtilsProvider>
       </ThemeProvider>
     </React.Fragment>

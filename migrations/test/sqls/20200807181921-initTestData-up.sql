@@ -25,8 +25,9 @@ INSERT INTO chapters (chapter_id, manga_id, service_id, title, chapter_number, c
 --insert manga info
 INSERT INTO manga_info (manga_id, cover, status, artist, author, bw, mu, mal, amz, ebj, engtl, raw, nu, kt, ap, al, last_updated) VALUES (1, 'https://mangadex.org/images/manga/20882.jpg?1585634146', 0, 'Boichi', 'Inagaki Riichiro', 'series/114645', '139601', '103897', 'https://www.amazon.co.jp/gp/product/B075F8JBQ1', 'https://www.ebookjapan.jp/ebj/413780/', 'https://www.viz.com/dr-stone', null, null, '38860', 'dr-stone', '98416', '2020-06-28 11:15:55.170446');
 
--- insert user
-INSERT INTO users (user_id, username, email, pwhash, user_uuid, joined_at, admin, theme) VALUES (1, 'test ci', 'test@test.com', crypt('te!st-pa#ss)wo(rd123', gen_salt('bf')), '22fc15c9-37b9-4869-af86-b334333dedd8', '2020-07-08 12:00:00.344806', true, 2);
+-- insert users
+INSERT INTO users (user_id, username, email, pwhash, user_uuid, joined_at, admin, theme) VALUES (1, 'test ci admin', 'test-admin@test.com', crypt('te!st-pa#ss)wo(rd123', gen_salt('bf')), '22fc15c9-37b9-4869-af86-b334333dedd8', '2020-07-08 12:00:00.344806', true, 2);
+INSERT INTO users (user_id, username, email, pwhash, user_uuid, joined_at, admin, theme) VALUES (3, 'test ci', 'test@test.com', crypt('te!st-pa#ss)wo(rd123', gen_salt('bf')), 'cf5eddfd-e0fe-4e6e-b339-70be6f33794d', '2020-07-08 12:00:00.344806', false, 2);
 
 -- insert follows
 INSERT INTO user_follows (manga_id, service_id, user_id) VALUES (1, 1, 1);

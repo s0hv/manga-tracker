@@ -26,7 +26,6 @@
         "linebreak-style": "off",
         "no-multiple-empty-lines": "off",
         "no-underscore-dangle": "off",
-        "indent": "off",
         "comma-dangle": ["warn", {
             "arrays": "always-multiline",
             "objects": "always-multiline",

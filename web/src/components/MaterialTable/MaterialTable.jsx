@@ -30,7 +30,9 @@ export default function MaterialTable(props) {
     data,
     sortable = false,
     editable = false,
+    deletable = false,
     onSaveRow,
+    onDeleteRow,
   } = props;
 
   const classes = useStyles();
@@ -46,12 +48,14 @@ export default function MaterialTable(props) {
     columns,
     data,
     disableSortBy: !sortable,
+    disableDeleting: !deletable,
     disableEditing: !editable,
     classes,
     onSaveRow,
+    onDeleteRow,
   },
-    useSortBy,
-    useEditable);
+  useSortBy,
+  useEditable);
 
   return (
     <Table

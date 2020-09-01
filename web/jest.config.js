@@ -25,9 +25,9 @@ module.exports = {
 
   // The glob patterns Jest uses to detect test files
   testMatch: [
-     '**/__tests__/**/test*.[jt]s?(x)',
-     '**/__tests__/**/*.test.[jt]s?(x)',
-   ],
+    '**/__tests__/**/test*.[jt]s?(x)',
+    '**/__tests__/**/*.test.[jt]s?(x)',
+  ],
 
   // Automatically clear mock calls and instances between every test
   clearMocks: true,

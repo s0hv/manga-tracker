@@ -1,27 +1,23 @@
-import React from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   Button,
   Container,
-  Grid,
-  Link,
+  Grid, IconButton,
   Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   Tooltip,
   Typography,
 } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 
-import MangaSourceList from '../components/MangaSourceList';
+import { Edit as EditIcon } from '@material-ui/icons';
+import MangaSourceList from './MangaSourceList';
 import {
   defaultDateDistanceToNow,
   defaultDateFormat,
-  followUnfollow
+  followUnfollow,
 } from '../utils/utilities';
+import ChapterList from './ChapterList';
+import { useUser } from '../utils/useUser';
 
 
 const useStyles = makeStyles((theme) => ({
@@ -32,6 +28,10 @@ const useStyles = makeStyles((theme) => ({
     [theme.breakpoints.down('sm')]: {
       width: '100%',
     },
+  },
+  titleBar: {
+    display: 'flex',
+    justifyContent: 'space-between',
   },
   thumbnail: {
     maxWidth: '250px',
@@ -79,26 +79,24 @@ const useStyles = makeStyles((theme) => ({
     padding: '1em',
     minWidth: '440px',
   },
-  titleColumn: {
-    minWidth: '225px',
-  },
-  releaseColumn: {
-    minWidth: '200px',
-  },
 }));
 
 
 function Manga(props) {
   const {
     mangaData,
-    isAuthenticated = false,
     userFollows = [],
   } = props;
 
+  const { isAuthenticated, user } = useUser();
+
   const classes = useStyles();
+  const [editing, setEditing] = useState(false);
+  const startEditing = useCallback(() => setEditing(!editing), [editing]);
+
   const latestRelease = mangaData.latest_release ?
-      new Date(mangaData.latest_release) :
-      null;
+    new Date(mangaData.latest_release) :
+    null;
 
   const estimatedRelease = new Date(mangaData.estimated_release);
 
@@ -108,7 +106,7 @@ function Manga(props) {
     mangaData.services.forEach(service => { serviceMap[service.service_id] = service.url_format });
     return mangaData.chapters.map(chapter => {
       const newChapter = { ...chapter };
-      newChapter.release_date = defaultDateFormat(new Date(chapter.release_date));
+      newChapter.release_date = new Date(chapter.release_date);
       newChapter.url = serviceMap[chapter.service_id].replace('{}', chapter.chapter_url);
       return newChapter;
     });
@@ -117,7 +115,14 @@ function Manga(props) {
   return (
     <Container maxWidth='lg'>
       <Paper className={classes.paper}>
-        <Typography className={classes.title} variant='h4'>{mangaData.title}</Typography>
+        <div className={classes.titleBar}>
+          <Typography className={classes.title} variant='h4'>{mangaData.title}</Typography>
+          {user?.admin && (
+            <IconButton onClick={startEditing}>
+              <EditIcon />
+            </IconButton>
+          )}
+        </div>
         <div className={classes.details}>
           <a href={mangaData.mal} target='_blank' rel='noreferrer noopener'>
             <img
@@ -149,8 +154,8 @@ function Manga(props) {
                   <td>
                     <Typography className={classes.detailText}>
                       {(mangaData.release_interval ?
-                          `${mangaData.release_interval?.days || 0} days ${mangaData.release_interval?.hours || 0} hours` :
-                          'Unknown')}
+                        `${mangaData.release_interval?.days || 0} days ${mangaData.release_interval?.hours || 0} hours` :
+                        'Unknown')}
                     </Typography>
                   </td>
                 </tr>
@@ -176,7 +181,6 @@ function Manga(props) {
               classesProp={[classes.sourceList]}
               items={mangaData.services}
               userFollows={userFollows}
-              isAuthenticated={isAuthenticated}
               followUnfollow={(serviceId) => followUnfollow(mangaData.manga_id, serviceId)}
             />
           </Grid>
@@ -192,37 +196,10 @@ function Manga(props) {
           </Button>
         )}
 
-        {mangaChapters && mangaChapters.length > 0 && (
-        <TableContainer component={Paper}>
-          <Table className={classes.table} aria-label='simple table'>
-            <TableHead>
-              <TableRow>
-                <TableCell className={classes.titleColumn}>Title</TableCell>
-                <TableCell>Chapter</TableCell>
-                <TableCell className={classes.releaseColumn}>Released</TableCell>
-                <TableCell>Group</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {mangaChapters.map((row, index) => (
-                // eslint-disable-next-line react/no-array-index-key
-                <TableRow key={index}>
-                  <TableCell component='th' scope='row'>
-                    <Link href={row.url} target='_blank' style={{ textDecoration: 'none' }} rel='noopener noreferrer'>
-                      <span>
-                        {row.title}
-                      </span>
-                    </Link>
-                  </TableCell>
-                  <TableCell>{row.chapter_number}</TableCell>
-                  <TableCell>{row.release_date}</TableCell>
-                  <TableCell>{row.group}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      )}
+        <ChapterList
+          chapters={mangaChapters}
+          editable={editing}
+        />
       </Paper>
     </Container>
   );

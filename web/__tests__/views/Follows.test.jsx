@@ -31,7 +31,7 @@ describe('Follows page should render correctly', () => {
         1,
         null,
       ],
-      },
+    },
     {
       title: 'Shuumatsu no Valkyrie',
       cover: 'https://mangadex.org/images/manga/33537.jpg?1591183509',

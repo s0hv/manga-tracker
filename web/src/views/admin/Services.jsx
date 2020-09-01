@@ -16,13 +16,13 @@ function Services(props) {
 
   // Format date strings back to dates for sorting
   const data = React.useMemo(() => {
-      services.forEach(service => {
-        service.last_check = service.last_check ? new Date(service.last_check) : undefined;
-        service.next_update = service.next_update ? new Date(service.next_update) : undefined;
-      });
-      return services;
-    },
-    [services]);
+    services.forEach(service => {
+      service.last_check = service.last_check ? new Date(service.last_check) : undefined;
+      service.next_update = service.next_update ? new Date(service.next_update) : undefined;
+    });
+    return services;
+  },
+  [services]);
 
   const columns = React.useMemo(() => [
     { Header: 'Id', accessor: 'id', canEdit: false },
@@ -41,8 +41,8 @@ function Services(props) {
       accessor: 'next_update',
       sortType: 'basic',
       Cell: ({ row }) => (row.values.next_update ?
-          `${format(row.values.next_update, 'MMM do, HH:mm', { locale: enLocale })} - ${formatDistanceToNowStrict(row.values.next_update, { addSuffix: true })}` :
-          'ASAP'),
+        `${format(row.values.next_update, 'MMM do, HH:mm', { locale: enLocale })} - ${formatDistanceToNowStrict(row.values.next_update, { addSuffix: true })}` :
+        'ASAP'),
       EditCell: ({ row, state, cell }) => (
         <EditableDateTimePicker
           clearable
@@ -54,7 +54,7 @@ function Services(props) {
           state={state}
           cell={cell}
         />
-        ),
+      ),
     },
     {
       Header: 'Disabled',

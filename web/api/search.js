@@ -1,8 +1,8 @@
-const pool = require('../db');
+const db = require('../db');
 const { getManga } = require('../db/manga');
 
 function search(keywords, limit) {
-        const sql = `WITH tmp as (
+  const sql = `WITH tmp as (
                  (SELECT m.manga_id, m.title, true as main
                  FROM manga m
                  WHERE REPLACE(m.title, '-', ' ') ILIKE '%' || $1 || '%'
@@ -17,11 +17,11 @@ function search(keywords, limit) {
                  ORDER BY main DESC)
                  SELECT DISTINCT ON(tmp.manga_id) tmp.manga_id, tmp.title FROM tmp`;
 
-        return pool.query(sql, [keywords.replace('-', ' '), limit]);
+  return db.query(sql, [keywords.replace('-', ' '), limit]);
 }
 
 function mangaSearch(keywords) {
-    const sql = `WITH tmp as (
+  const sql = `WITH tmp as (
                 (SELECT m.manga_id, m.title, true as main
                 FROM manga m
                 WHERE REPLACE(m.title, '-', ' ') ILIKE '%' || $1 || '%'
@@ -37,53 +37,53 @@ function mangaSearch(keywords) {
                 SELECT *, manga.manga_id FROM manga LEFT JOIN manga_info mi ON manga.manga_id = mi.manga_id
                 WHERE manga.manga_id=(SELECT manga_id FROM tmp ORDER BY main LIMIT 1)`;
 
-    return pool.query(sql, [keywords.replace('-', ' ')]);
+  return db.query(sql, [keywords.replace('-', ' ')]);
 }
 
 function quickSearch(searchWords, cb) {
-    if (searchWords.length < 3) return cb(null);
-    search(searchWords, 5)
-        .then(res => cb(res.rows))
-        .catch(err => {
-            console.error(err);
-            cb(null);
-        });
+  if (searchWords.length < 3) return cb(null);
+  search(searchWords, 5)
+    .then(res => cb(res.rows))
+    .catch(err => {
+      console.error(err);
+      cb(null);
+    });
 }
 
 module.exports = app => {
-    app.get('/api/quicksearch', (req, res) => {
-        if (!req.query.query) {
-            return res.json([]);
-        }
+  app.get('/api/quicksearch', (req, res) => {
+    if (!req.query.query) {
+      return res.json([]);
+    }
 
-        quickSearch(req.query.query, (results) => {
-            res.json(results || []);
-        });
+    quickSearch(req.query.query, (results) => {
+      res.json(results || []);
     });
+  });
 
-    app.get('/api/search', (req, res) => {
-        if (!req.query.query) {
-            return res.json({ error: { status: 400, message: 'No search query specified' }});
+  app.get('/api/search', (req, res) => {
+    if (!req.query.query) {
+      return res.json({ error: { status: 400, message: 'No search query specified' }});
+    }
+
+    if (req.query.query.length > 300) {
+      return res.json({ error: { status: 400, message: 'Search query too long (over 300 characters). If manga names this long exist report this bug.' }});
+    }
+
+    mangaSearch(req.query.query)
+      .then(rows => {
+        if (rows.rowCount === 0) {
+          return res.json({ manga: null });
         }
-
-        if (req.query.query.length > 300) {
-            return res.json({ error: { status: 400, message: 'Search query too long (over 300 characters). If manga names this long exist report this bug.' }});
+        const row = rows.rows[0];
+        res.json({ manga: row });
+        if ((!row.last_updated || (Date.now() - row.last_updated)/8.64E7 > 14)) {
+          getManga(row.manga_id, 50);
         }
-
-        mangaSearch(req.query.query)
-            .then(rows => {
-                if (rows.rowCount === 0) {
-                    return res.json({ manga: null });
-                }
-                const row = rows.rows[0];
-                res.json({ manga: row });
-                if ((!row.last_updated || (Date.now() - row.last_updated)/8.64E7 > 14)) {
-                    getManga(row.manga_id, 50);
-                }
-            })
-            .catch(err => {
-                console.error(err);
-                res.json({ error: { status: 500, message: 'Internal server error. Try again later' }});
-            });
-    });
+      })
+      .catch(err => {
+        console.error(err);
+        res.json({ error: { status: 500, message: 'Internal server error. Try again later' }});
+      });
+  });
 };

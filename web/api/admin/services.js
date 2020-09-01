@@ -1,7 +1,8 @@
-const format = require('pg-format');
+const dblog = require('debug')('db');
 
 const { requiresUser } = require('../../db/auth');
-const pool = require('../../db');
+const { generateEqualsColumns, handleError } = require('../../db/utils');
+const db = require('../../db');
 
 module.exports = app => {
   app.use('/api/admin/editService', require('body-parser').json());
@@ -27,56 +28,36 @@ module.exports = app => {
 
     const serviceColumns = ['service_name', 'disabled'];
     const serviceWholeColumns = ['next_update'];
-    const usableColumns = [...serviceColumns, ...serviceWholeColumns];
-    const values = usableColumns.map(c => {
-      const val = req.body[c];
-      return val === undefined ? false : { col: c, value: val };
-    }).filter(x => x);
 
-    if (values.length === 0) {
-      res.status(400).json({ error: 'No valid values given' });
-      return;
-    }
-
-    function generateValues(filterCols) {
-      const cols = new Set(filterCols);
-      const sqlValues = [];
-      const columns = [];
-      const args = [];
-
-      values.filter(v => cols.has(v.col)).forEach((v, idx) => {
-        sqlValues.push(`%I=$${idx+1}`);
-        columns.push(v.col);
-        args.push(v.value);
-      });
-
-      const sqlCols = format(sqlValues.join(','), columns);
-
-      return { sqlCols, args };
-    }
 
     function updateServiceWhole() {
-      const { sqlCols, args } = generateValues(serviceWholeColumns);
+      const { sqlCols, args } = generateEqualsColumns(req.body, serviceWholeColumns);
       if (args.length === 0) return Promise.resolve();
 
       const sql = `UPDATE service_whole SET ${sqlCols} WHERE service_id=$${args.length+1}`;
       args.push(req.body.service_id);
-      return pool.query(sql, args);
+      return db.query(sql, args);
     }
 
-    const { sqlCols, args } = generateValues(serviceColumns);
+    const { sqlCols, args } = generateEqualsColumns(req.body, serviceColumns);
+
+    if (args.length === 0) {
+      res.status(400).json({ error: 'No valid values given' });
+      return;
+    }
+
+    dblog('Updating service with', req.body);
 
     const sql = `UPDATE services SET ${sqlCols} WHERE service_id=$${args.length+1}`;
     args.push(req.body.service_id);
     updateServiceWhole()
       .then(() => {
         if (args.length <= 1) return Promise.resolve();
-        return pool.query(sql, args);
+        return db.query(sql, args);
       })
       .then(() => res.status(200).json({ message: 'OK' }))
       .catch(err => {
-        console.error(err);
-        res.status(500).json({ error: 'Internal server error' });
+        handleError(err, res);
       });
   });
 };

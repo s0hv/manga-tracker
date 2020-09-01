@@ -1,13 +1,10 @@
 import React from 'react';
-import renderer from 'react-test-renderer';
+import { createShallow } from '@material-ui/core/test-utils';
+import Manga from '../../src/components/Manga';
+import { mockUTCDates, normalUser, withUser } from '../utils';
 
-import { mockUTCDates } from '../utils';
-import PartialManga from '../../src/components/PartialManga';
-
-
-describe('Partial manga should render correctly', () => {
+describe('Manga page should render correctly', () => {
   mockUTCDates();
-
   const manga = { manga_id: 1,
     title: 'Dr. STONE',
     release_interval: {
@@ -77,7 +74,9 @@ describe('Partial manga should render correctly', () => {
   };
   const emptyManga = { manga_id: 2,
     title: 'Dr. STONE',
-    release_interval: null,
+    release_interval: {
+      days: 7,
+    },
     latest_release: null,
     estimated_release: null,
     latest_chapter: null,
@@ -108,36 +107,29 @@ describe('Partial manga should render correctly', () => {
     al: 'https://anilist.co/manga/98416',
     chapters: [],
   };
+  const follows = [1];
 
-  it('Should render correctly with no input', () => {
-    const tree = renderer
-      .create(<PartialManga />)
-      .toJSON();
+  it('should render correctly', () => {
+    const wrapper = createShallow()(
+      <Manga mangaData={{ ...manga }} />
+    );
 
-    expect(tree).toMatchSnapshot();
+    expect(wrapper).toMatchSnapshot();
   });
 
-  it('Should render correctly with input', () => {
-    const tree = renderer
-      .create(<PartialManga mangaData={manga} />)
-      .toJSON();
+  it('should render correctly when logged in', async () => {
+    const elem = await withUser(
+      normalUser,
+      <Manga mangaData={{ ...manga }} follows={follows} />
+    );
+    const wrapper = createShallow()(elem).dive();
 
-    expect(tree).toMatchSnapshot();
+    expect(wrapper).toMatchSnapshot();
   });
 
-  it('Should render correctly with minimal input', () => {
-    const tree = renderer
-      .create(<PartialManga mangaData={emptyManga} />)
-      .toJSON();
+  it('should render correctly with little data', () => {
+    const wrapper = createShallow()(<Manga mangaData={{ ...emptyManga }} />);
 
-    expect(tree).toMatchSnapshot();
-  });
-
-  it('Should render correctly when showId is true', () => {
-    const tree = renderer
-      .create(<PartialManga mangaData={manga} showId />)
-      .toJSON();
-
-    expect(tree).toMatchSnapshot();
+    expect(wrapper).toMatchSnapshot();
   });
 });
