@@ -67,8 +67,8 @@ describe('Login flow', () => {
     },
   };
   const realUser = {
-    email: 'test@test.test',
-    password: '1234',
+    email: 'test-admin@test.com',
+    password: 'te!st-pa#ss)wo(rd123',
   };
 
   const fakeUser = {
@@ -119,10 +119,6 @@ describe('Login flow', () => {
   });
 
   test('Valid user', async () => {
-    // Make sure user exists
-    await db.query(`INSERT INTO users (username, email, pwhash) VALUES ('test', $1, crypt($2, gen_salt('bf'))) ON CONFLICT DO NOTHING `,
-      [realUser.email, realUser.password]);
-
     // Check login with a real user
     let res = await fetch(`${addr}/api/login`, {
       ...loginOpts,
