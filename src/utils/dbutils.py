@@ -186,27 +186,29 @@ class DbUtil:
 
         args = [(x,) for x in manga_titles.keys()]
         format_args = ','.join(['%s' for _ in args])
-        # This sql filters out manga in this service already. This is because
-        # this function assumes all series added in this function are new
-        sql = f'SELECT MIN(manga.manga_id), LOWER(title), COUNT(manga.manga_id) ' \
-              f'FROM manga LEFT JOIN manga_service ms ON ms.service_id=%s AND manga.manga_id=ms.manga_id ' \
-              f'WHERE ms.manga_id IS NULL AND LOWER(title) IN ({format_args}) GROUP BY LOWER(title)'
-
-        cur.execute(sql, (service_id, *args))
+        already_exist = []
+        now = datetime.utcnow()
 
         if duplicates:
             logger.warning(f'All duplicates found {duplicates}')
 
-        already_exist = []
-        now = datetime.utcnow()
-        for row in cur:
-            if row[2] == 1:
-                chapters = manga_titles.pop(row[1])
-                yield row[0], chapters
-                already_exist.append((row[0], service_id, disable_single_update, now, chapters[0].title_id))
-                continue
+        if format_args:
+            # This sql filters out manga in this service already. This is because
+            # this function assumes all series added in this function are new
+            sql = f'SELECT MIN(manga.manga_id), LOWER(title), COUNT(manga.manga_id) ' \
+                  f'FROM manga LEFT JOIN manga_service ms ON ms.service_id=%s AND manga.manga_id=ms.manga_id ' \
+                  f'WHERE ms.manga_id IS NULL AND LOWER(title) IN ({format_args}) GROUP BY LOWER(title)'
 
-            logger.warning(f'Too many matches for manga {row[1]}')
+            cur.execute(sql, (service_id, *args))
+
+            for row in cur:
+                if row[2] == 1:
+                    chapters = manga_titles.pop(row[1])
+                    yield row[0], chapters
+                    already_exist.append((row[0], service_id, disable_single_update, now, chapters[0].title_id))
+                    continue
+
+                logger.warning(f'Too many matches for manga {row[1]}')
 
         new_manga = []
         titles = []
