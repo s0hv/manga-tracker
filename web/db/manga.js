@@ -110,10 +110,13 @@ function fetchExtraInfo(mangadexId, mangaId, cb, chapterIds, addChapters = true,
             ).map(c => {
               const chapter = c.chapter ? c.chapter.toString() : '0';
               return [
-                mangaId, MANGADEX_ID,
+                mangaId,
+                MANGADEX_ID,
                 c.title || `${c.volume !== undefined ? 'Volume ' + c.volume + ', ' : ''}${'Chapter ' + chapter}`,
                 chapter.split('.')[0], parseInt(chapter.split('.')[1]) || null,
-                new Date(c.timestamp * 1000), c.id, c.firstGroupName,
+                new Date(c.timestamp * 1000),
+                c.id,
+                c.firstGroupName,
               ];
             });
 
@@ -134,8 +137,8 @@ function fetchExtraInfo(mangadexId, mangaId, cb, chapterIds, addChapters = true,
                 values.push(`($${x+1}, $${x+2}, $${x+3}, $${x+4}, $${x+5}, $${x+6}, $${x+7}, $${x+8})`);
               }
               const chapterSql = `INSERT INTO chapters (manga_id, service_id, title, chapter_number, chapter_decimal, release_date, chapter_identifier, "group") 
-                                            VALUES ${values.join(',')}
-                                            ON CONFLICT (service_id, chapter_identifier) DO UPDATE SET title=EXCLUDED.title`;
+                                  VALUES ${values.join(',')}
+                                  ON CONFLICT (service_id, chapter_identifier) DO UPDATE SET title=EXCLUDED.title`;
               db.query(chapterSql, slice.flat())
                 .then(res => {
                   debug(res.rowCount);
@@ -182,11 +185,11 @@ function getManga(mangaId, chapters) {
                         mi.cover, mi.status, mi.artist, mi.author, mi.last_updated,
                         mi.bw, mi.mu, mi.mal, mi.amz, mi.ebj, mi.engtl, mi.raw, mi.nu, mi.kt, mi.ap, mi.al,
                         ${limit ? chapterSql : ''}
-                 FROM manga LEFT JOIN manga_info mi ON manga.manga_id = mi.manga_id
-                            INNER JOIN manga_service ms ON manga.manga_id = ms.manga_id
-                            INNER JOIN services s ON ms.service_id = s.service_id
-                 WHERE manga.manga_id=$1
-                 GROUP BY manga.manga_id, mi.manga_id`;
+               FROM manga LEFT JOIN manga_info mi ON manga.manga_id = mi.manga_id
+                   INNER JOIN manga_service ms ON manga.manga_id = ms.manga_id
+                   INNER JOIN services s ON ms.service_id = s.service_id
+               WHERE manga.manga_id=$1
+               GROUP BY manga.manga_id, mi.manga_id`;
 
   return db.query(sql, args)
     .then(rows => {
@@ -233,14 +236,14 @@ function getFollows(userId) {
   }
 
   const sql = `SELECT m.title, mi.cover, m.manga_id, m.latest_release, m.latest_chapter,
-                      (SELECT json_agg(s) FROM (
-                                                   SELECT ms.service_id, service_name, ms.title_id, manga_url_format as url
-                                                   FROM services INNER JOIN manga_service ms ON services.service_id = ms.service_id
-                                                   WHERE ms.manga_id=m.manga_id) s) as services,
-                      json_agg(uf.service_id) as followed_services
+                    (SELECT json_agg(s) FROM (
+                       SELECT ms.service_id, service_name, ms.title_id, manga_url_format as url
+                       FROM services INNER JOIN manga_service ms ON services.service_id = ms.service_id
+                       WHERE ms.manga_id=m.manga_id) s) as services,
+                    json_agg(uf.service_id) as followed_services
                FROM user_follows uf
-                        INNER JOIN manga m ON uf.manga_id = m.manga_id
-                        LEFT JOIN manga_info mi ON m.manga_id = mi.manga_id
+                   INNER JOIN manga m ON uf.manga_id = m.manga_id
+                   LEFT JOIN manga_info mi ON m.manga_id = mi.manga_id
                WHERE user_id=$1
                GROUP BY uf.manga_id, m.manga_id, mi.manga_id`;
 
