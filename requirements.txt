@@ -8,3 +8,4 @@ pytz~=2020.1
 protobuf~=3.12.2
 mypy==0.782
 mypy-protobuf~=1.23
+sentry-sdk~=0.17.3
