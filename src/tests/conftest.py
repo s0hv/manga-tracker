@@ -9,7 +9,7 @@ from src.utils.dbutils import DbUtil
 def setup_tests(request):
     print('setting up')
     start_db()
-    conn = create_db(Postgresql.cache)
+    conn = create_db(None if not Postgresql else Postgresql.cache)
     TestingScraper(conn, DbUtil(conn)).add_service()
     conn.close()
 

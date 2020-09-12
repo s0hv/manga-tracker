@@ -45,7 +45,7 @@ def run_migrations(conn: Connection) -> NoReturn:
     p.wait()
 
 
-def create_db(postgres: testing.postgresql.Postgresql) -> Connection:
+def create_db(postgres: Optional[testing.postgresql.Postgresql]) -> Connection:
     conn = create_conn(postgres)
     run_migrations(conn)
     return conn
