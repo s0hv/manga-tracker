@@ -16,7 +16,7 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
-    container: python:3.8-alpine
+    container: python:3.8-buster
 
     services:
       # Label used to access the service container
