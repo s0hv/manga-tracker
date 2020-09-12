@@ -5,7 +5,10 @@ lxml~=4.5.2
 cssselect~=1.1.0
 psycopg2~=2.8.5
 pytz~=2020.1
-protobuf~=3.12.2
+protobuf~=3.13.0
 mypy==0.782
 mypy-protobuf~=1.23
 sentry-sdk~=0.17.3
+git+https://github.com/tk0miya/testing.postgresql.git#egg=testing.postgresql
+pytest~=6.0.1
+responses~=0.12.0
