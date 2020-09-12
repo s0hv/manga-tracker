@@ -19,10 +19,13 @@ originalParse = feedparser.parse
 
 DONT_USE_TEMP_DATABASE = bool(os.environ.get('NO_TEMP_DB', False))
 
-Postgresql = testing.postgresql.PostgresqlFactory(
-    cache_initialized_db=True,
-    initdb_args='-E=UTF8 -U postgres -A trust'
-)
+if DONT_USE_TEMP_DATABASE:
+    Postgresql = None
+else:
+    Postgresql = testing.postgresql.PostgresqlFactory(
+        cache_initialized_db=True,
+        initdb_args='-E=UTF8 -U postgres -A trust'
+    )
 
 T = TypeVar('T')
 
