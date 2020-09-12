@@ -16,6 +16,7 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
+    container: python:3.8-alpine
 
     services:
       # Label used to access the service container
@@ -50,7 +51,7 @@ jobs:
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Install db migration dependencies
-      run: npm ci
+      run: npm ci --ignore-scripts
     - name: Test with pytest
       run: python -m pytest src
 
