@@ -16,7 +16,7 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
-    container: node:14-stretch-slim
+    container: node:14-stretch
 
     steps:
     - uses: actions/checkout@v2
