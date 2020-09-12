@@ -53,3 +53,11 @@ jobs:
       run: npm ci
     - name: Test with pytest
       run: python -m pytest src
+
+    env:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: postgres
+      DB_USER: postgres
+      PGPASSWORD: postgres
+      NO_TEMP_DB: TRUE

@@ -16,6 +16,9 @@ from src.scrapers.base_scraper import BaseChapter
 from src.utils.dbutils import DbUtil
 
 originalParse = feedparser.parse
+
+DONT_USE_TEMP_DATABASE = bool(os.environ.get('NO_TEMP_DB', False))
+
 Postgresql = testing.postgresql.PostgresqlFactory(
     cache_initialized_db=True,
     initdb_args='-E=UTF8 -U postgres -A trust'
@@ -46,14 +49,25 @@ def create_db(postgres: testing.postgresql.Postgresql) -> Connection:
 
 
 def create_conn(postgres: testing.postgresql.Postgresql) -> Connection:
-    conn = psycopg2.connect(**postgres.dsn(),
-                            cursor_factory=DictCursor)
+    if DONT_USE_TEMP_DATABASE:
+        conn = psycopg2.connect(
+            host=os.environ['DB_HOST'],
+            port=os.environ['DB_PORT'],
+            dbname=os.environ['DB_NAME'],
+            user=os.environ['DB_USER'],
+            password=os.environ['PGPASSWORD'],
+            cursor_factory=DictCursor
+        )
+    else:
+        conn = psycopg2.connect(**postgres.dsn(),
+                                cursor_factory=DictCursor)
     conn.set_client_encoding('UTF8')
     return conn
 
 
 def start_db():
-    Postgresql.cache.start()
+    if not DONT_USE_TEMP_DATABASE:
+        Postgresql.cache.start()
 
 
 def get_conn() -> Connection:
@@ -65,6 +79,9 @@ def get_conn() -> Connection:
 
 
 def teardown_db() -> NoReturn:
+    if DONT_USE_TEMP_DATABASE:
+        return
+
     try:
         Postgresql.cache.stop()
     finally:
