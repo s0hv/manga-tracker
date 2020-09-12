@@ -51,7 +51,7 @@ def create_db(postgres: testing.postgresql.Postgresql) -> Connection:
     return conn
 
 
-def create_conn(postgres: testing.postgresql.Postgresql) -> Connection:
+def create_conn(postgres: Optional[testing.postgresql.Postgresql]) -> Connection:
     if DONT_USE_TEMP_DATABASE:
         conn = psycopg2.connect(
             host=os.environ['DB_HOST'],
@@ -74,7 +74,7 @@ def start_db():
 
 
 def get_conn() -> Connection:
-    conn = create_conn(Postgresql.cache)
+    conn = create_conn(None if DONT_USE_TEMP_DATABASE else Postgresql.cache)
     if conn.get_parameter_status('timezone') != 'UTC':
         with conn.cursor() as cur:
             cur.execute("SET TIMEZONE TO 'UTC'")
