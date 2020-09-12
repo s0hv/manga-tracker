@@ -1,5 +1,6 @@
 import os
 import shlex
+import sys
 import unittest
 import subprocess
 from datetime import datetime
@@ -41,7 +42,7 @@ def run_migrations(conn: Connection) -> NoReturn:
     env['DB_PORT'] = str(conn.info.port)
     cmd = 'npm run migrate:up && npm run migrate:test'
     p = subprocess.Popen(shlex.split(cmd), env=env, cwd=root, shell=True,
-                         stdout=subprocess.DEVNULL)
+                         stdout=sys.stdout if DONT_USE_TEMP_DATABASE else subprocess.DEVNULL)
     p.wait()
 
 
