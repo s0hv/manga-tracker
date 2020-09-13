@@ -5,7 +5,7 @@ from src.scrapers.base_scraper import BaseScraper
 from src.utils.dbutils import DbUtil
 
 
-class TestingScraper(BaseScraper):
+class DummyScraper(BaseScraper):
     ID = 999
     URL = 'test_url'
     CHAPTER_URL_FORMAT = 'chapter/{}'

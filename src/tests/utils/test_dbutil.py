@@ -2,7 +2,7 @@ import unittest
 from datetime import datetime
 from types import GeneratorType
 
-from src.tests.scrapers.testing_scraper import TestingScraper
+from src.tests.scrapers.testing_scraper import DummyScraper
 from src.tests.testing_utils import Chapter, BaseTestClasses, spy_on
 
 
@@ -76,7 +76,7 @@ class MyTestCase(BaseTestClasses.DatabaseTestCase):
     def setUp(self) -> None:
         super().setUp()
 
-        self.test_scraper = TestingScraper(self._conn, self.dbutil)
+        self.test_scraper = DummyScraper(self._conn, self.dbutil)
 
     def test_add_new_series_and_chapters(self):
         """
@@ -86,14 +86,14 @@ class MyTestCase(BaseTestClasses.DatabaseTestCase):
         new_manga = []
         with self._conn:
             with self._conn.cursor() as cur:
-                retval = self.dbutil.add_new_series(cur, testing_series, TestingScraper.ID)
+                retval = self.dbutil.add_new_series(cur, testing_series, DummyScraper.ID)
                 self.assertIsInstance(retval, GeneratorType)
                 for manga_id, chapters in retval:
                     new_chapters.extend(chapters)
                     new_manga.append((manga_id, chapters))
 
                     self.dbutil.add_chapters(
-                        cur, manga_id, TestingScraper.ID, chapters
+                        cur, manga_id, DummyScraper.ID, chapters
                     )
 
         self._conn.commit()
@@ -107,7 +107,7 @@ class MyTestCase(BaseTestClasses.DatabaseTestCase):
 
             with self._conn.cursor() as cur:
                 sql = 'SELECT * FROM chapters WHERE manga_id=%s AND service_id=%s'
-                cur.execute(sql, (manga_id, TestingScraper.ID))
+                cur.execute(sql, (manga_id, DummyScraper.ID))
                 rows = cur.fetchall()
                 self.assertEqual(len(chapters), len(rows), 'Not all chapters found from database')
 
@@ -123,7 +123,7 @@ class MyTestCase(BaseTestClasses.DatabaseTestCase):
                       '     INNER JOIN manga_service ms ON m.manga_id = ms.manga_id ' \
                       'WHERE m.manga_id=%s AND ms.service_id=%s'
 
-                cur.execute(sql, (manga_id, TestingScraper.ID))
+                cur.execute(sql, (manga_id, DummyScraper.ID))
                 manga = cur.fetchone()
 
             self.assertIsNotNone(manga)
@@ -134,7 +134,7 @@ class MyTestCase(BaseTestClasses.DatabaseTestCase):
     def test_add_new_series_empty(self):
         with self._conn:
             with self._conn.cursor() as cur:
-                retval = self.dbutil.add_new_series(cur, {}, TestingScraper.ID)
+                retval = self.dbutil.add_new_series(cur, {}, DummyScraper.ID)
                 self.assertIsInstance(retval, GeneratorType)
                 self.assertEqual(len(list(retval)), 0)
 
@@ -190,7 +190,7 @@ class MyTestCase(BaseTestClasses.DatabaseTestCase):
                 sql = 'INSERT INTO chapters ' \
                       '(manga_id, service_id, title, chapter_number, chapter_decimal, chapter_identifier, release_date) ' \
                       'VALUES (%s, %s, %s, %s, %s, %s, %s)'
-                cur.execute(sql, (manga_id, TestingScraper.ID, 'test title',
+                cur.execute(sql, (manga_id, DummyScraper.ID, 'test title',
                                   999, 5, '123456789987654321', release))
 
                 row = self.dbutil.update_estimated_release(cur, manga_id)
