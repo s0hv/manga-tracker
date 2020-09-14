@@ -41,26 +41,32 @@ const useStyles = makeStyles((theme) => ({
 function MangaSourceList(props) {
   const {
     items = [],
-    followUnfollow = () => {},
+    followUnfollow = () => undefined,
     userFollows = [],
     classesProp = [],
+    openByDefault = false,
   } = props;
 
   const { isAuthenticated } = useUser();
   const classes = useStyles();
-  const [open, setOpen] = React.useState(false);
+  const [open, setOpen] = React.useState(openByDefault);
   const handleClick = () => {
     setOpen(!open);
   };
 
-  function renderItem(item, index) {
+  function renderItem(item) {
     return (
-      <ListItem className={classes.nested} key={index}>
+      <ListItem className={classes.nested} key={item.service_id}>
         <Typography>
           <Link href={item.url.replace('{}', item.title_id)} target='_blank' rel='noopener noreferrer'>{item.name}</Link>
         </Typography>
         {isAuthenticated && (
-          <Button variant='contained' color='primary' onClick={followUnfollow(item.service_id)}>
+          <Button
+            variant='contained'
+            color='primary'
+            onClick={followUnfollow(item.service_id)}
+            name={`Follow ${item.name}`}
+          >
             {userFollows.indexOf(item.service_id) < 0 ? 'Follow' : 'Unfollow'}
           </Button>
         )}
