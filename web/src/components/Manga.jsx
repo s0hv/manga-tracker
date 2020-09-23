@@ -1,12 +1,16 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   Button,
   Container,
-  Grid, IconButton,
+  Grid,
+  IconButton,
   Paper,
+  Tab,
+  Tabs,
   Tooltip,
   Typography,
 } from '@material-ui/core';
+
 import { makeStyles } from '@material-ui/core/styles';
 
 import { Edit as EditIcon } from '@material-ui/icons';
@@ -18,6 +22,8 @@ import {
 } from '../utils/utilities';
 import ChapterList from './ChapterList';
 import { useUser } from '../utils/useUser';
+import ReleaseHeatmap from './ReleaseHeatmap';
+import { TabPanelCustom } from './utils/TabPanelCustom';
 
 
 const useStyles = makeStyles((theme) => ({
@@ -88,6 +94,18 @@ function Manga(props) {
     userFollows = [],
   } = props;
 
+  const [releaseData, setReleaseData] = useState([]);
+  const [activeTab, setActiveTab] = useState(0);
+  const changeTab = useCallback((e, newVal) => setActiveTab(newVal), []);
+
+  useEffect(() => {
+    fetch(`/api/chapter/releases/${mangaData.manga_id}`)
+      .then(res => res.json())
+      .then(js => {
+        setReleaseData(js);
+      });
+  }, [mangaData.manga_id]);
+
   const { isAuthenticated, user } = useUser();
 
   const classes = useStyles();
@@ -113,7 +131,7 @@ function Manga(props) {
   }, [mangaData.chapters, mangaData.services]);
 
   return (
-    <Container maxWidth='lg'>
+    <Container maxWidth='lg' disableGutters>
       <Paper className={classes.paper}>
         <div className={classes.titleBar}>
           <Typography className={classes.title} variant='h4'>{mangaData.title}</Typography>
@@ -196,10 +214,21 @@ function Manga(props) {
           </Button>
         )}
 
-        <ChapterList
-          chapters={mangaChapters}
-          editable={editing}
-        />
+        <Tabs onChange={changeTab} value={activeTab}>
+          <Tab label='Chapters' value={0} />
+          <Tab label='Stats' value={1} />
+        </Tabs>
+        <TabPanelCustom value={activeTab} index={0} noRerenderOnChange>
+          <ChapterList
+            chapters={mangaChapters}
+            editable={editing}
+          />
+        </TabPanelCustom>
+        <TabPanelCustom value={activeTab} index={1} noRerenderOnChange>
+          <ReleaseHeatmap
+            dataRows={releaseData}
+          />
+        </TabPanelCustom>
       </Paper>
     </Container>
   );

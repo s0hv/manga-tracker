@@ -123,4 +123,14 @@ describe('Chapter list should allow editing', () => {
 
     expect(deleteMock).toHaveBeenCalledTimes(1);
   });
+
+  it('Should update data when chapters prop changes', () => {
+    const wrapper = createMount()(<ChapterList chapters={[]} />);
+    expect(wrapper.exists('td')).toBeFalse();
+
+    wrapper.setProps({ chapters: [testChapter]});
+    wrapper.update();
+
+    expect(wrapper.exists('td')).toBeTrue();
+  });
 });

@@ -1,7 +1,8 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Manga page should render correctly should render correctly 1`] = `
+exports[`Manga page should render correctly Should render correctly as admin 1`] = `
 <WithStyles(ForwardRef(Container))
+  disableGutters={true}
   maxWidth="lg"
 >
   <WithStyles(ForwardRef(Paper))
@@ -130,46 +131,272 @@ exports[`Manga page should render correctly should render correctly 1`] = `
         />
       </WithStyles(ForwardRef(Grid))>
     </div>
-    <ChapterList
-      chapters={
-        Array [
-          Object {
-            "chapter_number": 157,
-            "chapter_url": "1007322",
-            "group": "Shueisha",
-            "release_date": 2020-07-05T16:00:00.000Z,
-            "service_id": 1,
-            "title": "Z=157: Same Time, Same Place",
-            "url": "https://mangaplus.shueisha.co.jp/viewer/1007322",
-          },
-          Object {
-            "chapter_number": 156,
-            "chapter_url": "938629",
-            "group": "MangaPlus",
-            "release_date": 1970-01-01T00:00:00.000Z,
-            "service_id": 2,
-            "title": "Z=156: Two Scientists",
-            "url": "https://mangadex.org/chapter/938629",
-          },
-          Object {
-            "chapter_number": 156,
-            "chapter_url": "1007024",
-            "group": "Shueisha",
-            "release_date": 2020-06-26T16:00:00.000Z,
-            "service_id": 1,
-            "title": "Z=156: Two Scientists",
-            "url": "https://mangaplus.shueisha.co.jp/viewer/1007024",
-          },
-        ]
-      }
-      editable={false}
-    />
+    <WithStyles(ForwardRef(Tabs))
+      onChange={[Function]}
+      value={0}
+    >
+      <WithStyles(ForwardRef(Tab))
+        label="Chapters"
+        value={0}
+      />
+      <WithStyles(ForwardRef(Tab))
+        label="Stats"
+        value={1}
+      />
+    </WithStyles(ForwardRef(Tabs))>
+    <TabPanelCustom
+      index={0}
+      noRerenderOnChange={true}
+      value={0}
+    >
+      <ChapterList
+        chapters={
+          Array [
+            Object {
+              "chapter_number": 157,
+              "chapter_url": "1007322",
+              "group": "Shueisha",
+              "release_date": 2020-07-05T16:00:00.000Z,
+              "service_id": 1,
+              "title": "Z=157: Same Time, Same Place",
+              "url": "https://mangaplus.shueisha.co.jp/viewer/1007322",
+            },
+            Object {
+              "chapter_number": 156,
+              "chapter_url": "938629",
+              "group": "MangaPlus",
+              "release_date": 1970-01-01T00:00:00.000Z,
+              "service_id": 2,
+              "title": "Z=156: Two Scientists",
+              "url": "https://mangadex.org/chapter/938629",
+            },
+            Object {
+              "chapter_number": 156,
+              "chapter_url": "1007024",
+              "group": "Shueisha",
+              "release_date": 2020-06-26T16:00:00.000Z,
+              "service_id": 1,
+              "title": "Z=156: Two Scientists",
+              "url": "https://mangaplus.shueisha.co.jp/viewer/1007024",
+            },
+          ]
+        }
+        editable={false}
+      />
+    </TabPanelCustom>
+    <TabPanelCustom
+      index={1}
+      noRerenderOnChange={true}
+      value={0}
+    >
+      <ReleaseHeatmap
+        dataRows={Array []}
+      />
+    </TabPanelCustom>
+  </WithStyles(ForwardRef(Paper))>
+</WithStyles(ForwardRef(Container))>
+`;
+
+exports[`Manga page should render correctly should render correctly 1`] = `
+<WithStyles(ForwardRef(Container))
+  disableGutters={true}
+  maxWidth="lg"
+>
+  <WithStyles(ForwardRef(Paper))
+    className="makeStyles-paper-9"
+  >
+    <div
+      className="makeStyles-titleBar-2"
+    >
+      <WithStyles(ForwardRef(Typography))
+        className="makeStyles-title-1"
+        variant="h4"
+      >
+        Dr. STONE
+      </WithStyles(ForwardRef(Typography))>
+    </div>
+    <div
+      className="makeStyles-details-4"
+    >
+      <a
+        href="https://myanimelist.net/manga/103897"
+        rel="noreferrer noopener"
+        target="_blank"
+      >
+        <img
+          alt="Dr. STONE"
+          className="makeStyles-thumbnail-3"
+          src="https://mangadex.org/images/manga/20882.jpg?1585634146"
+        />
+      </a>
+      <WithStyles(ForwardRef(Grid))
+        container={true}
+        justify="space-between"
+      >
+        <table
+          className="makeStyles-infoTable-6"
+        >
+          <tbody>
+            <tr>
+              <td>
+                <WithStyles(ForwardRef(Typography))>
+                  Latest release:
+                </WithStyles(ForwardRef(Typography))>
+              </td>
+              <td>
+                <WithStyles(ForwardRef(Tooltip))
+                  title="Sun, 05 Jul 2020 16:00:00 GMT"
+                >
+                  <WithStyles(ForwardRef(Typography))
+                    className="makeStyles-detailText-5"
+                  >
+                    Jul 5th 2020, 16:00 - 1 day ago
+                  </WithStyles(ForwardRef(Typography))>
+                </WithStyles(ForwardRef(Tooltip))>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <WithStyles(ForwardRef(Typography))>
+                  Estimated release interval:
+                </WithStyles(ForwardRef(Typography))>
+              </td>
+              <td>
+                <WithStyles(ForwardRef(Typography))
+                  className="makeStyles-detailText-5"
+                >
+                  7 days 0 hours
+                </WithStyles(ForwardRef(Typography))>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <WithStyles(ForwardRef(Typography))>
+                  Estimated next release:
+                </WithStyles(ForwardRef(Typography))>
+              </td>
+              <td>
+                <WithStyles(ForwardRef(Typography))
+                  className="makeStyles-detailText-5"
+                >
+                  Jul 12th 2020, 16:00
+                </WithStyles(ForwardRef(Typography))>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <WithStyles(ForwardRef(Typography))>
+                  Latest chapter:
+                </WithStyles(ForwardRef(Typography))>
+              </td>
+              <td>
+                <WithStyles(ForwardRef(Typography))
+                  className="makeStyles-detailText-5"
+                >
+                  157
+                </WithStyles(ForwardRef(Typography))>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <MangaSourceList
+          classesProp={
+            Array [
+              "makeStyles-sourceList-7",
+            ]
+          }
+          followUnfollow={[Function]}
+          items={
+            Array [
+              Object {
+                "name": "MANGA Plus",
+                "service_id": 1,
+                "title_id": "100010",
+                "url": "https://mangaplus.shueisha.co.jp/titles/{}",
+                "url_format": "https://mangaplus.shueisha.co.jp/viewer/{}",
+              },
+              Object {
+                "name": "MangaDex",
+                "service_id": 2,
+                "title_id": "20882",
+                "url": "https://mangadex.org/title/{}",
+                "url_format": "https://mangadex.org/chapter/{}",
+              },
+            ]
+          }
+          userFollows={Array []}
+        />
+      </WithStyles(ForwardRef(Grid))>
+    </div>
+    <WithStyles(ForwardRef(Tabs))
+      onChange={[Function]}
+      value={0}
+    >
+      <WithStyles(ForwardRef(Tab))
+        label="Chapters"
+        value={0}
+      />
+      <WithStyles(ForwardRef(Tab))
+        label="Stats"
+        value={1}
+      />
+    </WithStyles(ForwardRef(Tabs))>
+    <TabPanelCustom
+      index={0}
+      noRerenderOnChange={true}
+      value={0}
+    >
+      <ChapterList
+        chapters={
+          Array [
+            Object {
+              "chapter_number": 157,
+              "chapter_url": "1007322",
+              "group": "Shueisha",
+              "release_date": 2020-07-05T16:00:00.000Z,
+              "service_id": 1,
+              "title": "Z=157: Same Time, Same Place",
+              "url": "https://mangaplus.shueisha.co.jp/viewer/1007322",
+            },
+            Object {
+              "chapter_number": 156,
+              "chapter_url": "938629",
+              "group": "MangaPlus",
+              "release_date": 1970-01-01T00:00:00.000Z,
+              "service_id": 2,
+              "title": "Z=156: Two Scientists",
+              "url": "https://mangadex.org/chapter/938629",
+            },
+            Object {
+              "chapter_number": 156,
+              "chapter_url": "1007024",
+              "group": "Shueisha",
+              "release_date": 2020-06-26T16:00:00.000Z,
+              "service_id": 1,
+              "title": "Z=156: Two Scientists",
+              "url": "https://mangaplus.shueisha.co.jp/viewer/1007024",
+            },
+          ]
+        }
+        editable={false}
+      />
+    </TabPanelCustom>
+    <TabPanelCustom
+      index={1}
+      noRerenderOnChange={true}
+      value={0}
+    >
+      <ReleaseHeatmap
+        dataRows={Array []}
+      />
+    </TabPanelCustom>
   </WithStyles(ForwardRef(Paper))>
 </WithStyles(ForwardRef(Container))>
 `;
 
 exports[`Manga page should render correctly should render correctly when logged in 1`] = `
 <WithStyles(ForwardRef(Container))
+  disableGutters={true}
   maxWidth="lg"
 >
   <WithStyles(ForwardRef(Paper))
@@ -298,46 +525,75 @@ exports[`Manga page should render correctly should render correctly when logged 
         />
       </WithStyles(ForwardRef(Grid))>
     </div>
-    <ChapterList
-      chapters={
-        Array [
-          Object {
-            "chapter_number": 157,
-            "chapter_url": "1007322",
-            "group": "Shueisha",
-            "release_date": 2020-07-05T16:00:00.000Z,
-            "service_id": 1,
-            "title": "Z=157: Same Time, Same Place",
-            "url": "https://mangaplus.shueisha.co.jp/viewer/1007322",
-          },
-          Object {
-            "chapter_number": 156,
-            "chapter_url": "938629",
-            "group": "MangaPlus",
-            "release_date": 1970-01-01T00:00:00.000Z,
-            "service_id": 2,
-            "title": "Z=156: Two Scientists",
-            "url": "https://mangadex.org/chapter/938629",
-          },
-          Object {
-            "chapter_number": 156,
-            "chapter_url": "1007024",
-            "group": "Shueisha",
-            "release_date": 2020-06-26T16:00:00.000Z,
-            "service_id": 1,
-            "title": "Z=156: Two Scientists",
-            "url": "https://mangaplus.shueisha.co.jp/viewer/1007024",
-          },
-        ]
-      }
-      editable={false}
-    />
+    <WithStyles(ForwardRef(Tabs))
+      onChange={[Function]}
+      value={0}
+    >
+      <WithStyles(ForwardRef(Tab))
+        label="Chapters"
+        value={0}
+      />
+      <WithStyles(ForwardRef(Tab))
+        label="Stats"
+        value={1}
+      />
+    </WithStyles(ForwardRef(Tabs))>
+    <TabPanelCustom
+      index={0}
+      noRerenderOnChange={true}
+      value={0}
+    >
+      <ChapterList
+        chapters={
+          Array [
+            Object {
+              "chapter_number": 157,
+              "chapter_url": "1007322",
+              "group": "Shueisha",
+              "release_date": 2020-07-05T16:00:00.000Z,
+              "service_id": 1,
+              "title": "Z=157: Same Time, Same Place",
+              "url": "https://mangaplus.shueisha.co.jp/viewer/1007322",
+            },
+            Object {
+              "chapter_number": 156,
+              "chapter_url": "938629",
+              "group": "MangaPlus",
+              "release_date": 1970-01-01T00:00:00.000Z,
+              "service_id": 2,
+              "title": "Z=156: Two Scientists",
+              "url": "https://mangadex.org/chapter/938629",
+            },
+            Object {
+              "chapter_number": 156,
+              "chapter_url": "1007024",
+              "group": "Shueisha",
+              "release_date": 2020-06-26T16:00:00.000Z,
+              "service_id": 1,
+              "title": "Z=156: Two Scientists",
+              "url": "https://mangaplus.shueisha.co.jp/viewer/1007024",
+            },
+          ]
+        }
+        editable={false}
+      />
+    </TabPanelCustom>
+    <TabPanelCustom
+      index={1}
+      noRerenderOnChange={true}
+      value={0}
+    >
+      <ReleaseHeatmap
+        dataRows={Array []}
+      />
+    </TabPanelCustom>
   </WithStyles(ForwardRef(Paper))>
 </WithStyles(ForwardRef(Container))>
 `;
 
 exports[`Manga page should render correctly should render correctly with little data 1`] = `
 <WithStyles(ForwardRef(Container))
+  disableGutters={true}
   maxWidth="lg"
 >
   <WithStyles(ForwardRef(Paper))
@@ -403,7 +659,7 @@ exports[`Manga page should render correctly should render correctly with little 
                 <WithStyles(ForwardRef(Typography))
                   className="makeStyles-detailText-5"
                 >
-                  7 days 0 hours
+                  Unknown
                 </WithStyles(ForwardRef(Typography))>
               </td>
             </tr>
@@ -459,10 +715,38 @@ exports[`Manga page should render correctly should render correctly with little 
         />
       </WithStyles(ForwardRef(Grid))>
     </div>
-    <ChapterList
-      chapters={Array []}
-      editable={false}
-    />
+    <WithStyles(ForwardRef(Tabs))
+      onChange={[Function]}
+      value={0}
+    >
+      <WithStyles(ForwardRef(Tab))
+        label="Chapters"
+        value={0}
+      />
+      <WithStyles(ForwardRef(Tab))
+        label="Stats"
+        value={1}
+      />
+    </WithStyles(ForwardRef(Tabs))>
+    <TabPanelCustom
+      index={0}
+      noRerenderOnChange={true}
+      value={0}
+    >
+      <ChapterList
+        chapters={Array []}
+        editable={false}
+      />
+    </TabPanelCustom>
+    <TabPanelCustom
+      index={1}
+      noRerenderOnChange={true}
+      value={0}
+    >
+      <ReleaseHeatmap
+        dataRows={Array []}
+      />
+    </TabPanelCustom>
   </WithStyles(ForwardRef(Paper))>
 </WithStyles(ForwardRef(Container))>
 `;

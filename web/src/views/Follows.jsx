@@ -137,7 +137,7 @@ function Follows(props) {
 
   return (
 
-    <Container maxWidth='lg'>
+    <Container maxWidth='lg' disableGutters>
       <Paper className={classes.root}>
         <Grid container spacing={1}>
           {follows.map(renderFollow)}

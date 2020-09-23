@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Link,
   Paper,
@@ -20,6 +20,8 @@ function ChapterList(props) {
   const [error, setError] = useState(false);
   const [message, setMessage] = useState(undefined);
   const [alertOpen, setAlertOpen] = useState(false);
+
+  useEffect(() => setChapters(initialChapters), [initialChapters]);
 
   const handleResponse = useCallback((r) => {
     r.json()

@@ -38,11 +38,12 @@ module.exports = {
     '^.+\\.(js|jsx|ts|tsx)$': '<rootDir>/node_modules/babel-jest',
   },
   transformIgnorePatterns: [
-    '/node_modules/',
+    '/node_modules/(?!(react-frappe-charts|frappe-charts)/)',
     '^.+\\.module\\.(css|sass|scss)$',
   ],
   moduleNameMapper: {
     '^.+\\.module\\.(css|sass|scss)$': 'identity-obj-proxy',
+    '<rootDir>/node_modules/react-frappe-charts': 'react-frappe-charts',
   },
 
   // A list of paths to snapshot serializer modules Jest should use for snapshot testing
@@ -109,9 +110,6 @@ module.exports = {
   //   "tsx",
   //   "node"
   // ],
-
-  // A map from regular expressions to module names or to arrays of module names that allow to stub out resources with a single module
-  // moduleNameMapper: {},
 
   // An array of regexp pattern strings, matched against all module paths before considered 'visible' to the module loader
   // modulePathIgnorePatterns: [],
