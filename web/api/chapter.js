@@ -1,12 +1,16 @@
+const { NUMERIC_VALUE_OUT_OF_RANGE } = require('pg-error-constants');
 const dblog = require('debug')('db');
 
 const { requiresUser } = require('../db/auth');
 const db = require('../db');
+const { getChapterReleases } = require('../db/chapter');
 const { generateEqualsColumns, handleError } = require('../db/utils');
 
+const BASE_URL = '/api/chapter';
+
 module.exports = app => {
-  app.use('/api/chapter/:chapter_id(\\d+)', require('body-parser').json());
-  app.post('/api/chapter/:chapter_id(\\d+)', requiresUser, (req, res) => {
+  app.use(`${BASE_URL}/:chapter_id(\\d+)`, require('body-parser').json());
+  app.post(`${BASE_URL}/:chapter_id(\\d+)`, requiresUser, (req, res) => {
     if (!req.user) {
       res.status(401).send({ error: 'Not logged in' });
       return;
@@ -60,7 +64,7 @@ module.exports = app => {
       });
   });
 
-  app.delete('/api/chapter/:chapter_id(\\d+)', requiresUser, (req, res) => {
+  app.delete(`${BASE_URL}/:chapter_id(\\d+)`, requiresUser, (req, res) => {
     if (!req.user) {
       res.status(401).send({ error: 'Not logged in' });
       return;
@@ -83,6 +87,25 @@ module.exports = app => {
       })
       .catch(err => {
         handleError(err, res);
+      });
+  });
+
+  app.get(`${BASE_URL}/releases/:manga_id(\\d+)`, (req, res) => {
+    const mangaId = Number(req.params.manga_id);
+    if (Number.isNaN(mangaId)) {
+      res.status(400).json({ error: 'Invalid manga id given' });
+      return;
+    }
+
+    getChapterReleases(mangaId)
+      .then(rows => res.status(200).json(rows))
+      .catch(err => {
+        if (err.code === NUMERIC_VALUE_OUT_OF_RANGE) {
+          res.status(400).json({ error: 'Invalid manga id given' });
+          return;
+        }
+        console.error(err);
+        res.status(500).json({ error: 'Internal server error' });
       });
   });
 };

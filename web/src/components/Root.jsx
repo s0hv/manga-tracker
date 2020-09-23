@@ -48,22 +48,23 @@ function Copyright(props) {
   );
 }
 
-export default function Layout({ Component, pageProps, props = {} }) {
+export default function Layout(props) {
   const {
     statusCode,
     activeTheme,
     setTheme,
+    children
   } = props;
   const classes = useStyles();
 
   if (statusCode !== 200) {
-    return <Component {...pageProps} />;
+    return children
   }
 
   return (
     <div className={classes.root}>
       <TopBar setTheme={setTheme} activeTheme={activeTheme} />
-      <Component {...pageProps} />
+      {children}
       <div className={classes.container}>
         <footer className={classes.footer}>
           <Divider className={classes.divider} variant='middle' />

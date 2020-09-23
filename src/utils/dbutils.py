@@ -41,40 +41,6 @@ class DbUtil:
     def conn(self) -> Connection:
         return self._conn
 
-    @staticmethod
-    def fuzzy_search_manga(cur: Cursor, title: str, limit: int = 10, return_rows: bool = True) -> Union[Cursor, List[DictRow]]:
-        """
-        Does a fuzzy search of manga and returns the closest matches
-        Args:
-            cur: The cursor that is being used
-            title (str): The query string that the titles are being matched against
-            limit (int): A limit on how many rows can be returned. Cannot be None
-            return_rows (bool): If set to True will return rows in a list. Otherwise
-                will return `cur`
-
-        Returns:
-            list or `cur` depending on `return_rows`
-
-        """
-        sql = """
-            SELECT m.manga_id, m.title, m.latest_release
-            FROM manga m 
-            LEFT JOIN manga_alias ma on m.manga_id = ma.manga_id
-            GROUP BY m.manga_id
-            ORDER BY GREATEST(
-                            MIN(m.title) ILIKE '%' || %(title)s || '%', 
-                        bool_or(ma.title ILIKE '%' || %(title)s || '%')
-                     ) DESC,
-                     LEAST(MIN(m.title <-> %(title)s), MIN(COALESCE(ma.title <-> %(title)s, 1))) LIMIT %(limit)s
-            """
-
-        cur.execute(sql, {'title': title, 'limit': limit})
-
-        if return_rows:
-            return cur.fetchall()
-
-        return cur
-
     @optional_transaction
     def update_manga_next_update(self, cur: Cursor, service_id: int, manga_id: int, next_update: datetime):
         sql = 'UPDATE manga_service SET next_update=%s WHERE manga_id=%s AND service_id=%s'
@@ -272,6 +238,20 @@ class DbUtil:
         cur.execute(sql, data)
 
     @optional_transaction
+    def add_chapters(self, cur: Cursor, manga_id, service_id, chapters: List['base_scraper.BaseChapter']) -> List[DictRow]:
+        args = [
+            (
+                manga_id, service_id, chapter.chapter_title,
+                chapter.chapter_number, chapter.decimal,
+                chapter.chapter_identifier,
+                chapter.release_date, chapter.group
+            ) for chapter in chapters
+        ]
+        sql = 'INSERT INTO chapters (manga_id, service_id, title, chapter_number, chapter_decimal, chapter_identifier, release_date, "group") VALUES ' \
+              '%s ON CONFLICT DO NOTHING RETURNING manga_id, chapter_number, chapter_decimal, release_date, chapter_identifier'
+        return execute_values(cur, sql, args, page_size=max(len(args), 300), fetch=True)
+
+    @optional_transaction
     def update_latest_chapter(self, cur: Cursor, data: Collection[Tuple[int, int, datetime]]) -> None:
         """
         Updates the latest chapter and next chapter estimates for the given manga that contain new chapters
@@ -318,8 +298,9 @@ class DbUtil:
         cur.execute(sql, {'manga': manga_id})
         rows = cur.fetchall()
         if not rows:
-            maintenance.info("Nothing updated because manga id doesn't exist or release_interval was NULL")
+            maintenance.warning("Nothing updated because manga id doesn't exist or release_interval was NULL")
             return
 
         row = rows[0]
         maintenance.info(f'Set estimated release from {row["estimated_release_old"]} to {row["estimated_release"]}')
+        return row

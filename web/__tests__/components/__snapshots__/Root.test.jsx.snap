@@ -219,14 +219,9 @@ exports[`Root component should render correctly Should render with empty input a
 
 exports[`Root component should render correctly should render correctly with data 1`] = `
 <Layout
-  Component={[Function]}
-  props={
-    Object {
-      "activeTheme": 1,
-      "setTheme": [Function],
-      "statusCode": 200,
-    }
-  }
+  activeTheme={1}
+  setTheme={[Function]}
+  statusCode={200}
 >
   <div
     className="makeStyles-root-1"
@@ -1558,14 +1553,9 @@ exports[`Root component should render correctly should render correctly with dat
 
 exports[`Root component should render correctly should render correctly with user 1`] = `
 <Layout
-  Component={[Function]}
-  props={
-    Object {
-      "activeTheme": 1,
-      "setTheme": [Function],
-      "statusCode": 200,
-    }
-  }
+  activeTheme={1}
+  setTheme={[Function]}
+  statusCode={200}
 >
   <div
     className="makeStyles-root-1"

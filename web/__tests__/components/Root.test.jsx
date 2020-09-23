@@ -1,6 +1,6 @@
 import React from 'react';
 import renderer from 'react-test-renderer';
-import { createMount } from '@material-ui/core/test-utils';
+import { createMount, createShallow } from '@material-ui/core/test-utils';
 
 import Root from '../../src/components/Root';
 import { adminUser, mockUTCDates, withUser } from '../utils';
@@ -11,7 +11,7 @@ describe('Root component should render correctly', () => {
   mockUTCDates();
   it('Should render with empty input', () => {
     const tree = renderer
-      .create(<Root Component={DummyComponent} />)
+      .create(<Root><DummyComponent /></Root>)
       .toJSON();
 
     expect(tree).toMatchSnapshot();
@@ -19,7 +19,7 @@ describe('Root component should render correctly', () => {
 
   it('Should render with empty input and correct status code', () => {
     const tree = renderer
-      .create(<Root Component={DummyComponent} props={{ statusCode: 200 }} />)
+      .create(<Root statusCode={200}><DummyComponent /></Root>)
       .toJSON();
 
     expect(tree).toMatchSnapshot();
@@ -28,13 +28,12 @@ describe('Root component should render correctly', () => {
   it('should render correctly with data', () => {
     const tree = createMount()(
       <Root
-        Component={DummyComponent}
-        props={{
-          statusCode: 200,
-          activeTheme: 1,
-          setTheme: () => null,
-        }}
-      />
+        statusCode={200}
+        activeTheme={1}
+        setTheme={() => null}
+      >
+        <DummyComponent />
+      </Root>
     );
 
     expect(tree).toMatchSnapshot();
@@ -44,16 +43,29 @@ describe('Root component should render correctly', () => {
     const elem = await withUser(
       adminUser,
       <Root
-        Component={DummyComponent}
-        props={{
-          statusCode: 200,
-          activeTheme: 1,
-          setTheme: () => null,
-        }}
-      />
+        statusCode={200}
+        activeTheme={1}
+        setTheme={() => null}
+      >
+        <DummyComponent />
+      </Root>
     );
     const tree = createMount()(elem);
 
     expect(tree).toMatchSnapshot();
+  });
+
+  it('Should only return children on non 200 status code', () => {
+    const wrapper = createShallow()(
+      <Root
+        statusCode={400}
+        activeTheme={1}
+        setTheme={() => null}
+      >
+        <DummyComponent />
+      </Root>
+    );
+    // Check that dummy is the top level component
+    expect(wrapper.find(DummyComponent).parent()).toHaveLength(0);
   });
 });

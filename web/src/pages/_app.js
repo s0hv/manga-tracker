@@ -40,6 +40,7 @@ function MainApp({ Component, pageProps, props }) {
   const prefersDarkMode = theme === 0 ? tempDark : theme === 2;
   props.activeTheme = prefersDarkMode ? 2 : 1;
   props.user = user;
+  props.setTheme = childSetTheme;
 
   const activeTheme = React.useMemo(
     () => responsiveFontSizes(createMuiTheme({
@@ -64,7 +65,11 @@ function MainApp({ Component, pageProps, props }) {
         <CssBaseline />
         <MuiPickersUtilsProvider utils={DateFnsUtils} locale={enLocale}>
           <UserProvider value={user}>
-            <Root Component={Component} pageProps={pageProps} props={props} setTheme={childSetTheme} />
+            <Root {...props}>
+              <main>
+                <Component {...pageProps} />
+              </main>
+            </Root>
           </UserProvider>
         </MuiPickersUtilsProvider>
       </ThemeProvider>

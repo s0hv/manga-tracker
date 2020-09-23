@@ -1,5 +1,12 @@
+SET TIME ZONE 'UTC';
+
 -- insert manga
 INSERT INTO manga (manga_id, title, release_interval, latest_release, estimated_release, latest_chapter) VALUES (1, 'Dr. STONE', '0 years 0 mons 7 days 0 hours 0 mins 0.00 secs', '2020-08-02 16:00:00.000000', '2020-08-09 16:00:00.000000', 160);
+INSERT INTO manga (manga_id, title, release_interval, latest_release, estimated_release, latest_chapter) VALUES (2, 'ABCDEFG', '0 years 0 mons 31 days 0 hours 0 mins 0.00 secs', '2020-07-02 16:00:00.000000', '2020-08-02 16:00:00.000000', 1);
+INSERT INTO manga (manga_id, title, release_interval, latest_release, estimated_release, latest_chapter) VALUES (3, 'This is a test', '0 years 0 mons 90 days 0 hours 0 mins 0.00 secs', '2020-03-02 16:00:00.000000', '2020-06-02 16:00:00.000000', 50);
+INSERT INTO manga (manga_id, title, release_interval, latest_release, estimated_release, latest_chapter) VALUES (4, 'Jojo part 2', '0 years 0 mons 30 days 0 hours 0 mins 0.00 secs', '2020-03-02 16:00:00.000000', '2020-06-02 16:00:00.000000', NULL);
+
+SELECT setval(pg_get_serial_sequence('manga', 'manga_id'), MAX(manga_id)) FROM manga;
 
 -- insert services
 INSERT INTO services (service_id, service_name, url, disabled, last_check, chapter_url_format, disabled_until, manga_url_format) VALUES (1, 'MANGA Plus', 'https://mangaplus.shueisha.co.jp', false, '2020-08-06 17:39:18.412026', 'https://mangaplus.shueisha.co.jp/viewer/{}', '2020-08-06 17:55:32.412026', 'https://mangaplus.shueisha.co.jp/titles/{}');
@@ -9,6 +16,8 @@ INSERT INTO service_whole (service_id, feed_url, last_check, next_update, last_i
 -- insert manga service relations
 INSERT INTO manga_service (manga_id, service_id, disabled, last_check, title_id, next_update, latest_chapter, latest_decimal) VALUES (1, 1, false, '2020-08-05 15:34:01.427921', '100010', '2020-08-10 16:00:00.000000', null, null);
 INSERT INTO manga_service (manga_id, service_id, disabled, last_check, title_id, next_update, latest_chapter, latest_decimal) VALUES (1, 2, true, '2020-04-06 13:05:33.853545', '20882', null, null, null);
+INSERT INTO manga_service (manga_id, service_id, disabled, last_check, title_id, next_update, latest_chapter, latest_decimal) VALUES (4, 1, false, NULL, '100072', null, null, null);
+
 
 -- insert chapters
 INSERT INTO chapters (chapter_id, manga_id, service_id, title, chapter_number, chapter_decimal, release_date, chapter_identifier, "group") VALUES (1, 1, 1, 'Z=1: Stone World', 1, null, '2020-05-24 14:24:12.320726+00', '1000310', 'Shueisha');
@@ -21,6 +30,7 @@ INSERT INTO chapters (chapter_id, manga_id, service_id, title, chapter_number, c
 INSERT INTO chapters (chapter_id, manga_id, service_id, title, chapter_number, chapter_decimal, release_date, chapter_identifier, "group") VALUES (122, 1, 1, 'Z=142: World Power', 142, null, '2020-05-24 14:24:12.320726+00', '1006413', 'Shueisha');
 INSERT INTO chapters (chapter_id, manga_id, service_id, title, chapter_number, chapter_decimal, release_date, chapter_identifier, "group") VALUES (884, 1, 1, 'Z=143: Ryusui vs. Senku', 143, null, '2020-05-24 14:24:12.320726+00', '1006414', 'Shueisha');
 INSERT INTO chapters (chapter_id, manga_id, service_id, title, chapter_number, chapter_decimal, release_date, chapter_identifier, "group") VALUES (1010, 1, 2, 'Chapter 142', 142, null, '2020-05-24 14:24:12.320726+00', '823275', 'MangaPlus');
+SELECT setval(pg_get_serial_sequence('chapters', 'chapter_id'), MAX(chapter_id)) FROM chapters;
 
 --insert manga info
 INSERT INTO manga_info (manga_id, cover, status, artist, author, bw, mu, mal, amz, ebj, engtl, raw, nu, kt, ap, al, last_updated) VALUES (1, 'https://mangadex.org/images/manga/20882.jpg?1585634146', 0, 'Boichi', 'Inagaki Riichiro', 'series/114645', '139601', '103897', 'https://www.amazon.co.jp/gp/product/B075F8JBQ1', 'https://www.ebookjapan.jp/ebj/413780/', 'https://www.viz.com/dr-stone', null, null, '38860', 'dr-stone', '98416', '2020-06-28 11:15:55.170446');
@@ -28,6 +38,7 @@ INSERT INTO manga_info (manga_id, cover, status, artist, author, bw, mu, mal, am
 -- insert users
 INSERT INTO users (user_id, username, email, pwhash, user_uuid, joined_at, admin, theme) VALUES (1, 'test ci admin', 'test-admin@test.com', crypt('te!st-pa#ss)wo(rd123', gen_salt('bf')), '22fc15c9-37b9-4869-af86-b334333dedd8', '2020-07-08 12:00:00.344806', true, 2);
 INSERT INTO users (user_id, username, email, pwhash, user_uuid, joined_at, admin, theme) VALUES (3, 'test ci', 'test@test.com', crypt('te!st-pa#ss)wo(rd123', gen_salt('bf')), 'cf5eddfd-e0fe-4e6e-b339-70be6f33794d', '2020-07-08 12:00:00.344806', false, 2);
+SELECT setval(pg_get_serial_sequence('users', 'user_id'), MAX(user_id)) FROM users;
 
 -- insert follows
 INSERT INTO user_follows (manga_id, service_id, user_id) VALUES (1, 1, 1);

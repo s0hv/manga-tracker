@@ -1,7 +1,7 @@
 import React from 'react';
 import { createShallow } from '@material-ui/core/test-utils';
 import Manga from '../../src/components/Manga';
-import { mockUTCDates, normalUser, withUser } from '../utils';
+import { adminUser, mockUTCDates, normalUser, withUser } from '../utils';
 
 describe('Manga page should render correctly', () => {
   mockUTCDates();
@@ -74,9 +74,7 @@ describe('Manga page should render correctly', () => {
   };
   const emptyManga = { manga_id: 2,
     title: 'Dr. STONE',
-    release_interval: {
-      days: 7,
-    },
+    release_interval: undefined,
     latest_release: null,
     estimated_release: null,
     latest_chapter: null,
@@ -120,6 +118,16 @@ describe('Manga page should render correctly', () => {
   it('should render correctly when logged in', async () => {
     const elem = await withUser(
       normalUser,
+      <Manga mangaData={{ ...manga }} follows={follows} />
+    );
+    const wrapper = createShallow()(elem).dive();
+
+    expect(wrapper).toMatchSnapshot();
+  });
+
+  it('Should render correctly as admin', async () => {
+    const elem = await withUser(
+      adminUser,
       <Manga mangaData={{ ...manga }} follows={follows} />
     );
     const wrapper = createShallow()(elem).dive();

@@ -2,7 +2,7 @@
 
 exports[`Follows page should render correctly should render correctly with follows 1`] = `
 <div
-  className="MuiContainer-root MuiContainer-maxWidthLg"
+  className="MuiContainer-root MuiContainer-disableGutters MuiContainer-maxWidthLg"
 >
   <div
     className="MuiPaper-root makeStyles-root-1 MuiPaper-elevation1 MuiPaper-rounded"
@@ -502,7 +502,7 @@ exports[`Follows page should render correctly should render correctly with follo
 
 exports[`Follows page should render correctly should render correctly without follows 1`] = `
 <div
-  className="MuiContainer-root MuiContainer-maxWidthLg"
+  className="MuiContainer-root MuiContainer-disableGutters MuiContainer-maxWidthLg"
 >
   <div
     className="MuiPaper-root makeStyles-root-1 MuiPaper-elevation1 MuiPaper-rounded"

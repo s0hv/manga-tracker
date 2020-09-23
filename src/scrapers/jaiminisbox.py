@@ -1,5 +1,6 @@
 import logging
 import re
+import warnings
 from calendar import timegm
 from datetime import datetime, timedelta
 from typing import Optional, Dict, Any
@@ -88,6 +89,10 @@ class JaiminisBox(BaseScraper):
     CHAPTER_REGEX = re.compile(r'(?P<manga_title>.+?) +(?:(?:Chapter|Z=) ?(?P<chapter_number>\d+)(?:\.(?P<chapter_decimal>\d))?,?)(?::? (?P<chapter_title>.+))?')
     CHAPTER_URL_FORMAT = 'https://jaiminisbox.com/reader/{}'
     MANGA_URL_FORMAT = 'https://jaiminisbox.com/reader/series/{}'
+
+    def __init__(self, *args):
+        warnings.warn("Jaimini's box has shut down", DeprecationWarning)
+        super().__init__(*args)
 
     def scrape_series(self, title_id, service_id, manga_id):
         pass

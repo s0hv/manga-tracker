@@ -16,13 +16,28 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
+    container: python:3.8-buster
+
+    services:
+      # Label used to access the service container
+      postgres:
+        # Docker Hub image
+        image: postgres:12.4
+        # Provide the password for postgres
+        env:
+          POSTGRES_PASSWORD: postgres
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
     - uses: actions/checkout@v2
-    - name: Set up Python 3.8
-      uses: actions/setup-python@v1
+    - uses: actions/setup-node@v1
       with:
-        python-version: 3.8
+        node-version: '14'
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
@@ -34,7 +49,15 @@ jobs:
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+    - name: Install db migration dependencies
+      run: npm ci --ignore-scripts
     - name: Test with pytest
-      run: |
-        pip install pytest
-        python -m pytest src
+      run: python -m pytest src
+
+    env:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: postgres
+      DB_USER: postgres
+      PGPASSWORD: postgres
+      NO_TEMP_DB: TRUE
