@@ -27,6 +27,7 @@ function createFeed(rows) {
       custom_elements: [
         { 'manga:id': row.manga_id },
         { 'manga:title': row.manga_title },
+        { 'manga:cover': row.cover },
       ],
     });
   });
