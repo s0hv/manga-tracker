@@ -31,12 +31,46 @@ function getLatestReleases(serviceId, mangaId, userUUID) {
             FROM chapters c ${joins.join(' ')}
             ${where.length > 0 ? 'WHERE ' + where.join(' AND ') : ''}
         )
-        SELECT c.chapter_id, m.title as manga_title, m.manga_id, m.release_interval, c.title, c.chapter_number, c.chapter_decimal, c.release_date, c.chapter_identifier, s.service_name, s.chapter_url_format, s.url, c."group"
-        FROM chapters_filtered c INNER JOIN manga m on c.manga_id = m.manga_id INNER JOIN services s on c.service_id = s.service_id 
+        SELECT 
+               c.chapter_id,
+               m.title as manga_title,
+               m.manga_id,
+               m.release_interval,
+               c.title,
+               c.chapter_number,
+               c.chapter_decimal,
+               c.release_date,
+               c.chapter_identifier,
+               s.service_name,
+               s.chapter_url_format,
+               s.url,
+               c."group",
+               mi.cover
+        FROM chapters_filtered c 
+            INNER JOIN manga m on c.manga_id = m.manga_id
+            INNER JOIN services s on c.service_id = s.service_id
+            INNER JOIN manga_info mi ON m.manga_id = mi.manga_id
         WHERE c.release_date > NOW() - INTERVAL '1 hour'
         UNION 
-              (SELECT c.chapter_id, m.title as manga_title, m.manga_id, m.release_interval, c.title, c.chapter_number, c.chapter_decimal, c.release_date, c.chapter_identifier, s.service_name, s.chapter_url_format, s.url, c."group"
-              FROM chapters_filtered c INNER JOIN manga m on c.manga_id = m.manga_id INNER JOIN services s on c.service_id = s.service_id
+              (SELECT 
+                      c.chapter_id,
+                      m.title as manga_title,
+                      m.manga_id,
+                      m.release_interval,
+                      c.title,
+                      c.chapter_number,
+                      c.chapter_decimal,
+                      c.release_date,
+                      c.chapter_identifier,
+                      s.service_name,
+                      s.chapter_url_format,
+                      s.url,
+                      c."group",
+                      mi.cover
+              FROM chapters_filtered c
+                  INNER JOIN manga m on c.manga_id = m.manga_id
+                  INNER JOIN services s on c.service_id = s.service_id
+                  INNER JOIN manga_info mi ON m.manga_id = mi.manga_id
               ORDER BY release_date DESC, chapter_number DESC
               LIMIT 30)
         ORDER BY release_date DESC, chapter_number DESC`;
