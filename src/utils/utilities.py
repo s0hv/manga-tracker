@@ -101,7 +101,7 @@ def get_latest_chapters(rows: Iterable[Union[dict, DictRow]]) -> Dict[str, Tuple
             continue
         manga_id = row['manga_id']
         if manga_id in chapter_data:
-            if chapter_data[manga_id][1] < row['chapter_number'] or chapter_data[manga_id][2] > row['release_date']:
+            if chapter_data[manga_id][1] > row['chapter_number'] or chapter_data[manga_id][2] > row['release_date']:
                 continue
 
         chapter_data[manga_id] = (row['manga_id'], row['chapter_number'], row['release_date'])

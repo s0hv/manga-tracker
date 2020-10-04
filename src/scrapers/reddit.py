@@ -11,7 +11,7 @@ from lxml import etree
 
 from src.errors import FeedHttpError, InvalidFeedError, RequiredInformationMissing
 from src.scrapers.base_scraper import BaseScraper, BaseChapter
-from src.utils.utilities import match_title, is_valid_feed
+from src.utils.utilities import match_title, is_valid_feed, get_latest_chapters
 
 logger = logging.getLogger('debug')
 
@@ -161,6 +161,14 @@ class Reddit(BaseScraper):
 
         logger.info(f'{len(chapters)} new chapters on {feed_url}')
         self.dbutil.add_chapters(manga_id, service_id, chapters, fetch=False)
+
+        chapter_rows = [{
+            'chapter_decimal': c.decimal,
+            'manga_id': manga_id,
+            'chapter_number': c.chapter_number,
+            'release_date': c.release_date
+        } for c in chapters]
+        self.dbutil.update_latest_chapter(tuple(c for c in get_latest_chapters(chapter_rows).values()))
         return True
 
     def scrape_service(self, service_id: int, feed_url: str, last_update: Optional[datetime], title_id: Optional[str] = None):
