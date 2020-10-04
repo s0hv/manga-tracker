@@ -5,15 +5,25 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 from datetime import datetime, timedelta
+from typing import Type, ContextManager, TypedDict, Optional, Collection
 
 import psycopg2
 from psycopg2.extras import DictCursor
 from psycopg2.pool import ThreadedConnectionPool
+from psycopg2.extensions import connection as Connection
 
 from src.scrapers import SCRAPERS
+from src.scrapers.base_scraper import BaseScraper
 from src.utils.dbutils import DbUtil
 
 logger = logging.getLogger('debug')
+
+
+class MangaServiceInfo(TypedDict):
+    manga_id: int
+    title_id: str
+    service_id: int
+    feed_url: Optional[str]
 
 
 class UpdateScheduler:
@@ -38,7 +48,7 @@ class UpdateScheduler:
         self.thread_pool = ThreadPoolExecutor(max_workers=self.MAX_POOLS-1)
 
     @contextmanager
-    def conn(self):
+    def conn(self) -> ContextManager[Connection]:
         conn = self.pool.getconn()
         try:
             conn.set_client_encoding('UTF8')
@@ -49,7 +59,11 @@ class UpdateScheduler:
         finally:
             self.pool.putconn(conn)
 
-    def scrape_service(self, service_id, Scraper, manga_info):
+    # noinspection PyPep8Naming
+    def scrape_service(self,
+                       service_id: int,
+                       Scraper: Type[BaseScraper],
+                       manga_info: Collection[MangaServiceInfo]):
         with self.conn() as conn:
             with conn:
                 scraper = Scraper(conn, DbUtil(conn))
@@ -58,18 +72,22 @@ class UpdateScheduler:
                 errors = 0
 
                 idx = 0
-                for title_id, manga_id in manga_info:
+                for info in manga_info:
+                    title_id = info['title_id']
+                    manga_id = info['manga_id']
+                    feed_url = info['feed_url']
                     logger.info(f'Updating {title_id} on service {service_id}')
                     try:
-                        if scraper.scrape_series(title_id, service_id, manga_id):
+                        if res := scraper.scrape_series(title_id, service_id,
+                                                        manga_id, feed_url) is True:
                             manga_ids.add(manga_id)
-                        else:
+                        elif res is None:
                             errors += 1
-                            logger.error(f'Failed to scrape series {manga_info}')
+                            logger.error(f'Failed to scrape series {title_id} {manga_id}')
                     except psycopg2.Error:
                         conn.rollback()
                         logger.exception(f'Database error while updating manga {title_id} on service {service_id}')
-                        scraper.dbutil.update_manga_next_update(service_id, manga_id, scraper.min_update_interval())
+                        scraper.dbutil.update_manga_next_update(service_id, manga_id, scraper.next_update())
                         errors += 1
 
                     if errors > 1:
@@ -106,7 +124,8 @@ class UpdateScheduler:
 
                     logger.info(f'Updating {row["title_id"]}')
                     with conn:
-                        if not scraper.scrape_series(row["title_id"], row['service_id'],
+                        if not scraper.scrape_series(row["title_id"],
+                                                     row['service_id'],
                                                      row['manga_id']):
                             logger.error(f'Failed to scrape series {row}')
 
@@ -142,10 +161,13 @@ class UpdateScheduler:
     def run_once(self):
         with self.conn() as conn:
             futures = []
-            sql = "SELECT ms.service_id, s.url, array_agg(ms.title_id) title_ids, array_agg(ms.manga_id) manga_ids " \
-                  "FROM manga_service ms " \
-                  "INNER JOIN services s ON s.service_id=ms.service_id " \
-                  "WHERE NOT (s.disabled OR ms.disabled) AND (s.disabled_until IS NULL OR s.disabled_until < NOW()) AND (ms.next_update IS NULL OR ms.next_update < NOW()) GROUP BY ms.service_id, s.url"
+            sql = '''
+                SELECT ms.service_id, s.url, array_agg(json_build_object('title_id', ms.title_id, 'manga_id', ms.manga_id, 'feed_url', ms.feed_url)) as manga_info
+                FROM manga_service ms
+                INNER JOIN services s ON s.service_id=ms.service_id
+                WHERE NOT (s.disabled OR ms.disabled) AND (s.disabled_until IS NULL OR s.disabled_until < NOW()) AND (ms.next_update IS NULL OR ms.next_update < NOW())
+                GROUP BY ms.service_id, s.url
+            '''
 
             with conn.cursor() as cursor:
                 cursor.execute(sql)
@@ -158,15 +180,9 @@ class UpdateScheduler:
                         logger.error(f'Failed to find scraper for {row}')
                         continue
 
-                    manga_info = []
-                    for title_id, manga_id in zip(row['title_ids'][:batch_size],
-                                                  row['manga_ids'][:batch_size]):
-
-                        manga_info.append((title_id, manga_id))
-
                     futures.append(self.thread_pool.submit(
                         self.scrape_service, row['service_id'],
-                        Scraper, manga_info
+                        Scraper, row['manga_info'][:batch_size]
                     ))
 
             for r in futures:

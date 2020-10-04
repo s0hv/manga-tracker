@@ -1,0 +1,1 @@
+ALTER TABLE manga_service ADD COLUMN feed_url TEXT DEFAULT NULL

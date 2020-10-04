@@ -84,6 +84,7 @@ class Chapter(BaseChapter):
 class MangaDex(BaseScraper):
     ID = 2
     URL = 'https://mangadex.org'
+    NAME = 'MangaDex'
     FEED_URL = 'REPLACE ME'  # Temp url that will be replaced in the database
     CHAPTER_REGEX = re.compile(r'(?P<manga_title>.+) -($| (((?:Volume (?P<volume>\d+),? )?Chapter (?P<chapter>\d+)(?:\.?(?P<decimal>\d+))?)|(?:(?P<chapter_title>.+?)(( - )?Oneshot)?)$))')
     DESCRIPTION_REGEX = re.compile(r'Group: (?P<group>.+?) - Uploader: (?P<uploader>.+?) - Language: (?P<language>\w+)')
@@ -96,7 +97,7 @@ class MangaDex(BaseScraper):
     def min_update_interval() -> timedelta:
         return MangaDex.UPDATE_INTERVAL
 
-    def scrape_series(self, *args):
+    def scrape_series(self, title_id, feed_url=None):
         pass
 
     def set_checked(self, service_id: int) -> None:
@@ -252,6 +253,8 @@ class MangaDex(BaseScraper):
                 if fails > 2:
                     return
                 continue
+
+            # TODO add manga info updates here
 
             for chapter_id in data.get('chapter', {}):
                 if chapter_id not in chapter_ids:

@@ -227,6 +227,7 @@ class ChapterWrapper(BaseChapter):
 
 class MangaPlus(BaseScraper):
     ID = 1
+    NAME = 'MANGA Plus'
     API = 'https://jumpg-webapi.tokyo-cdn.com/api/title_detail?title_id={}'
     URL = 'https://mangaplus.shueisha.co.jp'
     MANGA_URL = 'https://mangaplus.shueisha.co.jp/titles/{}'
@@ -251,10 +252,10 @@ class MangaPlus(BaseScraper):
             r = requests.get(self.API.format(title_id))
         except requests.RequestException:
             logger.exception('Failed to fetch series')
-            return False
+            return
 
         if r.status_code != 200:
-            return False
+            return
 
         resp = ResponseWrapper(r.content)
         title_detail = resp.title_detail_view
@@ -287,7 +288,8 @@ class MangaPlus(BaseScraper):
     def scrape_service(self, *args, **kwargs):
         pass
 
-    def scrape_series(self, title_id: str, service_id: int, manga_id: int):
+    def scrape_series(self, title_id: str, service_id: int, manga_id: int,
+                      feed_url=None) -> Optional[bool]:
         series = self.parse_series(title_id)
         if not isinstance(series, TitleDetailViewWrapper):
             return series

@@ -162,6 +162,20 @@ class BaseTestClasses:
             if date_fix(date1) >= date_fix(date2):
                 self.fail(f'Date {date1} is later or equal to {date2}')
 
+    class ModelAssertions(unittest.TestCase):
+        def assertChaptersEqual(self, a: BaseChapter, b: BaseChapter):
+            self.assertEqual(a.chapter_title, b.chapter_title)
+            self.assertEqual(a.chapter_number, b.chapter_number)
+            self.assertEqual(a.volume, b.volume)
+            self.assertEqual(a.decimal, b.decimal)
+            self.assertEqual(a.release_date, b.release_date)
+            self.assertEqual(a.chapter_identifier, b.chapter_identifier)
+            self.assertEqual(a.title_id, b.title_id)
+            self.assertEqual(a.manga_title, b.manga_title)
+            self.assertEqual(a.manga_url, b.manga_url)
+            self.assertEqual(a.group, b.group)
+            self.assertEqual(a.title, b.title)
+
 
 class Chapter(BaseChapter):
     def __init__(self, chapter_title: str = None, chapter_number: int = None,

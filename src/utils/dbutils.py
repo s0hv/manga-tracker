@@ -1,8 +1,8 @@
 import logging
 import statistics
 from datetime import datetime, timedelta
-from typing import Union, Any, Protocol, Optional, List, Dict, Generator, Tuple, \
-    Collection
+from typing import (Union, Any, Protocol, Optional, List, Dict, Generator, Tuple,
+                    Collection, Iterable)
 
 from psycopg2.extensions import connection as Connection, cursor as Cursor
 from psycopg2.extras import execute_values, DictRow
@@ -238,7 +238,8 @@ class DbUtil:
         cur.execute(sql, data)
 
     @optional_transaction
-    def add_chapters(self, cur: Cursor, manga_id, service_id, chapters: List['base_scraper.BaseChapter']) -> List[DictRow]:
+    def add_chapters(self, cur: Cursor, manga_id, service_id,
+                     chapters: List['base_scraper.BaseChapter'], fetch: bool = True) -> Optional[List[DictRow]]:
         args = [
             (
                 manga_id, service_id, chapter.chapter_title,
@@ -249,7 +250,7 @@ class DbUtil:
         ]
         sql = 'INSERT INTO chapters (manga_id, service_id, title, chapter_number, chapter_decimal, chapter_identifier, release_date, "group") VALUES ' \
               '%s ON CONFLICT DO NOTHING RETURNING manga_id, chapter_number, chapter_decimal, release_date, chapter_identifier'
-        return execute_values(cur, sql, args, page_size=max(len(args), 300), fetch=True)
+        return execute_values(cur, sql, args, page_size=max(len(args), 300), fetch=fetch)
 
     @optional_transaction
     def update_latest_chapter(self, cur: Cursor, data: Collection[Tuple[int, int, datetime]]) -> None:
@@ -304,3 +305,21 @@ class DbUtil:
         row = rows[0]
         maintenance.info(f'Set estimated release from {row["estimated_release_old"]} to {row["estimated_release"]}')
         return row
+
+    @optional_transaction
+    def get_only_latest_entries(self, cur: Cursor, service_id: int, entries: Iterable['base_scraper.BaseChapter']) -> Collection['base_scraper.BaseChapter']:
+        try:
+            sql = 'SELECT chapter_identifier FROM chapters WHERE service_id=%s ORDER BY chapter_id DESC LIMIT 400'
+            cur.execute(sql, (service_id,))
+            chapters = set(r[0] for r in cur)
+
+            return set(entries).difference(chapters)
+
+        except:
+            logger.exception('Failed to get old chapters')
+            return list(entries)
+
+    @optional_transaction
+    def set_manga_last_checked(self, cur: Cursor, service_id: int, manga_id: int, last_checked: Optional[datetime]):
+        sql = 'UPDATE manga_service SET last_check=%s WHERE manga_id=%s AND service_id=%s'
+        cur.execute(sql, [last_checked, manga_id, service_id])
