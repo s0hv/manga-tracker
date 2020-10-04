@@ -2,7 +2,11 @@ from typing import Union
 from xml.sax import SAXException
 
 
-class BaseFeedException(Exception):
+class BaseScraperException(Exception):
+    pass
+
+
+class BaseFeedException(BaseScraperException):
     pass
 
 
@@ -15,3 +19,11 @@ class InvalidFeedError(BaseFeedException):
         exc = original.getException() if hasattr(original, 'getException') else original
         super().__init__(f'{msg}\n{exc}')
         self.original = original
+
+
+class InvalidChapterIdentifier(BaseScraperException):
+    pass
+
+
+class RequiredInformationMissing(BaseScraperException):
+    pass

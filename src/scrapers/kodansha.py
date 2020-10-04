@@ -130,7 +130,7 @@ class KodanshaComics(BaseScraper):
     def min_update_interval() -> timedelta:
         return random_timedelta(timedelta(hours=1), timedelta(hours=2))
 
-    def scrape_series(self, title_id, service_id, manga_id) -> None:
+    def scrape_series(self, title_id, service_id, manga_id, feed_url=None) -> None:
         return
 
     def set_checked(self, service_id: int) -> None:

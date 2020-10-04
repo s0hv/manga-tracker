@@ -128,8 +128,16 @@ class BaseScraper(metaclass=abc.ABCMeta):
     def min_update_interval() -> timedelta:
         raise NotImplementedError
 
+    def next_update(self) -> datetime:
+        return datetime.utcnow() + self.min_update_interval()
+
     @abc.abstractmethod
-    def scrape_series(self, title_id: str, service_id: int, manga_id: int):
+    def scrape_series(self, title_id: str, service_id: int, manga_id: int, feed_url: Optional[str] = None) -> Optional[bool]:
+        """
+        Returns:
+            Boolean that tells if the manga was updated (True) or not (False).
+            Returns None if updating failed
+        """
         raise NotImplementedError
 
     @abc.abstractmethod

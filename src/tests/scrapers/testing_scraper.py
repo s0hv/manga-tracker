@@ -16,7 +16,8 @@ class DummyScraper(BaseScraper):
     def min_update_interval() -> timedelta:
         return timedelta(0)
 
-    def scrape_series(self, title_id: str, service_id: int, manga_id: int):
+    def scrape_series(self, title_id: str, service_id: int, manga_id: int,
+                      feed_url=None):
         pass
 
     def scrape_service(self, service_id: int, feed_url: str,

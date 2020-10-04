@@ -133,7 +133,7 @@ class ComiXology(BaseScraper):
     def wait() -> None:
         time.sleep(random_timedelta(timedelta(seconds=2), timedelta(seconds=10)).total_seconds())
 
-    def scrape_series(self, title_id, service_id, manga_id):
+    def scrape_series(self, title_id, service_id, manga_id, feed_url=None):
         pass
 
     def scrape_service(self, service_id, feed_url, last_update, title_id=None):

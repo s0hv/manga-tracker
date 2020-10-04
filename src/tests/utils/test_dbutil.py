@@ -72,7 +72,7 @@ testing_series = {
 }
 
 
-class MyTestCase(BaseTestClasses.DatabaseTestCase):
+class TestDbUtil(BaseTestClasses.DatabaseTestCase):
     def setUp(self) -> None:
         super().setUp()
 

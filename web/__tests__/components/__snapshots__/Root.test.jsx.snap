@@ -87,7 +87,7 @@ exports[`Root component should render correctly Should render with empty input a
               onBlur={[Function]}
               onChange={[Function]}
               onFocus={[Function]}
-              placeholder="Search…"
+              placeholder="Search manga"
               spellCheck={false}
               type="text"
             />
@@ -856,7 +856,9 @@ exports[`Root component should render correctly should render correctly with dat
                           className="makeStyles-grow-7"
                         />
                         <MangaSearch
+                          closeOnClick={true}
                           id="title-search"
+                          placeholder="Search manga"
                         >
                           <div
                             className="makeStyles-search-15"
@@ -888,7 +890,7 @@ exports[`Root component should render correctly should render correctly with dat
                                       autocomplete="off"
                                       class="MuiInputBase-input makeStyles-inputInput-18 MuiInputBase-inputAdornedEnd"
                                       id="title-search"
-                                      placeholder="Search…"
+                                      placeholder="Search manga"
                                       spellcheck="false"
                                       type="text"
                                       value=""
@@ -900,7 +902,7 @@ exports[`Root component should render correctly should render correctly with dat
                               onBlur={[Function]}
                               onChange={[Function]}
                               onFocus={[Function]}
-                              placeholder="Search…"
+                              placeholder="Search manga"
                             >
                               <ForwardRef(InputBase)
                                 classes={
@@ -944,7 +946,7 @@ exports[`Root component should render correctly should render correctly with dat
                                         autocomplete="off"
                                         class="MuiInputBase-input makeStyles-inputInput-18 MuiInputBase-inputAdornedEnd"
                                         id="title-search"
-                                        placeholder="Search…"
+                                        placeholder="Search manga"
                                         spellcheck="false"
                                         type="text"
                                         value=""
@@ -956,7 +958,7 @@ exports[`Root component should render correctly should render correctly with dat
                                 onBlur={[Function]}
                                 onChange={[Function]}
                                 onFocus={[Function]}
-                                placeholder="Search…"
+                                placeholder="Search manga"
                               >
                                 <div
                                   className="MuiInputBase-root makeStyles-inputRoot-17 MuiInputBase-adornedEnd"
@@ -972,7 +974,7 @@ exports[`Root component should render correctly should render correctly with dat
                                     onBlur={[Function]}
                                     onChange={[Function]}
                                     onFocus={[Function]}
-                                    placeholder="Search…"
+                                    placeholder="Search manga"
                                     spellCheck={false}
                                     type="text"
                                   />
@@ -2190,7 +2192,9 @@ exports[`Root component should render correctly should render correctly with use
                           className="makeStyles-grow-7"
                         />
                         <MangaSearch
+                          closeOnClick={true}
                           id="title-search"
+                          placeholder="Search manga"
                         >
                           <div
                             className="makeStyles-search-15"
@@ -2222,7 +2226,7 @@ exports[`Root component should render correctly should render correctly with use
                                       autocomplete="off"
                                       class="MuiInputBase-input makeStyles-inputInput-18 MuiInputBase-inputAdornedEnd"
                                       id="title-search"
-                                      placeholder="Search…"
+                                      placeholder="Search manga"
                                       spellcheck="false"
                                       type="text"
                                       value=""
@@ -2234,7 +2238,7 @@ exports[`Root component should render correctly should render correctly with use
                               onBlur={[Function]}
                               onChange={[Function]}
                               onFocus={[Function]}
-                              placeholder="Search…"
+                              placeholder="Search manga"
                             >
                               <ForwardRef(InputBase)
                                 classes={
@@ -2278,7 +2282,7 @@ exports[`Root component should render correctly should render correctly with use
                                         autocomplete="off"
                                         class="MuiInputBase-input makeStyles-inputInput-18 MuiInputBase-inputAdornedEnd"
                                         id="title-search"
-                                        placeholder="Search…"
+                                        placeholder="Search manga"
                                         spellcheck="false"
                                         type="text"
                                         value=""
@@ -2290,7 +2294,7 @@ exports[`Root component should render correctly should render correctly with use
                                 onBlur={[Function]}
                                 onChange={[Function]}
                                 onFocus={[Function]}
-                                placeholder="Search…"
+                                placeholder="Search manga"
                               >
                                 <div
                                   className="MuiInputBase-root makeStyles-inputRoot-17 MuiInputBase-adornedEnd"
@@ -2306,7 +2310,7 @@ exports[`Root component should render correctly should render correctly with use
                                     onBlur={[Function]}
                                     onChange={[Function]}
                                     onFocus={[Function]}
-                                    placeholder="Search…"
+                                    placeholder="Search manga"
                                     spellCheck={false}
                                     type="text"
                                   />
@@ -2787,7 +2791,7 @@ exports[`Root component should render correctly should render correctly with use
                                                             autocomplete="off"
                                                             class="MuiInputBase-input makeStyles-inputInput-18 MuiInputBase-inputAdornedEnd"
                                                             id="title-search"
-                                                            placeholder="Search…"
+                                                            placeholder="Search manga"
                                                             spellcheck="false"
                                                             type="text"
                                                             value=""
@@ -2944,7 +2948,7 @@ exports[`Root component should render correctly should render correctly with use
                                                             autocomplete="off"
                                                             class="MuiInputBase-input makeStyles-inputInput-18 MuiInputBase-inputAdornedEnd"
                                                             id="title-search"
-                                                            placeholder="Search…"
+                                                            placeholder="Search manga"
                                                             spellcheck="false"
                                                             type="text"
                                                             value=""

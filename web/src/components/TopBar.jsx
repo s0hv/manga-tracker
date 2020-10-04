@@ -157,7 +157,11 @@ function TopBar(props) {
             <HomeIcon />
           </LinkComponent>
           <div className={classes.grow} />
-          <MangaSearch id='title-search' />
+          <MangaSearch
+            id='title-search'
+            placeholder='Search manga'
+            closeOnClick
+          />
           {(user && (
           <div className={classes.profileIcon}>
             <IconButton

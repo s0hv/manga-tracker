@@ -84,6 +84,7 @@ class Chapter(BaseChapter):
 
 class JaiminisBox(BaseScraper):
     ID = 3
+    NAME = "Jaimini's Box"
     URL = 'https://jaiminisbox.com'
     FEED_URL = 'https://jaiminisbox.com/reader/feeds'
     CHAPTER_REGEX = re.compile(r'(?P<manga_title>.+?) +(?:(?:Chapter|Z=) ?(?P<chapter_number>\d+)(?:\.(?P<chapter_decimal>\d))?,?)(?::? (?P<chapter_title>.+))?')
@@ -94,7 +95,7 @@ class JaiminisBox(BaseScraper):
         warnings.warn("Jaimini's box has shut down", DeprecationWarning)
         super().__init__(*args)
 
-    def scrape_series(self, title_id, service_id, manga_id):
+    def scrape_series(self, title_id, service_id, manga_id, feed_url=None):
         pass
 
     @staticmethod
