@@ -89,6 +89,11 @@ class UpdateScheduler:
                         logger.exception(f'Database error while updating manga {title_id} on service {service_id}')
                         scraper.dbutil.update_manga_next_update(service_id, manga_id, scraper.next_update())
                         errors += 1
+                    except:
+                        conn.rollback()
+                        logger.exception(f'Unknown error while updating manga {title_id} on service {service_id}')
+                        scraper.dbutil.update_manga_next_update(service_id, manga_id, scraper.next_update())
+                        errors += 1
 
                     if errors > 1:
                         break
@@ -235,7 +240,24 @@ class UpdateScheduler:
                         for manga_id in manga_ids:
                             dbutil.update_chapter_interval(cursor, manga_id)
 
-            sql = 'SELECT LEAST(MIN(ms.next_update), (SELECT MIN(sw.next_update) FROM service_whole sw)) FROM manga_service ms'
+            sql = '''
+            SELECT MIN(t.update) FROM (
+                SELECT
+                   LEAST(
+                       GREATEST(MIN(ms.next_update), s.disabled_until),
+                       (
+                           SELECT MIN(GREATEST(sw.next_update, s2.disabled_until))
+                           FROM service_whole sw 
+                               INNER JOIN services s2 ON s2.service_id = sw.service_id 
+                           WHERE s2.disabled=FALSE
+                       )
+                   ) as update
+                FROM manga_service ms
+                INNER JOIN services s ON s.service_id = ms.service_id
+                WHERE s.disabled=FALSE
+                GROUP BY s.service_id, ms.service_id
+            ) as t
+            '''
             with conn.cursor() as cursor:
                 cursor.execute(sql)
                 retval = cursor.fetchone()

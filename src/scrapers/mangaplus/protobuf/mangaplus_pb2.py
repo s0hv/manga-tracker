@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x18protobuf/mangaplus.proto\"&\n\x05Popup\x12\x0f\n\x07subject\x18\x01 \x01(\t\x12\x0c\n\x04\x62ody\x18\x02 \x01(\t\"\xcd\x01\n\x05Title\x12\x10\n\x08title_id\x18\x01 \x01(\r\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x0e\n\x06\x61uthor\x18\x03 \x01(\t\x12\x1a\n\x12portrait_image_url\x18\x04 \x01(\t\x12\x1b\n\x13landscape_image_url\x18\x05 \x01(\t\x12\x12\n\nview_count\x18\x06 \x01(\r\x12!\n\x08language\x18\x07 \x01(\x0e\x32\x0f.Title.Language\"$\n\x08Language\x12\x0b\n\x07\x45NGLISH\x10\x00\x12\x0b\n\x07SPANISH\x10\x01\"\x97\x01\n\x07\x43hapter\x12\x10\n\x08title_id\x18\x01 \x01(\r\x12\x12\n\nchapter_id\x18\x02 \x01(\r\x12\x0c\n\x04name\x18\x03 \x01(\t\x12\x11\n\tsub_title\x18\x04 \x01(\t\x12\x15\n\rthumbnail_url\x18\x05 \x01(\t\x12\x17\n\x0fstart_timestamp\x18\x06 \x01(\r\x12\x15\n\rend_timestamp\x18\x07 \x01(\r\"\xaf\x04\n\x0fTitleDetailView\x12\x15\n\x05title\x18\x01 \x01(\x0b\x32\x06.Title\x12\x17\n\x0ftitle_image_url\x18\x02 \x01(\t\x12\x10\n\x08overview\x18\x03 \x01(\t\x12\x1c\n\x14\x62\x61\x63kground_image_url\x18\x04 \x01(\t\x12\x16\n\x0enext_timestamp\x18\x05 \x01(\r\x12\x34\n\rupdate_timing\x18\x06 \x01(\x0e\x32\x1d.TitleDetailView.UpdateTiming\x12\"\n\x1aviewing_period_description\x18\x07 \x01(\t\x12\x1b\n\x13non_appearance_info\x18\x08 \x01(\t\x12$\n\x12\x66irst_chapter_list\x18\t \x03(\x0b\x32\x08.Chapter\x12#\n\x11last_chapter_list\x18\n \x03(\x0b\x32\x08.Chapter\x12\"\n\x12recommended_titles\x18\x0c \x03(\x0b\x32\x06.Title\x12\x18\n\x10is_simul_release\x18\x0e \x01(\x08\x12\x1b\n\x13\x63hapters_descending\x18\x11 \x01(\x08\"\x86\x01\n\x0cUpdateTiming\x12\x11\n\rNOT_REGULARLY\x10\x00\x12\n\n\x06MONDAY\x10\x01\x12\x0b\n\x07TUESDAY\x10\x02\x12\r\n\tWEDNESDAY\x10\x03\x12\x0c\n\x08THURSDAY\x10\x04\x12\n\n\x06\x46RIDAY\x10\x05\x12\x0c\n\x08SATURDAY\x10\x06\x12\n\n\x06SUNDAY\x10\x07\x12\x07\n\x03\x44\x41Y\x10\x08\"\'\n\rAllTitlesView\x12\x16\n\x06titles\x18\x01 \x03(\x0b\x32\x06.Title\"e\n\rSuccessResult\x12 \n\x06titles\x18\x05 \x01(\x0b\x32\x0e.AllTitlesViewH\x00\x12(\n\x0ctitle_detail\x18\x08 \x01(\x0b\x32\x10.TitleDetailViewH\x00\x42\x08\n\x06result\"x\n\x0b\x45rrorResult\x12\x17\n\x06\x61\x63tion\x18\x01 \x01(\x0e\x32\x07.Action\x12\x1d\n\renglish_popup\x18\x02 \x01(\x0b\x32\x06.Popup\x12\x1d\n\rspanish_popup\x18\x03 \x01(\x0b\x32\x06.Popup\x12\x12\n\ndebug_info\x18\x04 \x01(\t\"V\n\x08Response\x12&\n\x0esuccess_result\x18\x01 \x01(\x0b\x32\x0e.SuccessResult\x12\"\n\x0c\x65rror_result\x18\x02 \x01(\x0b\x32\x0c.ErrorResult*L\n\x06\x41\x63tion\x12\x0b\n\x07\x44\x45\x46\x41ULT\x10\x00\x12\x10\n\x0cUNAUTHORIZED\x10\x01\x12\x0f\n\x0bMAINTENANCE\x10\x02\x12\x12\n\x0eGEOIP_BLOCKING\x10\x03\x62\x06proto3'
+  serialized_pb=b'\n\x18protobuf/mangaplus.proto\"}\n\x0cUpdatedTitle\x12\x15\n\x05title\x18\x01 \x01(\x0b\x32\x06.Title\x12\x12\n\nchapter_id\x18\x02 \x01(\r\x12\x14\n\x0c\x63hapter_name\x18\x03 \x01(\t\x12\x19\n\x11\x63hapter_sub_title\x18\x04 \x01(\t\x12\x11\n\tis_latest\x18\x05 \x01(\x08\"2\n\x11UpdatedTitleGroup\x12\x1d\n\x06titles\x18\x02 \x03(\x0b\x32\r.UpdatedTitle\"1\n\x0bWebHomeView\x12\"\n\x06groups\x18\x02 \x03(\x0b\x32\x12.UpdatedTitleGroup\"&\n\x05Popup\x12\x0f\n\x07subject\x18\x01 \x01(\t\x12\x0c\n\x04\x62ody\x18\x02 \x01(\t\"\xcd\x01\n\x05Title\x12\x10\n\x08title_id\x18\x01 \x01(\r\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x0e\n\x06\x61uthor\x18\x03 \x01(\t\x12\x1a\n\x12portrait_image_url\x18\x04 \x01(\t\x12\x1b\n\x13landscape_image_url\x18\x05 \x01(\t\x12\x12\n\nview_count\x18\x06 \x01(\r\x12!\n\x08language\x18\x07 \x01(\x0e\x32\x0f.Title.Language\"$\n\x08Language\x12\x0b\n\x07\x45NGLISH\x10\x00\x12\x0b\n\x07SPANISH\x10\x01\"\x97\x01\n\x07\x43hapter\x12\x10\n\x08title_id\x18\x01 \x01(\r\x12\x12\n\nchapter_id\x18\x02 \x01(\r\x12\x0c\n\x04name\x18\x03 \x01(\t\x12\x11\n\tsub_title\x18\x04 \x01(\t\x12\x15\n\rthumbnail_url\x18\x05 \x01(\t\x12\x17\n\x0fstart_timestamp\x18\x06 \x01(\r\x12\x15\n\rend_timestamp\x18\x07 \x01(\r\"\xaf\x04\n\x0fTitleDetailView\x12\x15\n\x05title\x18\x01 \x01(\x0b\x32\x06.Title\x12\x17\n\x0ftitle_image_url\x18\x02 \x01(\t\x12\x10\n\x08overview\x18\x03 \x01(\t\x12\x1c\n\x14\x62\x61\x63kground_image_url\x18\x04 \x01(\t\x12\x16\n\x0enext_timestamp\x18\x05 \x01(\r\x12\x34\n\rupdate_timing\x18\x06 \x01(\x0e\x32\x1d.TitleDetailView.UpdateTiming\x12\"\n\x1aviewing_period_description\x18\x07 \x01(\t\x12\x1b\n\x13non_appearance_info\x18\x08 \x01(\t\x12$\n\x12\x66irst_chapter_list\x18\t \x03(\x0b\x32\x08.Chapter\x12#\n\x11last_chapter_list\x18\n \x03(\x0b\x32\x08.Chapter\x12\"\n\x12recommended_titles\x18\x0c \x03(\x0b\x32\x06.Title\x12\x18\n\x10is_simul_release\x18\x0e \x01(\x08\x12\x1b\n\x13\x63hapters_descending\x18\x11 \x01(\x08\"\x86\x01\n\x0cUpdateTiming\x12\x11\n\rNOT_REGULARLY\x10\x00\x12\n\n\x06MONDAY\x10\x01\x12\x0b\n\x07TUESDAY\x10\x02\x12\r\n\tWEDNESDAY\x10\x03\x12\x0c\n\x08THURSDAY\x10\x04\x12\n\n\x06\x46RIDAY\x10\x05\x12\x0c\n\x08SATURDAY\x10\x06\x12\n\n\x06SUNDAY\x10\x07\x12\x07\n\x03\x44\x41Y\x10\x08\"\'\n\rAllTitlesView\x12\x16\n\x06titles\x18\x01 \x03(\x0b\x32\x06.Title\"\x90\x01\n\rSuccessResult\x12$\n\nall_titles\x18\x05 \x01(\x0b\x32\x0e.AllTitlesViewH\x00\x12(\n\x0ctitle_detail\x18\x08 \x01(\x0b\x32\x10.TitleDetailViewH\x00\x12%\n\rweb_home_view\x18\x0b \x01(\x0b\x32\x0c.WebHomeViewH\x00\x42\x08\n\x06result\"x\n\x0b\x45rrorResult\x12\x17\n\x06\x61\x63tion\x18\x01 \x01(\x0e\x32\x07.Action\x12\x1d\n\renglish_popup\x18\x02 \x01(\x0b\x32\x06.Popup\x12\x1d\n\rspanish_popup\x18\x03 \x01(\x0b\x32\x06.Popup\x12\x12\n\ndebug_info\x18\x04 \x01(\t\"V\n\x08Response\x12&\n\x0esuccess_result\x18\x01 \x01(\x0b\x32\x0e.SuccessResult\x12\"\n\x0c\x65rror_result\x18\x02 \x01(\x0b\x32\x0c.ErrorResult*L\n\x06\x41\x63tion\x12\x0b\n\x07\x44\x45\x46\x41ULT\x10\x00\x12\x10\n\x0cUNAUTHORIZED\x10\x01\x12\x0f\n\x0bMAINTENANCE\x10\x02\x12\x12\n\x0eGEOIP_BLOCKING\x10\x03\x62\x06proto3'
 )
 
 _ACTION = _descriptor.EnumDescriptor(
@@ -53,8 +53,8 @@ _ACTION = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=1346,
-  serialized_end=1422,
+  serialized_start=1620,
+  serialized_end=1696,
 )
 _sym_db.RegisterEnumDescriptor(_ACTION)
 
@@ -85,8 +85,8 @@ _TITLE_LANGUAGE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=238,
-  serialized_end=274,
+  serialized_start=468,
+  serialized_end=504,
 )
 _sym_db.RegisterEnumDescriptor(_TITLE_LANGUAGE)
 
@@ -145,10 +145,134 @@ _TITLEDETAILVIEW_UPDATETIMING = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=856,
-  serialized_end=990,
+  serialized_start=1086,
+  serialized_end=1220,
 )
 _sym_db.RegisterEnumDescriptor(_TITLEDETAILVIEW_UPDATETIMING)
+
+
+_UPDATEDTITLE = _descriptor.Descriptor(
+  name='UpdatedTitle',
+  full_name='UpdatedTitle',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='title', full_name='UpdatedTitle.title', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='chapter_id', full_name='UpdatedTitle.chapter_id', index=1,
+      number=2, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='chapter_name', full_name='UpdatedTitle.chapter_name', index=2,
+      number=3, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='chapter_sub_title', full_name='UpdatedTitle.chapter_sub_title', index=3,
+      number=4, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='is_latest', full_name='UpdatedTitle.is_latest', index=4,
+      number=5, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=28,
+  serialized_end=153,
+)
+
+
+_UPDATEDTITLEGROUP = _descriptor.Descriptor(
+  name='UpdatedTitleGroup',
+  full_name='UpdatedTitleGroup',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='titles', full_name='UpdatedTitleGroup.titles', index=0,
+      number=2, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=155,
+  serialized_end=205,
+)
+
+
+_WEBHOMEVIEW = _descriptor.Descriptor(
+  name='WebHomeView',
+  full_name='WebHomeView',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='groups', full_name='WebHomeView.groups', index=0,
+      number=2, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=207,
+  serialized_end=256,
+)
 
 
 _POPUP = _descriptor.Descriptor(
@@ -185,8 +309,8 @@ _POPUP = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=28,
-  serialized_end=66,
+  serialized_start=258,
+  serialized_end=296,
 )
 
 
@@ -260,8 +384,8 @@ _TITLE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=69,
-  serialized_end=274,
+  serialized_start=299,
+  serialized_end=504,
 )
 
 
@@ -334,8 +458,8 @@ _CHAPTER = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=277,
-  serialized_end=428,
+  serialized_start=507,
+  serialized_end=658,
 )
 
 
@@ -451,8 +575,8 @@ _TITLEDETAILVIEW = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=431,
-  serialized_end=990,
+  serialized_start=661,
+  serialized_end=1220,
 )
 
 
@@ -483,8 +607,8 @@ _ALLTITLESVIEW = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=992,
-  serialized_end=1031,
+  serialized_start=1222,
+  serialized_end=1261,
 )
 
 
@@ -497,7 +621,7 @@ _SUCCESSRESULT = _descriptor.Descriptor(
   create_key=_descriptor._internal_create_key,
   fields=[
     _descriptor.FieldDescriptor(
-      name='titles', full_name='SuccessResult.titles', index=0,
+      name='all_titles', full_name='SuccessResult.all_titles', index=0,
       number=5, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
@@ -506,6 +630,13 @@ _SUCCESSRESULT = _descriptor.Descriptor(
     _descriptor.FieldDescriptor(
       name='title_detail', full_name='SuccessResult.title_detail', index=1,
       number=8, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='web_home_view', full_name='SuccessResult.web_home_view', index=2,
+      number=11, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -527,8 +658,8 @@ _SUCCESSRESULT = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=1033,
-  serialized_end=1134,
+  serialized_start=1264,
+  serialized_end=1408,
 )
 
 
@@ -580,8 +711,8 @@ _ERRORRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1136,
-  serialized_end=1256,
+  serialized_start=1410,
+  serialized_end=1530,
 )
 
 
@@ -619,10 +750,13 @@ _RESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1258,
-  serialized_end=1344,
+  serialized_start=1532,
+  serialized_end=1618,
 )
 
+_UPDATEDTITLE.fields_by_name['title'].message_type = _TITLE
+_UPDATEDTITLEGROUP.fields_by_name['titles'].message_type = _UPDATEDTITLE
+_WEBHOMEVIEW.fields_by_name['groups'].message_type = _UPDATEDTITLEGROUP
 _TITLE.fields_by_name['language'].enum_type = _TITLE_LANGUAGE
 _TITLE_LANGUAGE.containing_type = _TITLE
 _TITLEDETAILVIEW.fields_by_name['title'].message_type = _TITLE
@@ -632,19 +766,26 @@ _TITLEDETAILVIEW.fields_by_name['last_chapter_list'].message_type = _CHAPTER
 _TITLEDETAILVIEW.fields_by_name['recommended_titles'].message_type = _TITLE
 _TITLEDETAILVIEW_UPDATETIMING.containing_type = _TITLEDETAILVIEW
 _ALLTITLESVIEW.fields_by_name['titles'].message_type = _TITLE
-_SUCCESSRESULT.fields_by_name['titles'].message_type = _ALLTITLESVIEW
+_SUCCESSRESULT.fields_by_name['all_titles'].message_type = _ALLTITLESVIEW
 _SUCCESSRESULT.fields_by_name['title_detail'].message_type = _TITLEDETAILVIEW
+_SUCCESSRESULT.fields_by_name['web_home_view'].message_type = _WEBHOMEVIEW
 _SUCCESSRESULT.oneofs_by_name['result'].fields.append(
-  _SUCCESSRESULT.fields_by_name['titles'])
-_SUCCESSRESULT.fields_by_name['titles'].containing_oneof = _SUCCESSRESULT.oneofs_by_name['result']
+  _SUCCESSRESULT.fields_by_name['all_titles'])
+_SUCCESSRESULT.fields_by_name['all_titles'].containing_oneof = _SUCCESSRESULT.oneofs_by_name['result']
 _SUCCESSRESULT.oneofs_by_name['result'].fields.append(
   _SUCCESSRESULT.fields_by_name['title_detail'])
 _SUCCESSRESULT.fields_by_name['title_detail'].containing_oneof = _SUCCESSRESULT.oneofs_by_name['result']
+_SUCCESSRESULT.oneofs_by_name['result'].fields.append(
+  _SUCCESSRESULT.fields_by_name['web_home_view'])
+_SUCCESSRESULT.fields_by_name['web_home_view'].containing_oneof = _SUCCESSRESULT.oneofs_by_name['result']
 _ERRORRESULT.fields_by_name['action'].enum_type = _ACTION
 _ERRORRESULT.fields_by_name['english_popup'].message_type = _POPUP
 _ERRORRESULT.fields_by_name['spanish_popup'].message_type = _POPUP
 _RESPONSE.fields_by_name['success_result'].message_type = _SUCCESSRESULT
 _RESPONSE.fields_by_name['error_result'].message_type = _ERRORRESULT
+DESCRIPTOR.message_types_by_name['UpdatedTitle'] = _UPDATEDTITLE
+DESCRIPTOR.message_types_by_name['UpdatedTitleGroup'] = _UPDATEDTITLEGROUP
+DESCRIPTOR.message_types_by_name['WebHomeView'] = _WEBHOMEVIEW
 DESCRIPTOR.message_types_by_name['Popup'] = _POPUP
 DESCRIPTOR.message_types_by_name['Title'] = _TITLE
 DESCRIPTOR.message_types_by_name['Chapter'] = _CHAPTER
@@ -655,6 +796,27 @@ DESCRIPTOR.message_types_by_name['ErrorResult'] = _ERRORRESULT
 DESCRIPTOR.message_types_by_name['Response'] = _RESPONSE
 DESCRIPTOR.enum_types_by_name['Action'] = _ACTION
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
+
+UpdatedTitle = _reflection.GeneratedProtocolMessageType('UpdatedTitle', (_message.Message,), {
+  'DESCRIPTOR' : _UPDATEDTITLE,
+  '__module__' : 'protobuf.mangaplus_pb2'
+  # @@protoc_insertion_point(class_scope:UpdatedTitle)
+  })
+_sym_db.RegisterMessage(UpdatedTitle)
+
+UpdatedTitleGroup = _reflection.GeneratedProtocolMessageType('UpdatedTitleGroup', (_message.Message,), {
+  'DESCRIPTOR' : _UPDATEDTITLEGROUP,
+  '__module__' : 'protobuf.mangaplus_pb2'
+  # @@protoc_insertion_point(class_scope:UpdatedTitleGroup)
+  })
+_sym_db.RegisterMessage(UpdatedTitleGroup)
+
+WebHomeView = _reflection.GeneratedProtocolMessageType('WebHomeView', (_message.Message,), {
+  'DESCRIPTOR' : _WEBHOMEVIEW,
+  '__module__' : 'protobuf.mangaplus_pb2'
+  # @@protoc_insertion_point(class_scope:WebHomeView)
+  })
+_sym_db.RegisterMessage(WebHomeView)
 
 Popup = _reflection.GeneratedProtocolMessageType('Popup', (_message.Message,), {
   'DESCRIPTOR' : _POPUP,

@@ -7,6 +7,22 @@ enum Action {
 	GEOIP_BLOCKING = 3;
 }
 
+message UpdatedTitle {
+	Title title = 1;
+	uint32 chapter_id = 2;
+	string chapter_name = 3;
+	string chapter_sub_title = 4;
+	bool is_latest = 5;
+}
+
+message UpdatedTitleGroup {
+	repeated UpdatedTitle titles = 2;
+}
+
+message WebHomeView {
+	repeated UpdatedTitleGroup groups = 2;
+}
+
 message Popup {
 	string subject = 1;
 	string body = 2;
@@ -69,8 +85,9 @@ message AllTitlesView {
 
 message SuccessResult {
 	oneof result {
-		AllTitlesView titles = 5;
+		AllTitlesView all_titles = 5;
 		TitleDetailView title_detail = 8;
+		WebHomeView web_home_view = 11;
 	}
 }
 
