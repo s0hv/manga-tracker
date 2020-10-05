@@ -117,6 +117,17 @@ class DbUtil:
         logger.info(f'Interval for {manga_id} set to {interval}')
         cur.execute(sql, (interval, manga_id))
 
+    @optional_transaction
+    def add_single_series(self, cur: Cursor, service_id: int, title_id: str,
+                          title: str, feed_url: Optional[str] = None):
+        sql = 'INSERT INTO manga (title) VALUES (%s) RETURNING manga_id'
+        cur.execute(sql, (title,))
+        manga_id = cur.fetchone()['manga_id']
+
+        sql = 'INSERT INTO manga_service (manga_id, service_id, title_id, feed_url) VALUES (%s, %s, %s, %s)'
+        cur.execute(sql, (manga_id, service_id, title_id, feed_url))
+        return manga_id
+
     @staticmethod
     def add_new_series(cur: Cursor, manga_chapters: Dict[str, List['base_scraper.BaseChapter']],
                        service_id: int, disable_single_update: bool = False) -> Optional[Generator[Tuple[int, List['base_scraper.BaseChapter']], None, None]]:
