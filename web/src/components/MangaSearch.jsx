@@ -322,14 +322,17 @@ export default function MangaSearch(props) {
       fetch('/api/quicksearch?query=' + encodeURIComponent(query))
         .then(res => res.json())
         .then(js => cb(js))
-        .catch(cb(null));
+        .catch(err => {
+          console.error(err);
+          cb(null);
+        });
     }, 200),
     []
   );
 
   React.useEffect(() => {
     let active = true;
-    if (inputValue.length < 3) {
+    if (inputValue.length < 2) {
       setOptions([]);
       setOpen(false);
       return undefined;

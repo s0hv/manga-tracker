@@ -77,7 +77,7 @@ describe('Search should behave correctly with user input', () => {
 
     // Simulate text changes and test that the quicksearch endpoint wasn't called
     input.simulate('change', { target: { value: 'x' }});
-    input.simulate('change', { target: { value: 'ab' }});
+    input.simulate('change', { target: { value: 'a' }});
     input.simulate('change', { target: { value: 'a' }});
     input.simulate('change', { target: { value: '' }});
 
@@ -99,7 +99,7 @@ describe('Search should behave correctly with user input', () => {
 
     // Simulate text changes and test that the quicksearch endpoint wasn't called
     await act(async () => {
-      input.simulate('change', { target: { value: 'abc' }});
+      input.simulate('change', { target: { value: 'ab' }});
     });
     expect(searchFn).toHaveBeenCalledTimes(1);
   });

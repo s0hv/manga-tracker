@@ -3,19 +3,24 @@ const { getManga } = require('../db/manga');
 
 function search(keywords, limit) {
   const sql = `WITH tmp as (
-                 (SELECT m.manga_id, m.title, true as main
-                 FROM manga m
-                 WHERE REPLACE(m.title, '-', ' ') ILIKE '%' || $1 || '%'
-                 ORDER BY m.title ILIKE $1 || '%' DESC, title <-> $1
-                 LIMIT $2)
-                 UNION (
-                     SELECT ma.manga_id, ma.title, false as main
-                     FROM manga_alias ma
-                     WHERE REPLACE(ma.title, '-', ' ') ILIKE '%' || $1 || '%'
-                     ORDER BY ma.title ILIKE $1 || '%' DESC, title <-> $1
-                     LIMIT $2)
-                 ORDER BY main DESC)
-                 SELECT DISTINCT ON(tmp.manga_id) tmp.manga_id, tmp.title FROM tmp`;
+              (
+                  SELECT m.manga_id, m.title, true as main, title <-> $1 as similarity
+                  FROM manga m
+                  WHERE REPLACE(m.title, '-', ' ') ILIKE '%' || $1 || '%'
+                  ORDER BY m.title ILIKE $1 || '%' DESC, 3
+                  LIMIT $2)
+                  UNION (
+                      SELECT ma.manga_id, m.title, false as main, ma.title <-> $1 as similarity
+                      FROM manga_alias ma
+                      INNER JOIN manga m ON m.manga_id = ma.manga_id
+                      WHERE REPLACE(ma.title, '-', ' ') ILIKE '%' || $1 || '%'
+                      ORDER BY ma.title ILIKE $1 || '%' DESC, 3
+                      LIMIT $2)
+                  ORDER BY main DESC
+              )
+              SELECT tmp2.manga_id, tmp2.title FROM (
+                  SELECT DISTINCT ON(tmp.manga_id) tmp.manga_id, tmp.title, tmp.similarity FROM tmp) as tmp2
+              ORDER BY tmp2.similarity`;
 
   return db.query(sql, [keywords.replace('-', ' '), limit]);
 }
@@ -41,7 +46,7 @@ function mangaSearch(keywords) {
 }
 
 function quickSearch(searchWords, cb) {
-  if (searchWords.length < 3) return cb(null);
+  if (searchWords.length < 2) return cb(null);
   search(searchWords, 5)
     .then(res => cb(res.rows))
     .catch(err => {
