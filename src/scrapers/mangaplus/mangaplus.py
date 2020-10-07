@@ -267,7 +267,7 @@ class MangaPlus(BaseScraper):
     URL = 'https://mangaplus.shueisha.co.jp'
     MANGA_URL = 'https://mangaplus.shueisha.co.jp/titles/{}'
     CHAPTER_REGEX = re.compile(r'#(\d+)')
-    SPECIAL_CHAPTER_REGEX = re.compile(r'\s*(ex|one[- ]?shot)s*')
+    SPECIAL_CHAPTER_REGEX = re.compile(r'\s*(#?ex|one[- ]?shot)s*', re.I)
     CHAPTER_URL_FORMAT = 'https://mangaplus.shueisha.co.jp/viewer/{}'
     MANGA_URL_FORMAT = 'https://mangaplus.shueisha.co.jp/titles/{}'
 
@@ -282,7 +282,7 @@ class MangaPlus(BaseScraper):
             match = MangaPlus.SPECIAL_CHAPTER_REGEX.match(chapter_number)
             if match:
                 return 0, 5
-            raise ValueError('Invalid chapter number given')
+            raise ValueError(f'Invalid chapter number given {chapter_number}')
 
         return int(match.groups()[0]), None
 

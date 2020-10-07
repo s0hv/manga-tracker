@@ -219,6 +219,7 @@ class UpdateScheduler:
                         retval = scraper.scrape_service(service[0], service[1], None)
                     except psycopg2.Error:
                         logger.exception(f'Database error while scraping {service[1]}')
+                        scraper.set_checked(service[0])
                         continue
                     except:
                         logger.exception(f'Failed to scrape service {service[1]}')
