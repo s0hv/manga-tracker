@@ -30,6 +30,7 @@
     "next": "^9.5.3",
     "next-transpile-modules": "^4.1.0",
     "nodemon": "^2.0.4",
+    "nprogress": "^0.2.0",
     "passport": "^0.4.1",
     "passport-local": "^1.0.0",
     "pg": "^8.3.3",

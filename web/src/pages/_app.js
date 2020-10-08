@@ -14,6 +14,7 @@ import enLocale from 'date-fns/locale/en-GB';
 import Head from 'next/head';
 import Root from '../components/Root';
 import { UserProvider } from '../utils/useUser';
+import { ProgressBar } from '../components/utils/ProgressBar';
 
 
 const sessionDebug = require('debug')('session-debug');
@@ -35,7 +36,6 @@ function MainApp({ Component, pageProps, props }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // eslint-disable-next-line react-hooks/rules-of-hooks
   const tempDark = useMediaQuery('(prefers-color-scheme: dark)');
   const prefersDarkMode = theme === 0 ? tempDark : theme === 2;
   props.activeTheme = prefersDarkMode ? 2 : 1;
@@ -48,7 +48,7 @@ function MainApp({ Component, pageProps, props }) {
         type: prefersDarkMode ? 'dark' : 'light',
         primary: blue,
         background: {
-          default: prefersDarkMode ? '#282c34' : undefined,
+          default: prefersDarkMode ? '#282c34' : '#FFFFFF',
         },
       },
     })),
@@ -63,6 +63,7 @@ function MainApp({ Component, pageProps, props }) {
       </Head>
       <ThemeProvider theme={activeTheme}>
         <CssBaseline />
+        <ProgressBar />
         <MuiPickersUtilsProvider utils={DateFnsUtils} locale={enLocale}>
           <UserProvider value={user}>
             <Root {...props}>
