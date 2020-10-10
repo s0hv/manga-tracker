@@ -108,3 +108,14 @@ export function withRoot(Component) {
     </MuiPickersUtilsProvider>
   );
 }
+
+export function expectErrorMessage(message) {
+  if (!(message instanceof RegExp)) {
+    message = new RegExp(message);
+  }
+
+  return (res) => {
+    expect(res.body).toBeObject();
+    expect(res.body.error).toMatch(message);
+  };
+}

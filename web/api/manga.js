@@ -1,7 +1,11 @@
 const db = require('../db');
 const { handleError } = require('../db/utils');
 const { getChapters } = require('../db/chapter');
-const { getOptionalNumberParam } = require('../utils/utilities');
+const {
+  getOptionalNumberParam,
+  assertValuePositive,
+  assertValueBetween,
+} = require('../utils/utilities');
 const { requiresUser } = require('../db/auth');
 const { getManga } = require('../db/manga');
 
@@ -117,8 +121,16 @@ module.exports = app => {
     let offset;
 
     try {
-      limit = Math.min(getOptionalNumberParam(req.query?.limit, 50, 'limit'), 200);
-      offset = getOptionalNumberParam(req.query?.offset, undefined, 'offset');
+      limit = assertValueBetween(
+        getOptionalNumberParam(req.query?.limit, 50, 'limit'),
+        0,
+        200,
+        'limit'
+      );
+      offset = assertValuePositive(
+        getOptionalNumberParam(req.query?.offset, 0, 'offset'),
+        'offset'
+      );
     } catch (err) {
       if (err instanceof TypeError) {
         res.status(400).json({ error: err.message });
@@ -130,7 +142,7 @@ module.exports = app => {
 
     getChapters(mangaId, limit, offset)
       .then(rows => {
-        if (!rows) {
+        if (!rows || !rows.chapters) {
           res.status(404).json({ error: 'No manga found with given id' });
           return;
         }

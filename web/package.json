@@ -78,6 +78,7 @@
     "@testing-library/react": "^10.4.9",
     "@testing-library/user-event": "^12.1.7",
     "@types/enzyme": "^3.10.7",
+    "@types/react-table": "^7.0.24",
     "babel-eslint": "^10.1.0",
     "babel-jest": "^26.5.2",
     "cookie": "^0.4.1",
@@ -98,6 +99,7 @@
     "jest": "^26.5.2",
     "jest-extended": "^0.11.5",
     "node-fetch": "^2.6.1",
-    "react-test-renderer": "^16.13.1"
+    "react-test-renderer": "^16.13.1",
+    "supertest": "^5.0.0"
   }
 }
