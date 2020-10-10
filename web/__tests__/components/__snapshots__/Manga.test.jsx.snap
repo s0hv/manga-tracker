@@ -182,6 +182,13 @@ exports[`Manga page should render correctly Should render correctly as admin 1`]
           ]
         }
         editable={false}
+        mangaId={1}
+        serviceUrlFormats={
+          Object {
+            "1": "https://mangaplus.shueisha.co.jp/viewer/{}",
+            "2": "https://mangadex.org/chapter/{}",
+          }
+        }
       />
     </TabPanelCustom>
     <TabPanelCustom
@@ -379,6 +386,13 @@ exports[`Manga page should render correctly should render correctly 1`] = `
           ]
         }
         editable={false}
+        mangaId={1}
+        serviceUrlFormats={
+          Object {
+            "1": "https://mangaplus.shueisha.co.jp/viewer/{}",
+            "2": "https://mangadex.org/chapter/{}",
+          }
+        }
       />
     </TabPanelCustom>
     <TabPanelCustom
@@ -576,6 +590,13 @@ exports[`Manga page should render correctly should render correctly when logged 
           ]
         }
         editable={false}
+        mangaId={1}
+        serviceUrlFormats={
+          Object {
+            "1": "https://mangaplus.shueisha.co.jp/viewer/{}",
+            "2": "https://mangadex.org/chapter/{}",
+          }
+        }
       />
     </TabPanelCustom>
     <TabPanelCustom
@@ -736,6 +757,12 @@ exports[`Manga page should render correctly should render correctly with little 
       <ChapterList
         chapters={Array []}
         editable={false}
+        mangaId={2}
+        serviceUrlFormats={
+          Object {
+            "1": "https://mangaplus.shueisha.co.jp/viewer/{}",
+          }
+        }
       />
     </TabPanelCustom>
     <TabPanelCustom

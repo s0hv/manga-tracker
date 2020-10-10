@@ -1,10 +1,10 @@
-const { NUMERIC_VALUE_OUT_OF_RANGE } = require('pg-error-constants');
 const dblog = require('debug')('db');
 
 const { requiresUser } = require('../db/auth');
 const db = require('../db');
 const { getChapterReleases } = require('../db/chapter');
 const { generateEqualsColumns, handleError } = require('../db/utils');
+
 
 const BASE_URL = '/api/chapter';
 
@@ -99,13 +99,6 @@ module.exports = app => {
 
     getChapterReleases(mangaId)
       .then(rows => res.status(200).json(rows))
-      .catch(err => {
-        if (err.code === NUMERIC_VALUE_OUT_OF_RANGE) {
-          res.status(400).json({ error: 'Invalid manga id given' });
-          return;
-        }
-        console.error(err);
-        res.status(500).json({ error: 'Internal server error' });
-      });
+      .catch(err => handleError(err, res));
   });
 };

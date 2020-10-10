@@ -1,9 +1,7 @@
-import React from 'react';
-
 import NProgress from 'nprogress';
 import Router from 'next/router';
 
-import { withStyles, makeStyles } from '@material-ui/core/styles';
+import { makeStyles } from '@material-ui/core/styles';
 
 // Based on this
 // https://github.com/thundermiracle/next-mui-helper/blob/master/src/mui/withProgressBar.js

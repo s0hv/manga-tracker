@@ -1,7 +1,6 @@
 import React from 'react';
-import { create } from 'react-test-renderer';
 import fetchMock from 'fetch-mock';
-import { createMount } from '@material-ui/core/test-utils';
+import { createMount, createShallow } from '@material-ui/core/test-utils';
 import { act } from '@testing-library/react';
 
 import { editInput, mockUTCDates } from '../utils';
@@ -37,34 +36,34 @@ describe('Chapter list should render correctly', () => {
   ];
 
   it('with chapters', () => {
-    const tree = create(
+    const wrapper = createShallow()(
       <ChapterList chapters={chapters} />
     );
 
-    expect(tree).toMatchSnapshot();
+    expect(wrapper).toMatchSnapshot();
   });
 
   it('without chapters', () => {
-    const tree = create(
+    const wrapper = createShallow()(
       <ChapterList chapters={[]} />
     );
 
-    expect(tree).toMatchSnapshot();
+    expect(wrapper).toMatchSnapshot();
   });
 
   it('with chapters and edit', () => {
-    const tree = create(
+    const wrapper = createShallow()(
       <ChapterList chapters={chapters} editable />
     );
 
-    expect(tree).toMatchSnapshot();
+    expect(wrapper).toMatchSnapshot();
   });
 });
 
 describe('Chapter list should allow editing', () => {
   const testChapter = {
     chapter_id: 1,
-    title: 'Test',
+    title: 'Test chapter',
     chapter_number: 1,
     release_date: new Date(1593964800000),
     group: 'Test group',
@@ -72,10 +71,31 @@ describe('Chapter list should allow editing', () => {
     chapter_url: 'https://mangaplus.shueisha.co.jp/titles/1007322',
   };
 
+  const serviceUrlFormats = {
+    [testChapter.service_id]: '{}',
+  };
+
+  const mangaId = 1;
+
+  const mockChapters = (chapters) => {
+    const chaptersMock = jest.fn();
+    chaptersMock.mockImplementation(
+      () => Promise.resolve({ count: chapters?.length, chapters: chapters })
+    );
+    fetchMock.get(
+      `path:/api/manga/${mangaId}/chapters`,
+      chaptersMock,
+      { overwriteRoutes: true }
+    );
+    return chaptersMock;
+  };
+
   it('Should post correctly', async () => {
     const postMock = jest.fn();
     postMock.mockImplementation(() => Promise.resolve({}));
     fetchMock.post('path:/api/chapter/1', postMock);
+    const chapters = [testChapter];
+    mockChapters(chapters);
 
     const updatedChapter = {
       title: 'Test edit',
@@ -83,7 +103,7 @@ describe('Chapter list should allow editing', () => {
       group: 'Test group edit',
     };
 
-    const wrapper = createMount()(<ChapterList chapters={[testChapter]} editable />);
+    const wrapper = createMount()(<ChapterList chapters={chapters} editable mangaId={mangaId} />);
     wrapper.find('button[name="edit"]').simulate('click');
 
     await editInput(
@@ -112,9 +132,17 @@ describe('Chapter list should allow editing', () => {
   it('Should delete correctly', async () => {
     const deleteMock = jest.fn();
     deleteMock.mockImplementation(() => Promise.resolve({}));
-    fetchMock.delete('path:/api/chapter/1', deleteMock);
+    fetchMock.delete(`path:/api/chapter/${testChapter.chapter_id}`, deleteMock);
 
-    const wrapper = createMount()(<ChapterList chapters={[testChapter]} editable />);
+    const chapters = [testChapter];
+    mockChapters(chapters);
+
+    const wrapper = createMount()(<ChapterList
+      chapters={chapters}
+      editable
+      mangaId={mangaId}
+      serviceUrlFormats={serviceUrlFormats}
+    />);
     wrapper.find('button[name="edit"]').simulate('click');
 
     await act(async () => {
@@ -124,13 +152,46 @@ describe('Chapter list should allow editing', () => {
     expect(deleteMock).toHaveBeenCalledTimes(1);
   });
 
-  it('Should update data when chapters prop changes', () => {
-    const wrapper = createMount()(<ChapterList chapters={[]} />);
+  it('Should update data when chapters prop changes', async () => {
+    mockChapters([]);
+
+    let wrapper = null;
+    await act(async () => {
+      wrapper = createMount()(
+        <ChapterList
+          chapters={[]}
+          mangaId={mangaId}
+          serviceUrlFormats={serviceUrlFormats}
+        />
+      );
+    });
     expect(wrapper.exists('td')).toBeFalse();
 
     wrapper.setProps({ chapters: [testChapter]});
     wrapper.update();
 
+    expect(wrapper.exists('td')).toBeTrue();
+  });
+
+  it('Should try to fetch chapters', async () => {
+    const chapters = [testChapter];
+    const chaptersMock = mockChapters(chapters);
+
+    let wrapper = null;
+    await act(async () => {
+      wrapper = createMount()(
+        <ChapterList
+          chapters={[]}
+          mangaId={mangaId}
+          serviceUrlFormats={serviceUrlFormats}
+        />
+      );
+    });
+
+    expect(wrapper).not.toBeNull();
+    expect(chaptersMock).toHaveBeenCalledTimes(1);
+
+    wrapper.update();
     expect(wrapper.exists('td')).toBeTrue();
   });
 });

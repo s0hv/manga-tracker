@@ -1,4 +1,5 @@
 const format = require('pg-format');
+const { NUMERIC_VALUE_OUT_OF_RANGE } = require('pg-error-constants');
 const dblog = require('debug')('db');
 
 function generateEqualsColumns(o, availableColumns) {
@@ -25,6 +26,11 @@ function handleError(err, res) {
   if (err.code === '22P02') {
     dblog(err.message);
     res.status(400).json({ error: 'Invalid data type given' });
+    return;
+  }
+
+  if (err.code === NUMERIC_VALUE_OUT_OF_RANGE) {
+    res.status(400).json({ error: 'Number value out of range' });
     return;
   }
 
