@@ -14,14 +14,34 @@ function ChapterList(props) {
   const {
     chapters: initialChapters,
     editable = false,
+    serviceUrlFormats,
+    mangaId,
   } = props;
 
   const [chapters, setChapters] = useState(initialChapters);
   const [error, setError] = useState(false);
   const [message, setMessage] = useState(undefined);
   const [alertOpen, setAlertOpen] = useState(false);
+  const [count, setCount] = useState(initialChapters?.length || 0);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => setChapters(initialChapters), [initialChapters]);
+
+  const formatChapters = useCallback((chs) => {
+    if (!chs) return [];
+
+    return chs.map(chapter => {
+      const newChapter = { ...chapter };
+      newChapter.release_date = new Date(chapter.release_date * 1000);
+
+      const urlFormat = serviceUrlFormats && serviceUrlFormats[chapter.service_id];
+      if (urlFormat) {
+        newChapter.url = urlFormat.replace('{}', chapter.chapter_url);
+      }
+
+      return newChapter;
+    });
+  }, [serviceUrlFormats]);
 
   const handleResponse = useCallback((r) => {
     r.json()
@@ -96,6 +116,20 @@ function ChapterList(props) {
     { Header: 'Group', accessor: 'group' },
   ], []);
 
+  const fetchData = useCallback((pageIndex, pageSize) => {
+    setLoading(true);
+    const offset = pageIndex*pageSize;
+
+    fetch(`/api/manga/${mangaId}/chapters?limit=${pageSize}&offset=${offset}`)
+      .then(res => res.json())
+      .then(json => {
+        setChapters(formatChapters(json.chapters || []));
+        setCount(json.count || 0);
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, [formatChapters, mangaId]);
+
   return (
     <>
       <TableContainer component={Paper}>
@@ -104,9 +138,13 @@ function ChapterList(props) {
           data={chapters}
           onSaveRow={onSaveRow}
           onDeleteRow={onDeleteRow}
+          fetchData={fetchData}
+          rowCount={count}
+          loading={loading}
           sortable
           editable={editable}
           deletable={editable}
+          pagination
         />
       </TableContainer>
       <Alert

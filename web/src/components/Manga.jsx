@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Button,
   Container,
@@ -118,6 +118,12 @@ function Manga(props) {
 
   const estimatedRelease = new Date(mangaData.estimated_release);
 
+  const serviceUrlFormats = useMemo(() => {
+    const serviceMap = {};
+    mangaData.services.forEach(service => { serviceMap[service.service_id] = service.url_format });
+    return serviceMap;
+  }, [mangaData.services]);
+
   const mangaChapters = React.useMemo(() => {
     if (!mangaData.chapters) return null;
     const serviceMap = {};
@@ -222,6 +228,8 @@ function Manga(props) {
           <ChapterList
             chapters={mangaChapters}
             editable={editing}
+            serviceUrlFormats={serviceUrlFormats}
+            mangaId={mangaData.manga_id}
           />
         </TabPanelCustom>
         <TabPanelCustom value={activeTab} index={1} noRerenderOnChange>

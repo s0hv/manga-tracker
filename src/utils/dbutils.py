@@ -2,16 +2,20 @@ import logging
 import statistics
 from datetime import datetime, timedelta
 from typing import (Union, Any, Protocol, Optional, List, Dict, Generator, Tuple,
-                    Collection, Iterable)
+                    Collection, Iterable, TypeVar, Type)
 
 from psycopg2.extensions import connection as Connection, cursor as Cursor
 from psycopg2.extras import execute_values, DictRow
 
+from src.db.models.manga import MangaService
 from src.scrapers import base_scraper
 from src.utils.utilities import round_seconds
 
 logger = logging.getLogger('debug')
 maintenance = logging.getLogger('maintenance')
+
+
+BaseChapter = TypeVar('BaseChapter', bound=Type['base_scraper.BaseChapter'])
 
 
 class TransactionFunction(Protocol):
@@ -60,7 +64,7 @@ class DbUtil:
         return cur.fetchall()
 
     @optional_transaction
-    def get_service(self, cur: Cursor, service_url: str) -> Optional[DictRow]:
+    def get_service(self, cur: Cursor, service_url: str) -> Optional[int]:
         sql = 'SELECT service_id FROM services WHERE url=%s'
         cur.execute(sql, (service_url,))
         row = cur.fetchone()
@@ -116,6 +120,98 @@ class DbUtil:
         sql = 'UPDATE manga SET release_interval=%s WHERE manga_id=%s'
         logger.info(f'Interval for {manga_id} set to {interval}')
         cur.execute(sql, (interval, manga_id))
+
+    @optional_transaction
+    def add_single_series(self, cur: Cursor, service_id: int, title_id: str,
+                          title: str, feed_url: Optional[str] = None):
+        sql = 'INSERT INTO manga (title) VALUES (%s) RETURNING manga_id'
+        cur.execute(sql, (title,))
+        manga_id = cur.fetchone()['manga_id']
+
+        sql = 'INSERT INTO manga_service (manga_id, service_id, title_id, feed_url) VALUES (%s, %s, %s, %s)'
+        cur.execute(sql, (manga_id, service_id, title_id, feed_url))
+        return manga_id
+
+    @optional_transaction
+    def add_new_manga(self, cur: Cursor, service_id: int, mangas: List[MangaService]):
+        manga_titles = {}
+        duplicates = set()
+
+        for manga in mangas:
+            manga_title = manga.title
+            if manga_title in duplicates:
+                continue
+
+            # In case of multiple titles with the same name ignore and resolve manually
+            if manga_title in manga_titles:
+                logger.warning(f'2 or more series with same name found {manga} AND {manga_titles[manga_title]}')
+                manga_titles.pop(manga_title)
+                duplicates.add(manga_title)
+                continue
+
+            manga_titles[manga_title] = manga
+
+        args = [(x,) for x in manga_titles.keys()]
+        format_args = ','.join(['%s' for _ in args])
+        already_exist = []
+        now = datetime.utcnow()
+
+        if duplicates:
+            logger.warning(f'All duplicates found {duplicates}')
+
+        if format_args:
+            # This sql filters out manga in this service already. This is because
+            # this function assumes all series added in this function are new
+            sql = f'SELECT MIN(manga.manga_id), LOWER(title), COUNT(manga.manga_id) ' \
+                  f'FROM manga LEFT JOIN manga_service ms ON ms.service_id=%s AND manga.manga_id=ms.manga_id ' \
+                  f'WHERE ms.manga_id IS NULL AND LOWER(title) IN ({format_args}) GROUP BY LOWER(title)'
+
+            cur.execute(sql, (service_id, *args))
+
+            for row in cur:
+                if row[2] == 1:
+                    manga = manga_titles.pop(row[1])
+                    already_exist.append((row[0], service_id,
+                                          manga.disabled, now,
+                                          manga.title_id))
+                    continue
+
+                logger.warning(f'Too many matches for manga {row[1]}')
+
+        new_manga = []
+        titles = []
+
+        if already_exist:
+            sql = '''INSERT INTO manga_service (manga_id, service_id, disabled, last_check, title_id) VALUES %s 
+                     ON CONFLICT DO NOTHING'''
+            execute_values(cur, sql, already_exist,
+                           page_size=len(already_exist))
+
+        if not manga_titles:
+            return
+
+        for manga in manga_titles.values():
+            titles.append((manga.title,))
+            new_manga.append(manga)
+
+        sql = 'INSERT INTO manga (title) VALUES %s RETURNING manga_id, title'
+        rows = execute_values(cur, sql, titles, page_size=len(titles),
+                              fetch=True)
+
+        args = []
+        for row, manga in zip(rows, new_manga):
+            if manga.title != row[1]:
+                logger.warning(f'Inserted manga mismatch with {manga}')
+                continue
+
+            manga.manga_id = row[0]
+            args.append((row[0], service_id, manga.disabled, now,
+                         manga.title_id))
+
+        sql = 'INSERT INTO manga_service (manga_id, service_id, disabled, last_check, title_id) VALUES %s'
+
+        execute_values(cur, sql, args, page_size=len(args))
+        return new_manga
 
     @staticmethod
     def add_new_series(cur: Cursor, manga_chapters: Dict[str, List['base_scraper.BaseChapter']],
@@ -307,7 +403,7 @@ class DbUtil:
         return row
 
     @optional_transaction
-    def get_only_latest_entries(self, cur: Cursor, service_id: int, entries: Iterable['base_scraper.BaseChapter']) -> Collection['base_scraper.BaseChapter']:
+    def get_only_latest_entries(self, cur: Cursor, service_id: int, entries: Iterable[BaseChapter]) -> Collection[BaseChapter]:
         try:
             sql = 'SELECT chapter_identifier FROM chapters WHERE service_id=%s ORDER BY chapter_id DESC LIMIT 400'
             cur.execute(sql, (service_id,))

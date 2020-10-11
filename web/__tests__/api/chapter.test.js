@@ -27,7 +27,7 @@ async function doRequests(address, methods, expectedStatus, opts) {
   await Promise.all(promises);
 }
 
-describe('Chapters endpoint', () => {
+describe('/api/chapter/:chapter_id', () => {
   it('returns unauthorized without login (post, delete)', async () => {
     await doRequests(
       `${addr}/api/chapter/1`,

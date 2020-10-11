@@ -68,7 +68,7 @@ class BaseChapter(metaclass=abc.ABCMeta):
         raise NotImplementedError
 
     def __str__(self):
-        return f'{self.manga_title} / {self.title_id}'
+        return f'{self.manga_title} {self.chapter_number} / {self.chapter_identifier}'
 
     def __hash__(self):
         return hash(self.chapter_identifier)

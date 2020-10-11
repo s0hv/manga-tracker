@@ -1,6 +1,6 @@
 import { Typography } from '@material-ui/core';
 import React from 'react';
-import { createMount, createShallow } from '@material-ui/core/test-utils';
+import { createShallow } from '@material-ui/core/test-utils';
 import ReactFrappeChart from 'react-frappe-charts';
 
 import ReleaseHeatmap from '../../src/components/ReleaseHeatmap';

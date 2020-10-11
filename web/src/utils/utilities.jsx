@@ -32,7 +32,7 @@ export const followUnfollow = (mangaId, serviceId) => {
   }, 200, { trailing: false });
 };
 
-// This seems to be faster than a custom recursive function  according to my measurements
+// This seems to be faster than a custom recursive function according to my measurements
 export const jsonSerializable = (value) => JSON.parse(JSON.stringify(value));
 
 function dateIsInvalid(date) {

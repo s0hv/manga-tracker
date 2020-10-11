@@ -1,7 +1,7 @@
 import logging
 import re
 from datetime import datetime, timedelta, timezone
-from typing import Optional, List, Union
+from typing import Optional, List, Union, Tuple
 
 import requests
 from psycopg2.extras import execute_batch
@@ -10,6 +10,7 @@ from src.enums import Status
 from src.scrapers.base_scraper import BaseScraper, BaseChapter
 from src.utils.utilities import random_timedelta
 from .protobuf import mangaplus_pb2
+from ...db.models.manga import MangaService
 
 logger = logging.getLogger('debug')
 
@@ -56,6 +57,21 @@ class TitleWrapper:
             'view_count': self.view_count,
             'language': self._title.language
         }
+
+    def __str__(self):
+        return f'{self.name} / {self.title_id}'
+
+    def __hash__(self):
+        return hash(self.title_id)
+
+    def __eq__(self, other):
+        if isinstance(other, TitleWrapper):
+            return other.title_id == self.title_id
+        else:
+            return self.title_id == other
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
 
 class TitleDetailViewWrapper:
@@ -136,6 +152,16 @@ class TitleDetailViewWrapper:
         }
 
 
+class AllTitlesViewWrapper:
+    def __init__(self, all_titles: mangaplus_pb2.AllTitlesView):
+        self._all_titles = all_titles
+
+    @property
+    def titles(self) -> List[TitleWrapper]:
+        return [TitleWrapper(title) for title in self._all_titles.titles
+                if title.language == mangaplus_pb2.Title.Language.ENGLISH]
+
+
 class ResponseWrapper:
     def __init__(self, data):
         self._response = mangaplus_pb2.Response()
@@ -159,11 +185,19 @@ class ResponseWrapper:
 
         return TitleDetailViewWrapper(res.title_detail)
 
+    @property
+    def all_titles_view(self) -> Optional[AllTitlesViewWrapper]:
+        res = self.success_result
+        if not res or not res.HasField('all_titles'):
+            return
+
+        return AllTitlesViewWrapper(res.all_titles)
+
 
 class ChapterWrapper(BaseChapter):
     def __init__(self, chapter: mangaplus_pb2.Chapter, manga_title):
         self._chapter = chapter
-        self._chapter_number = MangaPlus.parse_chapter(chapter.name)
+        self._chapter_number, self._chapter_decimal = MangaPlus.parse_chapter(chapter.name)
         self._manga_title = manga_title
 
     @property
@@ -179,8 +213,8 @@ class ChapterWrapper(BaseChapter):
         return None
 
     @property
-    def decimal(self) -> None:
-        return None
+    def decimal(self) -> Optional[int]:
+        return self._chapter_decimal
 
     @property
     def release_date(self) -> datetime:
@@ -229,9 +263,11 @@ class MangaPlus(BaseScraper):
     ID = 1
     NAME = 'MANGA Plus'
     API = 'https://jumpg-webapi.tokyo-cdn.com/api/title_detail?title_id={}'
+    FEED_URL = 'https://jumpg-webapi.tokyo-cdn.com/api/title_list/all'
     URL = 'https://mangaplus.shueisha.co.jp'
     MANGA_URL = 'https://mangaplus.shueisha.co.jp/titles/{}'
     CHAPTER_REGEX = re.compile(r'#(\d+)')
+    SPECIAL_CHAPTER_REGEX = re.compile(r'\s*(#?ex|one[- ]?shot)s*', re.I)
     CHAPTER_URL_FORMAT = 'https://mangaplus.shueisha.co.jp/viewer/{}'
     MANGA_URL_FORMAT = 'https://mangaplus.shueisha.co.jp/titles/{}'
 
@@ -240,12 +276,15 @@ class MangaPlus(BaseScraper):
         return random_timedelta(timedelta(minutes=10), timedelta(minutes=20))
 
     @staticmethod
-    def parse_chapter(chapter_number) -> int:
+    def parse_chapter(chapter_number) -> Tuple[int, Optional[int]]:
         match = MangaPlus.CHAPTER_REGEX.match(chapter_number)
         if not match:
-            raise ValueError('Invalid chapter number given')
+            match = MangaPlus.SPECIAL_CHAPTER_REGEX.match(chapter_number)
+            if match:
+                return 0, 5
+            raise ValueError(f'Invalid chapter number given {chapter_number}')
 
-        return int(match.groups()[0])
+        return int(match.groups()[0]), None
 
     def parse_series(self, title_id: str) -> Union[bool, Optional[TitleDetailViewWrapper]]:
         try:
@@ -261,6 +300,22 @@ class MangaPlus(BaseScraper):
         title_detail = resp.title_detail_view
 
         return title_detail
+
+    @staticmethod
+    def get_all_titles(api_url: str) -> Optional[AllTitlesViewWrapper]:
+        try:
+            r = requests.get(api_url)
+        except requests.RequestException:
+            logger.exception('Failed to fetch all mangaplus titles')
+            return
+
+        if r.status_code != 200:
+            return
+
+        resp = ResponseWrapper(r.content)
+        all_titles = resp.all_titles_view
+
+        return all_titles
 
     def add_series(self, title_id: str) -> Optional[bool]:
         series = self.parse_series(title_id)
@@ -285,8 +340,33 @@ class MangaPlus(BaseScraper):
                                                               service_id):
                     self.add_chapters(series, service_id, manga_id)
 
-    def scrape_service(self, *args, **kwargs):
-        pass
+    def scrape_service(self, service_id: int, feed_url: str, last_update: Optional[datetime], title_id: Optional[str] = None):
+        self.dbutil.update_service_whole(service_id, timedelta(days=1) + self.min_update_interval())
+        all_titles = self.get_all_titles(feed_url)
+        if not all_titles:
+            return all_titles
+
+        titles = all_titles.titles
+        if not titles:
+            return
+
+        existing_titles = self.dbutil.get_service_manga(service_id)
+        existing_titles = {int(t['title_id']) for t in existing_titles}
+        new_titles = set(titles).difference(existing_titles)
+        if not new_titles:
+            return
+
+        logger.info(f'{len(new_titles)} new manga to be added to mangaplus')
+        self.dbutil.add_new_manga(service_id, [
+            MangaService(
+                service_id=service_id,
+                disabled=False,
+                title_id=str(t.title_id),
+                title=t.name,
+                manga_id=None
+            )
+            for t in new_titles
+        ])
 
     def scrape_series(self, title_id: str, service_id: int, manga_id: int,
                       feed_url=None) -> Optional[bool]:
@@ -301,8 +381,22 @@ class MangaPlus(BaseScraper):
               'VALUES (%s, %s, %s, %s, %s, %s, %s, \'Shueisha\') ON CONFLICT DO NOTHING '
 
         base_values = (manga_id, service_id)
-        chapters = [*series.first_chapter_list, *series.last_chapter_list]
-        data = [(*base_values, c.title, c.chapter_number, None,
+        chapters: List[ChapterWrapper] = [*series.first_chapter_list, *series.last_chapter_list]
+
+        # Update chapter number for special chapters
+        prev_chapter = None
+        for c in chapters:
+            if not prev_chapter:
+                prev_chapter = c
+                continue
+
+            if c.decimal is None or c.chapter_number:
+                prev_chapter = c
+                continue
+
+            c._chapter_number = prev_chapter.chapter_number
+
+        data = [(*base_values, c.title, c.chapter_number, c.decimal,
                  c.chapter_identifier, c.release_date)
                 for c in chapters]
 
@@ -348,3 +442,6 @@ class MangaPlus(BaseScraper):
                     cursor.execute(sql, (manga_id, Status.COMPLETED, artist, author[0]))
 
         return True
+
+    def add_service(self) -> Optional[int]:
+        return self.add_service_whole()

@@ -2,7 +2,7 @@ import logging
 import re
 import time
 from datetime import timedelta, datetime
-from typing import Optional, Iterable, Union
+from typing import Optional, Iterable, Union, List
 
 import requests
 from lxml import etree
@@ -193,17 +193,10 @@ class ComiXology(BaseScraper):
                 continue
 
             chapters = [Chapter(c, manga.title) for c in chapter_elements]
-            sql = 'SELECT MAX(chapter_identifier::int) FROM chapters WHERE service_id=%s AND manga_id=%s'
             manga_id = manga.manga_id
-            with self.conn:
-                with self.conn.cursor() as cur:
-                    cur.execute(sql, (self.service_id, manga_id))
-                    row = cur.fetchone()
-                    max_id = row[0] if row else None
 
             old_chapters = chapters
-            if max_id:
-                chapters = [c for c in chapters if not c.invalid and int(c.chapter_identifier) > max_id]
+            chapters: List[Chapter] = list(self.dbutil.get_only_latest_entries(self.service_id, chapters))
 
             if not chapters:
                 continue

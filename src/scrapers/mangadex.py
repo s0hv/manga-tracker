@@ -13,6 +13,7 @@ import psycopg2
 import requests
 from psycopg2.extras import execute_values
 
+from src.enums import Status
 from src.errors import FeedHttpError, InvalidFeedError
 from src.scrapers.base_scraper import BaseScraper, BaseChapter
 from src.utils.utilities import match_title, is_valid_feed, get_latest_chapters
@@ -214,11 +215,11 @@ class MangaDex(BaseScraper):
                 manga_ids = {r['manga_id'] for r in rows}
                 if manga_ids:
                     self.dbutil.update_latest_chapter(cur, tuple(c for c in get_latest_chapters(rows).values()))
-                    self.update_chapter_infos([mangadex_ids[i] for i in mangadex_ids], [c['chapter_identifier'] for c in rows])
+                    self.update_chapter_infos([mangadex_ids[i] for i in mangadex_ids], [c['chapter_identifier'] for c in rows], service_id)
 
         return manga_ids
 
-    def update_chapter_infos(self, title_ids: Iterable[str], chapter_ids: Iterable[str]):
+    def update_chapter_infos(self, title_ids: Iterable[str], chapter_ids: Iterable[str], service_id: int):
         if not title_ids:
             return
 
@@ -227,6 +228,7 @@ class MangaDex(BaseScraper):
         fails = 0
         sleep = 0.1
         chapters = []
+        manga_info = []
 
         for idx, title_id in enumerate(title_ids):
             try:
@@ -254,7 +256,27 @@ class MangaDex(BaseScraper):
                     return
                 continue
 
-            # TODO add manga info updates here
+            manga = data.get('manga', {})
+            cover = manga.get('cover_url')
+            if cover:
+                cover = f'https://mangadex.org/{cover}'
+
+            artist = manga.get('artist')
+            author = manga.get('author')
+            status = manga.get('status')
+            if status:
+                status = Status.from_mangadex(int(status))
+            else:
+                status = 0
+
+            manga_info.append((
+                cover,
+                artist,
+                author,
+                status,
+                service_id,
+                title_id
+            ))
 
             for chapter_id in data.get('chapter', {}):
                 if chapter_id not in chapter_ids:
@@ -267,7 +289,8 @@ class MangaDex(BaseScraper):
 
                 chapters.append((
                     title,
-                    chapter_id
+                    chapter_id,
+                    service_id
                 ))
 
             if idx % 10 == 0:
@@ -280,12 +303,25 @@ class MangaDex(BaseScraper):
             return
 
         sql = 'UPDATE chapters SET title=c.title ' \
-              'FROM (VALUES %s) as c(title, chapter_identifier) ' \
-              'WHERE c.chapter_identifier=chapters.chapter_identifier'
+              'FROM (VALUES %s) as c(title, chapter_identifier, service_id) ' \
+              'WHERE chapters.service_id=c.service_id AND c.chapter_identifier=chapters.chapter_identifier'
+
+        info_sql = '''
+            INSERT INTO manga_info as mi (manga_id, cover, artist, author, status)
+                SELECT ms.manga_id, c.cover, c.artist, c.author, c.status
+                FROM (VALUES %s) as c(cover, artist, author, status, service_id, title_id)
+                    INNER JOIN manga_service ms ON ms.service_id=c.service_id AND ms.title_id=c.title_id
+            ON CONFLICT (manga_id) DO UPDATE SET
+                cover=COALESCE(EXCLUDED.cover, mi.cover),
+                artist=COALESCE(EXCLUDED.artist, mi.artist),
+                author=COALESCE(EXCLUDED.author, mi.author),
+                status=EXCLUDED.status
+        '''
 
         with self.conn:
             with self.conn.cursor() as cur:
                 execute_values(cur, sql, chapters, page_size=500)
+                execute_values(cur, info_sql, manga_info, page_size=500)
 
     def add_service(self):
         self.add_service_whole()

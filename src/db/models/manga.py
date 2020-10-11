@@ -4,13 +4,12 @@ from typing import Optional, Collection, Dict, Type
 from psycopg2.extras import DictRow
 from psycopg2.extensions import connection as Connection
 
-from src.scrapers import SCRAPERS
-from src.scrapers.base_scraper import BaseScraper
-from src.utils.dbutils import DbUtil
+from src.scrapers import base_scraper
+from src.utils import dbutils
 
 
 class Manga:
-    def __init__(self, manga_id: int,
+    def __init__(self, manga_id: Optional[int],
                  title: str,
                  release_interval: Optional[timedelta] = None,
                  latest_release: Optional[datetime] = None,
@@ -103,9 +102,10 @@ class MangaService(Manga):
     # Returns a class initializer so it is named as a class would
     # noinspection PyPep8Naming
     @property
-    def Scraper(self) -> Type[BaseScraper]:
+    def Scraper(self) -> Type['base_scraper.BaseScraper']:
+        from src.scrapers import SCRAPERS
         return SCRAPERS[self.service_id]
 
-    def scrape_series(self, conn: Connection, dbutil: DbUtil):
+    def scrape_series(self, conn: Connection, dbutil: 'dbutils.DbUtil'):
         scraper = self.Scraper(conn, dbutil)
         return scraper.scrape_series(self.title_id, self.service_id, self.manga_id, self.feed_url)
