@@ -2,7 +2,7 @@ import logging
 import statistics
 from datetime import datetime, timedelta
 from typing import (Union, Any, Protocol, Optional, List, Dict, Generator, Tuple,
-                    Collection, Iterable)
+                    Collection, Iterable, TypeVar, Type)
 
 from psycopg2.extensions import connection as Connection, cursor as Cursor
 from psycopg2.extras import execute_values, DictRow
@@ -13,6 +13,9 @@ from src.utils.utilities import round_seconds
 
 logger = logging.getLogger('debug')
 maintenance = logging.getLogger('maintenance')
+
+
+BaseChapter = TypeVar('BaseChapter', bound=Type['base_scraper.BaseChapter'])
 
 
 class TransactionFunction(Protocol):
@@ -61,7 +64,7 @@ class DbUtil:
         return cur.fetchall()
 
     @optional_transaction
-    def get_service(self, cur: Cursor, service_url: str) -> Optional[DictRow]:
+    def get_service(self, cur: Cursor, service_url: str) -> Optional[int]:
         sql = 'SELECT service_id FROM services WHERE url=%s'
         cur.execute(sql, (service_url,))
         row = cur.fetchone()
@@ -400,7 +403,7 @@ class DbUtil:
         return row
 
     @optional_transaction
-    def get_only_latest_entries(self, cur: Cursor, service_id: int, entries: Iterable['base_scraper.BaseChapter']) -> Collection['base_scraper.BaseChapter']:
+    def get_only_latest_entries(self, cur: Cursor, service_id: int, entries: Iterable[BaseChapter]) -> Collection[BaseChapter]:
         try:
             sql = 'SELECT chapter_identifier FROM chapters WHERE service_id=%s ORDER BY chapter_id DESC LIMIT 400'
             cur.execute(sql, (service_id,))
