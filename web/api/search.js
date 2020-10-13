@@ -7,14 +7,14 @@ function search(keywords, limit) {
                   SELECT m.manga_id, m.title, true as main, title <-> $1 as similarity
                   FROM manga m
                   WHERE REPLACE(m.title, '-', ' ') ILIKE '%' || $1 || '%'
-                  ORDER BY m.title ILIKE $1 || '%' DESC, 3
+                  ORDER BY m.title ILIKE $1 || '%' DESC, 4 -- 4th column in the select
                   LIMIT $2)
                   UNION (
                       SELECT ma.manga_id, m.title, false as main, ma.title <-> $1 as similarity
                       FROM manga_alias ma
                       INNER JOIN manga m ON m.manga_id = ma.manga_id
                       WHERE REPLACE(ma.title, '-', ' ') ILIKE '%' || $1 || '%'
-                      ORDER BY ma.title ILIKE $1 || '%' DESC, 3
+                      ORDER BY ma.title ILIKE $1 || '%' DESC, 4 -- 4th column in the select
                       LIMIT $2)
                   ORDER BY main DESC
               )
