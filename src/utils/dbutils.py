@@ -138,7 +138,7 @@ class DbUtil:
         duplicates = set()
 
         for manga in mangas:
-            manga_title = manga.title
+            manga_title = manga.title.lower()
             if manga_title in duplicates:
                 continue
 

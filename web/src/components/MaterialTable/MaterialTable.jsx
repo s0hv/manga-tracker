@@ -50,6 +50,10 @@ export default function MaterialTable(props) {
     loading = false,
   } = props;
 
+  if (data === null || data === undefined) {
+    throw new TypeError('Data not given to table');
+  }
+
   const classes = useStyles();
   const [rowsPerPage] = useState(rowsPerPageInitial);
 

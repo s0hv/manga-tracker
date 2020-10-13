@@ -28,9 +28,11 @@ module.exports.getChapters = (mangaId, limit, offset) => {
                 ORDER BY chapter_number DESC, chapter_decimal DESC NULLS LAST
                 LIMIT $2 ${offset ? 'OFFSET $3' : ''}
             ) as ch
-        ) as chapters
+        ) as chapters,
+       (exists(SELECT 1 FROM manga WHERE manga_id=$1)) as "exists"
     FROM chapters
-    WHERE manga_id=$1
+    INNER JOIN manga m ON m.manga_id = chapters.manga_id
+    WHERE m.manga_id=$1
   `;
 
   const args = [mangaId, limit];
@@ -39,7 +41,7 @@ module.exports.getChapters = (mangaId, limit, offset) => {
   return db.query(sql, args)
     .then(res => {
       const row = res.rows[0];
-      if (!row) return Promise.resolve(null);
+      if (!row || !row.exists) return Promise.resolve(null);
 
       return Promise.resolve({
         count: row.count,

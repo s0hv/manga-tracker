@@ -1,5 +1,5 @@
 import React from 'react';
-import { createMount } from '@material-ui/core/test-utils';
+import { createMount, createShallow } from '@material-ui/core/test-utils';
 import fetchMock from 'fetch-mock';
 import { createSerializer } from 'enzyme-to-json';
 import { act } from 'react-dom/test-utils';
@@ -88,6 +88,15 @@ describe('It should render correctly', () => {
     );
 
     expect(wrapper).toMatchSnapshot();
+  });
+
+  test('without data (null)', () => {
+    expect(() => createShallow()(
+      <MaterialTable
+        columns={columns}
+        data={null}
+      />
+    )).toThrow(TypeError);
   });
 
   test('with data', () => {

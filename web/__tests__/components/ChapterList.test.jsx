@@ -49,6 +49,10 @@ describe('Chapter list should render correctly', () => {
     );
 
     expect(wrapper).toMatchSnapshot();
+
+    expect(() => createShallow()(
+      <ChapterList chapters={null} />
+    )).not.toThrow();
   });
 
   it('with chapters and edit', () => {
