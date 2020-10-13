@@ -125,7 +125,7 @@ function Manga(props) {
   }, [mangaData.services]);
 
   const mangaChapters = React.useMemo(() => {
-    if (!mangaData.chapters) return null;
+    if (!mangaData.chapters) return [];
     const serviceMap = {};
     mangaData.services.forEach(service => { serviceMap[service.service_id] = service.url_format });
     return mangaData.chapters.map(chapter => {

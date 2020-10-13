@@ -142,7 +142,7 @@ module.exports = app => {
 
     getChapters(mangaId, limit, offset)
       .then(rows => {
-        if (!rows || !rows.chapters) {
+        if (!rows) {
           res.status(404).json({ error: 'No manga found with given id' });
           return;
         }
