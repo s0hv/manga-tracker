@@ -143,6 +143,11 @@ class MangaDex(BaseScraper):
 
             kwargs['chapter_identifier'] = post.get('link', '').split('/')[-1]
             manga_id = post.get('mangalink', '').split('/')[-1]
+
+            # In case an invalid entry somehow ended up in the feed
+            if manga_id == '0':
+                continue
+
             kwargs['manga_id'] = manga_id
 
             if not kwargs['manga_id'] or not kwargs['chapter_identifier']:
@@ -155,7 +160,11 @@ class MangaDex(BaseScraper):
             if match:
                 kwargs.update(match.groupdict())
 
-            titles.append(Chapter(**kwargs))
+            try:
+                titles.append(Chapter(**kwargs))
+            except:
+                logger.exception(f'Failed to parse chapter {post}')
+                continue
 
         return titles
 
