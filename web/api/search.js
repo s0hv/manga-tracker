@@ -1,4 +1,5 @@
 const db = require('../db');
+const { handleError } = require('../db/utils');
 const { getManga } = require('../db/manga');
 
 function search(keywords, limit) {
@@ -83,12 +84,10 @@ module.exports = app => {
         const row = rows.rows[0];
         res.json({ manga: row });
         if ((!row.last_updated || (Date.now() - row.last_updated)/8.64E7 > 14)) {
-          getManga(row.manga_id, 50);
+          getManga(row.manga_id, 50)
+            .catch(console.error);
         }
       })
-      .catch(err => {
-        console.error(err);
-        res.json({ error: { status: 500, message: 'Internal server error. Try again later' }});
-      });
+      .catch(err => handleError(err, res));
   });
 };

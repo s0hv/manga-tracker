@@ -1,5 +1,8 @@
 const format = require('pg-format');
-const { NUMERIC_VALUE_OUT_OF_RANGE } = require('pg-error-constants');
+const {
+  NUMERIC_VALUE_OUT_OF_RANGE,
+  INVALID_TEXT_REPRESENTATION
+} = require('pg-error-constants');
 const dblog = require('debug')('db');
 
 function generateEqualsColumns(o, availableColumns) {
@@ -23,7 +26,7 @@ function generateEqualsColumns(o, availableColumns) {
 module.exports.generateEqualsColumns = generateEqualsColumns;
 
 function handleError(err, res) {
-  if (err.code === '22P02') {
+  if (err.code === INVALID_TEXT_REPRESENTATION) {
     dblog(err.message);
     res.status(400).json({ error: 'Invalid data type given' });
     return;

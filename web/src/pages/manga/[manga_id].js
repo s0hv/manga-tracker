@@ -19,6 +19,10 @@ export async function getServerSideProps({ req, params }) {
   let userFollows;
   try {
     manga = await getManga(params.manga_id, 50);
+    if (!manga) {
+      return { props: { error: 404 }};
+    }
+
     if (req.user?.user_id) {
       userFollows = (await getUserFollows(req.user.user_id, params?.manga_id))
         .rows.map(service => service.service_id);

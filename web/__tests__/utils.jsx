@@ -18,7 +18,7 @@ export const adminUser = {
 };
 
 export const normalUser = {
-  user_id: 5,
+  user_id: 3,
   user_uuid: '9c5da998-6287-4c81-806c-a2d452c2bac5',
   username: 'no perms',
   joined_at: new Date(Date.now()),
@@ -109,13 +109,37 @@ export function withRoot(Component) {
   );
 }
 
-export function expectErrorMessage(message) {
-  if (!(message instanceof RegExp)) {
-    message = new RegExp(message);
-  }
-
+export function expectErrorMessage(value, param, message='Invalid value') {
   return (res) => {
     expect(res.body).toBeObject();
-    expect(res.body.error).toMatch(message);
+    let errors = res.body.error;
+    expect(errors).toBeDefined();
+
+    let error;
+
+    if (typeof errors === 'string') {
+      expect(errors).toMatch(value);
+      return;
+    }
+
+    if (Array.isArray(errors)) {
+      if (param) {
+        // Only get errors related to the given parameter
+        errors = errors.filter(err => err.param === param);
+      }
+      expect(errors).toHaveLength(1);
+      error = errors[0];
+    } else {
+      error = errors;
+    }
+
+    expect(error.msg).toMatch(message);
+    if (typeof param === 'string') {
+      expect(error.param).toEqual(param);
+    }
+
+    if (typeof value === 'string') {
+      expect(error.value).toEqual(value);
+    }
   };
 }
