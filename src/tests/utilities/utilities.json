@@ -4,9 +4,9 @@
     "correct": {
       "manga_title": "Kekkon surutte, hontou desu ka?",
       "volume_number": null,
-      "chapter_number": null,
+      "chapter": null,
       "chapter_number2": "2",
-      "chapter_decimal": null,
+      "decimal": null,
       "chapter_decimal2": null,
       "chapter_title": "Do we have to announce the wedding?"
     }
@@ -17,9 +17,9 @@
     "correct": {
       "manga_title": "The Second Coming of Gluttony",
       "volume_number": null,
-      "chapter_number": "33",
+      "chapter": "33",
       "chapter_number2": null,
-      "chapter_decimal": null,
+      "decimal": null,
       "chapter_decimal2": null,
       "chapter_title": null
     }
@@ -30,9 +30,9 @@
     "correct": {
       "manga_title": "The Cucko's Fiancee",
       "volume_number": null,
-      "chapter_number": "9",
+      "chapter": "9",
       "chapter_number2": null,
-      "chapter_decimal": null,
+      "decimal": null,
       "chapter_decimal2": null,
       "chapter_title": "Can We Spend Our Mornings Together...?"
     }
@@ -43,9 +43,9 @@
     "correct": {
       "manga_title": "Adabana",
       "volume_number": null,
-      "chapter_number": "1",
+      "chapter": "1",
       "chapter_number2": null,
-      "chapter_decimal": null,
+      "decimal": null,
       "chapter_decimal2": null,
       "chapter_title": "Confession"
     }
@@ -56,9 +56,9 @@
     "correct": {
       "manga_title": "Kaguya Wants to be Confessed to",
       "volume_number": null,
-      "chapter_number": "171",
+      "chapter": "171",
       "chapter_number2": null,
-      "chapter_decimal": "1",
+      "decimal": "1",
       "chapter_decimal2": null,
       "chapter_title": "Vol 17 Extras"
     }
@@ -69,9 +69,9 @@
     "correct": {
       "manga_title": "The 100 Girlfriends Who Really, Really, Really, Really, Really Love You",
       "volume_number": null,
-      "chapter_number": "10",
+      "chapter": "10",
       "chapter_number2": null,
-      "chapter_decimal": null,
+      "decimal": null,
       "chapter_decimal2": null,
       "chapter_title": "The Mysterious Senpai Inside the Chemistry Room"
     }
@@ -82,9 +82,9 @@
     "correct": {
       "manga_title": "Kekkon surutte, hontou desu ka?",
       "volume_number": null,
-      "chapter_number": null,
+      "chapter": null,
       "chapter_number2": "2",
-      "chapter_decimal": null,
+      "decimal": null,
       "chapter_decimal2": null,
       "chapter_title": "Do we have to announce the wedding?"
     }
@@ -95,9 +95,9 @@
     "correct": {
       "manga_title": "Sword Art Online - Lycoris",
       "volume_number": "1",
-      "chapter_number": "1",
+      "chapter": "1",
       "chapter_number2": null,
-      "chapter_decimal": null,
+      "decimal": null,
       "chapter_decimal2": null,
       "chapter_title": null
     }
@@ -108,9 +108,9 @@
     "correct": {
       "manga_title": "Honkai Impact 3rd",
       "volume_number": "8",
-      "chapter_number": "7",
+      "chapter": "7",
       "chapter_number2": null,
-      "chapter_decimal": null,
+      "decimal": null,
       "chapter_decimal2": null,
       "chapter_title": null
     }
@@ -121,9 +121,9 @@
     "correct": {
       "manga_title": "Honkai Impact 3rd",
       "volume_number": null,
-      "chapter_number": null,
+      "chapter": null,
       "chapter_number2": "3",
-      "chapter_decimal": null,
+      "decimal": null,
       "chapter_decimal2": null,
       "chapter_title": "title"
     }
@@ -134,9 +134,9 @@
     "correct": {
       "manga_title": "Kedamono Kareshi",
       "volume_number": "3",
-      "chapter_number": "20",
+      "chapter": "20",
       "chapter_number2": null,
-      "chapter_decimal": "1",
+      "decimal": "1",
       "chapter_decimal2": null,
       "chapter_title": null
     }
@@ -147,9 +147,9 @@
     "correct": {
       "manga_title": "Ookami-san to Shinizokonai",
       "volume_number": null,
-      "chapter_number": null,
+      "chapter": null,
       "chapter_number2": null,
-      "chapter_decimal": null,
+      "decimal": null,
       "chapter_decimal2": null,
       "chapter_title": "Oneshot"
     }
@@ -160,9 +160,9 @@
     "correct": {
       "manga_title": "These Two Will Be Married In 100 Days",
       "volume_number": null,
-      "chapter_number": "9",
+      "chapter": "9",
       "chapter_number2": null,
-      "chapter_decimal": null,
+      "decimal": null,
       "chapter_decimal2": null,
       "chapter_title": null
     }
@@ -173,9 +173,9 @@
     "correct": {
       "manga_title": "Azur Lane - Commander Ramune: AL's Northern Parliament (Doujinshi)",
       "volume_number": null,
-      "chapter_number": "10",
+      "chapter": "10",
       "chapter_number2": null,
-      "chapter_decimal": null,
+      "decimal": null,
       "chapter_decimal2": null,
       "chapter_title": null
     }
@@ -186,9 +186,9 @@
     "correct": {
       "manga_title": "Kekkon surutte, hontou desu ka?",
       "volume_number": null,
-      "chapter_number": null,
+      "chapter": null,
       "chapter_number2": "2",
-      "chapter_decimal": null,
+      "decimal": null,
       "chapter_decimal2": "3",
       "chapter_title": "Do we have to announce the wedding?"
     }
@@ -199,9 +199,9 @@
     "correct": {
       "manga_title": "Honkai Impact 3rd",
       "volume_number": null,
-      "chapter_number": null,
+      "chapter": null,
       "chapter_number2": "3",
-      "chapter_decimal": null,
+      "decimal": null,
       "chapter_decimal2": "8",
       "chapter_title": "title"
     }
@@ -212,9 +212,9 @@
     "correct": {
       "manga_title": "",
       "volume_number": null,
-      "chapter_number": "",
+      "chapter": "",
       "chapter_number2": null,
-      "chapter_decimal": null,
+      "decimal": null,
       "chapter_decimal2": null,
       "chapter_title": ""
     }
@@ -225,9 +225,9 @@
     "correct": {
       "manga_title": "",
       "volume_number": null,
-      "chapter_number": "",
+      "chapter": "",
       "chapter_number2": null,
-      "chapter_decimal": null,
+      "decimal": null,
       "chapter_decimal2": null,
       "chapter_title": ""
     }
