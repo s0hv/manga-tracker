@@ -17,7 +17,7 @@ universal_chapter_regex = \
                
                # Check for chapter number if one exists
                r'(?:'  
-                   r'(?:(?:Chapter) ?(?P<chapter_number>\d+)(?:\.(?P<chapter_decimal>\d))?,?)|'  # Match chapter number in the format of Chapter x.y
+                   r'(?:(?:Chapter) ?(?P<chapter>\d+)(?:\.(?P<decimal>\d))?,?)|'  # Match chapter number in the format of Chapter x.y
                    r'(?: ?(?=Oneshot))|'  # Check if oneshot. Those won't have a defined chapter number
                    # Broad chapter number lookup. Matches any string following a number as long as it's preceded by a space or : and doesn't have a chapter after it
                    r'(?:[^ \d]+?.(?P<chapter_number2>\d+)(?:\.(?P<chapter_decimal2>\d))?(?=[ :])(?!.+? chapter))'
@@ -33,8 +33,8 @@ def match_title(s: str) -> Optional[Dict[str, str]]:
         return
 
     match = match.groupdict()
-    match['chapter_number'] = match['chapter_number'] or match.pop('chapter_number2')
-    match['chapter_decimal'] = match['chapter_decimal'] or match.pop('chapter_decimal2')
+    match['chapter'] = match['chapter'] or match.pop('chapter_number2')
+    match['decimal'] = match['decimal'] or match.pop('chapter_decimal2')
     logger.debug(f"Parsed title with universal regex: {match}")
     return match
 

@@ -135,7 +135,7 @@ class MangaDex(BaseScraper):
                     logger.warning(f'Could not parse title from {title or post}')
                     continue
 
-                logger.debug(f'Fallback to universal regex successful on {title or post}')
+                logger.warning(f'Fallback to universal regex successful on {title or post}')
 
                 kwargs = m
             else:
