@@ -1,5 +1,4 @@
 import request from 'supertest';
-import { userUnauthorized } from '../constants';
 
 import initServer from '../initServer';
 import stopServer from '../stopServer';
@@ -46,7 +45,6 @@ describe('POST /api/settings/theme', () => {
   it('Returns 200 without logging in', async () => {
     await request(httpServer)
       .post('/api/settings/theme?value=1')
-      .expect(200)
-      .expect(expectErrorMessage(userUnauthorized));
+      .expect(200);
   });
 });

@@ -1,5 +1,5 @@
 const { requiresUser, modifyCacheUser } = require('../db/auth');
-const { positiveTinyInt, validateUser, hadValidationError } = require('../utils/validators');
+const { positiveTinyInt, hadValidationError } = require('../utils/validators');
 const db = require('../db');
 const { handleError } = require('../db/utils');
 
@@ -7,7 +7,6 @@ const { handleError } = require('../db/utils');
 module.exports = app => {
   app.post('/api/settings/theme', requiresUser, [
     positiveTinyInt('value'),
-    validateUser().optional(),
   ], (req, res) => {
     if (hadValidationError(req, res)) return;
 
