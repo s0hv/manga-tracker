@@ -79,7 +79,9 @@ module.exports = nextApp.prepare()
       store: store,
     }));
 
-    server.use(rateLimiter);
+    if (process.env.NODE_ENV !== 'test') {
+      server.use(rateLimiter);
+    }
     server.use(passport.initialize());
     server.use(checkAuth(server));
 

@@ -1,7 +1,21 @@
 const sessionDebug = require('debug')('session-debug');
 const userDebug = require('debug')('user-debug');
 
-const { requiresUser, clearUserAuthTokens, generateAuthToken, clearUserAuthToken } = require('../db/auth');
+
+const { insertFollow, deleteFollow } = require('../db/follows');
+const { handleError } = require('../db/utils');
+const {
+  mangaIdValidation,
+  serviceIdValidation,
+  hadValidationError,
+  validateUser,
+} = require('../utils/validators');
+const {
+  requiresUser,
+  clearUserAuthTokens,
+  generateAuthToken,
+  clearUserAuthToken,
+} = require('../db/auth');
 const db = require('../db');
 
 const dev = process.env.NODE_ENV !== 'production';
@@ -146,5 +160,32 @@ module.exports = app => {
 
       res.redirect('/');
     });
+  });
+
+  app.put('/api/user/follows', requiresUser, [
+    mangaIdValidation(),
+    serviceIdValidation().optional(),
+    validateUser(),
+  ], (req, res) => {
+    if (hadValidationError(req, res)) return;
+
+    insertFollow(req.user.user_id, req.query.manga_id, req.query.service_id)
+      .then(() => res.status(200).end())
+      .catch(err => handleError(err, res));
+  });
+
+  app.delete('/api/user/follows', requiresUser, [
+    mangaIdValidation(),
+    serviceIdValidation().optional(),
+    validateUser(),
+  ], (req, res) => {
+    if (hadValidationError(req, res)) return;
+
+    deleteFollow(req.user.user_id, req.query.manga_id, req.query.service_id)
+      .then(rows => {
+        if (rows.rowCount === 0) return res.status(404).end();
+        res.status(200).end();
+      })
+      .catch(err => handleError(err, res));
   });
 };

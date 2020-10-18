@@ -22,10 +22,13 @@ module.exports.mangaIdValidation = mangaIdValidation;
 const serviceIdValidation = (fromParam) => databaseIdValidation('service_id', fromParam, 'Service id must be a positive integer');
 module.exports.serviceIdValidation = serviceIdValidation;
 
+const positiveTinyInt = (field) => query(field).isInt({ min: 0, max: 127 });
+module.exports.positiveTinyInt = positiveTinyInt;
+
 const validateUser = () => body('')
   .custom((value, { req }) => {
     if (!req.user) {
-      throw new Forbidden('User not authenticated');
+      throw new Unauthorized('User not authenticated');
     }
     return true;
   });
@@ -35,7 +38,7 @@ const validateAdminUser = () => validateUser()
   .bail()
   .custom((value, { req }) => {
     if (!req.user.admin) {
-      throw new Unauthorized('Unauthorized to perform this action');
+      throw new Forbidden('Forbidden to perform this action');
     }
     return true;
   });
@@ -44,7 +47,7 @@ module.exports.validateAdminUser = validateAdminUser;
 /**
  * @returns {boolean} true if validation errors occurred. false otherwise
  */
-const hadValidationError = (req, res, sendAllErrors=false) => {
+const hadValidationError = (req, res, sendAllErrors=true) => {
   let errors = validationResult(req);
   if (!errors.isEmpty()) {
     errors = errors.array();
@@ -53,7 +56,7 @@ const hadValidationError = (req, res, sendAllErrors=false) => {
 
     if (customError) {
       res.status(customError.status).json({ error: customError.message });
-    } else if (!sendAllErrors) {
+    } else if (sendAllErrors) {
       res.status(400).json({ error: errors });
     } else {
       res.status(400).json({ error: errors[0] });

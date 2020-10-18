@@ -1,6 +1,5 @@
 import request from 'supertest';
-import { insertFollow } from '../../db/follows';
-import { userUnauthenticated, userUnauthorized, mangaIdError } from '../constants';
+import { userForbidden, userUnauthorized } from '../constants';
 
 import initServer from '../initServer';
 import stopServer from '../stopServer';
@@ -16,180 +15,20 @@ afterAll(async () => {
   await stopServer(httpServer);
 });
 
-describe('PUT /api/user/follows', () => {
-  it('Returns 403 without user authentication', async () => {
-    await request(httpServer)
-      .put(`/api/user/follows`)
-      .expect(403)
-      .expect(expectErrorMessage(userUnauthenticated));
-  });
-
-  it('Returns 400 with invalid manga id', async () => {
-    const errorMessage = mangaIdError;
-
-    await withUser(normalUser, async () => {
-      await request(httpServer)
-        .put(`/api/user/follows?manga_id=-1`)
-        .expect(400)
-        .expect(expectErrorMessage('-1', 'manga_id', errorMessage));
-
-      await request(httpServer)
-        .put(`/api/user/follows?manga_id=Infinity`)
-        .expect(400)
-        .expect(expectErrorMessage('Infinity', 'manga_id', errorMessage));
-
-      await request(httpServer)
-        .put(`/api/user/follows?manga_id=`)
-        .expect(400)
-        .expect(expectErrorMessage('', 'manga_id', errorMessage));
-
-      await request(httpServer)
-        .put(`/api/user/follows?manga_id=2147483648`)
-        .expect(400)
-        .expect(expectErrorMessage('Number value out of range'));
-    });
-  });
-
-  it('Returns 400 with invalid service id', async () => {
-    const errorMessage = 'Service id must be a positive integer';
-
-    await withUser(normalUser, async () => {
-      await request(httpServer)
-        .put(`/api/user/follows?manga_id=1&service_id=abc`)
-        .expect(400)
-        .expect(expectErrorMessage('abc', 'service_id', errorMessage));
-
-      await request(httpServer)
-        .put(`/api/user/follows?manga_id=1&service_id=`)
-        .expect(400)
-        .expect(expectErrorMessage('', 'service_id', errorMessage));
-
-      await request(httpServer)
-        .put(`/api/user/follows?manga_id=1&service_id=-1`)
-        .expect(400)
-        .expect(expectErrorMessage('-1', 'service_id', errorMessage));
-
-      await request(httpServer)
-        .put(`/api/user/follows?manga_id=1&service_id=undefined`)
-        .expect(400)
-        .expect(expectErrorMessage('undefined', 'service_id', errorMessage));
-    });
-  });
-
-  it('Returns 200 with valid data', async () => {
-    await withUser(normalUser, async () => {
-      await request(httpServer)
-        .put(`/api/user/follows?manga_id=1&service_id=1`)
-        .expect(200);
-
-      await request(httpServer)
-        .put(`/api/user/follows?manga_id=1`)
-        .expect(200);
-    });
-  });
-});
-
-describe('DELETE /api/user/follows', () => {
-  it('Returns 403 without user authentication', async () => {
-    await request(httpServer)
-      .delete(`/api/user/follows`)
-      .expect(403)
-      .expect(expectErrorMessage(userUnauthenticated));
-  });
-
-  it('Returns 400 with invalid manga id', async () => {
-    const errorMessage = mangaIdError;
-
-    await withUser(normalUser, async () => {
-      await request(httpServer)
-        .delete(`/api/user/follows?manga_id=-1`)
-        .expect(400)
-        .expect(expectErrorMessage('-1', 'manga_id', errorMessage));
-
-      await request(httpServer)
-        .delete(`/api/user/follows?manga_id=Infinity`)
-        .expect(400)
-        .expect(expectErrorMessage('Infinity', 'manga_id', errorMessage));
-
-      await request(httpServer)
-        .delete(`/api/user/follows?manga_id=`)
-        .expect(400)
-        .expect(expectErrorMessage('', 'manga_id', errorMessage));
-
-      await request(httpServer)
-        .delete(`/api/user/follows?manga_id=2147483648`)
-        .expect(400)
-        .expect(expectErrorMessage('Number value out of range'));
-    });
-  });
-
-  it('Returns 400 with invalid service id', async () => {
-    const errorMessage = 'Service id must be a positive integer';
-
-    await withUser(normalUser, async () => {
-      await request(httpServer)
-        .delete(`/api/user/follows?manga_id=1&service_id=abc`)
-        .expect(400)
-        .expect(expectErrorMessage('abc', 'service_id', errorMessage));
-
-      await request(httpServer)
-        .delete(`/api/user/follows?manga_id=1&service_id=`)
-        .expect(400)
-        .expect(expectErrorMessage('', 'service_id', errorMessage));
-
-      await request(httpServer)
-        .delete(`/api/user/follows?manga_id=1&service_id=-1`)
-        .expect(400)
-        .expect(expectErrorMessage('-1', 'service_id', errorMessage));
-
-      await request(httpServer)
-        .delete(`/api/user/follows?manga_id=1&service_id=undefined`)
-        .expect(400)
-        .expect(expectErrorMessage('undefined', 'service_id', errorMessage));
-    });
-  });
-
-  it('Returns 200 with valid input and 404 on non existent resource', async () => {
-    await insertFollow(normalUser.user_id, 1, 1);
-    await insertFollow(normalUser.user_id, 1, null);
-
-    await withUser(normalUser, async () => {
-      await request(httpServer)
-        .delete(`/api/user/follows?manga_id=1&service_id=1`)
-        .expect(200);
-
-      // Make sure resource was deleted
-      await request(httpServer)
-        .delete(`/api/user/follows?manga_id=1&service_id=1`)
-        .expect(404);
-
-      await request(httpServer)
-        .delete(`/api/user/follows?manga_id=1`)
-        .expect(200);
-
-      // Make sure resource was deleted
-      await request(httpServer)
-        .delete(`/api/user/follows?manga_id=1`)
-        .expect(404);
-    });
-  });
-});
-
-
 describe('POST /api/manga/merge', () => {
-  it('Returns 403 without user authentication', async () => {
+  it('Returns 401 without user authentication', async () => {
     await request(httpServer)
       .post('/api/manga/merge')
-      .expect(403)
-      .expect(expectErrorMessage(userUnauthenticated));
+      .expect(401)
+      .expect(expectErrorMessage(userUnauthorized));
   });
 
-  it('Returns 401 without admin rights', async () => {
+  it('Returns 403 without admin rights', async () => {
     await withUser(normalUser, async () => {
       await request(httpServer)
         .post('/api/manga/merge')
-        .expect(401)
-        .expect(expectErrorMessage(userUnauthorized));
+        .expect(403)
+        .expect(expectErrorMessage(userForbidden));
     });
   });
 

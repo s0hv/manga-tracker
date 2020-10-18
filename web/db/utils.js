@@ -1,7 +1,7 @@
 const format = require('pg-format');
 const {
   NUMERIC_VALUE_OUT_OF_RANGE,
-  INVALID_TEXT_REPRESENTATION
+  INVALID_TEXT_REPRESENTATION,
 } = require('pg-error-constants');
 const dblog = require('debug')('db');
 
@@ -12,7 +12,7 @@ function generateEqualsColumns(o, availableColumns) {
   const args = [];
 
   Object.keys(o)
-    .filter(k => cols.has(k))
+    .filter(k => o[k] !== undefined && cols.has(k))
     .forEach((k, idx) => {
       sqlValues.push(`%I=$${idx+1}`);
       columns.push(k);

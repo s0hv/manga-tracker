@@ -1,6 +1,16 @@
+const { query } = require('express-validator');
+
 const db = require('../db');
+const { hadValidationError } = require('../utils/validators');
 const { handleError } = require('../db/utils');
 const { getManga } = require('../db/manga');
+
+const searchQueryValidation = query('query')
+  .isString()
+  .withMessage('No search query specified')
+  .bail()
+  .isLength({ min: 2, max: 500 })
+  .withMessage('Query must be between 2 and 500 characters');
 
 function search(keywords, limit) {
   const sql = `WITH tmp as (
@@ -46,35 +56,28 @@ function mangaSearch(keywords) {
   return db.query(sql, [keywords.replace('-', ' ')]);
 }
 
-function quickSearch(searchWords, cb) {
-  if (searchWords.length < 2) return cb(null);
-  search(searchWords, 5)
-    .then(res => cb(res.rows))
-    .catch(err => {
-      console.error(err);
-      cb(null);
-    });
+function quickSearch(searchWords) {
+  return search(searchWords, 5)
+    .then(res => res.rows);
 }
 
 module.exports = app => {
-  app.get('/api/quicksearch', (req, res) => {
-    if (!req.query.query) {
-      return res.json([]);
-    }
+  app.get('/api/quicksearch', [
+    searchQueryValidation,
+  ], (req, res) => {
+    if (hadValidationError(req, res)) return;
 
-    quickSearch(req.query.query, (results) => {
-      res.json(results || []);
-    });
+    quickSearch(req.query.query)
+      .then((results) => {
+        res.json(results || []);
+      })
+      .catch(err => handleError(err, res));
   });
 
-  app.get('/api/search', (req, res) => {
-    if (!req.query.query) {
-      return res.json({ error: { status: 400, message: 'No search query specified' }});
-    }
-
-    if (req.query.query.length > 300) {
-      return res.json({ error: { status: 400, message: 'Search query too long (over 300 characters). If manga names this long exist report this bug.' }});
-    }
+  app.get('/api/search', [
+    searchQueryValidation,
+  ], (req, res) => {
+    if (hadValidationError(req, res)) return;
 
     mangaSearch(req.query.query)
       .then(rows => {
@@ -83,7 +86,7 @@ module.exports = app => {
         }
         const row = rows.rows[0];
         res.json({ manga: row });
-        if ((!row.last_updated || (Date.now() - row.last_updated)/8.64E7 > 14)) {
+        if ((!row.last_updated || (Date.now() - row.last_updated)/8.64E7 > 7)) {
           getManga(row.manga_id, 50)
             .catch(console.error);
         }

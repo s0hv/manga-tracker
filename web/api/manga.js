@@ -1,15 +1,12 @@
 const { query } = require('express-validator');
 
 const db = require('../db');
-const { insertFollow, deleteFollow } = require('../db/follows');
 const { handleError } = require('../db/utils');
 const { getChapters } = require('../db/chapter');
 const { getOptionalNumberParam } = require('../utils/utilities');
 const {
   mangaIdValidation,
-  serviceIdValidation,
   hadValidationError,
-  validateUser,
   validateAdminUser,
   databaseIdValidation,
   limitValidation,
@@ -33,33 +30,6 @@ module.exports = app => {
           return;
         }
         res.json({ manga: rows });
-      })
-      .catch(err => handleError(err, res));
-  });
-
-  app.put('/api/user/follows', requiresUser, [
-    mangaIdValidation(),
-    serviceIdValidation().optional(),
-    validateUser(),
-  ], (req, res) => {
-    if (hadValidationError(req, res)) return;
-
-    insertFollow(req.user.user_id, req.query.manga_id, req.query.service_id)
-      .then(() => res.status(200).end())
-      .catch(err => handleError(err, res));
-  });
-
-  app.delete('/api/user/follows', requiresUser, [
-    mangaIdValidation(),
-    serviceIdValidation().optional(),
-    validateUser(),
-  ], (req, res) => {
-    if (hadValidationError(req, res)) return;
-
-    deleteFollow(req.user.user_id, req.query.manga_id, req.query.service_id)
-      .then(rows => {
-        if (rows.rowCount === 0) return res.status(404).end();
-        res.status(200).end();
       })
       .catch(err => handleError(err, res));
   });

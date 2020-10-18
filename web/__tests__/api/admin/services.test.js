@@ -1,125 +1,143 @@
-/* eslint-env jest */
-import fetch from 'node-fetch';
+import request from 'supertest';
 
+import { userForbidden, userUnauthorized } from '../../constants';
 import initServer from '../../initServer';
 import stopServer from '../../stopServer';
-import { adminUser, normalUser, withUser } from '../../utils';
+import { adminUser, normalUser, withUser, expectErrorMessage } from '../../utils';
 
-let addr;
 let httpServer;
 
 beforeAll(async () => {
-  ({ addr, httpServer } = await initServer());
+  ({ httpServer } = await initServer());
 });
 
 afterAll(async () => stopServer(httpServer));
 
-describe('Edit service endpoint', () => {
+describe('POST /api/admin/editService', () => {
   it('returns unauthorized without user', async () => {
-    const res = await fetch(`${addr}/api/admin/editService`,
-      {
-        method: 'post',
-      });
-    expect(res.status).toStrictEqual(401);
+    await request(httpServer)
+      .post('/api/admin/editService')
+      .expect(401)
+      .expect(expectErrorMessage(userUnauthorized));
   });
 
   it('returns forbidden for non admin', async () => {
     await withUser(normalUser, async () => {
-      const res = await fetch(`${addr}/api/admin/editService`,
-        {
-          method: 'post',
-        });
-      expect(res.status).toStrictEqual(403);
-      await res.text();
+      await request(httpServer)
+        .post('/api/admin/editService')
+        .expect(403)
+        .expect(expectErrorMessage(userForbidden));
     });
   });
 
-  it('returns bad request for admin without data', async () => {
+  it('returns 400 for admin without data', async () => {
     await withUser(adminUser, async () => {
-      const res = await fetch(`${addr}/api/admin/editService`,
-        {
-          method: 'post',
-        });
-      expect(res.status).toStrictEqual(400);
-      await res.text();
+      await request(httpServer)
+        .post('/api/admin/editService')
+        .expect(400)
+        .expect(expectErrorMessage(undefined, 'service_id'));
+
+      await request(httpServer)
+        .post('/api/admin/editService')
+        .send({
+          service_id: 3,
+        })
+        .expect(400)
+        .expect(expectErrorMessage('No valid fields given to update'));
+
+      await request(httpServer)
+        .post('/api/admin/editService')
+        .send({
+          service_name: undefined,
+          disabled: undefined,
+          next_update: undefined,
+          service_id: 3,
+        })
+        .expect(400)
+        .expect(expectErrorMessage('No valid fields given to update'));
+    });
+  });
+
+  it('Returns 400 with invalid data', async () => {
+    await withUser(adminUser, async () => {
+      // service_name
+      await request(httpServer)
+        .post('/api/admin/editService')
+        .send({
+          service_name: [1, 2, 3],
+          service_id: 3,
+        })
+        .expect(400)
+        .expect(expectErrorMessage([1, 2, 3], 'service_name'));
+
+      // disabled
+      await request(httpServer)
+        .post('/api/admin/editService')
+        .send({
+          disabled: '2',
+          service_id: 3,
+        })
+        .expect(400)
+        .expect(expectErrorMessage('2', 'disabled'));
+
+      await request(httpServer)
+        .post('/api/admin/editService')
+        .send({
+          disabled: null,
+          service_id: 3,
+        })
+        .expect(400)
+        .expect(expectErrorMessage(null, 'disabled'));
+
+      // next_update
+      await request(httpServer)
+        .post('/api/admin/editService')
+        .send({
+          next_update: 'abc',
+          service_id: 3,
+        })
+        .expect(400)
+        .expect(expectErrorMessage('abc', 'next_update'));
+
+      await request(httpServer)
+        .post('/api/admin/editService')
+        .send({
+          next_update: 1602954767,
+          service_id: 3,
+        })
+        .expect(400)
+        .expect(expectErrorMessage(1602954767, 'next_update'));
     });
   });
 
   it('returns ok when editing with valid data', async () => {
     await withUser(adminUser, async () => {
-      const res = await fetch(`${addr}/api/admin/editService`,
-        {
-          method: 'post',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            service_name: 'MangaDex',
-            disabled: false,
-            next_update: null,
-            service_id: 2,
-          }),
-        });
-      expect(res.status).toStrictEqual(200);
+      await request(httpServer)
+        .post('/api/admin/editService')
+        .send({
+          next_update: new Date(1602954767000),
+          service_name: "Jaimini's Box",
+          disabled: true,
+          service_id: 3,
+        })
+        .expect(200);
+
+      await request(httpServer)
+        .post('/api/admin/editService')
+        .send({
+          next_update: new Date(1205794767000),
+          service_id: 3,
+        })
+        .expect(200);
+
+      await request(httpServer)
+        .post('/api/admin/editService')
+        .send({
+          service_name: "Jaimini's Box",
+          disabled: true,
+          service_id: 3,
+        })
+        .expect(200);
     });
-  });
-
-  it('returns bad request for admin with invalid data', async () => {
-    await withUser(adminUser, async () => {
-      let res = await fetch(`${addr}/api/admin/editService`,
-        {
-          method: 'post',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            abc: 'bad value',
-            x: 100,
-          }),
-        });
-      expect(res.status).toStrictEqual(400);
-
-      res = await fetch(`${addr}/api/admin/editService`,
-        {
-          method: 'post',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            abc: 'bad value',
-            x: 100,
-            service_id: 1,
-          }),
-        });
-      expect(res.status).toStrictEqual(400);
-
-      res = await fetch(`${addr}/api/admin/editService`,
-        {
-          method: 'post',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            disabled: 'bad value',
-            x: 100,
-            service_id: 1,
-          }),
-        });
-      expect(res.status).toStrictEqual(400);
-    });
-  });
-
-  it('returns not found on GET', async () => {
-    const res = await fetch(`${addr}/api/admin/editService`);
-    expect(res.status).toStrictEqual(404);
-    await res.text();
-  });
-
-  it('returns unauthorized without login', async () => {
-    const res = await fetch(`${addr}/api/admin/editService`,
-      {
-        method: 'post',
-      });
-    expect(res.status).toStrictEqual(401);
   });
 });
