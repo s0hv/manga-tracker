@@ -77,7 +77,12 @@ class DbUtil:
 
     @optional_transaction
     def update_chapter_interval(self, cur: Cursor, manga_id: int) -> None:
-        sql = 'SELECT MIN(release_date) release_date, chapter_number FROM chapters WHERE manga_id=%s GROUP BY chapter_number, chapter_decimal ORDER BY chapter_number DESC, chapter_decimal DESC NULLS LAST LIMIT 30'
+        sql = '''
+            SELECT MIN(release_date) release_date, chapter_number
+            FROM chapters
+            WHERE manga_id=%s AND chapter_decimal IS NULL
+            GROUP BY chapter_number
+            ORDER BY chapter_number DESC LIMIT 30'''
         cur.execute(sql, (manga_id,))
         chapters = []
         last = None
@@ -97,7 +102,7 @@ class DbUtil:
             return
 
         intervals = []
-        accuracy = 60*60*4
+        accuracy = 60*60*4  # 4h
         for a, b in zip(chapters[:-1], chapters[1:]):
             t = a['release_date']-b['release_date']
             t = round_seconds(t.total_seconds(), accuracy)
@@ -116,6 +121,7 @@ class DbUtil:
             interval = statistics.mean(intervals)
             interval = round_seconds(interval, accuracy)
 
+        # TODO add warning when interval differs too much from mean
         interval = timedelta(seconds=interval)
         sql = 'UPDATE manga SET release_interval=%s WHERE manga_id=%s'
         logger.info(f'Interval for {manga_id} set to {interval}')
