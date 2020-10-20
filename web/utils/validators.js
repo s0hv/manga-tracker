@@ -25,6 +25,33 @@ module.exports.serviceIdValidation = serviceIdValidation;
 const positiveTinyInt = (field) => query(field).isInt({ min: 0, max: 127 });
 module.exports.positiveTinyInt = positiveTinyInt;
 
+const passwordRequired = (value, { req, path }) => {
+  if (value === undefined) return true;
+  if (!req.body?.password) throw new Unauthorized(`Password required for modifying ${path}`);
+  return true;
+};
+module.exports.passwordRequired = passwordRequired;
+
+const newPassword = (newPass, repeatPass) => body(newPass)
+  .if(body(newPass).exists())
+  .custom(passwordRequired)
+  .bail()
+  .trim()
+  .isString()
+  .withMessage('Password must be a string')
+  .bail()
+  .isLength({ min: 8, max: 72 })
+  .withMessage('Password must be between 8 and 72 characters long')
+  .bail()
+  .custom((value, { req }) => {
+    if (req.body[repeatPass] !== value) {
+      throw new Error(`${newPass} did not match ${repeatPass}`);
+    }
+
+    return true;
+  });
+module.exports.newPassword = newPassword;
+
 const validateUser = () => body('')
   .custom((value, { req }) => {
     if (!req.user) {

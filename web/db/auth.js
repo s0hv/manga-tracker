@@ -16,20 +16,21 @@ const userCache = new LRU(({
 
 const dev = process.env.NODE_ENV !== 'production';
 
-function generateAuthToken(uid, userUUID, cb) {
-  crypto.randomBytes(32+9, (err, buf) => {
-    if (err) {
-      return cb(err, false);
-    }
+async function generateAuthToken(uid, userUUID) {
+  return new Promise((resolve, reject) => {
+    crypto.randomBytes(32+9, (err, buf) => {
+      if (err) {
+        return reject(err);
+      }
 
-    const token = buf.toString('base64', 0, 33);
-    const lookup = buf.toString('base64', 33);
+      const token = buf.toString('base64', 0, 33);
+      const lookup = buf.toString('base64', 33);
 
-    const sql = `INSERT INTO auth_tokens (user_id, hashed_token, expires_at, lookup) VALUES ($1, encode(digest($2, 'sha256'), 'hex'), $3, $4)`;
-    const age = 2592e+6; // 30 days
-    db.query(sql, [uid, token, new Date(Date.now() + age), lookup])
-      .then(() => cb(null, `${lookup};${token};${Buffer.from(userUUID).toString('base64')}`))
-      .catch(sqlErr => cb(sqlErr, false));
+      const sql = `INSERT INTO auth_tokens (user_id, hashed_token, expires_at, lookup) VALUES ($1, encode(digest($2, 'sha256'), 'hex'), $3, $4)`;
+      const age = 2592e+6; // 30 days
+      resolve(db.query(sql, [uid, token, new Date(Date.now() + age), lookup])
+        .then(() => `${lookup};${token};${Buffer.from(userUUID).toString('base64')}`));
+    });
   });
 }
 module.exports.generateAuthToken = generateAuthToken;
@@ -87,10 +88,12 @@ module.exports.authenticate = (req, email, password, cb) => {
         return setUser(row, true);
       }
 
-      generateAuthToken(row.user_id, row.user_uuid, (err, token) => {
-        if (err) return cb(err, false);
-        setUser(row, token);
-      });
+      generateAuthToken(row.user_id, row.user_uuid)
+        .then(token => setUser(row, token))
+        .catch(err => {
+          console.error(err);
+          cb(err, false);
+        });
     })
     .catch(err => {
       console.error(err);
@@ -133,11 +136,9 @@ module.exports.requiresUser = (req, res, next) => {
   });
 };
 
-function clearUserAuthTokens(uid, cb) {
+function clearUserAuthTokens(uid) {
   const sql = `DELETE FROM auth_tokens WHERE user_id=$1`;
-  db.query(sql, [uid])
-    .then(() => cb(null))
-    .catch(err => cb(err));
+  return db.query(sql, [uid]);
 }
 module.exports.clearUserAuthTokens = clearUserAuthTokens;
 
@@ -161,10 +162,10 @@ module.exports.checkAuth = (app) => {
                                lookup=$2 AND hashed_token=encode(digest($3, 'sha256'), 'hex')`;
 
       /*
-            Try to find the remember me token.
-            If found associate current session with user and regenerate session id (this is important)
-            If something fails or user isn't found we remove possible user id from session and continue
-             */
+      Try to find the remember me token.
+      If found associate current session with user and regenerate session id (this is important)
+      If something fails or user isn't found we remove possible user id from session and continue
+       */
       // eslint-disable-next-line prefer-const
       let [lookup, token, uuid] = req.cookies.auth.split(';', 3);
       if (!uuid) {
@@ -193,12 +194,13 @@ module.exports.checkAuth = (app) => {
               .then(res2 => {
                 if (res2.rowCount === 0) return next();
                 // TODO Display warning
-                clearUserAuthTokens(res2.rows[0].user_id, () => {
-                  app.sessionStore.clearUserSessions(res2.rows[0].user_id, () => {
-                    sessionDebug('Invalid auth token found for user. Sessions cleared');
-                    next();
+                clearUserAuthTokens(res2.rows[0].user_id)
+                  .finally(() => {
+                    app.sessionStore.clearUserSessions(res2.rows[0].user_id, () => {
+                      sessionDebug('Invalid auth token found for user. Sessions cleared');
+                      next();
+                    });
                   });
-                });
               })
               .catch(next);
             return;

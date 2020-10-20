@@ -1,29 +1,33 @@
-/* eslint-env jest */
-
 import { MuiPickersUtilsProvider } from '@material-ui/pickers';
 import DateFnsUtils from '@date-io/date-fns';
 import enLocale from 'date-fns/locale/en-GB';
+import request from 'supertest';
 import React, { isValidElement } from 'react';
 import { act } from 'react-dom/test-utils';
+import signature from 'cookie-signature';
 
 import { UserProvider } from '../src/utils/useUser';
 
 export const adminUser = {
-  user_id: 99,
-  user_uuid: 'f6382674-efbd-4746-b3be-77566c337a8b',
-  username: 'admin',
+  user_id: 1,
+  user_uuid: '22fc15c9-37b9-4869-af86-b334333dedd8',
+  username: 'test ci admin',
   joined_at: new Date(Date.now()),
-  theme: 1,
+  theme: 2,
   admin: true,
+  password: 'te!st-pa#ss)wo(rd123',
+  email: 'test-admin@test.com',
 };
 
 export const normalUser = {
   user_id: 3,
-  user_uuid: '9c5da998-6287-4c81-806c-a2d452c2bac5',
-  username: 'no perms',
+  user_uuid: 'cf5eddfd-e0fe-4e6e-b339-70be6f33794d',
+  username: 'test ci',
   joined_at: new Date(Date.now()),
-  theme: 1,
+  theme: 2,
   admin: false,
+  password: 'te!st-pa#ss)wo(rd123',
+  email: 'test@test.com',
 };
 
 export function mockUTCDates() {
@@ -94,6 +98,36 @@ export async function withUser(userObject, cb) {
   }
 }
 
+export function getCookie(agent, name) {
+  return agent.jar.getCookie(name, { path: '/' });
+}
+
+export async function login(app, user, rememberMe=false) {
+  const agent = request.agent(app);
+  await agent
+    .post('/api/login')
+    .type('form')
+    .send({
+      email: user.email,
+      password: user.password,
+      rememberme: rememberMe ? 'on' : 'off',
+    })
+    .expect('set-cookie', /sess=/)
+    .expect('set-cookie', rememberMe ? /auth=/ : /sess=/);
+
+  if (!rememberMe) {
+    expect(getCookie(agent, 'auth')).toBeUndefined();
+  }
+
+  expect(getCookie(agent, 'sess')).toBeDefined();
+
+  return agent;
+}
+
+export function unsignCookie(value) {
+  return signature.unsign(value.slice(2), 'secret');
+}
+
 export async function editInput(input, value) {
   await act(async () => {
     input.simulate('change', { target: { value }, currentTarget: { value }});
@@ -138,8 +172,6 @@ export function expectErrorMessage(value, param, message='Invalid value') {
       expect(error.param).toEqual(param);
     }
 
-    if (typeof value === 'string') {
-      expect(error.value).toEqual(value);
-    }
+    expect(error.value).toEqual(value);
   };
 }

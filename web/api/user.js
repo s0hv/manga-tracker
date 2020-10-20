@@ -1,3 +1,6 @@
+const { body } = require('express-validator');
+const { UNIQUE_VIOLATION } = require('pg-error-constants');
+
 const sessionDebug = require('debug')('session-debug');
 const userDebug = require('debug')('user-debug');
 
@@ -9,6 +12,8 @@ const {
   serviceIdValidation,
   hadValidationError,
   validateUser,
+  newPassword,
+  passwordRequired,
 } = require('../utils/validators');
 const {
   requiresUser,
@@ -17,26 +22,41 @@ const {
   clearUserAuthToken,
 } = require('../db/auth');
 const db = require('../db');
+const { regenerateSession } = require('../utils/utilities');
 
 const dev = process.env.NODE_ENV !== 'production';
 
 
 const MAX_USERNAME_LENGTH = 100;
-// Rudimentary email check that check that your email is in the format of a@b.c
-// I know you apparently can have multiple @ signs in your email but I don't care and filter those out
-const emailRegex = /^(?!(.+?@{2,}.+?)|(.+?@.+?){2,}).+?@.+\.\w+$/;
 
 module.exports = app => {
-  app.post('/api/profile', requiresUser, (req, res) => {
-    if (!req.user) {
-      res.status(401).json({ error: 'Not logged in' });
-      return;
-    }
+  app.post('/api/profile', requiresUser, [
+    validateUser(),
+    newPassword('newPassword', 'repeatPassword'),
+    body('email')
+      .if(body('email').exists())
+      .isEmail()
+      .custom(passwordRequired),
+    body('username')
+      .isString()
+      .optional()
+      .bail()
+      .isLength({ max: MAX_USERNAME_LENGTH })
+      .withMessage(`Max username length is ${MAX_USERNAME_LENGTH}`)
+      .optional(),
+  ], (req, res) => {
+    if (hadValidationError(req, res)) return;
+
     sessionDebug(req.body);
 
     const args = [req.user.user_id];
     const cols = [];
-    const { body } = req;
+    const {
+      newPassword: newPass,
+      email,
+      username,
+      password,
+    } = req.body;
     let pw = false;
 
     // Use this only after pushing to args
@@ -44,44 +64,20 @@ module.exports = app => {
       return args.length;
     }
 
-    if (body.newPassword) {
-      if (!body.password) {
-        res.status(400).json({ error: 'Tried to change password without old password' });
-        return;
-      }
-      if (body.newPassword !== body.repeatPassword) {
-        res.status(400).json({ error: "New passwords don't match" });
-        return;
-      }
-      if (body.newPassword.length > 72) {
-        res.status(400).json({ error: 'Password must be 72 or fewer characters' });
-        return;
-      }
-
+    if (newPass) {
       pw = true;
-      args.push(body.newPassword);
+      args.push(newPass);
       cols.push(`pwhash=crypt($${getIndex()}, gen_salt('bf'))`);
     }
 
-    if (body.email) {
-      // TODO email verification and validation
-      if (body.email.length > 254 || !emailRegex.test(body.email)) {
-        res.status(400).json({ error: 'Invalid email address' });
-        return;
-      }
-
-      args.push(body.email);
+    if (email) {
+      args.push(email);
       cols.push(`email=$${getIndex()}`);
       pw = true;
     }
 
-    if (body.username) {
-      if (body.username.length > MAX_USERNAME_LENGTH) {
-        res.status(400).json({ error: 'Username too long' });
-        return;
-      }
-
-      args.push(body.username);
+    if (username) {
+      args.push(username);
       cols.push(`username=$${getIndex()}`);
     }
 
@@ -91,56 +87,66 @@ module.exports = app => {
     }
 
     if (pw) {
-      args.push(req.body.password);
+      args.push(password);
     }
     const pwCheck = ` AND pwhash=crypt($${getIndex()}, pwhash)`;
-    const sql = `UPDATE users SET ${cols.join(',')}
-                     WHERE user_id=$1 ${pw ? pwCheck : ''}`;
+    const sql = `UPDATE users
+                 SET ${cols.join(',')}
+                 WHERE user_id=$1 ${pw ? pwCheck : ''}`;
 
     db.query(sql, args)
       .then(rows => {
         if (rows.rowCount === 0) {
-          res.status(401).json({ error: 'Invalid credentials' });
+          res.status(401).json({ error: 'Invalid password' });
           return;
         }
-        sessionDebug(req.cookies.auth);
 
         if (pw) {
-          function regen() {
-            req.session.regenerate((err) => {
-              console.error(err);
-              res.status(200).end();
-            });
-          }
-          // callback hell
           app.sessionStore.clearUserSessions(req.user.user_id, (err) => {
-            if (err) return res.status(500).json({ error: 'Internal server error' });
+            if (err) {
+              return res.status(500).json({ error: 'Internal server error' });
+            }
 
-            clearUserAuthTokens(req.user.user_id, (clearErr) => {
-              if (clearErr) return res.status(500).json({ error: 'Internal server error' });
+            clearUserAuthTokens(req.user.user_id)
+              .then(() => {
+                if (!req.cookies.auth) {
+                  regenerateSession(req)
+                    .catch(sessionDebug)
+                    .finally(() => res.status(200).end());
+                  return;
+                }
 
-              if (!req.cookies.auth) return regen();
-              generateAuthToken(req.user.user_id, req.user.uuid, (authErr, token) => {
-                if (authErr || !token) return res.status(500).json({ error: 'Internal server error' });
-
-                res.cookie('auth', token, {
-                  maxAge: 2592000000, // 30d in ms
-                  secure: !dev,
-                  httpOnly: true,
-                  sameSite: 'strict',
-                });
-                regen();
+                generateAuthToken(req.user.user_id, req.user.uuid)
+                  .then(token => {
+                    res.cookie('auth', token, {
+                      maxAge: 2592000000, // 30d in ms
+                      secure: !dev,
+                      httpOnly: true,
+                      sameSite: 'strict',
+                    });
+                    regenerateSession(req)
+                      .catch(sessionDebug)
+                      .finally(() => res.status(200).end());
+                  })
+                  .catch(genErr => {
+                    console.error(genErr);
+                    res.status(500).json({ error: 'Internal server error' });
+                  });
+              })
+              .catch(clearErr => {
+                console.error(clearErr);
+                res.status(500).json({ error: 'Internal server error' });
               });
-            });
           });
-          return;
+        } else {
+          res.status(200).end();
         }
-        res.status(200).end();
       })
-      .catch(err => {
-        console.error(err);
-        res.status(400).json({ error: 'Invalid values given' });
-      });
+      .catch(err => handleError(
+        err,
+        res,
+        { [UNIQUE_VIOLATION]: 'Email is already in use' }
+      ));
   });
 
   app.post('/api/logout', requiresUser, (req, res) => {
