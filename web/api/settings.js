@@ -1,19 +1,16 @@
 const { requiresUser, modifyCacheUser } = require('../db/auth');
+const { positiveTinyInt, hadValidationError } = require('../utils/validators');
 const db = require('../db');
+const { handleError } = require('../db/utils');
 
 
 module.exports = app => {
-  app.post('/api/settings/theme', requiresUser, (req, res) => {
-    if (!req.query.value) {
-      res.status(400).json({ error: 'Query parameter "value" missing' });
-      return;
-    }
+  app.post('/api/settings/theme', requiresUser, [
+    positiveTinyInt('value'),
+  ], (req, res) => {
+    if (hadValidationError(req, res)) return;
 
     const val = Number(req.query.value);
-    if (Number.isNaN(val) || val < 0 || val > 127) {
-      res.status(400).json({ error: `Query parameter "value" has an invalid value of ${val}` });
-      return;
-    }
 
     if (req.user) {
       const sql = `UPDATE users SET theme=$1 WHERE user_id=$2`;
@@ -22,10 +19,7 @@ module.exports = app => {
           modifyCacheUser(parseInt(req.user.user_id), { theme: val });
           res.status(200).end();
         })
-        .catch(err => {
-          console.error(err);
-          res.status(500).end();
-        });
+        .catch(err => handleError(err, res));
       return;
     }
 

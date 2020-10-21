@@ -10,20 +10,18 @@ const getOptionalNumberValue = (value, defaultValue, paramName='Value') => {
 };
 module.exports.getOptionalNumberParam = getOptionalNumberValue;
 
-const assertValueBetween = (value, min, max, paramName='Value') => {
-  if (value < min || value > max) {
-    throw new TypeError(`${paramName} must be between ${min} and ${max}`);
-  }
-
-  return value;
+const regenerateSession = async (req) => {
+  const tempSess = req.session;
+  return new Promise((resolve, reject) => {
+    req.session.regenerate((err) => {
+      if (err) {
+        reject(err);
+      } else {
+        // Copy old data to new session
+        Object.assign(req.session, tempSess);
+        resolve();
+      }
+    });
+  });
 };
-module.exports.assertValueBetween = assertValueBetween;
-
-const assertValuePositive = (value, paramName='Value') => {
-  if (value < 0) {
-    throw new TypeError(`${paramName} must be positive`);
-  }
-  return value;
-};
-module.exports.assertValuePositive = assertValuePositive;
-
+module.exports.regenerateSession = regenerateSession;

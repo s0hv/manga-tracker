@@ -255,7 +255,7 @@ class UpdateScheduler:
                    ) as update
                 FROM manga_service ms
                 INNER JOIN services s ON s.service_id = ms.service_id
-                WHERE s.disabled=FALSE
+                WHERE s.disabled=FALSE AND ms.disabled=FALSE
                 GROUP BY s.service_id, ms.service_id
             ) as t
             '''

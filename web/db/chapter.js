@@ -9,6 +9,23 @@ module.exports.getChapterReleases = (mangaId) => {
     .then(res => Promise.resolve(res.rows));
 };
 
+module.exports.addChapter = ({
+  mangaId,
+  serviceId,
+  title,
+  chapterNumber,
+  chapterDecimal,
+  releaseDate,
+  chapterIdentifier,
+  group,
+}) => {
+  const sql = `INSERT INTO chapters (manga_id, service_id, title, chapter_number, chapter_decimal, release_date, chapter_identifier, "group") 
+               VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+               RETURNING chapter_id`;
+  return db.query(sql, [mangaId, serviceId, title, chapterNumber, chapterDecimal, releaseDate, chapterIdentifier, group])
+    .then(res => res.rows[0]?.chapter_id);
+};
+
 module.exports.getChapters = (mangaId, limit, offset) => {
   const sql = `
     SELECT

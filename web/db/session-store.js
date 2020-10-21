@@ -31,8 +31,8 @@ module.exports = (expressSession) => {
       sessionDebug('Get session from db', sid);
 
       const sql = `SELECT user_id, data, EXTRACT(EPOCH FROM expires_at - CURRENT_TIMESTAMP)*1000 as maxage
-                          FROM sessions 
-                          WHERE session_id=$1`;
+                   FROM sessions 
+                   WHERE session_id=$1`;
 
       this.conn.query(sql, [sid])
         .then(res => {
@@ -55,7 +55,7 @@ module.exports = (expressSession) => {
       sessionDebug('Edit session', sid);
       this.cache.set(sid, session);
       const sql = `INSERT INTO sessions (user_id, session_id, data, expires_at) VALUES ($1, $2, $3, $4)
-                         ON CONFLICT (session_id) DO UPDATE SET user_id=$1, data=$3, expires_at=$4`;
+                   ON CONFLICT (session_id) DO UPDATE SET user_id=$1, data=$3, expires_at=$4`;
       this.conn.query(sql, [session.user_id, sid, session, session.cookie._expires])
         .then(() => cb(null))
         .catch(err => {
@@ -77,8 +77,9 @@ module.exports = (expressSession) => {
     }
 
     touch(sid, session, cb = noop) {
-      const sql = `UPDATE sessions SET expires_at=CURRENT_TIMESTAMP + INTERVAL '1 ms' * $1
-                         WHERE session_id=$2`;
+      const sql = `UPDATE sessions
+                   SET expires_at=CURRENT_TIMESTAMP + INTERVAL '1 ms' * $1
+                   WHERE session_id=$2`;
       this.conn.query(sql, [session.cookie.maxAge, sid])
         .then(() => cb(null))
         .catch(err => cb(err));

@@ -9,3 +9,7 @@ configure({ adapter: new Adapter() });
 
 require('dotenv').config({ path: '../.env' });
 
+jest.mock('./db/mangadex', () => ({
+  ...jest.requireActual('./db/manga'),
+  fetchExtraInfo: jest.fn().mockImplementation(async () => {}),
+}));

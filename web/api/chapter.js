@@ -1,7 +1,9 @@
 const dblog = require('debug')('db');
+const { body } = require('express-validator');
 
 const { requiresUser } = require('../db/auth');
 const db = require('../db');
+const { validateAdminUser, hadValidationError } = require('../utils/validators');
 const { getChapterReleases } = require('../db/chapter');
 const { generateEqualsColumns, handleError } = require('../db/utils');
 
@@ -10,15 +12,15 @@ const BASE_URL = '/api/chapter';
 
 module.exports = app => {
   app.use(`${BASE_URL}/:chapter_id(\\d+)`, require('body-parser').json());
-  app.post(`${BASE_URL}/:chapter_id(\\d+)`, requiresUser, (req, res) => {
-    if (!req.user) {
-      res.status(401).send({ error: 'Not logged in' });
-      return;
-    }
-    if (!req.user.admin) {
-      res.status(403).json({ error: 'Forbidden' });
-      return;
-    }
+  app.post(`${BASE_URL}/:chapter_id(\\d+)`, requiresUser, [
+    validateAdminUser(),
+    body('title').isString().optional(),
+    body('chapter_number').isInt().optional(),
+    body('chapter_decimal').isInt().optional({ nullable: true }),
+    body('group').isString().optional(),
+  ], (req, res) => {
+    if (hadValidationError(req, res)) return;
+
 
     if (!req.body || Object.keys(req.body).length === 0) {
       res.status(400).json({ error: 'Empty body' });
@@ -52,27 +54,13 @@ module.exports = app => {
           res.status(404).json({ error: `Chapter with id ${chapterId} not found` });
         }
       })
-      .catch(err => {
-        if (err.code === '22P02') {
-          dblog(err.message);
-          res.status(400).json({ error: 'Invalid data type given' });
-          return;
-        }
-
-        console.error(err);
-        res.status(500).json({ error: 'Internal server error' });
-      });
+      .catch(err => handleError(err, res));
   });
 
-  app.delete(`${BASE_URL}/:chapter_id(\\d+)`, requiresUser, (req, res) => {
-    if (!req.user) {
-      res.status(401).send({ error: 'Not logged in' });
-      return;
-    }
-    if (!req.user.admin) {
-      res.status(403).json({ error: 'Forbidden' });
-      return;
-    }
+  app.delete(`${BASE_URL}/:chapter_id(\\d+)`, requiresUser, [
+    validateAdminUser(),
+  ], (req, res) => {
+    if (hadValidationError(req, res)) return;
 
     const sql = 'DELETE FROM chapters WHERE chapter_id=$1 RETURNING chapter_identifier, service_id';
     db.query(sql, [Number(req.params.chapter_id)])
