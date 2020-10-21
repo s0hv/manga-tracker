@@ -103,7 +103,7 @@ class Reddit(BaseScraper):
                     logger.warning(f'Could not parse title from {title or post}')
                     continue
 
-                logger.warning(f'Fallback to universal regex successful on {title or post}')
+                logger.info(f'Fallback to universal regex successful on {title or post}')
 
                 kwargs = m
             else:
