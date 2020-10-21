@@ -86,6 +86,7 @@ module.exports = nextApp.prepare()
     server.use(checkAuth(server));
 
     server.use((req, res, next) => {
+      debug('Auth cookie:', req.cookies.auth);
       debug(req.originalUrl);
       // if (!req.originalUrl.startsWith('/_next/static')) debug(req.originalUrl);
       next();
