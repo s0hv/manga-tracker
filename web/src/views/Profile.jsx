@@ -1,19 +1,20 @@
-import React from 'react';
+import React, { useCallback, useMemo } from 'react';
 import {
   Button,
   Container,
-  FormHelperText,
   LinearProgress,
   Paper,
-  Snackbar,
-  TextField,
 } from '@material-ui/core';
-import MuiAlert from '@material-ui/lab/Alert';
 import { makeStyles } from '@material-ui/core/styles';
+import { Form } from 'react-final-form';
+import {
+  TextField,
+  makeValidateSync,
+  makeRequired,
+} from 'mui-rff';
+import * as Yup from 'yup';
+import { showErrorAlways } from '../utils/formUtils';
 
-// Rudimentary email check that check that your email is in the format of a@b.c
-// I know you apparently can have multiple @ signs in your email but I don't care and filter those out
-const emailRegex = /^(?!(.+?@{2,}.+?)|(.+?@.+?){2,}).+?@.+\.\w+$/;
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -22,7 +23,7 @@ const useStyles = makeStyles((theme) => ({
     padding: theme.spacing(2),
   },
   form: {
-    width: '100%', // Fix IE 11 issue.
+    width: '100%',
     paddingTop: theme.spacing(8),
     paddingBottom: theme.spacing(4),
   },
@@ -31,185 +32,148 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-function Alert(props) {
-  return <MuiAlert elevation={6} variant='filled' {...props} />;
-}
+const schema = Yup.object().shape({
+  username: Yup.string().required(),
+  email: Yup.string().email(),
+  password: Yup.string()
+    .when(['newPassword', 'email'], {
+      is: (pwd, email) => pwd?.length > 0 || email?.length > 0,
+      then: Yup.string().required(),
+    }),
+  newPassword: Yup.string(),
+  repeatPassword: Yup.string()
+    .oneOf([Yup.ref('newPassword'), undefined], 'Passwords must match'),
+});
 
-function ProfileView(props) {
+const validate = makeValidateSync(schema);
+const required = makeRequired(schema);
+
+const Profile = (props) => {
   const {
     user = {},
   } = props;
 
-  const [newPass, setNewPass] = React.useState(false);
-  const [passwordGiven, setPasswordGiven] = React.useState(false);
-  const [emailChanged, setEmailChanged] = React.useState(false);
-  const [validEmail, setValidEmail] = React.useState(false);
-  const [error, setError] = React.useState(null);
-  const [loading, setLoading] = React.useState(false);
-  const [alertOpen, setAlertOpen] = React.useState(false);
-
   const classes = useStyles();
+  const onSubmit = useCallback((values) => fetch('/api/profile',
+    {
+      method: 'post',
+      body: JSON.stringify(values),
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json; charset=utf-8',
+      },
+    })
+    .then(res => {
+      if (res.status === 200) return;
+      return res.json();
+    })
+    .then(json => json?.error && { error: json.error })
+    .catch(err => {
+      console.error(err);
+      return { error: err.message };
+    }), []);
 
-  const handleAlertClose = (event, reason) => {
-    if (reason === 'clickaway') {
-      return;
-    }
+  const initialValues = useMemo(() => ({
+    username: user.username,
+    email: user.email,
+  }), [user]);
 
-    setAlertOpen(false);
-  };
-
-  const handleNewPassword = event => {
-    if (event.target.value.length > 0) {
-      setNewPass(true);
-      return;
-    }
-    setNewPass(false);
-  };
-
-  const handleEmailChanged = event => {
-    if (event.target.value.length > 0) {
-      if (!emailChanged) setEmailChanged(true);
-      setValidEmail(emailRegex.test(event.target.value));
-      return;
-    }
-
-    setEmailChanged(false);
-    setValidEmail(true);
-  };
-
-  const handleSubmit = event => {
-    const data = new FormData(event.target);
-    const body = new URLSearchParams();
-    data.forEach((value, key) => body.append(key, value));
-    setLoading(true);
-
-    fetch('/api/profile',
-      {
-        method: 'post',
-        body: body.toString(),
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8',
-        },
-      })
-      .then(res => {
-        // setLoading(false);
-        setAlertOpen(true);
-        if (res.status === 200) return;
-        return res.json();
-      })
-      .then(json => setError(json?.error))
-      .catch(err => {
-        console.error(err);
-        setLoading(false);
-        setError('Unknown error');
-      });
-
-    event.preventDefault();
-  };
-
-  const passwordRequired = newPass || emailChanged;
+  const subscription = useMemo(() => ({
+    submitting: true,
+    hasValidationErrors: true,
+  }), []);
 
   return (
     <Container maxWidth='lg'>
       <Paper className={classes.root}>
         <Container component='main' maxWidth='xs'>
-          <form
-            id='profileEditForm'
-            className={classes.form}
-            noValidate
-            action='/api/profile'
-            method='post'
-            onSubmit={handleSubmit}
-          >
-            <TextField
-              variant='outlined'
-              margin='normal'
-              required
-              fullWidth
-              id='username'
-              label='Username'
-              name='username'
-              autoFocus
-              defaultValue={user.username}
-            />
-            <TextField
-              variant='outlined'
-              margin='normal'
-              fullWidth
-              id='email'
-              label='Email Address'
-              name='email'
-              autoComplete='email'
-              autoFocus
-              onChange={handleEmailChanged}
-            />
-            {emailChanged && !validEmail && (
-            <FormHelperText error>
-              Invalid email address
-            </FormHelperText>
+          <Form
+            onSubmit={onSubmit}
+            validate={validate}
+            initialValues={initialValues}
+            subscription={subscription}
+            render={({ handleSubmit, hasValidationErrors, submitting }) => (
+              <form
+                id='profileEditForm'
+                className={classes.form}
+                noValidate
+                onSubmit={handleSubmit}
+              >
+                <TextField
+                  variant='outlined'
+                  margin='normal'
+                  required={required.username}
+                  fullWidth
+                  id='username'
+                  name='username'
+                  label='Username'
+                  autoFocus
+                />
+                <TextField
+                  variant='outlined'
+                  margin='normal'
+                  fullWidth
+                  id='email'
+                  label='Email Address'
+                  name='email'
+                  type='email'
+                  autoComplete='email'
+                  autoFocus
+                  required={required.email}
+                />
+                <TextField
+                  variant='outlined'
+                  margin='normal'
+                  fullWidth
+                  name='password'
+                  label='Password'
+                  type='password'
+                  id='current-password'
+                  autoComplete='current-password'
+                  required={required.password}
+                  showError={showErrorAlways}
+                />
+                <TextField
+                  variant='outlined'
+                  margin='normal'
+                  fullWidth
+                  name='newPassword'
+                  label='New password'
+                  type='password'
+                  id='new-password'
+                  autoComplete='new-password'
+                  required={required.newPassword}
+                />
+                <TextField
+                  variant='outlined'
+                  margin='normal'
+                  required={required.repeatPassword}
+                  fullWidth
+                  name='repeatPassword'
+                  label='New password again'
+                  type='password'
+                  id='repeat-password'
+                  autoComplete='new-password'
+                />
+                <Button
+                  type='submit'
+                  fullWidth
+                  disabled={submitting || hasValidationErrors}
+                  variant='contained'
+                  color='primary'
+                  className={classes.submit}
+                >
+                  Update profile
+                </Button>
+                {submitting && <LinearProgress variant='query' />}
+                {/* TODO Add alert on success or error */}
+              </form>
             )}
-            <TextField
-              variant='outlined'
-              margin='normal'
-              required={passwordRequired}
-              fullWidth
-              name='password'
-              label='Password'
-              type='password'
-              id='current-password'
-              onChange={event => setPasswordGiven(event.target.value.length > 0)}
-              autoComplete='current-password'
-            />
-            {passwordRequired && !passwordGiven && (
-            <FormHelperText error>
-              Old password required
-            </FormHelperText>
-            )}
-            <TextField
-              variant='outlined'
-              margin='normal'
-              required
-              fullWidth
-              name='newPassword'
-              label='New password'
-              type='password'
-              id='new-password'
-              autoComplete='new-password'
-              onChange={handleNewPassword}
-            />
-            <TextField
-              variant='outlined'
-              margin='normal'
-              required
-              fullWidth
-              name='repeatPassword'
-              label='New password again'
-              type='password'
-              id='repeat-password'
-              autoComplete='new-password'
-            />
-            <Button
-              type='submit'
-              fullWidth
-              // disabled={requirePassword}
-              variant='contained'
-              color='primary'
-              className={classes.submit}
-            >
-              Update profile
-            </Button>
-            {loading && <LinearProgress variant='query' />}
-            <Snackbar open={alertOpen} autoHideDuration={8000} onClose={handleAlertClose}>
-              <Alert severity={error ? 'error' : 'success'} onClose={handleAlertClose}>
-                { error || 'Successfully edited profile' }
-              </Alert>
-            </Snackbar>
-          </form>
+          />
         </Container>
       </Paper>
     </Container>
   );
-}
+};
 
-export default ProfileView;
+export default Profile;

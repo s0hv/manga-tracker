@@ -30,6 +30,7 @@ const dev = process.env.NODE_ENV !== 'production';
 const MAX_USERNAME_LENGTH = 100;
 
 module.exports = app => {
+  app.use('/api/profile', require('body-parser').json());
   app.post('/api/profile', requiresUser, [
     validateUser(),
     newPassword('newPassword', 'repeatPassword'),

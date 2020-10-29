@@ -200,24 +200,21 @@ describe('POST /api/user/profile', () => {
     await withUser(normalUser, async () => {
       await request(httpServer)
         .post('/api/profile')
-        .type('form')
         .send({ username: 'a'.repeat(101) })
         .expect(400)
         .expect(expectErrorMessage('a'.repeat(101), 'username', /Max username length is \d+/));
 
       await request(httpServer)
         .post('/api/profile')
-        .type('form')
         .send({ username: [1, 2]})
         .expect(400)
-        .expect(expectErrorMessage(['1', '2'], 'username'));
+        .expect(expectErrorMessage([1, 2], 'username'));
 
       await request(httpServer)
         .post('/api/profile')
-        .type('form')
         .send({ username: null })
         .expect(400)
-        .expect(expectErrorMessage('', 'username'));
+        .expect(expectErrorMessage(null, 'username'));
     });
   });
 
@@ -226,7 +223,6 @@ describe('POST /api/user/profile', () => {
       const spy = spyOnDb();
       await request(httpServer)
         .post('/api/profile')
-        .type('form')
         .send({ email: 'test@abc', password: 'notRealPassword' })
         .expect(400)
         .expect(expectErrorMessage('test@abc', 'email'));
@@ -250,7 +246,6 @@ describe('POST /api/user/profile', () => {
 
       await request(httpServer)
         .post('/api/profile')
-        .type('form')
         .send({
           newPassword: tooLong,
           repeatPassword: tooLong,
@@ -261,7 +256,6 @@ describe('POST /api/user/profile', () => {
 
       await request(httpServer)
         .post('/api/profile')
-        .type('form')
         .send({
           newPassword: tooShort,
           repeatPassword: tooShort,
@@ -282,7 +276,6 @@ describe('POST /api/user/profile', () => {
 
       await request(httpServer)
         .post('/api/profile')
-        .type('form')
         .send({
           newPassword,
           repeatPassword,
@@ -301,14 +294,12 @@ describe('POST /api/user/profile', () => {
 
       await request(httpServer)
         .post('/api/profile')
-        .type('form')
         .send({ email: 'test@email.com' })
         .expect(401)
         .expect(expectErrorMessage('Password required for modifying email'));
 
       await request(httpServer)
         .post('/api/profile')
-        .type('form')
         .send({ newPassword: 'newPass123' })
         .expect(401)
         .expect(expectErrorMessage('Password required for modifying newPassword'));
@@ -323,7 +314,6 @@ describe('POST /api/user/profile', () => {
 
       await request(httpServer)
         .post('/api/profile')
-        .type('form')
         .send({
           email: 'test@email.com',
           username: 'test',
@@ -341,7 +331,6 @@ describe('POST /api/user/profile', () => {
     const agent = await login(httpServer, normalUser);
     await agent
       .post('/api/profile')
-      .type('form')
       .send({ email: adminUser.email, password: normalUser.password })
       .expect(422)
       .expect(expectErrorMessage('Email is already in use'));
@@ -357,7 +346,6 @@ describe('POST /api/user/profile', () => {
 
     await agent
       .post('/api/profile')
-      .type('form')
       .send({ email: normalUser.email, password: normalUser.password })
       .expect(200)
       .expect('set-cookie', /sess=/)
@@ -375,7 +363,6 @@ describe('POST /api/user/profile', () => {
 
     await agent
       .post('/api/profile')
-      .type('form')
       .send({ email: normalUser.email, password: normalUser.password })
       .expect(200)
       .expect('set-cookie', /sess=/);
@@ -390,7 +377,6 @@ describe('POST /api/user/profile', () => {
     // Make sure password doesn't work anymore
     await agent
       .post('/api/profile')
-      .type('form')
       .send({
         newPassword: user.password,
         repeatPassword: user.password,
@@ -401,7 +387,6 @@ describe('POST /api/user/profile', () => {
     // Change password back
     await agent
       .post('/api/profile')
-      .type('form')
       .send({
         newPassword: user.password,
         repeatPassword: user.password,
@@ -422,7 +407,6 @@ describe('POST /api/user/profile', () => {
 
     await agent
       .post('/api/profile')
-      .type('form')
       .send({
         newPassword: newPassword,
         repeatPassword: newPassword,
@@ -451,7 +435,6 @@ describe('POST /api/user/profile', () => {
 
     await agent
       .post('/api/profile')
-      .type('form')
       .send({
         newPassword: newPassword,
         repeatPassword: newPassword,
@@ -475,7 +458,6 @@ describe('POST /api/user/profile', () => {
 
     await agent
       .post('/api/profile')
-      .type('form')
       .send({ username: 'test ci edited' })
       .expect(200);
 
@@ -492,7 +474,6 @@ describe('POST /api/user/profile', () => {
 
     await agent
       .post('/api/profile')
-      .type('form')
       .send({
         newPassword: newPassword,
         repeatPassword: newPassword,
