@@ -6,6 +6,7 @@ export const sessionExists = async (sessionId, encrypted=true) => {
   if (encrypted) {
     sessionId = unsignCookie(sessionId);
   }
+  expect(sessionId).not.toBeFalse();
 
   const sql = 'SELECT 1 FROM sessions WHERE session_id=$1';
   const res = await db.query(sql, [sessionId]);
@@ -25,3 +26,32 @@ export const authTokenExists = async (tokenValue) => {
 };
 
 export const spyOnDb = () => jest.spyOn(db, 'query');
+
+export const sessionAssociatedWithUser = async (sessionId, encrypted=true) => {
+  if (encrypted) {
+    sessionId = unsignCookie(sessionId);
+  }
+  expect(sessionId).not.toBeFalse();
+
+  const sql = 'SELECT user_id FROM sessions WHERE session_id=$1';
+  const res = await db.query(sql, [sessionId]);
+  return res.rowCount !== 0 && res.rows[0].user_id !== null;
+};
+
+export const authTokenCount = async (uuid) => {
+  const sql = `SELECT 1
+               FROM auth_tokens INNER JOIN users u ON auth_tokens.user_id = u.user_id
+               WHERE user_uuid=$1`;
+
+  const res = await db.query(sql, [uuid]);
+  return res.rowCount;
+};
+
+export const userSessionCount = async (uuid) => {
+  const sql = `SELECT 1
+               FROM sessions INNER JOIN users u ON sessions.user_id = u.user_id
+               WHERE user_uuid=$1`;
+
+  const res = await db.query(sql, [uuid]);
+  return res.rowCount;
+};

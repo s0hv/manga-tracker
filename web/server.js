@@ -6,12 +6,11 @@ if (dev) {
   require('dotenv').config({ path: '../.env' });
 }
 
-/* eslint-disable global-require */
 const express = require('express');
 const next_ = require('next');
 const session = require('express-session');
 const passport = require('passport');
-const LocalStrategy = require('passport-local');
+const JsonStrategy = require('passport-json');
 
 const sessionDebug = require('debug')('session-debug');
 const debug = require('debug')('debug');
@@ -22,10 +21,10 @@ const { checkAuth, authenticate, requiresUser } = require('./db/auth');
 const { bruteforce, rateLimiter } = require('./utils/ratelimits');
 
 passport.use(
-  new LocalStrategy(
+  new JsonStrategy(
     {
-      usernameField: 'email',
-      passwordField: 'password',
+      usernameProp: 'email',
+      passwordProp: 'password',
       passReqToCallback: true,
     },
     authenticate
@@ -60,7 +59,7 @@ module.exports = nextApp.prepare()
     });
     server.sessionStore = store;
 
-    server.use(require('body-parser').urlencoded({ extended: true }));
+    server.use(require('body-parser').json());
 
     server.use(require('cookie-parser')(null));
     server.use(session({
@@ -94,9 +93,9 @@ module.exports = nextApp.prepare()
 
     server.use('/api/login', bruteforce.prevent);
     server.post('/api/login',
-      passport.authenticate('local'),
+      passport.authenticate('json'),
       (req, res) => {
-        if (req.body.rememberme === 'on') {
+        if (req.body.rememberme === true) {
           res.cookie('auth', req.user, {
             maxAge: 2592000000, // 30d in ms
             httpOnly: true,
@@ -130,6 +129,10 @@ module.exports = nextApp.prepare()
     server.get('/_next/*', requiresUser, (req, res) => handle(req, res));
 
     server.get('/api/authCheck', requiresUser, (req, res) => {
+      if (!req.user) {
+        res.status(401).end();
+        return;
+      }
       res.json({ user: req.user });
     });
 

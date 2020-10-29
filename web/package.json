@@ -45,7 +45,7 @@
     "nodemon": "^2.0.6",
     "nprogress": "^0.2.0",
     "passport": "^0.4.1",
-    "passport-local": "^1.0.0",
+    "passport-json": "^1.2.0",
     "pg": "^8.4.2",
     "pg-error-constants": "^1.0.0",
     "pg-format": "^1.0.4",

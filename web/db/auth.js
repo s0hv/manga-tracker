@@ -86,7 +86,7 @@ module.exports.authenticate = (req, email, password, cb) => {
         });
       }
 
-      if (req.body.rememberme !== 'on') {
+      if (req.body.rememberme !== true) {
         return setUser(row, true);
       }
 
@@ -302,4 +302,8 @@ module.exports.modifyCacheUser = (uid, modifications) => {
   const user = userCache.get(uid);
   if (!user) return;
   userCache.set(uid, { ...user, ...modifications });
+};
+
+module.exports.clearUserCache = () => {
+  userCache.reset();
 };

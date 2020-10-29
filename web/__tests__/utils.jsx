@@ -5,6 +5,7 @@ import request from 'supertest';
 import React, { isValidElement } from 'react';
 import { act } from 'react-dom/test-utils';
 import signature from 'cookie-signature';
+import cookie from 'cookie';
 
 import { UserProvider } from '../src/utils/useUser';
 
@@ -28,6 +29,17 @@ export const normalUser = {
   admin: false,
   password: 'te!st-pa#ss)wo(rd123',
   email: 'test@test.com',
+};
+
+export const authTestUser = {
+  user_id: 3,
+  user_uuid: 'db598f65-c558-4205-937f-b0f149dda1fa',
+  username: 'test ci auth',
+  joined_at: new Date(Date.now()),
+  theme: 2,
+  admin: false,
+  password: 'te!st-pa#ss)wo(rd123',
+  email: 'test_auth@test.com',
 };
 
 export function mockUTCDates() {
@@ -102,15 +114,20 @@ export function getCookie(agent, name) {
   return agent.jar.getCookie(name, { path: '/' });
 }
 
+export function deleteCookie(agent, name) {
+  const c = getCookie(agent, name);
+  c.expiration_date = 0;
+  agent.jar.setCookie(c);
+}
+
 export async function login(app, user, rememberMe=false) {
   const agent = request.agent(app);
   await agent
     .post('/api/login')
-    .type('form')
     .send({
       email: user.email,
       password: user.password,
-      rememberme: rememberMe ? 'on' : 'off',
+      rememberme: rememberMe,
     })
     .expect('set-cookie', /sess=/)
     .expect('set-cookie', rememberMe ? /auth=/ : /sess=/);
@@ -124,8 +141,26 @@ export async function login(app, user, rememberMe=false) {
   return agent;
 }
 
+export const headerNotPresent =
+  (header) => (res) => expect(res.header[header]).toBeUndefined();
+
 export function unsignCookie(value) {
+  if (!value.startsWith('s:')) {
+    value = decodeURIComponent(value);
+  }
   return signature.unsign(value.slice(2), 'secret');
+}
+
+export function expectCookieDeleted(cookieName) {
+  return (res) => {
+    expect(res.headers['set-cookie']).toBeArray();
+    const found = res.headers['set-cookie']
+      .map(c => cookie.parse(c))
+      .find(c => c[cookieName] !== undefined);
+
+    expect(found).toBeDefined();
+    expect(new Date(found.Expires).getTime()).toStrictEqual(0);
+  };
 }
 
 export async function editInput(input, value) {
@@ -133,6 +168,18 @@ export async function editInput(input, value) {
     input.simulate('change', { target: { value }, currentTarget: { value }});
     input.instance().value = value;
   });
+}
+
+export function decodeAuthToken(tokenValue) {
+  tokenValue = decodeURIComponent(tokenValue);
+  const [lookup, token, uuidBase64] = tokenValue.split(';', 3);
+  const uuid = Buffer.from(uuidBase64, 'base64').toString('ascii');
+  return [lookup, token, uuid];
+}
+
+export function encodeAuthToken(lookup, token, uuid) {
+  const uuidB64 = Buffer.from(uuid, 'ascii').toString('base64');
+  return encodeURIComponent(`${lookup};${token};${uuidB64}`);
 }
 
 export function withRoot(Component) {

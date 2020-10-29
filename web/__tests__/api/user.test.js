@@ -229,7 +229,7 @@ describe('POST /api/user/profile', () => {
 
       await request(httpServer)
         .post('/api/profile')
-        .set('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8')
+        .set('Content-Type', 'application/json; charset=UTF-8')
         .send({ email: '🤠@🤠.com', password: 'notRealPassword' })
         .expect(400)
         .expect(expectErrorMessage('🤠@🤠.com', 'email'));
