@@ -151,12 +151,17 @@ export function unsignCookie(value) {
   return signature.unsign(value.slice(2), 'secret');
 }
 
+export function getCookieFromRes(res, cookieName) {
+  if (!res.headers['set-cookie']) return;
+  return res.headers['set-cookie']
+    .map(c => cookie.parse(c))
+    .find(c => c[cookieName] !== undefined);
+}
+
 export function expectCookieDeleted(cookieName) {
   return (res) => {
     expect(res.headers['set-cookie']).toBeArray();
-    const found = res.headers['set-cookie']
-      .map(c => cookie.parse(c))
-      .find(c => c[cookieName] !== undefined);
+    const found = getCookieFromRes(res, cookieName);
 
     expect(found).toBeDefined();
     expect(new Date(found.Expires).getTime()).toStrictEqual(0);

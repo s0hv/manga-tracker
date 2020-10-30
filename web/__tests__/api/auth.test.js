@@ -8,19 +8,17 @@ import {
 } from '../dbutils';
 import { redis } from '../../utils/ratelimits';
 
-
 import initServer from '../initServer';
-import {
-  expectAuthTokenRegenerated,
-} from '../requestUtils';
+import { expectAuthTokenRegenerated } from '../requestUtils';
 import stopServer from '../stopServer';
 import {
   adminUser,
   authTestUser,
-  decodeAuthToken, deleteCookie,
+  decodeAuthToken,
+  deleteCookie,
   encodeAuthToken,
   expectCookieDeleted,
-  getCookie,
+  getCookie, getCookieFromRes,
   headerNotPresent,
   login,
   normalUser,
@@ -305,5 +303,56 @@ describe('Test authentication', () => {
       .expect(200);
 
     await expectAuthTokenRegenerated(agent, auth);
+
+    clearUserCache();
+    await agent
+      .get('/api/authCheck')
+      .expect('content-type', /json/)
+      .expect(200);
+  });
+
+  it('Resets cookie with invalid uuid', async () => {
+    const agent = await login(httpServer, adminUser, true);
+    const auth = getCookie(agent, 'auth');
+
+    const [lookup, token, uuid] = decodeAuthToken(auth.value);
+
+    const fakeToken = encodeAuthToken(
+      lookup,
+      token,
+      uuid + 'a'
+    );
+
+    await request(httpServer)
+      .get('/api/authCheck')
+      .set('Cookie', `auth=${fakeToken}`)
+      .expect(expectCookieDeleted('auth'))
+      .expect(400);
+  });
+
+  it('Does not reset token with fast requests with the same token', async () => {
+    const agent = await login(httpServer, adminUser, true);
+    const auth = getCookie(agent, 'auth');
+    deleteCookie(agent, 'sess');
+
+    const tokens = [];
+    await Promise.all(Array(5)
+      .fill(0)
+      .map(() => request(httpServer)
+        .get('/api/authCheck')
+        .set('Cookie', `auth=${auth.value}`)
+        .expect((res) => {
+          const c = getCookieFromRes(res, 'auth');
+          if (c) {
+            tokens.push(c.auth);
+          }
+        })
+        .expect(200)));
+
+    expect(tokens).toHaveLength(1);
+    const newToken = tokens[0];
+    expect(newToken).not.toEqual(auth.value);
+
+    expect(await authTokenExists(auth.value)).toBeFalse();
   });
 });
