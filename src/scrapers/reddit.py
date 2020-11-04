@@ -80,7 +80,7 @@ class Reddit(BaseScraper):
     ID = 6
     URL = 'https://www.reddit.com'
     NAME = 'Reddit'
-    CHAPTER_REGEX = re.compile(r'(?:.+?)?chapter (?P<chapter>\d+)(?: \(?part (?P<decimal>\d+)\)?)?(?P<language> \[.+?])?(?: translated)?', re.I)
+    CHAPTER_REGEX = re.compile(r'(?:.+?)?(chapter|update) (?P<chapter>\d+)(?: \(?part (?P<decimal>\d+)\)?)?(?P<language> \[.+?])?(?: translated)?', re.I)
     SUBREDDIT_REGEX = re.compile(r'https?://(?:www\.)?reddit.com/(r/\w+).*')
     UPDATE_INTERVAL = timedelta(minutes=30)
     CHAPTER_URL_FORMAT = '{}'
