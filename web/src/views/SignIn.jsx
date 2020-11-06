@@ -1,3 +1,4 @@
+import { useSnackbar } from 'notistack';
 import React from 'react';
 import {
   Avatar,
@@ -5,11 +6,9 @@ import {
   Container,
   Grid,
   Link,
-  Snackbar,
   Typography,
 } from '@material-ui/core';
 import { LockOutlined as LockOutlinedIcon } from '@material-ui/icons';
-import MuiAlert from '@material-ui/lab/Alert';
 import { makeStyles } from '@material-ui/core/styles';
 import { Form } from 'react-final-form';
 import {
@@ -17,9 +16,6 @@ import {
   Checkboxes,
 } from 'mui-rff';
 
-function Alert(props) {
-  return <MuiAlert elevation={6} variant='filled' {...props} />;
-}
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -43,8 +39,7 @@ const useStyles = makeStyles((theme) => ({
 
 export default function SignIn() {
   const classes = useStyles();
-  const [alertOpen, setAlertOpen] = React.useState(false);
-  const [error, setError] = React.useState(null);
+  const { enqueueSnackbar } = useSnackbar();
 
   const onSubmit = data => {
     console.log(data);
@@ -67,24 +62,14 @@ export default function SignIn() {
       })
       .then(err => {
         if (!err) return;
-        setError(err);
-        setAlertOpen(true);
+        enqueueSnackbar(err, { variant: 'error' });
         return { error: err };
       })
       .catch(err => {
         console.error(err);
-        setError('Unknown error');
-        setAlertOpen(true);
+        enqueueSnackbar('Unknown error', { variant: 'error' });
         return { error: err.message };
       });
-  };
-
-  const handleAlertClose = (event, reason) => {
-    if (reason === 'clickaway') {
-      return;
-    }
-
-    setAlertOpen(false);
   };
 
   return (
@@ -155,11 +140,6 @@ export default function SignIn() {
                   </Link>
                 </Grid>
               </Grid>
-              <Snackbar open={alertOpen} autoHideDuration={8000} onClose={handleAlertClose}>
-                <Alert severity='error' onClose={handleAlertClose}>
-                  { error }
-                </Alert>
-              </Snackbar>
             </form>
           )}
         </Form>

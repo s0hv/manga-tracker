@@ -1,3 +1,4 @@
+import { useSnackbar } from 'notistack';
 import React, { useCallback, useMemo } from 'react';
 import {
   Button,
@@ -54,6 +55,7 @@ const Profile = (props) => {
   } = props;
 
   const classes = useStyles();
+  const { enqueueSnackbar } = useSnackbar();
   const onSubmit = useCallback((values) => fetch('/api/profile',
     {
       method: 'post',
@@ -64,14 +66,22 @@ const Profile = (props) => {
       },
     })
     .then(res => {
-      if (res.status === 200) return;
+      if (res.status === 200) {
+        enqueueSnackbar('Profile updated successfully', { variant: 'success' });
+        return;
+      }
       return res.json();
     })
-    .then(json => json?.error && { error: json.error })
+    .then(json => {
+      if (json?.error) {
+        enqueueSnackbar(json.error, { variant: 'error' });
+        return { error: json.error };
+      }
+    })
     .catch(err => {
-      console.error(err);
+      enqueueSnackbar(err.message, { variant: 'error' });
       return { error: err.message };
-    }), []);
+    }), [enqueueSnackbar]);
 
   const initialValues = useMemo(() => ({
     username: user.username,

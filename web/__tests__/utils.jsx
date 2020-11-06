@@ -9,6 +9,15 @@ import cookie from 'cookie';
 
 import { UserProvider } from '../src/utils/useUser';
 
+// Must be mocked here
+jest.mock('notistack', () => {
+  const actual = jest.requireActual('notistack');
+  return {
+    ...actual,
+    useSnackbar: jest.fn().mockImplementation(actual.useSnackbar),
+  };
+});
+
 export const adminUser = {
   user_id: 1,
   user_uuid: '22fc15c9-37b9-4869-af86-b334333dedd8',
@@ -41,6 +50,10 @@ export const authTestUser = {
   password: 'te!st-pa#ss)wo(rd123',
   email: 'test_auth@test.com',
 };
+
+export function mockNotistackHooks() {
+  require('notistack').useSnackbar.mockReturnValue({ enqueueSnackbar: () => {} });
+}
 
 export function mockUTCDates() {
   jest.spyOn(Date.prototype, 'getDate')
