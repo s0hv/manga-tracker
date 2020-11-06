@@ -1,11 +1,13 @@
 import React from 'react';
 import renderer from 'react-test-renderer';
+
+import { mockNotistackHooks, mockUTCDates } from '../../utils';
 import Services from '../../../src/views/admin/Services';
 
-import { mockUTCDates } from '../../utils';
 
 describe('Services page should render correctly', () => {
   mockUTCDates();
+  mockNotistackHooks();
   const services = [
     {
       id: 2,

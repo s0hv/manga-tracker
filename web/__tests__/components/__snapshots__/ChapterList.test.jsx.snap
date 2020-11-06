@@ -384,11 +384,6 @@ exports[`Chapter list should render correctly with chapters 1`] = `
       sortable={true}
     />
   </WithStyles(ForwardRef(TableContainer))>
-  <Alert
-    open={false}
-    setOpen={[Function]}
-    severity="success"
-  />
 </Fragment>
 `;
 
@@ -776,11 +771,6 @@ exports[`Chapter list should render correctly with chapters and edit 1`] = `
       sortable={true}
     />
   </WithStyles(ForwardRef(TableContainer))>
-  <Alert
-    open={false}
-    setOpen={[Function]}
-    severity="success"
-  />
 </Fragment>
 `;
 
@@ -1141,10 +1131,5 @@ exports[`Chapter list should render correctly without chapters 1`] = `
       sortable={true}
     />
   </WithStyles(ForwardRef(TableContainer))>
-  <Alert
-    open={false}
-    setOpen={[Function]}
-    severity="success"
-  />
 </Fragment>
 `;

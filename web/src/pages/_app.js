@@ -1,4 +1,5 @@
 /* eslint-disable react/destructuring-assignment */
+import { SnackbarProvider } from 'notistack';
 import React, { useCallback, useEffect } from 'react';
 import { MuiPickersUtilsProvider } from '@material-ui/pickers';
 import {
@@ -65,13 +66,15 @@ function MainApp({ Component, pageProps, props }) {
         <CssBaseline />
         <ProgressBar />
         <MuiPickersUtilsProvider utils={DateFnsUtils} locale={enLocale}>
-          <UserProvider value={user}>
-            <Root {...props}>
-              <main>
-                <Component {...pageProps} />
-              </main>
-            </Root>
-          </UserProvider>
+          <SnackbarProvider>
+            <UserProvider value={user}>
+              <Root {...props}>
+                <main>
+                  <Component {...pageProps} />
+                </main>
+              </Root>
+            </UserProvider>
+          </SnackbarProvider>
         </MuiPickersUtilsProvider>
       </ThemeProvider>
     </React.Fragment>

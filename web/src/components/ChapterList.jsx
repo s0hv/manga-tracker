@@ -4,10 +4,10 @@ import {
   Paper,
   TableContainer,
 } from '@material-ui/core';
+import { useSnackbar } from 'notistack';
 
 import { MaterialTable } from './MaterialTable';
 import { defaultDateFormat } from '../utils/utilities';
-import Alert from './Alert';
 
 
 function ChapterList(props) {
@@ -19,11 +19,9 @@ function ChapterList(props) {
   } = props;
 
   const [chapters, setChapters] = useState(initialChapters);
-  const [error, setError] = useState(false);
-  const [message, setMessage] = useState(undefined);
-  const [alertOpen, setAlertOpen] = useState(false);
   const [count, setCount] = useState(initialChapters?.length || 0);
   const [loading, setLoading] = useState(false);
+  const { enqueueSnackbar } = useSnackbar();
 
   useEffect(() => setChapters(initialChapters), [initialChapters]);
 
@@ -46,22 +44,19 @@ function ChapterList(props) {
   const handleResponse = useCallback((r) => {
     r.json()
       .then(json => {
-        setMessage(json.message || json.error);
-        setError(!!json.error);
-        setAlertOpen(true);
+        enqueueSnackbar(json.message || json.error, {
+          variant: json.error ? 'error' : 'success',
+        });
       })
       .catch(err => {
         if (r.status !== 200) {
-          setError(true);
-          setMessage(`${r.status} ${r.statusText}`);
+          enqueueSnackbar(`${r.status} ${r.statusText}`, { variant: 'error' });
         } else {
           console.error(err);
-          setError(true);
-          setMessage(err.message);
+          enqueueSnackbar(err.message, { variant: 'error' });
         }
-        setAlertOpen(true);
       });
-  }, []);
+  }, [enqueueSnackbar]);
 
   const onSaveRow = useCallback((row, state) => {
     const keys = Object.keys(state);
@@ -147,13 +142,6 @@ function ChapterList(props) {
           pagination
         />
       </TableContainer>
-      <Alert
-        open={alertOpen}
-        setOpen={setAlertOpen}
-        severity={error ? 'error' : 'success'}
-      >
-        {message}
-      </Alert>
     </>
   );
 }

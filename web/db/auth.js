@@ -86,7 +86,7 @@ module.exports.authenticate = (req, email, password, cb) => {
         });
       }
 
-      if (req.body.rememberme !== 'on') {
+      if (req.body.rememberme !== true) {
         return setUser(row, true);
       }
 
@@ -144,7 +144,7 @@ function clearUserAuthTokens(uid) {
 }
 module.exports.clearUserAuthTokens = clearUserAuthTokens;
 
-async function getUserByToken(lookup, token, uuid) {
+function getUserByToken(lookup, token, uuid) {
   const sql = `
     SELECT u.user_id, u.username, u.user_uuid, u.theme, u.admin
     FROM auth_tokens INNER JOIN users u on u.user_id=auth_tokens.user_id 
@@ -183,6 +183,11 @@ module.exports.checkAuth = (app) => {
     if (userPromises.has(authCookie)) {
       authInfo('Race condition prevention');
       userPromises.get(authCookie)
+        .then(userId => {
+          if (userId) {
+            req.session.user_id = userId;
+          }
+        })
         .finally(next);
       return;
     }
@@ -201,15 +206,6 @@ module.exports.checkAuth = (app) => {
 
         getUserByToken(lookup, token, uuid)
           .then(sqlRes => {
-            // Not defined when invalid cookie given
-            if (!sqlRes) {
-              res.clearCookie('auth');
-              req.session.user_id = undefined;
-              resolve();
-              next();
-              return;
-            }
-
             if (sqlRes.rowCount === 0) {
               sessionDebug('Session not found. Clearing cookie');
               res.clearCookie('auth');
@@ -266,15 +262,19 @@ module.exports.checkAuth = (app) => {
                   sameSite: 'strict',
                   expires: expiresAt,
                 });
-                resolve();
+                resolve(row.user_id);
                 return next();
               });
             });
           })
           .catch(err => {
-            reject(err);
+            resolve();
             req.session.user_id = undefined;
-            if (err.code === '22P02') return next(err);
+            res.clearCookie('auth');
+            if (err.code === '22P02') {
+              res.status(400).end();
+              return;
+            }
             authInfo(err);
             next(err);
           });
@@ -302,4 +302,8 @@ module.exports.modifyCacheUser = (uid, modifications) => {
   const user = userCache.get(uid);
   if (!user) return;
   userCache.set(uid, { ...user, ...modifications });
+};
+
+module.exports.clearUserCache = () => {
+  userCache.reset();
 };

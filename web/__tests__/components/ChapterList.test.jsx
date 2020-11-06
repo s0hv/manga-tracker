@@ -3,8 +3,10 @@ import fetchMock from 'fetch-mock';
 import { createMount, createShallow } from '@material-ui/core/test-utils';
 import { act } from '@testing-library/react';
 
-import { editInput, mockUTCDates } from '../utils';
+import { editInput, mockUTCDates, mockNotistackHooks } from '../utils';
 import ChapterList from '../../src/components/ChapterList';
+
+mockNotistackHooks();
 
 describe('Chapter list should render correctly', () => {
   mockUTCDates();

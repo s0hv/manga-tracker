@@ -1,3 +1,4 @@
+import { useSnackbar } from 'notistack';
 import React from 'react';
 import { Checkbox, Container, Paper, TableContainer } from '@material-ui/core';
 import { format, formatDistanceToNowStrict } from 'date-fns';
@@ -13,6 +14,8 @@ function Services(props) {
   const {
     services = [],
   } = props;
+
+  const { enqueueSnackbar } = useSnackbar();
 
   // Format date strings back to dates for sorting
   const data = React.useMemo(() => {
@@ -90,9 +93,17 @@ function Services(props) {
       },
       body: JSON.stringify({ ...state, service_id: row.original.id }),
     })
-      .catch(err => {
-        console.error(err);
-      });
+      .then(res => {
+        if (res.status === 200) {
+          enqueueSnackbar('Service edited successfully', { variant: 'success' });
+        } else {
+          enqueueSnackbar(
+            `Failed to edit service. Server responded with ${res.status}`,
+            { variant: 'error' }
+          );
+        }
+      })
+      .catch(err => enqueueSnackbar(err.message, { variant: 'error' }));
   };
 
   return (

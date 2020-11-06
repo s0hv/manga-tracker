@@ -30,6 +30,7 @@ const dev = process.env.NODE_ENV !== 'production';
 const MAX_USERNAME_LENGTH = 100;
 
 module.exports = app => {
+  app.use('/api/profile', require('body-parser').json());
   app.post('/api/profile', requiresUser, [
     validateUser(),
     newPassword('newPassword', 'repeatPassword'),
@@ -150,12 +151,13 @@ module.exports = app => {
   });
 
   app.post('/api/logout', requiresUser, (req, res) => {
-    if (!req.user.user_id) return res.redirect('/');
+    if (!req.user?.user_id) return res.redirect('/');
 
     userDebug('Logging out user', req.user.user_id);
 
     req.session.destroy((err) => {
       if (err) console.error(err);
+      res.clearCookie('sess');
       if (req.cookies.auth) {
         clearUserAuthToken(req.user.user_id, req.cookies.auth, () => {
           res.clearCookie('auth');

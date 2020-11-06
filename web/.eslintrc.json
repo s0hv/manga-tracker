@@ -65,7 +65,8 @@
         "react/jsx-key": "off",
         "no-unused-vars": "warn",
         "no-unused-expressions": "off",
-        "react/display-name": "off"
+        "react/display-name": "off",
+        "max-classes-per-file": "off"
     },
     "env": {
         "browser": true,

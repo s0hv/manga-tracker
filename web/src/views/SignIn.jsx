@@ -1,23 +1,21 @@
+import { useSnackbar } from 'notistack';
 import React from 'react';
 import {
   Avatar,
   Button,
-  Checkbox,
   Container,
-  FormControlLabel,
   Grid,
   Link,
-  Snackbar,
-  TextField,
   Typography,
 } from '@material-ui/core';
 import { LockOutlined as LockOutlinedIcon } from '@material-ui/icons';
-import MuiAlert from '@material-ui/lab/Alert';
 import { makeStyles } from '@material-ui/core/styles';
+import { Form } from 'react-final-form';
+import {
+  TextField,
+  Checkboxes,
+} from 'mui-rff';
 
-function Alert(props) {
-  return <MuiAlert elevation={6} variant='filled' {...props} />;
-}
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -41,53 +39,37 @@ const useStyles = makeStyles((theme) => ({
 
 export default function SignIn() {
   const classes = useStyles();
-  const [alertOpen, setAlertOpen] = React.useState(false);
-  const [error, setError] = React.useState(null);
+  const { enqueueSnackbar } = useSnackbar();
 
-  const handleSubmit = event => {
-    const data = new FormData(event.target);
-    const body = new URLSearchParams();
-    data.forEach((value, key) => body.append(key, value));
-
-    fetch('/api/login',
+  const onSubmit = data => {
+    console.log(data);
+    return fetch('/api/login',
       {
         method: 'post',
-        body: body.toString(),
+        body: JSON.stringify(data),
         credentials: 'include',
         headers: {
-          'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8',
+          'Content-Type': 'application/json; charset=utf-8',
         },
         redirect: 'follow',
       })
       .then(res => {
-        console.debug(res);
         if (res.status === 200) {
           window.location.replace(res.url);
           return;
         }
-        console.debug(res.status);
         return res.text();
       })
       .then(err => {
         if (!err) return;
-        setError(err);
-        setAlertOpen(true);
+        enqueueSnackbar(err, { variant: 'error' });
+        return { error: err };
       })
       .catch(err => {
         console.error(err);
-        setError('Unknown error');
-        setAlertOpen(true);
+        enqueueSnackbar('Unknown error', { variant: 'error' });
+        return { error: err.message };
       });
-
-    event.preventDefault();
-  };
-
-  const handleAlertClose = (event, reason) => {
-    if (reason === 'clickaway') {
-      return;
-    }
-
-    setAlertOpen(false);
   };
 
   return (
@@ -99,75 +81,68 @@ export default function SignIn() {
         <Typography component='h1' variant='h5'>
           Sign in
         </Typography>
-        <form
-          className={classes.form}
-          noValidate
-          action='/api/login'
-          method='post'
-          onSubmit={handleSubmit}
+        <Form
+          onSubmit={onSubmit}
         >
-          <TextField
-            variant='outlined'
-            margin='normal'
-            required
-            fullWidth
-            id='email'
-            label='Email Address'
-            name='email'
-            autoComplete='email'
-            autoFocus
-          />
-          <TextField
-            variant='outlined'
-            margin='normal'
-            required
-            fullWidth
-            name='password'
-            label='Password'
-            type='password'
-            id='password'
-            autoComplete='current-password'
-          />
-          <FormControlLabel
-            control={(
-              <Checkbox
+          {({ handleSubmit }) => (
+            <form
+              className={classes.form}
+              onSubmit={handleSubmit}
+            >
+              <TextField
+                variant='outlined'
+                margin='normal'
+                required
+                fullWidth
+                id='email'
+                label='Email Address'
+                name='email'
+                type='email'
+                autoComplete='email'
+                autoFocus
+              />
+              <TextField
+                variant='outlined'
+                margin='normal'
+                required
+                fullWidth
+                name='password'
+                label='Password'
+                type='password'
+                id='password'
+                autoComplete='current-password'
+              />
+              <Checkboxes
                 name='rememberme'
                 id='rememberme'
-                type='checkbox'
-                value='on'
                 color='primary'
+                data={{ label: 'Remember me' }}
               />
-            )}
-            label='Remember me'
-          />
-          <Button
-            type='submit'
-            fullWidth
-            variant='contained'
-            color='primary'
-            className={classes.submit}
-          >
-            Sign In
-          </Button>
-          <Grid container>
-            <Grid item xs>
-              <Link href='#' variant='body2'>
-                Forgot password?
-              </Link>
-            </Grid>
-            <Grid item>
-              <Link href='#' variant='body2'>
-                {/* eslint-disable-next-line react/jsx-curly-brace-presence */}
-                {"Don't have an account? Sign Up"}
-              </Link>
-            </Grid>
-          </Grid>
-          <Snackbar open={alertOpen} autoHideDuration={8000} onClose={handleAlertClose}>
-            <Alert severity='error' onClose={handleAlertClose}>
-              { error }
-            </Alert>
-          </Snackbar>
-        </form>
+              <Button
+                type='submit'
+                fullWidth
+                variant='contained'
+                color='primary'
+                className={classes.submit}
+              >
+                Sign In
+              </Button>
+              <Grid container>
+                <Grid item xs>
+                  <Link href='#' variant='body2'>
+                    Forgot password?
+                  </Link>
+                </Grid>
+                <Grid item>
+                  <Link href='#' variant='body2'>
+                    {/* eslint-disable-next-line react/jsx-curly-brace-presence */}
+                    {"Don't have an account? Sign Up"}
+                  </Link>
+                </Grid>
+              </Grid>
+            </form>
+          )}
+        </Form>
       </div>
     </Container>
   );
