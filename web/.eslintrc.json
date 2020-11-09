@@ -66,7 +66,8 @@
         "no-unused-vars": "warn",
         "no-unused-expressions": "off",
         "react/display-name": "off",
-        "max-classes-per-file": "off"
+        "max-classes-per-file": "off",
+        "react/forbid-prop-types": "off"
     },
     "env": {
         "browser": true,

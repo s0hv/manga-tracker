@@ -113,6 +113,7 @@ module.exports = nextApp.prepare()
     require('./api/search')(server);
     require('./api/admin/services')(server);
     require('./api/chapter')(server);
+    server.use('/api/admin/manga', require('./api/admin/manga')());
 
     server.get('/login', requiresUser, (req, res) => {
       sessionDebug(req.session.user_id);

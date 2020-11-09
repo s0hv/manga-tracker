@@ -96,7 +96,7 @@ describe('It should render correctly', () => {
         columns={columns}
         data={null}
       />
-    )).toThrow(TypeError);
+    ).dive().dive()).toThrow(TypeError);
   });
 
   test('with data', () => {

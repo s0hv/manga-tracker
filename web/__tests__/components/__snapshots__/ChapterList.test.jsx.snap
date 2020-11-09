@@ -320,7 +320,7 @@ exports[`Chapter list should render correctly with chapters 1`] = `
       }
     }
   >
-    <MaterialTable
+    <MaterialTableWrapper
       columns={
         Array [
           Object {
@@ -707,7 +707,7 @@ exports[`Chapter list should render correctly with chapters and edit 1`] = `
       }
     }
   >
-    <MaterialTable
+    <MaterialTableWrapper
       columns={
         Array [
           Object {
@@ -1094,7 +1094,7 @@ exports[`Chapter list should render correctly without chapters 1`] = `
       }
     }
   >
-    <MaterialTable
+    <MaterialTableWrapper
       columns={
         Array [
           Object {
