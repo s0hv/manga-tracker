@@ -10,7 +10,7 @@ omit =
     */jaiminisbox.py
 
 
-source = ./src
+source = src
 
 [report]
 # Regexes for lines to exclude from consideration
