@@ -52,13 +52,15 @@ jobs:
     - name: Install db migration dependencies
       run: npm ci --ignore-scripts
     - name: Test with pytest
-      run: pytest --cov=./src --cov-report xml src
+      run: pytest --cov=./src --cov-report=xml src
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v1
       with:
         flags: scraper
         name: Scraper coverage
+        verbose: true
+        file: '*/manga-tracker/coverage/coverage.xml'
 
     env:
       DB_HOST: postgres
