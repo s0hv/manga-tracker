@@ -54,6 +54,9 @@ jobs:
     - name: Test with pytest
       run: pytest --cov=./src --cov-report=xml src
 
+    - name: Uninstall coveragepy
+      run: pip uninstall coverage
+
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v1
       with:
