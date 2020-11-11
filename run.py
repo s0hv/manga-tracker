@@ -18,3 +18,5 @@ else:
 
 scheduler = UpdateScheduler()
 logger.debug("Next update in %s", scheduler.run_once()-datetime.utcnow().replace(tzinfo=timezone.utc).astimezone(tz=timezone.utc))
+
+sentry_sdk.flush()

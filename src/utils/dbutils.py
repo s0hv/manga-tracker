@@ -129,7 +129,7 @@ class DbUtil:
 
     @optional_transaction
     def add_single_series(self, cur: Cursor, service_id: int, title_id: str,
-                          title: str, feed_url: Optional[str] = None):
+                          title: str, feed_url: Optional[str] = None) -> int:
         sql = 'INSERT INTO manga (title) VALUES (%s) RETURNING manga_id'
         cur.execute(sql, (title,))
         manga_id = cur.fetchone()['manga_id']
@@ -332,6 +332,12 @@ class DbUtil:
             yield row
 
     @optional_transaction
+    def find_service_manga(self, cur: Cursor, service_id: int, title_id: str) -> DictRow:
+        sql = 'SELECT * from manga_service WHERE service_id=%s AND title_id=%s'
+        cur.execute(sql, (service_id, title_id))
+        return cur.fetchone()
+
+    @optional_transaction
     def update_latest_release(self, cur: Cursor, data: Collection[int]) -> None:
         format_ids = ','.join(['%s'] * len(data))
         sql = 'UPDATE manga m SET latest_release=c.release_date FROM ' \
@@ -344,7 +350,7 @@ class DbUtil:
                      chapters: List['base_scraper.BaseChapter'], fetch: bool = True) -> Optional[List[DictRow]]:
         args = [
             (
-                manga_id, service_id, chapter.chapter_title,
+                manga_id, service_id, chapter.title,
                 chapter.chapter_number, chapter.decimal,
                 chapter.chapter_identifier,
                 chapter.release_date, chapter.group
@@ -409,10 +415,23 @@ class DbUtil:
         return row
 
     @optional_transaction
-    def get_only_latest_entries(self, cur: Cursor, service_id: int, entries: Iterable[BaseChapter]) -> Collection[BaseChapter]:
+    def get_only_latest_entries(self,
+                                cur: Cursor,
+                                service_id: int,
+                                entries: Iterable[BaseChapter],
+                                manga_id: int = None,
+                                limit: int = 400) -> Collection[BaseChapter]:
+        if manga_id:
+            sql = 'SELECT chapter_identifier FROM chapters ' \
+                  'WHERE service_id=%s AND manga_id=%s ORDER BY chapter_id DESC LIMIT %s'
+            args = (service_id, manga_id, limit)
+        else:
+            sql = 'SELECT chapter_identifier FROM chapters ' \
+                  'WHERE service_id=%s ORDER BY chapter_id DESC LIMIT %s'
+            args = (service_id, limit)
+
         try:
-            sql = 'SELECT chapter_identifier FROM chapters WHERE service_id=%s ORDER BY chapter_id DESC LIMIT 400'
-            cur.execute(sql, (service_id,))
+            cur.execute(sql, args)
             chapters = set(r[0] for r in cur)
 
             return set(entries).difference(chapters)

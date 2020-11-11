@@ -17,12 +17,12 @@ import {
 import {
   defaultDateDistanceToNow,
   defaultDateFormat,
-} from '../utils/utilities';
+} from '../../utils/utilities';
 import {
   AddRowFormTemplate,
   EditableSelect,
   MaterialTable,
-} from './MaterialTable';
+} from '../../components/MaterialTable';
 
 
 const useStyles = makeStyles((theme) => ({
@@ -164,7 +164,7 @@ function MangaAdmin(props) {
   const fields = useMemo(() => [
     <Select
       name='service_id'
-      data={mangaData.services.map(s => ({ value: s.service_id, label: s.name }))}
+      data={mangaData.services?.map(s => ({ value: s.service_id, label: s.name }))}
       required
     />,
   ], [mangaData.services]);

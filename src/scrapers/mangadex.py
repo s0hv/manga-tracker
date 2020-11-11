@@ -13,6 +13,7 @@ import psycopg2
 import requests
 from psycopg2.extras import execute_values
 
+from src.db.models.manga import MangaService
 from src.enums import Status
 from src.errors import FeedHttpError, InvalidFeedError
 from src.scrapers.base_scraper import BaseScraper, BaseChapter
@@ -98,8 +99,43 @@ class MangaDex(BaseScraper):
     def min_update_interval() -> timedelta:
         return MangaDex.UPDATE_INTERVAL
 
-    def scrape_series(self, title_id, feed_url=None):
-        pass
+    def scrape_series(self, title_id: str, service_id: int, manga_id: Optional[int], feed_url: str = None):
+        feed = feedparser.parse(f'{feed_url}/manga_id/{title_id}')
+        try:
+            is_valid_feed(feed)
+        except (FeedHttpError, InvalidFeedError):
+            logger.exception(f'Failed to fetch feed {feed_url}')
+            return
+
+        entries = self.parse_feed(feed.entries)
+        entries: List[Chapter] = list(self.dbutil.get_only_latest_entries(service_id, entries, manga_id=manga_id, limit=len(entries)*2))
+
+        if not entries:
+            logger.info('No new entries found')
+            return False
+
+        logger.info('%s new chapters found. %s', len(entries), [e.chapter_identifier for e in entries])
+
+        manga = self.dbutil.find_service_manga(service_id, title_id)
+        if not manga:
+            manga_services = self.dbutil.add_new_manga(service_id, [
+                MangaService(
+                    service_id=service_id,
+                    disabled=True,
+                    title_id=title_id,
+                    title=entries[0].manga_title,
+                    manga_id=None
+                )
+            ])
+
+            if not manga_services:
+                return
+
+            manga_id = manga_services[0].manga_id
+
+        self.dbutil.add_chapters(manga_id, service_id, entries, fetch=False)
+        self.update_chapter_infos([title_id], [c.chapter_identifier for c in entries], service_id)
+        return True
 
     def set_checked(self, service_id: int) -> None:
         try:
@@ -229,6 +265,13 @@ class MangaDex(BaseScraper):
         return manga_ids
 
     def update_chapter_infos(self, title_ids: Iterable[str], chapter_ids: Iterable[str], service_id: int):
+        """
+        Updates chapters with their actual titles using the mangadex api
+        Args:
+            title_ids: Mangadex title ids
+            chapter_ids: Chapter identifiers
+            service_id: Id of the mangadex service
+        """
         if not title_ids:
             return
 

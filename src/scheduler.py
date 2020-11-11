@@ -5,10 +5,10 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 from datetime import datetime, timedelta
-from typing import Type, ContextManager, TypedDict, Optional, Collection
+from typing import Type, ContextManager, TypedDict, Optional, Collection, List
 
 import psycopg2
-from psycopg2.extras import DictCursor
+from psycopg2.extras import DictCursor, execute_values
 from psycopg2.pool import ThreadedConnectionPool
 from psycopg2.extensions import connection as Connection
 
@@ -56,8 +56,47 @@ class UpdateScheduler:
                 with conn.cursor() as cur:
                     cur.execute("SET TIMEZONE TO 'UTC'")
             yield conn
+        except:
+            conn.rollback()
+        else:
+            conn.commit()
         finally:
             self.pool.putconn(conn)
+
+    def do_scheduled_runs(self) -> List[int]:
+        # TODO maybe make these have some ratelimits as well
+        with self.conn() as conn:
+            sql = 'SELECT sr.manga_id, sr.service_id, ms.title_id FROM scheduled_runs sr ' \
+                  'LEFT JOIN manga_service ms ON sr.manga_id = ms.manga_id AND sr.service_id = ms.service_id'
+
+            delete = []
+            manga_ids = []
+            with conn.cursor() as cur:
+                cur.execute(sql)
+
+                for row in cur:
+                    manga_id = row['manga_id']
+                    service_id = row['service_id']
+                    title_id = row['title_id']
+                    if not title_id:
+                        logger.error(f'Manga {manga_id} on service {service_id} scheduled but not found from manga service')
+                        delete.append((manga_id, service_id))
+                        continue
+
+                    self.force_run(service_id, manga_id)
+                    delete.append((manga_id, service_id))
+                    manga_ids.append(manga_id)
+
+            sql = '''
+                DELETE FROM scheduled_runs sr
+                    USING (VALUES %s) as c(manga_id, service_id)
+                WHERE sr.manga_id=c.manga_id AND sr.service_id=c.service_id
+            '''
+
+            with conn.cursor() as cur:
+                execute_values(cur, sql, delete)
+
+            return manga_ids
 
     # noinspection PyPep8Naming
     def scrape_service(self,
@@ -106,13 +145,16 @@ class UpdateScheduler:
 
                 return manga_ids
 
-    def force_run(self, service_id, manga_id=None):
+    def force_run(self, service_id: int, manga_id: int = None):
         with self.conn() as conn:
             if manga_id is not None:
-                sql = "SELECT ms.service_id, s.url, ms.title_id, ms.manga_id " \
-                      "FROM manga_service ms " \
-                      "INNER JOIN services s ON s.service_id=ms.service_id " \
-                      "WHERE s.service_id=%s AND ms.manga_id=%s"
+                sql = '''
+                    SELECT ms.service_id, s.url, ms.title_id, ms.manga_id, ms.feed_url, sw.feed_url as service_feed_url
+                    FROM manga_service ms
+                    INNER JOIN services s ON s.service_id=ms.service_id
+                    LEFT JOIN service_whole sw ON s.service_id = sw.service_id
+                    WHERE s.service_id=%s AND ms.manga_id=%s
+                '''
                 with conn.cursor() as cursor:
                     cursor.execute(sql, (service_id, manga_id))
                     row = cursor.fetchone()
@@ -127,14 +169,29 @@ class UpdateScheduler:
 
                     scraper = Scraper(conn, DbUtil(conn))
 
-                    logger.info(f'Updating {row["title_id"]}')
-                    with conn:
-                        if not scraper.scrape_series(row["title_id"],
-                                                     row['service_id'],
-                                                     row['manga_id']):
-                            logger.error(f'Failed to scrape series {row}')
+                    title_id = row['title_id']
+                    service_id = row['service_id']
+                    manga_id = row['manga_id']
+                    # Feed url is the feed url of the manga or if that's not defined
+                    # the feed url of the service. Manga url always takes priority
+                    feed_url = row['feed_url'] or row['service_feed_url']
 
-                    return row['manga_id']
+                    logger.info(f'Force updating {title_id} on service {service_id}')
+                    with conn:
+                        try:
+                            retval = scraper.scrape_series(title_id, service_id, manga_id, feed_url=feed_url)
+                        except psycopg2.Error:
+                            logger.exception(f'Database error while scraping {service_id} {scraper.NAME}: {title_id}')
+                            return
+                        except:
+                            logger.exception(f'Failed to scrape service {service_id}')
+                            return
+
+                        if retval is None:
+                            logger.error(f'Failed to scrape series {row}')
+                            return
+
+                    return retval
 
             else:
                 sql = """SELECT s.service_id, sw.feed_url, s.url
@@ -231,6 +288,9 @@ class UpdateScheduler:
                     manga_ids.update(retval)
 
             conn.commit()
+
+            retval = self.do_scheduled_runs()
+            manga_ids.update(retval)
 
             with conn:
                 if manga_ids:

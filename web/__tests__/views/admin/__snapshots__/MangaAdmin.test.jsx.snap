@@ -1,0 +1,476 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Services page should render correctly should render correctly with data 1`] = `
+<div
+  className="MuiContainer-root MuiContainer-disableGutters MuiContainer-maxWidthLg"
+>
+  <div
+    className="MuiPaper-root makeStyles-paper-7 MuiPaper-elevation1 MuiPaper-rounded"
+  >
+    <div
+      className="makeStyles-titleBar-2"
+    >
+      <h4
+        className="MuiTypography-root makeStyles-title-1 MuiTypography-h4"
+      >
+        Dr. STONE
+      </h4>
+    </div>
+    <div
+      className="makeStyles-details-4"
+    >
+      <a
+        href="https://myanimelist.net/manga/103897"
+        rel="noreferrer noopener"
+        target="_blank"
+      >
+        <img
+          alt="Dr. STONE"
+          className="makeStyles-thumbnail-3"
+          src="https://mangadex.org/images/manga/20882.jpg?1585634146"
+        />
+      </a>
+      <div
+        className="MuiGrid-root MuiGrid-container MuiGrid-justify-xs-space-between"
+      >
+        <table
+          className="makeStyles-infoTable-6"
+        >
+          <tbody>
+            <tr>
+              <td>
+                <p
+                  className="MuiTypography-root MuiTypography-body1"
+                >
+                  Latest release:
+                </p>
+              </td>
+              <td>
+                <p
+                  aria-describedby={null}
+                  className="MuiTypography-root makeStyles-detailText-5 MuiTypography-body1"
+                  onBlur={[Function]}
+                  onFocus={[Function]}
+                  onMouseLeave={[Function]}
+                  onMouseOver={[Function]}
+                  onTouchEnd={[Function]}
+                  onTouchStart={[Function]}
+                  title="Sun, 05 Jul 2020 16:00:00 GMT"
+                >
+                  Jul 5th 2020, 16:00 - 1 day ago
+                </p>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <p
+                  className="MuiTypography-root MuiTypography-body1"
+                >
+                  Estimated release interval:
+                </p>
+              </td>
+              <td>
+                <p
+                  className="MuiTypography-root makeStyles-detailText-5 MuiTypography-body1"
+                >
+                  7 days 0 hours
+                </p>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <p
+                  className="MuiTypography-root MuiTypography-body1"
+                >
+                  Estimated next release:
+                </p>
+              </td>
+              <td>
+                <p
+                  className="MuiTypography-root makeStyles-detailText-5 MuiTypography-body1"
+                >
+                  Jul 12th 2020, 16:00
+                </p>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <p
+                  className="MuiTypography-root MuiTypography-body1"
+                >
+                  Latest chapter:
+                </p>
+              </td>
+              <td>
+                <p
+                  className="MuiTypography-root makeStyles-detailText-5 MuiTypography-body1"
+                >
+                  157
+                </p>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div>
+      <div
+        className="MuiToolbar-root MuiToolbar-regular makeStyles-root-12 MuiToolbar-gutters"
+      >
+        <button
+          aria-describedby={null}
+          aria-label="add"
+          className="MuiButtonBase-root MuiIconButton-root"
+          disabled={false}
+          onBlur={[Function]}
+          onClick={[Function]}
+          onDragLeave={[Function]}
+          onFocus={[Function]}
+          onKeyDown={[Function]}
+          onKeyUp={[Function]}
+          onMouseDown={[Function]}
+          onMouseLeave={[Function]}
+          onMouseOver={[Function]}
+          onMouseUp={[Function]}
+          onTouchEnd={[Function]}
+          onTouchMove={[Function]}
+          onTouchStart={[Function]}
+          tabIndex={0}
+          title="Add"
+          type="button"
+        >
+          <span
+            className="MuiIconButton-label"
+          >
+            <svg
+              aria-hidden={true}
+              className="MuiSvgIcon-root"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
+              />
+            </svg>
+          </span>
+          <span
+            className="MuiTouchRipple-root"
+          />
+        </button>
+        <h6
+          aria-label="Table title"
+          className="MuiTypography-root makeStyles-title-13 MuiTypography-h6"
+        >
+          Forced checks
+        </h6>
+      </div>
+      <table
+        className="MuiTable-root"
+        role="table"
+      >
+        <thead
+          className="MuiTableHead-root makeStyles-tableHead-10"
+          role={null}
+        >
+          <tr
+            className="MuiTableRow-root MuiTableRow-head"
+            role="row"
+          >
+            <th
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-head"
+              colSpan={1}
+              role="columnheader"
+              scope="col"
+              style={
+                Object {
+                  "cursor": undefined,
+                }
+              }
+            />
+            <th
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-head"
+              colSpan={1}
+              role="columnheader"
+              scope="col"
+              style={
+                Object {
+                  "cursor": undefined,
+                }
+              }
+            >
+              Service name
+            </th>
+            <th
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-head"
+              colSpan={1}
+              role="columnheader"
+              scope="col"
+              style={
+                Object {
+                  "cursor": undefined,
+                }
+              }
+            >
+              Service id
+            </th>
+            <th
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-head"
+              colSpan={1}
+              role="columnheader"
+              scope="col"
+              style={
+                Object {
+                  "cursor": undefined,
+                }
+              }
+            />
+          </tr>
+        </thead>
+        <tbody
+          className="MuiTableBody-root"
+          role="rowgroup"
+        />
+      </table>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Services page should render correctly should render correctly without data 1`] = `
+<div
+  className="MuiContainer-root MuiContainer-disableGutters MuiContainer-maxWidthLg"
+>
+  <div
+    className="MuiPaper-root makeStyles-paper-7 MuiPaper-elevation1 MuiPaper-rounded"
+  >
+    <div
+      className="makeStyles-titleBar-2"
+    >
+      <h4
+        className="MuiTypography-root makeStyles-title-1 MuiTypography-h4"
+      />
+    </div>
+    <div
+      className="makeStyles-details-4"
+    >
+      <a
+        rel="noreferrer noopener"
+        target="_blank"
+      >
+        <img
+          className="makeStyles-thumbnail-3"
+        />
+      </a>
+      <div
+        className="MuiGrid-root MuiGrid-container MuiGrid-justify-xs-space-between"
+      >
+        <table
+          className="makeStyles-infoTable-6"
+        >
+          <tbody>
+            <tr>
+              <td>
+                <p
+                  className="MuiTypography-root MuiTypography-body1"
+                >
+                  Latest release:
+                </p>
+              </td>
+              <td>
+                <p
+                  aria-describedby={null}
+                  className="MuiTypography-root makeStyles-detailText-5 MuiTypography-body1"
+                  onBlur={[Function]}
+                  onFocus={[Function]}
+                  onMouseLeave={[Function]}
+                  onMouseOver={[Function]}
+                  onTouchEnd={[Function]}
+                  onTouchStart={[Function]}
+                  title="Unknown"
+                >
+                  Unknown
+                </p>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <p
+                  className="MuiTypography-root MuiTypography-body1"
+                >
+                  Estimated release interval:
+                </p>
+              </td>
+              <td>
+                <p
+                  className="MuiTypography-root makeStyles-detailText-5 MuiTypography-body1"
+                >
+                  Unknown
+                </p>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <p
+                  className="MuiTypography-root MuiTypography-body1"
+                >
+                  Estimated next release:
+                </p>
+              </td>
+              <td>
+                <p
+                  className="MuiTypography-root makeStyles-detailText-5 MuiTypography-body1"
+                >
+                  Unknown
+                </p>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <p
+                  className="MuiTypography-root MuiTypography-body1"
+                >
+                  Latest chapter:
+                </p>
+              </td>
+              <td>
+                <p
+                  className="MuiTypography-root makeStyles-detailText-5 MuiTypography-body1"
+                >
+                  Unknown
+                </p>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div>
+      <div
+        className="MuiToolbar-root MuiToolbar-regular makeStyles-root-12 MuiToolbar-gutters"
+      >
+        <button
+          aria-describedby={null}
+          aria-label="add"
+          className="MuiButtonBase-root MuiIconButton-root"
+          disabled={false}
+          onBlur={[Function]}
+          onClick={[Function]}
+          onDragLeave={[Function]}
+          onFocus={[Function]}
+          onKeyDown={[Function]}
+          onKeyUp={[Function]}
+          onMouseDown={[Function]}
+          onMouseLeave={[Function]}
+          onMouseOver={[Function]}
+          onMouseUp={[Function]}
+          onTouchEnd={[Function]}
+          onTouchMove={[Function]}
+          onTouchStart={[Function]}
+          tabIndex={0}
+          title="Add"
+          type="button"
+        >
+          <span
+            className="MuiIconButton-label"
+          >
+            <svg
+              aria-hidden={true}
+              className="MuiSvgIcon-root"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"
+              />
+            </svg>
+          </span>
+          <span
+            className="MuiTouchRipple-root"
+          />
+        </button>
+        <h6
+          aria-label="Table title"
+          className="MuiTypography-root makeStyles-title-13 MuiTypography-h6"
+        >
+          Forced checks
+        </h6>
+      </div>
+      <table
+        className="MuiTable-root"
+        role="table"
+      >
+        <thead
+          className="MuiTableHead-root makeStyles-tableHead-10"
+          role={null}
+        >
+          <tr
+            className="MuiTableRow-root MuiTableRow-head"
+            role="row"
+          >
+            <th
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-head"
+              colSpan={1}
+              role="columnheader"
+              scope="col"
+              style={
+                Object {
+                  "cursor": undefined,
+                }
+              }
+            />
+            <th
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-head"
+              colSpan={1}
+              role="columnheader"
+              scope="col"
+              style={
+                Object {
+                  "cursor": undefined,
+                }
+              }
+            >
+              Service name
+            </th>
+            <th
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-head"
+              colSpan={1}
+              role="columnheader"
+              scope="col"
+              style={
+                Object {
+                  "cursor": undefined,
+                }
+              }
+            >
+              Service id
+            </th>
+            <th
+              aria-sort={null}
+              className="MuiTableCell-root MuiTableCell-head"
+              colSpan={1}
+              role="columnheader"
+              scope="col"
+              style={
+                Object {
+                  "cursor": undefined,
+                }
+              }
+            />
+          </tr>
+        </thead>
+        <tbody
+          className="MuiTableBody-root"
+          role="rowgroup"
+        />
+      </table>
+    </div>
+  </div>
+</div>
+`;

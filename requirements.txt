@@ -12,3 +12,4 @@ sentry-sdk~=0.17.3
 git+https://github.com/tk0miya/testing.postgresql.git#egg=testing.postgresql
 pytest~=6.0.1
 responses~=0.12.0
+pytest-cov~=2.10.1

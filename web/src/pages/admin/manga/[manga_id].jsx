@@ -1,6 +1,6 @@
 /* eslint-disable global-require,camelcase */
 import React from 'react';
-import Manga from '../../../components/MangaAdmin';
+import Manga from '../../../views/admin/MangaAdmin';
 import withError from '../../../utils/withError';
 
 function MangaPage(props) {
