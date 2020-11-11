@@ -55,14 +55,13 @@ jobs:
       run: pytest --cov=./src --cov-report=xml src
 
     - name: Uninstall coveragepy
-      run: pip uninstall coverage
+      run: pip uninstall -y coverage
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v1
       with:
         flags: scraper
         name: Scraper coverage
-        verbose: true
         file: '*/manga-tracker/coverage/coverage.xml'
 
     env:
