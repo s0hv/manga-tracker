@@ -38,7 +38,7 @@ export const TableToolbar = props => {
     >
       {creatable && (
         <Tooltip title='Add'>
-          <IconButton aria-label='add' onClick={handleOpen}>
+          <IconButton aria-label='Add item' onClick={handleOpen}>
             <AddIcon />
           </IconButton>
         </Tooltip>

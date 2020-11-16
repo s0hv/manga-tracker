@@ -1,5 +1,7 @@
 import { MuiPickersUtilsProvider } from '@material-ui/pickers';
 import DateFnsUtils from '@date-io/date-fns';
+import { fireEvent, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import enLocale from 'date-fns/locale/en-GB';
 import request from 'supertest';
 import React, { isValidElement } from 'react';
@@ -51,8 +53,36 @@ export const authTestUser = {
   email: 'test_auth@test.com',
 };
 
+
+export const enqueueSnackbarMock = jest.fn();
+
+/**
+ * Must be called before every test
+ */
 export function mockNotistackHooks() {
-  require('notistack').useSnackbar.mockReturnValue({ enqueueSnackbar: () => {} });
+  enqueueSnackbarMock.mockReset();
+  require('notistack').useSnackbar.mockReturnValue({ enqueueSnackbar: enqueueSnackbarMock });
+}
+
+export function expectSuccessSnackbar() {
+  expect(enqueueSnackbarMock).toHaveBeenLastCalledWith(
+    expect.anything(),
+    expect.objectContaining({ variant: 'success' })
+  );
+}
+
+export function expectErrorSnackbar() {
+  expect(enqueueSnackbarMock).toHaveBeenLastCalledWith(
+    expect.anything(),
+    expect.objectContaining({ variant: 'error' })
+  );
+}
+
+export function muiSelectValue(container, selectName, value) {
+  userEvent.click(container.getByLabelText(selectName));
+  const listbox = within(screen.getByRole('listbox'));
+
+  fireEvent.click(listbox.getByText(value));
 }
 
 export function mockUTCDates() {

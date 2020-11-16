@@ -217,7 +217,7 @@ function visibleColumns(columns, { instance }) {
     confirm({
       description: `Do you want to delete row ${JSON.stringify(row.values)}`,
       confirmationText: 'Delete',
-      confirmationButtonProps: { 'aria-label': 'Delete row' },
+      confirmationButtonProps: { 'aria-label': 'Confirm delete row' },
     })
       .then(() => {
         row.stopEditingRow();
@@ -272,7 +272,7 @@ function visibleColumns(columns, { instance }) {
       Cell: (inst) => {
         const { row } = inst;
         return (
-          <IconButton name='delete' onClick={() => onDelete(row)}>
+          <IconButton name='delete' onClick={() => onDelete(row)} aria-label='Delete row'>
             <DeleteIcon />
           </IconButton>
         );

@@ -164,6 +164,9 @@ function MangaAdmin(props) {
   const fields = useMemo(() => [
     <Select
       name='service_id'
+      key='service_id'
+      label='Service'
+      SelectDisplayProps={{ 'aria-label': 'Service select' }}
       data={mangaData.services?.map(s => ({ value: s.service_id, label: s.name }))}
       required
     />,

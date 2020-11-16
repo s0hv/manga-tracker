@@ -30,7 +30,7 @@ export const AddRowFormTemplate = (props) => {
   }, [onSubmit, closeOnSubmit, onClose]);
 
   return (
-    <Dialog open={open} onClose={onClose}>
+    <Dialog open={open} onClose={onClose} aria-label='Create item form'>
       <DialogTitle>{title || 'Create row'}</DialogTitle>
       <DialogContent>
         <Form onSubmit={onSubmitInner} {...formProps}>

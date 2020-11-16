@@ -7,7 +7,6 @@ on:
   push:
     branches: [ master, development ]
     paths-ignore:
-      - 'web/**'
       - 'scripts/**'
   pull_request:
     branches: [ master, development ]

@@ -156,7 +156,7 @@ describe('Chapter list should allow editing', () => {
     });
     wrapper.update();
     await act(async () => {
-      wrapper.find('button[aria-label="Delete row"]').simulate('click');
+      wrapper.find('button[aria-label="Confirm delete row"]').simulate('click');
     });
 
     expect(deleteMock).toHaveBeenCalledTimes(1);
