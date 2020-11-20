@@ -172,6 +172,7 @@ export async function login(app, user, rememberMe=false) {
       password: user.password,
       rememberme: rememberMe,
     })
+    .expect(302)
     .expect('set-cookie', /sess=/)
     .expect('set-cookie', rememberMe ? /auth=/ : /sess=/);
 
