@@ -18,12 +18,14 @@ exports[`Root component should render correctly Should render with empty input a
         <h6
           className="MuiTypography-root makeStyles-title-8 MuiTypography-h6 MuiTypography-noWrap"
           onClick={[Function]}
+          onMouseEnter={[Function]}
         >
           Manga tracker
         </h6>
         <a
           href="/"
           onClick={[Function]}
+          onMouseEnter={[Function]}
           style={
             Object {
               "color": "inherit",
@@ -135,6 +137,7 @@ exports[`Root component should render correctly Should render with empty input a
           onKeyDown={[Function]}
           onKeyUp={[Function]}
           onMouseDown={[Function]}
+          onMouseEnter={[Function]}
           onMouseLeave={[Function]}
           onMouseUp={[Function]}
           onTouchEnd={[Function]}
@@ -323,6 +326,7 @@ exports[`Root component should render correctly should render correctly with dat
                             className="makeStyles-title-8"
                             noWrap={true}
                             onClick={[Function]}
+                            onMouseEnter={[Function]}
                             variant="h6"
                           >
                             <ForwardRef(Typography)
@@ -363,11 +367,13 @@ exports[`Root component should render correctly should render correctly with dat
                               }
                               noWrap={true}
                               onClick={[Function]}
+                              onMouseEnter={[Function]}
                               variant="h6"
                             >
                               <h6
                                 className="MuiTypography-root makeStyles-title-8 MuiTypography-h6 MuiTypography-noWrap"
                                 onClick={[Function]}
+                                onMouseEnter={[Function]}
                               >
                                 Manga tracker
                               </h6>
@@ -708,6 +714,7 @@ exports[`Root component should render correctly should render correctly with dat
                             <a
                               href="/"
                               onClick={[Function]}
+                              onMouseEnter={[Function]}
                               style={
                                 Object {
                                   "color": "inherit",
@@ -1109,6 +1116,7 @@ exports[`Root component should render correctly should render correctly with dat
                           <WithStyles(ForwardRef(Button))
                             className="makeStyles-loginButton-11"
                             onClick={[Function]}
+                            onMouseEnter={[Function]}
                             variant="outlined"
                           >
                             <ForwardRef(Button)
@@ -1147,6 +1155,7 @@ exports[`Root component should render correctly should render correctly with dat
                                 }
                               }
                               onClick={[Function]}
+                              onMouseEnter={[Function]}
                               variant="outlined"
                             >
                               <WithStyles(ForwardRef(ButtonBase))
@@ -1156,6 +1165,7 @@ exports[`Root component should render correctly should render correctly with dat
                                 focusRipple={true}
                                 focusVisibleClassName="Mui-focusVisible"
                                 onClick={[Function]}
+                                onMouseEnter={[Function]}
                                 type="button"
                               >
                                 <ForwardRef(ButtonBase)
@@ -1172,6 +1182,7 @@ exports[`Root component should render correctly should render correctly with dat
                                   focusRipple={true}
                                   focusVisibleClassName="Mui-focusVisible"
                                   onClick={[Function]}
+                                  onMouseEnter={[Function]}
                                   type="button"
                                 >
                                   <button
@@ -1184,6 +1195,7 @@ exports[`Root component should render correctly should render correctly with dat
                                     onKeyDown={[Function]}
                                     onKeyUp={[Function]}
                                     onMouseDown={[Function]}
+                                    onMouseEnter={[Function]}
                                     onMouseLeave={[Function]}
                                     onMouseUp={[Function]}
                                     onTouchEnd={[Function]}
@@ -1659,6 +1671,7 @@ exports[`Root component should render correctly should render correctly with use
                             className="makeStyles-title-8"
                             noWrap={true}
                             onClick={[Function]}
+                            onMouseEnter={[Function]}
                             variant="h6"
                           >
                             <ForwardRef(Typography)
@@ -1699,11 +1712,13 @@ exports[`Root component should render correctly should render correctly with use
                               }
                               noWrap={true}
                               onClick={[Function]}
+                              onMouseEnter={[Function]}
                               variant="h6"
                             >
                               <h6
                                 className="MuiTypography-root makeStyles-title-8 MuiTypography-h6 MuiTypography-noWrap"
                                 onClick={[Function]}
+                                onMouseEnter={[Function]}
                               >
                                 Manga tracker
                               </h6>
@@ -2044,6 +2059,7 @@ exports[`Root component should render correctly should render correctly with use
                             <a
                               href="/"
                               onClick={[Function]}
+                              onMouseEnter={[Function]}
                               style={
                                 Object {
                                   "color": "inherit",
@@ -3708,6 +3724,7 @@ exports[`Root component should render correctly should render correctly with use
                                                                   <a
                                                                     href="/profile"
                                                                     onClick={[Function]}
+                                                                    onMouseEnter={[Function]}
                                                                     style={
                                                                       Object {
                                                                         "color": "inherit",
@@ -4392,6 +4409,7 @@ exports[`Root component should render correctly should render correctly with use
                                                                   <a
                                                                     href="/follows"
                                                                     onClick={[Function]}
+                                                                    onMouseEnter={[Function]}
                                                                     style={
                                                                       Object {
                                                                         "color": "inherit",
@@ -4904,6 +4922,7 @@ exports[`Root component should render correctly should render correctly with use
                                                                   <a
                                                                     href="/admin/services"
                                                                     onClick={[Function]}
+                                                                    onMouseEnter={[Function]}
                                                                     style={
                                                                       Object {
                                                                         "color": "inherit",
