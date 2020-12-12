@@ -66,15 +66,12 @@ class UpdateScheduler:
     def do_scheduled_runs(self) -> List[int]:
         # TODO maybe make these have some ratelimits as well
         with self.conn() as conn:
-            sql = 'SELECT sr.manga_id, sr.service_id, ms.title_id FROM scheduled_runs sr ' \
-                  'LEFT JOIN manga_service ms ON sr.manga_id = ms.manga_id AND sr.service_id = ms.service_id'
-
+            dbutil = DbUtil(conn)
             delete = []
             manga_ids = []
-            with conn.cursor() as cur:
-                cur.execute(sql)
 
-                for row in cur:
+            with conn.cursor() as cur:
+                for row in dbutil.get_scheduled_runs(cur):
                     manga_id = row['manga_id']
                     service_id = row['service_id']
                     title_id = row['title_id']
@@ -87,14 +84,7 @@ class UpdateScheduler:
                     delete.append((manga_id, service_id))
                     manga_ids.append(manga_id)
 
-            sql = '''
-                DELETE FROM scheduled_runs sr
-                    USING (VALUES %s) as c(manga_id, service_id)
-                WHERE sr.manga_id=c.manga_id AND sr.service_id=c.service_id
-            '''
-
-            with conn.cursor() as cur:
-                execute_values(cur, sql, delete)
+            dbutil.delete_scheduled_runs(delete)
 
             return manga_ids
 

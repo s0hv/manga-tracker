@@ -1,13 +1,16 @@
 import logging
 import statistics
 from datetime import datetime, timedelta
-from typing import (Union, Any, Protocol, Optional, List, Dict, Generator, Tuple,
-                    Collection, Iterable, TypeVar, Type)
+from typing import (
+    Union, Any, Protocol, Optional, List, Dict, Generator, Tuple, Collection,
+    Iterable, TypeVar, Type
+)
 
 from psycopg2.extensions import connection as Connection, cursor as Cursor
 from psycopg2.extras import execute_values, DictRow
 
 from src.db.models.manga import MangaService
+from src.db.models.scheduled_run import ScheduledRun
 from src.scrapers import base_scraper
 from src.utils.utilities import round_seconds
 
@@ -74,6 +77,38 @@ class DbUtil:
     def set_service_updates(self, cur: Cursor, service_id: int, disabled_until: datetime):
         sql = 'UPDATE services SET disabled_until=%s WHERE service_id=%s'
         cur.execute(sql, (disabled_until, service_id))
+
+    @staticmethod
+    def get_scheduled_runs(cur: Cursor) -> Cursor:
+        sql = 'SELECT sr.manga_id, sr.service_id, ms.title_id FROM scheduled_runs sr ' \
+              'LEFT JOIN manga_service ms ON sr.manga_id = ms.manga_id AND sr.service_id = ms.service_id'
+
+        cur.execute(sql)
+        return cur
+
+    @optional_transaction
+    def delete_scheduled_runs(self, cur: Cursor, to_delete: List[Tuple[int, int]]) -> int:
+        """
+        Delete the given scheduled runs
+        Args:
+            cur: The cursor
+            to_delete: List of manga id, service id pairs
+
+        Returns:
+            The amount of rows deleted
+        """
+        sql = '''
+            DELETE FROM scheduled_runs sr
+                USING (VALUES %s) as c(manga_id, service_id)
+            WHERE sr.manga_id=c.manga_id AND sr.service_id=c.service_id
+        '''
+        execute_values(cur, sql, to_delete, page_size=len(to_delete))
+        return cur.rowcount
+
+    @optional_transaction
+    def add_scheduled_runs(self, cur: Cursor, runs: List[ScheduledRun]):
+        sql = 'INSERT INTO scheduled_runs (manga_id, service_id, created_by) VALUES %s'
+        execute_values(cur, sql, [(sr.manga_id, sr.service_id, sr.created_by) for sr in runs])
 
     @optional_transaction
     def update_chapter_interval(self, cur: Cursor, manga_id: int) -> None:
