@@ -6,7 +6,7 @@ module.exports.getChapterReleases = (mangaId) => {
                WHERE manga_id=$1 GROUP BY 1 ORDER BY 1`;
 
   return db.query(sql, [mangaId])
-    .then(res => Promise.resolve(res.rows));
+    .then(res => res.rows);
 };
 
 module.exports.addChapter = ({

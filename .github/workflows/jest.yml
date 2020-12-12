@@ -4,9 +4,7 @@ on:
   push:
     branch: [ master, development ]
     paths-ignore:
-      - 'src/**'
       - 'scripts/**'
-      - '**/pythonapp.yml'
   pull_request:
     branch: [ master, development ]
 

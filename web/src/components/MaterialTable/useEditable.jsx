@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/rules-of-hooks */
 import React, { useEffect } from 'react';
 import { IconButton, Input } from '@material-ui/core';
 import {
@@ -187,6 +186,7 @@ function visibleColumns(columns, { instance }) {
     disableDeleting,
     disabledEditing,
     initialState,
+    confirm,
   } = instance;
 
   const arr = [];
@@ -214,8 +214,16 @@ function visibleColumns(columns, { instance }) {
   };
 
   const onDelete = (row) => {
-    row.stopEditingRow();
-    row.onDeleteRow(row);
+    confirm({
+      description: `Do you want to delete row ${JSON.stringify(row.values)}`,
+      confirmationText: 'Delete',
+      confirmationButtonProps: { 'aria-label': 'Confirm delete row' },
+    })
+      .then(() => {
+        row.stopEditingRow();
+        row.onDeleteRow(row);
+      })
+      .catch(() => {});
   };
 
   return [
@@ -223,7 +231,6 @@ function visibleColumns(columns, { instance }) {
       id: '__edit',
       padding: 'checkbox',
       Header: () => null,
-      // eslint-disable-next-line react/display-name
       Cell: (inst) => {
         const { row, state } = inst;
         return (
@@ -251,6 +258,7 @@ function visibleColumns(columns, { instance }) {
       EditCell: col.EditCell || DefaultEditCell,
       ...col,
       Cell: ({ row, cell }) => (
+        // TODO rename canEdit to editable
         (cell.column.canEdit && row.beingEdited) ?
           cell.render('EditCell') :
           cell.render('OriginalCell')
@@ -264,7 +272,7 @@ function visibleColumns(columns, { instance }) {
       Cell: (inst) => {
         const { row } = inst;
         return (
-          <IconButton name='delete' onClick={() => onDelete(row)}>
+          <IconButton name='delete' onClick={() => onDelete(row)} aria-label='Delete row'>
             <DeleteIcon />
           </IconButton>
         );

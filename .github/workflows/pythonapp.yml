@@ -7,7 +7,6 @@ on:
   push:
     branches: [ master, development ]
     paths-ignore:
-      - 'web/**'
       - 'scripts/**'
   pull_request:
     branches: [ master, development ]
@@ -52,7 +51,17 @@ jobs:
     - name: Install db migration dependencies
       run: npm ci --ignore-scripts
     - name: Test with pytest
-      run: python -m pytest src
+      run: pytest --cov=./src --cov-report=xml src
+
+    - name: Uninstall coveragepy
+      run: pip uninstall -y coverage
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v1
+      with:
+        flags: scraper
+        name: Scraper coverage
+        file: '*/manga-tracker/coverage/coverage.xml'
 
     env:
       DB_HOST: postgres
@@ -60,4 +69,5 @@ jobs:
       DB_NAME: postgres
       DB_USER: postgres
       PGPASSWORD: postgres
+      DB_PASSWORD: postgres
       NO_TEMP_DB: TRUE

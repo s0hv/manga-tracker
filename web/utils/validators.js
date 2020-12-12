@@ -95,3 +95,9 @@ const hadValidationError = (req, res, sendAllErrors=true) => {
   return false;
 };
 module.exports.hadValidationError = hadValidationError;
+
+const handleValidationErrors = (req, res, next) => {
+  if (hadValidationError(req, res)) return;
+  next();
+};
+module.exports.handleValidationErrors = handleValidationErrors;

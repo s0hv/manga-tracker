@@ -18,12 +18,12 @@ function ChapterList(props) {
     mangaId,
   } = props;
 
-  const [chapters, setChapters] = useState(initialChapters);
+  const [chapters, setChapters] = useState(initialChapters || []);
   const [count, setCount] = useState(initialChapters?.length || 0);
   const [loading, setLoading] = useState(false);
   const { enqueueSnackbar } = useSnackbar();
 
-  useEffect(() => setChapters(initialChapters), [initialChapters]);
+  useEffect(() => setChapters(initialChapters || []), [initialChapters]);
 
   const formatChapters = useCallback((chs) => {
     if (!chs) return [];

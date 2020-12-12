@@ -2,3 +2,11 @@ coverage:
   status:
     project: off
     patch: off
+
+flags:
+  scraper:
+    paths:
+      - src/
+  frontend:
+    paths:
+      - web/

@@ -13,6 +13,14 @@ exports[`Services page should render correctly should render correctly with serv
     className="MuiPaper-root MuiTableContainer-root MuiPaper-elevation1 MuiPaper-rounded"
   >
     <div>
+      <div
+        className="MuiToolbar-root MuiToolbar-regular makeStyles-root-4 MuiToolbar-gutters"
+      >
+        <h6
+          aria-label="Table title"
+          className="MuiTypography-root makeStyles-title-5 MuiTypography-h6"
+        />
+      </div>
       <table
         className="MuiTable-root"
         role="table"
@@ -350,7 +358,7 @@ exports[`Services page should render correctly should render correctly with serv
             >
               <span
                 aria-disabled={true}
-                className="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-4 MuiCheckbox-root MuiCheckbox-colorSecondary PrivateSwitchBase-disabled-6 Mui-disabled MuiIconButton-colorSecondary Mui-disabled Mui-disabled"
+                className="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-6 MuiCheckbox-root MuiCheckbox-colorSecondary PrivateSwitchBase-disabled-8 Mui-disabled MuiIconButton-colorSecondary Mui-disabled Mui-disabled"
                 onBlur={[Function]}
                 onDragLeave={[Function]}
                 onFocus={[Function]}
@@ -369,7 +377,7 @@ exports[`Services page should render correctly should render correctly with serv
                 >
                   <input
                     checked={false}
-                    className="PrivateSwitchBase-input-7"
+                    className="PrivateSwitchBase-input-9"
                     data-indeterminate={false}
                     disabled={true}
                     onChange={[Function]}
@@ -475,7 +483,7 @@ exports[`Services page should render correctly should render correctly with serv
             >
               <span
                 aria-disabled={true}
-                className="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-4 MuiCheckbox-root MuiCheckbox-colorSecondary PrivateSwitchBase-disabled-6 Mui-disabled MuiIconButton-colorSecondary Mui-disabled Mui-disabled"
+                className="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-6 MuiCheckbox-root MuiCheckbox-colorSecondary PrivateSwitchBase-disabled-8 Mui-disabled MuiIconButton-colorSecondary Mui-disabled Mui-disabled"
                 onBlur={[Function]}
                 onDragLeave={[Function]}
                 onFocus={[Function]}
@@ -494,7 +502,7 @@ exports[`Services page should render correctly should render correctly with serv
                 >
                   <input
                     checked={false}
-                    className="PrivateSwitchBase-input-7"
+                    className="PrivateSwitchBase-input-9"
                     data-indeterminate={false}
                     disabled={true}
                     onChange={[Function]}
@@ -600,7 +608,7 @@ exports[`Services page should render correctly should render correctly with serv
             >
               <span
                 aria-disabled={true}
-                className="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-4 MuiCheckbox-root MuiCheckbox-colorSecondary PrivateSwitchBase-checked-5 Mui-checked PrivateSwitchBase-disabled-6 Mui-disabled MuiIconButton-colorSecondary Mui-disabled Mui-disabled"
+                className="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-6 MuiCheckbox-root MuiCheckbox-colorSecondary PrivateSwitchBase-checked-7 Mui-checked PrivateSwitchBase-disabled-8 Mui-disabled MuiIconButton-colorSecondary Mui-disabled Mui-disabled"
                 onBlur={[Function]}
                 onDragLeave={[Function]}
                 onFocus={[Function]}
@@ -619,7 +627,7 @@ exports[`Services page should render correctly should render correctly with serv
                 >
                   <input
                     checked={true}
-                    className="PrivateSwitchBase-input-7"
+                    className="PrivateSwitchBase-input-9"
                     data-indeterminate={false}
                     disabled={true}
                     onChange={[Function]}
@@ -725,7 +733,7 @@ exports[`Services page should render correctly should render correctly with serv
             >
               <span
                 aria-disabled={true}
-                className="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-4 MuiCheckbox-root MuiCheckbox-colorSecondary PrivateSwitchBase-disabled-6 Mui-disabled MuiIconButton-colorSecondary Mui-disabled Mui-disabled"
+                className="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-6 MuiCheckbox-root MuiCheckbox-colorSecondary PrivateSwitchBase-disabled-8 Mui-disabled MuiIconButton-colorSecondary Mui-disabled Mui-disabled"
                 onBlur={[Function]}
                 onDragLeave={[Function]}
                 onFocus={[Function]}
@@ -744,7 +752,7 @@ exports[`Services page should render correctly should render correctly with serv
                 >
                   <input
                     checked={false}
-                    className="PrivateSwitchBase-input-7"
+                    className="PrivateSwitchBase-input-9"
                     data-indeterminate={false}
                     disabled={true}
                     onChange={[Function]}
@@ -850,7 +858,7 @@ exports[`Services page should render correctly should render correctly with serv
             >
               <span
                 aria-disabled={true}
-                className="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-4 MuiCheckbox-root MuiCheckbox-colorSecondary PrivateSwitchBase-disabled-6 Mui-disabled MuiIconButton-colorSecondary Mui-disabled Mui-disabled"
+                className="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-6 MuiCheckbox-root MuiCheckbox-colorSecondary PrivateSwitchBase-disabled-8 Mui-disabled MuiIconButton-colorSecondary Mui-disabled Mui-disabled"
                 onBlur={[Function]}
                 onDragLeave={[Function]}
                 onFocus={[Function]}
@@ -869,7 +877,7 @@ exports[`Services page should render correctly should render correctly with serv
                 >
                   <input
                     checked={false}
-                    className="PrivateSwitchBase-input-7"
+                    className="PrivateSwitchBase-input-9"
                     data-indeterminate={false}
                     disabled={true}
                     onChange={[Function]}
@@ -909,6 +917,14 @@ exports[`Services page should render correctly should render correctly without s
     className="MuiPaper-root MuiTableContainer-root MuiPaper-elevation1 MuiPaper-rounded"
   >
     <div>
+      <div
+        className="MuiToolbar-root MuiToolbar-regular makeStyles-root-4 MuiToolbar-gutters"
+      >
+        <h6
+          aria-label="Table title"
+          className="MuiTypography-root makeStyles-title-5 MuiTypography-h6"
+        />
+      </div>
       <table
         className="MuiTable-root"
         role="table"
