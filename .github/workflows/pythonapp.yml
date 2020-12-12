@@ -69,4 +69,5 @@ jobs:
       DB_NAME: postgres
       DB_USER: postgres
       PGPASSWORD: postgres
+      DB_PASSWORD: postgres
       NO_TEMP_DB: TRUE
