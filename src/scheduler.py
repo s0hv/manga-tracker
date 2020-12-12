@@ -58,6 +58,7 @@ class UpdateScheduler:
             yield conn
         except:
             conn.rollback()
+            raise
         else:
             conn.commit()
         finally:

@@ -97,6 +97,9 @@ class DbUtil:
         Returns:
             The amount of rows deleted
         """
+        if not to_delete:
+            return 0
+
         sql = '''
             DELETE FROM scheduled_runs sr
                 USING (VALUES %s) as c(manga_id, service_id)
