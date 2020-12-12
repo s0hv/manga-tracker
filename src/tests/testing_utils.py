@@ -108,11 +108,13 @@ def date_fix(d: datetime):
     return d
 
 
-def set_db_environ(conf: Optional[dict] = None):
+def set_db_environ():
     """
     Sets environment variables to match the created temporary database.
     """
-    conf = conf if conf else Postgresql.cache.dsn()
+    if DONT_USE_TEMP_DATABASE:
+        return
+    conf = Postgresql.cache.dsn()
     os.environ['DB_HOST'] = conf['host']
     os.environ['DB_NAME'] = conf.get('database', conf.get('dbname'))
     os.environ['DB_USER'] = conf['user']
