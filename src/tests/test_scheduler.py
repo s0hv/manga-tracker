@@ -12,7 +12,7 @@ class SchedulerRunTest(BaseTestClasses.DatabaseTestCase):
     def setUp(self) -> None:
         super().setUp()
 
-        set_db_environ()
+        set_db_environ(self._conn.get_dsn_parameters())
 
         self.scraper1 = spy_on(DummyScraper(self._conn, self.dbutil))
         self.scraper2 = spy_on(DummyScraper(self._conn, self.dbutil))
