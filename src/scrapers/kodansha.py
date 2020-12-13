@@ -1,7 +1,7 @@
 import logging
 import re
 from datetime import timedelta, datetime
-from typing import Optional
+from typing import Optional, Collection
 
 import psycopg2
 import requests
@@ -130,8 +130,9 @@ class KodanshaComics(BaseScraper):
     def min_update_interval() -> timedelta:
         return random_timedelta(timedelta(hours=1), timedelta(hours=2))
 
-    def scrape_series(self, title_id, service_id, manga_id, feed_url=None) -> None:
-        return
+    def scrape_series(self, title_id: str, service_id: int, manga_id: int, feed_url: str = None) -> Optional[bool]:
+        retval = self._scrape_service(service_id, feed_url, only_title_ids={title_id}, forced=True)
+        return bool(retval) if retval is not None else retval
 
     def set_checked(self, service_id: int) -> None:
         try:
@@ -140,7 +141,16 @@ class KodanshaComics(BaseScraper):
         except psycopg2.Error:
             logger.exception(f'Failed to update service {service_id}')
 
-    def scrape_service(self, service_id: int, feed_url: str, last_update: Optional[datetime], title_id: Optional[str] = None):
+    def _scrape_service(self, service_id: int, feed_url: str,
+                        only_title_ids: Collection[str] = None, forced: bool = False):
+        """
+
+        Args:
+            service_id ():
+            feed_url ():
+            only_title_ids (): Only update these title ids
+            forced (): If update is forced even when no new chapter is found
+        """
         r = requests.get(feed_url)
         if r.status_code != 200:
             return
@@ -179,7 +189,10 @@ class KodanshaComics(BaseScraper):
         new_series = {manga.title_id: manga for manga in mangas if manga.title_id not in old_manga}
         mangas_to_update = []
         for manga in mangas:
-            if manga.title_id in old_manga and manga.has_new_chapter(old_manga[manga.title_id]):
+            if manga.title_id in old_manga and (forced or manga.has_new_chapter(old_manga[manga.title_id])):
+                if only_title_ids and manga.title_id not in only_title_ids:
+                    continue
+
                 mangas_to_update.append(manga)
                 manga.manga_id = old_manga[manga.title_id]['manga_id']
 
@@ -241,6 +254,10 @@ class KodanshaComics(BaseScraper):
                     execute_values(cur, sql, ((m.latest_chapter, m.chapter_decimal, service_id, m.manga_id) for m in updated_manga))
 
         return {m.manga_id for m in updated_manga}
+
+    def scrape_service(self, service_id: int, feed_url: str,
+                       last_update: Optional[datetime], title_id: Optional[str] = None):
+        return self._scrape_service(service_id, feed_url)
 
     def add_service(self) -> Optional[int]:
         return self.add_service_whole()

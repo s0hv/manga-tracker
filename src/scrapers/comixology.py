@@ -196,7 +196,7 @@ class ComiXology(BaseScraper):
             manga_id = manga.manga_id
 
             old_chapters = chapters
-            chapters: List[Chapter] = list(self.dbutil.get_only_latest_entries(self.service_id, chapters))
+            chapters: List[Chapter] = list(self.dbutil.get_only_latest_entries(self.service_id, chapters, manga_id=manga_id))
 
             if not chapters:
                 continue
