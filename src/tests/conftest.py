@@ -13,7 +13,6 @@ def setup_tests(request):
     conn = create_db(None if not Postgresql else Postgresql.cache)
     dbutil = DbUtil(conn)
     DummyScraper(conn, dbutil).add_service()
-    Reddit(conn, dbutil).add_service()
     conn.close()
 
     def fin():

@@ -1,7 +1,7 @@
 import logging
 import re
 from datetime import timedelta, datetime
-from typing import Optional, Collection
+from typing import Optional, Collection, List
 
 import psycopg2
 import requests
@@ -10,6 +10,7 @@ from psycopg2.extras import execute_values
 
 from src.scrapers.base_scraper import BaseScraper, BaseChapter
 from src.utils.utilities import random_timedelta
+from src.db.models.manga import MangaService as BaseManga
 
 logger = logging.getLogger('debug')
 
@@ -25,11 +26,11 @@ class Source:
         return self.manga.manga_id
 
 
-class Manga:
+class Manga(BaseManga):
     SPECIAL_RE = re.compile(r'(?:ex)?\+?(\d+)\+?(?:ex)?', re.I)
 
     def __init__(self, manga_element: etree.ElementBase, release_interval: timedelta):
-        self.title = manga_element.cssselect('cite')[0].text
+        title = manga_element.cssselect('cite')[0].text
         self.chapter_decimal: Optional[int] = None
 
         ch = manga_element.cssselect('.simulpub-card__badge span')[0].text
@@ -46,19 +47,28 @@ class Manga:
 
         # If special chapter, set latest chapter to -1
         if 'ex' in ch[0].lower():
-            self.latest_chapter = -1
+            latest_chapter = -1
         else:
-            self.latest_chapter = int(ch[0])
+            latest_chapter = int(ch[0])
 
         if len(ch) > 1:
             self.chapter_decimal = int(ch[1])
-        self.author = manga_element.cssselect('.proper-noun')[0].text
-        self.title_id = manga_element.cssselect('.card__link')[0].attrib['href'].strip('/').split('/')[-1]
+        author = manga_element.cssselect('.proper-noun')[0].text
+        title_id = manga_element.cssselect('.card__link')[0].attrib['href'].strip('/').split('/')[-1]
         self.sources = [Source(elem, self) for elem in manga_element.cssselect('.simulpub-card__partners li a')]
 
-        self.manga_id = None
-        self.release_interval = release_interval
         self.release_date = datetime.utcnow()
+
+        super(Manga, self).__init__(
+            manga_id=None,
+            title=title,
+            release_interval=release_interval,
+            title_id=title_id,
+            latest_chapter=latest_chapter,
+            author=author,
+            service_id=KodanshaComics.ID,
+            disabled=False,
+        )
 
     def has_new_chapter(self, row):
         return row['latest_chapter'] != self.latest_chapter or (
@@ -130,7 +140,7 @@ class KodanshaComics(BaseScraper):
     def min_update_interval() -> timedelta:
         return random_timedelta(timedelta(hours=1), timedelta(hours=2))
 
-    def scrape_series(self, title_id: str, service_id: int, manga_id: int, feed_url: str = None) -> Optional[bool]:
+    def scrape_series(self, title_id: str, service_id: int, manga_id: Optional[int], feed_url: str = None) -> Optional[bool]:
         retval = self._scrape_service(service_id, feed_url, only_title_ids={title_id}, forced=True)
         return bool(retval) if retval is not None else retval
 
@@ -141,25 +151,13 @@ class KodanshaComics(BaseScraper):
         except psycopg2.Error:
             logger.exception(f'Failed to update service {service_id}')
 
-    def _scrape_service(self, service_id: int, feed_url: str,
-                        only_title_ids: Collection[str] = None, forced: bool = False):
-        """
-
-        Args:
-            service_id ():
-            feed_url ():
-            only_title_ids (): Only update these title ids
-            forced (): If update is forced even when no new chapter is found
-        """
-        r = requests.get(feed_url)
-        if r.status_code != 200:
-            return
-
-        root = etree.HTML(r.text)
+    @staticmethod
+    def parse_manga_from_html(html: str) -> Optional[List[Manga]]:
+        root = etree.HTML(html)
 
         manga_intervals = root.cssselect('.simulpubs__list-sections .simulpubs-list-section')
         if not manga_intervals:
-            logger.warning(f'No manga found for {self.URL}')
+            logger.warning(f'No manga found for {KodanshaComics.URL}')
             return
 
         mangas = []
@@ -184,6 +182,26 @@ class KodanshaComics(BaseScraper):
                 manga = Manga(manga_element, release_interval)
                 mangas.append(manga)
 
+        return mangas
+
+    def _scrape_service(self, service_id: int, feed_url: str,
+                        only_title_ids: Collection[str] = None, forced: bool = False):
+        """
+
+        Args:
+            service_id ():
+            feed_url ():
+            only_title_ids (): Only update these title ids
+            forced (): If update is forced even when no new chapter is found
+        """
+        r = requests.get(feed_url)
+        if r.status_code != 200:
+            return
+
+        mangas = self.parse_manga_from_html(r.text)
+        if mangas is None:
+            return
+
         old_manga = self.dbutil.get_service_manga(service_id)
         old_manga = {r['title_id']: r for r in old_manga}
         new_series = {manga.title_id: manga for manga in mangas if manga.title_id not in old_manga}
@@ -203,12 +221,19 @@ class KodanshaComics(BaseScraper):
                     for manga_id, chapters in self.dbutil.add_new_series(cur, new_manga, service_id, disable_single_update=True):
                         manga = new_series[chapters[0].title_id]
                         manga.manga_id = manga_id
+
+                        if only_title_ids and manga.title_id not in only_title_ids:
+                            continue
+
                         mangas_to_update.append(manga)
 
         scrapers = {}
         updated_manga = []
         logger.info('%s manga to update on kodansha', len(mangas_to_update))
-        for manga in mangas_to_update[:8]:
+
+        for manga in mangas_to_update:
+            if len(updated_manga) >= 8:
+                break
             updated = 0
             non_existing = 0
             for source in manga.sources:
