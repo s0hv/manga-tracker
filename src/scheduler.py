@@ -238,11 +238,6 @@ class UpdateScheduler:
                         Scraper, row['manga_info'][:batch_size]
                     ))
 
-            for r in futures:
-                res = r.result()
-                if isinstance(res, set):
-                    manga_ids.update(res)
-
             sql = """SELECT s.service_id, sw.feed_url, s.url
                      FROM service_whole sw INNER JOIN services s on sw.service_id = s.service_id
                      WHERE NOT s.disabled AND (sw.next_update IS NULL OR sw.next_update < NOW())"""
@@ -282,6 +277,11 @@ class UpdateScheduler:
 
             retval = self.do_scheduled_runs()
             manga_ids.update(retval)
+
+            for r in futures:
+                res = r.result()
+                if isinstance(res, set):
+                    manga_ids.update(res)
 
             with conn:
                 if manga_ids:
