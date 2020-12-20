@@ -85,6 +85,9 @@ class TestComiXologyScraper(BaseTestClasses.DatabaseTestCase):
         self.assertEqual(latest_chapter, latest['chapter_number'], msg='Latest chapters did not match')
         self.assertEqual(date(2020, 12, 8), latest['release_date'].date(), msg='Release date did not match')
 
+        updated = comixology.update_selected_manga((source,))
+        self.assertEqual(updated, 0, msg='Manga updated multiple times for same input')
+
 
 if __name__ == '__main__':
     unittest.main()

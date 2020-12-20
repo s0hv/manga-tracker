@@ -2,7 +2,7 @@ import logging
 import re
 import time
 from datetime import timedelta, datetime
-from typing import Optional, Iterable, Union, List
+from typing import Optional, Iterable, Union, List, Collection
 
 import requests
 from lxml import etree
@@ -196,9 +196,9 @@ class ComiXology(BaseScraper):
             manga_id = manga.manga_id
 
             # Check if any new chapters
-            new_chapters: List[Chapter] = self.dbutil.get_only_latest_entries(self.service_id, chapters, manga_id=manga_id)
+            new_chapters: List[Chapter] = list(self.dbutil.get_only_latest_entries(self.service_id, chapters, manga_id=manga_id))
 
-            if not chapters:
+            if not new_chapters:
                 continue
 
             logger.info('Adding %s chapters to comixology with manga id %s, %s',
@@ -214,6 +214,8 @@ class ComiXology(BaseScraper):
                     logger.warning(f'Latest chapter not the last element of chapters list when scraping {manga}')
                 else:
                     now = self.get_chapter_release_date(chapters[0].url) or now
+            elif len(new_chapters) == 1:
+                now = self.get_chapter_release_date(new_chapters[0].url) or now
 
             # If new chapters existed use ALL CHAPTERS!!! to calculate release dates for every chapter
             last_chapter = None
