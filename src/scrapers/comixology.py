@@ -202,7 +202,7 @@ class ComiXology(BaseScraper):
                 continue
 
             logger.info('Adding %s chapters to comixology with manga id %s, %s',
-                        len(chapters), manga_id, manga.title)
+                        len(new_chapters), manga_id, manga.title)
 
             latest_chapter = manga.latest_chapter
             # If special chapter like extra manually get latest chapter
