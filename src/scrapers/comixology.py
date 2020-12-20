@@ -2,7 +2,7 @@ import logging
 import re
 import time
 from datetime import timedelta, datetime
-from typing import Optional, Iterable, Union, List, Collection
+from typing import Optional, Iterable, Union, List
 
 import requests
 from lxml import etree
