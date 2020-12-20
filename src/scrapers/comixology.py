@@ -195,8 +195,8 @@ class ComiXology(BaseScraper):
             chapters = [Chapter(c, manga.title) for c in chapter_elements]
             manga_id = manga.manga_id
 
-            old_chapters = chapters
-            chapters: List[Chapter] = list(self.dbutil.get_only_latest_entries(self.service_id, chapters, manga_id=manga_id))
+            # Check if any new chapters
+            new_chapters: List[Chapter] = self.dbutil.get_only_latest_entries(self.service_id, chapters, manga_id=manga_id)
 
             if not chapters:
                 continue
@@ -204,14 +204,18 @@ class ComiXology(BaseScraper):
             logger.info('Adding %s chapters to comixology with manga id %s, %s',
                         len(chapters), manga_id, manga.title)
 
-            if len(chapters) > 1:
-                now = self.get_chapter_release_date(chapters[0].url) or now
-
             latest_chapter = manga.latest_chapter
             # If special chapter like extra manually get latest chapter
             if latest_chapter == -1:
                 latest_chapter = max(chapters, key=lambda c: c.chapter_number)
 
+            if len(new_chapters) > 1:
+                if chapters[0].chapter_number < latest_chapter:
+                    logger.warning(f'Latest chapter not the last element of chapters list when scraping {manga}')
+                else:
+                    now = self.get_chapter_release_date(chapters[0].url) or now
+
+            # If new chapters existed use ALL CHAPTERS!!! to calculate release dates for every chapter
             last_chapter = None
             for idx, chapter in enumerate(chapters):
                 if chapter.invalid:
@@ -220,8 +224,8 @@ class ComiXology(BaseScraper):
                 chapter.release_date_maybe = now
 
                 # If extra set chapter number as previous chapter
-                if chapter.chapter_number == 0 and idx+1 != len(old_chapters):
-                    chapter._chapter_number = old_chapters[idx+1].chapter_number
+                if chapter.chapter_number == 0 and idx + 1 != len(chapters):
+                    chapter._chapter_number = chapters[idx + 1].chapter_number
                     chapter._chapter_decimal = 5
 
                 if last_chapter:
@@ -237,15 +241,17 @@ class ComiXology(BaseScraper):
             manga.release_date = now
             sql = 'INSERT INTO chapters (manga_id, service_id, title, chapter_number, chapter_decimal, chapter_identifier, release_date, "group") ' \
                   'VALUES %s ON CONFLICT DO NOTHING'
+
             args = []
-            for c in chapters:
+            # Turn new chapters into args
+            for c in new_chapters:
                 if c.invalid:
                     continue
                 args.append((manga_id, self.service_id, c.title, c.chapter_number, c.decimal, c.chapter_identifier, c.release_date, 'comiXology'))
 
             with self.conn:
                 with self.conn.cursor() as cur:
-                    if chapters:
+                    if args:
                         execute_values(cur, sql, args, page_size=200)
 
                     sql = 'INSERT INTO manga_service (manga_id, service_id, disabled, last_check, title_id) VALUES ' \

@@ -482,3 +482,11 @@ class DbUtil:
     def set_manga_last_checked(self, cur: Cursor, service_id: int, manga_id: int, last_checked: Optional[datetime]):
         sql = 'UPDATE manga_service SET last_check=%s WHERE manga_id=%s AND service_id=%s'
         cur.execute(sql, [last_checked, manga_id, service_id])
+
+    @optional_transaction
+    def get_newest_chapter(self, cur: Cursor, manga_id: int, service_id: Optional[int] = None):
+        sql = f'SELECT * FROM chapters WHERE manga_id=%s{" AND service_id=%s" if service_id is not None else ""} ORDER BY release_date DESC LIMIT 1'
+        args = (manga_id,) if service_id is None else (manga_id, service_id)
+
+        cur.execute(sql, args)
+        return cur.fetchone()
