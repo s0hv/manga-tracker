@@ -1,4 +1,4 @@
-const withTM = require('next-transpile-modules')(['frappe-charts']);
+const withTM = require('next-transpile-modules')(['frappe-charts', 'react-frappe-charts']);
 
 module.exports = (phase, { defaultConfig }) => {
   const conf = withTM({
