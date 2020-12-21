@@ -32,7 +32,6 @@ class MockManga(Manga):
             release_interval=release_interval,
             title_id=title_id,
             latest_chapter=latest_chapter,
-            author=author,
             service_id=-1,
             disabled=False,
         )
@@ -40,6 +39,7 @@ class MockManga(Manga):
         self.sources = []
         self.release_date = datetime.utcnow()
         self.chapter_decimal = None
+        self.author = author
 
 
 class TestComiXologyScraper(BaseTestClasses.DatabaseTestCase):
