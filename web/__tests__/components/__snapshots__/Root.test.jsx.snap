@@ -792,7 +792,7 @@ exports[`Root component should render correctly should render correctly with dat
                                         <span
                                           className="MuiIconButton-label"
                                         >
-                                          <ForwardRef>
+                                          <ForwardRef(HomeIcon)>
                                             <WithStyles(ForwardRef(SvgIcon))>
                                               <ForwardRef(SvgIcon)
                                                 classes={
@@ -821,7 +821,7 @@ exports[`Root component should render correctly should render correctly with dat
                                                 </svg>
                                               </ForwardRef(SvgIcon)>
                                             </WithStyles(ForwardRef(SvgIcon))>
-                                          </ForwardRef>
+                                          </ForwardRef(HomeIcon)>
                                         </span>
                                         <WithStyles(memo)
                                           center={true}
@@ -880,7 +880,7 @@ exports[`Root component should render correctly should render correctly with dat
                               }
                               endAdornment={
                                 <WithStyles(ForwardRef(IconButton))>
-                                  <Memo(SearchIcon) />
+                                  <Memo />
                                 </WithStyles(ForwardRef(IconButton))>
                               }
                               id="title-search"
@@ -936,7 +936,7 @@ exports[`Root component should render correctly should render correctly with dat
                                 }
                                 endAdornment={
                                   <WithStyles(ForwardRef(IconButton))>
-                                    <Memo(SearchIcon) />
+                                    <Memo />
                                   </WithStyles(ForwardRef(IconButton))>
                                 }
                                 id="title-search"
@@ -1040,7 +1040,7 @@ exports[`Root component should render correctly should render correctly with dat
                                             <span
                                               className="MuiIconButton-label"
                                             >
-                                              <ForwardRef>
+                                              <ForwardRef(SearchIcon)>
                                                 <WithStyles(ForwardRef(SvgIcon))>
                                                   <ForwardRef(SvgIcon)
                                                     classes={
@@ -1069,7 +1069,7 @@ exports[`Root component should render correctly should render correctly with dat
                                                     </svg>
                                                   </ForwardRef(SvgIcon)>
                                                 </WithStyles(ForwardRef(SvgIcon))>
-                                              </ForwardRef>
+                                              </ForwardRef(SearchIcon)>
                                             </span>
                                             <WithStyles(memo)
                                               center={true}
@@ -1311,7 +1311,7 @@ exports[`Root component should render correctly should render correctly with dat
                                   <span
                                     className="MuiIconButton-label"
                                   >
-                                    <ForwardRef
+                                    <ForwardRef(Brightness3Icon)
                                       className="makeStyles-menuItemIcon-13"
                                     >
                                       <WithStyles(ForwardRef(SvgIcon))
@@ -1345,7 +1345,7 @@ exports[`Root component should render correctly should render correctly with dat
                                           </svg>
                                         </ForwardRef(SvgIcon)>
                                       </WithStyles(ForwardRef(SvgIcon))>
-                                    </ForwardRef>
+                                    </ForwardRef(Brightness3Icon)>
                                   </span>
                                   <WithStyles(memo)
                                     center={true}
@@ -2137,7 +2137,7 @@ exports[`Root component should render correctly should render correctly with use
                                         <span
                                           className="MuiIconButton-label"
                                         >
-                                          <ForwardRef>
+                                          <ForwardRef(HomeIcon)>
                                             <WithStyles(ForwardRef(SvgIcon))>
                                               <ForwardRef(SvgIcon)
                                                 classes={
@@ -2166,7 +2166,7 @@ exports[`Root component should render correctly should render correctly with use
                                                 </svg>
                                               </ForwardRef(SvgIcon)>
                                             </WithStyles(ForwardRef(SvgIcon))>
-                                          </ForwardRef>
+                                          </ForwardRef(HomeIcon)>
                                         </span>
                                         <WithStyles(memo)
                                           center={true}
@@ -2225,7 +2225,7 @@ exports[`Root component should render correctly should render correctly with use
                               }
                               endAdornment={
                                 <WithStyles(ForwardRef(IconButton))>
-                                  <Memo(SearchIcon) />
+                                  <Memo />
                                 </WithStyles(ForwardRef(IconButton))>
                               }
                               id="title-search"
@@ -2281,7 +2281,7 @@ exports[`Root component should render correctly should render correctly with use
                                 }
                                 endAdornment={
                                   <WithStyles(ForwardRef(IconButton))>
-                                    <Memo(SearchIcon) />
+                                    <Memo />
                                   </WithStyles(ForwardRef(IconButton))>
                                 }
                                 id="title-search"
@@ -2385,7 +2385,7 @@ exports[`Root component should render correctly should render correctly with use
                                             <span
                                               className="MuiIconButton-label"
                                             >
-                                              <ForwardRef>
+                                              <ForwardRef(SearchIcon)>
                                                 <WithStyles(ForwardRef(SvgIcon))>
                                                   <ForwardRef(SvgIcon)
                                                     classes={
@@ -2414,7 +2414,7 @@ exports[`Root component should render correctly should render correctly with use
                                                     </svg>
                                                   </ForwardRef(SvgIcon)>
                                                 </WithStyles(ForwardRef(SvgIcon))>
-                                              </ForwardRef>
+                                              </ForwardRef(SearchIcon)>
                                             </span>
                                             <WithStyles(memo)
                                               center={true}
@@ -2535,7 +2535,7 @@ exports[`Root component should render correctly should render correctly with use
                                     <span
                                       className="MuiIconButton-label"
                                     >
-                                      <ForwardRef
+                                      <ForwardRef(AccountCircleIcon)
                                         fontSize="large"
                                       >
                                         <WithStyles(ForwardRef(SvgIcon))
@@ -2569,7 +2569,7 @@ exports[`Root component should render correctly should render correctly with use
                                             </svg>
                                           </ForwardRef(SvgIcon)>
                                         </WithStyles(ForwardRef(SvgIcon))>
-                                      </ForwardRef>
+                                      </ForwardRef(AccountCircleIcon)>
                                     </span>
                                     <WithStyles(memo)
                                       center={true}
@@ -3829,7 +3829,7 @@ exports[`Root component should render correctly should render correctly with use
                                                                                   role="menuitem"
                                                                                   tabIndex={0}
                                                                                 >
-                                                                                  <ForwardRef
+                                                                                  <ForwardRef(PersonIcon)
                                                                                     className="makeStyles-menuItemIcon-13"
                                                                                     key=".0"
                                                                                   >
@@ -3864,7 +3864,7 @@ exports[`Root component should render correctly should render correctly with use
                                                                                         </svg>
                                                                                       </ForwardRef(SvgIcon)>
                                                                                     </WithStyles(ForwardRef(SvgIcon))>
-                                                                                  </ForwardRef>
+                                                                                  </ForwardRef(PersonIcon)>
                                                                                    Profile
                                                                                   <WithStyles(memo)
                                                                                     center={false}
@@ -4000,7 +4000,7 @@ exports[`Root component should render correctly should render correctly with use
                                                                             role="menuitem"
                                                                             tabIndex={-1}
                                                                           >
-                                                                            <ForwardRef
+                                                                            <ForwardRef(Brightness3Icon)
                                                                               className="makeStyles-menuItemIcon-13"
                                                                               key=".0"
                                                                             >
@@ -4035,7 +4035,7 @@ exports[`Root component should render correctly should render correctly with use
                                                                                   </svg>
                                                                                 </ForwardRef(SvgIcon)>
                                                                               </WithStyles(ForwardRef(SvgIcon))>
-                                                                            </ForwardRef>
+                                                                            </ForwardRef(Brightness3Icon)>
                                                                             Switch to 
                                                                             dark
                                                                              theme
@@ -4512,7 +4512,7 @@ exports[`Root component should render correctly should render correctly with use
                                                                                   role="menuitem"
                                                                                   tabIndex={-1}
                                                                                 >
-                                                                                  <ForwardRef
+                                                                                  <ForwardRef(BookmarksIcon)
                                                                                     className="makeStyles-menuItemIcon-13"
                                                                                     key=".0"
                                                                                   >
@@ -4547,7 +4547,7 @@ exports[`Root component should render correctly should render correctly with use
                                                                                         </svg>
                                                                                       </ForwardRef(SvgIcon)>
                                                                                     </WithStyles(ForwardRef(SvgIcon))>
-                                                                                  </ForwardRef>
+                                                                                  </ForwardRef(BookmarksIcon)>
                                                                                    Follows
                                                                                   <WithStyles(memo)
                                                                                     center={false}
@@ -5025,7 +5025,7 @@ exports[`Root component should render correctly should render correctly with use
                                                                                   role="menuitem"
                                                                                   tabIndex={-1}
                                                                                 >
-                                                                                  <ForwardRef
+                                                                                  <ForwardRef(ViewListIcon)
                                                                                     className="makeStyles-menuItemIcon-13"
                                                                                     key=".0"
                                                                                   >
@@ -5060,7 +5060,7 @@ exports[`Root component should render correctly should render correctly with use
                                                                                         </svg>
                                                                                       </ForwardRef(SvgIcon)>
                                                                                     </WithStyles(ForwardRef(SvgIcon))>
-                                                                                  </ForwardRef>
+                                                                                  </ForwardRef(ViewListIcon)>
                                                                                    Services
                                                                                   <WithStyles(memo)
                                                                                     center={false}
@@ -5196,7 +5196,7 @@ exports[`Root component should render correctly should render correctly with use
                                                                             role="menuitem"
                                                                             tabIndex={-1}
                                                                           >
-                                                                            <ForwardRef
+                                                                            <ForwardRef(ExitToAppIcon)
                                                                               className="makeStyles-menuItemIcon-13"
                                                                               key=".0"
                                                                             >
@@ -5231,7 +5231,7 @@ exports[`Root component should render correctly should render correctly with use
                                                                                   </svg>
                                                                                 </ForwardRef(SvgIcon)>
                                                                               </WithStyles(ForwardRef(SvgIcon))>
-                                                                            </ForwardRef>
+                                                                            </ForwardRef(ExitToAppIcon)>
                                                                              Logout
                                                                             <WithStyles(memo)
                                                                               center={false}
