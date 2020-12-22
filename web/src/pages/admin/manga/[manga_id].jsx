@@ -6,26 +6,24 @@ import withError from '../../../utils/withError';
 function MangaPage(props) {
   const {
     manga,
-    follows,
   } = props;
 
-  return <Manga mangaData={{ ...manga }} userFollows={follows} />;
+  return <Manga mangaData={{ ...manga }} />;
 }
 
 export async function getServerSideProps({ req, params }) {
+  if (!(req.user && req.user.admin)) {
+    return { props: { error: 404 }};
+  }
+
   const { getManga } = require('../../../../db/manga');
-  const { getUserFollows } = require('../../../../db/db');
+
   let manga;
   let userFollows;
   try {
     manga = await getManga(params.manga_id);
     if (!manga) {
       return { props: { error: 404 }};
-    }
-
-    if (req.user?.user_id) {
-      userFollows = (await getUserFollows(req.user.user_id, params?.manga_id))
-        .rows.map(service => service.service_id);
     }
   } catch (e) {
     return { props: { error: e?.status || 404 }};

@@ -1,5 +1,6 @@
 import request from 'supertest';
 import { deleteScheduledRun, scheduleMangaRun } from '../../../db/admin/management';
+import { getMangaPartial, getAliases } from '../../../db/manga';
 
 import { userForbidden, userUnauthorized } from '../../constants';
 import initServer from '../../initServer';
@@ -199,9 +200,90 @@ describe('GET /api/admin/manga/:manga_id/scheduledRuns', () => {
   it('Returns 404 when resource does not exist', async () => {
     await withUser(adminUser, async () => {
       await request(httpServer)
-        .delete(url)
+        .get(url)
         .expect(404);
     });
   });
   */
+});
+
+
+describe('POST /api/admin/manga/:manga_id/title', () => {
+  const mangaId = 1;
+  const url = `/api/admin/manga/${mangaId}/title`;
+
+  it('returns unauthorized without user', async () => {
+    await request(httpServer)
+      .post(url)
+      .expect(401)
+      .expect(expectErrorMessage(userUnauthorized));
+  });
+
+  it('returns forbidden for non admin', async () => {
+    await withUser(normalUser, async () => {
+      await request(httpServer)
+        .post(url)
+        .expect(403)
+        .expect(expectErrorMessage(userForbidden));
+    });
+  });
+
+  it('returns bad request when body missing', async () => {
+    await withUser(adminUser, async () => {
+      await request(httpServer)
+        .post(url)
+        .expect(400)
+        .expect(expectErrorMessage(undefined, 'title'));
+
+      await request(httpServer)
+        .post(url)
+        .send({ title: null })
+        .expect(400)
+        .expect(expectErrorMessage(null, 'title'));
+    });
+  });
+
+  it('returns bad request when title empty', async () => {
+    await withUser(adminUser, async () => {
+      await request(httpServer)
+        .post(url)
+        .send({ title: '' })
+        .expect(400)
+        .expect(expectErrorMessage('', 'title'));
+    });
+  });
+
+  it('Swaps title with alias when alias given as new title', async () => {
+    const oldTitle = (await getMangaPartial(mangaId)).title;
+    const newTitle = (await getAliases(mangaId))[0].title;
+
+    await withUser(adminUser, async () => {
+      await request(httpServer)
+        .post(url)
+        .send({ title: newTitle })
+        .expect(200)
+        .expect(/Replaced old alias/);
+    });
+
+    expect((await getMangaPartial(mangaId)).title).toStrictEqual(newTitle);
+    expect((await getAliases(mangaId)).map(a => a.title)).toContain(oldTitle);
+  });
+
+  it('Removes and replaces old title when alias does not exists', async () => {
+    const oldTitle = (await getMangaPartial(mangaId)).title;
+    const newTitle = `${oldTitle}_test`;
+
+    expect((await getAliases(mangaId)).map(a => a.title)).not.toContain(newTitle);
+
+    await withUser(adminUser, async () => {
+      await request(httpServer)
+        .post(url)
+        .send({ title: newTitle })
+        .expect(200)
+        .expect(/Alias not found/);
+    });
+
+    expect((await getMangaPartial(mangaId)).title).toStrictEqual(newTitle);
+    expect((await getAliases(mangaId)).map(a => a.title)).not.toContain(oldTitle);
+  });
 });

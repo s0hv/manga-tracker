@@ -34,7 +34,8 @@ function getManga(mangaId, chapters) {
   const sql = `SELECT manga.manga_id, title, release_interval, latest_release, estimated_release, manga.latest_chapter,
                         array_agg(json_build_object('title_id', ms.title_id, 'service_id', ms.service_id, 'name', s.service_name, 'url_format', chapter_url_format, 'url', s.manga_url_format)) as services,
                         mi.cover, mi.status, mi.artist, mi.author, mi.last_updated,
-                        mi.bw, mi.mu, mi.mal, mi.amz, mi.ebj, mi.engtl, mi.raw, mi.nu, mi.kt, mi.ap, mi.al 
+                        mi.bw, mi.mu, mi.mal, mi.amz, mi.ebj, mi.engtl, mi.raw, mi.nu, mi.kt, mi.ap, mi.al,
+                        (SELECT array_agg(title) FROM manga_alias ma WHERE ma.manga_id=$1) as aliases
                         ${limit ? chapterSql : ''}
                FROM manga LEFT JOIN manga_info mi ON manga.manga_id = mi.manga_id
                    INNER JOIN manga_service ms ON manga.manga_id = ms.manga_id
@@ -99,3 +100,18 @@ function getFollows(userId) {
 }
 
 module.exports.getFollows = getFollows;
+
+const getAliases = (mangaId) => {
+  const sql = 'SELECT title FROM manga_alias WHERE manga_id=$1';
+  return db.query(sql, [mangaId])
+    .then(res => res.rows);
+};
+module.exports.getAliases = getAliases;
+
+// Actually just gets a single row from the manga table
+const getMangaPartial = (mangaId) => {
+  const sql = 'SELECT * FROM manga WHERE manga_id=$1';
+  return db.query(sql, [mangaId])
+    .then(res => res.rows[0]);
+};
+module.exports.getMangaPartial = getMangaPartial;

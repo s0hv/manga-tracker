@@ -1,0 +1,82 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`MangaInfo should render correctly Should render correctly with data 1`] = `
+<table
+  className="makeStyles-infoTable-2"
+>
+  <tbody>
+    <tr>
+      <td>
+        <p
+          className="MuiTypography-root MuiTypography-body1"
+        >
+          Latest release:
+        </p>
+      </td>
+      <td>
+        <p
+          aria-describedby={null}
+          className="MuiTypography-root makeStyles-detailText-1 MuiTypography-body1"
+          onBlur={[Function]}
+          onFocus={[Function]}
+          onMouseLeave={[Function]}
+          onMouseOver={[Function]}
+          onTouchEnd={[Function]}
+          onTouchStart={[Function]}
+          title="Sun, 05 Jul 2020 16:00:00 GMT"
+        >
+          Jul 5th 2020, 16:00 - 1 day ago
+        </p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <p
+          className="MuiTypography-root MuiTypography-body1"
+        >
+          Estimated release interval:
+        </p>
+      </td>
+      <td>
+        <p
+          className="MuiTypography-root makeStyles-detailText-1 MuiTypography-body1"
+        >
+          7 days 0 hours
+        </p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <p
+          className="MuiTypography-root MuiTypography-body1"
+        >
+          Estimated next release:
+        </p>
+      </td>
+      <td>
+        <p
+          className="MuiTypography-root makeStyles-detailText-1 MuiTypography-body1"
+        >
+          Jul 12th 2020, 16:00
+        </p>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <p
+          className="MuiTypography-root MuiTypography-body1"
+        >
+          Latest chapter:
+        </p>
+      </td>
+      <td>
+        <p
+          className="MuiTypography-root makeStyles-detailText-1 MuiTypography-body1"
+        >
+          157
+        </p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+`;

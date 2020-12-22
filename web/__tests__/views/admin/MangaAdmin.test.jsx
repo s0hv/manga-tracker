@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, act, within, fireEvent } from '@testing-library/react';
+import { render, screen, act, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import fetchMock from 'fetch-mock';
@@ -12,7 +12,8 @@ import {
 } from '../../utils';
 import MangaAdmin from '../../../src/views/admin/MangaAdmin';
 
-const manga = { manga_id: 1,
+const manga = {
+  manga_id: 1,
   title: 'Dr. STONE',
   release_interval: {
     days: 7,

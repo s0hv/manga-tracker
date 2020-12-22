@@ -1,4 +1,6 @@
 const express = require('express');
+const { body } = require('express-validator');
+const { updateMangaTitle } = require('../../db/admin/manga');
 const { requiresUser } = require('../../db/auth');
 const { handleError } = require('../../db/utils');
 const {
@@ -61,6 +63,28 @@ module.exports = () => {
         })
         .catch(err => handleError(err, res));
     });
+
+  const updateTitleUrl = '/:manga_id(\\d+)/title';
+  router.use(updateTitleUrl, [
+    validateAdminUser(),
+    mangaIdValidation(true),
+    body('title').isString().bail().isLength({ min: 1 }),
+  ]);
+  router.post(updateTitleUrl, handleValidationErrors, (req, res) => {
+    updateMangaTitle(req.params.manga_id, req.body.title)
+      .then(val => {
+        if (!val) {
+          res.status(404).json({ error: 'Manga not found' });
+        } else {
+          const row = val.rows[0];
+          const msg = row ?
+            `Replaced old alias with current title "${row.title}"` :
+            `Alias not found. Scrapping old title`;
+          res.json({ message: msg });
+        }
+      })
+      .catch(err => handleError(err, res));
+  });
 
   return router;
 };

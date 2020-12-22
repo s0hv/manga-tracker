@@ -6,6 +6,9 @@ INSERT INTO manga (manga_id, title, release_interval, latest_release, estimated_
 INSERT INTO manga (manga_id, title, release_interval, latest_release, estimated_release, latest_chapter) VALUES (3, 'This is a test', '0 years 0 mons 90 days 0 hours 0 mins 0.00 secs', '2020-03-02 16:00:00.000000', '2020-06-02 16:00:00.000000', 50);
 INSERT INTO manga (manga_id, title, release_interval, latest_release, estimated_release, latest_chapter) VALUES (4, 'Jojo part 2', '0 years 0 mons 30 days 0 hours 0 mins 0.00 secs', '2020-03-02 16:00:00.000000', '2020-06-02 16:00:00.000000', NULL);
 
+-- insert aliases
+INSERT INTO manga_alias (manga_id, title) VALUES (1, 'Test alias');
+
 SELECT setval(pg_get_serial_sequence('manga', 'manga_id'), MAX(manga_id)) FROM manga;
 
 -- insert services

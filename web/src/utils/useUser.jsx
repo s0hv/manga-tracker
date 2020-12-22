@@ -9,5 +9,6 @@ export const useUser = () => {
   return useMemo(() => ({
     user,
     isAuthenticated: !!user,
+    isAdmin: user && user.admin,
   }), [user]);
 };

@@ -6,7 +6,7 @@ exports[`Manga page should render correctly Should render correctly as admin 1`]
   maxWidth="lg"
 >
   <WithStyles(ForwardRef(Paper))
-    className="makeStyles-paper-9"
+    className="makeStyles-paper-10"
   >
     <div
       className="makeStyles-titleBar-2"
@@ -19,7 +19,7 @@ exports[`Manga page should render correctly Should render correctly as admin 1`]
       </WithStyles(ForwardRef(Typography))>
     </div>
     <div
-      className="makeStyles-details-4"
+      className="makeStyles-details-5"
     >
       <a
         href="https://myanimelist.net/manga/103897"
@@ -28,84 +28,98 @@ exports[`Manga page should render correctly Should render correctly as admin 1`]
       >
         <img
           alt="Dr. STONE"
-          className="makeStyles-thumbnail-3"
+          className="makeStyles-thumbnail-4"
           src="https://mangadex.org/images/manga/20882.jpg?1585634146"
         />
       </a>
       <WithStyles(ForwardRef(Grid))
+        className="makeStyles-rootGrid-12"
         container={true}
         justify="space-between"
       >
-        <table
-          className="makeStyles-infoTable-6"
+        <WithStyles(ForwardRef(Grid))
+          className="makeStyles-infoGrid-11"
+          container={true}
+          direction="column"
         >
-          <tbody>
-            <tr>
-              <td>
-                <WithStyles(ForwardRef(Typography))>
-                  Latest release:
-                </WithStyles(ForwardRef(Typography))>
-              </td>
-              <td>
-                <WithStyles(ForwardRef(Tooltip))
-                  title="Sun, 05 Jul 2020 16:00:00 GMT"
-                >
-                  <WithStyles(ForwardRef(Typography))
-                    className="makeStyles-detailText-5"
-                  >
-                    Jul 5th 2020, 16:00 - 1 day ago
-                  </WithStyles(ForwardRef(Typography))>
-                </WithStyles(ForwardRef(Tooltip))>
-              </td>
-            </tr>
-            <tr>
-              <td>
-                <WithStyles(ForwardRef(Typography))>
-                  Estimated release interval:
-                </WithStyles(ForwardRef(Typography))>
-              </td>
-              <td>
-                <WithStyles(ForwardRef(Typography))
-                  className="makeStyles-detailText-5"
-                >
-                  7 days 0 hours
-                </WithStyles(ForwardRef(Typography))>
-              </td>
-            </tr>
-            <tr>
-              <td>
-                <WithStyles(ForwardRef(Typography))>
-                  Estimated next release:
-                </WithStyles(ForwardRef(Typography))>
-              </td>
-              <td>
-                <WithStyles(ForwardRef(Typography))
-                  className="makeStyles-detailText-5"
-                >
-                  Jul 12th 2020, 16:00
-                </WithStyles(ForwardRef(Typography))>
-              </td>
-            </tr>
-            <tr>
-              <td>
-                <WithStyles(ForwardRef(Typography))>
-                  Latest chapter:
-                </WithStyles(ForwardRef(Typography))>
-              </td>
-              <td>
-                <WithStyles(ForwardRef(Typography))
-                  className="makeStyles-detailText-5"
-                >
-                  157
-                </WithStyles(ForwardRef(Typography))>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+          <MangaInfo
+            mangaData={
+              Object {
+                "al": "https://anilist.co/manga/98416",
+                "amz": "https://www.amazon.co.jp/gp/product/B075F8JBQ1",
+                "ap": "https://www.anime-planet.com/manga/dr-stone",
+                "artist": "Boichi",
+                "author": "Inagaki Riichiro",
+                "bw": "https://bookwalker.jp/series/114645",
+                "chapters": Array [
+                  Object {
+                    "chapter_number": 157,
+                    "chapter_url": "1007322",
+                    "group": "Shueisha",
+                    "release_date": 1593964800000,
+                    "service_id": 1,
+                    "title": "Z=157: Same Time, Same Place",
+                  },
+                  Object {
+                    "chapter_number": 156,
+                    "chapter_url": "938629",
+                    "group": "MangaPlus",
+                    "release_date": null,
+                    "service_id": 2,
+                    "title": "Z=156: Two Scientists",
+                  },
+                  Object {
+                    "chapter_number": 156,
+                    "chapter_url": "1007024",
+                    "group": "Shueisha",
+                    "release_date": 1593187200000,
+                    "service_id": 1,
+                    "title": "Z=156: Two Scientists",
+                  },
+                ],
+                "cover": "https://mangadex.org/images/manga/20882.jpg?1585634146",
+                "ebj": "https://www.ebookjapan.jp/ebj/413780/",
+                "engtl": "https://www.viz.com/dr-stone",
+                "estimated_release": "2020-07-12T16:00:00.000Z",
+                "kt": "https://kitsu.io/manga/38860",
+                "last_updated": "2020-06-28T08:15:55.170Z",
+                "latest_chapter": 157,
+                "latest_release": "2020-07-05T16:00:00.000Z",
+                "mal": "https://myanimelist.net/manga/103897",
+                "manga_id": 1,
+                "mu": "https://www.mangaupdates.com/series.html?id=139601",
+                "nu": "https://www.novelupdates.com/series/null",
+                "raw": "null",
+                "release_interval": Object {
+                  "days": 7,
+                },
+                "services": Array [
+                  Object {
+                    "name": "MANGA Plus",
+                    "service_id": 1,
+                    "title_id": "100010",
+                    "url": "https://mangaplus.shueisha.co.jp/titles/{}",
+                    "url_format": "https://mangaplus.shueisha.co.jp/viewer/{}",
+                  },
+                  Object {
+                    "name": "MangaDex",
+                    "service_id": 2,
+                    "title_id": "20882",
+                    "url": "https://mangadex.org/title/{}",
+                    "url_format": "https://mangadex.org/chapter/{}",
+                  },
+                ],
+                "status": 0,
+                "title": "Dr. STONE",
+              }
+            }
+          />
+          <MangaAliases />
+        </WithStyles(ForwardRef(Grid))>
         <MangaSourceList
           classesProp={
             Array [
-              "makeStyles-sourceList-7",
+              "makeStyles-sourceList-8",
             ]
           }
           followUnfollow={[Function]}
@@ -210,7 +224,7 @@ exports[`Manga page should render correctly should render correctly 1`] = `
   maxWidth="lg"
 >
   <WithStyles(ForwardRef(Paper))
-    className="makeStyles-paper-9"
+    className="makeStyles-paper-10"
   >
     <div
       className="makeStyles-titleBar-2"
@@ -223,7 +237,7 @@ exports[`Manga page should render correctly should render correctly 1`] = `
       </WithStyles(ForwardRef(Typography))>
     </div>
     <div
-      className="makeStyles-details-4"
+      className="makeStyles-details-5"
     >
       <a
         href="https://myanimelist.net/manga/103897"
@@ -232,84 +246,98 @@ exports[`Manga page should render correctly should render correctly 1`] = `
       >
         <img
           alt="Dr. STONE"
-          className="makeStyles-thumbnail-3"
+          className="makeStyles-thumbnail-4"
           src="https://mangadex.org/images/manga/20882.jpg?1585634146"
         />
       </a>
       <WithStyles(ForwardRef(Grid))
+        className="makeStyles-rootGrid-12"
         container={true}
         justify="space-between"
       >
-        <table
-          className="makeStyles-infoTable-6"
+        <WithStyles(ForwardRef(Grid))
+          className="makeStyles-infoGrid-11"
+          container={true}
+          direction="column"
         >
-          <tbody>
-            <tr>
-              <td>
-                <WithStyles(ForwardRef(Typography))>
-                  Latest release:
-                </WithStyles(ForwardRef(Typography))>
-              </td>
-              <td>
-                <WithStyles(ForwardRef(Tooltip))
-                  title="Sun, 05 Jul 2020 16:00:00 GMT"
-                >
-                  <WithStyles(ForwardRef(Typography))
-                    className="makeStyles-detailText-5"
-                  >
-                    Jul 5th 2020, 16:00 - 1 day ago
-                  </WithStyles(ForwardRef(Typography))>
-                </WithStyles(ForwardRef(Tooltip))>
-              </td>
-            </tr>
-            <tr>
-              <td>
-                <WithStyles(ForwardRef(Typography))>
-                  Estimated release interval:
-                </WithStyles(ForwardRef(Typography))>
-              </td>
-              <td>
-                <WithStyles(ForwardRef(Typography))
-                  className="makeStyles-detailText-5"
-                >
-                  7 days 0 hours
-                </WithStyles(ForwardRef(Typography))>
-              </td>
-            </tr>
-            <tr>
-              <td>
-                <WithStyles(ForwardRef(Typography))>
-                  Estimated next release:
-                </WithStyles(ForwardRef(Typography))>
-              </td>
-              <td>
-                <WithStyles(ForwardRef(Typography))
-                  className="makeStyles-detailText-5"
-                >
-                  Jul 12th 2020, 16:00
-                </WithStyles(ForwardRef(Typography))>
-              </td>
-            </tr>
-            <tr>
-              <td>
-                <WithStyles(ForwardRef(Typography))>
-                  Latest chapter:
-                </WithStyles(ForwardRef(Typography))>
-              </td>
-              <td>
-                <WithStyles(ForwardRef(Typography))
-                  className="makeStyles-detailText-5"
-                >
-                  157
-                </WithStyles(ForwardRef(Typography))>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+          <MangaInfo
+            mangaData={
+              Object {
+                "al": "https://anilist.co/manga/98416",
+                "amz": "https://www.amazon.co.jp/gp/product/B075F8JBQ1",
+                "ap": "https://www.anime-planet.com/manga/dr-stone",
+                "artist": "Boichi",
+                "author": "Inagaki Riichiro",
+                "bw": "https://bookwalker.jp/series/114645",
+                "chapters": Array [
+                  Object {
+                    "chapter_number": 157,
+                    "chapter_url": "1007322",
+                    "group": "Shueisha",
+                    "release_date": 1593964800000,
+                    "service_id": 1,
+                    "title": "Z=157: Same Time, Same Place",
+                  },
+                  Object {
+                    "chapter_number": 156,
+                    "chapter_url": "938629",
+                    "group": "MangaPlus",
+                    "release_date": null,
+                    "service_id": 2,
+                    "title": "Z=156: Two Scientists",
+                  },
+                  Object {
+                    "chapter_number": 156,
+                    "chapter_url": "1007024",
+                    "group": "Shueisha",
+                    "release_date": 1593187200000,
+                    "service_id": 1,
+                    "title": "Z=156: Two Scientists",
+                  },
+                ],
+                "cover": "https://mangadex.org/images/manga/20882.jpg?1585634146",
+                "ebj": "https://www.ebookjapan.jp/ebj/413780/",
+                "engtl": "https://www.viz.com/dr-stone",
+                "estimated_release": "2020-07-12T16:00:00.000Z",
+                "kt": "https://kitsu.io/manga/38860",
+                "last_updated": "2020-06-28T08:15:55.170Z",
+                "latest_chapter": 157,
+                "latest_release": "2020-07-05T16:00:00.000Z",
+                "mal": "https://myanimelist.net/manga/103897",
+                "manga_id": 1,
+                "mu": "https://www.mangaupdates.com/series.html?id=139601",
+                "nu": "https://www.novelupdates.com/series/null",
+                "raw": "null",
+                "release_interval": Object {
+                  "days": 7,
+                },
+                "services": Array [
+                  Object {
+                    "name": "MANGA Plus",
+                    "service_id": 1,
+                    "title_id": "100010",
+                    "url": "https://mangaplus.shueisha.co.jp/titles/{}",
+                    "url_format": "https://mangaplus.shueisha.co.jp/viewer/{}",
+                  },
+                  Object {
+                    "name": "MangaDex",
+                    "service_id": 2,
+                    "title_id": "20882",
+                    "url": "https://mangadex.org/title/{}",
+                    "url_format": "https://mangadex.org/chapter/{}",
+                  },
+                ],
+                "status": 0,
+                "title": "Dr. STONE",
+              }
+            }
+          />
+          <MangaAliases />
+        </WithStyles(ForwardRef(Grid))>
         <MangaSourceList
           classesProp={
             Array [
-              "makeStyles-sourceList-7",
+              "makeStyles-sourceList-8",
             ]
           }
           followUnfollow={[Function]}
@@ -414,7 +442,7 @@ exports[`Manga page should render correctly should render correctly when logged 
   maxWidth="lg"
 >
   <WithStyles(ForwardRef(Paper))
-    className="makeStyles-paper-9"
+    className="makeStyles-paper-10"
   >
     <div
       className="makeStyles-titleBar-2"
@@ -427,7 +455,7 @@ exports[`Manga page should render correctly should render correctly when logged 
       </WithStyles(ForwardRef(Typography))>
     </div>
     <div
-      className="makeStyles-details-4"
+      className="makeStyles-details-5"
     >
       <a
         href="https://myanimelist.net/manga/103897"
@@ -436,84 +464,98 @@ exports[`Manga page should render correctly should render correctly when logged 
       >
         <img
           alt="Dr. STONE"
-          className="makeStyles-thumbnail-3"
+          className="makeStyles-thumbnail-4"
           src="https://mangadex.org/images/manga/20882.jpg?1585634146"
         />
       </a>
       <WithStyles(ForwardRef(Grid))
+        className="makeStyles-rootGrid-12"
         container={true}
         justify="space-between"
       >
-        <table
-          className="makeStyles-infoTable-6"
+        <WithStyles(ForwardRef(Grid))
+          className="makeStyles-infoGrid-11"
+          container={true}
+          direction="column"
         >
-          <tbody>
-            <tr>
-              <td>
-                <WithStyles(ForwardRef(Typography))>
-                  Latest release:
-                </WithStyles(ForwardRef(Typography))>
-              </td>
-              <td>
-                <WithStyles(ForwardRef(Tooltip))
-                  title="Sun, 05 Jul 2020 16:00:00 GMT"
-                >
-                  <WithStyles(ForwardRef(Typography))
-                    className="makeStyles-detailText-5"
-                  >
-                    Jul 5th 2020, 16:00 - 1 day ago
-                  </WithStyles(ForwardRef(Typography))>
-                </WithStyles(ForwardRef(Tooltip))>
-              </td>
-            </tr>
-            <tr>
-              <td>
-                <WithStyles(ForwardRef(Typography))>
-                  Estimated release interval:
-                </WithStyles(ForwardRef(Typography))>
-              </td>
-              <td>
-                <WithStyles(ForwardRef(Typography))
-                  className="makeStyles-detailText-5"
-                >
-                  7 days 0 hours
-                </WithStyles(ForwardRef(Typography))>
-              </td>
-            </tr>
-            <tr>
-              <td>
-                <WithStyles(ForwardRef(Typography))>
-                  Estimated next release:
-                </WithStyles(ForwardRef(Typography))>
-              </td>
-              <td>
-                <WithStyles(ForwardRef(Typography))
-                  className="makeStyles-detailText-5"
-                >
-                  Jul 12th 2020, 16:00
-                </WithStyles(ForwardRef(Typography))>
-              </td>
-            </tr>
-            <tr>
-              <td>
-                <WithStyles(ForwardRef(Typography))>
-                  Latest chapter:
-                </WithStyles(ForwardRef(Typography))>
-              </td>
-              <td>
-                <WithStyles(ForwardRef(Typography))
-                  className="makeStyles-detailText-5"
-                >
-                  157
-                </WithStyles(ForwardRef(Typography))>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+          <MangaInfo
+            mangaData={
+              Object {
+                "al": "https://anilist.co/manga/98416",
+                "amz": "https://www.amazon.co.jp/gp/product/B075F8JBQ1",
+                "ap": "https://www.anime-planet.com/manga/dr-stone",
+                "artist": "Boichi",
+                "author": "Inagaki Riichiro",
+                "bw": "https://bookwalker.jp/series/114645",
+                "chapters": Array [
+                  Object {
+                    "chapter_number": 157,
+                    "chapter_url": "1007322",
+                    "group": "Shueisha",
+                    "release_date": 1593964800000,
+                    "service_id": 1,
+                    "title": "Z=157: Same Time, Same Place",
+                  },
+                  Object {
+                    "chapter_number": 156,
+                    "chapter_url": "938629",
+                    "group": "MangaPlus",
+                    "release_date": null,
+                    "service_id": 2,
+                    "title": "Z=156: Two Scientists",
+                  },
+                  Object {
+                    "chapter_number": 156,
+                    "chapter_url": "1007024",
+                    "group": "Shueisha",
+                    "release_date": 1593187200000,
+                    "service_id": 1,
+                    "title": "Z=156: Two Scientists",
+                  },
+                ],
+                "cover": "https://mangadex.org/images/manga/20882.jpg?1585634146",
+                "ebj": "https://www.ebookjapan.jp/ebj/413780/",
+                "engtl": "https://www.viz.com/dr-stone",
+                "estimated_release": "2020-07-12T16:00:00.000Z",
+                "kt": "https://kitsu.io/manga/38860",
+                "last_updated": "2020-06-28T08:15:55.170Z",
+                "latest_chapter": 157,
+                "latest_release": "2020-07-05T16:00:00.000Z",
+                "mal": "https://myanimelist.net/manga/103897",
+                "manga_id": 1,
+                "mu": "https://www.mangaupdates.com/series.html?id=139601",
+                "nu": "https://www.novelupdates.com/series/null",
+                "raw": "null",
+                "release_interval": Object {
+                  "days": 7,
+                },
+                "services": Array [
+                  Object {
+                    "name": "MANGA Plus",
+                    "service_id": 1,
+                    "title_id": "100010",
+                    "url": "https://mangaplus.shueisha.co.jp/titles/{}",
+                    "url_format": "https://mangaplus.shueisha.co.jp/viewer/{}",
+                  },
+                  Object {
+                    "name": "MangaDex",
+                    "service_id": 2,
+                    "title_id": "20882",
+                    "url": "https://mangadex.org/title/{}",
+                    "url_format": "https://mangadex.org/chapter/{}",
+                  },
+                ],
+                "status": 0,
+                "title": "Dr. STONE",
+              }
+            }
+          />
+          <MangaAliases />
+        </WithStyles(ForwardRef(Grid))>
         <MangaSourceList
           classesProp={
             Array [
-              "makeStyles-sourceList-7",
+              "makeStyles-sourceList-8",
             ]
           }
           followUnfollow={[Function]}
@@ -618,7 +660,7 @@ exports[`Manga page should render correctly should render correctly with little 
   maxWidth="lg"
 >
   <WithStyles(ForwardRef(Paper))
-    className="makeStyles-paper-9"
+    className="makeStyles-paper-10"
   >
     <div
       className="makeStyles-titleBar-2"
@@ -631,7 +673,7 @@ exports[`Manga page should render correctly should render correctly with little 
       </WithStyles(ForwardRef(Typography))>
     </div>
     <div
-      className="makeStyles-details-4"
+      className="makeStyles-details-5"
     >
       <a
         href={null}
@@ -640,84 +682,64 @@ exports[`Manga page should render correctly should render correctly with little 
       >
         <img
           alt="Dr. STONE"
-          className="makeStyles-thumbnail-3"
+          className="makeStyles-thumbnail-4"
           src={null}
         />
       </a>
       <WithStyles(ForwardRef(Grid))
+        className="makeStyles-rootGrid-12"
         container={true}
         justify="space-between"
       >
-        <table
-          className="makeStyles-infoTable-6"
+        <WithStyles(ForwardRef(Grid))
+          className="makeStyles-infoGrid-11"
+          container={true}
+          direction="column"
         >
-          <tbody>
-            <tr>
-              <td>
-                <WithStyles(ForwardRef(Typography))>
-                  Latest release:
-                </WithStyles(ForwardRef(Typography))>
-              </td>
-              <td>
-                <WithStyles(ForwardRef(Tooltip))
-                  title="Unknown"
-                >
-                  <WithStyles(ForwardRef(Typography))
-                    className="makeStyles-detailText-5"
-                  >
-                    Unknown
-                  </WithStyles(ForwardRef(Typography))>
-                </WithStyles(ForwardRef(Tooltip))>
-              </td>
-            </tr>
-            <tr>
-              <td>
-                <WithStyles(ForwardRef(Typography))>
-                  Estimated release interval:
-                </WithStyles(ForwardRef(Typography))>
-              </td>
-              <td>
-                <WithStyles(ForwardRef(Typography))
-                  className="makeStyles-detailText-5"
-                >
-                  Unknown
-                </WithStyles(ForwardRef(Typography))>
-              </td>
-            </tr>
-            <tr>
-              <td>
-                <WithStyles(ForwardRef(Typography))>
-                  Estimated next release:
-                </WithStyles(ForwardRef(Typography))>
-              </td>
-              <td>
-                <WithStyles(ForwardRef(Typography))
-                  className="makeStyles-detailText-5"
-                >
-                  Unknown
-                </WithStyles(ForwardRef(Typography))>
-              </td>
-            </tr>
-            <tr>
-              <td>
-                <WithStyles(ForwardRef(Typography))>
-                  Latest chapter:
-                </WithStyles(ForwardRef(Typography))>
-              </td>
-              <td>
-                <WithStyles(ForwardRef(Typography))
-                  className="makeStyles-detailText-5"
-                >
-                  Unknown
-                </WithStyles(ForwardRef(Typography))>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+          <MangaInfo
+            mangaData={
+              Object {
+                "al": "https://anilist.co/manga/98416",
+                "amz": "https://www.amazon.co.jp/gp/product/B075F8JBQ1",
+                "ap": "https://www.anime-planet.com/manga/dr-stone",
+                "artist": "Boichi",
+                "author": "Inagaki Riichiro",
+                "bw": "https://bookwalker.jp/series/114645",
+                "chapters": Array [],
+                "cover": null,
+                "ebj": "https://www.ebookjapan.jp/ebj/413780/",
+                "engtl": "https://www.viz.com/dr-stone",
+                "estimated_release": null,
+                "kt": "https://kitsu.io/manga/38860",
+                "last_updated": null,
+                "latest_chapter": null,
+                "latest_release": null,
+                "mal": null,
+                "manga_id": 2,
+                "mu": "https://www.mangaupdates.com/series.html?id=139601",
+                "nu": "https://www.novelupdates.com/series/null",
+                "raw": "null",
+                "release_interval": undefined,
+                "services": Array [
+                  Object {
+                    "name": "MANGA Plus",
+                    "service_id": 1,
+                    "title_id": "100010",
+                    "url": "https://mangaplus.shueisha.co.jp/titles/{}",
+                    "url_format": "https://mangaplus.shueisha.co.jp/viewer/{}",
+                  },
+                ],
+                "status": 0,
+                "title": "Dr. STONE",
+              }
+            }
+          />
+          <MangaAliases />
+        </WithStyles(ForwardRef(Grid))>
         <MangaSourceList
           classesProp={
             Array [
-              "makeStyles-sourceList-7",
+              "makeStyles-sourceList-8",
             ]
           }
           followUnfollow={[Function]}
