@@ -100,7 +100,11 @@ const MangaAliases = (props) => {
             <ListItemText primary={alias} className={classes.listItem} />
             {allowEdits && isAdmin && (
               <Tooltip title='Set as main title'>
-                <IconButton size='small' onClick={() => onAliasPromote(alias)}>
+                <IconButton
+                  size='small'
+                  onClick={() => onAliasPromote(alias)}
+                  aria-label='Set alias as main title'
+                >
                   <DoubleArrowIcon className={classes.promoteIcon} />
                 </IconButton>
               </Tooltip>

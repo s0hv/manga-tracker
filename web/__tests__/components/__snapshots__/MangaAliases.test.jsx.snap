@@ -85,6 +85,49 @@ exports[`MangaAliases renders correctly Should render correctly with editing all
           a
         </span>
       </div>
+      <button
+        aria-describedby={null}
+        aria-label="Set alias as main title"
+        className="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeSmall"
+        disabled={false}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onDragLeave={[Function]}
+        onFocus={[Function]}
+        onKeyDown={[Function]}
+        onKeyUp={[Function]}
+        onMouseDown={[Function]}
+        onMouseLeave={[Function]}
+        onMouseOver={[Function]}
+        onMouseUp={[Function]}
+        onTouchEnd={[Function]}
+        onTouchMove={[Function]}
+        onTouchStart={[Function]}
+        tabIndex={0}
+        title="Set as main title"
+        type="button"
+      >
+        <span
+          className="MuiIconButton-label"
+        >
+          <svg
+            aria-hidden={true}
+            className="MuiSvgIcon-root makeStyles-promoteIcon-4"
+            focusable="false"
+            viewBox="0 0 24 24"
+          >
+            <path
+              d="M15.5 5H11l5 7-5 7h4.5l5-7z"
+            />
+            <path
+              d="M8.5 5H4l5 7-5 7h4.5l5-7z"
+            />
+          </svg>
+        </span>
+        <span
+          className="MuiTouchRipple-root"
+        />
+      </button>
     </li>
     <li
       className="MuiListItem-root MuiListItem-dense MuiListItem-gutters"
@@ -99,6 +142,49 @@ exports[`MangaAliases renders correctly Should render correctly with editing all
           b
         </span>
       </div>
+      <button
+        aria-describedby={null}
+        aria-label="Set alias as main title"
+        className="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeSmall"
+        disabled={false}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onDragLeave={[Function]}
+        onFocus={[Function]}
+        onKeyDown={[Function]}
+        onKeyUp={[Function]}
+        onMouseDown={[Function]}
+        onMouseLeave={[Function]}
+        onMouseOver={[Function]}
+        onMouseUp={[Function]}
+        onTouchEnd={[Function]}
+        onTouchMove={[Function]}
+        onTouchStart={[Function]}
+        tabIndex={0}
+        title="Set as main title"
+        type="button"
+      >
+        <span
+          className="MuiIconButton-label"
+        >
+          <svg
+            aria-hidden={true}
+            className="MuiSvgIcon-root makeStyles-promoteIcon-4"
+            focusable="false"
+            viewBox="0 0 24 24"
+          >
+            <path
+              d="M15.5 5H11l5 7-5 7h4.5l5-7z"
+            />
+            <path
+              d="M8.5 5H4l5 7-5 7h4.5l5-7z"
+            />
+          </svg>
+        </span>
+        <span
+          className="MuiTouchRipple-root"
+        />
+      </button>
     </li>
     <li
       className="MuiListItem-root MuiListItem-dense MuiListItem-gutters"
@@ -113,6 +199,49 @@ exports[`MangaAliases renders correctly Should render correctly with editing all
           c
         </span>
       </div>
+      <button
+        aria-describedby={null}
+        aria-label="Set alias as main title"
+        className="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeSmall"
+        disabled={false}
+        onBlur={[Function]}
+        onClick={[Function]}
+        onDragLeave={[Function]}
+        onFocus={[Function]}
+        onKeyDown={[Function]}
+        onKeyUp={[Function]}
+        onMouseDown={[Function]}
+        onMouseLeave={[Function]}
+        onMouseOver={[Function]}
+        onMouseUp={[Function]}
+        onTouchEnd={[Function]}
+        onTouchMove={[Function]}
+        onTouchStart={[Function]}
+        tabIndex={0}
+        title="Set as main title"
+        type="button"
+      >
+        <span
+          className="MuiIconButton-label"
+        >
+          <svg
+            aria-hidden={true}
+            className="MuiSvgIcon-root makeStyles-promoteIcon-4"
+            focusable="false"
+            viewBox="0 0 24 24"
+          >
+            <path
+              d="M15.5 5H11l5 7-5 7h4.5l5-7z"
+            />
+            <path
+              d="M8.5 5H4l5 7-5 7h4.5l5-7z"
+            />
+          </svg>
+        </span>
+        <span
+          className="MuiTouchRipple-root"
+        />
+      </button>
     </li>
   </ul>
 </div>
