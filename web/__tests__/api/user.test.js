@@ -1,5 +1,6 @@
 import request from 'supertest';
 import { insertFollow } from '../../db/follows';
+import { redis } from '../../utils/ratelimits';
 import { mangaIdError, userUnauthorized } from '../constants';
 import { spyOnDb } from '../dbutils';
 
@@ -23,6 +24,10 @@ let httpServer;
 
 beforeAll(async () => {
   ({ httpServer } = await initServer());
+});
+
+beforeEach(async () => {
+  await redis.flushall();
 });
 
 afterAll(async () => {
