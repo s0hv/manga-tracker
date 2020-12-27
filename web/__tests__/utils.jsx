@@ -71,9 +71,9 @@ export function expectSuccessSnackbar() {
   );
 }
 
-export function expectErrorSnackbar() {
+export function expectErrorSnackbar(msg) {
   expect(enqueueSnackbarMock).toHaveBeenLastCalledWith(
-    expect.anything(),
+    msg || expect.anything(),
     expect.objectContaining({ variant: 'error' })
   );
 }
