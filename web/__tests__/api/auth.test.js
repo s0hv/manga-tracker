@@ -149,7 +149,7 @@ describe('POST /api/login', () => {
 
   it('Ratelimits on bruteforce attempts failures', async () => {
     await Promise.all(
-      Array(10)
+      Array(20)
         .fill(0)
         .map(() => request(httpServer)
           .post('/api/login')
