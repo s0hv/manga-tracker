@@ -13,13 +13,17 @@ import {
 
 import { makeStyles } from '@material-ui/core/styles';
 
-import { Edit as EditIcon } from '@material-ui/icons';
-import MangaSourceList from './MangaSourceList';
 import {
-  defaultDateDistanceToNow,
-  defaultDateFormat,
-  followUnfollow,
-} from '../utils/utilities';
+  Edit as EditIcon,
+  Settings as SettingsIcon,
+} from '@material-ui/icons';
+
+import Link from 'next/link';
+import MangaAliases from './MangaAliases';
+import MangaInfo from './MangaInfo';
+
+import MangaSourceList from './MangaSourceList';
+import { followUnfollow } from '../utils/utilities';
 import ChapterList from './ChapterList';
 import { useUser } from '../utils/useUser';
 import ReleaseHeatmap from './ReleaseHeatmap';
@@ -39,18 +43,26 @@ const useStyles = makeStyles((theme) => ({
     display: 'flex',
     justifyContent: 'space-between',
   },
+  titleBarButtonsContainer: {
+    display: 'flex',
+  },
   thumbnail: {
     maxWidth: '250px',
     maxHeight: '355px',
     [theme.breakpoints.down('sm')]: {
-      maxWidth: '180px',
+      maxWidth: '200px',
     },
     [theme.breakpoints.down('xs')]: {
-      maxWidth: '125px',
+      maxWidth: '250px',
     },
   },
   details: {
     display: 'flex',
+    flexFlow: 'row',
+    [theme.breakpoints.down('xs')]: {
+      flexFlow: 'wrap',
+      justifyContent: 'center',
+    },
   },
   detailText: {
     marginLeft: '5px',
@@ -85,6 +97,18 @@ const useStyles = makeStyles((theme) => ({
     padding: '1em',
     minWidth: '440px',
   },
+  infoGrid: {
+    marginLeft: theme.spacing(4),
+    width: 'fit-content',
+    [theme.breakpoints.down('xs')]: {
+      marginLeft: '0px',
+    },
+  },
+  rootGrid: {
+    [theme.breakpoints.down('xs')]: {
+      justifyContent: 'center',
+    },
+  },
 }));
 
 
@@ -112,12 +136,6 @@ function Manga(props) {
   const [editing, setEditing] = useState(false);
   const startEditing = useCallback(() => setEditing(!editing), [editing]);
 
-  const latestRelease = mangaData.latest_release ?
-    new Date(mangaData.latest_release) :
-    null;
-
-  const estimatedRelease = new Date(mangaData.estimated_release);
-
   const serviceUrlFormats = useMemo(() => {
     const serviceMap = {};
     mangaData.services.forEach(service => { serviceMap[service.service_id] = service.url_format });
@@ -142,9 +160,20 @@ function Manga(props) {
         <div className={classes.titleBar}>
           <Typography className={classes.title} variant='h4'>{mangaData.title}</Typography>
           {user?.admin && (
-            <IconButton onClick={startEditing}>
-              <EditIcon />
-            </IconButton>
+            <div className={classes.titleBarButtonsContainer}>
+              <Link href={`/admin/manga/${mangaData.manga_id}`} prefetch={false}>
+                <Tooltip title='Admin page'>
+                  <IconButton>
+                    <SettingsIcon />
+                  </IconButton>
+                </Tooltip>
+              </Link>
+              <Tooltip title='Edit chapters'>
+                <IconButton onClick={startEditing}>
+                  <EditIcon />
+                </IconButton>
+              </Tooltip>
+            </div>
           )}
         </div>
         <div className={classes.details}>
@@ -158,49 +187,16 @@ function Manga(props) {
           <Grid
             container
             justify='space-between'
+            className={classes.rootGrid}
           >
-            <table className={classes.infoTable}>
-              <tbody>
-                <tr>
-                  <td><Typography>Latest release:</Typography></td>
-                  <td>
-                    <Tooltip title={latestRelease ? latestRelease.toUTCString() : 'Unknown'}>
-                      <Typography className={classes.detailText}>
-                        {latestRelease ?
-                          defaultDateFormat(latestRelease) + ' - ' + defaultDateDistanceToNow(latestRelease) :
-                          'Unknown'}
-                      </Typography>
-                    </Tooltip>
-                  </td>
-                </tr>
-                <tr>
-                  <td><Typography>Estimated release interval:</Typography></td>
-                  <td>
-                    <Typography className={classes.detailText}>
-                      {(mangaData.release_interval ?
-                        `${mangaData.release_interval?.days || 0} days ${mangaData.release_interval?.hours || 0} hours` :
-                        'Unknown')}
-                    </Typography>
-                  </td>
-                </tr>
-                <tr>
-                  <td><Typography>Estimated next release:</Typography></td>
-                  <td>
-                    <Typography className={classes.detailText}>
-                      {defaultDateFormat(estimatedRelease)}
-                    </Typography>
-                  </td>
-                </tr>
-                <tr>
-                  <td><Typography>Latest chapter:</Typography></td>
-                  <td>
-                    <Typography className={classes.detailText}>
-                      {mangaData.latest_chapter ? mangaData.latest_chapter : 'Unknown'}
-                    </Typography>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+            <Grid
+              container
+              direction='column'
+              className={classes.infoGrid}
+            >
+              <MangaInfo mangaData={mangaData} />
+              <MangaAliases aliases={mangaData.aliases} />
+            </Grid>
             <MangaSourceList
               classesProp={[classes.sourceList]}
               items={mangaData.services}

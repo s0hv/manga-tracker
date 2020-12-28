@@ -42,7 +42,6 @@ export default function SignIn() {
   const { enqueueSnackbar } = useSnackbar();
 
   const onSubmit = data => {
-    console.log(data);
     return fetch('/api/login',
       {
         method: 'post',

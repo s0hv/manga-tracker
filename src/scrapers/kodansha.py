@@ -53,7 +53,7 @@ class Manga(BaseManga):
 
         if len(ch) > 1:
             self.chapter_decimal = int(ch[1])
-        author = manga_element.cssselect('.proper-noun')[0].text
+        self.author = manga_element.cssselect('.proper-noun')[0].text
         title_id = manga_element.cssselect('.card__link')[0].attrib['href'].strip('/').split('/')[-1]
         self.sources = [Source(elem, self) for elem in manga_element.cssselect('.simulpub-card__partners li a')]
 
@@ -65,7 +65,6 @@ class Manga(BaseManga):
             release_interval=release_interval,
             title_id=title_id,
             latest_chapter=latest_chapter,
-            author=author,
             service_id=KodanshaComics.ID,
             disabled=False,
         )

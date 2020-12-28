@@ -15,8 +15,28 @@ class Manga:
                  latest_release: Optional[datetime] = None,
                  estimated_release: Optional[datetime] = None,
                  latest_chapter: Optional[int] = None,
-                 aliases: Optional[Collection[str]] = None,
-                 cover: Optional[str] = None,
+                 ):
+        self.manga_id = manga_id
+        self.title = title
+        self.release_interval = release_interval
+        self.latest_release = latest_release
+        self.estimated_release = estimated_release
+        self.latest_chapter = latest_chapter
+
+    @staticmethod
+    def row_to_kwargs(row: DictRow) -> Dict:
+        # TODO
+        return {}
+
+    @classmethod
+    def from_dbrow(cls, row: DictRow):
+        return cls(
+            **cls.row_to_kwargs(row)
+        )
+
+
+class MangaInfo:
+    def __init__(self, cover: Optional[str] = None,
                  status: Optional[int] = None,
                  artist: Optional[str] = None,
                  author: Optional[str] = None,
@@ -30,17 +50,7 @@ class Manga:
                  novel_updates: Optional[str] = None,
                  kitsu: Optional[str] = None,
                  anime_planet: Optional[str] = None,
-                 anilist: Optional[str] = None
-                 ):
-        self.manga_id = manga_id
-        self.title = title
-        self.release_interval = release_interval
-        self.latest_release = latest_release
-        self.estimated_release = estimated_release
-        self.latest_chapter = latest_chapter
-
-        self.aliases = aliases
-
+                 anilist: Optional[str] = None):
         self.cover = cover
         self.status = status
         self.artist = artist
@@ -56,17 +66,6 @@ class Manga:
         self.kitsu = kitsu
         self.anime_planet = anime_planet
         self.anilist = anilist
-
-    @staticmethod
-    def row_to_kwargs(row: DictRow) -> Dict:
-        # TODO
-        return {}
-
-    @classmethod
-    def from_dbrow(cls, row: DictRow):
-        return cls(
-            **cls.row_to_kwargs(row)
-        )
 
 
 class MangaService(Manga):

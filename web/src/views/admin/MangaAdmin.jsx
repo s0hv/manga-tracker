@@ -1,23 +1,26 @@
+import { ConfirmProvider, useConfirm } from 'material-ui-confirm';
 import { useSnackbar } from 'notistack';
 import React, { useCallback, useMemo, useState } from 'react';
 import {
   Container,
-  Grid,
-  Paper,
-  Tooltip,
+  Grid, IconButton,
+  Paper, Tooltip,
   Typography,
 } from '@material-ui/core';
 
+import {
+  SubdirectoryArrowLeft as SubdirectoryArrowLeftIcon,
+} from '@material-ui/icons';
+
 import { makeStyles } from '@material-ui/core/styles';
+import Link from 'next/link';
 
 import {
   Select,
 } from 'mui-rff';
+import MangaAliases from '../../components/MangaAliases';
+import MangaInfo from '../../components/MangaInfo';
 
-import {
-  defaultDateDistanceToNow,
-  defaultDateFormat,
-} from '../../utils/utilities';
 import {
   AddRowFormTemplate,
   EditableSelect,
@@ -42,29 +45,18 @@ const useStyles = makeStyles((theme) => ({
     maxWidth: '250px',
     maxHeight: '355px',
     [theme.breakpoints.down('sm')]: {
-      maxWidth: '180px',
+      maxWidth: '200px',
     },
     [theme.breakpoints.down('xs')]: {
-      maxWidth: '125px',
+      maxWidth: '250px',
     },
   },
   details: {
     display: 'flex',
-  },
-  detailText: {
-    marginLeft: '5px',
-    [theme.breakpoints.down('sm')]: {
-      marginLeft: '3px',
-    },
-  },
-  infoTable: {
-    marginLeft: '30px',
-    marginTop: '3px',
-    [theme.breakpoints.down('sm')]: {
-      marginLeft: '20px',
-    },
+    flexFlow: 'row',
     [theme.breakpoints.down('xs')]: {
-      marginLeft: '10px',
+      flexFlow: 'wrap',
+      justifyContent: 'center',
     },
   },
   paper: {
@@ -73,6 +65,13 @@ const useStyles = makeStyles((theme) => ({
   },
   addRowForm: {
     minWidth: '150px',
+  },
+  infoGrid: {
+    marginLeft: theme.spacing(4),
+    width: 'fit-content',
+    [theme.breakpoints.down('xs')]: {
+      marginLeft: '0px',
+    },
   },
 }));
 
@@ -84,16 +83,16 @@ function MangaAdmin(props) {
 
   // Constants
   const mangaId = mangaData.manga_id;
-  const latestRelease = mangaData.latest_release ?
-    new Date(mangaData.latest_release) :
-    null;
-  const estimatedRelease = new Date(mangaData.estimated_release);
 
-  // Simple hooks
+  // Hooks
   const classes = useStyles();
   const { enqueueSnackbar } = useSnackbar();
+  const confirm = useConfirm();
+
   const [loading, setLoading] = useState(false);
   const [scheduledUpdates, setScheduledUpdates] = useState([]);
+  const [aliases, setAliases] = useState(mangaData.aliases);
+  const [mangaTitle, setMangaTitle] = useState(mangaData.title);
 
   const formatScheduledRuns = useCallback((runs) => runs.map(run => {
     const found = mangaData.services.find(s => s.service_id === run.service_id);
@@ -105,6 +104,15 @@ function MangaAdmin(props) {
       name: found.name,
     };
   }), [mangaData.services]);
+
+  const onTitleChange = useCallback(() => {
+    fetch(`/api/manga/${mangaId}`)
+      .then(res => res.json())
+      .then(json => {
+        setAliases(json.manga.aliases);
+        setMangaTitle(json.manga.title);
+      });
+  }, [mangaId]);
 
   // Data fetching callbacks
   const fetchData = useCallback(() => {
@@ -206,7 +214,14 @@ function MangaAdmin(props) {
     <Container maxWidth='lg' disableGutters>
       <Paper className={classes.paper}>
         <div className={classes.titleBar}>
-          <Typography className={classes.title} variant='h4'>{mangaData.title}</Typography>
+          <Typography className={classes.title} variant='h4'>{mangaTitle}</Typography>
+          <Link href={`/manga/${mangaId}`}>
+            <Tooltip title='Go back'>
+              <IconButton>
+                <SubdirectoryArrowLeftIcon />
+              </IconButton>
+            </Tooltip>
+          </Link>
         </div>
         <div className={classes.details}>
           <a href={mangaData.mal} target='_blank' rel='noreferrer noopener'>
@@ -218,50 +233,20 @@ function MangaAdmin(props) {
           </a>
           <Grid
             container
-            justify='space-between'
+            direction='column'
+            className={classes.infoGrid}
           >
-            <table className={classes.infoTable}>
-              <tbody>
-                <tr>
-                  <td><Typography>Latest release:</Typography></td>
-                  <td>
-                    <Tooltip title={latestRelease ? latestRelease.toUTCString() : 'Unknown'}>
-                      <Typography className={classes.detailText}>
-                        {latestRelease ?
-                          defaultDateFormat(latestRelease) + ' - ' + defaultDateDistanceToNow(latestRelease) :
-                          'Unknown'}
-                      </Typography>
-                    </Tooltip>
-                  </td>
-                </tr>
-                <tr>
-                  <td><Typography>Estimated release interval:</Typography></td>
-                  <td>
-                    <Typography className={classes.detailText}>
-                      {(mangaData.release_interval ?
-                        `${mangaData.release_interval?.days || 0} days ${mangaData.release_interval?.hours || 0} hours` :
-                        'Unknown')}
-                    </Typography>
-                  </td>
-                </tr>
-                <tr>
-                  <td><Typography>Estimated next release:</Typography></td>
-                  <td>
-                    <Typography className={classes.detailText}>
-                      {defaultDateFormat(estimatedRelease)}
-                    </Typography>
-                  </td>
-                </tr>
-                <tr>
-                  <td><Typography>Latest chapter:</Typography></td>
-                  <td>
-                    <Typography className={classes.detailText}>
-                      {mangaData.latest_chapter ? mangaData.latest_chapter : 'Unknown'}
-                    </Typography>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+            <MangaInfo mangaData={mangaData} />
+            <ConfirmProvider>
+              <MangaAliases
+                aliases={aliases}
+                mangaId={mangaId}
+                onTitleUpdate={onTitleChange}
+                enqueueSnackbar={enqueueSnackbar}
+                confirm={confirm}
+                allowEdits
+              />
+            </ConfirmProvider>
           </Grid>
         </div>
         <MaterialTable

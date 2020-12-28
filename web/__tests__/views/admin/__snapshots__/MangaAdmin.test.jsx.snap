@@ -7,19 +7,43 @@ exports[`Manga admin page should render correctly should render correctly with d
       class="MuiContainer-root MuiContainer-disableGutters MuiContainer-maxWidthLg"
     >
       <div
-        class="MuiPaper-root makeStyles-paper-20 MuiPaper-elevation1 MuiPaper-rounded"
+        class="MuiPaper-root makeStyles-paper-23 MuiPaper-elevation1 MuiPaper-rounded"
       >
         <div
-          class="makeStyles-titleBar-15"
+          class="makeStyles-titleBar-20"
         >
           <h4
-            class="MuiTypography-root makeStyles-title-14 MuiTypography-h4"
+            class="MuiTypography-root makeStyles-title-19 MuiTypography-h4"
           >
             Dr. STONE
           </h4>
+          <button
+            class="MuiButtonBase-root MuiIconButton-root"
+            tabindex="0"
+            title="Go back"
+            type="button"
+          >
+            <span
+              class="MuiIconButton-label"
+            >
+              <svg
+                aria-hidden="true"
+                class="MuiSvgIcon-root"
+                focusable="false"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M11 9l1.42 1.42L8.83 14H18V4h2v12H8.83l3.59 3.58L11 21l-6-6 6-6z"
+                />
+              </svg>
+            </span>
+            <span
+              class="MuiTouchRipple-root"
+            />
+          </button>
         </div>
         <div
-          class="makeStyles-details-17"
+          class="makeStyles-details-22"
         >
           <a
             href="https://myanimelist.net/manga/103897"
@@ -28,15 +52,15 @@ exports[`Manga admin page should render correctly should render correctly with d
           >
             <img
               alt="Dr. STONE"
-              class="makeStyles-thumbnail-16"
+              class="makeStyles-thumbnail-21"
               src="https://mangadex.org/images/manga/20882.jpg?1585634146"
             />
           </a>
           <div
-            class="MuiGrid-root MuiGrid-container MuiGrid-justify-xs-space-between"
+            class="MuiGrid-root makeStyles-infoGrid-25 MuiGrid-container MuiGrid-direction-xs-column"
           >
             <table
-              class="makeStyles-infoTable-19"
+              class="makeStyles-infoTable-27"
             >
               <tbody>
                 <tr>
@@ -49,7 +73,7 @@ exports[`Manga admin page should render correctly should render correctly with d
                   </td>
                   <td>
                     <p
-                      class="MuiTypography-root makeStyles-detailText-18 MuiTypography-body1"
+                      class="MuiTypography-root makeStyles-detailText-26 MuiTypography-body1"
                       title="Sun, 05 Jul 2020 16:00:00 GMT"
                     >
                       Jul 5th 2020, 16:00 - 1 day ago
@@ -66,7 +90,7 @@ exports[`Manga admin page should render correctly should render correctly with d
                   </td>
                   <td>
                     <p
-                      class="MuiTypography-root makeStyles-detailText-18 MuiTypography-body1"
+                      class="MuiTypography-root makeStyles-detailText-26 MuiTypography-body1"
                     >
                       7 days 0 hours
                     </p>
@@ -82,7 +106,7 @@ exports[`Manga admin page should render correctly should render correctly with d
                   </td>
                   <td>
                     <p
-                      class="MuiTypography-root makeStyles-detailText-18 MuiTypography-body1"
+                      class="MuiTypography-root makeStyles-detailText-26 MuiTypography-body1"
                     >
                       Jul 12th 2020, 16:00
                     </p>
@@ -98,7 +122,7 @@ exports[`Manga admin page should render correctly should render correctly with d
                   </td>
                   <td>
                     <p
-                      class="MuiTypography-root makeStyles-detailText-18 MuiTypography-body1"
+                      class="MuiTypography-root makeStyles-detailText-26 MuiTypography-body1"
                     >
                       157
                     </p>
@@ -110,7 +134,7 @@ exports[`Manga admin page should render correctly should render correctly with d
         </div>
         <div>
           <div
-            class="MuiToolbar-root MuiToolbar-regular makeStyles-root-25 MuiToolbar-gutters"
+            class="MuiToolbar-root MuiToolbar-regular makeStyles-root-35 MuiToolbar-gutters"
           >
             <button
               aria-label="Add item"
@@ -139,7 +163,7 @@ exports[`Manga admin page should render correctly should render correctly with d
             </button>
             <h6
               aria-label="Table title"
-              class="MuiTypography-root makeStyles-title-26 MuiTypography-h6"
+              class="MuiTypography-root makeStyles-title-36 MuiTypography-h6"
             >
               Forced checks
             </h6>
@@ -149,7 +173,7 @@ exports[`Manga admin page should render correctly should render correctly with d
             role="table"
           >
             <thead
-              class="MuiTableHead-root makeStyles-tableHead-23"
+              class="MuiTableHead-root makeStyles-tableHead-33"
             >
               <tr
                 class="MuiTableRow-root MuiTableRow-head"
@@ -204,7 +228,7 @@ exports[`Manga admin page should render correctly should render correctly withou
       class="MuiContainer-root MuiContainer-disableGutters MuiContainer-maxWidthLg"
     >
       <div
-        class="MuiPaper-root makeStyles-paper-7 MuiPaper-elevation1 MuiPaper-rounded"
+        class="MuiPaper-root makeStyles-paper-5 MuiPaper-elevation1 MuiPaper-rounded"
       >
         <div
           class="makeStyles-titleBar-2"
@@ -212,6 +236,30 @@ exports[`Manga admin page should render correctly should render correctly withou
           <h4
             class="MuiTypography-root makeStyles-title-1 MuiTypography-h4"
           />
+          <button
+            class="MuiButtonBase-root MuiIconButton-root"
+            tabindex="0"
+            title="Go back"
+            type="button"
+          >
+            <span
+              class="MuiIconButton-label"
+            >
+              <svg
+                aria-hidden="true"
+                class="MuiSvgIcon-root"
+                focusable="false"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M11 9l1.42 1.42L8.83 14H18V4h2v12H8.83l3.59 3.58L11 21l-6-6 6-6z"
+                />
+              </svg>
+            </span>
+            <span
+              class="MuiTouchRipple-root"
+            />
+          </button>
         </div>
         <div
           class="makeStyles-details-4"
@@ -225,10 +273,10 @@ exports[`Manga admin page should render correctly should render correctly withou
             />
           </a>
           <div
-            class="MuiGrid-root MuiGrid-container MuiGrid-justify-xs-space-between"
+            class="MuiGrid-root makeStyles-infoGrid-7 MuiGrid-container MuiGrid-direction-xs-column"
           >
             <table
-              class="makeStyles-infoTable-6"
+              class="makeStyles-infoTable-9"
             >
               <tbody>
                 <tr>
@@ -241,7 +289,7 @@ exports[`Manga admin page should render correctly should render correctly withou
                   </td>
                   <td>
                     <p
-                      class="MuiTypography-root makeStyles-detailText-5 MuiTypography-body1"
+                      class="MuiTypography-root makeStyles-detailText-8 MuiTypography-body1"
                       title="Unknown"
                     >
                       Unknown
@@ -258,7 +306,7 @@ exports[`Manga admin page should render correctly should render correctly withou
                   </td>
                   <td>
                     <p
-                      class="MuiTypography-root makeStyles-detailText-5 MuiTypography-body1"
+                      class="MuiTypography-root makeStyles-detailText-8 MuiTypography-body1"
                     >
                       Unknown
                     </p>
@@ -274,7 +322,7 @@ exports[`Manga admin page should render correctly should render correctly withou
                   </td>
                   <td>
                     <p
-                      class="MuiTypography-root makeStyles-detailText-5 MuiTypography-body1"
+                      class="MuiTypography-root makeStyles-detailText-8 MuiTypography-body1"
                     >
                       Unknown
                     </p>
@@ -290,7 +338,7 @@ exports[`Manga admin page should render correctly should render correctly withou
                   </td>
                   <td>
                     <p
-                      class="MuiTypography-root makeStyles-detailText-5 MuiTypography-body1"
+                      class="MuiTypography-root makeStyles-detailText-8 MuiTypography-body1"
                     >
                       Unknown
                     </p>
@@ -302,7 +350,7 @@ exports[`Manga admin page should render correctly should render correctly withou
         </div>
         <div>
           <div
-            class="MuiToolbar-root MuiToolbar-regular makeStyles-root-12 MuiToolbar-gutters"
+            class="MuiToolbar-root MuiToolbar-regular makeStyles-root-17 MuiToolbar-gutters"
           >
             <button
               aria-label="Add item"
@@ -331,7 +379,7 @@ exports[`Manga admin page should render correctly should render correctly withou
             </button>
             <h6
               aria-label="Table title"
-              class="MuiTypography-root makeStyles-title-13 MuiTypography-h6"
+              class="MuiTypography-root makeStyles-title-18 MuiTypography-h6"
             >
               Forced checks
             </h6>
@@ -341,7 +389,7 @@ exports[`Manga admin page should render correctly should render correctly withou
             role="table"
           >
             <thead
-              class="MuiTableHead-root makeStyles-tableHead-10"
+              class="MuiTableHead-root makeStyles-tableHead-15"
             >
               <tr
                 class="MuiTableRow-root MuiTableRow-head"
