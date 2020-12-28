@@ -237,16 +237,14 @@ function MangaAdmin(props) {
             className={classes.infoGrid}
           >
             <MangaInfo mangaData={mangaData} />
-            <ConfirmProvider>
-              <MangaAliases
-                aliases={aliases}
-                mangaId={mangaId}
-                onTitleUpdate={onTitleChange}
-                enqueueSnackbar={enqueueSnackbar}
-                confirm={confirm}
-                allowEdits
-              />
-            </ConfirmProvider>
+            <MangaAliases
+              aliases={aliases}
+              mangaId={mangaId}
+              onTitleUpdate={onTitleChange}
+              enqueueSnackbar={enqueueSnackbar}
+              confirm={confirm}
+              allowEdits
+            />
           </Grid>
         </div>
         <MaterialTable

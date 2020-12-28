@@ -1,4 +1,5 @@
 /* eslint-disable global-require,camelcase */
+import { ConfirmProvider } from 'material-ui-confirm';
 import React from 'react';
 import Manga from '../../../views/admin/MangaAdmin';
 import withError from '../../../utils/withError';
@@ -8,7 +9,11 @@ function MangaPage(props) {
     manga,
   } = props;
 
-  return <Manga mangaData={{ ...manga }} />;
+  return (
+    <ConfirmProvider>
+      <Manga mangaData={{ ...manga }} />
+    </ConfirmProvider>
+  );
 }
 
 export async function getServerSideProps({ req, params }) {
