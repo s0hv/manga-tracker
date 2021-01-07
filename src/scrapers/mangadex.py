@@ -354,6 +354,7 @@ class MangaDex(BaseScraper):
                     return
                 continue
 
+            data = data.get('data', {})
             manga = data.get('manga', {})
             cover = manga.get('cover_url')
             if cover:
@@ -405,8 +406,8 @@ class MangaDex(BaseScraper):
               'WHERE chapters.service_id=c.service_id AND c.chapter_identifier=chapters.chapter_identifier'
 
         info_sql = '''
-            INSERT INTO manga_info as mi (manga_id, cover, artist, author, status)
-                SELECT ms.manga_id, c.cover, c.artist, c.author, c.status
+            INSERT INTO manga_info as mi (manga_id, cover, artist, author, status, last_updated)
+                SELECT ms.manga_id, c.cover, c.artist, c.author, c.status, now()
                 FROM (VALUES %s) as c(cover, artist, author, status, service_id, title_id)
                     INNER JOIN manga_service ms ON ms.service_id=c.service_id AND ms.title_id=c.title_id
             ON CONFLICT (manga_id) DO UPDATE SET
