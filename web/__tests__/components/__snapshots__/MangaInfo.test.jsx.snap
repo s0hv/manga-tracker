@@ -77,6 +77,22 @@ exports[`MangaInfo should render correctly Should render correctly with data 1`]
         </p>
       </td>
     </tr>
+    <tr>
+      <td>
+        <p
+          className="MuiTypography-root MuiTypography-body1"
+        >
+          Publication status:
+        </p>
+      </td>
+      <td>
+        <p
+          className="MuiTypography-root makeStyles-detailText-1 MuiTypography-body1"
+        >
+          Ongoing
+        </p>
+      </td>
+    </tr>
   </tbody>
 </table>
 `;

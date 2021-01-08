@@ -6,6 +6,7 @@ import PropTypes from 'prop-types';
 import {
   defaultDateDistanceToNow,
   defaultDateFormat,
+  statusToString,
 } from '../utils/utilities';
 
 const useStyles = makeStyles((theme) => ({
@@ -73,6 +74,14 @@ const MangaInfo = ({ mangaData }) => {
             </Typography>
           </td>
         </tr>
+        <tr>
+          <td><Typography>Publication status:</Typography></td>
+          <td>
+            <Typography className={classes.detailText}>
+              {statusToString(mangaData.status)}
+            </Typography>
+          </td>
+        </tr>
       </tbody>
     </table>
   );
@@ -84,6 +93,7 @@ MangaInfo.propTypes = {
     estimated_release: PropTypes.string,
     release_interval: PropTypes.object,
     latest_chapter: PropTypes.number,
+    status: PropTypes.number,
   }).isRequired,
 };
 

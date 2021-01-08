@@ -134,3 +134,16 @@ export const groupByYear = (data) => {
   }
   return grouped;
 };
+
+export const statusToString = (status) => {
+  switch (status) {
+    case 1:
+      return 'Completed';
+    case 2:
+      return 'Dropped';
+    case 3:
+      return 'Hiatus';
+    default:
+      return 'Ongoing';
+  }
+};
