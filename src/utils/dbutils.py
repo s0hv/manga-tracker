@@ -453,6 +453,19 @@ class DbUtil:
         return row
 
     @optional_transaction
+    def update_chapter_titles(self, cur: Cursor, service_id: int, chapters: Iterable[BaseChapter]):
+        service_id = int(service_id)
+
+        sql = f'''
+        UPDATE chapters
+        SET title=c.title
+        FROM (VALUES %s) AS c(title, id)
+        WHERE service_id={service_id} AND chapter_identifier=c.id
+        '''
+
+        execute_values(cur, sql, [(c.title, c.chapter_identifier) for c in chapters], page_size=200)
+
+    @optional_transaction
     def get_only_latest_entries(self,
                                 cur: Cursor,
                                 service_id: int,
