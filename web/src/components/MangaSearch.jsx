@@ -280,6 +280,9 @@ function useSearch(props) {
       onMouseOver: handleOptionMouseOver,
       'data-option-index': index,
     }),
+    resetState: () => {
+      inputRef.current.value = '';
+    },
     id,
     anchorEl,
     setAnchorEl,
@@ -303,6 +306,7 @@ export default function MangaSearch(props) {
     getInputProps,
     getListboxProps,
     getOptionProps,
+    resetState,
     id,
     anchorEl,
     setAnchorEl,
@@ -316,6 +320,13 @@ export default function MangaSearch(props) {
   const handleChange = useCallback((event) => {
     setInputValue(event.target.value);
   }, []);
+
+  const reset = useCallback(() => {
+    setInputValue('');
+    setOpen(false);
+    setOptions([]);
+    resetState();
+  }, [resetState]);
 
   const throttleFetch = React.useMemo(
     () => throttle((query, cb) => {
@@ -401,7 +412,7 @@ export default function MangaSearch(props) {
               className={classes.listbox}
               {...getListboxProps()}
             >
-              {options.map((option, index) => renderListOption(option, index, { ...getOptionProps({ index }), className: classes.option }))}
+              {options.map((option, index) => renderListOption(option, index, { ...getOptionProps({ index }), className: classes.option, onClick: reset }))}
             </ul>
           </Paper>
         </Popper>

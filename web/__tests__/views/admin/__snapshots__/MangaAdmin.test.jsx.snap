@@ -128,6 +128,22 @@ exports[`Manga admin page should render correctly should render correctly with d
                     </p>
                   </td>
                 </tr>
+                <tr>
+                  <td>
+                    <p
+                      class="MuiTypography-root MuiTypography-body1"
+                    >
+                      Publication status:
+                    </p>
+                  </td>
+                  <td>
+                    <p
+                      class="MuiTypography-root makeStyles-detailText-26 MuiTypography-body1"
+                    >
+                      Ongoing
+                    </p>
+                  </td>
+                </tr>
               </tbody>
             </table>
           </div>
@@ -341,6 +357,22 @@ exports[`Manga admin page should render correctly should render correctly withou
                       class="MuiTypography-root makeStyles-detailText-8 MuiTypography-body1"
                     >
                       Unknown
+                    </p>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <p
+                      class="MuiTypography-root MuiTypography-body1"
+                    >
+                      Publication status:
+                    </p>
+                  </td>
+                  <td>
+                    <p
+                      class="MuiTypography-root makeStyles-detailText-8 MuiTypography-body1"
+                    >
+                      Ongoing
                     </p>
                   </td>
                 </tr>
