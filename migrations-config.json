@@ -8,5 +8,13 @@
     "database": {"ENV":  "DB_NAME"},
     "port": {"ENV":  "DB_PORT"}
   },
+  "test": {
+    "driver": "pg",
+    "user": {"ENV":  "DB_USER"},
+    "password": {"ENV":  "PGPASSWORD"},
+    "host": {"ENV":  "DB_HOST"},
+    "database": {"ENV":  "DB_NAME_TEST"},
+    "port": {"ENV":  "DB_PORT"}
+  },
   "sql-file": true
 }

@@ -1,10 +1,13 @@
 const { Pool } = require('pg');
 
+const isTest = process.env.NODE_ENV === 'test';
 
 const pool = new Pool({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
-  database: process.env.DB_NAME,
+  database: isTest ?
+    process.env.DB_NAME_TEST || process.env.DB_NAME :
+    process.env.DB_NAME,
   port: process.env.DB_PORT,
   max: 5,
   idleTimeoutMillis: 30000,
