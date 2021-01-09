@@ -67,6 +67,7 @@ jobs:
       DB_HOST: postgres
       DB_PORT: 5432
       DB_NAME: postgres
+      DB_NAME_TEST: postgres
       DB_USER: postgres
       PGPASSWORD: postgres
       DB_PASSWORD: postgres

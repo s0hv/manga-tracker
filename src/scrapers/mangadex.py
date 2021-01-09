@@ -154,7 +154,14 @@ class MangaDex(BaseScraper):
 
             chapters.append(c)
 
-        entries: List[Chapter] = list(self.dbutil.get_only_latest_entries(service_id, chapters, manga_id=manga_id, limit=len(chapters)*2))
+        entries = self.dbutil.get_only_latest_entries(service_id, chapters, manga_id=manga_id, limit=len(chapters)*2)
+        all_chapters = set(chapters)
+        old_chapters = all_chapters.difference(entries)
+        entries: List[Chapter] = list(entries)
+
+        if len(old_chapters) > 0:
+            logger.info(f'Updating titles of {len(old_chapters)} existing chapters')
+            self.dbutil.update_chapter_titles(service_id, old_chapters)
 
         if not entries:
             logger.info('No new entries found')

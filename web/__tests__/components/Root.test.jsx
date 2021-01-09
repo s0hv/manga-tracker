@@ -9,6 +9,11 @@ const DummyComponent = () => <div />;
 
 describe('Root component should render correctly', () => {
   mockUTCDates();
+
+  // Replace current year with a fixed year
+  jest.spyOn(Date.prototype, 'getFullYear')
+    .mockImplementation(jest.fn(() => 2020));
+
   it('Should render with empty input', () => {
     const tree = renderer
       .create(<Root><DummyComponent /></Root>)

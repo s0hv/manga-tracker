@@ -1,5 +1,4 @@
 import React from 'react';
-import { render, screen, act, within } from '@testing-library/react';
 import { create } from 'react-test-renderer';
 
 import MangaInfo from '../../src/components/MangaInfo';
@@ -14,6 +13,7 @@ describe('MangaInfo should render correctly', () => {
     latest_release: '2020-07-05T16:00:00.000Z',
     estimated_release: '2020-07-12T16:00:00.000Z',
     latest_chapter: 157,
+    status: 0,
   };
 
   it('Should render correctly with data', () => {
