@@ -20,10 +20,11 @@ const mangaView = (session, params) => {
 
 /**
  * Reads manga views from session and adds them to the database
+ * @returns {Promise}
  */
 const onSessionExpire = (session) => {
   if (!session || !session.mangaViews) {
-    return;
+    return Promise.resolve();
   }
 
   // List of args [$1, $2, $3, ...]
