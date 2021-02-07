@@ -86,6 +86,8 @@ class Reddit(BaseScraper):
     CHAPTER_URL_FORMAT = '{}'
     MANGA_URL_FORMAT = 'https://www.reddit.com/r/{}'
 
+    SPECIAL_REGEX = re.compile(r'volume \d+ (bonus)? chapter .+?', re.I)
+
     @staticmethod
     def min_update_interval() -> timedelta:
         return Reddit.UPDATE_INTERVAL
@@ -99,13 +101,24 @@ class Reddit(BaseScraper):
             kwargs: Dict[str, Any]
             if not m:
                 m = match_title(title)
+
                 if not m:
-                    logger.warning(f'Could not parse title from {title or post}')
-                    continue
+                    # Special chapter titles that don't have enough information on them
+                    # to set any properties
+                    special = Reddit.SPECIAL_REGEX.match(title)
+                    if not special:
+                        logger.warning(f'Could not parse title from {title or post}')
+                        continue
 
-                logger.info(f'Fallback to universal regex successful on {title or post}')
+                    # Special cases don't have a chapter number shown so default to 0
+                    kwargs = {
+                        'chapter': '0'
+                    }
 
-                kwargs = m
+                else:
+                    logger.info(f'Fallback to universal regex successful on {title or post}')
+
+                    kwargs = m
             else:
                 kwargs = m.groupdict()
 

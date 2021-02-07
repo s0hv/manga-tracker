@@ -5,6 +5,9 @@ const { hadValidationError } = require('../utils/validators');
 const { handleError } = require('../db/utils');
 const { getManga } = require('../db/manga');
 
+// Determines how much views boost the search result. Larger value means smaller boost
+const viewsEffect = 100;
+
 const searchQueryValidation = query('query')
   .isString()
   .withMessage('No search query specified')
@@ -15,13 +18,13 @@ const searchQueryValidation = query('query')
 function search(keywords, limit) {
   const sql = `WITH tmp as (
               (
-                  SELECT m.manga_id, m.title, true as main, title <-> $1 as similarity
+                  SELECT m.manga_id, m.title, true as main, (title <-> $1) - LEAST(0.1, m.views::decimal/$3) as similarity
                   FROM manga m
                   WHERE REPLACE(m.title, '-', ' ') ILIKE '%' || $1 || '%'
                   ORDER BY m.title ILIKE $1 || '%' DESC, 4 -- 4th column in the select
                   LIMIT $2)
                   UNION (
-                      SELECT ma.manga_id, m.title, false as main, ma.title <-> $1 as similarity
+                      SELECT ma.manga_id, m.title, false as main, (ma.title <-> $1) - LEAST(0.1, m.views::decimal/$3) as similarity
                       FROM manga_alias ma
                       INNER JOIN manga m ON m.manga_id = ma.manga_id
                       WHERE REPLACE(ma.title, '-', ' ') ILIKE '%' || $1 || '%'
@@ -33,7 +36,7 @@ function search(keywords, limit) {
                   SELECT DISTINCT ON(tmp.manga_id) tmp.manga_id, tmp.title, tmp.similarity FROM tmp) as tmp2
               ORDER BY tmp2.similarity`;
 
-  return db.query(sql, [keywords.replace('-', ' '), limit]);
+  return db.query(sql, [keywords.replace('-', ' '), limit, viewsEffect]);
 }
 
 function mangaSearch(keywords) {
@@ -41,19 +44,20 @@ function mangaSearch(keywords) {
                 (SELECT m.manga_id, m.title, true as main
                 FROM manga m
                 WHERE REPLACE(m.title, '-', ' ') ILIKE '%' || $1 || '%'
-                ORDER BY m.title ILIKE $1 || '%' DESC, title <-> $1
+                ORDER BY m.title ILIKE $1 || '%' DESC, (title <-> $1) - LEAST(0.1, m.views::decimal/$2)
                 LIMIT 1)
                 UNION (
                     SELECT ma.manga_id, ma.title, false as main
                     FROM manga_alias ma
+                    INNER JOIN manga m ON m.manga_id = ma.manga_id
                     WHERE REPLACE(ma.title, '-', ' ') ILIKE '%' || $1 || '%'
-                    ORDER BY ma.title ILIKE $1 || '%' DESC, title <-> $1
+                    ORDER BY ma.title ILIKE $1 || '%' DESC, (ma.title <-> $1) - LEAST(0.1, m.views::decimal/$2)
                     LIMIT 1)
                 )
                 SELECT *, manga.manga_id FROM manga LEFT JOIN manga_info mi ON manga.manga_id = mi.manga_id
                 WHERE manga.manga_id=(SELECT manga_id FROM tmp ORDER BY main LIMIT 1)`;
 
-  return db.query(sql, [keywords.replace('-', ' ')]);
+  return db.query(sql, [keywords.replace('-', ' '), viewsEffect]);
 }
 
 function quickSearch(searchWords) {

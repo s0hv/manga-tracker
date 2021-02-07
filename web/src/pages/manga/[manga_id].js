@@ -15,6 +15,10 @@ function MangaPage(props) {
 export async function getServerSideProps({ req, params }) {
   const { getManga } = require('../../../db/manga');
   const { getUserFollows } = require('../../../db/db');
+
+  // Log a page view
+  require('../../../utils/view-counter/manga-view-counter').mangaView(req.session, params);
+
   let manga;
   let userFollows;
   try {

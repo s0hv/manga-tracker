@@ -1,6 +1,7 @@
 const LRU = require('lru-cache');
 
 const sessionDebug = require('debug')('session-debug');
+const mangaViews = require('../utils/view-counter/manga-view-counter');
 
 module.exports = (expressSession) => {
   // eslint-disable-next-line prefer-destructuring
@@ -65,15 +66,18 @@ module.exports = (expressSession) => {
     }
 
     destroy(sid, cb = noop) {
-      sessionDebug('Delete session', sid, this.cache.peek(sid));
+      const session = this.cache.peek(sid);
+      sessionDebug('Delete session', sid, session);
       this.cache.del(sid);
       const sql = 'DELETE FROM sessions WHERE session_id=$1';
-      this.conn.query(sql, [sid])
-        .then(() => cb(null))
-        .catch(err => {
-          sessionDebug('Failed to delete session', err);
-          cb(err);
-        });
+
+      mangaViews.onSessionExpire(session)
+        .finally(() => this.conn.query(sql, [sid])
+          .then(() => cb(null))
+          .catch(err => {
+            sessionDebug('Failed to delete session', err);
+            cb(err);
+          }));
     }
 
     touch(sid, session, cb = noop) {

@@ -1,0 +1,1 @@
+ALTER TABLE manga DROP COLUMN views;
