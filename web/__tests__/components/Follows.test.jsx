@@ -1,6 +1,6 @@
 import React from 'react';
 import renderer from 'react-test-renderer';
-import Follows from '../../src/views/Follows';
+import Follows from '../../src/components/Follows';
 import { mockUTCDates } from '../utils';
 
 mockUTCDates();
