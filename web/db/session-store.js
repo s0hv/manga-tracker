@@ -3,6 +3,21 @@ const LRU = require('lru-cache');
 const sessionDebug = require('debug')('session-debug');
 const mangaViews = require('../utils/view-counter/manga-view-counter');
 
+
+const mergeSessionViews = (sess, row) => {
+  const a = sess.mangaViews || {};
+  const b = row.data.mangaViews || {};
+  Object.keys(b).forEach(k => {
+    a[k] = (a[k] || 0) + b[k];
+  });
+
+  return {
+    ...sess,
+    mangaViews: a,
+  };
+};
+
+
 module.exports = (expressSession) => {
   // eslint-disable-next-line prefer-destructuring
   const Store = expressSession.Store;
@@ -22,6 +37,18 @@ module.exports = (expressSession) => {
         maxAge: options.maxAge || 7200000, // 2 h in ms
         noDisposeOnSet: true,
       });
+
+      // Clear sessions every two hours
+      this.clearInterval = setInterval(() => this.clearOldSessions(), 7.2e+6);
+    }
+
+    clearOldSessions() {
+      const sql = 'DELETE FROM sessions WHERE expires_at < CURRENT_TIMESTAMP RETURNING data';
+      return this.conn.query(sql)
+        .then(({ rows }) => {
+          const sess = rows.reduce(mergeSessionViews, {});
+          return mangaViews.onSessionExpire(sess);
+        });
     }
 
     get(sid, cb = noop) {
