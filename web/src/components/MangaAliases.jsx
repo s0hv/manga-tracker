@@ -3,9 +3,6 @@ import { DoubleArrow as DoubleArrowIcon } from '@material-ui/icons';
 
 import React, { useCallback } from 'react';
 import {
-  Button,
-  Collapse,
-  Link,
   IconButton,
   List,
   ListItem,

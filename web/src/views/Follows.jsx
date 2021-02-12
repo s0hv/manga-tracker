@@ -5,7 +5,6 @@ import {
   IconButton,
   Paper,
   Typography,
-  Link,
 } from '@material-ui/core';
 import { lighten, makeStyles } from '@material-ui/core/styles';
 import {
