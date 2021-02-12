@@ -13,6 +13,8 @@ import DateFnsUtils from '@date-io/date-fns';
 import enLocale from 'date-fns/locale/en-GB';
 
 import Head from 'next/head';
+import { DefaultSeo } from 'next-seo';
+
 import Root from '../components/Root';
 import { UserProvider } from '../utils/useUser';
 import { ProgressBar } from '../components/utils/ProgressBar';
@@ -59,9 +61,19 @@ function MainApp({ Component, pageProps, props }) {
   return (
     <React.Fragment>
       <Head>
-        <title>Manga tracker</title>
         <meta name='viewport' content='minimum-scale=1, initial-scale=1, width=device-width' />
       </Head>
+      <DefaultSeo
+        titleTemplate='%s - Manga tracker'
+        defaultTitle='Manga tracker'
+        openGraph={{
+          title: 'Manga tracker',
+          site_name: 'Manga tracker',
+          type: 'website',
+          locale: 'en_IE',
+        }}
+      />
+
       <ThemeProvider theme={activeTheme}>
         <CssBaseline />
         <ProgressBar />

@@ -424,9 +424,7 @@ export default function MangaSearch(props) {
 MangaSearch.propTypes = {
   placeholder: PropTypes.string,
   renderItem: PropTypes.func,
-  // eslint-disable-next-line react/forbid-prop-types
   inputClasses: PropTypes.object,
-  // eslint-disable-next-line react/forbid-prop-types
   popperProps: PropTypes.object,
   closeOnClick: PropTypes.bool,
 };

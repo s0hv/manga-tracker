@@ -1,5 +1,5 @@
-/* eslint-disable global-require,camelcase */
 import { ConfirmProvider } from 'material-ui-confirm';
+import { NextSeo } from 'next-seo';
 import React from 'react';
 import Manga from '../../../views/admin/MangaAdmin';
 import withError from '../../../utils/withError';
@@ -10,9 +10,16 @@ function MangaPage(props) {
   } = props;
 
   return (
-    <ConfirmProvider>
-      <Manga mangaData={{ ...manga }} />
-    </ConfirmProvider>
+    <>
+      <NextSeo
+        title={manga.title}
+        nofollow
+        noindex
+      />
+      <ConfirmProvider>
+        <Manga mangaData={{ ...manga }} />
+      </ConfirmProvider>
+    </>
   );
 }
 

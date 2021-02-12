@@ -1,5 +1,6 @@
-/* eslint-disable global-require,camelcase */
 import React from 'react';
+import { NextSeo } from 'next-seo';
+
 import withError from '../utils/withError';
 import Follows from '../views/Follows';
 import { jsonSerializable } from '../utils/utilities';
@@ -9,7 +10,21 @@ const MangaPage = function MangaPage(props) {
     follows,
   } = props;
 
-  return <Follows follows={follows} />;
+  const title = 'Follows';
+
+  return (
+    <>
+      <NextSeo
+        title={title}
+        openGraph={{
+          title,
+        }}
+        noindex
+        nofollow
+      />
+      <Follows follows={follows} />
+    </>
+  );
 };
 
 

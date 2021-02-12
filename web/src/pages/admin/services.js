@@ -1,3 +1,4 @@
+import { NextSeo } from 'next-seo';
 import Services from '../../views/admin/Services';
 
 import withError from '../../utils/withError';
@@ -31,4 +32,16 @@ export async function getServerSideProps({ req }) {
   };
 }
 
-export default withError(Services);
+const ServicesView = withError(Services);
+const ServicesPage = (props) => (
+  <>
+    <NextSeo
+      title='Services'
+      nofollow
+      noindex
+    />
+    <ServicesView {...props} />
+  </>
+);
+
+export default ServicesPage;
