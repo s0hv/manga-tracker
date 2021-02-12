@@ -33,7 +33,7 @@ export const adminUser = {
 
 export const normalUser = {
   user_id: 3,
-  user_uuid: 'cf5eddfd-e0fe-4e6e-b339-70be6f33794d',
+  uuid: 'cf5eddfd-e0fe-4e6e-b339-70be6f33794d',
   username: 'test ci',
   joined_at: new Date(Date.now()),
   theme: 2,
@@ -44,7 +44,7 @@ export const normalUser = {
 
 export const authTestUser = {
   user_id: 3,
-  user_uuid: 'db598f65-c558-4205-937f-b0f149dda1fa',
+  uuid: 'db598f65-c558-4205-937f-b0f149dda1fa',
   username: 'test ci auth',
   joined_at: new Date(Date.now()),
   theme: 2,

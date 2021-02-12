@@ -10,6 +10,7 @@ import { lighten, makeStyles } from '@material-ui/core/styles';
 import {
   RssFeed as RssFeedIcon,
 } from '@material-ui/icons';
+import PropTypes from 'prop-types';
 
 import FollowsComponent from '../components/Follows';
 import { useUser } from '../utils/useUser';
@@ -52,6 +53,7 @@ const Follows = (props) => {
             target='_blank'
             className={classes.rssLink}
             size='medium'
+            aria-label='Follows RSS feed'
           >
             <RssFeedIcon fontSize='large' />
           </IconButton>
@@ -60,6 +62,10 @@ const Follows = (props) => {
       </Paper>
     </Container>
   );
+};
+
+Follows.propTypes = {
+  follows: PropTypes.arrayOf(PropTypes.object),
 };
 
 export default Follows;
