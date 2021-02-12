@@ -1,4 +1,6 @@
 import request from 'supertest';
+import core from '@actions/core';
+
 import { redis } from '../../../utils/ratelimits';
 
 import { userForbidden, userUnauthorized } from '../../constants';
@@ -9,7 +11,9 @@ import { adminUser, normalUser, withUser, expectErrorMessage } from '../../utils
 let httpServer;
 
 beforeAll(async () => {
+  core.info(httpServer);
   ({ httpServer } = await initServer());
+  core.info(`After init ${httpServer}`);
 });
 
 beforeEach(async () => {

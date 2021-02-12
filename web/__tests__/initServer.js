@@ -1,3 +1,5 @@
+import core from '@actions/core';
+
 export default async () => {
   jest.mock('./../db/auth', () => ({
     ...jest.requireActual('./../db/auth'),
@@ -9,7 +11,7 @@ export default async () => {
   expect(httpServer).toBeDefined();
 
   const addr = `http://localhost:${httpServer.address().port}`;
-  console.log('Testing address', addr);
+  core.info(`Testing address ${addr}`);
 
   return {
     httpServer,
