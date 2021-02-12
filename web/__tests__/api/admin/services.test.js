@@ -10,9 +10,7 @@ import { adminUser, normalUser, withUser, expectErrorMessage } from '../../utils
 let httpServer;
 
 beforeAll(async () => {
-  console.error(httpServer);
   ({ httpServer } = await initServer());
-  console.error('After init', httpServer);
 });
 
 beforeEach(async () => {
