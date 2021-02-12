@@ -11,7 +11,7 @@ export default async () => {
   expect(httpServer).toBeDefined();
 
   const addr = `http://localhost:${httpServer.address().port}`;
-  core.info(`Testing address ${addr}`);
+  console.error(`Testing address ${addr}`);
 
   return {
     httpServer,
