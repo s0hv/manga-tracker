@@ -1,0 +1,81 @@
+[
+  {
+    "database": "manga_tracker",
+    "index": "manga",
+
+    "setting": {
+      "analysis": {
+        "analyzer": {
+          "trigram_analyzer": {
+            "filter": [
+              "lowercase"
+            ],
+            "type": "custom",
+            "tokenizer": "trigram_tokenizer"
+          }
+        },
+        "tokenizer": {
+          "trigram_tokenizer": {
+            "token_chars": [
+              "letter",
+              "digit"
+            ],
+            "min_gram": "3",
+            "type": "ngram",
+            "max_gram": "3"
+          }
+        }
+      }
+    },
+
+    "nodes": [
+      {
+        "table": "manga",
+        "columns": [
+          "title",
+          "views",
+          "manga_id"
+        ],
+        "transform": {
+          "mapping": {
+            "title": {
+              "type": "text",
+              "fields": {
+                "ngram": {
+                  "type": "text",
+                  "analyzer": "trigram_analyzer"
+                }
+              }
+            }
+          }
+        },
+        "children": [
+          {
+            "table": "manga_alias",
+            "columns": [
+              "title",
+              "manga_id"
+            ],
+            "relationship": {
+              "variant": "object",
+              "type": "one_to_many"
+            },
+            "transform": {
+              "mapping": {
+                "title": {
+                  "type": "text",
+                  "fields": {
+                    "ngram": {
+                      "type": "text",
+                      "analyzer": "trigram_analyzer"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    ]
+  }
+]

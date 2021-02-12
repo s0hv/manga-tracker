@@ -11,7 +11,7 @@ function formatLinks(row) {
 
   Object.keys(row).forEach(key => {
     const link = Link[key];
-    if (!link) return;
+    if (!link || !row[key]) return;
 
     row[key] = link.prefix + row[key];
   });
