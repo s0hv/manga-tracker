@@ -72,6 +72,8 @@ jobs:
       DB_USER: postgres
       PGPASSWORD: postgres
 
+      ELASTIC_NODE: http://localhost:9200
+
       REDIS_HOST: redis
       REDIS_PORT: 6379
       DEBUG: debug,session-*,auth-info
