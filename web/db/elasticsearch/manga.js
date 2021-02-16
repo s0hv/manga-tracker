@@ -12,19 +12,34 @@ const mangaSearch = (query, count) => client.search({
     query: {
       function_score: {
         query: {
-          multi_match: {
-            query,
-            fields: [
-              'title^3',
-              'manga_alias.title^3',
-              'title.ngram',
-              'manga_alias.title.ngram',
+          dis_max: {
+            queries: [
+              {
+                multi_match: {
+                  query,
+                  type: 'most_fields',
+                  fields: [
+                    'title^3',
+                    'title.ngram',
+                  ],
+                },
+              },
+              {
+                multi_match: {
+                  query,
+                  type: 'most_fields',
+                  fields: [
+                    'manga_alias.title^3',
+                    'manga_alias.title.ngram',
+                  ],
+                },
+              },
             ],
           },
         },
         field_value_factor: {
           field: 'views',
-          factor: 0.3,
+          factor: 0.2,
           modifier: 'log2p',
         },
       },
