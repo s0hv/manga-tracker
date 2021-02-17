@@ -36,6 +36,10 @@ exports.up = function(db) {
 exports.down = function(db) {
   var filePath = path.join(__dirname, 'sqls', '20200807181921-initTestData-down.sql');
   return new Promise( function( resolve, reject ) {
+    if (process.env.NODE_ENV !== 'test') {
+      reject(new Error('Must be running with NODE_ENV set to test'));
+      return;
+    }
     fs.readFile(filePath, {encoding: 'utf-8'}, function(err,data){
       if (err) return reject(err);
       console.log('received data: ' + data);

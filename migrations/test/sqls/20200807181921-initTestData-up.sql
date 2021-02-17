@@ -47,3 +47,7 @@ SELECT setval(pg_get_serial_sequence('users', 'user_id'), MAX(user_id)) FROM use
 
 -- insert follows
 INSERT INTO user_follows (manga_id, service_id, user_id) VALUES (1, 1, 1);
+INSERT INTO user_follows (manga_id, service_id, user_id) VALUES (1, 2, 3);
+INSERT INTO user_follows (manga_id, service_id, user_id) VALUES (1, 1, 3);
+INSERT INTO user_follows (manga_id, service_id, user_id) VALUES (4, 1, 3);
+INSERT INTO user_follows (manga_id, service_id, user_id) VALUES (1, NULL, 3);
