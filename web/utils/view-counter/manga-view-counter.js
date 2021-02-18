@@ -23,7 +23,7 @@ const mangaView = (session, params) => {
  * @returns {Promise}
  */
 const onSessionExpire = (session) => {
-  if (!session || !session.mangaViews) {
+  if (!session || !session.mangaViews || Object.keys(session.mangaViews).length === 0) {
     return Promise.resolve();
   }
 

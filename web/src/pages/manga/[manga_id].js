@@ -1,5 +1,6 @@
-/* eslint-disable global-require,camelcase */
 import React from 'react';
+import { NextSeo } from 'next-seo';
+
 import Manga from '../../components/Manga';
 import withError from '../../utils/withError';
 
@@ -9,7 +10,21 @@ function MangaPage(props) {
     follows,
   } = props;
 
-  return <Manga mangaData={{ ...manga }} userFollows={follows} />;
+  return (
+    <>
+      <NextSeo
+        title={manga.title}
+        openGraph={{
+          title: manga.title,
+          images: [{
+            url: manga.cover,
+            alt: `${manga.title} cover art`,
+          }],
+        }}
+      />
+      <Manga mangaData={{ ...manga }} userFollows={follows} />
+    </>
+  );
 }
 
 export async function getServerSideProps({ req, params }) {

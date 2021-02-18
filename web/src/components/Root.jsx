@@ -1,4 +1,3 @@
-/* eslint-disable */
 import React from 'react';
 import { Divider, Link, Typography } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
@@ -53,12 +52,12 @@ export default function Layout(props) {
     statusCode,
     activeTheme,
     setTheme,
-    children
+    children,
   } = props;
   const classes = useStyles();
 
   if (statusCode !== 200) {
-    return children
+    return children;
   }
 
   return (
@@ -76,13 +75,11 @@ export default function Layout(props) {
 }
 
 Layout.propTypes = {
-  Component: PropTypes.elementType,
-  // eslint-disable-next-line react/forbid-prop-types
-  pageProps: PropTypes.object,
   props: PropTypes.shape({
     statusCode: PropTypes.number,
     activeTheme: PropTypes.number,
     user: PropTypes.object,
     setTheme: PropTypes.func,
+    children: PropTypes.elementType,
   }),
 };

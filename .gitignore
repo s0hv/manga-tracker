@@ -1,6 +1,7 @@
 config/config.json
 test.*
 scraper-pm2.json
+pgsync-schema.json
 
 # Created by .ignore support plugin (hsz.mobi)
 ### Python template

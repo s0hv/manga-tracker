@@ -80,7 +80,6 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-// eslint-disable-next-line react/display-name,react/prop-types
 const LinkComponent = React.forwardRef(({ href, prefetch, as, Component, children, passHref=false, ...props }, ref) => (
   <NextLink href={href} prefetch={prefetch} as={as} passHref={passHref}>
     <a style={{ textDecoration: 'none', color: 'inherit' }}>

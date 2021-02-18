@@ -41,35 +41,33 @@ export default function SignIn() {
   const classes = useStyles();
   const { enqueueSnackbar } = useSnackbar();
 
-  const onSubmit = data => {
-    return fetch('/api/login',
-      {
-        method: 'post',
-        body: JSON.stringify(data),
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json; charset=utf-8',
-        },
-        redirect: 'follow',
-      })
-      .then(res => {
-        if (res.status === 200) {
-          window.location.replace(res.url);
-          return;
-        }
-        return res.text();
-      })
-      .then(err => {
-        if (!err) return;
-        enqueueSnackbar(err, { variant: 'error' });
-        return { error: err };
-      })
-      .catch(err => {
-        console.error(err);
-        enqueueSnackbar('Unknown error', { variant: 'error' });
-        return { error: err.message };
-      });
-  };
+  const onSubmit = data => fetch('/api/login',
+    {
+      method: 'post',
+      body: JSON.stringify(data),
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json; charset=utf-8',
+      },
+      redirect: 'follow',
+    })
+    .then(res => {
+      if (res.status === 200) {
+        window.location.replace(res.url);
+        return;
+      }
+      return res.text();
+    })
+    .then(err => {
+      if (!err) return;
+      enqueueSnackbar(err, { variant: 'error' });
+      return { error: err };
+    })
+    .catch(err => {
+      console.error(err);
+      enqueueSnackbar('Unknown error', { variant: 'error' });
+      return { error: err.message };
+    });
 
   return (
     <Container component='main' maxWidth='xs'>

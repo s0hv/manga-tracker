@@ -22,6 +22,7 @@ module.exports.addChapter = ({
   const sql = `INSERT INTO chapters (manga_id, service_id, title, chapter_number, chapter_decimal, release_date, chapter_identifier, "group") 
                VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
                RETURNING chapter_id`;
+  releaseDate = releaseDate || new Date(Date.now());
   return db.query(sql, [mangaId, serviceId, title, chapterNumber, chapterDecimal, releaseDate, chapterIdentifier, group])
     .then(res => res.rows[0]?.chapter_id);
 };

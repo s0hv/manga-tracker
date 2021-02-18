@@ -1,4 +1,4 @@
-import { ConfirmProvider, useConfirm } from 'material-ui-confirm';
+import { useConfirm } from 'material-ui-confirm';
 import { useSnackbar } from 'notistack';
 import React, { useCallback, useMemo, useState } from 'react';
 import {
