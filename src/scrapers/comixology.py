@@ -192,7 +192,13 @@ class ComiXology(BaseScraper):
                 self.wait()
                 continue
 
-            chapters = [Chapter(c, manga.title) for c in chapter_elements]
+            chapters = []
+            for c in chapter_elements:
+                c = Chapter(c, manga.title)
+                if c.invalid:
+                    continue
+                chapters.append(c)
+
             manga_id = manga.manga_id
 
             # Check if any new chapters
@@ -208,6 +214,8 @@ class ComiXology(BaseScraper):
             # If special chapter like extra manually get latest chapter
             if latest_chapter == -1:
                 latest_chapter = max(chapters, key=lambda c: c.chapter_number)
+
+            chapters = list(sorted(chapters, key=Chapter.chapter_number.fget, reverse=True))
 
             if len(new_chapters) > 1:
                 if chapters[0].chapter_number < latest_chapter:
