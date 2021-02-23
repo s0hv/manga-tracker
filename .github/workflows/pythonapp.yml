@@ -56,13 +56,6 @@ jobs:
     - name: Uninstall coveragepy
       run: pip uninstall -y coverage
 
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v1
-      with:
-        flags: scraper
-        name: Scraper coverage
-        file: '*/manga-tracker/coverage/coverage.xml'
-
     env:
       DB_HOST: postgres
       DB_PORT: 5432

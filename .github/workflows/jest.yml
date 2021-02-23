@@ -58,12 +58,6 @@ jobs:
     - name: Run jest and generate coverage
       run: npm run test:ci
 
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v1
-      with:
-        flags: frontend
-        name: Frontend coverage
-
     env:
       DB_HOST: postgres
       DB_PORT: 5432
