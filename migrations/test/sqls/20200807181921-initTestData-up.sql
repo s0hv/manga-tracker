@@ -8,6 +8,8 @@ INSERT INTO manga (manga_id, title, release_interval, latest_release, estimated_
 
 -- insert aliases
 INSERT INTO manga_alias (manga_id, title) VALUES (1, 'Test alias');
+INSERT INTO manga_alias (manga_id, title) VALUES (2, 'Test alias 2');
+INSERT INTO manga_alias (manga_id, title) VALUES (2, 'Test abc');
 
 SELECT setval(pg_get_serial_sequence('manga', 'manga_id'), MAX(manga_id)) FROM manga;
 
