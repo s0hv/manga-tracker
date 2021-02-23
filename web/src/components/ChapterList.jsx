@@ -119,7 +119,7 @@ function ChapterList(props) {
       .then(res => res.json())
       .then(json => {
         setChapters(formatChapters(json.chapters || []));
-        setCount(json.count || 0);
+        setCount(Number(json.count) || 0);
       })
       .catch(console.error)
       .finally(() => setLoading(false));
