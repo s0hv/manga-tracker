@@ -134,7 +134,7 @@ describe('sessionStore', () => {
       jest.useFakeTimers();
 
       const spy = jest.spyOn(db, 'query');
-      const clearInterval = 10;
+      const clearInterval = 1000;
       const store = new Store({ conn: db, clearInterval });
       const sessionSpy = jest.spyOn(store, 'clearOldSessions');
 
@@ -145,7 +145,6 @@ describe('sessionStore', () => {
 
     it('mergeSessionViews merges sessions correctly', (done) => {
       jest.useFakeTimers();
-      expect.assertions(3);
 
       const createData = (mangaId, views) => ({ data: { mangaViews: { [mangaId]: views }}});
       const rows = [
@@ -175,7 +174,7 @@ describe('sessionStore', () => {
       const mangaViews = require('../../utils/view-counter/manga-view-counter');
 
       const dbSpy = jest.spyOn(db, 'query').mockImplementation(async () => ({ rows }));
-      const clearInterval = 10;
+      const clearInterval = 1000;
       const store = new Store({ conn: db, clearInterval });
       const sessionSpy = jest.spyOn(store, 'clearOldSessions');
 
