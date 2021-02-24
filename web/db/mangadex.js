@@ -35,10 +35,9 @@ function getLinks(fullLinks) {
 async function fetchExtraInfo(mangadexId, mangaId, chapterIds, addChapters = true, limitChapters) {
   mangadexLimiter.consume('mangadex', 1)
     .then(() => {
-      const manga = new Manga(mangadexId);
       debug(`Fetching extra info for ${mangaId} ${mangadexId}`);
-      manga.fill(mangadexId)
-        .then(() => {
+      new Manga(mangadexId).fill(mangadexId)
+        .then((manga) => {
           const sql = `INSERT INTO manga_info as mi (manga_id, cover, artist, author, bw, mu, mal, amz, ebj, engtl, raw, nu, kt, ap, al)
                        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
                        ON CONFLICT (manga_id) DO UPDATE SET cover=excluded.cover,
@@ -95,7 +94,7 @@ async function fetchExtraInfo(mangadexId, mangaId, chapterIds, addChapters = tru
             const chapters = (!limitChapters ?
               manga.chapters.filter(c => c.language === 'GB' && !alreadyExists.has(c.id.toString())) :
               manga.chapters.filter(c => c.language === 'GB')
-              // Not sorted by default
+                // Not sorted by default
                 .sort((a, b) => (a.chapter < b.chapter ? 1 : -1))
                 .slice(0, alreadyExists.size * 0.9)
                 .filter(c => !alreadyExists.has(c.id.toString()))
