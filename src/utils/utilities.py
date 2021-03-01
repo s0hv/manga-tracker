@@ -111,7 +111,7 @@ def get_latest_chapters(rows: Iterable[Union[dict, DictRow]]) -> Dict[str, Tuple
     return chapter_data
 
 
-BaseChapter = TypeVar('BaseChapter', bound=Type['src.scrapers.base_scraper.BaseChapter'])
+BaseChapter = TypeVar('BaseChapter', bound=Type['src.scrapers.base_scraper.BaseChapter'])  # noqa: F821
 
 
 def group_by_manga(chapters: Iterable[BaseChapter]) -> Dict[str, List[BaseChapter]]:
