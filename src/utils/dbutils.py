@@ -20,7 +20,7 @@ logger = logging.getLogger('debug')
 maintenance = logging.getLogger('maintenance')
 
 
-BaseChapter = TypeVar('BaseChapter', bound=Type['base_scraper.BaseChapter'])
+BaseChapter = TypeVar('BaseChapter', bound=Type['base_scraper.BaseChapter'])  # noqa: F821
 
 
 class TransactionFunction(Protocol):
