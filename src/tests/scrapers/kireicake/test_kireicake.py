@@ -153,6 +153,15 @@ class KireiCakeTest(BaseTestClasses.DatabaseTestCase):
         self.assertIsNotNone(updated)
         self.assertEqual(len(updated), unique_manga, 'Not all manga updated')
 
+    @patch('feedparser.parse', wraps=mock_feedparse('invalid_feed'))
+    def test_scrape_service_returns_nothing_on_error(self, parse: MagicMock):
+        kc = self.get_scraper()
+        updated = kc.scrape_service(kc.ID, 'invalid_feed', None)
+        parse.assert_called_once()
+        parse.assert_called_with('invalid_feed')
+
+        self.assertIsNone(updated)
+
 
 if __name__ == '__main__':
     unittest.main()

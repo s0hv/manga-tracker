@@ -145,7 +145,7 @@ class BaseRSS(BaseScraper, ABC):
         Returns:
             Name of the group
         """
-        return None
+        raise NotImplementedError
 
     @abstractmethod
     def get_manga_title(self, entry: Dict) -> Optional[str]:
@@ -157,7 +157,7 @@ class BaseRSS(BaseScraper, ABC):
         Returns:
             Title of the manga
         """
-        return None
+        raise NotImplementedError
 
     def parse_feed(self, entries: Iterable[Dict]) -> List[RSSChapter]:
         titles = []
