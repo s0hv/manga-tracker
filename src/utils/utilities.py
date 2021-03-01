@@ -9,7 +9,6 @@ from typing import Optional, Tuple, Union, Iterable, Dict, List, TypeVar, Type
 from psycopg2.extras import DictRow
 
 from src.errors import FeedHttpError, InvalidFeedError
-from src.scrapers import base_scraper
 
 logger = logging.getLogger('debug')
 
@@ -112,7 +111,7 @@ def get_latest_chapters(rows: Iterable[Union[dict, DictRow]]) -> Dict[str, Tuple
     return chapter_data
 
 
-BaseChapter = TypeVar('BaseChapter', bound=Type[base_scraper.BaseChapter])
+BaseChapter = TypeVar('BaseChapter', bound=Type['src.scrapers.base_scraper.BaseChapter'])
 
 
 def group_by_manga(chapters: Iterable[BaseChapter]) -> Dict[str, List[BaseChapter]]:
