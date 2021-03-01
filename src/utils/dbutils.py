@@ -6,9 +6,11 @@ from typing import (
     Iterable, TypeVar, Type
 )
 
+import typing
 from psycopg2.extensions import connection as Connection, cursor as Cursor
 from psycopg2.extras import execute_values, DictRow
 
+from src.db.models.chapter import Chapter
 from src.db.models.manga import MangaService
 from src.db.models.scheduled_run import ScheduledRun
 from src.scrapers import base_scraper
@@ -383,20 +385,43 @@ class DbUtil:
               'WHERE m.manga_id=c.manga_id'
         cur.execute(sql, data)
 
+    @typing.overload
     @optional_transaction
     def add_chapters(self, cur: Cursor, manga_id, service_id,
-                     chapters: List['base_scraper.BaseChapter'], fetch: bool = True) -> Optional[List[DictRow]]:
-        args = [
-            (
-                manga_id, service_id, chapter.title,
-                chapter.chapter_number, chapter.decimal,
-                chapter.chapter_identifier,
-                chapter.release_date, chapter.group
-            ) for chapter in chapters
-        ]
+                     chapters: List['base_scraper.BaseChapter'], fetch: bool = True) -> Optional[List[DictRow]]: ...
+
+    @typing.overload
+    @optional_transaction
+    def add_chapters(self, cur: Cursor, chapters: List[Chapter], fetch: bool = True) -> Optional[List[DictRow]]: ...
+
+    @optional_transaction
+    def add_chapters(self, cur: Cursor, *args, fetch: bool = True) -> Optional[List[DictRow]]:
+        if len(args) == 1:
+            chapters: List[Chapter] = args[0]
+            data = [
+                (
+                    c.manga_id, c.service_id, c.title,
+                    c.chapter_number, c.chapter_decimal,
+                    c.chapter_identifier, c.release_date,
+                    c.group
+                ) for c in chapters
+            ]
+        else:
+            manga_id, service_id = args[:2]
+            chapters: List['base_scraper.BaseChapter'] = args[2]
+
+            data = [
+                (
+                    manga_id, service_id, chapter.title,
+                    chapter.chapter_number, chapter.decimal,
+                    chapter.chapter_identifier,
+                    chapter.release_date, chapter.group
+                ) for chapter in chapters
+            ]
+
         sql = 'INSERT INTO chapters (manga_id, service_id, title, chapter_number, chapter_decimal, chapter_identifier, release_date, "group") VALUES ' \
               '%s ON CONFLICT DO NOTHING RETURNING manga_id, chapter_number, chapter_decimal, release_date, chapter_identifier'
-        return execute_values(cur, sql, args, page_size=max(len(args), 300), fetch=fetch)
+        return execute_values(cur, sql, data, page_size=max(len(data), 300), fetch=fetch)
 
     @optional_transaction
     def update_latest_chapter(self, cur: Cursor, data: Collection[Tuple[int, int, datetime]]) -> None:
