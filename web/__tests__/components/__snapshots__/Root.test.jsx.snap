@@ -82,7 +82,7 @@ exports[`Root component should render correctly Should render with empty input a
         >
           <div
             aria-label="Manga search"
-            className="MuiInputBase-root makeStyles-inputRoot-17 MuiInputBase-adornedEnd"
+            className="MuiInputBase-root makeStyles-inputRoot-16 MuiInputBase-adornedEnd"
             onClick={[Function]}
           >
             <input
@@ -91,7 +91,7 @@ exports[`Root component should render correctly Should render with empty input a
               aria-controls={null}
               autoCapitalize="none"
               autoComplete="off"
-              className="MuiInputBase-input makeStyles-inputInput-18 MuiAutocomplete-input MuiAutocomplete-inputFocused MuiInputBase-inputAdornedEnd"
+              className="MuiInputBase-input makeStyles-inputInput-17 MuiAutocomplete-input MuiAutocomplete-inputFocused MuiInputBase-inputAdornedEnd"
               disabled={false}
               id="title-search"
               onAnimationStart={[Function]}
@@ -881,7 +881,7 @@ exports[`Root component should render correctly should render correctly with dat
                             PopperComponent={[Function]}
                             classes={
                               Object {
-                                "popper": "makeStyles-popper-20",
+                                "popper": "makeStyles-popper-18",
                                 "root": "makeStyles-search-15",
                               }
                             }
@@ -917,7 +917,7 @@ exports[`Root component should render correctly should render correctly with dat
                                   "noOptions": "MuiAutocomplete-noOptions",
                                   "option": "MuiAutocomplete-option",
                                   "paper": "MuiAutocomplete-paper",
-                                  "popper": "MuiAutocomplete-popper makeStyles-popper-20",
+                                  "popper": "MuiAutocomplete-popper makeStyles-popper-18",
                                   "popperDisablePortal": "MuiAutocomplete-popperDisablePortal",
                                   "popupIndicator": "MuiAutocomplete-popupIndicator",
                                   "popupIndicatorOpen": "MuiAutocomplete-popupIndicatorOpen",
@@ -950,8 +950,8 @@ exports[`Root component should render correctly should render correctly with dat
                                   aria-label="Manga search"
                                   classes={
                                     Object {
-                                      "input": "makeStyles-inputInput-18",
-                                      "root": "makeStyles-inputRoot-17",
+                                      "input": "makeStyles-inputInput-17",
+                                      "root": "makeStyles-inputRoot-16",
                                     }
                                   }
                                   endAdornment={
@@ -978,7 +978,7 @@ exports[`Root component should render correctly should render correctly with dat
                                           aria-autocomplete="list"
                                           autocapitalize="none"
                                           autocomplete="off"
-                                          class="MuiInputBase-input makeStyles-inputInput-18 MuiAutocomplete-input MuiAutocomplete-inputFocused MuiInputBase-inputAdornedEnd"
+                                          class="MuiInputBase-input makeStyles-inputInput-17 MuiAutocomplete-input MuiAutocomplete-inputFocused MuiInputBase-inputAdornedEnd"
                                           id="title-search"
                                           placeholder="Search manga"
                                           spellcheck="false"
@@ -1005,7 +1005,7 @@ exports[`Root component should render correctly should render correctly with dat
                                         "focused": "Mui-focused",
                                         "formControl": "MuiInputBase-formControl",
                                         "fullWidth": "MuiInputBase-fullWidth",
-                                        "input": "MuiInputBase-input makeStyles-inputInput-18",
+                                        "input": "MuiInputBase-input makeStyles-inputInput-17",
                                         "inputAdornedEnd": "MuiInputBase-inputAdornedEnd",
                                         "inputAdornedStart": "MuiInputBase-inputAdornedStart",
                                         "inputHiddenLabel": "MuiInputBase-inputHiddenLabel",
@@ -1014,7 +1014,7 @@ exports[`Root component should render correctly should render correctly with dat
                                         "inputTypeSearch": "MuiInputBase-inputTypeSearch",
                                         "marginDense": "MuiInputBase-marginDense",
                                         "multiline": "MuiInputBase-multiline",
-                                        "root": "MuiInputBase-root makeStyles-inputRoot-17",
+                                        "root": "MuiInputBase-root makeStyles-inputRoot-16",
                                       }
                                     }
                                     endAdornment={
@@ -1041,7 +1041,7 @@ exports[`Root component should render correctly should render correctly with dat
                                             aria-autocomplete="list"
                                             autocapitalize="none"
                                             autocomplete="off"
-                                            class="MuiInputBase-input makeStyles-inputInput-18 MuiAutocomplete-input MuiAutocomplete-inputFocused MuiInputBase-inputAdornedEnd"
+                                            class="MuiInputBase-input makeStyles-inputInput-17 MuiAutocomplete-input MuiAutocomplete-inputFocused MuiInputBase-inputAdornedEnd"
                                             id="title-search"
                                             placeholder="Search manga"
                                             spellcheck="false"
@@ -1058,7 +1058,7 @@ exports[`Root component should render correctly should render correctly with dat
                                   >
                                     <div
                                       aria-label="Manga search"
-                                      className="MuiInputBase-root makeStyles-inputRoot-17 MuiInputBase-adornedEnd"
+                                      className="MuiInputBase-root makeStyles-inputRoot-16 MuiInputBase-adornedEnd"
                                       onClick={[Function]}
                                     >
                                       <input
@@ -1067,7 +1067,7 @@ exports[`Root component should render correctly should render correctly with dat
                                         aria-controls={null}
                                         autoCapitalize="none"
                                         autoComplete="off"
-                                        className="MuiInputBase-input makeStyles-inputInput-18 MuiAutocomplete-input MuiAutocomplete-inputFocused MuiInputBase-inputAdornedEnd"
+                                        className="MuiInputBase-input makeStyles-inputInput-17 MuiAutocomplete-input MuiAutocomplete-inputFocused MuiInputBase-inputAdornedEnd"
                                         disabled={false}
                                         id="title-search"
                                         onAnimationStart={[Function]}
@@ -2312,7 +2312,7 @@ exports[`Root component should render correctly should render correctly with use
                             PopperComponent={[Function]}
                             classes={
                               Object {
-                                "popper": "makeStyles-popper-20",
+                                "popper": "makeStyles-popper-18",
                                 "root": "makeStyles-search-15",
                               }
                             }
@@ -2348,7 +2348,7 @@ exports[`Root component should render correctly should render correctly with use
                                   "noOptions": "MuiAutocomplete-noOptions",
                                   "option": "MuiAutocomplete-option",
                                   "paper": "MuiAutocomplete-paper",
-                                  "popper": "MuiAutocomplete-popper makeStyles-popper-20",
+                                  "popper": "MuiAutocomplete-popper makeStyles-popper-18",
                                   "popperDisablePortal": "MuiAutocomplete-popperDisablePortal",
                                   "popupIndicator": "MuiAutocomplete-popupIndicator",
                                   "popupIndicatorOpen": "MuiAutocomplete-popupIndicatorOpen",
@@ -2381,8 +2381,8 @@ exports[`Root component should render correctly should render correctly with use
                                   aria-label="Manga search"
                                   classes={
                                     Object {
-                                      "input": "makeStyles-inputInput-18",
-                                      "root": "makeStyles-inputRoot-17",
+                                      "input": "makeStyles-inputInput-17",
+                                      "root": "makeStyles-inputRoot-16",
                                     }
                                   }
                                   endAdornment={
@@ -2409,7 +2409,7 @@ exports[`Root component should render correctly should render correctly with use
                                           aria-autocomplete="list"
                                           autocapitalize="none"
                                           autocomplete="off"
-                                          class="MuiInputBase-input makeStyles-inputInput-18 MuiAutocomplete-input MuiAutocomplete-inputFocused MuiInputBase-inputAdornedEnd"
+                                          class="MuiInputBase-input makeStyles-inputInput-17 MuiAutocomplete-input MuiAutocomplete-inputFocused MuiInputBase-inputAdornedEnd"
                                           id="title-search"
                                           placeholder="Search manga"
                                           spellcheck="false"
@@ -2436,7 +2436,7 @@ exports[`Root component should render correctly should render correctly with use
                                         "focused": "Mui-focused",
                                         "formControl": "MuiInputBase-formControl",
                                         "fullWidth": "MuiInputBase-fullWidth",
-                                        "input": "MuiInputBase-input makeStyles-inputInput-18",
+                                        "input": "MuiInputBase-input makeStyles-inputInput-17",
                                         "inputAdornedEnd": "MuiInputBase-inputAdornedEnd",
                                         "inputAdornedStart": "MuiInputBase-inputAdornedStart",
                                         "inputHiddenLabel": "MuiInputBase-inputHiddenLabel",
@@ -2445,7 +2445,7 @@ exports[`Root component should render correctly should render correctly with use
                                         "inputTypeSearch": "MuiInputBase-inputTypeSearch",
                                         "marginDense": "MuiInputBase-marginDense",
                                         "multiline": "MuiInputBase-multiline",
-                                        "root": "MuiInputBase-root makeStyles-inputRoot-17",
+                                        "root": "MuiInputBase-root makeStyles-inputRoot-16",
                                       }
                                     }
                                     endAdornment={
@@ -2472,7 +2472,7 @@ exports[`Root component should render correctly should render correctly with use
                                             aria-autocomplete="list"
                                             autocapitalize="none"
                                             autocomplete="off"
-                                            class="MuiInputBase-input makeStyles-inputInput-18 MuiAutocomplete-input MuiAutocomplete-inputFocused MuiInputBase-inputAdornedEnd"
+                                            class="MuiInputBase-input makeStyles-inputInput-17 MuiAutocomplete-input MuiAutocomplete-inputFocused MuiInputBase-inputAdornedEnd"
                                             id="title-search"
                                             placeholder="Search manga"
                                             spellcheck="false"
@@ -2489,7 +2489,7 @@ exports[`Root component should render correctly should render correctly with use
                                   >
                                     <div
                                       aria-label="Manga search"
-                                      className="MuiInputBase-root makeStyles-inputRoot-17 MuiInputBase-adornedEnd"
+                                      className="MuiInputBase-root makeStyles-inputRoot-16 MuiInputBase-adornedEnd"
                                       onClick={[Function]}
                                     >
                                       <input
@@ -2498,7 +2498,7 @@ exports[`Root component should render correctly should render correctly with use
                                         aria-controls={null}
                                         autoCapitalize="none"
                                         autoComplete="off"
-                                        className="MuiInputBase-input makeStyles-inputInput-18 MuiAutocomplete-input MuiAutocomplete-inputFocused MuiInputBase-inputAdornedEnd"
+                                        className="MuiInputBase-input makeStyles-inputInput-17 MuiAutocomplete-input MuiAutocomplete-inputFocused MuiInputBase-inputAdornedEnd"
                                         disabled={false}
                                         id="title-search"
                                         onAnimationStart={[Function]}
@@ -2985,13 +2985,13 @@ exports[`Root component should render correctly should render correctly with use
                                                       >
                                                         <div
                                                           aria-label="Manga search"
-                                                          class="MuiInputBase-root makeStyles-inputRoot-17 MuiInputBase-adornedEnd"
+                                                          class="MuiInputBase-root makeStyles-inputRoot-16 MuiInputBase-adornedEnd"
                                                         >
                                                           <input
                                                             aria-autocomplete="list"
                                                             autocapitalize="none"
                                                             autocomplete="off"
-                                                            class="MuiInputBase-input makeStyles-inputInput-18 MuiAutocomplete-input MuiAutocomplete-inputFocused MuiInputBase-inputAdornedEnd"
+                                                            class="MuiInputBase-input makeStyles-inputInput-17 MuiAutocomplete-input MuiAutocomplete-inputFocused MuiInputBase-inputAdornedEnd"
                                                             id="title-search"
                                                             placeholder="Search manga"
                                                             spellcheck="false"
@@ -3145,13 +3145,13 @@ exports[`Root component should render correctly should render correctly with use
                                                       >
                                                         <div
                                                           aria-label="Manga search"
-                                                          class="MuiInputBase-root makeStyles-inputRoot-17 MuiInputBase-adornedEnd"
+                                                          class="MuiInputBase-root makeStyles-inputRoot-16 MuiInputBase-adornedEnd"
                                                         >
                                                           <input
                                                             aria-autocomplete="list"
                                                             autocapitalize="none"
                                                             autocomplete="off"
-                                                            class="MuiInputBase-input makeStyles-inputInput-18 MuiAutocomplete-input MuiAutocomplete-inputFocused MuiInputBase-inputAdornedEnd"
+                                                            class="MuiInputBase-input makeStyles-inputInput-17 MuiAutocomplete-input MuiAutocomplete-inputFocused MuiInputBase-inputAdornedEnd"
                                                             id="title-search"
                                                             placeholder="Search manga"
                                                             spellcheck="false"

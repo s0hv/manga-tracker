@@ -12,7 +12,7 @@ exports[`Search should render correctly without input 1`] = `
 >
   <div
     aria-label="Manga search"
-    className="MuiInputBase-root makeStyles-inputRoot-3 MuiInputBase-adornedEnd"
+    className="MuiInputBase-root makeStyles-inputRoot-2 MuiInputBase-adornedEnd"
     onClick={[Function]}
   >
     <input
@@ -21,7 +21,7 @@ exports[`Search should render correctly without input 1`] = `
       aria-controls={null}
       autoCapitalize="none"
       autoComplete="off"
-      className="MuiInputBase-input makeStyles-inputInput-4 MuiAutocomplete-input MuiAutocomplete-inputFocused MuiInputBase-inputAdornedEnd"
+      className="MuiInputBase-input makeStyles-inputInput-3 MuiAutocomplete-input MuiAutocomplete-inputFocused MuiInputBase-inputAdornedEnd"
       disabled={false}
       id="test-id"
       onAnimationStart={[Function]}

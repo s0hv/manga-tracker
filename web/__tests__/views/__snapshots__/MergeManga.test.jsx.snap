@@ -35,6 +35,7 @@ exports[`Merge manga page should render correctly should render correctly by def
               autoComplete="off"
               className="MuiInputBase-input makeStyles-searchInput-3 MuiAutocomplete-input MuiAutocomplete-inputFocused MuiInputBase-inputAdornedEnd"
               disabled={false}
+              id="manga-search"
               onAnimationStart={[Function]}
               onBlur={[Function]}
               onChange={[Function]}
@@ -105,6 +106,7 @@ exports[`Merge manga page should render correctly should render correctly by def
               autoComplete="off"
               className="MuiInputBase-input makeStyles-searchInput-3 MuiAutocomplete-input MuiAutocomplete-inputFocused MuiInputBase-inputAdornedEnd"
               disabled={false}
+              id="manga-search"
               onAnimationStart={[Function]}
               onBlur={[Function]}
               onChange={[Function]}

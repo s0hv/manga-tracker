@@ -57,7 +57,7 @@ export default function MangaSearch(props) {
     renderItem,
     inputClasses = {},
     popperProps = {},
-    id,
+    id = 'manga-search',
   } = props;
 
   const [value, setValue] = useState('');
