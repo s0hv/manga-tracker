@@ -12,7 +12,7 @@ expect.addSnapshotSerializer(createSerializer({ mode: 'deep' }));
 
 describe('Search should render correctly', () => {
   it('without input', () => {
-    const tree = createMount()(<MangaSearch />);
+    const tree = createMount()(<MangaSearch id='test-id' />);
 
     expect(tree).toMatchSnapshot();
   });
@@ -54,10 +54,8 @@ describe('Search should render correctly', () => {
     const listItems = wrapper.find('li');
     expect(listItems).toHaveLength(mockResult.length);
     // Order is important as the first result is the most likely
-    expect(listItems.map(l => l.key()))
-      .toEqual(mockResult.map(r => r.manga_id.toString()));
-
-    expect(wrapper).toMatchSnapshot();
+    expect(listItems.map(l => l.text()))
+      .toEqual(mockResult.map(r => r.title));
   });
 });
 

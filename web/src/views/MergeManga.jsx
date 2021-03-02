@@ -98,7 +98,6 @@ function MergeManga() {
                 input: classes.searchInput,
                 root: classes.inputRoot,
               }}
-              closeOnClick
               popperProps={{
                 placement: 'bottom-start',
               }}
@@ -113,7 +112,6 @@ function MergeManga() {
                 input: classes.searchInput,
                 root: classes.inputRoot,
               }}
-              closeOnClick
               popperProps={{
                 placement: 'bottom-start',
               }}
