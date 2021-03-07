@@ -15,3 +15,7 @@ SCRAPERS = {
     Reddit.URL: Reddit,
     KireiCake.URL: KireiCake
 }
+
+SCRAPERS_ID = {
+    s.ID: s for s in SCRAPERS.values()
+}

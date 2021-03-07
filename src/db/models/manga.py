@@ -36,7 +36,8 @@ class Manga:
 
 
 class MangaInfo:
-    def __init__(self, cover: Optional[str] = None,
+    def __init__(self, manga_id: int,
+                 cover: Optional[str] = None,
                  status: Optional[int] = None,
                  artist: Optional[str] = None,
                  author: Optional[str] = None,
@@ -51,6 +52,7 @@ class MangaInfo:
                  kitsu: Optional[str] = None,
                  anime_planet: Optional[str] = None,
                  anilist: Optional[str] = None):
+        self.manga_id = manga_id
         self.cover = cover
         self.status = status
         self.artist = artist
@@ -90,7 +92,7 @@ class MangaService(Manga):
     @staticmethod
     def row_to_kwargs(row: DictRow) -> Dict:
         # TODO
-        return super().row_to_kwargs(row)
+        return super(MangaService, MangaService).row_to_kwargs(row)
 
     @classmethod
     def from_dbrow(cls, row: DictRow):
@@ -102,8 +104,8 @@ class MangaService(Manga):
     # noinspection PyPep8Naming
     @property
     def Scraper(self) -> Type['base_scraper.BaseScraper']:
-        from src.scrapers import SCRAPERS
-        return SCRAPERS[self.service_id]
+        from src.scrapers import SCRAPERS_ID
+        return SCRAPERS_ID[self.service_id]
 
     def scrape_series(self, conn: Connection, dbutil: 'dbutils.DbUtil'):
         scraper = self.Scraper(conn, dbutil)
