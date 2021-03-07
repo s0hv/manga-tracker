@@ -168,7 +168,8 @@ class ComiXology(BaseScraper):
         now = datetime.utcnow()
         updated = 0
         if self.service_id is None:
-            self.service_id = self.dbutil.get_service(self.URL)
+            service = self.dbutil.get_service(self.URL)
+            self.service_id = service.service_id if service else None
 
         if not self.service_id:
             logger.warning(f'No service found with {self.URL}')

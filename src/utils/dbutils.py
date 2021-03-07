@@ -13,6 +13,7 @@ from psycopg2.extras import execute_values, DictRow
 from src.db.models.chapter import Chapter
 from src.db.models.manga import MangaService
 from src.db.models.scheduled_run import ScheduledRun
+from src.db.models.services import Service, ServiceWhole
 from src.scrapers import base_scraper
 from src.utils.utilities import round_seconds
 
@@ -24,7 +25,7 @@ BaseChapter = TypeVar('BaseChapter', bound=Type['base_scraper.BaseChapter'])
 
 
 class TransactionFunction(Protocol):
-    def __call__(self, cur: Cursor, *args, **kwargs) -> Any: ...
+    def __call__(self, cur: Cursor, *args, **kwargs) -> Any: ...  # pragma: no cover
 
 
 def optional_transaction(f: TransactionFunction):
@@ -68,15 +69,27 @@ class DbUtil:
         cur.execute(sql, args)
         return cur.fetchall()
 
+    @typing.overload
     @optional_transaction
-    def get_service(self, cur: Cursor, service_url: str) -> Optional[int]:
-        sql = 'SELECT service_id FROM services WHERE url=%s'
-        cur.execute(sql, (service_url,))
-        row = cur.fetchone()
-        return row[0] if row else None
+    def get_service(self, cur: Cursor, service_id: int) -> Optional[Service]: ...
+
+    @typing.overload
+    @optional_transaction
+    def get_service(self, cur: Cursor, service_url: str) -> Optional[Service]: ...
 
     @optional_transaction
-    def set_service_updates(self, cur: Cursor, service_id: int, disabled_until: datetime):
+    def get_service(self, cur: Cursor, service_id_url: Union[int, str]) -> Optional[Service]:
+        if isinstance(service_id_url, int):
+            sql = 'SELECT * FROM services WHERE service_id=%s'
+        else:
+            sql = 'SELECT * FROM services WHERE url=%s'
+
+        cur.execute(sql, (service_id_url,))
+        row = cur.fetchone()
+        return Service.from_dbrow(row) if row else None
+
+    @optional_transaction
+    def set_service_disabled_until(self, cur: Cursor, service_id: int, disabled_until: datetime):
         sql = 'UPDATE services SET disabled_until=%s WHERE service_id=%s'
         cur.execute(sql, (disabled_until, service_id))
 
@@ -353,6 +366,14 @@ class DbUtil:
         rows = execute_values(cur, sql, args, page_size=len(args), fetch=True)
         for row in rows:
             yield row[0], id2chapters[row[0]]
+
+    @optional_transaction
+    def get_service_whole(self, cur: Cursor, service_id: int) -> Optional[ServiceWhole]:
+        sql = 'SELECT * FROM service_whole WHERE service_id=%s'
+        cur.execute(sql, [service_id])
+        row = cur.fetchone()
+
+        return ServiceWhole.from_dbrow(row) if row else None
 
     @optional_transaction
     def update_service_whole(self, cur: Cursor, service_id: int, update_interval: timedelta) -> None:

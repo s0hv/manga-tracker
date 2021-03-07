@@ -1,5 +1,5 @@
 import unittest
-from datetime import datetime
+from datetime import datetime, timedelta
 from types import GeneratorType
 
 from src.tests.scrapers.testing_scraper import DummyScraper
@@ -199,6 +199,37 @@ class TestDbUtil(BaseTestClasses.DatabaseTestCase):
                 self.assertLogs('maintenance', 'INFO')
                 self.assertDatesNotEqual(row['estimated_release_old'], row['estimated_release'])
                 self.assertDateGreater(row['estimated_release'], release)
+
+    def test_set_service_disabled_until(self):
+        with self.conn:
+            with self.conn.cursor() as cur:
+                disabled_until = datetime.utcnow() + timedelta(hours=12)
+                service_id = 1
+                self.dbutil.set_service_disabled_until(cur, service_id,
+                                                       disabled_until)
+
+                service = self.dbutil.get_service(cur, service_id)
+
+                self.assertDatesEqual(disabled_until, service.disabled_until)
+
+    def test_update_service_whole(self):
+        with self.conn:
+            with self.conn.cursor() as cur:
+                service_id = 2
+                update_interval = timedelta(hours=2)
+                now = datetime.utcnow()
+
+                self.dbutil.update_service_whole(cur, service_id, update_interval)
+
+                service = self.dbutil.get_service(service_id)
+                service_whole = self.dbutil.get_service_whole(service_id)
+
+                self.assertIsNotNone(service, 'Service is None')
+                self.assertIsNotNone(service_whole, 'Service whole is None')
+
+                self.assertDatesAlmostEqual(service.last_check, now)
+                self.assertDatesAlmostEqual(service_whole.last_check, now)
+                self.assertDatesAlmostEqual(service_whole.next_update, now + update_interval)
 
 
 if __name__ == '__main__':
