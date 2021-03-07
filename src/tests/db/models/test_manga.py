@@ -13,19 +13,11 @@ class MyTestCase(unittest.TestCase):
             scrapers, 'SCRAPERS_ID', {1: self.mock_scraper}
         )
 
-    def test_manga_row_to_kwargs(self):
-        m = Manga(1, '')
-        self.assertDictEqual(m.row_to_kwargs({}), {})
-
     def test_can_instantiate_manga_info(self):
         m = MangaInfo(
             1, '', 1, '', '', '', '', '', '', '', '', '', '', '', '', ''
         )
         self.assertEqual(m.manga_id, 1)
-
-    def test_manga_service_row_to_kwargs(self):
-        m = MangaService(1, False, '', manga_id=1, title='')
-        self.assertDictEqual(m.row_to_kwargs({}), {})
 
     def test_manga_service_scraper(self):
         with self.mock_scrapers:

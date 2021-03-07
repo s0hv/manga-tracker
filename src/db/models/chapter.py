@@ -1,6 +1,8 @@
 from datetime import datetime
 from typing import Optional
 
+from psycopg2.extras import DictRow
+
 
 class Chapter:
     def __init__(self,
@@ -22,6 +24,12 @@ class Chapter:
         self._release_date = release_date
         self._chapter_identifier = chapter_identifier
         self._group = group
+
+    @classmethod
+    def from_dbrow(cls, row: DictRow):
+        return cls(
+            **row
+        )
 
     @property
     def chapter_id(self) -> Optional[int]:

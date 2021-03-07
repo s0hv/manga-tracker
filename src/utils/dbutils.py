@@ -192,6 +192,12 @@ class DbUtil:
         return manga_id
 
     @optional_transaction
+    def get_chapters(self, cur: Cursor, service_id: int, manga_id: int, limit: int = 100) -> List[Chapter]:
+        sql = 'SELECT * FROM chapters WHERE service_id=%s AND manga_id=%s LIMIT %s'
+        cur.execute(sql, (service_id, manga_id, limit))
+        return list(map(Chapter.from_dbrow, cur.fetchall()))
+
+    @optional_transaction
     def add_new_manga(self, cur: Cursor, service_id: int, mangas: List[MangaService]):
         manga_titles = {}
         duplicates = set()
@@ -398,6 +404,16 @@ class DbUtil:
         sql = 'SELECT * from manga_service WHERE service_id=%s AND title_id=%s'
         cur.execute(sql, (service_id, title_id))
         return cur.fetchone()
+
+    @optional_transaction
+    def get_manga_service(self, cur: Cursor, service_id: int, title_id: str) -> Optional[MangaService]:
+        sql = 'SELECT * FROM manga_service ms ' \
+              'INNER JOIN manga m ON ms.manga_id = m.manga_id ' \
+              'WHERE service_id=%s AND ms.title_id=%s'
+
+        cur.execute(sql, (service_id, title_id))
+        row = cur.fetchone()
+        return MangaService.from_dbrow(row) if row else None
 
     @optional_transaction
     def update_latest_release(self, cur: Cursor, data: Collection[int]) -> None:

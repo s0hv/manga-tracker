@@ -15,6 +15,7 @@ class Manga:
                  latest_release: Optional[datetime] = None,
                  estimated_release: Optional[datetime] = None,
                  latest_chapter: Optional[int] = None,
+                 views: int = 0
                  ):
         self.manga_id = manga_id
         self.title = title
@@ -22,16 +23,12 @@ class Manga:
         self.latest_release = latest_release
         self.estimated_release = estimated_release
         self.latest_chapter = latest_chapter
-
-    @staticmethod
-    def row_to_kwargs(row: DictRow) -> Dict:
-        # TODO
-        return {}
+        self.views = views
 
     @classmethod
     def from_dbrow(cls, row: DictRow):
         return cls(
-            **cls.row_to_kwargs(row)
+            **row
         )
 
 
@@ -89,15 +86,10 @@ class MangaService(Manga):
         self.feed_url = feed_url
         self.latest_decimal = latest_decimal
 
-    @staticmethod
-    def row_to_kwargs(row: DictRow) -> Dict:
-        # TODO
-        return super(MangaService, MangaService).row_to_kwargs(row)
-
     @classmethod
     def from_dbrow(cls, row: DictRow):
         return cls(
-            **cls.row_to_kwargs(row)
+            **row
         )
 
     # Returns a class initializer so it is named as a class would
