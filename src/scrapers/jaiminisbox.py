@@ -11,7 +11,6 @@ from psycopg2.extras import execute_values
 
 from src.errors import FeedHttpError, InvalidFeedError
 from src.scrapers.base_scraper import BaseScraper, BaseChapter
-from src.utils.feedparsing import get_latest_entries
 from src.utils.utilities import match_title, is_valid_feed, get_latest_chapters
 
 logger = logging.getLogger('debug')
@@ -127,7 +126,7 @@ class JaiminisBox(BaseScraper):
                 last_id = cur.fetchone()[0]
 
         titles = {}
-        entries = get_latest_entries(feed.entries, last_id)
+        entries = feed.entries
         if not entries:
             logger.info('No new entries found')
             return

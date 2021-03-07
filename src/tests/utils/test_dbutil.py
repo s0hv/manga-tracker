@@ -271,6 +271,24 @@ class TestDbUtil(BaseTestClasses.DatabaseTestCase):
 
                 self.assertNotIn(retval[0].manga_id, [id1, id2])
 
+    def test_add_new_manga_with_same_input_titles(self):
+        service_id = 1
+        title = 'test'
+
+        mangas = [
+            MangaService(service_id, False, self.get_str_id(),
+                         manga_id=None, title=title),
+            MangaService(service_id, False, self.get_str_id(),
+                         manga_id=None, title=title)
+        ]
+
+        with self.conn:
+            with self.conn.cursor() as cur:
+                cur = spy_on(cur)
+
+                self.assertIsNone(self.dbutil.add_new_manga(cur, service_id, mangas))
+                cur.execute.assert_not_called()
+
     def test_add_new_manga_with_existing_title(self):
         service_id = 1
         title = 'Very Unique Title'
