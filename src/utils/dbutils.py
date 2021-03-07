@@ -230,6 +230,7 @@ class DbUtil:
             for row in cur:
                 if row[2] == 1:
                     manga = manga_titles.pop(row[1])
+                    manga.manga_id = row[0]
                     already_exist.append((row[0], service_id,
                                           manga.disabled, now,
                                           manga.title_id))
