@@ -6,6 +6,8 @@ import feedparser
 from typing import Optional, List, Iterable, Dict, Pattern, Any, Type, Union
 import logging
 
+import psycopg2
+
 from src.db.mappers.chapter_mapper import ChapterMapper
 from src.errors import FeedHttpError, InvalidFeedError
 from src.scrapers.base_scraper import BaseScraper, BaseChapter
@@ -158,6 +160,13 @@ class BaseRSS(BaseScraper, ABC):
             Title of the manga
         """
         raise NotImplementedError
+
+    def set_checked(self, service_id: int) -> None:
+        try:
+            super().set_checked(service_id)
+            self.dbutil.update_service_whole(service_id, self.min_update_interval())
+        except psycopg2.Error:
+            logger.exception(f'Failed to update service {service_id}')
 
     def parse_feed(self, entries: Iterable[Dict]) -> List[RSSChapter]:
         titles = []
