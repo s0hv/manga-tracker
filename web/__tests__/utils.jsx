@@ -53,6 +53,16 @@ export const authTestUser = {
   email: 'test_auth@test.com',
 };
 
+export const testManga = {
+  manga_id: 2,
+  title: 'ABCDEFG',
+  latest_chapter: 1,
+  aliases: [
+    'Test alias 2',
+    'Test abc',
+  ],
+};
+
 
 export const enqueueSnackbarMock = jest.fn();
 

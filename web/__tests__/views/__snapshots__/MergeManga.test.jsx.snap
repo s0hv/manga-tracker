@@ -14,25 +14,37 @@ exports[`Merge manga page should render correctly should render correctly by def
         className="makeStyles-mangaView-2"
       >
         <div
-          className="makeStyles-search-7"
+          aria-expanded={false}
+          aria-owns={null}
+          className="MuiAutocomplete-root makeStyles-search-7 MuiAutocomplete-fullWidth MuiAutocomplete-hasClearIcon"
+          onClick={[Function]}
           onKeyDown={[Function]}
+          onMouseDown={[Function]}
+          role="combobox"
         >
           <div
+            aria-label="Manga search"
             className="MuiInputBase-root makeStyles-inputRoot-4 MuiInputBase-adornedEnd"
             onClick={[Function]}
           >
             <input
-              aria-label="search"
+              aria-activedescendant={null}
+              aria-autocomplete="list"
+              aria-controls={null}
               autoCapitalize="none"
               autoComplete="off"
-              className="MuiInputBase-input makeStyles-searchInput-3 MuiInputBase-inputAdornedEnd"
+              className="MuiInputBase-input makeStyles-searchInput-3 MuiAutocomplete-input MuiAutocomplete-inputFocused MuiInputBase-inputAdornedEnd"
+              disabled={false}
+              id="manga-search"
               onAnimationStart={[Function]}
               onBlur={[Function]}
               onChange={[Function]}
               onFocus={[Function]}
+              onMouseDown={[Function]}
               placeholder="Search…"
-              spellCheck={false}
+              spellCheck="false"
               type="text"
+              value=""
             />
             <button
               className="MuiButtonBase-root MuiIconButton-root"
@@ -73,25 +85,37 @@ exports[`Merge manga page should render correctly should render correctly by def
         className="makeStyles-mangaView-2"
       >
         <div
-          className="makeStyles-search-7"
+          aria-expanded={false}
+          aria-owns={null}
+          className="MuiAutocomplete-root makeStyles-search-7 MuiAutocomplete-fullWidth MuiAutocomplete-hasClearIcon"
+          onClick={[Function]}
           onKeyDown={[Function]}
+          onMouseDown={[Function]}
+          role="combobox"
         >
           <div
+            aria-label="Manga search"
             className="MuiInputBase-root makeStyles-inputRoot-4 MuiInputBase-adornedEnd"
             onClick={[Function]}
           >
             <input
-              aria-label="search"
+              aria-activedescendant={null}
+              aria-autocomplete="list"
+              aria-controls={null}
               autoCapitalize="none"
               autoComplete="off"
-              className="MuiInputBase-input makeStyles-searchInput-3 MuiInputBase-inputAdornedEnd"
+              className="MuiInputBase-input makeStyles-searchInput-3 MuiAutocomplete-input MuiAutocomplete-inputFocused MuiInputBase-inputAdornedEnd"
+              disabled={false}
+              id="manga-search"
               onAnimationStart={[Function]}
               onBlur={[Function]}
               onChange={[Function]}
               onFocus={[Function]}
+              onMouseDown={[Function]}
               placeholder="Search…"
-              spellCheck={false}
+              spellCheck="false"
               type="text"
+              value=""
             />
             <button
               className="MuiButtonBase-root MuiIconButton-root"

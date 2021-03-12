@@ -21,7 +21,7 @@
     "migrate:up": "db-migrate --config migrations-config.json up",
     "migrate:test": "db-migrate --config migrations-config.json up:test",
     "migrate:up:test": "npm run migrate:up -- -e test && npm run migrate:test -- -e test",
-    "migrate:reset:test": "db-migrate --config migrations-config.json -e test reset:test"
+    "migrate:reset:test": "db-migrate --config migrations-config.json -e test reset:test && npm run migrate:up:test"
   },
   "cacheDirectories": [
     "web/.next/cache/",

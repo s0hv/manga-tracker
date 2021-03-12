@@ -2,7 +2,7 @@ import os
 import sys
 import unittest
 import subprocess
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import NoReturn, Generic, TypeVar, Optional
 from unittest import mock
 
@@ -181,6 +181,14 @@ class BaseTestClasses:
         def assertDateLess(self, date1: datetime, date2: datetime):
             if date_fix(date1) >= date_fix(date2):
                 self.fail(f'Date {date1} is later or equal to {date2}')
+
+        def assertDatesAlmostEqual(self, date1: datetime, date2: datetime,
+                                   delta: timedelta = timedelta(seconds=1),
+                                   msg: str = None):
+            date1 = date_fix(date1)
+            date2 = date_fix(date2)
+
+            self.assertAlmostEqual(date1, date2, delta=delta, msg=msg)
 
         def assertMangaServiceExists(self, title_id: str, service_id: int):
             sql = 'SELECT 1 FROM manga_service WHERE service_id=%s AND title_id=%s'

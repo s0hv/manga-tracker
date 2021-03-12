@@ -2,7 +2,9 @@ import logging
 import random
 import re
 from datetime import timedelta, datetime
-from typing import Optional, Tuple, Union, Iterable, Dict
+from itertools import groupby
+from operator import attrgetter
+from typing import Optional, Tuple, Union, Iterable, Dict, List, TypeVar, Type
 
 from psycopg2.extras import DictRow
 
@@ -107,3 +109,16 @@ def get_latest_chapters(rows: Iterable[Union[dict, DictRow]]) -> Dict[str, Tuple
         chapter_data[manga_id] = (row['manga_id'], row['chapter_number'], row['release_date'])
 
     return chapter_data
+
+
+BaseChapter = TypeVar('BaseChapter', bound=Type['src.scrapers.base_scraper.BaseChapter'])  # noqa: F821
+
+
+def group_by_manga(chapters: Iterable[BaseChapter]) -> Dict[str, List[BaseChapter]]:
+    titles: Dict[str, List[BaseChapter]] = {}
+    # Must be sorted for groupby to work, as it only splits the list each time the key changes
+    for k, g in groupby(sorted(chapters, key=attrgetter('title_id')),
+                        attrgetter('title_id')):  # type: ignore
+        titles[k] = list(g)  # type: ignore[index]
+
+    return titles

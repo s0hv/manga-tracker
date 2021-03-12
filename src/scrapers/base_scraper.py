@@ -1,5 +1,6 @@
 import abc
 import logging
+from inspect import isabstract
 from datetime import timedelta, datetime
 from typing import Optional
 
@@ -85,14 +86,31 @@ class BaseChapter(metaclass=abc.ABCMeta):
 
 class BaseScraper(metaclass=abc.ABCMeta):
     ID: int = None
+    """Database id of this service"""
+
     UPDATE_INTERVAL: timedelta = timedelta(hours=1)
+    """The minimum time between two updates of this service"""
+
     URL: str = None
+    """URL to the website of this service"""
+
     FEED_URL: str = None
+    """URL of the feed (usually rss feed) of this service"""
+
     NAME: str = None
+    """Name of this service"""
+
     CHAPTER_URL_FORMAT: str = ''
+    """Format of chapter urls"""
+
     MANGA_URL_FORMAT: str = ''
+    """Format of manga urls"""
 
     def __init_subclass__(cls, **kwargs):
+        # Ignore for abstract classes
+        if isabstract(cls):
+            return
+
         if cls.ID is None:
             raise NotImplementedError("Service doesn't have the ID class property")
 
@@ -126,6 +144,9 @@ class BaseScraper(metaclass=abc.ABCMeta):
 
     @staticmethod
     def min_update_interval() -> timedelta:
+        """
+        Minimum time between two checks on this service
+        """
         raise NotImplementedError
 
     def next_update(self) -> datetime:

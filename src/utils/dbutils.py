@@ -6,11 +6,14 @@ from typing import (
     Iterable, TypeVar, Type
 )
 
+import typing
 from psycopg2.extensions import connection as Connection, cursor as Cursor
 from psycopg2.extras import execute_values, DictRow
 
+from src.db.models.chapter import Chapter
 from src.db.models.manga import MangaService
 from src.db.models.scheduled_run import ScheduledRun
+from src.db.models.services import Service, ServiceWhole
 from src.scrapers import base_scraper
 from src.utils.utilities import round_seconds
 
@@ -22,7 +25,7 @@ BaseChapter = TypeVar('BaseChapter', bound=Type['base_scraper.BaseChapter'])
 
 
 class TransactionFunction(Protocol):
-    def __call__(self, cur: Cursor, *args, **kwargs) -> Any: ...
+    def __call__(self, cur: Cursor, *args, **kwargs) -> Any: ...  # pragma: no cover
 
 
 def optional_transaction(f: TransactionFunction):
@@ -66,15 +69,27 @@ class DbUtil:
         cur.execute(sql, args)
         return cur.fetchall()
 
+    @typing.overload
     @optional_transaction
-    def get_service(self, cur: Cursor, service_url: str) -> Optional[int]:
-        sql = 'SELECT service_id FROM services WHERE url=%s'
-        cur.execute(sql, (service_url,))
-        row = cur.fetchone()
-        return row[0] if row else None
+    def get_service(self, cur: Cursor, service_id: int) -> Optional[Service]: ...
+
+    @typing.overload
+    @optional_transaction
+    def get_service(self, cur: Cursor, service_url: str) -> Optional[Service]: ...
 
     @optional_transaction
-    def set_service_updates(self, cur: Cursor, service_id: int, disabled_until: datetime):
+    def get_service(self, cur: Cursor, service_id_url: Union[int, str]) -> Optional[Service]:
+        if isinstance(service_id_url, int):
+            sql = 'SELECT * FROM services WHERE service_id=%s'
+        else:
+            sql = 'SELECT * FROM services WHERE url=%s'
+
+        cur.execute(sql, (service_id_url,))
+        row = cur.fetchone()
+        return Service.from_dbrow(row) if row else None
+
+    @optional_transaction
+    def set_service_disabled_until(self, cur: Cursor, service_id: int, disabled_until: datetime):
         sql = 'UPDATE services SET disabled_until=%s WHERE service_id=%s'
         cur.execute(sql, (disabled_until, service_id))
 
@@ -177,6 +192,12 @@ class DbUtil:
         return manga_id
 
     @optional_transaction
+    def get_chapters(self, cur: Cursor, service_id: int, manga_id: int, limit: int = 100) -> List[Chapter]:
+        sql = 'SELECT * FROM chapters WHERE service_id=%s AND manga_id=%s LIMIT %s'
+        cur.execute(sql, (service_id, manga_id, limit))
+        return list(map(Chapter.from_dbrow, cur.fetchall()))
+
+    @optional_transaction
     def add_new_manga(self, cur: Cursor, service_id: int, mangas: List[MangaService]):
         manga_titles = {}
         duplicates = set()
@@ -215,6 +236,7 @@ class DbUtil:
             for row in cur:
                 if row[2] == 1:
                     manga = manga_titles.pop(row[1])
+                    manga.manga_id = row[0]
                     already_exist.append((row[0], service_id,
                                           manga.disabled, now,
                                           manga.title_id))
@@ -353,6 +375,14 @@ class DbUtil:
             yield row[0], id2chapters[row[0]]
 
     @optional_transaction
+    def get_service_whole(self, cur: Cursor, service_id: int) -> Optional[ServiceWhole]:
+        sql = 'SELECT * FROM service_whole WHERE service_id=%s'
+        cur.execute(sql, [service_id])
+        row = cur.fetchone()
+
+        return ServiceWhole.from_dbrow(row) if row else None
+
+    @optional_transaction
     def update_service_whole(self, cur: Cursor, service_id: int, update_interval: timedelta) -> None:
         sql = 'UPDATE services SET last_check=%s WHERE service_id=%s'
         now = datetime.utcnow()
@@ -376,6 +406,16 @@ class DbUtil:
         return cur.fetchone()
 
     @optional_transaction
+    def get_manga_service(self, cur: Cursor, service_id: int, title_id: str) -> Optional[MangaService]:
+        sql = 'SELECT * FROM manga_service ms ' \
+              'INNER JOIN manga m ON ms.manga_id = m.manga_id ' \
+              'WHERE service_id=%s AND ms.title_id=%s'
+
+        cur.execute(sql, (service_id, title_id))
+        row = cur.fetchone()
+        return MangaService.from_dbrow(row) if row else None
+
+    @optional_transaction
     def update_latest_release(self, cur: Cursor, data: Collection[int]) -> None:
         format_ids = ','.join(['%s'] * len(data))
         sql = 'UPDATE manga m SET latest_release=c.release_date FROM ' \
@@ -383,20 +423,43 @@ class DbUtil:
               'WHERE m.manga_id=c.manga_id'
         cur.execute(sql, data)
 
+    @typing.overload
     @optional_transaction
     def add_chapters(self, cur: Cursor, manga_id, service_id,
-                     chapters: List['base_scraper.BaseChapter'], fetch: bool = True) -> Optional[List[DictRow]]:
-        args = [
-            (
-                manga_id, service_id, chapter.title,
-                chapter.chapter_number, chapter.decimal,
-                chapter.chapter_identifier,
-                chapter.release_date, chapter.group
-            ) for chapter in chapters
-        ]
+                     chapters: List['base_scraper.BaseChapter'], fetch: bool = True) -> Optional[List[DictRow]]: ...
+
+    @typing.overload
+    @optional_transaction
+    def add_chapters(self, cur: Cursor, chapters: List[Chapter], fetch: bool = True) -> Optional[List[DictRow]]: ...
+
+    @optional_transaction
+    def add_chapters(self, cur: Cursor, *args, fetch: bool = True) -> Optional[List[DictRow]]:
+        if len(args) == 1:
+            chapters: List[Chapter] = args[0]
+            data = [
+                (
+                    c.manga_id, c.service_id, c.title,
+                    c.chapter_number, c.chapter_decimal,
+                    c.chapter_identifier, c.release_date,
+                    c.group
+                ) for c in chapters
+            ]
+        else:
+            manga_id, service_id = args[:2]
+            chapters: List['base_scraper.BaseChapter'] = args[2]
+
+            data = [
+                (
+                    manga_id, service_id, chapter.title,
+                    chapter.chapter_number, chapter.decimal,
+                    chapter.chapter_identifier,
+                    chapter.release_date, chapter.group
+                ) for chapter in chapters
+            ]
+
         sql = 'INSERT INTO chapters (manga_id, service_id, title, chapter_number, chapter_decimal, chapter_identifier, release_date, "group") VALUES ' \
               '%s ON CONFLICT DO NOTHING RETURNING manga_id, chapter_number, chapter_decimal, release_date, chapter_identifier'
-        return execute_values(cur, sql, args, page_size=max(len(args), 300), fetch=fetch)
+        return execute_values(cur, sql, data, page_size=max(len(data), 300), fetch=fetch)
 
     @optional_transaction
     def update_latest_chapter(self, cur: Cursor, data: Collection[Tuple[int, int, datetime]]) -> None:

@@ -1,7 +1,8 @@
 import unittest
-from datetime import datetime
+from datetime import datetime, timedelta
 from types import GeneratorType
 
+from src.db.models.manga import MangaService
 from src.tests.scrapers.testing_scraper import DummyScraper
 from src.tests.testing_utils import Chapter, BaseTestClasses, spy_on
 
@@ -77,6 +78,11 @@ class TestDbUtil(BaseTestClasses.DatabaseTestCase):
         super().setUp()
 
         self.test_scraper = DummyScraper(self._conn, self.dbutil)
+        self._id = 0
+
+    def get_str_id(self) -> str:
+        self._id += 1
+        return f'{__name__}_{self._id}'
 
     def test_add_new_series_and_chapters(self):
         """
@@ -199,6 +205,128 @@ class TestDbUtil(BaseTestClasses.DatabaseTestCase):
                 self.assertLogs('maintenance', 'INFO')
                 self.assertDatesNotEqual(row['estimated_release_old'], row['estimated_release'])
                 self.assertDateGreater(row['estimated_release'], release)
+
+    def test_set_service_disabled_until(self):
+        with self.conn:
+            with self.conn.cursor() as cur:
+                disabled_until = datetime.utcnow() + timedelta(hours=12)
+                service_id = 1
+                self.dbutil.set_service_disabled_until(cur, service_id,
+                                                       disabled_until)
+
+                service = self.dbutil.get_service(cur, service_id)
+
+                self.assertDatesEqual(disabled_until, service.disabled_until)
+
+    def test_update_service_whole(self):
+        with self.conn:
+            with self.conn.cursor() as cur:
+                service_id = 2
+                update_interval = timedelta(hours=2)
+                now = datetime.utcnow()
+
+                self.dbutil.update_service_whole(cur, service_id, update_interval)
+
+                service = self.dbutil.get_service(service_id)
+                service_whole = self.dbutil.get_service_whole(service_id)
+
+                self.assertIsNotNone(service, 'Service is None')
+                self.assertIsNotNone(service_whole, 'Service whole is None')
+
+                self.assertDatesAlmostEqual(service.last_check, now)
+                self.assertDatesAlmostEqual(service_whole.last_check, now)
+                self.assertDatesAlmostEqual(service_whole.next_update, now + update_interval)
+
+    def test_add_new_manga_with_only_duplicates(self):
+        service_id = 1
+        mangas = [
+            MangaService(service_id, False, 'test1',
+                         manga_id=None, title='test 1'),
+            MangaService(service_id, False, 'test2',
+                         manga_id=None, title='test 1')
+        ]
+
+        with self.conn:
+            with self.conn.cursor() as cur:
+                cur = spy_on(cur)
+                self.assertIsNone(self.dbutil.add_new_manga(cur, service_id, mangas))
+                cur.execute.assert_not_called()
+
+    def test_add_new_manga_with_multiple_same_matches(self):
+        service_id = 1
+        title = 'Manga test'
+
+        id1 = self.dbutil.add_single_series(service_id+1, self.get_str_id(), title)
+        id2 = self.dbutil.add_single_series(service_id+1, self.get_str_id(), title)
+
+        mangas = [
+            MangaService(service_id, False, 'test_matches_1',
+                         manga_id=None, title=title)
+        ]
+
+        with self.conn:
+            with self.conn.cursor() as cur:
+                retval = self.dbutil.add_new_manga(cur, service_id, mangas)
+                self.assertListEqual(retval, mangas)
+
+                self.assertNotIn(retval[0].manga_id, [id1, id2])
+
+    def test_add_new_manga_with_same_input_titles(self):
+        service_id = 1
+        title = 'test'
+
+        mangas = [
+            MangaService(service_id, False, self.get_str_id(),
+                         manga_id=None, title=title),
+            MangaService(service_id, False, self.get_str_id(),
+                         manga_id=None, title=title)
+        ]
+
+        with self.conn:
+            with self.conn.cursor() as cur:
+                cur = spy_on(cur)
+
+                self.assertIsNone(self.dbutil.add_new_manga(cur, service_id, mangas))
+                cur.execute.assert_not_called()
+
+    def test_add_new_manga_with_existing_title(self):
+        service_id = 1
+        title = 'Very Unique Title'
+
+        id1 = self.dbutil.add_single_series(service_id+1, self.get_str_id(), title)
+
+        mangas = [
+            MangaService(service_id, False, self.get_str_id(),
+                         manga_id=None, title=title.lower())
+        ]
+
+        with self.conn:
+            with self.conn.cursor() as cur:
+                self.assertIsNone(mangas[0].manga_id)
+                self.assertIsNone(self.dbutil.add_new_manga(cur, service_id, mangas))
+
+                self.assertEqual(mangas[0].manga_id, id1)
+
+    def test_add_new_manga(self):
+        service_id = 1
+
+        mangas = [
+            MangaService(service_id, False, self.get_str_id(),
+                         manga_id=None, title=self.get_str_id()),
+            MangaService(service_id, False, self.get_str_id(),
+                         manga_id=None, title=self.get_str_id()),
+            MangaService(service_id, False, self.get_str_id(),
+                         manga_id=None, title=self.get_str_id()),
+            MangaService(service_id, False, self.get_str_id(),
+                         manga_id=None, title=self.get_str_id())
+        ]
+
+        with self.conn:
+            with self.conn.cursor() as cur:
+                retval = self.dbutil.add_new_manga(cur, service_id, mangas)
+
+                self.assertListEqual(retval, mangas)
+                self.assertNotIn(None, map(lambda ms: ms.manga_id, mangas))
 
 
 if __name__ == '__main__':

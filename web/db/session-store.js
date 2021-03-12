@@ -39,7 +39,7 @@ module.exports = (expressSession) => {
       });
 
       // Clear sessions every two hours
-      this.clearInterval = setInterval(() => this.clearOldSessions(), 7.2e+6);
+      this.clearInterval = setInterval(() => this.clearOldSessions(), options.clearInterval || 7.2e+6);
     }
 
     clearOldSessions() {

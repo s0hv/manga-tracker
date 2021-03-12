@@ -15,6 +15,7 @@ class Manga:
                  latest_release: Optional[datetime] = None,
                  estimated_release: Optional[datetime] = None,
                  latest_chapter: Optional[int] = None,
+                 views: int = 0
                  ):
         self.manga_id = manga_id
         self.title = title
@@ -22,21 +23,18 @@ class Manga:
         self.latest_release = latest_release
         self.estimated_release = estimated_release
         self.latest_chapter = latest_chapter
-
-    @staticmethod
-    def row_to_kwargs(row: DictRow) -> Dict:
-        # TODO
-        return {}
+        self.views = views
 
     @classmethod
     def from_dbrow(cls, row: DictRow):
         return cls(
-            **cls.row_to_kwargs(row)
+            **row
         )
 
 
 class MangaInfo:
-    def __init__(self, cover: Optional[str] = None,
+    def __init__(self, manga_id: int,
+                 cover: Optional[str] = None,
                  status: Optional[int] = None,
                  artist: Optional[str] = None,
                  author: Optional[str] = None,
@@ -51,6 +49,7 @@ class MangaInfo:
                  kitsu: Optional[str] = None,
                  anime_planet: Optional[str] = None,
                  anilist: Optional[str] = None):
+        self.manga_id = manga_id
         self.cover = cover
         self.status = status
         self.artist = artist
@@ -87,23 +86,18 @@ class MangaService(Manga):
         self.feed_url = feed_url
         self.latest_decimal = latest_decimal
 
-    @staticmethod
-    def row_to_kwargs(row: DictRow) -> Dict:
-        # TODO
-        return super().row_to_kwargs(row)
-
     @classmethod
     def from_dbrow(cls, row: DictRow):
         return cls(
-            **cls.row_to_kwargs(row)
+            **row
         )
 
     # Returns a class initializer so it is named as a class would
     # noinspection PyPep8Naming
     @property
     def Scraper(self) -> Type['base_scraper.BaseScraper']:
-        from src.scrapers import SCRAPERS
-        return SCRAPERS[self.service_id]
+        from src.scrapers import SCRAPERS_ID
+        return SCRAPERS_ID[self.service_id]
 
     def scrape_series(self, conn: Connection, dbutil: 'dbutils.DbUtil'):
         scraper = self.Scraper(conn, dbutil)

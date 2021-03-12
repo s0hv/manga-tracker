@@ -159,7 +159,6 @@ function TopBar(props) {
           <MangaSearch
             id='title-search'
             placeholder='Search manga'
-            closeOnClick
           />
           {(user && (
           <div className={classes.profileIcon}>

@@ -1,30 +1,40 @@
+import json
 import os
 import pickle
 import unittest
-from unittest.mock import patch
+from typing import Tuple
 from unittest.mock import MagicMock
+from unittest.mock import patch
 
 import feedparser
+import requests
+import responses
 
-from src.scrapers.mangadex import MangaDex, Chapter
 import setup_logging
-
-from src.tests.testing_utils import get_conn, mock_feedparse, spy_on
-from src.utils.dbutils import DbUtil
+from src.scrapers.mangadex import MangaDex, Chapter
+from src.tests.testing_utils import mock_feedparse, BaseTestClasses
 
 test_feed = os.path.join(os.path.dirname(__file__), 'feed.xml')
 logger = setup_logging.setup()
 
 
-class MangadexTests(unittest.TestCase):
+class MangadexTests(BaseTestClasses.DatabaseTestCase):
 
     def setUp(self) -> None:
-        self._conn = get_conn()
-        self.dbutil = spy_on(DbUtil(self._conn))
+        super().setUp()
         self.mangadex = MangaDex(self._conn, self.dbutil)
 
-    def tearDown(self) -> None:
-        self._conn.close()
+        api_path = os.path.join(os.path.dirname(__file__), 'api_data.json')
+        with open(api_path, encoding='utf-8') as f:
+            self.api_data = json.load(f)
+
+        with open(api_path, 'rb') as f:
+            self.api_data_bytes = f.read()
+
+    def get_api_url(self) -> Tuple[str, str]:
+        data = self.api_data['data']['manga']
+        title_id = str(data['id'])
+        return f'{MangaDex.MANGADEX_API}/manga/{title_id}?include=chapters', title_id
 
     @staticmethod
     def parse_testfile():
@@ -86,6 +96,45 @@ class MangadexTests(unittest.TestCase):
         parse.assert_called_once()
         parse.assert_called_with('invalid_feed')
         self.assertIsNone(updated)
+
+    @responses.activate
+    def test_scrape_series(self):
+        data = self.api_data['data']['manga']
+        url, title_id = self.get_api_url()
+
+        responses.add(responses.GET, url,
+                      body=self.api_data_bytes)
+        chapter_count = 3
+
+        self.assertTrue(self.mangadex.scrape_series(title_id, MangaDex.ID, None))
+
+        self.assertGreater(len(responses.calls), 0)
+
+        manga = self.dbutil.get_manga_service(MangaDex.ID, title_id)
+        self.assertIsNotNone(manga)
+
+        chapters = self.dbutil.get_chapters(MangaDex.ID, manga.manga_id)
+        self.assertEqual(len(chapters), chapter_count)
+
+        self.assertEqual(manga.title, data['title'])
+
+    @responses.activate
+    def test_scrape_service_http_error(self):
+        url, title_id = self.get_api_url()
+        responses.add(responses.GET, url, body=requests.HTTPError())
+
+        self.assertIsNone(self.mangadex.scrape_series(title_id, MangaDex.ID, None))
+        self.assertEqual(len(responses.calls), 1)
+
+    @responses.activate
+    def test_scrape_service_data_error(self):
+        url, title_id = self.get_api_url()
+        body = b'{}'
+
+        responses.add(responses.GET, url, body=body)
+
+        self.assertIsNone(self.mangadex.scrape_series(title_id, MangaDex.ID, None))
+        self.assertEqual(len(responses.calls), 1)
 
 
 if __name__ == '__main__':

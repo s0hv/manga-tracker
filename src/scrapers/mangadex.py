@@ -97,7 +97,7 @@ class MangaDex(BaseScraper):
     CHAPTER_REGEX = re.compile(r'(?P<manga_title>.+) -($| (((?:Volume (?P<volume>\d+),? )?Chapter (?P<chapter>\d+)(?:\.?(?P<decimal>\d+))?)|(?:(?P<chapter_title>.+?)(( - )?Oneshot)?)$))')
     DESCRIPTION_REGEX = re.compile(r'Group: (?P<group>.+?) - Uploader: (?P<uploader>.+?) - Language: (?P<language>\w+)')
     UPDATE_INTERVAL = timedelta(minutes=30)
-    MANGADEX_API = 'https://mangadex.org/api/v2'
+    MANGADEX_API = 'https://api.mangadex.org/v2'
     CHAPTER_URL_FORMAT = 'https://mangadex.org/chapter/{}'
     MANGA_URL_FORMAT = 'https://mangadex.org/title/{}'
 
