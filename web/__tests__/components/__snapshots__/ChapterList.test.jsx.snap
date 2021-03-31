@@ -19,7 +19,6 @@ exports[`Chapter list should render correctly with chapters 1`] = `
           },
           "render": [Function],
         },
-        "displayName": "WithStyles(ForwardRef(Paper))",
         "options": Object {
           "defaultTheme": Object {
             "breakpoints": Object {
@@ -406,7 +405,6 @@ exports[`Chapter list should render correctly with chapters and edit 1`] = `
           },
           "render": [Function],
         },
-        "displayName": "WithStyles(ForwardRef(Paper))",
         "options": Object {
           "defaultTheme": Object {
             "breakpoints": Object {
@@ -793,7 +791,6 @@ exports[`Chapter list should render correctly without chapters 1`] = `
           },
           "render": [Function],
         },
-        "displayName": "WithStyles(ForwardRef(Paper))",
         "options": Object {
           "defaultTheme": Object {
             "breakpoints": Object {

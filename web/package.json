@@ -56,8 +56,8 @@
     "pg-format": "^1.0.4",
     "prop-types": "^15.7.2",
     "rate-limiter-flexible": "^2.2.1",
-    "react": "^16.14.0",
-    "react-dom": "^16.14.0",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
     "react-final-form": "^6.5.3",
     "react-frappe-charts": "^4.0.0",
     "react-table": "^7.6.3",
@@ -90,6 +90,7 @@
     "@testing-library/user-event": "^12.8.3",
     "@types/enzyme": "^3.10.8",
     "@types/react-table": "^7.0.29",
+    "@wojtekmaj/enzyme-adapter-react-17": "^0.6.0",
     "babel-eslint": "^10.1.0",
     "babel-jest": "^26.6.3",
     "cookie": "^0.4.1",
@@ -97,7 +98,6 @@
     "cross-env": "^7.0.3",
     "dotenv": "^8.2.0",
     "enzyme": "^3.11.0",
-    "enzyme-adapter-react-16": "^1.15.6",
     "enzyme-to-json": "^3.6.1",
     "eslint": "^7.23.0",
     "eslint-config-airbnb": "^18.2.1",
@@ -110,7 +110,7 @@
     "jest": "^26.6.3",
     "jest-extended": "^0.11.5",
     "node-fetch": "^2.6.1",
-    "react-test-renderer": "^16.14.0",
+    "react-test-renderer": "^17.0.2",
     "supertest": "^6.1.3"
   }
 }
