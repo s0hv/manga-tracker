@@ -73,6 +73,17 @@ correct_entries = {
         chapter_title=None,
         group=KireiCake.NAME,
         manga_url=KireiCake.MANGA_URL_FORMAT.format('former-world-number-1')
+    ),
+    '10600': KireiCake.Chapter(
+        chapter_identifier='10600',
+        chapter_number='12',
+        decimal='2',
+        manga_title='Little Girl x Scoop x Evil Eye',
+        release_date=get_date('Sun, 04 Apr 2021 20:41:39 +0000'),
+        title_id='little-girl-x-scoop-x-evil-eye',
+        chapter_title=None,
+        group=KireiCake.NAME,
+        manga_url=KireiCake.MANGA_URL_FORMAT.format('little-girl-x-scoop-x-evil-eye')
     )
 }
 
