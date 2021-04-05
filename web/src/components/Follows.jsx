@@ -11,6 +11,7 @@ import {
   Typography,
 } from '@material-ui/core';
 import NextLink from 'next/link';
+import { useCSRF } from '../utils/csrf';
 
 import { defaultDateDistanceToNow, followUnfollow } from '../utils/utilities';
 
@@ -63,6 +64,7 @@ function Follows(props) {
   } = props;
 
   const classes = useStyles();
+  const csrf = useCSRF();
   const columnsXs = 1;
   const columnsMd = 2;
 
@@ -108,14 +110,14 @@ function Follows(props) {
             <List className={classes.serviceList}>
               <ListItem key='all_services' className={classes.followService} disableGutters>
                 <ListItemText primary='All services' className={classes.serviceName} />
-                <Button variant='contained' color='primary' onClick={followUnfollow(follow.manga_id)}>
+                <Button variant='contained' color='primary' onClick={followUnfollow(csrf, follow.manga_id)}>
                   {followedServices.indexOf(null) < 0 ? 'Follow' : 'Unfollow'}
                 </Button>
               </ListItem>
               {follow.services.map((service) => (
                 <ListItem key={service.service_id} className={classes.followService} disableGutters>
                   <ListItemText primary={service.service_name} className={classes.serviceName} />
-                  <Button variant='contained' color='primary' onClick={followUnfollow(follow.manga_id, service.service_id)}>
+                  <Button variant='contained' color='primary' onClick={followUnfollow(csrf, follow.manga_id, service.service_id)}>
                     {followedServices.indexOf(service.service_id) < 0 ? 'Follow' : 'Unfollow'}
                   </Button>
                 </ListItem>

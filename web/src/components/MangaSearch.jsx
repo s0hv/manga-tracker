@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   IconButton,
   InputBase,
@@ -48,6 +48,9 @@ const useStyles = makeStyles((theme) => ({
       width: '450px !important',
     },
   },
+  listItem: {
+    width: '100%',
+  },
 }));
 
 
@@ -68,7 +71,7 @@ export default function MangaSearch(props) {
     setValue(event.target.value);
   }, []);
 
-  const throttleFetch = React.useMemo(
+  const throttleFetch = useMemo(
     () => throttle((query, cb) => {
       fetch('/api/quicksearch?query=' + encodeURIComponent(query))
         .then(res => res.json())
@@ -81,7 +84,7 @@ export default function MangaSearch(props) {
     []
   );
 
-  React.useEffect(() => {
+  useEffect(() => {
     let active = true;
     if (value.length < 2) {
       setOptions([]);
@@ -99,18 +102,19 @@ export default function MangaSearch(props) {
     };
   }, [value, throttleFetch]);
 
-  const renderListOption = renderItem ||
-    ((option) => (
-      <NextLink href='/manga/[id]' as={`/manga/${option.manga_id}`} prefetch={false}>
-        <div>{option.title}</div>
-      </NextLink>
-    ));
+  const defaultRenderListOption = useCallback((option) => (
+    <NextLink href='/manga/[id]' as={`/manga/${option.manga_id}`} prefetch={false}>
+      <div className={classes.listItem}>{option.title}</div>
+    </NextLink>
+  ), [classes.listItem]);
 
-  const BottomEndPopper = (pProps) => (
+  const renderListOption = renderItem || defaultRenderListOption;
+
+  const BottomEndPopper = useCallback((pProps) => (
     <Popper {...pProps} placement='bottom-end' {...popperProps}>
       {pProps.children}
     </Popper>
-  );
+  ), [popperProps]);
 
   return (
     <Autocomplete

@@ -1,6 +1,7 @@
 import request from 'supertest';
 import { deleteScheduledRun, scheduleMangaRun } from '../../../db/admin/management';
 import { getMangaPartial, getAliases } from '../../../db/manga';
+import { csrfMissing } from '../../../utils/constants';
 import { redis } from '../../../utils/ratelimits';
 
 import { userForbidden, userUnauthorized } from '../../constants';
@@ -25,9 +26,17 @@ describe('POST /api/admin/manga/:manga_id/scheduledRun/:service_id', () => {
   const mangaId = 1;
   const url = `/api/admin/manga/${mangaId}/scheduledRun/${serviceId}`;
 
+  it('Returns 403 without CSRF token', async () => {
+    await request(httpServer)
+      .post(url)
+      .expect(403)
+      .expect(expectErrorMessage(csrfMissing));
+  });
+
   it('returns unauthorized without user', async () => {
     await request(httpServer)
       .post(url)
+      .csrf()
       .expect(401)
       .expect(expectErrorMessage(userUnauthorized));
   });
@@ -36,6 +45,7 @@ describe('POST /api/admin/manga/:manga_id/scheduledRun/:service_id', () => {
     await withUser(normalUser, async () => {
       await request(httpServer)
         .post(url)
+        .csrf()
         .expect(403)
         .expect(expectErrorMessage(userForbidden));
     });
@@ -45,14 +55,17 @@ describe('POST /api/admin/manga/:manga_id/scheduledRun/:service_id', () => {
     await withUser(adminUser, async () => {
       await request(httpServer)
         .post('/api/admin/manga/1/scheduledRun/abc')
+        .csrf()
         .expect(404);
 
       await request(httpServer)
         .post('/api/admin/manga/1d2/scheduledRun/1')
+        .csrf()
         .expect(404);
 
       await request(httpServer)
         .post('/api/admin/manga/-1/scheduledRun/-1')
+        .csrf()
         .expect(404);
     });
   });
@@ -61,6 +74,7 @@ describe('POST /api/admin/manga/:manga_id/scheduledRun/:service_id', () => {
     await withUser(adminUser, async () => {
       await request(httpServer)
         .post(url)
+        .csrf()
         .expect('content-type', /application\/json/)
         .expect(200)
         .expect(res => {
@@ -81,11 +95,13 @@ describe('POST /api/admin/manga/:manga_id/scheduledRun/:service_id', () => {
     await withUser(adminUser, async () => {
       await request(httpServer)
         .post(url)
+        .csrf()
         .expect('content-type', /application\/json/)
         .expect(200);
 
       await request(httpServer)
         .post(url)
+        .csrf()
         .expect(422);
 
       await deleteScheduledRun(mangaId, serviceId);
@@ -98,9 +114,17 @@ describe('DELETE /api/admin/manga/:manga_id/scheduledRun/:service_id', () => {
   const mangaId = 1;
   const url = `/api/admin/manga/${mangaId}/scheduledRun/${serviceId}`;
 
+  it('Returns 403 without CSRF token', async () => {
+    await request(httpServer)
+      .delete(url)
+      .expect(403)
+      .expect(expectErrorMessage(csrfMissing));
+  });
+
   it('returns unauthorized without user', async () => {
     await request(httpServer)
       .delete(url)
+      .csrf()
       .expect(401)
       .expect(expectErrorMessage(userUnauthorized));
   });
@@ -109,6 +133,7 @@ describe('DELETE /api/admin/manga/:manga_id/scheduledRun/:service_id', () => {
     await withUser(normalUser, async () => {
       await request(httpServer)
         .delete(url)
+        .csrf()
         .expect(403)
         .expect(expectErrorMessage(userForbidden));
     });
@@ -118,14 +143,17 @@ describe('DELETE /api/admin/manga/:manga_id/scheduledRun/:service_id', () => {
     await withUser(adminUser, async () => {
       await request(httpServer)
         .delete('/api/admin/manga/1/scheduledRun/abc')
+        .csrf()
         .expect(404);
 
       await request(httpServer)
         .delete('/api/admin/manga/1d2/scheduledRun/1')
+        .csrf()
         .expect(404);
 
       await request(httpServer)
         .delete('/api/admin/manga/-1/scheduledRun/-1')
+        .csrf()
         .expect(404);
     });
   });
@@ -135,6 +163,7 @@ describe('DELETE /api/admin/manga/:manga_id/scheduledRun/:service_id', () => {
       await scheduleMangaRun(mangaId, serviceId, adminUser.user_id);
       await request(httpServer)
         .delete(url)
+        .csrf()
         .expect(200);
     });
   });
@@ -143,6 +172,7 @@ describe('DELETE /api/admin/manga/:manga_id/scheduledRun/:service_id', () => {
     await withUser(adminUser, async () => {
       await request(httpServer)
         .delete(url)
+        .csrf()
         .expect(404);
     });
   });
@@ -217,9 +247,17 @@ describe('POST /api/admin/manga/:manga_id/title', () => {
   const mangaId = 1;
   const url = `/api/admin/manga/${mangaId}/title`;
 
+  it('Returns 403 without CSRF token', async () => {
+    await request(httpServer)
+      .post(url)
+      .expect(403)
+      .expect(expectErrorMessage(csrfMissing));
+  });
+
   it('returns unauthorized without user', async () => {
     await request(httpServer)
       .post(url)
+      .csrf()
       .expect(401)
       .expect(expectErrorMessage(userUnauthorized));
   });
@@ -228,6 +266,7 @@ describe('POST /api/admin/manga/:manga_id/title', () => {
     await withUser(normalUser, async () => {
       await request(httpServer)
         .post(url)
+        .csrf()
         .expect(403)
         .expect(expectErrorMessage(userForbidden));
     });
@@ -237,11 +276,13 @@ describe('POST /api/admin/manga/:manga_id/title', () => {
     await withUser(adminUser, async () => {
       await request(httpServer)
         .post(url)
+        .csrf()
         .expect(400)
         .expect(expectErrorMessage(undefined, 'title'));
 
       await request(httpServer)
         .post(url)
+        .csrf()
         .send({ title: null })
         .expect(400)
         .expect(expectErrorMessage(null, 'title'));
@@ -252,6 +293,7 @@ describe('POST /api/admin/manga/:manga_id/title', () => {
     await withUser(adminUser, async () => {
       await request(httpServer)
         .post(url)
+        .csrf()
         .send({ title: '' })
         .expect(400)
         .expect(expectErrorMessage('', 'title'));
@@ -265,6 +307,7 @@ describe('POST /api/admin/manga/:manga_id/title', () => {
     await withUser(adminUser, async () => {
       await request(httpServer)
         .post(url)
+        .csrf()
         .send({ title: newTitle })
         .expect(200)
         .expect(/Replaced old alias/);
@@ -283,6 +326,7 @@ describe('POST /api/admin/manga/:manga_id/title', () => {
     await withUser(adminUser, async () => {
       await request(httpServer)
         .post(url)
+        .csrf()
         .send({ title: newTitle })
         .expect(200)
         .expect(/Alias not found/);

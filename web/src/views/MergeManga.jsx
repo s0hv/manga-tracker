@@ -4,6 +4,7 @@ import { makeStyles } from '@material-ui/core/styles';
 
 import Search from '../components/MangaSearch';
 import PartialManga from '../components/PartialManga';
+import { csrfHeader, useCSRF } from '../utils/csrf';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -34,6 +35,7 @@ const useStyles = makeStyles((theme) => ({
 
 function MergeManga() {
   const classes = useStyles();
+  const csrf = useCSRF();
 
   const [manga1, setManga1] = React.useState({});
   const [manga2, setManga2] = React.useState({});
@@ -54,7 +56,13 @@ function MergeManga() {
   const mergeManga = () => {
     if (!manga1.manga_id || !manga2.manga_id || manga1.manga_id === manga2.manga_id) return;
     fetch(`/api/manga/merge/?base=${manga1.manga_id}&to_merge=${manga2.manga_id}`,
-      { credentials: 'include', method: 'post' })
+      {
+        credentials: 'include',
+        method: 'post',
+        headers: {
+          ...csrfHeader(csrf),
+        },
+      })
       .then(res => {
         if (res.status !== 200) {
           setResult({ error: true, message: `${res.status} ${res.statusText}` });

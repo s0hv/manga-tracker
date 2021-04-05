@@ -10,7 +10,6 @@ const {
 } = require('../../utils/validators');
 
 module.exports = app => {
-  app.use('/api/admin/editService', require('body-parser').json());
   app.post('/api/admin/editService', requiresUser, [
     validateAdminUser(),
     body('disabled').isBoolean().optional(),

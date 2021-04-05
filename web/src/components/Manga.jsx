@@ -19,6 +19,7 @@ import {
 } from '@material-ui/icons';
 
 import Link from 'next/link';
+import { useCSRF } from '../utils/csrf';
 import MangaAliases from './MangaAliases';
 import MangaInfo from './MangaInfo';
 
@@ -121,6 +122,7 @@ function Manga(props) {
   const [releaseData, setReleaseData] = useState([]);
   const [activeTab, setActiveTab] = useState(0);
   const changeTab = useCallback((e, newVal) => setActiveTab(newVal), []);
+  const csrf = useCSRF();
 
   useEffect(() => {
     fetch(`/api/chapter/releases/${mangaData.manga_id}`)
@@ -201,7 +203,7 @@ function Manga(props) {
               classesProp={[classes.sourceList]}
               items={mangaData.services}
               userFollows={userFollows}
-              followUnfollow={(serviceId) => followUnfollow(mangaData.manga_id, serviceId)}
+              followUnfollow={(serviceId) => followUnfollow(csrf, mangaData.manga_id, serviceId)}
             />
           </Grid>
         </div>
@@ -209,7 +211,7 @@ function Manga(props) {
           <Button
             variant='contained'
             color='primary'
-            onClick={followUnfollow(mangaData.manga_id, null)}
+            onClick={followUnfollow(csrf, mangaData.manga_id, null)}
             className={classes.followButton}
           >
             {userFollows.indexOf(null) < 0 ? 'Follow' : 'Unfollow'}

@@ -177,6 +177,7 @@ export async function login(app, user, rememberMe=false) {
   const agent = request.agent(app);
   await agent
     .post('/api/login')
+    .csrf()
     .send({
       email: user.email,
       password: user.password,

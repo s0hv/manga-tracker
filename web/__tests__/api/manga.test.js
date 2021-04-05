@@ -1,4 +1,5 @@
 import request from 'supertest';
+import { csrfMissing } from '../../utils/constants';
 import { redis } from '../../utils/ratelimits';
 import { userForbidden, userUnauthorized } from '../constants';
 
@@ -21,9 +22,17 @@ afterAll(async () => {
 });
 
 describe('POST /api/manga/merge', () => {
+  it('Returns 403 without CSRF token', async () => {
+    await request(httpServer)
+      .post('/api/manga/merge')
+      .expect(403)
+      .expect(expectErrorMessage(csrfMissing));
+  });
+
   it('Returns 401 without user authentication', async () => {
     await request(httpServer)
       .post('/api/manga/merge')
+      .csrf()
       .expect(401)
       .expect(expectErrorMessage(userUnauthorized));
   });
@@ -32,6 +41,7 @@ describe('POST /api/manga/merge', () => {
     await withUser(normalUser, async () => {
       await request(httpServer)
         .post('/api/manga/merge')
+        .csrf()
         .expect(403)
         .expect(expectErrorMessage(userForbidden));
     });
@@ -41,16 +51,19 @@ describe('POST /api/manga/merge', () => {
     await withUser(adminUser, async () => {
       await request(httpServer)
         .post('/api/manga/merge?base=-1')
+        .csrf()
         .expect(400)
         .expect(expectErrorMessage('-1', 'base'));
 
       await request(httpServer)
         .post('/api/manga/merge?base=NaN')
+        .csrf()
         .expect(400)
         .expect(expectErrorMessage('NaN', 'base'));
 
       await request(httpServer)
         .post('/api/manga/merge?base=abc')
+        .csrf()
         .expect(400)
         .expect(expectErrorMessage('abc', 'base'));
     });
@@ -60,16 +73,19 @@ describe('POST /api/manga/merge', () => {
     await withUser(adminUser, async () => {
       await request(httpServer)
         .post('/api/manga/merge?to_merge=-1')
+        .csrf()
         .expect(400)
         .expect(expectErrorMessage('-1', 'to_merge'));
 
       await request(httpServer)
         .post('/api/manga/merge?to_merge=NaN')
+        .csrf()
         .expect(400)
         .expect(expectErrorMessage('NaN', 'to_merge'));
 
       await request(httpServer)
         .post('/api/manga/merge?to_merge=abc')
+        .csrf()
         .expect(400)
         .expect(expectErrorMessage('abc', 'to_merge'));
     });
@@ -79,6 +95,7 @@ describe('POST /api/manga/merge', () => {
     await withUser(adminUser, async () => {
       await request(httpServer)
         .post('/api/manga/merge?to_merge=5&base=5')
+        .csrf()
         .expect(400)
         .expect(expectErrorMessage('Given ids are equal'));
     });

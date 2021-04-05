@@ -9,10 +9,12 @@ import {
   EditableDateTimePicker,
   MaterialTable,
 } from '../../components/MaterialTable';
+import { csrfHeader } from '../../utils/csrf';
 
 function Services(props) {
   const {
     services = [],
+    _csrf: csrf,
   } = props;
 
   const { enqueueSnackbar } = useSnackbar();
@@ -90,6 +92,7 @@ function Services(props) {
       credentials: 'same-origin',
       headers: {
         'Content-Type': 'application/json',
+        ...csrfHeader(csrf),
       },
       body: JSON.stringify({ ...state, service_id: row.original.id }),
     })

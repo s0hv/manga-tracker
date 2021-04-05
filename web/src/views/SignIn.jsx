@@ -15,6 +15,7 @@ import {
   TextField,
   Checkboxes,
 } from 'mui-rff';
+import CSRFInput from '../components/utils/CSRFInput';
 
 
 const useStyles = makeStyles((theme) => ({
@@ -115,6 +116,7 @@ export default function SignIn() {
                 color='primary'
                 data={{ label: 'Remember me' }}
               />
+              <CSRFInput />
               <Button
                 type='submit'
                 fullWidth

@@ -26,6 +26,7 @@ import {
   EditableSelect,
   MaterialTable,
 } from '../../components/MaterialTable';
+import { csrfHeader, useCSRF } from '../../utils/csrf';
 
 
 const useStyles = makeStyles((theme) => ({
@@ -87,6 +88,7 @@ function MangaAdmin(props) {
   // Hooks
   const classes = useStyles();
   const { enqueueSnackbar } = useSnackbar();
+  const csrf = useCSRF();
   const confirm = useConfirm();
 
   const [loading, setLoading] = useState(false);
@@ -130,6 +132,7 @@ function MangaAdmin(props) {
   const onCreateRow = useCallback((form) => {
     fetch(`/api/admin/manga/${mangaId}/scheduledRun/${form.service_id}`, {
       method: 'POST',
+      headers: csrfHeader(csrf),
     })
       .then(res => {
         if (res.status !== 200) {
@@ -145,12 +148,13 @@ function MangaAdmin(props) {
         );
       })
       .catch(err => enqueueSnackbar(err.message, { variant: 'error' }));
-  }, [mangaId, formatScheduledRuns, scheduledUpdates, enqueueSnackbar]);
+  }, [mangaId, formatScheduledRuns, scheduledUpdates, enqueueSnackbar, csrf]);
 
   const onDeleteRow = useCallback((row) => {
     const serviceId = row.values.service_id;
     fetch(`/api/admin/manga/${mangaId}/scheduledRun/${serviceId}`, {
       method: 'DELETE',
+      headers: csrfHeader(csrf),
     })
       .then(res => {
         if (res.status !== 200) {
@@ -166,7 +170,7 @@ function MangaAdmin(props) {
         }
       })
       .catch(err => enqueueSnackbar(err.message, { variant: 'error' }));
-  }, [enqueueSnackbar, formatScheduledRuns, mangaId, scheduledUpdates]);
+  }, [enqueueSnackbar, formatScheduledRuns, mangaId, scheduledUpdates, csrf]);
 
   // Table layout
   const fields = useMemo(() => [

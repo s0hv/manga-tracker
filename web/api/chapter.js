@@ -11,7 +11,6 @@ const { generateEqualsColumns, handleError } = require('../db/utils');
 const BASE_URL = '/api/chapter';
 
 module.exports = app => {
-  app.use(`${BASE_URL}/:chapter_id(\\d+)`, require('body-parser').json());
   app.post(`${BASE_URL}/:chapter_id(\\d+)`, requiresUser, [
     validateAdminUser(),
     body('title').isString().optional(),

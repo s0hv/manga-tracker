@@ -21,6 +21,7 @@ import {
 import { makeStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types';
 import NextLink from 'next/link';
+import { csrfHeader, useCSRF } from '../utils/csrf';
 
 import MangaSearch from './MangaSearch';
 import { useUser } from '../utils/useUser';
@@ -98,6 +99,7 @@ function TopBar(props) {
 
   const { user } = useUser();
   const classes = useStyles();
+  const csrf = useCSRF();
   const [anchorEl, setAnchorEl] = React.useState(null);
   const open = Boolean(anchorEl);
 
@@ -116,6 +118,7 @@ function TopBar(props) {
     fetch(`/api/settings/theme?value=${val}`, {
       method: 'post',
       credentials: 'include',
+      headers: csrfHeader(csrf),
     })
       .catch(console.error);
   };
@@ -125,6 +128,7 @@ function TopBar(props) {
     fetch('/api/logout', {
       method: 'post',
       credentials: 'include',
+      headers: csrfHeader(csrf),
     })
       .then(res => {
         window.location.replace(res.url);

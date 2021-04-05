@@ -14,6 +14,8 @@ import {
   makeRequired,
 } from 'mui-rff';
 import * as Yup from 'yup';
+import propTypes from 'prop-types';
+import CSRFInput from '../components/utils/CSRFInput';
 import { showErrorAlways } from '../utils/formUtils';
 
 
@@ -165,6 +167,7 @@ const Profile = (props) => {
                   id='repeat-password'
                   autoComplete='new-password'
                 />
+                <CSRFInput />
                 <Button
                   type='submit'
                   fullWidth
@@ -184,6 +187,10 @@ const Profile = (props) => {
       </Paper>
     </Container>
   );
+};
+
+Profile.propTypes = {
+  user: propTypes.object,
 };
 
 export default Profile;

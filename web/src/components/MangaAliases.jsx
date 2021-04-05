@@ -11,6 +11,7 @@ import {
 } from '@material-ui/core';
 
 import PropTypes from 'prop-types';
+import { csrfHeader, useCSRF } from '../utils/csrf';
 import { useUser } from '../utils/useUser';
 
 const useStyles = makeStyles((theme) => ({
@@ -45,6 +46,7 @@ const MangaAliases = (props) => {
   const classes = useStyles();
   const { isAdmin } = useUser();
   const autoHideDuration = 8000;
+  const csrf = useCSRF();
 
   const onAliasPromote = useCallback((title) => {
     confirm({
@@ -57,6 +59,7 @@ const MangaAliases = (props) => {
         credentials: 'same-origin',
         headers: {
           'Content-Type': 'application/json',
+          ...csrfHeader(csrf),
         },
         body: JSON.stringify({ title }),
       })
@@ -84,7 +87,7 @@ const MangaAliases = (props) => {
         ));
     })
       .catch(() => {});
-  }, [enqueueSnackbar, mangaId, onTitleUpdate, confirm]);
+  }, [enqueueSnackbar, mangaId, onTitleUpdate, confirm, csrf]);
 
   if (!aliases || aliases.length === 0) return null;
 

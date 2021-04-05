@@ -1,5 +1,6 @@
 import request from 'supertest';
 import { clearUserCache } from '../../db/auth';
+import { csrfMissing } from '../../utils/constants';
 import {
   authTokenCount,
   authTokenExists,
@@ -17,9 +18,8 @@ import {
   decodeAuthToken,
   deleteCookie,
   encodeAuthToken,
-  expectCookieDeleted,
+  expectCookieDeleted, expectErrorMessage,
   getCookie, getCookieFromRes,
-  headerNotPresent,
   login,
   normalUser,
 } from '../utils';
@@ -64,19 +64,30 @@ const realUser = {
 };
 
 describe('POST /api/login', () => {
+  it('Returns 403 without CSRF token', async () => {
+    await request(httpServer)
+      .post('/api/login')
+      .send(realUser)
+      .expect(403)
+      .expect(expectErrorMessage(csrfMissing));
+  });
+
   it('Returns 400 with only email or password or nothing', async () => {
     await request(httpServer)
       .post('/api/login')
+      .csrf()
       .send({})
       .expect(400);
 
     await request(httpServer)
       .post('/api/login')
+      .csrf()
       .send({ email: 'test' })
       .expect(400);
 
     await request(httpServer)
       .post('/api/login')
+      .csrf()
       .send({ password: 'test' })
       .expect(400);
   });
@@ -84,10 +95,12 @@ describe('POST /api/login', () => {
   it('Returns 415 with invalid content type', async () => {
     await request(httpServer)
       .post('/api/login')
+      .csrf()
       .expect(415);
 
     await request(httpServer)
       .post('/api/login')
+      .csrf()
       .type('form')
       .send({
         email: 'test',
@@ -99,36 +112,37 @@ describe('POST /api/login', () => {
   it('Returns 401 with invalid credentials', async () => {
     await request(httpServer)
       .post('/api/login')
+      .csrf()
       .send(wrongEmail)
       .redirects(0)
-      .expect(headerNotPresent('set-cookie'))
       .expect(401);
 
     await request(httpServer)
       .post('/api/login')
+      .csrf()
       .send(wrongPassword)
       .redirects(0)
-      .expect(headerNotPresent('set-cookie'))
       .expect(401);
 
     await request(httpServer)
       .post('/api/login')
+      .csrf()
       .send(tooLongPassword)
       .redirects(0)
-      .expect(headerNotPresent('set-cookie'))
       .expect(401);
 
     await request(httpServer)
       .post('/api/login')
+      .csrf()
       .send(fakeUser)
       .redirects(0)
-      .expect(headerNotPresent('set-cookie'))
       .expect(401);
   });
 
   it('Returns 200 with valid user', async () => {
     await request(httpServer)
       .post('/api/login')
+      .csrf()
       .send(realUser)
       .redirects(0)
       .expect('set-cookie', /sess=/)
@@ -137,6 +151,7 @@ describe('POST /api/login', () => {
 
     await request(httpServer)
       .post('/api/login')
+      .csrf()
       .send({
         ...realUser,
         rememberme: true,
@@ -153,18 +168,21 @@ describe('POST /api/login', () => {
         .fill(0)
         .map(() => request(httpServer)
           .post('/api/login')
+          .csrf()
           .send(fakeUser))
     );
 
     let nextValidRequestDate;
     await request(httpServer)
       .post('/api/login')
+      .csrf()
       .send(fakeUser)
       .expect(res => { nextValidRequestDate = res.body.error.nextValidRequestDate })
       .expect(429);
 
     await request(httpServer)
       .post('/api/login')
+      .csrf()
       .send(fakeUser)
       .expect(res => {
         expect(nextValidRequestDate).not.toEqual(res.body.error.nextValidRequestDate);
@@ -174,10 +192,17 @@ describe('POST /api/login', () => {
 });
 
 describe('POST /api/logout', () => {
+  it('Returns 403 without CSRF token', async () => {
+    await request(httpServer)
+      .post('/api/logout')
+      .expect(403)
+      .expect(expectErrorMessage(csrfMissing));
+  });
+
   it('Returns 302 without logging in', async () => {
     await request(httpServer)
       .post('/api/logout')
-      .expect(headerNotPresent('set-cookie'))
+      .csrf()
       .expect(302);
   });
 
@@ -187,6 +212,7 @@ describe('POST /api/logout', () => {
 
     await agent
       .post('/api/logout')
+      .csrf()
       .expect('location', '/')
       .expect(expectCookieDeleted('sess'))
       .expect(302);
@@ -202,6 +228,7 @@ describe('POST /api/logout', () => {
 
     await agent
       .post('/api/logout')
+      .csrf()
       .expect('location', '/')
       .expect(expectCookieDeleted('sess'))
       .expect(expectCookieDeleted('auth'))

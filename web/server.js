@@ -8,6 +8,7 @@ if (dev) {
 
 const express = require('express');
 const next_ = require('next');
+const csrf = require('csurf');
 const session = require('express-session');
 const passport = require('passport');
 const JsonStrategy = require('passport-json');
@@ -16,6 +17,7 @@ const sessionDebug = require('debug')('session-debug');
 const debug = require('debug')('debug');
 
 const db = require('./db');
+const { csrfMissing } = require('./utils/constants');
 const PostgresStore = require('./db/session-store')(session);
 const { checkAuth, authenticate, requiresUser } = require('./db/auth');
 const { bruteforce, rateLimiter } = require('./utils/ratelimits');
@@ -60,6 +62,7 @@ module.exports = nextApp.prepare()
     server.sessionStore = store;
 
     server.use(require('body-parser').json());
+    server.use(require('body-parser').urlencoded({ extended: false }));
 
     server.use(require('cookie-parser')(null));
     server.use(session({
@@ -77,6 +80,8 @@ module.exports = nextApp.prepare()
 
       store: store,
     }));
+
+    server.use(csrf({ cookie: false }));
 
     if (process.env.NODE_ENV !== 'test') {
       server.use(rateLimiter);
@@ -145,6 +150,19 @@ module.exports = nextApp.prepare()
     });
 
     server.get('*', (req, res) => handle(req, res));
+
+    // Error handlers
+    server.use((err, req, res, next) => {
+      // Handle CSRF errors
+      if (err.code === 'EBADCSRFTOKEN') {
+        res.status(403).json({
+          error: csrfMissing,
+        });
+        return;
+      }
+
+      next(err);
+    });
 
     const port = process.env.PORT || 3000;
 
