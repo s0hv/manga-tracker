@@ -410,7 +410,6 @@ exports[`Root component should render correctly should render correctly with dat
                                 },
                                 "render": [Function],
                               },
-                              "displayName": "WithStyles(ForwardRef(IconButton))",
                               "options": Object {
                                 "defaultTheme": Object {
                                   "breakpoints": Object {
@@ -1841,7 +1840,6 @@ exports[`Root component should render correctly should render correctly with use
                                 },
                                 "render": [Function],
                               },
-                              "displayName": "WithStyles(ForwardRef(IconButton))",
                               "options": Object {
                                 "defaultTheme": Object {
                                   "breakpoints": Object {
@@ -3598,7 +3596,6 @@ exports[`Root component should render correctly should render correctly with use
                                                                       },
                                                                       "render": [Function],
                                                                     },
-                                                                    "displayName": "WithStyles(ForwardRef(MenuItem))",
                                                                     "options": Object {
                                                                       "defaultTheme": Object {
                                                                         "breakpoints": Object {
@@ -4284,7 +4281,6 @@ exports[`Root component should render correctly should render correctly with use
                                                                       },
                                                                       "render": [Function],
                                                                     },
-                                                                    "displayName": "WithStyles(ForwardRef(MenuItem))",
                                                                     "options": Object {
                                                                       "defaultTheme": Object {
                                                                         "breakpoints": Object {
@@ -4797,7 +4793,6 @@ exports[`Root component should render correctly should render correctly with use
                                                                       },
                                                                       "render": [Function],
                                                                     },
-                                                                    "displayName": "WithStyles(ForwardRef(MenuItem))",
                                                                     "options": Object {
                                                                       "defaultTheme": Object {
                                                                         "breakpoints": Object {

@@ -5,6 +5,9 @@ module.exports = (phase, { defaultConfig }) => {
     ...defaultConfig,
     poweredByHeader: false,
     reactStrictMode: true,
+    future: {
+      webpack5: true,
+    },
   });
 
   if (process.env.ANALYZE) {

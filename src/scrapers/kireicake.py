@@ -12,7 +12,7 @@ class KireiCake(BaseRSS):
     CHAPTER_URL_FORMAT = 'https://kireicake.com/?p={}'
     MANGA_URL_FORMAT = 'https://kireicake.com/projects/{}'
 
-    TITLE_REGEX = re.compile(r'(.+?) (?P<chapter_number>\d+)(?:\.(?P<decimal>\d+))?(( . )?(?!ch)[a-z].+?)?$', re.I)
+    TITLE_REGEX = re.compile(r'(.+?)( |[-–])(?P<chapter_number>\d+)(?:\.(?P<decimal>\d+))?(( . )?(?!ch)[a-z].+?)?$', re.I)
 
     def get_chapter_id(self, entry: Dict) -> str:
         return entry.get('id', '').split('?p=')[-1]
