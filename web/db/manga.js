@@ -1,6 +1,6 @@
 const { link: Link } = require('mangadex-full-api');
 
-const db = require('.');
+const { db } = require('.');
 const { fetchExtraInfo } = require('./mangadex');
 const { HttpError } = require('../utils/errors');
 
@@ -43,13 +43,11 @@ function getManga(mangaId, chapters) {
                WHERE manga.manga_id=$1
                GROUP BY manga.manga_id, mi.manga_id`;
 
-  return db.query(sql, args)
-    .then(rows => {
-      if (!(rows.rowCount > 0)) {
+  return db.oneOrNone(sql, args)
+    .then(row => {
+      if (!row) {
         return null;
       }
-
-      const row = rows.rows[0];
 
       const mdIdx = row.services.findIndex(v => v.service_id === MANGADEX_ID);
       // If info doesn't exist or 2 weeks since last update
@@ -70,9 +68,9 @@ function getManga(mangaId, chapters) {
 }
 module.exports.getManga = getManga;
 
-function getFollows(userId) {
+async function getFollows(userId) {
   if (!userId) {
-    return new Promise((resolve, reject) => reject(HttpError(404)));
+    throw HttpError(404);
   }
 
   const sql = `SELECT m.title, mi.cover, m.manga_id, m.latest_release, m.latest_chapter,
@@ -88,7 +86,6 @@ function getFollows(userId) {
                GROUP BY uf.manga_id, m.manga_id, mi.manga_id`;
 
   return db.query(sql, [userId])
-    .then(res => new Promise((resolve) => resolve(res.rows)))
     .catch(err => {
       // integer overflow
       if (err.code === '22003' || err.code === '22P02') {
@@ -103,15 +100,13 @@ module.exports.getFollows = getFollows;
 
 const getAliases = (mangaId) => {
   const sql = 'SELECT title FROM manga_alias WHERE manga_id=$1';
-  return db.query(sql, [mangaId])
-    .then(res => res.rows);
+  return db.query(sql, [mangaId]);
 };
 module.exports.getAliases = getAliases;
 
 // Actually just gets a single row from the manga table
 const getMangaPartial = (mangaId) => {
   const sql = 'SELECT * FROM manga WHERE manga_id=$1';
-  return db.query(sql, [mangaId])
-    .then(res => res.rows[0]);
+  return db.one(sql, [mangaId]);
 };
 module.exports.getMangaPartial = getMangaPartial;

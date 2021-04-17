@@ -45,7 +45,7 @@ module.exports = (expressSession) => {
     clearOldSessions() {
       const sql = 'DELETE FROM sessions WHERE expires_at < CURRENT_TIMESTAMP RETURNING data';
       return this.conn.query(sql)
-        .then(({ rows }) => {
+        .then(rows => {
           const sess = rows.reduce(mergeSessionViews, {});
           return mangaViews.onSessionExpire(sess);
         });
@@ -62,10 +62,9 @@ module.exports = (expressSession) => {
                    FROM sessions 
                    WHERE session_id=$1`;
 
-      this.conn.query(sql, [sid])
-        .then(res => {
-          if (res.rowCount === 1) {
-            const row = res.rows[0];
+      this.conn.oneOrNone(sql, [sid])
+        .then(row => {
+          if (row) {
             // TODO Check set behavior
             this.cache.set(sid, { ...row.data, user_id: row.user_id }, row.maxage);
             return cb(null, { ...row.data, user_id: row.user_id });

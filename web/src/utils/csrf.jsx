@@ -11,7 +11,7 @@ export const useCSRF = () => useContext(CSRFContext);
  * @returns {{props: {_csrf: String}}}
  */
 export const csrfProps = ({ req }) => ({
-  props: { _csrf: req.csrfToken() },
+  props: { _csrf: req.csrfToken && req.csrfToken() },
 });
 
 export const csrfHeader = (csrf) => ({

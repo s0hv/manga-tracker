@@ -1,6 +1,6 @@
 const { query } = require('express-validator');
 
-const db = require('../db');
+const { db } = require('../db');
 const { handleError } = require('../db/utils');
 const { getChapters } = require('../db/chapter');
 const { getOptionalNumberParam } = require('../utils/utilities');
@@ -47,12 +47,12 @@ module.exports = app => {
     }
 
     const sql = 'SELECT * FROM merge_manga($1, $2)';
-    db.query(sql, [req.query.base, req.query.to_merge])
-      .then(rows => {
-        if (rows.rowCount === 0) {
+    db.oneOrNone(sql, [req.query.base, req.query.to_merge])
+      .then(row => {
+        if (!row) {
           return res.status(500).json({ error: 'No modifications done' });
         }
-        res.status(200).json(rows.rows[0]);
+        res.status(200).json(row);
       })
       .catch(err => handleError(err, res));
   });

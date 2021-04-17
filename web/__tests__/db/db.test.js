@@ -3,8 +3,8 @@ import { normalUser } from '../utils';
 
 
 afterAll(async () => {
-  const { pool } = require('../../db');
-  await pool.end();
+  const { pgp } = require('../../db');
+  await pgp.end();
 });
 
 describe('getLatestReleases()', () => {
@@ -13,7 +13,7 @@ describe('getLatestReleases()', () => {
 
   const expectValidOutput = (res) => {
     expect(res).toBeDefined();
-    expect(res).toHaveProperty('rows');
+    expect(res).toBeArray();
   };
 
   it('Works without crashing with all arguments', async () => {
@@ -40,15 +40,15 @@ describe('getLatestReleases()', () => {
 describe('getUserFollows()', () => {
   const mangaId = 1;
   it('Returns service ids of manga follow', async () => {
-    const res = await getUserFollows(normalUser.user_id, mangaId);
-    expect(res.rows.length).toBeGreaterThan(0);
-    res.rows.forEach(r => {
+    const rows = await getUserFollows(normalUser.user_id, mangaId);
+    expect(rows.length).toBeGreaterThan(0);
+    rows.forEach(r => {
       expect(r).toHaveProperty('service_id');
     });
   });
 
   it('Returns empty list with not found manga id', async () => {
-    const res = await getUserFollows(normalUser.user_id, 9999999);
-    expect(res.rows).toHaveLength(0);
+    const rows = await getUserFollows(normalUser.user_id, 9999999);
+    expect(rows).toHaveLength(0);
   });
 });

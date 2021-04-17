@@ -6,6 +6,25 @@ const {
 } = require('pg-error-constants');
 const dblog = require('debug')('db');
 
+const { pgp } = require('./index');
+const { NoColumnsError } = require('./errors');
+
+/**
+ * Generate update statement from an object while filtering out undefined values
+ * @param {Object} o Input object
+ * @param {String} tableName Name of the table to be updated
+ * @returns {String} The update statement without a whereclause
+ */
+module.exports.generateUpdate = (o, tableName) => {
+  const obj = { ...o };
+  Object.keys(obj).forEach(key => obj[key] === undefined && delete obj[key]);
+  try {
+    return pgp.helpers.update(obj, null, tableName);
+  } catch (e) {
+    throw new NoColumnsError('No valid columns given');
+  }
+};
+
 function generateEqualsColumns(o, availableColumns) {
   const cols = new Set(availableColumns);
   const sqlValues = [];

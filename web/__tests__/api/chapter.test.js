@@ -48,7 +48,7 @@ describe('POST /api/chapter/:chapter_id', () => {
     });
   });
 
-  it('returns not found without id)', async () => {
+  it('returns not found without id', async () => {
     await withUser(adminUser, async () => {
       await request(httpServer)
         .post('/api/chapter')

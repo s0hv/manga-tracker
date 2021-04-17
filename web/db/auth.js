@@ -5,7 +5,7 @@ const sessionDebug = require('debug')('session-debug');
 const authInfo = require('debug')('auth-info');
 
 const { bruteforce } = require('../utils/ratelimits');
-const db = require('.');
+const { db } = require('.');
 
 const userCache = new LRU(({
   max: 50,
@@ -46,10 +46,9 @@ function regenerateAuthToken(uid, lookup, userUUID, cb) {
     const token = buf.toString('base64');
 
     const sql = `UPDATE auth_tokens SET hashed_token=encode(digest($3, 'sha256'), 'hex') WHERE user_id=$1 AND lookup=$2 RETURNING expires_at`;
-    db.query(sql, [uid, lookup, token])
-      .then(res => {
-        if (res.rowCount === 0 || res.rows.length === 0) return cb(null, false);
-        cb(null, `${lookup};${token};${Buffer.from(userUUID).toString('base64')}`, res.rows[0].expires_at);
+    db.one(sql, [uid, lookup, token])
+      .then(row => {
+        cb(null, `${lookup};${token};${Buffer.from(userUUID).toString('base64')}`, row.expires_at);
       })
       .catch(sqlErr => cb(sqlErr, false));
   });
@@ -59,12 +58,11 @@ module.exports.authenticate = (req, email, password, cb) => {
   if (password.length > 72) return cb(null, false);
 
   const sql = `SELECT user_id, username, user_uuid, theme, admin FROM users WHERE email=$1 AND pwhash=crypt($2, pwhash)`;
-  db.query(sql, [email, password])
-    .then(res => {
-      if (res.rowCount === 0) {
+  db.oneOrNone(sql, [email, password])
+    .then(row => {
+      if (!row) {
         return cb(null, false);
       }
-      const row = res.rows[0];
 
       function setUser(currentRow, token) {
         // Try to regen session
@@ -110,10 +108,10 @@ function getUser(uid, cb) {
   if (user) return cb(user, null);
 
   const sql = `SELECT username, user_uuid, theme, admin FROM users WHERE user_id=$1`;
-  db.query(sql, [uid])
-    .then(res => {
-      if (res.rowCount === 0) return cb(null, null);
-      const row = res.rows[0];
+  db.oneOrNone(sql, [uid])
+    .then(row => {
+      if (!row) return cb(null, null);
+
       const val = {
         username: row.username,
         uuid: row.user_uuid,
@@ -151,7 +149,7 @@ function getUserByToken(lookup, token, uuid) {
     WHERE expires_at > NOW() AND user_uuid=$1 AND lookup=$2 AND hashed_token=encode(digest($3, 'sha256'), 'hex')
   `;
 
-  return db.query(sql, [uuid, lookup, token]);
+  return db.oneOrNone(sql, [uuid, lookup, token]);
 }
 
 function parseAuthCookie(authCookie) {
@@ -206,8 +204,8 @@ module.exports.checkAuth = (app) => {
         }
 
         getUserByToken(lookup, token, uuid)
-          .then(sqlRes => {
-            if (sqlRes.rowCount === 0) {
+          .then(row => {
+            if (!row) {
               sessionDebug('Session not found. Clearing cookie');
               res.clearCookie('auth');
               req.session.user_id = undefined;
@@ -217,13 +215,13 @@ module.exports.checkAuth = (app) => {
                                    INNER JOIN users u ON auth_tokens.user_id = u.user_id 
                                    WHERE user_uuid=$1 AND lookup=$2`;
 
-              db.query(checkLookup, [uuid, lookup])
-                .then(res2 => {
-                  if (res2.rowCount === 0) return next();
+              db.oneOrNone(checkLookup, [uuid, lookup])
+                .then(innerRow => {
+                  if (!innerRow) return next();
                   // TODO Display warning
-                  clearUserAuthTokens(res2.rows[0].user_id)
+                  clearUserAuthTokens(innerRow.user_id)
                     .finally(() => {
-                      app.sessionStore.clearUserSessions(res2.rows[0].user_id, () => {
+                      app.sessionStore.clearUserSessions(innerRow.user_id, () => {
                         sessionDebug('Invalid auth token found for user. Sessions cleared');
                         next();
                       });
@@ -233,7 +231,6 @@ module.exports.checkAuth = (app) => {
               return;
             }
 
-            const row = sqlRes.rows[0];
             userCache.set(row.user_id, {
               user_id: row.user_id,
               username: row.username,

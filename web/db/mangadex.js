@@ -1,7 +1,7 @@
 const { Manga, link: Links } = require('mangadex-full-api');
 const debug = require('debug')('debug');
 
-const db = require('.');
+const { db } = require('.');
 const { mangadexLimiter } = require('../utils/ratelimits');
 
 const MANGADEX_ID = 2; // Id of the mangadex service in the database
@@ -76,9 +76,8 @@ async function fetchExtraInfo(mangadexId, mangaId, chapterIds, addChapters = tru
             links.al,
           ];
 
-          db.query(sql, vals)
-            .then(res => {
-              const row = res.rows[0];
+          db.oneOrNone(sql, vals)
+            .then(row => {
               if (!row) return {};
               return row;
             })

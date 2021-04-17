@@ -1,11 +1,12 @@
 const dblog = require('debug')('db');
-const { body } = require('express-validator');
+const { body: validateBody } = require('express-validator');
 
+const { NoColumnsError } = require('../db/errors');
 const { requiresUser } = require('../db/auth');
-const db = require('../db');
-const { validateAdminUser, hadValidationError } = require('../utils/validators');
+const { editChapter, deleteChapter } = require('../db/chapter');
+const { validateAdminUser, handleValidationErrors } = require('../utils/validators');
 const { getChapterReleases } = require('../db/chapter');
-const { generateEqualsColumns, handleError } = require('../db/utils');
+const { handleError } = require('../db/utils');
 
 
 const BASE_URL = '/api/chapter';
@@ -13,61 +14,56 @@ const BASE_URL = '/api/chapter';
 module.exports = app => {
   app.post(`${BASE_URL}/:chapter_id(\\d+)`, requiresUser, [
     validateAdminUser(),
-    body('title').isString().optional(),
-    body('chapter_number').isInt().optional(),
-    body('chapter_decimal').isInt().optional({ nullable: true }),
-    body('group').isString().optional(),
+    validateBody('title').isString().optional(),
+    validateBody('chapter_number').isInt().optional(),
+    validateBody('chapter_decimal').isInt().optional({ nullable: true }),
+    validateBody('group').isString().optional(),
+    handleValidationErrors,
   ], (req, res) => {
-    if (hadValidationError(req, res)) return;
-
-
-    if (!req.body || Object.keys(req.body).length === 0) {
+    const body = req.body;
+    if (!body || Object.keys(body).length === 0) {
       res.status(400).json({ error: 'Empty body' });
       return;
     }
 
-    const editableColumns = [
-      'title',
-      'chapter_number',
-      'chapter_decimal',
-      'group',
-    ];
-
-    const { sqlCols, args } = generateEqualsColumns(req.body, editableColumns);
-    if (args.length === 0) {
-      res.status(400).json({ error: 'No valid values given' });
-      return;
-    }
-
     const chapterId = Number(req.params.chapter_id);
-    args.push(chapterId);
 
-    const sql = `UPDATE chapters SET ${sqlCols} WHERE chapter_id=$${args.length}`;
-    dblog(`Updating chapter ${chapterId} with data`, req.body);
+    dblog(`Updating chapter ${chapterId} with data`, body);
 
-    db.query(sql, args)
+    const chapter = {
+      chapterId,
+      title: body.title,
+      chapterNumber: body.chapter_number,
+      chapterDecimal: body.chapter_decimal,
+      group: body.group,
+    };
+
+    editChapter(chapter)
       .then(r => {
         if (r.rowCount > 0) {
-          res.status(200).json({ message: `Successfully updated ${r.rowCount} row(s)` });
+          res.status(200).json({ message: `Successfully updated chapter ${chapterId}` });
         } else {
           res.status(404).json({ error: `Chapter with id ${chapterId} not found` });
         }
       })
-      .catch(err => handleError(err, res));
+      .catch(err => {
+        if (err instanceof NoColumnsError) {
+          res.status(400).json({ error: 'No valid values given' });
+          return;
+        }
+        handleError(err, res);
+      });
   });
 
   app.delete(`${BASE_URL}/:chapter_id(\\d+)`, requiresUser, [
     validateAdminUser(),
+    handleValidationErrors,
   ], (req, res) => {
-    if (hadValidationError(req, res)) return;
-
-    const sql = 'DELETE FROM chapters WHERE chapter_id=$1 RETURNING chapter_identifier, service_id';
-    db.query(sql, [Number(req.params.chapter_id)])
-      .then(r => {
-        if (r.rowCount > 0) {
-          const row = r.rows[0];
+    deleteChapter(Number(req.params.chapter_id))
+      .then(row => {
+        if (row) {
           dblog(`Deleted chapter from service ${row.service_id} and identifier ${row.chapter_identifier}`);
-          res.status(200).json({ message: `Successfully deleted ${r.rowCount} row(s)` });
+          res.status(200).json({ message: `Successfully deleted chapter ${row.chapter_id}` });
         } else {
           res.status(404).json({ error: `Chapter with id ${req.params.chapter_id} not found` });
         }

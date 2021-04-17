@@ -2,13 +2,14 @@ import { Manga } from 'mangadex-full-api';
 import fs from 'fs';
 import * as path from 'path';
 import { mangadexLimiter, redis } from '../../utils/ratelimits';
-import db from '../../db';
+import { pgp } from '../../db';
+import { spyOnDb } from '../dbutils';
 
 const { fetchExtraInfo } = jest.requireActual('../../db/mangadex');
 
 afterAll(async () => {
   redis.disconnect();
-  await db.pool.end();
+  await pgp.end();
 });
 
 describe('mangadex API works correctly', () => {
@@ -26,7 +27,7 @@ describe('mangadex API works correctly', () => {
   it('Does a database update on success', async () => {
     const spy = jest.spyOn(Manga.prototype, 'fill')
       .mockImplementation(async () => mockManga);
-    const dbSpy = jest.spyOn(db, 'query');
+    const dbSpy = spyOnDb();
 
     await fetchExtraInfo(1, 1, [], false);
     await flushPromises();
@@ -38,7 +39,7 @@ describe('mangadex API works correctly', () => {
   it('Does a database update on success with chapters', async () => {
     const spy = jest.spyOn(Manga.prototype, 'fill')
       .mockImplementation(async () => mockManga);
-    const dbSpy = jest.spyOn(db, 'query');
+    const dbSpy = spyOnDb();
 
     await fetchExtraInfo(1, 1, []);
     await flushPromises();
@@ -50,7 +51,7 @@ describe('mangadex API works correctly', () => {
   it('Does a database update on success with all duplicate chapters', async () => {
     const spy = jest.spyOn(Manga.prototype, 'fill')
       .mockImplementation(async () => mockManga);
-    const dbSpy = jest.spyOn(db, 'query');
+    const dbSpy = spyOnDb();
 
     await fetchExtraInfo(1, 1, ['1', '2', '3', '4', '5']);
     await flushPromises();
@@ -77,7 +78,7 @@ describe('mangadex API works correctly', () => {
     const err = new Error('test');
     const spy = jest.spyOn(Manga.prototype, 'fill')
       .mockImplementation(async () => throw err);
-    const dbSpy = jest.spyOn(db, 'query');
+    const dbSpy = spyOnDb();
 
     await fetchExtraInfo(1, 1);
     await flushPromises();

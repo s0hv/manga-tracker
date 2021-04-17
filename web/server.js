@@ -16,7 +16,7 @@ const JsonStrategy = require('passport-json');
 const sessionDebug = require('debug')('session-debug');
 const debug = require('debug')('debug');
 
-const db = require('./db');
+const { db } = require('./db');
 const { csrfMissing } = require('./utils/constants');
 const PostgresStore = require('./db/session-store')(session);
 const { checkAuth, authenticate, requiresUser } = require('./db/auth');
@@ -55,7 +55,7 @@ module.exports = nextApp.prepare()
     if (reverseProxy) server.enable('trust-proxy');
 
     const store = new PostgresStore({
-      conn: db.pool,
+      conn: db,
       cacheSize: 30,
       maxAge: 7200000,
     });

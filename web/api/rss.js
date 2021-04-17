@@ -45,7 +45,7 @@ module.exports = app => {
 
     getLatestReleases(req.query.service_id, req.query.manga_id, uuid)
       .then(rows => {
-        if (!rows || rows.rowCount === 0) {
+        if (rows.length === 0) {
           res.status(404).send('404');
           return;
         }

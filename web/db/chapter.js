@@ -1,12 +1,13 @@
-const db = require('.');
+const { NoColumnsError } = require('./utils');
+const { generateUpdate } = require('./utils');
+const { db } = require('.');
 
 module.exports.getChapterReleases = (mangaId) => {
   const sql = `SELECT extract(EPOCH FROM date_trunc('day', release_date)) as "timestamp", CAST(count(release_date) as int) count 
                FROM chapters 
                WHERE manga_id=$1 GROUP BY 1 ORDER BY 1`;
 
-  return db.query(sql, [mangaId])
-    .then(res => res.rows);
+  return db.query(sql, [mangaId]);
 };
 
 module.exports.addChapter = ({
@@ -23,8 +24,8 @@ module.exports.addChapter = ({
                VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
                RETURNING chapter_id`;
   releaseDate = releaseDate || new Date(Date.now());
-  return db.query(sql, [mangaId, serviceId, title, chapterNumber, chapterDecimal, releaseDate, chapterIdentifier, group])
-    .then(res => res.rows[0]?.chapter_id);
+  return db.oneOrNone(sql, [mangaId, serviceId, title, chapterNumber, chapterDecimal, releaseDate, chapterIdentifier, group])
+    .then(row => row?.chapter_id);
 };
 
 module.exports.getChapters = (mangaId, limit, offset) => {
@@ -56,9 +57,8 @@ module.exports.getChapters = (mangaId, limit, offset) => {
   const args = [mangaId, limit];
   if (offset) args.push(offset);
 
-  return db.query(sql, args)
-    .then(res => {
-      const row = res.rows[0];
+  return db.oneOrNone(sql, args)
+    .then(row => {
       if (!row || !row.exists) return Promise.resolve(null);
 
       return Promise.resolve({
@@ -66,4 +66,40 @@ module.exports.getChapters = (mangaId, limit, offset) => {
         chapters: row.chapters,
       });
     });
+};
+
+/**
+ * Updates an existing chapter row
+ * @param {Object} chapter
+ */
+module.exports.editChapter = async ({
+  chapterId,
+  title,
+  chapterNumber,
+  chapterDecimal,
+  releaseDate,
+  chapterIdentifier,
+  group,
+}) => {
+  const chapter = {
+    title,
+    chapter_number: chapterNumber,
+    chapter_decimal: chapterDecimal,
+    release_date: releaseDate,
+    chapter_identifier: chapterIdentifier,
+    group,
+  };
+
+
+  const sql = `${generateUpdate(chapter, 'chapters')} WHERE chapter_id=$1`;
+  return db.result(sql, [chapterId]);
+};
+
+/**
+ * Deletes a chapter
+ * @param {Number} chapterId
+ */
+module.exports.deleteChapter = async (chapterId) => {
+  const sql = 'DELETE FROM chapters WHERE chapter_id=$1 RETURNING *';
+  return db.oneOrNone(sql, [chapterId]);
 };

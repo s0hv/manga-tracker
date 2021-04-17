@@ -21,7 +21,7 @@ const {
   generateAuthToken,
   clearUserAuthToken,
 } = require('../db/auth');
-const db = require('../db');
+const { db } = require('../db');
 const { regenerateSession } = require('../utils/utilities');
 
 const dev = process.env.NODE_ENV !== 'production';
@@ -94,7 +94,7 @@ module.exports = app => {
                  SET ${cols.join(',')}
                  WHERE user_id=$1 ${pw ? pwCheck : ''}`;
 
-    db.query(sql, args)
+    db.result(sql, args)
       .then(rows => {
         if (rows.rowCount === 0) {
           res.status(401).json({ error: 'Invalid password' });
