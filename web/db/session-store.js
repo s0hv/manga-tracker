@@ -1,8 +1,7 @@
 const LRU = require('lru-cache');
 
-const sessionDebug = require('debug')('session-debug');
 const mangaViews = require('../utils/view-counter/manga-view-counter');
-
+const { sessionLogger } = require('../utils/logging');
 
 const mergeSessionViews = (sess, row) => {
   const a = sess.mangaViews || {};
@@ -56,7 +55,7 @@ module.exports = (expressSession) => {
       if (sess) {
         return cb(null, sess);
       }
-      sessionDebug('Get session from db', sid);
+      sessionLogger.debug('Get session from db %s', sid);
 
       const sql = `SELECT user_id, data, EXTRACT(EPOCH FROM expires_at - CURRENT_TIMESTAMP)*1000 as maxage
                    FROM sessions 
@@ -73,27 +72,27 @@ module.exports = (expressSession) => {
           return cb(null, null);
         })
         .catch(err => {
-          sessionDebug('Failed to create session', sid, err);
+          sessionLogger.error(err, 'Failed to create session %s', sid);
           cb(err, null);
         });
     }
 
     set(sid, session, cb = noop) {
-      sessionDebug('Edit session', sid);
+      sessionLogger.debug('Edit session %s', sid);
       this.cache.set(sid, session);
       const sql = `INSERT INTO sessions (user_id, session_id, data, expires_at) VALUES ($1, $2, $3, $4)
                    ON CONFLICT (session_id) DO UPDATE SET user_id=$1, data=$3, expires_at=$4`;
       this.conn.query(sql, [session.user_id, sid, session, session.cookie._expires])
         .then(() => cb(null))
         .catch(err => {
-          sessionDebug('Failed to edit session', sid, err);
+          sessionLogger.error(err, 'Failed to edit session');
           cb(err);
         });
     }
 
     destroy(sid, cb = noop) {
       const session = this.cache.peek(sid);
-      sessionDebug('Delete session', sid, session);
+      sessionLogger.debug('Delete session %s %o', sid, session);
       this.cache.del(sid);
       const sql = 'DELETE FROM sessions WHERE session_id=$1';
 
@@ -101,7 +100,7 @@ module.exports = (expressSession) => {
         .finally(() => this.conn.query(sql, [sid])
           .then(() => cb(null))
           .catch(err => {
-            sessionDebug('Failed to delete session', err);
+            sessionLogger.error(err, 'Failed to delete session');
             cb(err);
           }));
     }
@@ -116,13 +115,13 @@ module.exports = (expressSession) => {
     }
 
     clearUserSessions(uid, cb = noop) {
-      sessionDebug('Clearing all user sessions from user', uid);
+      sessionLogger.info('Clearing all user sessions from user %s', uid);
       const sql = 'DELETE FROM sessions WHERE user_id=$1';
       this.cache.forEach((sess, key) => { if (sess.user_id === uid) this.cache.del(key); });
       this.conn.query(sql, [uid])
         .then(() => cb(null))
         .catch(err => {
-          sessionDebug('Failed to clear user sessions with id', uid, err);
+          sessionLogger.error(err, 'Failed to clear user sessions with id %s', uid);
           cb(err);
         });
     }

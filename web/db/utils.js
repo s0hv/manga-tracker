@@ -4,10 +4,10 @@ const {
   INVALID_TEXT_REPRESENTATION,
   UNIQUE_VIOLATION,
 } = require('pg-error-constants');
-const dblog = require('debug')('db');
 
 const { pgp } = require('./index');
 const { NoColumnsError } = require('./errors');
+const { dbLogger } = require('../utils/logging');
 
 /**
  * Generate update statement from an object while filtering out undefined values
@@ -48,14 +48,14 @@ module.exports.generateEqualsColumns = generateEqualsColumns;
 function handleError(err, res, msgOverrides = {}) {
   const msg = msgOverrides[err.code];
   if (err.code === INVALID_TEXT_REPRESENTATION) {
-    dblog(err.message);
+    dbLogger.debug(err.message);
     res.status(400).json({ error: msg || 'Invalid data type given' });
   } else if (err.code === NUMERIC_VALUE_OUT_OF_RANGE) {
     res.status(400).json({ error: msg || 'Number value out of range' });
   } else if (err.code === UNIQUE_VIOLATION) {
     res.status(422).json({ error: msg || 'Resource already exists' });
   } else {
-    dblog(err);
+    dbLogger.error(err, 'Unknown database error');
     res.status(500).json({ error: 'Internal server error' });
   }
 }

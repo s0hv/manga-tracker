@@ -1,8 +1,8 @@
 const { Manga, link: Links } = require('mangadex-full-api');
-const debug = require('debug')('debug');
 
 const { db } = require('.');
 const { mangadexLimiter } = require('../utils/ratelimits');
+const logger = require('../utils/logging').mangadexLogger;
 
 const MANGADEX_ID = 2; // Id of the mangadex service in the database
 const linkObjects = {
@@ -35,7 +35,7 @@ function getLinks(fullLinks) {
 async function fetchExtraInfo(mangadexId, mangaId, chapterIds, addChapters = true, limitChapters) {
   mangadexLimiter.consume('mangadex', 1)
     .then(() => {
-      debug(`Fetching extra info for ${mangaId} ${mangadexId}`);
+      logger.debug(`Fetching extra info for ${mangaId} ${mangadexId}`);
       new Manga(mangadexId).fill(mangadexId)
         .then((manga) => {
           const sql = `INSERT INTO manga_info as mi (manga_id, cover, artist, author, bw, mu, mal, amz, ebj, engtl, raw, nu, kt, ap, al)
@@ -112,7 +112,7 @@ async function fetchExtraInfo(mangadexId, mangaId, chapterIds, addChapters = tru
 
             if (chapters.length === 0) return;
 
-            debug(`Adding ${chapters.length} mangadex chapters to manga ${mangaId} ${manga.title}`);
+            logger.debug(`Adding ${chapters.length} mangadex chapters to manga ${mangaId} ${manga.title}`);
 
             const chunkSize = 50;
 
@@ -129,16 +129,16 @@ async function fetchExtraInfo(mangadexId, mangaId, chapterIds, addChapters = tru
               const chapterSql = `INSERT INTO chapters (manga_id, service_id, title, chapter_number, chapter_decimal, release_date, chapter_identifier, "group") 
                                   VALUES ${values.join(',')}
                                   ON CONFLICT (service_id, chapter_identifier) DO UPDATE SET title=EXCLUDED.title`;
-              db.query(chapterSql, slice.flat())
+              db.result(chapterSql, slice.flat())
                 .then(res => {
-                  debug(res.rowCount);
+                  logger.debug('Added %d new chapters', res.rowCount);
                 })
-                .catch(err => console.error(err));
+                .catch(err => logger.error(err));
             }
           }
         })
         .catch((err) => {
-          console.error(err);
+          logger.error(err);
           return {};
         });
     })

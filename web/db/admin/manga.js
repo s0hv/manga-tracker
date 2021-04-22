@@ -12,9 +12,7 @@ const updateMangaTitle = (mangaId, newTitle) => {
                     RETURNING title`;
 
   return db.one(sql, [newTitle, mangaId])
-    .then(row => {
-      return db.oneOrNone(aliasSql, [row.title, mangaId, newTitle]);
-    });
+    .then(row => db.oneOrNone(aliasSql, [row.title, mangaId, newTitle]));
 };
 
 module.exports = {

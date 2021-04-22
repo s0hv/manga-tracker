@@ -1,4 +1,3 @@
-const { NoColumnsError } = require('./utils');
 const { generateUpdate } = require('./utils');
 const { db } = require('.');
 

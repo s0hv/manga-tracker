@@ -1,4 +1,3 @@
-const dblog = require('debug')('db');
 const { body } = require('express-validator');
 
 const { requiresUser } = require('../../db/auth');
@@ -35,7 +34,7 @@ module.exports = app => {
       return;
     }
 
-    dblog('Updating service with', req.body);
+    req.log.info('Updating service with %o', req.body);
 
     const promise = Promise.resolve();
 

@@ -1,7 +1,7 @@
 import { NextSeo } from 'next-seo';
-import Services from '../../views/admin/Services';
 
 import withError from '../../utils/withError';
+import Services from '../../views/admin/Services';
 
 export async function getServerSideProps({ req }) {
   if (!(req.user && req.user.admin)) {
@@ -14,10 +14,10 @@ export async function getServerSideProps({ req }) {
   try {
     rows = await getServices();
     if (rows) {
-      rows = JSON.parse(JSON.stringify(rows.rows));
+      rows = JSON.parse(JSON.stringify(rows));
     }
   } catch (err) {
-    console.error(err);
+    req.log.error(err);
     return {
       props: {
         error: err?.status || 404,

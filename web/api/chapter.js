@@ -1,4 +1,3 @@
-const dblog = require('debug')('db');
 const { body: validateBody } = require('express-validator');
 
 const { NoColumnsError } = require('../db/errors');
@@ -7,6 +6,7 @@ const { editChapter, deleteChapter } = require('../db/chapter');
 const { validateAdminUser, handleValidationErrors } = require('../utils/validators');
 const { getChapterReleases } = require('../db/chapter');
 const { handleError } = require('../db/utils');
+const { dbLogger } = require('../utils/logging');
 
 
 const BASE_URL = '/api/chapter';
@@ -28,7 +28,7 @@ module.exports = app => {
 
     const chapterId = Number(req.params.chapter_id);
 
-    dblog(`Updating chapter ${chapterId} with data`, body);
+    req.log.info(`Updating chapter ${chapterId} with data %o`, body);
 
     const chapter = {
       chapterId,
@@ -62,7 +62,7 @@ module.exports = app => {
     deleteChapter(Number(req.params.chapter_id))
       .then(row => {
         if (row) {
-          dblog(`Deleted chapter from service ${row.service_id} and identifier ${row.chapter_identifier}`);
+          dbLogger.info(`Deleted chapter from service ${row.service_id} and identifier ${row.chapter_identifier}`);
           res.status(200).json({ message: `Successfully deleted chapter ${row.chapter_id}` });
         } else {
           res.status(404).json({ error: `Chapter with id ${req.params.chapter_id} not found` });

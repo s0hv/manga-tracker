@@ -1,8 +1,7 @@
 const { body } = require('express-validator');
 const { UNIQUE_VIOLATION } = require('pg-error-constants');
 
-const sessionDebug = require('debug')('session-debug');
-const userDebug = require('debug')('user-debug');
+const { sessionLogger, userLogger } = require('../utils/logging');
 
 
 const { insertFollow, deleteFollow } = require('../db/follows');
@@ -46,8 +45,6 @@ module.exports = app => {
       .optional(),
   ], (req, res) => {
     if (hadValidationError(req, res)) return;
-
-    sessionDebug(req.body);
 
     const args = [req.user.user_id];
     const cols = [];
@@ -111,7 +108,7 @@ module.exports = app => {
               .then(() => {
                 if (!req.cookies.auth) {
                   regenerateSession(req)
-                    .catch(sessionDebug)
+                    .catch(sessionLogger.error)
                     .finally(() => res.status(200).end());
                   return;
                 }
@@ -125,7 +122,7 @@ module.exports = app => {
                       sameSite: 'strict',
                     });
                     regenerateSession(req)
-                      .catch(sessionDebug)
+                      .catch(sessionLogger.error)
                       .finally(() => res.status(200).end());
                   })
                   .catch(genErr => {
@@ -152,7 +149,7 @@ module.exports = app => {
   app.post('/api/logout', requiresUser, (req, res) => {
     if (!req.user?.user_id) return res.redirect('/');
 
-    userDebug('Logging out user', req.user.user_id);
+    userLogger.debug('Logging out user %s', req.user.user_id);
 
     req.session.destroy((err) => {
       if (err) console.error(err);

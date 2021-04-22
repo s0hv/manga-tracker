@@ -1,6 +1,6 @@
-import React from 'react';
 import { Button, Container, Grid, Paper, Typography } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
+import React from 'react';
 
 import Search from '../components/MangaSearch';
 import PartialManga from '../components/PartialManga';
@@ -72,7 +72,7 @@ function MergeManga() {
       })
       .then(json => {
         if (!json) return;
-        setResult({ message: `Moved ${json.alias_count} aliase(s) and ${json.chapter_count} chapter(s)` });
+        setResult({ message: `Moved ${json.alias_count} alias(es) and ${json.chapter_count} chapter(s)` });
         setManga2({});
       })
       .catch(err => setResult({ error: true, message: err.message }));
@@ -88,6 +88,7 @@ function MergeManga() {
           getMangaData(option.manga_id, setManga);
         }}
       >
+        {/* eslint-disable-next-line react/destructuring-assignment */}
         {option.title}
       </div>
     </li>

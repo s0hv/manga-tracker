@@ -1,11 +1,11 @@
 const LRU = require('lru-cache');
 const crypto = require('crypto');
-
-const sessionDebug = require('debug')('session-debug');
-const authInfo = require('debug')('auth-info');
+const { authLogger } = require('../utils/logging');
 
 const { bruteforce } = require('../utils/ratelimits');
 const { db } = require('.');
+const { sessionLogger } = require('../utils/logging');
+
 
 const userCache = new LRU(({
   max: 50,
@@ -180,7 +180,7 @@ module.exports.checkAuth = (app) => {
     }
 
     if (userPromises.has(authCookie)) {
-      authInfo('Race condition prevention');
+      authLogger.debug('Race condition prevention');
       userPromises.get(authCookie)
         .then(userId => {
           if (userId) {
@@ -193,7 +193,7 @@ module.exports.checkAuth = (app) => {
 
     const p = new Promise((resolve, reject) => {
       bruteforce.prevent(req, res, () => {
-        authInfo('Checking auth from db for', req.originalUrl, req.cookies.auth);
+        authLogger.debug('Checking auth from db for %s %s', req.originalUrl, req.cookies.auth);
         const [lookup, token, uuid] = parseAuthCookie(req.cookies.auth);
         if (!token) {
           res.clearCookie('auth');
@@ -206,7 +206,7 @@ module.exports.checkAuth = (app) => {
         getUserByToken(lookup, token, uuid)
           .then(row => {
             if (!row) {
-              sessionDebug('Session not found. Clearing cookie');
+              sessionLogger.info('Session not found. Clearing cookie');
               res.clearCookie('auth');
               req.session.user_id = undefined;
               resolve();
@@ -222,7 +222,7 @@ module.exports.checkAuth = (app) => {
                   clearUserAuthTokens(innerRow.user_id)
                     .finally(() => {
                       app.sessionStore.clearUserSessions(innerRow.user_id, () => {
-                        sessionDebug('Invalid auth token found for user. Sessions cleared');
+                        sessionLogger.info('Invalid auth token found for user. Sessions cleared');
                         next();
                       });
                     });
@@ -251,7 +251,7 @@ module.exports.checkAuth = (app) => {
                   reject(regenErr);
                   return next(regenErr);
                 }
-                authInfo('regen', newToken);
+                authLogger.debug('regen %s', newToken);
 
                 req.session.user_id = row.user_id;
                 res.cookie('auth', newToken, {
@@ -273,14 +273,14 @@ module.exports.checkAuth = (app) => {
               res.status(400).end();
               return;
             }
-            authInfo(err);
+            authLogger.error(err);
             next(err);
           });
       });
     });
     userPromises.set(authCookie, p);
     p.finally(() => {
-      authInfo('Deleting promise');
+      authLogger.debug('Deleting promise');
       userPromises.delete(authCookie);
     });
   };

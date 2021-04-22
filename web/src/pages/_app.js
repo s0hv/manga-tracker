@@ -1,28 +1,25 @@
-/* eslint-disable react/destructuring-assignment */
-import { SnackbarProvider } from 'notistack';
-import React, { useCallback, useEffect, useState } from 'react';
-import { MuiPickersUtilsProvider } from '@material-ui/pickers';
+import DateFnsUtils from '@date-io/date-fns';
+import { CssBaseline } from '@material-ui/core';
+import { blue } from '@material-ui/core/colors';
 import {
   createMuiTheme,
   responsiveFontSizes,
   ThemeProvider,
 } from '@material-ui/core/styles';
-import { blue } from '@material-ui/core/colors';
-import { CssBaseline } from '@material-ui/core';
-import DateFnsUtils from '@date-io/date-fns';
+import { MuiPickersUtilsProvider } from '@material-ui/pickers';
 import enLocale from 'date-fns/locale/en-GB';
-
-import Head from 'next/head';
 import { DefaultSeo } from 'next-seo';
 
+import Head from 'next/head';
+import { SnackbarProvider } from 'notistack';
+import React, { useCallback, useEffect, useState } from 'react';
+import { sessionLogger } from '../../utils/logging';
+
 import Root from '../components/Root';
-import { UserProvider } from '../utils/useUser';
-import { csrfProps, CSRFProvider } from '../utils/csrf';
 
 import { ProgressBar } from '../components/utils/ProgressBar';
-
-
-const sessionDebug = require('debug')('session-debug');
+import { csrfProps, CSRFProvider } from '../utils/csrf';
+import { UserProvider } from '../utils/useUser';
 
 
 function MainApp({ Component, pageProps, props }) {
@@ -118,7 +115,7 @@ MainApp.getInitialProps = async function getInitialProps({ ctx: { req, res }}) {
   if (!req) {
     return { props: { statusCode: 200 }};
   }
-  sessionDebug('Initial props', req.user);
+  sessionLogger.debug('Initial props %o', req.user);
 
   return {
     props: {
