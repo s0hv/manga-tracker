@@ -65,7 +65,10 @@ module.exports = {
     '!**/.next/**',
     '!**/coverage/**',
     '!**/__tests__/**',
+    '!**/__mocks__/**',
     '!**/*.config.js',
+    '!**/utils/logging.js', // No need to collect coverage for loggers
+    '!**/{setupTests,next.config,babel.config}.js', // test setup and app configs
   ],
 
   // An array of regexp pattern strings used to skip coverage collection

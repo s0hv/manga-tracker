@@ -1,9 +1,33 @@
+const { queryLogger } = require('../utils/logging');
+
 const isTest = process.env.NODE_ENV === 'test';
 
+// eslint-disable-next-line import/order
 const pgp = require('pg-promise')({
-  noLocking: isTest,
+  noLocking: isTest, // Locking must not be set on during test so mocks can be made.
   capSQL: true,
-  pgFormatting: true,
+  pgFormatting: true, // When this is false parameters would be always logged since they're embedded in the query
+
+  // Log duration and query
+  receive(data, result, e) {
+    const { duration } = result;
+
+    if (queryLogger.level === 'debug') {
+      queryLogger.debug({
+        params: e.params,
+        duration: `${duration}ms`,
+      }, e.query);
+    } else {
+      queryLogger.info({
+        duration: `${duration}ms`,
+      }, e.query);
+    }
+  },
+
+  // Error logging
+  error(err, e) {
+    queryLogger.error(err, e.query);
+  },
 });
 
 // Will cause warnings when in development mode

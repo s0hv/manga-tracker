@@ -51,7 +51,7 @@ module.exports = app => {
         }
 
         res.set('Content-Type', 'application/rss+xml');
-        res.send(Buffer.from(createFeed(rows.rows)));
+        res.send(Buffer.from(createFeed(rows)));
       })
       .catch(err => {
         console.error(err);

@@ -37,6 +37,11 @@ module.exports = (expressSession) => {
         noDisposeOnSet: true,
       });
 
+      this.touchCache = new LRU({
+        max: 50,
+        maxAge: 1000*2, // 2s
+      });
+
       // Clear sessions every two hours
       this.clearInterval = setInterval(() => this.clearOldSessions(), options.clearInterval || 7.2e+6);
     }
@@ -106,11 +111,20 @@ module.exports = (expressSession) => {
     }
 
     touch(sid, session, cb = noop) {
+      // No need to touch multiple times per request.
+      // If touch was recently called skip this call.
+      if (this.touchCache.get(sid) !== undefined) {
+        return cb(null);
+      }
+
       const sql = `UPDATE sessions
                    SET expires_at=CURRENT_TIMESTAMP + INTERVAL '1 ms' * $1
                    WHERE session_id=$2`;
       this.conn.query(sql, [session.cookie.maxAge, sid])
-        .then(() => cb(null))
+        .then(() => {
+          this.touchCache.set(sid, true);
+          cb(null);
+        })
         .catch(err => cb(err));
     }
 

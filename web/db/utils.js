@@ -1,4 +1,3 @@
-const format = require('pg-format');
 const {
   NUMERIC_VALUE_OUT_OF_RANGE,
   INVALID_TEXT_REPRESENTATION,
@@ -10,7 +9,8 @@ const { NoColumnsError } = require('./errors');
 const { dbLogger } = require('../utils/logging');
 
 /**
- * Generate update statement from an object while filtering out undefined values
+ * Generate update statement from an object while filtering out undefined values.
+ * The generated update statement lacks a WHERE clause and has the values embedded in the query.
  * @param {Object} o Input object
  * @param {String} tableName Name of the table to be updated
  * @returns {String} The update statement without a whereclause
@@ -24,26 +24,6 @@ module.exports.generateUpdate = (o, tableName) => {
     throw new NoColumnsError('No valid columns given');
   }
 };
-
-function generateEqualsColumns(o, availableColumns) {
-  const cols = new Set(availableColumns);
-  const sqlValues = [];
-  const columns = [];
-  const args = [];
-
-  Object.keys(o)
-    .filter(k => o[k] !== undefined && cols.has(k))
-    .forEach((k, idx) => {
-      sqlValues.push(`%I=$${idx+1}`);
-      columns.push(k);
-      args.push(o[k]);
-    });
-
-  const sqlCols = format(sqlValues.join(','), ...columns);
-
-  return { sqlCols, args };
-}
-module.exports.generateEqualsColumns = generateEqualsColumns;
 
 function handleError(err, res, msgOverrides = {}) {
   const msg = msgOverrides[err.code];

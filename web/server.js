@@ -152,6 +152,7 @@ module.exports = nextApp.prepare()
 
     server.get('*', (req, res) => handle(req, res));
 
+
     // Error handlers
     server.use((err, req, res, next) => {
       // Handle CSRF errors
