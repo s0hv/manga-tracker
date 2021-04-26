@@ -1,4 +1,3 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Button,
   Container,
@@ -19,14 +18,15 @@ import {
 } from '@material-ui/icons';
 
 import Link from 'next/link';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useCSRF } from '../utils/csrf';
+import { useUser } from '../utils/useUser';
+import { followUnfollow } from '../utils/utilities';
+import ChapterList from './ChapterList';
 import MangaAliases from './MangaAliases';
 import MangaInfo from './MangaInfo';
 
 import MangaSourceList from './MangaSourceList';
-import { followUnfollow } from '../utils/utilities';
-import ChapterList from './ChapterList';
-import { useUser } from '../utils/useUser';
 import ReleaseHeatmap from './ReleaseHeatmap';
 import { TabPanelCustom } from './utils/TabPanelCustom';
 
@@ -115,7 +115,12 @@ const useStyles = makeStyles((theme) => ({
 
 function Manga(props) {
   const {
-    mangaData,
+    mangaData: {
+      manga,
+      chapters,
+      services,
+      aliases,
+    },
     userFollows = [],
   } = props;
 
@@ -125,12 +130,12 @@ function Manga(props) {
   const csrf = useCSRF();
 
   useEffect(() => {
-    fetch(`/api/chapter/releases/${mangaData.manga_id}`)
+    fetch(`/api/chapter/releases/${manga.manga_id}`)
       .then(res => res.json())
       .then(js => {
         setReleaseData(js);
       });
-  }, [mangaData.manga_id]);
+  }, [manga.manga_id]);
 
   const { isAuthenticated, user } = useUser();
 
@@ -140,30 +145,30 @@ function Manga(props) {
 
   const serviceUrlFormats = useMemo(() => {
     const serviceMap = {};
-    mangaData.services.forEach(service => { serviceMap[service.service_id] = service.url_format });
+    services.forEach(service => { serviceMap[service.service_id] = service.url_format });
     return serviceMap;
-  }, [mangaData.services]);
+  }, [services]);
 
   const mangaChapters = React.useMemo(() => {
-    if (!mangaData.chapters) return [];
+    if (!chapters) return [];
     const serviceMap = {};
-    mangaData.services.forEach(service => { serviceMap[service.service_id] = service.url_format });
-    return mangaData.chapters.map(chapter => {
+    services.forEach(service => { serviceMap[service.service_id] = service.url_format });
+    return chapters.map(chapter => {
       const newChapter = { ...chapter };
       newChapter.release_date = new Date(chapter.release_date);
-      newChapter.url = serviceMap[chapter.service_id].replace('{}', chapter.chapter_url);
+      newChapter.url = serviceMap[chapter.service_id].replace('{}', chapter.chapter_identifier);
       return newChapter;
     });
-  }, [mangaData.chapters, mangaData.services]);
+  }, [chapters, services]);
 
   return (
     <Container maxWidth='lg' disableGutters>
       <Paper className={classes.paper}>
         <div className={classes.titleBar}>
-          <Typography className={classes.title} variant='h4'>{mangaData.title}</Typography>
+          <Typography className={classes.title} variant='h4'>{manga.title}</Typography>
           {user?.admin && (
             <div className={classes.titleBarButtonsContainer}>
-              <Link href={`/admin/manga/${mangaData.manga_id}`} prefetch={false}>
+              <Link href={`/admin/manga/${manga.manga_id}`} prefetch={false}>
                 <Tooltip title='Admin page'>
                   <IconButton>
                     <SettingsIcon />
@@ -179,11 +184,11 @@ function Manga(props) {
           )}
         </div>
         <div className={classes.details}>
-          <a href={mangaData.mal} target='_blank' rel='noreferrer noopener'>
+          <a href={manga.mal} target='_blank' rel='noreferrer noopener'>
             <img
-              src={mangaData.cover}
+              src={manga.cover}
               className={classes.thumbnail}
-              alt={mangaData.title}
+              alt={manga.title}
             />
           </a>
           <Grid
@@ -196,14 +201,14 @@ function Manga(props) {
               direction='column'
               className={classes.infoGrid}
             >
-              <MangaInfo mangaData={mangaData} />
-              <MangaAliases aliases={mangaData.aliases} />
+              <MangaInfo mangaData={manga} />
+              <MangaAliases aliases={aliases} />
             </Grid>
             <MangaSourceList
               classesProp={[classes.sourceList]}
-              items={mangaData.services}
+              items={services}
               userFollows={userFollows}
-              followUnfollow={(serviceId) => followUnfollow(csrf, mangaData.manga_id, serviceId)}
+              followUnfollow={(serviceId) => followUnfollow(csrf, manga.manga_id, serviceId)}
             />
           </Grid>
         </div>
@@ -211,7 +216,7 @@ function Manga(props) {
           <Button
             variant='contained'
             color='primary'
-            onClick={followUnfollow(csrf, mangaData.manga_id, null)}
+            onClick={followUnfollow(csrf, manga.manga_id, null)}
             className={classes.followButton}
           >
             {userFollows.indexOf(null) < 0 ? 'Follow' : 'Unfollow'}
@@ -227,7 +232,7 @@ function Manga(props) {
             chapters={mangaChapters}
             editable={editing}
             serviceUrlFormats={serviceUrlFormats}
-            mangaId={mangaData.manga_id}
+            mangaId={manga.manga_id}
           />
         </TabPanelCustom>
         <TabPanelCustom value={activeTab} index={1} noRerenderOnChange>

@@ -3,7 +3,7 @@ const { query } = require('express-validator');
 const { handleElasticError, extractFields } = require('../db/elasticsearch/utils');
 const { hadValidationError } = require('../utils/validators');
 const { handleError } = require('../db/utils');
-const { getManga } = require('../db/manga');
+const { getFullManga } = require('../db/manga');
 const { mangaSearch } = require('../db/elasticsearch/manga');
 
 
@@ -39,8 +39,8 @@ module.exports = app => {
           return res.json({ manga: null });
         }
 
-        getManga(match[0].id)
-          .then(manga => res.json({ manga }))
+        getFullManga(match[0].id)
+          .then(manga => res.json({ data: manga }))
           .catch(err => handleError(err, res));
       })
       .catch(err => handleElasticError(err, res));

@@ -51,32 +51,6 @@ exports[`Manga page should render correctly Should render correctly as admin 1`]
                 "artist": "Boichi",
                 "author": "Inagaki Riichiro",
                 "bw": "https://bookwalker.jp/series/114645",
-                "chapters": Array [
-                  Object {
-                    "chapter_number": 157,
-                    "chapter_url": "1007322",
-                    "group": "Shueisha",
-                    "release_date": 1593964800000,
-                    "service_id": 1,
-                    "title": "Z=157: Same Time, Same Place",
-                  },
-                  Object {
-                    "chapter_number": 156,
-                    "chapter_url": "938629",
-                    "group": "MangaPlus",
-                    "release_date": null,
-                    "service_id": 2,
-                    "title": "Z=156: Two Scientists",
-                  },
-                  Object {
-                    "chapter_number": 156,
-                    "chapter_url": "1007024",
-                    "group": "Shueisha",
-                    "release_date": 1593187200000,
-                    "service_id": 1,
-                    "title": "Z=156: Two Scientists",
-                  },
-                ],
                 "cover": "https://mangadex.org/images/manga/20882.jpg?1585634146",
                 "ebj": "https://www.ebookjapan.jp/ebj/413780/",
                 "engtl": "https://www.viz.com/dr-stone",
@@ -93,28 +67,18 @@ exports[`Manga page should render correctly Should render correctly as admin 1`]
                 "release_interval": Object {
                   "days": 7,
                 },
-                "services": Array [
-                  Object {
-                    "name": "MANGA Plus",
-                    "service_id": 1,
-                    "title_id": "100010",
-                    "url": "https://mangaplus.shueisha.co.jp/titles/{}",
-                    "url_format": "https://mangaplus.shueisha.co.jp/viewer/{}",
-                  },
-                  Object {
-                    "name": "MangaDex",
-                    "service_id": 2,
-                    "title_id": "20882",
-                    "url": "https://mangadex.org/title/{}",
-                    "url_format": "https://mangadex.org/chapter/{}",
-                  },
-                ],
                 "status": 0,
                 "title": "Dr. STONE",
               }
             }
           />
-          <MangaAliases />
+          <MangaAliases
+            aliases={
+              Array [
+                "test alias",
+              ]
+            }
+          />
         </WithStyles(ForwardRef(Grid))>
         <MangaSourceList
           classesProp={
@@ -167,8 +131,8 @@ exports[`Manga page should render correctly Should render correctly as admin 1`]
         chapters={
           Array [
             Object {
+              "chapter_identifier": "1007322",
               "chapter_number": 157,
-              "chapter_url": "1007322",
               "group": "Shueisha",
               "release_date": 2020-07-05T16:00:00.000Z,
               "service_id": 1,
@@ -176,8 +140,8 @@ exports[`Manga page should render correctly Should render correctly as admin 1`]
               "url": "https://mangaplus.shueisha.co.jp/viewer/1007322",
             },
             Object {
+              "chapter_identifier": "938629",
               "chapter_number": 156,
-              "chapter_url": "938629",
               "group": "MangaPlus",
               "release_date": 1970-01-01T00:00:00.000Z,
               "service_id": 2,
@@ -185,8 +149,8 @@ exports[`Manga page should render correctly Should render correctly as admin 1`]
               "url": "https://mangadex.org/chapter/938629",
             },
             Object {
+              "chapter_identifier": "1007024",
               "chapter_number": 156,
-              "chapter_url": "1007024",
               "group": "Shueisha",
               "release_date": 2020-06-26T16:00:00.000Z,
               "service_id": 1,
@@ -269,32 +233,6 @@ exports[`Manga page should render correctly should render correctly 1`] = `
                 "artist": "Boichi",
                 "author": "Inagaki Riichiro",
                 "bw": "https://bookwalker.jp/series/114645",
-                "chapters": Array [
-                  Object {
-                    "chapter_number": 157,
-                    "chapter_url": "1007322",
-                    "group": "Shueisha",
-                    "release_date": 1593964800000,
-                    "service_id": 1,
-                    "title": "Z=157: Same Time, Same Place",
-                  },
-                  Object {
-                    "chapter_number": 156,
-                    "chapter_url": "938629",
-                    "group": "MangaPlus",
-                    "release_date": null,
-                    "service_id": 2,
-                    "title": "Z=156: Two Scientists",
-                  },
-                  Object {
-                    "chapter_number": 156,
-                    "chapter_url": "1007024",
-                    "group": "Shueisha",
-                    "release_date": 1593187200000,
-                    "service_id": 1,
-                    "title": "Z=156: Two Scientists",
-                  },
-                ],
                 "cover": "https://mangadex.org/images/manga/20882.jpg?1585634146",
                 "ebj": "https://www.ebookjapan.jp/ebj/413780/",
                 "engtl": "https://www.viz.com/dr-stone",
@@ -311,28 +249,18 @@ exports[`Manga page should render correctly should render correctly 1`] = `
                 "release_interval": Object {
                   "days": 7,
                 },
-                "services": Array [
-                  Object {
-                    "name": "MANGA Plus",
-                    "service_id": 1,
-                    "title_id": "100010",
-                    "url": "https://mangaplus.shueisha.co.jp/titles/{}",
-                    "url_format": "https://mangaplus.shueisha.co.jp/viewer/{}",
-                  },
-                  Object {
-                    "name": "MangaDex",
-                    "service_id": 2,
-                    "title_id": "20882",
-                    "url": "https://mangadex.org/title/{}",
-                    "url_format": "https://mangadex.org/chapter/{}",
-                  },
-                ],
                 "status": 0,
                 "title": "Dr. STONE",
               }
             }
           />
-          <MangaAliases />
+          <MangaAliases
+            aliases={
+              Array [
+                "test alias",
+              ]
+            }
+          />
         </WithStyles(ForwardRef(Grid))>
         <MangaSourceList
           classesProp={
@@ -385,8 +313,8 @@ exports[`Manga page should render correctly should render correctly 1`] = `
         chapters={
           Array [
             Object {
+              "chapter_identifier": "1007322",
               "chapter_number": 157,
-              "chapter_url": "1007322",
               "group": "Shueisha",
               "release_date": 2020-07-05T16:00:00.000Z,
               "service_id": 1,
@@ -394,8 +322,8 @@ exports[`Manga page should render correctly should render correctly 1`] = `
               "url": "https://mangaplus.shueisha.co.jp/viewer/1007322",
             },
             Object {
+              "chapter_identifier": "938629",
               "chapter_number": 156,
-              "chapter_url": "938629",
               "group": "MangaPlus",
               "release_date": 1970-01-01T00:00:00.000Z,
               "service_id": 2,
@@ -403,8 +331,8 @@ exports[`Manga page should render correctly should render correctly 1`] = `
               "url": "https://mangadex.org/chapter/938629",
             },
             Object {
+              "chapter_identifier": "1007024",
               "chapter_number": 156,
-              "chapter_url": "1007024",
               "group": "Shueisha",
               "release_date": 2020-06-26T16:00:00.000Z,
               "service_id": 1,
@@ -487,32 +415,6 @@ exports[`Manga page should render correctly should render correctly when logged 
                 "artist": "Boichi",
                 "author": "Inagaki Riichiro",
                 "bw": "https://bookwalker.jp/series/114645",
-                "chapters": Array [
-                  Object {
-                    "chapter_number": 157,
-                    "chapter_url": "1007322",
-                    "group": "Shueisha",
-                    "release_date": 1593964800000,
-                    "service_id": 1,
-                    "title": "Z=157: Same Time, Same Place",
-                  },
-                  Object {
-                    "chapter_number": 156,
-                    "chapter_url": "938629",
-                    "group": "MangaPlus",
-                    "release_date": null,
-                    "service_id": 2,
-                    "title": "Z=156: Two Scientists",
-                  },
-                  Object {
-                    "chapter_number": 156,
-                    "chapter_url": "1007024",
-                    "group": "Shueisha",
-                    "release_date": 1593187200000,
-                    "service_id": 1,
-                    "title": "Z=156: Two Scientists",
-                  },
-                ],
                 "cover": "https://mangadex.org/images/manga/20882.jpg?1585634146",
                 "ebj": "https://www.ebookjapan.jp/ebj/413780/",
                 "engtl": "https://www.viz.com/dr-stone",
@@ -529,28 +431,18 @@ exports[`Manga page should render correctly should render correctly when logged 
                 "release_interval": Object {
                   "days": 7,
                 },
-                "services": Array [
-                  Object {
-                    "name": "MANGA Plus",
-                    "service_id": 1,
-                    "title_id": "100010",
-                    "url": "https://mangaplus.shueisha.co.jp/titles/{}",
-                    "url_format": "https://mangaplus.shueisha.co.jp/viewer/{}",
-                  },
-                  Object {
-                    "name": "MangaDex",
-                    "service_id": 2,
-                    "title_id": "20882",
-                    "url": "https://mangadex.org/title/{}",
-                    "url_format": "https://mangadex.org/chapter/{}",
-                  },
-                ],
                 "status": 0,
                 "title": "Dr. STONE",
               }
             }
           />
-          <MangaAliases />
+          <MangaAliases
+            aliases={
+              Array [
+                "test alias",
+              ]
+            }
+          />
         </WithStyles(ForwardRef(Grid))>
         <MangaSourceList
           classesProp={
@@ -603,8 +495,8 @@ exports[`Manga page should render correctly should render correctly when logged 
         chapters={
           Array [
             Object {
+              "chapter_identifier": "1007322",
               "chapter_number": 157,
-              "chapter_url": "1007322",
               "group": "Shueisha",
               "release_date": 2020-07-05T16:00:00.000Z,
               "service_id": 1,
@@ -612,8 +504,8 @@ exports[`Manga page should render correctly should render correctly when logged 
               "url": "https://mangaplus.shueisha.co.jp/viewer/1007322",
             },
             Object {
+              "chapter_identifier": "938629",
               "chapter_number": 156,
-              "chapter_url": "938629",
               "group": "MangaPlus",
               "release_date": 1970-01-01T00:00:00.000Z,
               "service_id": 2,
@@ -621,8 +513,8 @@ exports[`Manga page should render correctly should render correctly when logged 
               "url": "https://mangadex.org/chapter/938629",
             },
             Object {
+              "chapter_identifier": "1007024",
               "chapter_number": 156,
-              "chapter_url": "1007024",
               "group": "Shueisha",
               "release_date": 2020-06-26T16:00:00.000Z,
               "service_id": 1,
@@ -705,7 +597,6 @@ exports[`Manga page should render correctly should render correctly with little 
                 "artist": "Boichi",
                 "author": "Inagaki Riichiro",
                 "bw": "https://bookwalker.jp/series/114645",
-                "chapters": Array [],
                 "cover": null,
                 "ebj": "https://www.ebookjapan.jp/ebj/413780/",
                 "engtl": "https://www.viz.com/dr-stone",
@@ -720,15 +611,6 @@ exports[`Manga page should render correctly should render correctly with little 
                 "nu": "https://www.novelupdates.com/series/null",
                 "raw": "null",
                 "release_interval": undefined,
-                "services": Array [
-                  Object {
-                    "name": "MANGA Plus",
-                    "service_id": 1,
-                    "title_id": "100010",
-                    "url": "https://mangaplus.shueisha.co.jp/titles/{}",
-                    "url_format": "https://mangaplus.shueisha.co.jp/viewer/{}",
-                  },
-                ],
                 "status": 0,
                 "title": "Dr. STONE",
               }

@@ -22,7 +22,7 @@ import { csrfProps, CSRFProvider } from '../utils/csrf';
 import { UserProvider } from '../utils/useUser';
 
 
-function MainApp({ Component, pageProps, props }) {
+function MainApp({ Component, pageProps = {}, props }) {
   const [theme, setTheme] = React.useState(props.theme);
   const [user, setUser] = React.useState(props.user);
   const [prefersDark, setPrefersDark] = useState(theme === 2);
@@ -90,23 +90,29 @@ function MainApp({ Component, pageProps, props }) {
         }}
       />
 
-      <ThemeProvider theme={activeTheme}>
-        <CssBaseline />
-        <ProgressBar />
-        <MuiPickersUtilsProvider utils={DateFnsUtils} locale={enLocale}>
-          <SnackbarProvider>
-            <UserProvider value={user}>
-              <CSRFProvider value={props._csrf}>
-                <Root {...props}>
-                  <main>
-                    <Component {...pageProps} />
-                  </main>
-                </Root>
-              </CSRFProvider>
-            </UserProvider>
-          </SnackbarProvider>
-        </MuiPickersUtilsProvider>
-      </ThemeProvider>
+      { pageProps.independent ? (
+        <main>
+          <Component {...pageProps} />
+        </main>
+      ) : (
+        <ThemeProvider theme={activeTheme}>
+          <CssBaseline />
+          <ProgressBar />
+          <MuiPickersUtilsProvider utils={DateFnsUtils} locale={enLocale}>
+            <SnackbarProvider>
+              <UserProvider value={user}>
+                <CSRFProvider value={props._csrf}>
+                  <Root {...props}>
+                    <main>
+                      <Component {...pageProps} />
+                    </main>
+                  </Root>
+                </CSRFProvider>
+              </UserProvider>
+            </SnackbarProvider>
+          </MuiPickersUtilsProvider>
+        </ThemeProvider>
+      )}
     </React.Fragment>
   );
 }

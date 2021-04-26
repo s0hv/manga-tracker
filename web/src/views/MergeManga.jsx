@@ -45,7 +45,7 @@ function MergeManga() {
     fetch(`/api/manga/${mangaId}`)
       .then(res => res.json())
       .then(js => {
-        cb(js.manga);
+        cb(js.data);
       })
       .catch(err => {
         console.error(err);

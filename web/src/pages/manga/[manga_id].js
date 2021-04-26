@@ -1,5 +1,5 @@
-import React from 'react';
 import { NextSeo } from 'next-seo';
+import React from 'react';
 
 import Manga from '../../components/Manga';
 import withError from '../../utils/withError';
@@ -28,7 +28,7 @@ function MangaPage(props) {
 }
 
 export async function getServerSideProps({ req, params }) {
-  const { getManga } = require('../../../db/manga');
+  const { getFullManga } = require('../../../db/manga');
   const { getUserFollows } = require('../../../db/db');
 
   // Log a page view
@@ -37,7 +37,7 @@ export async function getServerSideProps({ req, params }) {
   let manga;
   let userFollows;
   try {
-    manga = await getManga(params.manga_id, 50);
+    manga = await getFullManga(params.manga_id, 25);
     if (!manga) {
       return { props: { error: 404 }};
     }

@@ -1,23 +1,21 @@
-import { useConfirm } from 'material-ui-confirm';
-import { useSnackbar } from 'notistack';
-import React, { useCallback, useMemo, useState } from 'react';
 import {
   Container,
-  Grid, IconButton,
-  Paper, Tooltip,
+  Grid,
+  IconButton,
+  Paper,
+  Tooltip,
   Typography,
 } from '@material-ui/core';
 
-import {
-  SubdirectoryArrowLeft as SubdirectoryArrowLeftIcon,
-} from '@material-ui/icons';
-
 import { makeStyles } from '@material-ui/core/styles';
-import Link from 'next/link';
 
-import {
-  Select,
-} from 'mui-rff';
+import { SubdirectoryArrowLeft as SubdirectoryArrowLeftIcon, } from '@material-ui/icons';
+import { useConfirm } from 'material-ui-confirm';
+
+import { Select, } from 'mui-rff';
+import Link from 'next/link';
+import { useSnackbar } from 'notistack';
+import React, { useCallback, useMemo, useState } from 'react';
 import MangaAliases from '../../components/MangaAliases';
 import MangaInfo from '../../components/MangaInfo';
 
@@ -111,8 +109,8 @@ function MangaAdmin(props) {
     fetch(`/api/manga/${mangaId}`)
       .then(res => res.json())
       .then(json => {
-        setAliases(json.manga.aliases);
-        setMangaTitle(json.manga.title);
+        setAliases(json.data.aliases);
+        setMangaTitle(json.data.title);
       });
   }, [mangaId]);
 

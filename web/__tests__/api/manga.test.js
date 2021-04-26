@@ -5,12 +5,19 @@ import { userForbidden, userUnauthorized } from '../constants';
 
 import initServer from '../initServer';
 import stopServer from '../stopServer';
-import { adminUser, expectErrorMessage, normalUser, withUser } from '../utils';
+import {
+  adminUser,
+  configureJestOpenAPI,
+  expectErrorMessage,
+  normalUser,
+  withUser,
+} from '../utils';
 
 let httpServer;
 
 beforeAll(async () => {
   ({ httpServer } = await initServer());
+  await configureJestOpenAPI();
 });
 
 beforeEach(async () => {
@@ -108,17 +115,22 @@ describe('GET /api/manga/:manga_id', () => {
     await request(httpServer)
       .get(`/api/manga/9999999`)
       .expect(404)
+      .satisfiesApiSpec()
       .expect(expectErrorMessage('Manga not found'));
   });
 
-  it('returns 404 with non positive integers', async () => {
+  it('returns 400 with non positive integers', async () => {
     await request(httpServer)
       .get(`/api/manga/-1`)
-      .expect(404);
+      .expect(400)
+      .satisfiesApiSpec()
+      .expect(expectErrorMessage('-1', 'manga_id', /positive integer/));
 
     await request(httpServer)
       .get(`/api/manga/abc`)
-      .expect(404);
+      .expect(400)
+      .satisfiesApiSpec()
+      .expect(expectErrorMessage('abc', 'manga_id', /positive integer/));
   });
 
   const chapterError = 'Amount of chapters must be a positive integer';
@@ -126,38 +138,41 @@ describe('GET /api/manga/:manga_id', () => {
     await request(httpServer)
       .get(`/api/manga/1?chapters=`)
       .expect(400)
+      .satisfiesApiSpec()
       .expect(expectErrorMessage('', 'chapters', chapterError));
 
     await request(httpServer)
       .get(`/api/manga/1?chapters=abc`)
       .expect(400)
+      .satisfiesApiSpec()
       .expect(expectErrorMessage('abc', 'chapters', chapterError));
 
     await request(httpServer)
       .get(`/api/manga/1?chapters=-1`)
       .expect(400)
+      .satisfiesApiSpec()
       .expect(expectErrorMessage('-1', 'chapters', chapterError));
+
+    await request(httpServer)
+      .get(`/api/manga/1?chapters=51`)
+      .expect(400)
+      .satisfiesApiSpec()
+      .expect(expectErrorMessage('51', 'chapters', 'Chapter amount must be 50 or less'));
   });
 
   it('returns 200 with valid manga id and chapters', async () => {
-    const checkManga = res => {
-      expect(res.body).toBeObject();
-      expect(res.body.manga).toBeTruthy();
-    };
-
     await request(httpServer)
       .get(`/api/manga/1`)
       .expect(200)
-      .expect(checkManga);
+      .satisfiesApiSpec();
 
     await request(httpServer)
       .get(`/api/manga/1?chapters=5`)
       .expect(200)
-      .expect(checkManga)
-      .expect(res => expect(res.body.manga.chapters).toHaveLength(5));
+      .satisfiesApiSpec()
+      .expect(res => expect(res.body.data.chapters).toHaveLength(5));
   });
 });
-
 
 const getChapterCount = (body) => (body && body.chapters?.length) || 0;
 

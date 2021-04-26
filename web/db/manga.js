@@ -18,9 +18,31 @@ function formatLinks(row) {
 }
 module.exports.formatLinks = formatLinks;
 
-function getManga(mangaId, chapters) {
+function formatFullManga(obj) {
+  const out = {};
+
+  if (obj.services) {
+    out.services = obj.services;
+    delete obj.services;
+  }
+
+  if (obj.chapters) {
+    out.chapters = obj.chapters;
+    delete obj.chapters;
+  }
+
+  if (obj.aliases) {
+    out.aliases = obj.aliases;
+    delete obj.aliases;
+  }
+  out.manga = obj;
+
+  return out;
+}
+
+function getFullManga(mangaId, chapters) {
   const chapterSql = `,(SELECT json_agg(ch) FROM 
-                            (SELECT chapter_id, title, chapter_number, extract(EPOCH FROM release_date) * 1000 as release_date, "group", service_id, chapter_identifier as chapter_url FROM chapters WHERE manga_id=$1 ORDER BY chapter_number DESC, chapter_decimal DESC NULLS LAST LIMIT $2) ch) 
+                            (SELECT chapter_id, title, chapter_number, extract(EPOCH FROM release_date)::BIGINT * 1000 as release_date, "group", service_id, chapter_identifier FROM chapters WHERE manga_id=$1 ORDER BY chapter_number DESC, chapter_decimal DESC NULLS LAST LIMIT $2) ch) 
                          as chapters`;
   const args = [mangaId];
   let limit = parseInt(chapters);
@@ -53,20 +75,20 @@ function getManga(mangaId, chapters) {
       // If info doesn't exist or 2 weeks since last update
       if ((!row.last_updated || (Date.now() - row.last_updated)/8.64E7 > 14) && mdIdx >= 0) {
         return fetchExtraInfo(row.services[mdIdx].title_id, mangaId,
-          (limit && row.chapters) ? row.chapters.filter(c => c.service_id === MANGADEX_ID).map(c => c.chapter_url) : null,
+          (limit && row.chapters) ? row.chapters.filter(c => c.service_id === MANGADEX_ID).map(c => c.chapter_identifier) : null,
           Boolean(limit),
           Boolean(row.last_updated))
           .then(extra => {
             formatLinks(extra);
-            return { ...row, ...extra };
+            return formatFullManga({ ...row, ...extra });
           });
       }
 
       formatLinks(row);
-      return row;
+      return formatFullManga(row);
     });
 }
-module.exports.getManga = getManga;
+module.exports.getFullManga = getFullManga;
 
 async function getFollows(userId) {
   if (!userId) {
