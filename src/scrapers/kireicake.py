@@ -23,7 +23,11 @@ class KireiCake(BaseRSS):
     def get_title_id(self, entry: Dict) -> str:
         # Replace the name to the form a-b-c by replacing spaces with dash
         # and removing all special characters
-        return re.sub('([^a-z]-)+', '', self.get_manga_title(entry).lower().replace(' ', '-'))
+        title = self.get_manga_title(entry)
+        if title is None:
+            raise ValueError('Manga title not found')
+
+        return re.sub('([^a-z]-)+', '', title.lower().replace(' ', '-'))
 
     def get_group(self, entry: Dict) -> Optional[str]:
         return self.NAME
@@ -35,3 +39,5 @@ class KireiCake(BaseRSS):
                 continue
 
             return name
+
+        return None

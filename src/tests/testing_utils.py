@@ -1,14 +1,14 @@
 import os
+import subprocess
 import sys
 import unittest
-import subprocess
 from datetime import datetime, timedelta
-from typing import NoReturn, Generic, TypeVar, Optional
+from typing import TypeVar, Optional, Union, ClassVar
 from unittest import mock
 
 import feedparser
 import psycopg2
-import testing.postgresql
+import testing.postgresql  # type: ignore[import]
 from psycopg2.extensions import connection as Connection
 from psycopg2.extras import DictCursor, DictRow
 
@@ -19,6 +19,8 @@ from src.utils.dbutils import DbUtil
 originalParse = feedparser.parse
 
 DONT_USE_TEMP_DATABASE = bool(os.environ.get('NO_TEMP_DB', False))
+
+Postgresql: Optional[testing.postgresql.PostgresqlFactory] = None
 
 if DONT_USE_TEMP_DATABASE:
     Postgresql = None
@@ -31,7 +33,7 @@ else:
 T = TypeVar('T')
 
 
-def run_migrations(conn: Connection) -> NoReturn:
+def run_migrations(conn: Connection) -> None:
     filepath = os.path.dirname(__file__)
     root = os.path.join(filepath, '..', '..')
     env = os.environ.copy()
@@ -53,7 +55,7 @@ def create_db(postgres: Optional[testing.postgresql.Postgresql]) -> Connection:
 
 
 def create_conn(postgres: Optional[testing.postgresql.Postgresql]) -> Connection:
-    if DONT_USE_TEMP_DATABASE:
+    if DONT_USE_TEMP_DATABASE or not postgres:
         conn = psycopg2.connect(
             host=os.environ['DB_HOST'],
             port=os.environ['DB_PORT'],
@@ -69,22 +71,22 @@ def create_conn(postgres: Optional[testing.postgresql.Postgresql]) -> Connection
     return conn
 
 
-def start_db():
-    if not DONT_USE_TEMP_DATABASE:
+def start_db() -> None:
+    if Postgresql:
         Postgresql.cache.start()
 
 
 def get_conn() -> Connection:
-    conn = create_conn(None if DONT_USE_TEMP_DATABASE else Postgresql.cache)
+    conn = create_conn(None if not Postgresql else Postgresql.cache)
     if conn.get_parameter_status('timezone') != 'UTC':
         with conn.cursor() as cur:
             cur.execute("SET TIMEZONE TO 'UTC'")
     return conn
 
 
-def teardown_db() -> NoReturn:
-    if DONT_USE_TEMP_DATABASE:
-        return
+def teardown_db() -> None:
+    if not Postgresql:
+        return None
 
     try:
         Postgresql.cache.stop()
@@ -99,12 +101,13 @@ def mock_feedparse(feed, *args, **kwargs):
     return wrapper
 
 
-def spy_on(instance: Generic[T]):
+# Actually returns a literal union between the input and MagicMock
+def spy_on(instance: T) -> Union[T, mock.MagicMock]:
     return mock.MagicMock(spec_set=instance, wraps=instance)
 
 
 def date_fix(d: datetime):
-    if d.tzinfo and d.utcoffset().total_seconds() == 0:
+    if d.tzinfo and d.utcoffset().total_seconds() == 0:  # type: ignore[union-attr]
         return d.replace(tzinfo=None)
     return d
 
@@ -126,19 +129,24 @@ def set_db_environ():
 class BaseTestClasses:
 
     class DatabaseTestCase(unittest.TestCase):
+        _conn: ClassVar[Connection] = NotImplemented
+
+        @classmethod
+        def setUpClass(cls) -> None:
+            cls._conn = get_conn()
 
         @property
         def conn(self) -> Connection:
             return self._conn
 
         def setUp(self) -> None:
-            self._conn = get_conn()
             self.dbutil = DbUtil(self._conn)
 
-        def tearDown(self) -> None:
-            self._conn.close()
+        @classmethod
+        def tearDownClass(cls) -> None:
+            cls._conn.close()
 
-        def assertChapterEqualsRow(self, chapter: 'Chapter', row: DictRow) -> NoReturn:
+        def assertChapterEqualsRow(self, chapter: 'Chapter', row: DictRow) -> None:
             pairs = [
                 ('chapter_title', 'title'),
                 ('chapter_number', 'chapter_number'),
@@ -158,7 +166,7 @@ class BaseTestClasses:
                     def get_vals():
                         return getattr(chapter, chapter_attr), row[row_attr]
 
-                c_val, r_val = get_vals()
+                c_val, r_val = get_vals()  # type: ignore[operator]
                 if c_val != r_val:
                     self.fail(
                         'Chapter from database does not equal model\n'
@@ -197,6 +205,13 @@ class BaseTestClasses:
                 row = cur.fetchone()
 
             self.assertIsNotNone(row, msg=f'Manga {title_id} not found')
+
+        @staticmethod
+        def utcnow() -> datetime:
+            """
+            Return utc time with psycopg2 timezone
+            """
+            return datetime.utcnow().replace(tzinfo=psycopg2.tz.FixedOffsetTimezone(offset=0, name=None))
 
     class ModelAssertions(unittest.TestCase):
         def assertChaptersEqual(self, a: BaseChapter, b: BaseChapter):
@@ -251,16 +266,16 @@ class BaseTestClasses:
 
 
 class Chapter(BaseChapter):
-    def __init__(self, chapter_title: str = None, chapter_number: int = None,
+    def __init__(self, chapter_title: str = None, chapter_number: int = 0,
                  volume: int = None, decimal: int = None,
-                 release_date: datetime = None, chapter_identifier: str = None,
+                 release_date: datetime = None, chapter_identifier: str = '',
                  title_id: str = None, manga_title: str = None,
                  manga_url: str = None, group: str = None):
         self._chapter_title = chapter_title
         self._chapter_number = chapter_number
         self._volume = volume
         self._decimal = decimal
-        self._release_date = release_date
+        self._release_date = release_date or datetime.utcnow()
         self._chapter_identifier = chapter_identifier
         self._title_id = title_id
         self._manga_title = manga_title
@@ -272,7 +287,7 @@ class Chapter(BaseChapter):
         return self._chapter_title
 
     @property
-    def chapter_number(self) -> Optional[int]:
+    def chapter_number(self) -> int:
         return self._chapter_number
 
     @property
@@ -284,11 +299,11 @@ class Chapter(BaseChapter):
         return self._decimal
 
     @property
-    def release_date(self) -> Optional[datetime]:
+    def release_date(self) -> datetime:
         return self._release_date
 
     @property
-    def chapter_identifier(self) -> Optional[str]:
+    def chapter_identifier(self) -> str:
         return self._chapter_identifier
 
     @property
@@ -309,4 +324,4 @@ class Chapter(BaseChapter):
 
     @property
     def title(self) -> str:
-        return self.chapter_title
+        return self.chapter_title or 'No title'

@@ -1,17 +1,17 @@
+import logging
 import time
 from abc import ABC, abstractmethod
 from calendar import timegm
 from datetime import datetime, timedelta
-import feedparser
 from typing import Optional, List, Iterable, Dict, Pattern, Any, Type, Union
-import logging
 
+import feedparser
 import psycopg2
 
 from src.db.mappers.chapter_mapper import ChapterMapper
 from src.errors import FeedHttpError, InvalidFeedError
 from src.scrapers.base_scraper import BaseScraper, BaseChapter
-from src.utils.utilities import (match_title, is_valid_feed, group_by_manga,
+from src.utils.utilities import (match_title, is_valid_feed,
                                  get_latest_chapters)
 
 logger = logging.getLogger('debug')
@@ -94,7 +94,7 @@ class RSSChapter(BaseChapter):
 
 
 class BaseRSS(BaseScraper, ABC):
-    TITLE_REGEX: Pattern = None
+    TITLE_REGEX: Pattern = NotImplemented
     Chapter: Type[RSSChapter] = RSSChapter
 
     def __init_subclass__(cls, **kwargs):
@@ -175,14 +175,14 @@ class BaseRSS(BaseScraper, ABC):
             match = self.TITLE_REGEX.match(title)
             kwargs: Dict[str, Any]
             if not match:
-                match = match_title(title)
-                if not match:
+                universal_match = match_title(title)
+                if not universal_match:
                     logger.warning(f'Could not parse title from {title or entry}')
                     continue
 
                 logger.info(f'Fallback to universal regex successful on {title or entry}')
 
-                kwargs = match
+                kwargs = universal_match
             else:
                 kwargs = match.groupdict()
 
@@ -227,7 +227,7 @@ class BaseRSS(BaseScraper, ABC):
             logger.exception(f'Failed to fetch feed {feed_url}')
             return
 
-        entries: List[RSSChapter] = self.dbutil.get_only_latest_entries(service_id, self.parse_feed(feed.entries))
+        entries = self.dbutil.get_only_latest_entries(service_id, self.parse_feed(feed.entries))
 
         if not entries:
             logger.info('No new entries found')
@@ -236,28 +236,27 @@ class BaseRSS(BaseScraper, ABC):
         logger.info('%s new chapters found. %s', len(entries),
                     [e.chapter_identifier for e in entries])
 
-        titles = group_by_manga(entries)
+        titles = self.group_by_manga(entries)
 
         chapters = []
         manga_ids = set()
 
         # Find already added titles
-        with self.conn:
-            with self.conn.cursor() as cur:
-                for row in self.dbutil.find_added_titles(cur, tuple(titles.keys())):
-                    manga_id = row['manga_id']
-                    manga_ids.add(manga_id)
-                    for chapter in titles.pop(row['title_id']):
-                        chapters.append(ChapterMapper.base_chapter_to_db(chapter, manga_id, service_id))
+        for ms in self.dbutil.find_added_titles(tuple(titles.keys())):
+            manga_ids.add(ms.manga_id)
+            for chapter in titles.pop(ms.title_id):
+                chapters.append(ChapterMapper.base_chapter_to_db(chapter, ms.manga_id, service_id))
 
-        # Add new titles
-        if titles:
-            with self.conn:
-                with self.conn.cursor() as cur:
-                    for manga_id, inner_chapters in self.dbutil.add_new_series(cur, titles, service_id, True):
-                        manga_ids.add(manga_id)
-                        for chapter in inner_chapters:
-                            chapters.append(ChapterMapper.base_chapter_to_db(chapter, manga_id, service_id))
+        # Add new manga
+        mangas = self.titles_dict_to_manga_service(titles, service_id, True)
+
+        for manga in self.dbutil.add_new_manga_and_check_duplicate_titles(mangas):
+            manga_ids.add(manga.manga_id)
+            for chapter in titles.get(manga.title_id, []):
+                chapters.append(
+                    ChapterMapper.base_chapter_to_db(chapter, manga.manga_id,
+                                                     service_id)
+                )
 
         self.dbutil.add_chapters(chapters, fetch=False)
 

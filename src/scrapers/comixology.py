@@ -65,6 +65,7 @@ class Chapter(BaseChapter):
         self._title_id = found[0]
         self._manga_title = manga_title
         self.release_date_maybe = None
+        self._created_at = datetime.utcnow()
 
     def __repr__(self) -> str:
         return f'{self.manga_title} chapter {self.chapter_number}: {self.title}'
@@ -86,8 +87,8 @@ class Chapter(BaseChapter):
         return self._chapter_decimal
 
     @property
-    def release_date(self) -> Optional[datetime]:
-        return self.release_date_maybe
+    def release_date(self) -> datetime:
+        return self.release_date_maybe or self._created_at
 
     @property
     def chapter_identifier(self) -> str:
@@ -123,7 +124,7 @@ class ComiXology(BaseScraper):
 
     def __init__(self, conn, dbutil: DbUtil):
         super().__init__(conn, dbutil)
-        self.service_id = None
+        self.service_id: Optional[int] = None
 
     @staticmethod
     def min_update_interval() -> timedelta:
@@ -143,10 +144,10 @@ class ComiXology(BaseScraper):
         r = requests.get(url)
         if r.status_code == 429:
             logger.error(f'Ratelimited on {self.URL}')
-            return
+            return None
 
         if r.status_code != 200:
-            return
+            return None
 
         root = etree.HTML(r.text)
         children = root.cssselect('.credits')[0].getchildren()
@@ -162,7 +163,9 @@ class ComiXology(BaseScraper):
                 logger.exception(f'Failed to convert release date to datetime, "{d.text}"')
                 continue
             except IndexError:
-                return
+                return None
+
+        return None
 
     def update_selected_manga(self, manga_links: Iterable) -> Union[None, int, bool]:
         now = datetime.utcnow()
@@ -173,7 +176,7 @@ class ComiXology(BaseScraper):
 
         if not self.service_id:
             logger.warning(f'No service found with {self.URL}')
-            return
+            return None
 
         for source in manga_links:
             manga = source.manga
@@ -216,7 +219,7 @@ class ComiXology(BaseScraper):
             if latest_chapter == -1:
                 latest_chapter = max(chapters, key=lambda c: c.chapter_number)
 
-            chapters = list(sorted(chapters, key=Chapter.chapter_number.fget, reverse=True))
+            chapters = list(sorted(chapters, key=Chapter.chapter_number.fget, reverse=True))  # type: ignore[attr-defined]
 
             if len(new_chapters) > 1:
                 if chapters[0].chapter_number < latest_chapter:

@@ -27,3 +27,11 @@ class DummyScraper(BaseScraper):
 
     def __init__(self, conn, dbutil: DbUtil):
         super().__init__(conn, dbutil)
+
+
+class DummyScraper2(DummyScraper):
+    ID = 1000
+    URL = 'test_url2'
+    CHAPTER_URL_FORMAT = 'chapter/{}'
+    MANGA_URL_FORMAT = 'manga/{}'
+    NAME = 'Testing scraper 2'

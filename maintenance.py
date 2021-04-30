@@ -32,11 +32,11 @@ with scheduler.conn() as conn:
         with conn.cursor() as cur:
             if args.update_interval:
                 logger.info(f'Updating interval for {args.manga}')
-                dbutil.update_chapter_interval(cur, args.manga)
+                dbutil.update_chapter_interval(args.manga, cur=cur)
 
             if args.update_estimate:
                 logger.info(f'Updating estimate for {args.manga}')
-                dbutil.update_estimated_release(cur, args.manga)
+                dbutil.update_estimated_release(args.manga, cur=cur)
 
     except Exception:
         logger.exception('Failed to execute commands. Rolling back')

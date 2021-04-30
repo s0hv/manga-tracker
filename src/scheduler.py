@@ -5,12 +5,13 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 from datetime import datetime, timedelta
-from typing import Type, ContextManager, TypedDict, Optional, Collection, List
+from typing import Type, ContextManager, TypedDict, Optional, Collection, List, \
+    Set, cast
 
 import psycopg2
-from psycopg2.extras import DictCursor, execute_values
-from psycopg2.pool import ThreadedConnectionPool
 from psycopg2.extensions import connection as Connection
+from psycopg2.extras import DictCursor
+from psycopg2.pool import ThreadedConnectionPool
 
 from src.scrapers import SCRAPERS
 from src.scrapers.base_scraper import BaseScraper
@@ -47,22 +48,27 @@ class UpdateScheduler:
                                             cursor_factory=DictCursor)
         self.thread_pool = ThreadPoolExecutor(max_workers=self.MAX_POOLS-1)
 
-    @contextmanager
+    # Workaround described in https://youtrack.jetbrains.com/issue/PY-36444
+    # Required for mypy pass and PyCharm autocompletion
     def conn(self) -> ContextManager[Connection]:
-        conn = self.pool.getconn()
-        try:
-            conn.set_client_encoding('UTF8')
-            if conn.get_parameter_status('timezone') != 'UTC':
-                with conn.cursor() as cur:
-                    cur.execute("SET TIMEZONE TO 'UTC'")
-            yield conn
-        except:
-            conn.rollback()
-            raise
-        else:
-            conn.commit()
-        finally:
-            self.pool.putconn(conn)
+        @contextmanager
+        def wrapper():
+            conn: Connection = self.pool.getconn()
+            try:
+                conn.set_client_encoding('UTF8')
+                if conn.get_parameter_status('timezone') != 'UTC':
+                    with conn.cursor() as cur:
+                        cur.execute("SET TIMEZONE TO 'UTC'")
+                yield conn
+            except Exception:
+                conn.rollback()
+                raise
+            else:
+                conn.commit()
+            finally:
+                self.pool.putconn(conn)
+
+        return wrapper()
 
     def do_scheduled_runs(self) -> List[int]:
         # TODO maybe make these have some ratelimits as well
@@ -160,12 +166,11 @@ class UpdateScheduler:
 
                     scraper = Scraper(conn, DbUtil(conn))
 
-                    title_id = row['title_id']
-                    service_id = row['service_id']
-                    manga_id = row['manga_id']
+                    title_id: str = row['title_id']
+                    manga_id = cast(int, row['manga_id'])
                     # Feed url is the feed url of the manga or if that's not defined
                     # the feed url of the service. Manga url always takes priority
-                    feed_url = row['feed_url'] or row['service_feed_url']
+                    feed_url: str = row['feed_url'] or row['service_feed_url']
 
                     logger.info(f'Force updating {title_id} on service {service_id}')
                     with conn:
@@ -189,7 +194,7 @@ class UpdateScheduler:
                          FROM service_whole sw INNER JOIN services s on sw.service_id = s.service_id
                          WHERE s.service_id=%s"""
 
-                manga_ids = set()
+                manga_ids: Set[int] = set()
                 with conn.cursor() as cursor:
                     cursor.execute(sql, (service_id,))
                     row = cursor.fetchone()
@@ -205,9 +210,9 @@ class UpdateScheduler:
                 scraper = Scraper(conn, DbUtil(conn))
                 logger.info(f'Updating service {row["url"]}')
                 with conn:
-                    retval = scraper.scrape_service(row['service_id'], row['feed_url'], None)
-                if retval:
-                    manga_ids.update(retval)
+                    updated_ids = scraper.scrape_service(row['service_id'], row['feed_url'], None)
+                if updated_ids:
+                    manga_ids.update(updated_ids)
 
                 return manga_ids
 
@@ -288,9 +293,9 @@ class UpdateScheduler:
                     logger.debug(f"Updating interval of {len(manga_ids)} manga")
                     dbutil = DbUtil(conn)
                     with conn.cursor() as cursor:
-                        dbutil.update_latest_release(cursor, list(manga_ids))
+                        dbutil.update_latest_release(list(manga_ids), cur=cursor)
                         for manga_id in manga_ids:
-                            dbutil.update_chapter_interval(cursor, manga_id)
+                            dbutil.update_chapter_interval(manga_id, cur=cursor)
 
             sql = '''
             SELECT MIN(t.update) FROM (

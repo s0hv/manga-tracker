@@ -28,7 +28,7 @@ class TitleWrapper:
         return self._title.name
 
     @property
-    def author(self) -> Optional[str]:
+    def author(self) -> str:
         return self._title.author
 
     @property
@@ -98,6 +98,8 @@ class TitleDetailViewWrapper:
     def next_timestamp(self) -> Optional[datetime]:
         if self._title_detail.next_timestamp:
             return datetime.utcfromtimestamp(self._title_detail.next_timestamp)
+        else:
+            return None
 
     @property
     def update_timing(self) -> str:
@@ -141,7 +143,7 @@ class TitleDetailViewWrapper:
             'title_image_url': self.title_image_url,
             'overview': self.overview,
             'background_image_url': self.background_image_url,
-            'next_timestamp': int(self.next_timestamp.replace(tzinfo=timezone.utc).timestamp()),  # timestamp returns in local timezone
+            'next_timestamp': self.next_timestamp and int(self.next_timestamp.replace(tzinfo=timezone.utc).timestamp()),  # timestamp returns in local timezone
             'update_timing': self._title_detail.update_timing,
             'viewing_period_description': self.viewing_period_description,
             'non_appearance_info': self.non_appearance_info,
@@ -171,17 +173,21 @@ class ResponseWrapper:
     def success_result(self) -> Optional[mangaplus_pb2.SuccessResult]:
         if self._response.HasField('success_result'):
             return self._response.success_result
+        else:
+            return None
 
     @property
     def error_result(self) -> Optional[mangaplus_pb2.ErrorResult]:
         if self._response.HasField('error_result'):
             return self._response.error_result
+        else:
+            return None
 
     @property
     def title_detail_view(self) -> Optional[TitleDetailViewWrapper]:
         res = self.success_result
         if not res or not res.HasField('title_detail'):
-            return
+            return None
 
         return TitleDetailViewWrapper(res.title_detail)
 
@@ -189,7 +195,7 @@ class ResponseWrapper:
     def all_titles_view(self) -> Optional[AllTitlesViewWrapper]:
         res = self.success_result
         if not res or not res.HasField('all_titles'):
-            return
+            return None
 
         return AllTitlesViewWrapper(res.all_titles)
 
@@ -291,10 +297,10 @@ class MangaPlus(BaseScraper):
             r = requests.get(self.API.format(title_id))
         except requests.RequestException:
             logger.exception('Failed to fetch series')
-            return
+            return None
 
         if r.status_code != 200:
-            return
+            return None
 
         resp = ResponseWrapper(r.content)
         title_detail = resp.title_detail_view
@@ -307,10 +313,10 @@ class MangaPlus(BaseScraper):
             r = requests.get(api_url)
         except requests.RequestException:
             logger.exception('Failed to fetch all mangaplus titles')
-            return
+            return None
 
         if r.status_code != 200:
-            return
+            return None
 
         resp = ResponseWrapper(r.content)
         all_titles = resp.all_titles_view
@@ -329,16 +335,23 @@ class MangaPlus(BaseScraper):
                 service_id = cur.fetchone()
                 if not service_id:
                     logger.error('Could not find service id for Manga Plus')
-                    return
+                    return None
 
                 service_id = service_id[0]
 
-                chapters = [*series.first_chapter_list, *series.last_chapter_list]
+                manga = self.dbutil.add_new_manga_and_check_duplicate_titles([
+                    MangaService(service_id=service_id, disabled=False,
+                                 title_id=title_id,
+                                 last_check=datetime.utcnow(),
+                                 title=series.title.name)
+                ])
+                if not manga or not manga[0].manga_id:
+                    logger.warning('Manga not returned even it should have')
+                    return None
 
-                for manga_id, _ in self.dbutil.add_new_series(cur,
-                                                              {title_id: chapters},
-                                                              service_id):
-                    self.add_chapters(series, service_id, manga_id)
+                self.add_chapters(series, service_id, manga[0].manga_id)
+
+        return None
 
     def scrape_service(self, service_id: int, feed_url: str, last_update: Optional[datetime], title_id: Optional[str] = None):
         self.dbutil.update_service_whole(service_id, timedelta(days=1) + self.min_update_interval())
@@ -351,13 +364,13 @@ class MangaPlus(BaseScraper):
             return
 
         existing_titles = self.dbutil.get_service_manga(service_id)
-        existing_titles = {int(t['title_id']) for t in existing_titles}
-        new_titles = set(titles).difference(existing_titles)
+        existing_title_ids = {int(t.title_id) for t in existing_titles}
+        new_titles = set(titles).difference(existing_title_ids)
         if not new_titles:
             return
 
         logger.info(f'{len(new_titles)} new manga to be added to mangaplus')
-        self.dbutil.add_new_manga(service_id, [
+        self.dbutil.add_new_manga_and_check_duplicate_titles([
             MangaService(
                 service_id=service_id,
                 disabled=False,
@@ -401,7 +414,7 @@ class MangaPlus(BaseScraper):
                 for c in chapters]
 
         now = datetime.utcnow()
-        next_update = now + timedelta(hours=4)
+        next_update: Optional[datetime] = now + timedelta(hours=4)
         disabled = False
         completed = False
         if series.next_timestamp:
@@ -431,7 +444,7 @@ class MangaPlus(BaseScraper):
                 sql = 'UPDATE manga_service SET last_check=%s, next_update=%s, disabled=%s WHERE manga_id=%s AND service_id=%s'
                 cursor.execute(sql, [now, next_update, disabled, manga_id, service_id])
                 if newest_chapter:
-                    self.dbutil.update_latest_chapter(cursor, ((manga_id, newest_chapter.chapter_number, newest_chapter.release_date),))
+                    self.dbutil.update_latest_chapter(((manga_id, newest_chapter.chapter_number, newest_chapter.release_date),), cur=cursor)
 
                 if completed:
                     sql = 'INSERT INTO manga_info (manga_id, status, artist, author) VALUES (%s, %s, %s, %s) ON CONFLICT (manga_id) DO UPDATE SET status=EXCLUDED.status'

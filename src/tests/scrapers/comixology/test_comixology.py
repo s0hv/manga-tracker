@@ -1,14 +1,14 @@
-import unittest
 import os
+import unittest
 from datetime import datetime, timedelta, date
 
 import responses
 
 import setup_logging
-from src.tests.testing_utils import BaseTestClasses
+from src.db.models.manga import MangaService
 from src.scrapers.comixology import ComiXology
-from src.scrapers.kodansha import Manga, Source, BaseManga
-
+from src.scrapers.kodansha import Manga, Source
+from src.tests.testing_utils import BaseTestClasses
 
 test_site = os.path.join(os.path.dirname(__file__), 'test_chapters_page.html')
 test_chapter_site = os.path.join(os.path.dirname(__file__), 'test_chapter.html')
@@ -25,17 +25,6 @@ class MockSrcElement:
 
 class MockManga(Manga):
     def __init__(self, manga_id, title, release_interval, title_id, latest_chapter, author):
-        BaseManga.__init__(
-            self,
-            manga_id=manga_id,
-            title=title,
-            release_interval=release_interval,
-            title_id=title_id,
-            latest_chapter=latest_chapter,
-            service_id=-1,
-            disabled=False,
-        )
-
         self.sources = []
         self.release_date = datetime.utcnow()
         self.chapter_decimal = None
@@ -70,7 +59,10 @@ class TestComiXologyScraper(BaseTestClasses.DatabaseTestCase):
         title_id = 'attack-on-titan'
         title = 'Attack on titan'
         latest_chapter = 135
-        manga_id = self.dbutil.add_single_series(ComiXology.ID, title_id, title)
+        manga_id = self.dbutil.add_manga_service(
+            MangaService(service_id=ComiXology.ID, title_id=title_id, title=title),
+            add_manga=True
+        )
         manga = MockManga(manga_id, title, timedelta(days=30), title_id, latest_chapter, 'Test')
 
         source = Source(MockSrcElement(test_url), manga)

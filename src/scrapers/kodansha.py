@@ -1,7 +1,10 @@
+# type: ignore
+# module retired as scraping kodansha website became too difficult/impossible
 import logging
 import re
+import warnings
 from datetime import timedelta, datetime
-from typing import Optional, Collection, List
+from typing import Optional, Collection, List, Pattern, ClassVar
 
 import psycopg2
 import requests
@@ -10,7 +13,6 @@ from psycopg2.extras import execute_values
 
 from src.scrapers.base_scraper import BaseScraper, BaseChapter
 from src.utils.utilities import random_timedelta
-from src.db.models.manga import MangaService as BaseManga
 
 logger = logging.getLogger('debug')
 
@@ -26,8 +28,8 @@ class Source:
         return self.manga.manga_id
 
 
-class Manga(BaseManga):
-    SPECIAL_RE = re.compile(r'(?:ex)?\+?(\d+)\+?(?:ex)?', re.I)
+class Manga:
+    SPECIAL_RE: ClassVar[Pattern] = re.compile(r'(?:ex)?\+?(\d+)\+?(?:ex)?', re.I)
 
     def __init__(self, manga_element: etree.ElementBase, release_interval: timedelta):
         title = manga_element.cssselect('cite')[0].text
@@ -58,16 +60,6 @@ class Manga(BaseManga):
         self.sources = [Source(elem, self) for elem in manga_element.cssselect('.simulpub-card__partners li a')]
 
         self.release_date = datetime.utcnow()
-
-        super(Manga, self).__init__(
-            manga_id=None,
-            title=title,
-            release_interval=release_interval,
-            title_id=title_id,
-            latest_chapter=latest_chapter,
-            service_id=KodanshaComics.ID,
-            disabled=False,
-        )
 
     def has_new_chapter(self, row):
         return row['latest_chapter'] != self.latest_chapter or (
@@ -135,11 +127,18 @@ class KodanshaComics(BaseScraper):
     NAME = 'Kodansha Comics'
     MANGA_URL_FORMAT = 'https://kodanshacomics.com/series/{}'
 
+    def __init__(self, conn, dbutil):
+        warnings.warn("Support for kodansha has been dropped", DeprecationWarning)
+        super().__init__(conn, dbutil)
+
     @staticmethod
     def min_update_interval() -> timedelta:
         return random_timedelta(timedelta(hours=1), timedelta(hours=2))
 
     def scrape_series(self, title_id: str, service_id: int, manga_id: Optional[int], feed_url: str = None) -> Optional[bool]:
+        if feed_url is None:
+            raise ValueError('Feed url was None')
+
         retval = self._scrape_service(service_id, feed_url, only_title_ids={title_id}, forced=True)
         return bool(retval) if retval is not None else retval
 
@@ -157,7 +156,7 @@ class KodanshaComics(BaseScraper):
         manga_intervals = root.cssselect('.simulpubs__list-sections .simulpubs-list-section')
         if not manga_intervals:
             logger.warning(f'No manga found for {KodanshaComics.URL}')
-            return
+            return None
 
         mangas = []
 
@@ -217,17 +216,17 @@ class KodanshaComics(BaseScraper):
             with self.conn:
                 with self.conn.cursor() as cur:
                     new_manga = {manga.title_id: [Chapter(manga)] for manga in new_series.values()}
-                    for manga_id, chapters in self.dbutil.add_new_series(cur, new_manga, service_id, disable_single_update=True):
+                    """for manga_id, chapters in self.dbutil.add_new_series(cur, new_manga, service_id, disable_single_update=True):
                         manga = new_series[chapters[0].title_id]
                         manga.manga_id = manga_id
 
                         if only_title_ids and manga.title_id not in only_title_ids:
                             continue
 
-                        mangas_to_update.append(manga)
+                        mangas_to_update.append(manga)"""
 
         scrapers = {}
-        updated_manga = []
+        updated_manga: List[Manga] = []
         logger.info('%s manga to update on kodansha', len(mangas_to_update))
 
         for manga in mangas_to_update:
@@ -271,7 +270,7 @@ class KodanshaComics(BaseScraper):
             logger.info('%s manga actually updated on kodansha', len(updated_manga))
             with self.conn:
                 with self.conn.cursor() as cur:
-                    self.dbutil.update_latest_chapter(cur, [(m.manga_id, m.latest_chapter, m.release_date) for m in updated_manga])
+                    self.dbutil.update_latest_chapter([(m.manga_id, m.latest_chapter, m.release_date) for m in updated_manga], cur=cur)
                     sql = 'UPDATE manga_service ms SET last_check=CURRENT_TIMESTAMP, latest_chapter=c.latest_chapter, latest_decimal=c.latest_decimal::int ' \
                           f'FROM (VALUES %s) as c(latest_chapter, latest_decimal, service_id, manga_id) ' \
                           'WHERE ms.service_id=c.service_id AND ms.manga_id=c.manga_id'

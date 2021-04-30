@@ -1,3 +1,5 @@
+# type: ignore
+# Ignore this file as the service has been deprecated
 import logging
 import re
 import warnings
@@ -182,7 +184,7 @@ class JaiminisBox(BaseScraper):
                                      chapter.decimal, chapter.chapter_identifier, chapter.release_date,
                                      chapter.group))
 
-        if titles:
+        """if titles:
             with self.conn:
                 with self.conn.cursor() as cur:
                     for manga_id, chapters in self.dbutil.add_new_series(cur, titles, service_id, True):
@@ -190,7 +192,7 @@ class JaiminisBox(BaseScraper):
                         for chapter in chapters:
                             data.append((manga_id, service_id, chapter.title, chapter.chapter_number,
                                          chapter.decimal, chapter.chapter_identifier,
-                                         chapter.release_date, chapter.group))
+                                         chapter.release_date, chapter.group))"""
 
         sql = 'INSERT INTO chapters (manga_id, service_id, title, chapter_number, chapter_decimal, chapter_identifier, release_date, "group") VALUES ' \
               '%s ON CONFLICT DO NOTHING RETURNING manga_id, chapter_number, chapter_decimal, release_date'
@@ -200,7 +202,7 @@ class JaiminisBox(BaseScraper):
                 rows = execute_values(cur, sql, data, page_size=len(data), fetch=True)
                 manga_ids = {r['manga_id'] for r in rows}
                 if manga_ids:
-                    self.dbutil.update_latest_chapter(cur, tuple(c for c in get_latest_chapters(rows).values()))
+                    self.dbutil.update_latest_chapter(tuple(c for c in get_latest_chapters(rows).values()), cur=cur)
 
                 logger.info('Setting latest id %s', feed.entries[0].id)
                 sql = 'UPDATE service_whole SET last_id=%s WHERE service_id=%s'

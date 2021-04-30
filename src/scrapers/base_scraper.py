@@ -1,18 +1,25 @@
 import abc
 import logging
-from inspect import isabstract
 from datetime import timedelta, datetime
-from typing import Optional
+from inspect import isabstract
+from itertools import groupby
+from operator import attrgetter
+from typing import (Optional, TYPE_CHECKING, ClassVar, Set, Dict, List,
+                    Sequence,
+                    Iterable, TypeVar, Mapping)
 
 import psycopg2
 from psycopg2.extensions import connection as Connection
 
-from src.utils.dbutils import DbUtil
+from src.db.models.manga import MangaService
+
+if TYPE_CHECKING:
+    from src.utils.dbutils import DbUtil
 
 logger = logging.getLogger('debug')
 
 
-class BaseChapter(metaclass=abc.ABCMeta):
+class BaseChapter(abc.ABC):
     @property
     @abc.abstractmethod
     def chapter_title(self) -> Optional[str]:
@@ -20,7 +27,7 @@ class BaseChapter(metaclass=abc.ABCMeta):
 
     @property
     @abc.abstractmethod
-    def chapter_number(self) -> Optional[int]:
+    def chapter_number(self) -> int:
         raise NotImplementedError
 
     @property
@@ -35,12 +42,12 @@ class BaseChapter(metaclass=abc.ABCMeta):
 
     @property
     @abc.abstractmethod
-    def release_date(self) -> Optional[datetime]:
+    def release_date(self) -> datetime:
         raise NotImplementedError
 
     @property
     @abc.abstractmethod
-    def chapter_identifier(self) -> Optional[str]:
+    def chapter_identifier(self) -> str:
         raise NotImplementedError
 
     @property
@@ -84,26 +91,29 @@ class BaseChapter(metaclass=abc.ABCMeta):
         return not self.__eq__(other)
 
 
-class BaseScraper(metaclass=abc.ABCMeta):
-    ID: int = None
+ScraperChapter = TypeVar('ScraperChapter', bound=BaseChapter)
+
+
+class BaseScraper(abc.ABC):
+    ID: ClassVar[int] = NotImplemented
     """Database id of this service"""
 
-    UPDATE_INTERVAL: timedelta = timedelta(hours=1)
+    UPDATE_INTERVAL: ClassVar[timedelta] = timedelta(hours=1)
     """The minimum time between two updates of this service"""
 
-    URL: str = None
+    URL: ClassVar[str] = NotImplemented
     """URL to the website of this service"""
 
-    FEED_URL: str = None
+    FEED_URL: ClassVar[str] = NotImplemented
     """URL of the feed (usually rss feed) of this service"""
 
-    NAME: str = None
+    NAME: ClassVar[str] = NotImplemented
     """Name of this service"""
 
-    CHAPTER_URL_FORMAT: str = ''
+    CHAPTER_URL_FORMAT: ClassVar[str] = NotImplemented
     """Format of chapter urls"""
 
-    MANGA_URL_FORMAT: str = ''
+    MANGA_URL_FORMAT: ClassVar[str] = NotImplemented
     """Format of manga urls"""
 
     def __init_subclass__(cls, **kwargs):
@@ -111,13 +121,13 @@ class BaseScraper(metaclass=abc.ABCMeta):
         if isabstract(cls):
             return
 
-        if cls.ID is None:
+        if cls.ID is NotImplemented:
             raise NotImplementedError("Service doesn't have the ID class property")
 
-        if cls.URL is None:
+        if cls.URL is NotImplemented:
             raise NotImplementedError("Service doesn't have the URL class property")
 
-    def __init__(self, conn, dbutil: DbUtil):
+    def __init__(self, conn, dbutil: 'DbUtil'):
         self._conn = conn
         self._dbutil = dbutil
 
@@ -126,7 +136,7 @@ class BaseScraper(metaclass=abc.ABCMeta):
         return self._conn
 
     @property
-    def dbutil(self) -> DbUtil:
+    def dbutil(self) -> 'DbUtil':
         return self._dbutil
 
     def set_checked(self, service_id: int) -> None:
@@ -162,7 +172,8 @@ class BaseScraper(metaclass=abc.ABCMeta):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def scrape_service(self, service_id: int, feed_url: str, last_update: Optional[datetime], title_id: Optional[str] = None):
+    def scrape_service(self, service_id: int, feed_url: str, last_update: Optional[datetime],
+                       title_id: Optional[str] = None) -> Optional[Set[int]]:
         raise NotImplementedError
 
     def add_service(self):
@@ -184,7 +195,7 @@ class BaseScraper(metaclass=abc.ABCMeta):
     def add_service_whole(self) -> Optional[int]:
         service_id = BaseScraper.add_service(self)
         if not service_id:
-            return
+            return None
         with self.conn:
             with self.conn.cursor() as cur:
                 sql = 'INSERT INTO service_whole (service_id, feed_url, last_check, next_update, last_id) VALUES ' \
@@ -192,3 +203,33 @@ class BaseScraper(metaclass=abc.ABCMeta):
                 cur.execute(sql, (service_id, self.FEED_URL))
 
         return service_id
+
+    @staticmethod
+    def titles_dict_to_manga_service(
+            titles: Mapping[str, Sequence[BaseChapter]],
+            service_id: int, disabled: bool = False) -> List[MangaService]:
+        """
+        Turns a dict Dict[title_id, chapters] into a list of MangaService objects.
+        """
+        mangas: List[MangaService] = []
+        for title_id, chapters in titles.items():
+            ch = chapters[0]
+            mangas.append(
+                MangaService(
+                    service_id=service_id,
+                    disabled=disabled,
+                    title_id=title_id,
+                    title=ch.manga_title)
+            )
+
+        return mangas
+
+    @staticmethod
+    def group_by_manga(chapters: Iterable[ScraperChapter]) -> Dict[str, List[ScraperChapter]]:
+        titles: Dict[str, List[ScraperChapter]] = {}
+        # Must be sorted for groupby to work, as it only splits the list each time the key changes
+        for k, g in groupby(sorted(chapters, key=attrgetter('title_id')),
+                            attrgetter('title_id')):  # type: ignore
+            titles[k] = list(g)  # type: ignore[index]
+
+        return titles

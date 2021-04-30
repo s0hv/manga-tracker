@@ -7,7 +7,10 @@ omit =
     ./src/tests/*
 
     # Jaiminisbox as that is no longer in use
-    */jaiminisbox.py
+    ./src/scrapers/jaiminisbox.py
+
+    # kodansha not in use anymore
+    ./src/scrapers/kodansha.py
 
 
 source = src
@@ -32,6 +35,9 @@ exclude_lines =
     # Don't complain if non-runnable code isn't run:
     if 0:
     if __name__ == .__main__.:
+
+    # Don't complain about type checking lines
+    if TYPE_CHECKING:
 
 ignore_errors = True
 
