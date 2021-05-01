@@ -12,7 +12,6 @@ import testing.postgresql  # type: ignore[import]
 from psycopg2.extensions import connection as Connection
 from psycopg2.extras import DictCursor, DictRow
 
-from src.db.models.manga import Manga, MangaService
 from src.scrapers.base_scraper import BaseChapter
 from src.utils.dbutils import DbUtil
 
@@ -214,55 +213,19 @@ class BaseTestClasses:
             return datetime.utcnow().replace(tzinfo=psycopg2.tz.FixedOffsetTimezone(offset=0, name=None))
 
     class ModelAssertions(unittest.TestCase):
-        def assertChaptersEqual(self, a: BaseChapter, b: BaseChapter):
+        def assertChaptersEqual(self, a: BaseChapter, b: BaseChapter, ignore_date: bool = False):
             self.assertEqual(a.chapter_title, b.chapter_title)
             self.assertEqual(a.chapter_number, b.chapter_number)
             self.assertEqual(a.volume, b.volume)
             self.assertEqual(a.decimal, b.decimal)
-            self.assertEqual(a.release_date, b.release_date)
+            if not ignore_date:
+                self.assertEqual(a.release_date, b.release_date)
             self.assertEqual(a.chapter_identifier, b.chapter_identifier)
             self.assertEqual(a.title_id, b.title_id)
             self.assertEqual(a.manga_title, b.manga_title)
             self.assertEqual(a.manga_url, b.manga_url)
             self.assertEqual(a.group, b.group)
             self.assertEqual(a.title, b.title)
-
-        def assertMangaEqual(self, a: Manga, b: Manga):
-            self.assertEqual(a.manga_id, b.manga_id)
-            self.assertEqual(a.title, b.title)
-            self.assertEqual(a.release_interval, b.release_interval)
-            self.assertEqual(a.latest_release, b.latest_release)
-            self.assertEqual(a.estimated_release, b.estimated_release)
-            self.assertEqual(a.latest_chapter, b.latest_chapter)
-            """
-            self.assertEqual(a.aliases, b.aliases)
-            self.assertEqual(a.cover, b.cover)
-            self.assertEqual(a.status, b.status)
-            self.assertEqual(a.artist, b.artist)
-            self.assertEqual(a.author, b.author)
-            self.assertEqual(a.bookwalker, b.bookwalker)
-            self.assertEqual(a.baka_updates, b.baka_updates)
-            self.assertEqual(a.mal, b.mal)
-            self.assertEqual(a.amazon, b.amazon)
-            self.assertEqual(a.ebook_japan, b.ebook_japan)
-            self.assertEqual(a.official_engtl, b.official_engtl)
-            self.assertEqual(a.raw, b.raw)
-            self.assertEqual(a.novel_updates, b.novel_updates)
-            self.assertEqual(a.kitsu, b.kitsu)
-            self.assertEqual(a.anime_planet, b.anime_planet)
-            self.assertEqual(a.anilist, b.anilist)
-            """
-
-        def assertMangaServiceEqual(self, a: MangaService, b: MangaService):
-            self.assertMangaEqual(a, b)
-
-            self.assertEqual(a.service_id, b.service_id)
-            self.assertEqual(a.disabled, b.disabled)
-            self.assertEqual(a.title_id, b.title_id)
-            self.assertEqual(a.last_check, b.last_check)
-            self.assertEqual(a.next_update, b.next_update)
-            self.assertEqual(a.feed_url, b.feed_url)
-            self.assertEqual(a.latest_decimal, b.latest_decimal)
 
 
 class Chapter(BaseChapter):

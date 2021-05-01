@@ -473,10 +473,13 @@ class DbUtil:
         cur.execute(sql, [now, now + update_interval, service_id])
 
     @optional_generator_transaction
-    def find_added_titles(self, title_ids: Collection[str], *, cur: Cursor = NotImplemented) -> Generator[MangaServicePartial, None, None]:
+    def find_added_titles(self, service_id: int, title_ids: Collection[str], *, cur: Cursor = NotImplemented) -> Generator[MangaServicePartial, None, None]:
+        if len(title_ids) == 0:
+            return None
+
         format_ids = ','.join(['%s'] * len(title_ids))
-        sql = f'SELECT * FROM manga_service WHERE title_id IN ({format_ids})'
-        cur.execute(sql, title_ids)
+        sql = f'SELECT * FROM manga_service WHERE service_id=%s AND title_id IN ({format_ids})'
+        cur.execute(sql, [service_id, *title_ids])
         for row in cur:
             yield MangaServicePartial(**row)
 

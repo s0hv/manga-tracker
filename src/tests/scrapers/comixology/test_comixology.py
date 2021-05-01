@@ -1,45 +1,54 @@
 import os
+import pickle
+import re
 import unittest
-from datetime import datetime, timedelta, date
+from datetime import datetime
+from typing import Any, Pattern
 
+import requests
 import responses
+from lxml import etree
 
 import setup_logging
-from src.db.models.manga import MangaService
 from src.scrapers.comixology import ComiXology
-from src.scrapers.kodansha import Manga, Source
 from src.tests.testing_utils import BaseTestClasses
+from src.utils.dbutils import DbUtil
 
-test_site = os.path.join(os.path.dirname(__file__), 'test_chapters_page.html')
-test_chapter_site = os.path.join(os.path.dirname(__file__), 'test_chapter.html')
+base_path = os.path.dirname(__file__)
+test_chapter_site = os.path.join(base_path, 'test_chapter.html')
+
+page1_path = os.path.join(base_path, 'page1.html')
+page2_path = os.path.join(base_path, 'page2.html')
 
 logger = setup_logging.setup()
 
 
-class MockSrcElement:
-    def __init__(self, href):
-        self.attrib = {
-            'href': href
-        }
+class TestComiXologyScraper(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAssertions):
+    page1: str
+    page2: str
+    chapter_page: str
 
+    page1_url: str = ComiXology.FEED_URL
+    page2_url: str = 'https://www.comixology.com/New-Manga-Releases/list/24959?list24959_pg=2'
+    test_chapter_url: Pattern = re.compile(r'https://www\.comixology\.com/[\w-]+/digital-comic/\d+', re.I)
 
-class MockManga(Manga):
-    def __init__(self, manga_id, title, release_interval, title_id, latest_chapter, author):
-        self.sources = []
-        self.release_date = datetime.utcnow()
-        self.chapter_decimal = None
-        self.author = author
+    @classmethod
+    def setUpClass(cls) -> None:
+        super(TestComiXologyScraper, cls).setUpClass()
+        ComiXology(cls._conn, DbUtil(cls._conn)).add_service()
 
-
-class TestComiXologyScraper(BaseTestClasses.DatabaseTestCase):
-    def setUp(self) -> None:
-        super(TestComiXologyScraper, self).setUp()
-
-        ComiXology(self.conn, self.dbutil).add_service()
+        cls.page1 = cls.read_page1()
+        cls.page2 = cls.read_page2()
+        cls.chapter_page = cls.read_test_chapter()
 
     @staticmethod
-    def read_test_site():
-        with open(test_site, 'r', encoding='utf-8') as f:
+    def read_page1():
+        with open(page1_path, 'r', encoding='utf-8') as f:
+            return f.read()
+
+    @staticmethod
+    def read_page2():
+        with open(page2_path, 'r', encoding='utf-8') as f:
             return f.read()
 
     @staticmethod
@@ -47,38 +56,135 @@ class TestComiXologyScraper(BaseTestClasses.DatabaseTestCase):
         with open(test_chapter_site, 'r', encoding='utf-8') as f:
             return f.read()
 
+    def get_scraper(self) -> ComiXology:
+        return ComiXology(self.conn, self.dbutil)
+
+    def set_up_responses(self, page1: Any = None, page2: Any = None, chapter: Any = None):
+        # Mock requests. Order matters
+        responses.add(responses.GET, self.page2_url, body=self.page2 if page2 is None else page2)
+        responses.add(responses.GET, self.page1_url, body=self.page1 if page1 is None else page1)
+        responses.add(responses.GET, self.test_chapter_url, body=self.chapter_page if chapter is None else chapter)
+
+    def delete_chapters(self):
+        """
+        Deletes all chapters from ComiXology
+        """
+        with self.conn:
+            with self.conn.cursor() as cur:
+                cur.execute('DELETE FROM chapters WHERE service_id=%s', (ComiXology.ID,))
+
     @responses.activate
-    def test_scrape_chapters(self):
-        # Mock request
-        test_url = 'https://www.comixologytest.com'
-        responses.add(responses.GET, test_url, body=self.read_test_site())
+    def test_scrape_service_works(self):
+        self.set_up_responses()
 
-        test_chapter_url = 'https://www.comixology.com/Attack-on-Titan-135/digital-comic/905253'
-        responses.add(responses.GET, test_chapter_url, body=self.read_test_chapter())
+        scraper = self.get_scraper()
+        self.delete_chapters()
 
-        title_id = 'attack-on-titan'
-        title = 'Attack on titan'
-        latest_chapter = 135
-        manga_id = self.dbutil.add_manga_service(
-            MangaService(service_id=ComiXology.ID, title_id=title_id, title=title),
-            add_manga=True
+        updated = scraper.scrape_service(ComiXology.ID, self.page1_url, None)
+
+        # 2 requests for fetching pages and 6 requests for chapters
+        self.assertEqual(len(responses.calls), 8)
+        self.assertEqual(responses.calls[0].request.url, self.page1_url)
+        self.assertEqual(responses.calls[1].request.url, self.page2_url)
+
+        self.assertEqual(len(updated), 6)
+
+    @responses.activate
+    def test_scrape_service_works_without_page_2(self):
+        self.set_up_responses(page2=requests.RequestException())
+
+        scraper = self.get_scraper()
+        self.delete_chapters()
+        updated = scraper.scrape_service(ComiXology.ID, self.page1_url, None)
+
+        # 2 requests for fetching pages and 3 requests for chapters
+        self.assertEqual(len(responses.calls), 5)
+        self.assertEqual(responses.calls[0].request.url, self.page1_url)
+        self.assertEqual(responses.calls[1].request.url, self.page2_url)
+
+        self.assertEqual(len(updated), 3)
+
+    @responses.activate
+    def test_does_nothing_when_request_error(self):
+        self.set_up_responses(page1=requests.RequestException())
+
+        scraper = self.get_scraper()
+        updated = scraper.scrape_service(ComiXology.ID, self.page1_url, None)
+
+        self.assertEqual(len(responses.calls), 1)
+        self.assertEqual(responses.calls[0].request.url, self.page1_url)
+
+        self.assertIsNone(updated)
+
+    @responses.activate
+    def test_get_chapter_release_date_with_error(self):
+        self.set_up_responses(chapter=requests.HTTPError('fail'))
+
+        scraper = self.get_scraper()
+        url = 'https://www.comixology.com/test/digital-comic/42'
+        retval = scraper.get_chapter_release_date(url)
+
+        self.assertIsNone(retval)
+        self.assertEqual(len(responses.calls), 1)
+        self.assertEqual(responses.calls[0].request.url, url)
+
+    @responses.activate
+    def test_get_chapter_release_date_with_ratelimit_status(self):
+        responses.add(responses.GET, self.test_chapter_url, body='', status=429)
+
+        scraper = self.get_scraper()
+        url = 'https://www.comixology.com/test/digital-comic/42'
+        retval = scraper.get_chapter_release_date(url)
+
+        self.assertIsNone(retval)
+        self.assertEqual(len(responses.calls), 1)
+        self.assertEqual(responses.calls[0].request.url, url)
+
+    @responses.activate
+    def test_get_chapter_release_date_with_bad_status_code(self):
+        responses.add(responses.GET, self.test_chapter_url, body='', status=400)
+
+        scraper = self.get_scraper()
+        url = 'https://www.comixology.com/test/digital-comic/42'
+        retval = scraper.get_chapter_release_date(url)
+
+        self.assertIsNone(retval)
+        self.assertEqual(len(responses.calls), 1)
+        self.assertEqual(responses.calls[0].request.url, url)
+
+    @responses.activate
+    def test_get_chapter_release_date_valid(self):
+        responses.add(responses.GET, self.test_chapter_url, body=self.chapter_page)
+
+        scraper = self.get_scraper()
+        url = 'https://www.comixology.com/test/digital-comic/42'
+        retval = scraper.get_chapter_release_date(url)
+
+        self.assertIsNotNone(retval)
+        self.assertEqual(len(responses.calls), 1)
+        self.assertEqual(responses.calls[0].request.url, url)
+        self.assertEqual(retval, datetime(2020, 12, 8))
+
+    def test_parse_chapters(self):
+        root = etree.HTML(self.page1)
+        chapter_elements = list(root.cssselect('li.content-item'))
+        chapter_elements.extend(
+            etree.HTML(self.page2).cssselect('li.content-item')
         )
-        manga = MockManga(manga_id, title, timedelta(days=30), title_id, latest_chapter, 'Test')
 
-        source = Source(MockSrcElement(test_url), manga)
+        self.assertGreater(len(chapter_elements), 0)
+        now = datetime.utcnow()
+        parsed = ComiXology.parse_chapters(chapter_elements)
 
-        comixology = ComiXology(self.conn, self.dbutil)
-        updated = comixology.update_selected_manga((source, ))
-        self.assertEqual(updated, 1, msg='Exactly one manga not updated')
+        with open(os.path.join(base_path, 'chapters.pickle'), 'rb') as f:
+            loaded = pickle.load(f)
 
-        latest = self.dbutil.get_newest_chapter(manga_id, ComiXology.ID)
+        self.assertGreater(len(loaded), 0)
+        self.assertEqual(len(parsed), len(loaded))
 
-        # Make sure information is correct for latest chapter
-        self.assertEqual(latest_chapter, latest['chapter_number'], msg='Latest chapters did not match')
-        self.assertEqual(date(2020, 12, 8), latest['release_date'].date(), msg='Release date did not match')
-
-        updated = comixology.update_selected_manga((source,))
-        self.assertEqual(updated, 0, msg='Manga updated multiple times for same input')
+        for c_parsed, c_loaded in zip(sorted(parsed), sorted(loaded)):
+            self.assertChaptersEqual(c_parsed, c_loaded, ignore_date=True)
+            self.assertGreater(c_parsed.release_date, now)
 
 
 if __name__ == '__main__':

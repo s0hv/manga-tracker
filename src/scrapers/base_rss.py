@@ -230,7 +230,7 @@ class BaseRSS(BaseScraper, ABC):
         entries = self.dbutil.get_only_latest_entries(service_id, self.parse_feed(feed.entries))
 
         if not entries:
-            logger.info('No new entries found')
+            logger.info(f'No new entries found for {type(self).__name__}')
             return
 
         logger.info('%s new chapters found. %s', len(entries),
@@ -242,7 +242,7 @@ class BaseRSS(BaseScraper, ABC):
         manga_ids = set()
 
         # Find already added titles
-        for ms in self.dbutil.find_added_titles(tuple(titles.keys())):
+        for ms in self.dbutil.find_added_titles(service_id, tuple(titles.keys())):
             manga_ids.add(ms.manga_id)
             for chapter in titles.pop(ms.title_id):
                 chapters.append(ChapterMapper.base_chapter_to_db(chapter, ms.manga_id, service_id))

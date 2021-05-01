@@ -285,7 +285,7 @@ class MangaDex(BaseScraper):
         data: List[ChapterModel] = []
         manga_ids = set()
         mangadex_ids = {}
-        for ms in self.dbutil.find_added_titles(tuple(titles.keys())):
+        for ms in self.dbutil.find_added_titles(service_id, tuple(titles.keys())):
             manga_id = ms.manga_id
             manga_ids.add(manga_id)
             mangadex_ids[manga_id] = ms.title_id

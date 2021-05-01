@@ -11,6 +11,8 @@ from typing import (Optional, TYPE_CHECKING, ClassVar, Set, Dict, List,
 import psycopg2
 from psycopg2.extensions import connection as Connection
 
+from src.db.mappers.chapter_mapper import ChapterMapper
+from src.db.models.chapter import Chapter as ChapterModel
 from src.db.models.manga import MangaService
 
 if TYPE_CHECKING:
@@ -89,6 +91,11 @@ class BaseChapter(abc.ABC):
 
     def __ne__(self, other):
         return not self.__eq__(other)
+
+    def __lt__(self, other):
+        if isinstance(other, BaseChapter):
+            return self.chapter_identifier < other.chapter_identifier
+        raise TypeError(f'Incorrect type {type(other)} for less than operator')
 
 
 ScraperChapter = TypeVar('ScraperChapter', bound=BaseChapter)
@@ -233,3 +240,21 @@ class BaseScraper(abc.ABC):
             titles[k] = list(g)  # type: ignore[index]
 
         return titles
+
+    def map_already_added_titles(self, service_id: int, titles: Dict[str, List[ScraperChapter]],
+                                 manga_ids: Set[int]) -> List[ChapterModel]:
+        """
+        Maps the chapters of titles that already exist to the database model.
+        Updates the given manga_ids set with the manga that were found.
+        """
+        chapters: List[ChapterModel] = []
+
+        for ms in self.dbutil.find_added_titles(service_id, tuple(titles.keys())):
+            # Manga id has been set so it can't be None
+            manga_ids.add(ms.manga_id)  # type: ignore[arg-type]
+            for chapter in titles.pop(ms.title_id):
+                chapters.append(
+                    ChapterMapper.base_chapter_to_db(chapter, ms.manga_id,
+                                                     service_id))
+
+        return chapters

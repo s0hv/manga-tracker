@@ -229,7 +229,8 @@ class TestGetAndAddManga(BaseDbutilTest):
         title_id = self.get_str_id()
         manga = MangaService(
             service_id=DummyScraper.ID, disabled=False,
-            title_id=title_id, title=f'{title_id}_manga'
+            title_id=title_id, title=f'{title_id}_manga',
+            last_check=self.utcnow()
         )
 
         self.dbutil.add_manga_service(manga, add_manga=True)
@@ -455,8 +456,8 @@ class TestAddNewMangaWithDuplicates(BaseDbutilTest):
 
     def test_get_service_manga_returns_added_manga(self):
         mangas = [
-            MangaService(service_id=DummyScraper.ID, title_id=self.get_str_id(), title='test'),
-            MangaService(service_id=DummyScraper.ID, title_id=self.get_str_id(), title='test2'),
+            MangaService(service_id=DummyScraper.ID, title_id=self.get_str_id(), title='test', last_check=self.utcnow()),
+            MangaService(service_id=DummyScraper.ID, title_id=self.get_str_id(), title='test2', last_check=self.utcnow()),
         ]
 
         self.dbutil.add_new_mangas(mangas)
