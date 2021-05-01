@@ -156,7 +156,7 @@ class MangaDex(BaseScraper):
 
             chapters.append(c)
 
-        entries: Collection[Chapter] = self.dbutil.get_only_latest_entries(service_id, chapters, manga_id=manga_id, limit=len(chapters)*2)
+        entries: Collection[Chapter] = self.dbutil.get_only_latest_entries(service_id, chapters, manga_id=manga_id)
         all_chapters = set(chapters)
         old_chapters = all_chapters.difference(entries)
         entries: List[Chapter] = list(entries)

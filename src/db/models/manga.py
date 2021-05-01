@@ -64,3 +64,10 @@ class MangaServicePartial(BaseModel):
 
 class MangaService(Manga, MangaServicePartial):
     pass
+
+
+class MangaServiceWithId(MangaService):
+    """
+    Manga service object but with guaranteed manga_id
+    """
+    manga_id: int

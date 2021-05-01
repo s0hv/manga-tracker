@@ -19,6 +19,9 @@ test_chapter_site = os.path.join(base_path, 'test_chapter.html')
 
 page1_path = os.path.join(base_path, 'page1.html')
 page2_path = os.path.join(base_path, 'page2.html')
+manga_path = os.path.join(base_path, 'manga_page1.html')
+manga_page_path = os.path.join(base_path, 'manga_page2.html')
+
 
 logger = setup_logging.setup()
 
@@ -28,8 +31,11 @@ class TestComiXologyScraper(BaseTestClasses.DatabaseTestCase, BaseTestClasses.Mo
     page2: str
     chapter_page: str
 
+    manga_page: str
+    manga_page2: str
+
     page1_url: str = ComiXology.FEED_URL
-    page2_url: str = 'https://www.comixology.com/New-Manga-Releases/list/24959?list24959_pg=2'
+    page_n_url: Pattern = re.compile(r'https://www\.comixology\.com/site/list\?id=\w+&pageNum=\d+&pageLetter=null&cu=0')
     test_chapter_url: Pattern = re.compile(r'https://www\.comixology\.com/[\w-]+/digital-comic/\d+', re.I)
 
     @classmethod
@@ -40,6 +46,8 @@ class TestComiXologyScraper(BaseTestClasses.DatabaseTestCase, BaseTestClasses.Mo
         cls.page1 = cls.read_page1()
         cls.page2 = cls.read_page2()
         cls.chapter_page = cls.read_test_chapter()
+        cls.manga_page = cls.read_test_manga()
+        cls.manga_page2 = cls.read_test_manga_page()
 
     @staticmethod
     def read_page1():
@@ -56,12 +64,22 @@ class TestComiXologyScraper(BaseTestClasses.DatabaseTestCase, BaseTestClasses.Mo
         with open(test_chapter_site, 'r', encoding='utf-8') as f:
             return f.read()
 
+    @staticmethod
+    def read_test_manga():
+        with open(manga_path, 'r', encoding='utf-8') as f:
+            return f.read()
+
+    @staticmethod
+    def read_test_manga_page():
+        with open(manga_page_path, 'r', encoding='utf-8') as f:
+            return f.read()
+
     def get_scraper(self) -> ComiXology:
         return ComiXology(self.conn, self.dbutil)
 
     def set_up_responses(self, page1: Any = None, page2: Any = None, chapter: Any = None):
         # Mock requests. Order matters
-        responses.add(responses.GET, self.page2_url, body=self.page2 if page2 is None else page2)
+        responses.add(responses.GET, self.page_n_url, body=self.page2 if page2 is None else page2)
         responses.add(responses.GET, self.page1_url, body=self.page1 if page1 is None else page1)
         responses.add(responses.GET, self.test_chapter_url, body=self.chapter_page if chapter is None else chapter)
 
@@ -85,9 +103,12 @@ class TestComiXologyScraper(BaseTestClasses.DatabaseTestCase, BaseTestClasses.Mo
         # 2 requests for fetching pages and 6 requests for chapters
         self.assertEqual(len(responses.calls), 8)
         self.assertEqual(responses.calls[0].request.url, self.page1_url)
-        self.assertEqual(responses.calls[1].request.url, self.page2_url)
+        self.assertRegexpMatches(responses.calls[1].request.url, self.page_n_url)
 
         self.assertEqual(len(updated), 6)
+
+        # Make sure nothing is updated afterwards
+        self.assertIsNone(scraper.scrape_service(ComiXology.ID, self.page1_url, None))
 
     @responses.activate
     def test_scrape_service_works_without_page_2(self):
@@ -100,7 +121,7 @@ class TestComiXologyScraper(BaseTestClasses.DatabaseTestCase, BaseTestClasses.Mo
         # 2 requests for fetching pages and 3 requests for chapters
         self.assertEqual(len(responses.calls), 5)
         self.assertEqual(responses.calls[0].request.url, self.page1_url)
-        self.assertEqual(responses.calls[1].request.url, self.page2_url)
+        self.assertRegexpMatches(responses.calls[1].request.url, self.page_n_url)
 
         self.assertEqual(len(updated), 3)
 
@@ -185,6 +206,39 @@ class TestComiXologyScraper(BaseTestClasses.DatabaseTestCase, BaseTestClasses.Mo
         for c_parsed, c_loaded in zip(sorted(parsed), sorted(loaded)):
             self.assertChaptersEqual(c_parsed, c_loaded, ignore_date=True)
             self.assertGreater(c_parsed.release_date, now)
+
+    @responses.activate
+    def test_scrape_series(self):
+        title_id = '56630'
+        internal_id = '87a0d42b5500449205cca99bc8fd0ff395c9a84f'
+        url = ComiXology.MANGA_URL_FORMAT.format(title_id)
+        responses.add(responses.GET, url, body=self.manga_page)
+        responses.add(responses.GET, ComiXology.PAGE_URL.format(id=internal_id, page=2), body=self.manga_page2)
+        responses.add(responses.GET, self.page_n_url, status=400)
+        responses.add(responses.GET, self.test_chapter_url, body=self.chapter_page)
+
+        self.delete_chapters()
+        scraper = self.get_scraper()
+
+        success = scraper.scrape_series(title_id, ComiXology.ID, None)
+        self.assertTrue(success)
+
+        # 3 for fetching pages, 30 for fetching manga
+        self.assertEqual(len(responses.calls), 33)
+
+        manga = self.dbutil.get_manga_service(ComiXology.ID, title_id)
+        self.assertIsNotNone(manga)
+
+        # Make sure only 30 chapters were added
+        chapters = self.dbutil.get_chapters(ComiXology.ID, manga.manga_id)
+        self.assertEqual(len(chapters), 30)
+
+        # Make sure rest of the chapters can be added
+        success = scraper.scrape_series(title_id, ComiXology.ID, manga.manga_id)
+        self.assertTrue(success)
+
+        self.dbutil.get_chapters(ComiXology.ID, manga.manga_id)
+        self.assertGreater(len(self.dbutil.get_chapters(ComiXology.ID, manga.manga_id)), 30)
 
 
 if __name__ == '__main__':

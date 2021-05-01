@@ -11,7 +11,8 @@ from psycopg2.extensions import connection as Connection, cursor as Cursor
 from psycopg2.extras import execute_values, DictRow
 
 from src.db.models.chapter import Chapter
-from src.db.models.manga import MangaService, Manga, MangaServicePartial
+from src.db.models.manga import (MangaService, Manga, MangaServicePartial,
+                                 MangaServiceWithId)
 from src.db.models.scheduled_run import ScheduledRun
 from src.db.models.services import Service, ServiceWhole
 from src.utils.utilities import round_seconds
@@ -333,7 +334,7 @@ class DbUtil:
 
     @optional_transaction
     def add_new_manga_and_check_duplicate_titles(self, mangas: Sequence[MangaService],
-                                                 *, cur: Cursor = NotImplemented) -> List[MangaService]:
+                                                 *, cur: Cursor = NotImplemented) -> List[MangaServiceWithId]:
         """
         Given a sequence of new MangaService objects that are not in the database,
         this function adds them to the database while checking for duplicate titles.
@@ -354,7 +355,7 @@ class DbUtil:
         exists.extend(self.add_new_mangas(not_exists, cur=cur))
         self.add_manga_services(exists, cur=cur)
 
-        return exists
+        return list(map(MangaServiceWithId.parse_obj, exists))
 
     @optional_transaction
     def add_new_manga(self, manga: MangaModel, *, cur: Cursor = NotImplemented) -> MangaModel:
@@ -631,25 +632,29 @@ class DbUtil:
     @optional_transaction
     def get_only_latest_entries(self,
                                 service_id: int,
-                                entries: Iterable[BaseChapter],
+                                entries: Collection[BaseChapter],
                                 manga_id: int = None,
                                 limit: int = 400,
                                 *, cur: Cursor = NotImplemented) -> Collection[BaseChapter]:
-        args: Tuple
+        if len(entries) > 200:
+            logger.warning('Over 200 entries passed to get_only_latest_entries')
+
+        args: Tuple = tuple(c.chapter_identifier for c in entries)
+        format_args = ','.join(('%s',) * len(args))
+
         if manga_id:
             sql = 'SELECT chapter_identifier FROM chapters ' \
-                  'WHERE service_id=%s AND manga_id=%s ORDER BY chapter_id DESC LIMIT %s'
-            args = (service_id, manga_id, limit)
+                  f'WHERE service_id=%s AND manga_id=%s AND chapter_identifier IN ({format_args})'
+            args = (service_id, manga_id, *args)
         else:
             sql = 'SELECT chapter_identifier FROM chapters ' \
-                  'WHERE service_id=%s ORDER BY chapter_id DESC LIMIT %s'
-            args = (service_id, limit)
+                  f'WHERE service_id=%s AND chapter_identifier IN ({format_args})'
+            args = (service_id, *args)
 
         try:
             cur.execute(sql, args)
-            chapters = set(r[0] for r in cur)
 
-            return set(entries).difference(chapters)
+            return set(entries).difference(set(r[0] for r in cur))
 
         except:
             logger.exception('Failed to get old chapters')

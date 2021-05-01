@@ -1,8 +1,9 @@
 import logging
+import random
 import re
 import time
 from datetime import timedelta, datetime
-from typing import Optional, List, Set
+from typing import Optional, List, Set, Dict, Collection
 
 import requests
 from lxml import etree
@@ -77,7 +78,7 @@ class Chapter(BaseChapter):
 
         self._title_id = found[0]
         self._manga_title = manga_title
-        self.release_date_maybe = None
+        self.release_date_maybe: Optional[datetime] = None
         self._created_at = datetime.utcnow()
 
     def __repr__(self) -> str:
@@ -134,74 +135,101 @@ class ComiXology(BaseScraper):
     FEED_URL = 'https://www.comixology.com/New-Manga-Releases/list/24959'
     NAME = 'ComiXology'
     CHAPTER_URL_FORMAT = 'https://www.comixology.com/chapter/digital-comic/{}'
-    MANGA_URL_FORMAT = 'https://www.comixology.com/series/comics-series/{}'
+    MANGA_URL_FORMAT = 'https://www.comixology.com/manga/comics-series/{}'
+    PAGE_URL = 'https://www.comixology.com/site/list?id={id}&pageNum={page}&pageLetter=null&cu=0'
 
     def __init__(self, conn, dbutil: DbUtil):
         super().__init__(conn, dbutil)
         self.service_id: Optional[int] = None
 
     @staticmethod
+    def get_chapter_elements(root: etree.ElementBase) -> List[etree.ElementBase]:
+        return list(root.cssselect('li.content-item'))
+
+    @staticmethod
     def min_update_interval() -> timedelta:
         return random_timedelta(timedelta(hours=1), timedelta(hours=2))
+
+    @staticmethod
+    def fetch_url(url: str, headers: Dict[str, str] = None) -> Optional[requests.Response]:
+        try:
+            r = requests.get(url, headers=headers)
+        except requests.RequestException:
+            logger.exception(f'Failed to fetch ComiXology url {url}')
+            return None
+
+        if not r.ok:
+            logger.error(f'Failed to fetch ComiXology url {url}. HTTP {r.status_code}')
+            return None
+
+        return r
+
+    @staticmethod
+    def fetch_all_issues(url: str) -> Optional[List[Chapter]]:
+        r = ComiXology.fetch_url(url)
+        if r is None:
+            return None
+
+        root = etree.HTML(r.text)
+
+        section = ComiXology.find_issues_section(root.cssselect('section.list-container.grid-list'))
+        if section is None:
+            return None
+
+        chapters = ComiXology.parse_chapters(ComiXology.get_chapter_elements(section))
+
+        # Find page count
+        pager = section.cssselect('.pager')
+        if not pager:
+            return chapters
+
+        pages = int(pager[0].attrib['data-page-count'])
+
+        # Find the id for this list. Used to fetch next pages
+        if (internal_id_elem := section.find('div[@data-internal-id]')) is None:
+            logger.error(f'No internal id found for {url}')
+            return None
+
+        internal_id = internal_id_elem.attrib['data-internal-id']
+
+        # Save cookies
+        headers = {
+            'cookie': r.headers.get('set-cookie', ''),
+            'x-requested-with': 'XMLHttpRequest'
+        }
+
+        # Iterate all pages
+        for page in range(2, pages+1):
+            # Sleep for 1-3 seconds
+            time.sleep(random.randint(100, 300)/100)
+            url = ComiXology.PAGE_URL.format(id=internal_id, page=page)
+            r = ComiXology.fetch_url(url, headers)
+            if r is None:
+                break
+
+            section = etree.HTML(r.text)
+            chapters.extend(ComiXology.parse_chapters(ComiXology.get_chapter_elements(section)))
+
+        return chapters
 
     @staticmethod
     def wait() -> None:
         time.sleep(random_timedelta(timedelta(seconds=2), timedelta(seconds=5)).total_seconds())
 
-    def fetch_full_feed(self, feed_url: str) -> Optional[List[Chapter]]:
-        try:
-            r = requests.get(feed_url)
-        except requests.RequestException:
-            logger.exception('Failed to fetch ComiXology')
-            return None
+    @staticmethod
+    def find_issues_section(sections: List[etree.ElementBase]) -> Optional[etree.ElementBase]:
+        for section in sections:
+            if not (title := section.cssselect('.list-title')):
+                continue
 
-        if not r.ok:
-            logger.error('Failed to fetch ComiXology', r.text)
-            return None
+            text = title[0].text.lower()
+            # One for manga page and one for latest releases page
+            if text == 'issues' or text.startswith('new manga releases'):
+                return section
 
-        root = etree.HTML(r.text)
-        chapter_elements = list(root.cssselect('li.content-item'))
-        next_page_link = root.cssselect('.pager-links li a.next-page')
+        return None
 
-        if next_page_link:
-            next_page_url = f'{self.URL}{next_page_link[0].attrib["href"]}'
-            time.sleep(1.5)
-            try:
-                r2 = requests.get(next_page_url)
-            except requests.RequestException:
-                logger.exception('Failed to fetch page 2 of ComiXology')
-            else:
-                if not r2.ok:
-                    logger.error('Failed to fetch page 2 of ComiXology', r2.text)
-                else:
-                    root2 = etree.HTML(r2.text)
-                    chapter_elements.extend(root2.cssselect('li.content-item'))
-
-        return self.parse_chapters(chapter_elements)
-
-    def scrape_series(self, title_id, service_id, manga_id, feed_url=None):
-        raise NotImplementedError()
-
-    def scrape_service(self, service_id, feed_url, last_update, title_id=None):
-        chapters = self.fetch_full_feed(feed_url)
-        if chapters is None:
-            return
-
-        if not chapters:
-            logger.info('No chapters found for ComiXology')
-            return None
-
-        chapters = self.dbutil.get_only_latest_entries(service_id, chapters, limit=50)
-
-        for idx, chapter in enumerate(chapters):
-            date = self.get_chapter_release_date(chapter.url)
-            if date is None:
-                break
-
-            chapter.release_date_maybe = date
-            if idx != len(chapters) - 1:
-                self.wait()
-
+    def process_and_add_chapters(self, service_id: int, chapters: Collection[Chapter]) -> Set[int]:
         titles = self.group_by_manga(chapters)
 
         manga_ids: Set[int] = set()
@@ -215,12 +243,10 @@ class ComiXology(BaseScraper):
             logger.info('Adding new ComiXology manga (%s) %s', manga.manga_id, manga.title)
             for chapter in titles.get(manga.title_id, []):
                 data.append(
-                    ChapterMapper.base_chapter_to_db(chapter, manga.manga_id,
-                                                     service_id)
+                    ChapterMapper.base_chapter_to_db(chapter, manga.manga_id, service_id)
                 )
 
-        logger.info('Adding %s chapters to ComiXology',
-                    len(data))
+        logger.info('Adding %s chapters to ComiXology', len(data))
 
         self.dbutil.add_chapters(data, fetch=False)
 
@@ -233,6 +259,72 @@ class ComiXology(BaseScraper):
         self.dbutil.update_latest_chapter(tuple(c for c in get_latest_chapters(chapter_rows).values()))
 
         return manga_ids
+
+    def scrape_series(self, title_id: str, service_id: int, manga_id: Optional[int], feed_url: str = None) -> Optional[bool]:
+        chapters = self.fetch_all_issues(self.MANGA_URL_FORMAT.format(title_id))
+        if chapters is None:
+            return None
+
+        if not chapters:
+            logger.info(f'No chapters found for {title_id}')
+            return None
+
+        title = chapters[0].manga_title
+
+        chapters = self.dbutil.get_only_latest_entries(service_id, chapters, manga_id)
+        if not chapters:
+            logger.info(f'No new chapters found for {title} ({title_id})')
+            return False
+
+        logger.info(f'{len(chapters)} new chapters found for {title} ({title_id})')
+
+        limit = 30
+        add_chapters = []
+
+        for idx, chapter in enumerate(sorted(chapters, key=Chapter.chapter_number.fget, reverse=True)):  # type: ignore[attr-defined]
+            date = self.get_chapter_release_date(chapter.url)
+            if date is None:
+                break
+
+            # increment for easier count comparisons
+            idx += 1
+
+            chapter.release_date_maybe = date
+            add_chapters.append(chapter)
+            if idx == limit:
+                logger.info(f'Limiting ComiXology chapter scraping to {limit} chapters for {title} ({title_id})')
+                break
+
+            if idx != len(chapters):
+                self.wait()
+
+        ids = self.process_and_add_chapters(service_id, add_chapters)
+        return len(ids) == 1
+
+    def scrape_service(self, service_id, feed_url, last_update, title_id=None):
+        chapters = self.fetch_all_issues(feed_url)
+        if chapters is None:
+            return None
+
+        if not chapters:
+            logger.info('No chapters found for ComiXology')
+            return None
+
+        chapters = self.dbutil.get_only_latest_entries(service_id, chapters)
+
+        if not chapters:
+            return None
+
+        for idx, chapter in enumerate(chapters):
+            date = self.get_chapter_release_date(chapter.url)
+            if date is None:
+                break
+
+            chapter.release_date_maybe = date
+            if idx != len(chapters) - 1:
+                self.wait()
+
+        return self.process_and_add_chapters(service_id, chapters)
 
     @staticmethod
     def parse_chapters(elements: List[etree.ElementBase]) -> List[Chapter]:
