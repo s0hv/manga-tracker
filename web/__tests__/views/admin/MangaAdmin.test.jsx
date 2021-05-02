@@ -3,8 +3,6 @@ import userEvent from '@testing-library/user-event';
 
 import fetchMock from 'fetch-mock';
 import React from 'react';
-import MangaAdmin from '../../../src/views/admin/MangaAdmin';
-import { fullManga } from '../../constants';
 
 import {
   enqueueSnackbarMock,
@@ -14,10 +12,11 @@ import {
   mockUTCDates,
   muiSelectValue,
 } from '../../utils';
+import MangaAdmin from '../../../src/views/admin/MangaAdmin';
+import { fullManga } from '../../constants';
 
-beforeEach(() => {
-  mockNotistackHooks();
-});
+
+beforeEach(() => mockNotistackHooks());
 
 const mangaId = fullManga.manga.manga_id;
 
@@ -28,7 +27,7 @@ describe('Manga admin page should render correctly', () => {
   it('should render correctly without data', async () => {
     let baseElement;
     await act(async () => {
-      ({ baseElement } = render(<MangaAdmin mangaData={{ manga: {} }} />));
+      ({ baseElement } = render(<MangaAdmin mangaData={{ manga: {}}} />));
     });
 
     expect(baseElement).toMatchSnapshot();
