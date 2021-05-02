@@ -5,6 +5,7 @@ import time
 from datetime import timedelta, datetime
 from typing import Optional, List, Set, Dict, Collection
 
+import psycopg2
 import requests
 from lxml import etree
 
@@ -141,6 +142,13 @@ class ComiXology(BaseScraper):
     def __init__(self, conn, dbutil: DbUtil):
         super().__init__(conn, dbutil)
         self.service_id: Optional[int] = None
+
+    def set_checked(self, service_id: int) -> None:
+        try:
+            super().set_checked(service_id)
+            self.dbutil.update_service_whole(service_id, self.min_update_interval())
+        except psycopg2.Error:
+            logger.exception(f'Failed to update service {service_id}')
 
     @staticmethod
     def get_chapter_elements(root: etree.ElementBase) -> List[etree.ElementBase]:
