@@ -35,7 +35,7 @@ function getLinks(fullLinks) {
 async function fetchExtraInfo(mangadexId, mangaId, chapterIds, addChapters = true, limitChapters) {
   mangadexLimiter.consume('mangadex', 1)
     .then(() => {
-      logger.debug(`Fetching extra info for ${mangaId} ${mangadexId}`);
+      logger.info(`Fetching extra info for ${mangaId} ${mangadexId}`);
       new Manga(mangadexId).fill(mangadexId)
         .then((manga) => {
           const sql = `INSERT INTO manga_info as mi (manga_id, cover, artist, author, bw, mu, mal, amz, ebj, engtl, raw, nu, kt, ap, al)
@@ -112,7 +112,7 @@ async function fetchExtraInfo(mangadexId, mangaId, chapterIds, addChapters = tru
 
             if (chapters.length === 0) return;
 
-            logger.debug(`Adding ${chapters.length} mangadex chapters to manga ${mangaId} ${manga.title}`);
+            logger.info(`Adding ${chapters.length} mangadex chapters to manga ${mangaId} ${manga.title}`);
 
             const chunkSize = 50;
 
