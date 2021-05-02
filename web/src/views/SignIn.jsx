@@ -15,6 +15,8 @@ import {
   TextField,
   Checkboxes,
 } from 'mui-rff';
+import CSRFInput from '../components/utils/CSRFInput';
+import { csrfHeader, useCSRF } from '../utils/csrf';
 
 
 const useStyles = makeStyles((theme) => ({
@@ -39,6 +41,7 @@ const useStyles = makeStyles((theme) => ({
 
 export default function SignIn() {
   const classes = useStyles();
+  const csrf = useCSRF();
   const { enqueueSnackbar } = useSnackbar();
 
   const onSubmit = data => fetch('/api/login',
@@ -48,6 +51,7 @@ export default function SignIn() {
       credentials: 'include',
       headers: {
         'Content-Type': 'application/json; charset=utf-8',
+        ...csrfHeader(csrf),
       },
       redirect: 'follow',
     })
@@ -115,6 +119,7 @@ export default function SignIn() {
                 color='primary'
                 data={{ label: 'Remember me' }}
               />
+              <CSRFInput />
               <Button
                 type='submit'
                 fullWidth

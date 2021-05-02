@@ -1,8 +1,8 @@
 import { ConfirmProvider } from 'material-ui-confirm';
 import { NextSeo } from 'next-seo';
 import React from 'react';
-import Manga from '../../../views/admin/MangaAdmin';
 import withError from '../../../utils/withError';
+import Manga from '../../../views/admin/MangaAdmin';
 
 function MangaPage(props) {
   const {
@@ -28,12 +28,12 @@ export async function getServerSideProps({ req, params }) {
     return { props: { error: 404 }};
   }
 
-  const { getManga } = require('../../../../db/manga');
+  const { getFullManga } = require('../../../../db/manga');
 
   let manga;
   let userFollows;
   try {
-    manga = await getManga(params.manga_id);
+    manga = await getFullManga(params.manga_id);
     if (!manga) {
       return { props: { error: 404 }};
     }

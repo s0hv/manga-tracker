@@ -2,13 +2,16 @@ import logging
 import random
 import re
 from datetime import timedelta, datetime
-from itertools import groupby
-from operator import attrgetter
-from typing import Optional, Tuple, Union, Iterable, Dict, List, TypeVar, Type
+from typing import (Optional, Tuple, Union, Iterable, Dict, TYPE_CHECKING,
+                    NoReturn)
 
 from psycopg2.extras import DictRow
 
 from src.errors import FeedHttpError, InvalidFeedError
+
+if TYPE_CHECKING:
+    # noinspection PyUnresolvedReferences
+    from src.scrapers.base_scraper import BaseChapter as BaseChapterType
 
 logger = logging.getLogger('debug')
 
@@ -19,10 +22,10 @@ universal_chapter_regex = \
                
                # Check for chapter number if one exists
                r'(?:'  
-                   r'(?:(?:Chapter) ?(?P<chapter>\d+)(?:\.(?P<decimal>\d))?,?)|'  # Match chapter number in the format of Chapter x.y
-                   r'(?: ?(?=Oneshot))|'  # Check if oneshot. Those won't have a defined chapter number
+                   r'((Chapter) ?(?P<chapter>\d+)(?:\.(?P<decimal>\d))?,?)|'  # Match chapter number in the format of Chapter x.y
+                   r'((?=Oneshot))|'  # Check if oneshot. Those won't have a defined chapter number
                    # Broad chapter number lookup. Matches any string following a number as long as it's preceded by a space or : and doesn't have a chapter after it
-                   r'(?:[^ \d]+?.(?P<chapter_number2>\d+)(?:\.(?P<chapter_decimal2>\d))?(?=[ :])(?!.+? chapter))'
+                   r'([^ \d]+?.(?P<chapter_number2>\d+)(?:\.(?P<chapter_decimal2>\d))?(?=[ :])(?!.+? chapter))'
                r'):? ?'
                # Match title if one exists
                r'(?P<chapter_title>.+?)?$',
@@ -32,7 +35,7 @@ universal_chapter_regex = \
 def match_title(s: str) -> Optional[Dict[str, str]]:
     match = universal_chapter_regex.match(s)
     if not match:
-        return
+        return None
 
     match = match.groupdict()
     match['chapter'] = match['chapter'] or match.pop('chapter_number2')
@@ -53,12 +56,12 @@ def parse_chapter_number(chapter_number: str) -> Tuple[Optional[str], Optional[s
     return n, d
 
 
-def round_seconds(sec: int, accuracy: int) -> int:
+def round_seconds(sec: float, accuracy: int) -> int:
     left = sec % accuracy
     sec -= left
     if left > accuracy//2:
-        return sec+accuracy
-    return sec
+        return int(sec)+accuracy
+    return int(sec)
 
 
 def random_timedelta(low: Union[timedelta, int], high: Union[timedelta, int]) -> timedelta:
@@ -72,20 +75,22 @@ def random_timedelta(low: Union[timedelta, int], high: Union[timedelta, int]) ->
     """
 
     if isinstance(low, timedelta):
-        low = low.total_seconds()
+        low = int(low.total_seconds())
     if isinstance(high, timedelta):
-        high = high.total_seconds()
+        high = int(high.total_seconds())
 
     return timedelta(seconds=random.randint(low, high))
 
 
-def is_valid_feed(feed) -> None:
+def is_valid_feed(feed) -> Optional[NoReturn]:
     if hasattr(feed, 'status'):
         if feed.status != 200:
             raise FeedHttpError(f'Failed to get feed. Status: {feed.status}')
 
     if feed.bozo:
         raise InvalidFeedError('Invalid feed returned', feed.bozo_exception)
+
+    return None
 
 
 def get_latest_chapters(rows: Iterable[Union[dict, DictRow]]) -> Dict[str, Tuple[int, int, datetime]]:
@@ -97,7 +102,7 @@ def get_latest_chapters(rows: Iterable[Union[dict, DictRow]]) -> Dict[str, Tuple
     Returns:
         dict: of rows with the highest chapter number and smallest release date for a single manga
     """
-    chapter_data = {}
+    chapter_data: Dict[str, Tuple[int, int, datetime]] = {}
     for row in rows:
         if row['chapter_decimal'] is not None:
             continue
@@ -109,16 +114,3 @@ def get_latest_chapters(rows: Iterable[Union[dict, DictRow]]) -> Dict[str, Tuple
         chapter_data[manga_id] = (row['manga_id'], row['chapter_number'], row['release_date'])
 
     return chapter_data
-
-
-BaseChapter = TypeVar('BaseChapter', bound=Type['src.scrapers.base_scraper.BaseChapter'])  # noqa: F821
-
-
-def group_by_manga(chapters: Iterable[BaseChapter]) -> Dict[str, List[BaseChapter]]:
-    titles: Dict[str, List[BaseChapter]] = {}
-    # Must be sorted for groupby to work, as it only splits the list each time the key changes
-    for k, g in groupby(sorted(chapters, key=attrgetter('title_id')),
-                        attrgetter('title_id')):  # type: ignore
-        titles[k] = list(g)  # type: ignore[index]
-
-    return titles

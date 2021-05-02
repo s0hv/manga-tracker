@@ -38,12 +38,13 @@ module.exports = {
     '^.+\\.(js|jsx|ts|tsx)$': '<rootDir>/node_modules/babel-jest',
   },
   transformIgnorePatterns: [
-    '/node_modules/(?!(react-frappe-charts|frappe-charts)/)',
+    '/node_modules/(?!(react-frappe-charts|frappe-charts|swagger-jsdoc)/)',
     '^.+\\.module\\.(css|sass|scss)$',
   ],
   moduleNameMapper: {
     '^.+\\.module\\.(css|sass|scss)$': 'identity-obj-proxy',
     '<rootDir>/node_modules/react-frappe-charts': 'react-frappe-charts',
+    '<rootDir>/node_modules/swagger-jsdoc': 'swagger-jsdoc',
   },
 
   // A list of paths to snapshot serializer modules Jest should use for snapshot testing
@@ -65,7 +66,10 @@ module.exports = {
     '!**/.next/**',
     '!**/coverage/**',
     '!**/__tests__/**',
+    '!**/__mocks__/**',
     '!**/*.config.js',
+    '!**/utils/logging.js', // No need to collect coverage for loggers
+    '!**/{setupTests,next.config,babel.config}.js', // test setup and app configs
   ],
 
   // An array of regexp pattern strings used to skip coverage collection

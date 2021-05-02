@@ -6,13 +6,15 @@ from calendar import timegm
 from datetime import datetime, timedelta
 from itertools import groupby
 from json.decoder import JSONDecodeError
-from typing import Dict, Collection, Iterable, Optional, List, Any
+from typing import Dict, Collection, Iterable, Optional, List, Any, Tuple
 
 import feedparser
 import psycopg2
 import requests
 from psycopg2.extras import execute_values
 
+from src.db.mappers.chapter_mapper import ChapterMapper
+from src.db.models.chapter import Chapter as ChapterModel
 from src.db.models.manga import MangaService
 from src.enums import Status
 from src.errors import FeedHttpError, InvalidFeedError
@@ -154,7 +156,7 @@ class MangaDex(BaseScraper):
 
             chapters.append(c)
 
-        entries = self.dbutil.get_only_latest_entries(service_id, chapters, manga_id=manga_id, limit=len(chapters)*2)
+        entries: Collection[Chapter] = self.dbutil.get_only_latest_entries(service_id, chapters, manga_id=manga_id)
         all_chapters = set(chapters)
         old_chapters = all_chapters.difference(entries)
         entries: List[Chapter] = list(entries)
@@ -171,22 +173,24 @@ class MangaDex(BaseScraper):
 
         manga = self.dbutil.find_service_manga(service_id, title_id)
         if not manga:
-            manga_services = self.dbutil.add_new_manga(service_id, [
-                MangaService(
-                    service_id=service_id,
-                    disabled=True,
-                    title_id=title_id,
-                    title=manga_title,
-                    manga_id=None
+            manga_id = self.dbutil.manga_id_from_title(manga_title)
+            if manga_id is None:
+                manga_service = self.dbutil.add_new_manga(
+                    MangaService(
+                        service_id=service_id,
+                        disabled=True,
+                        title_id=title_id,
+                        title=manga_title,
+                        manga_id=None
+                    )
                 )
-            ])
+                self.dbutil.add_manga_service(manga_service)
+                manga_id = manga_service.manga_id
 
-            if not manga_services:
-                return
+        if manga_id is None:
+            raise ValueError('Manga id not found')
 
-            manga_id = manga_services[0].manga_id
-
-        self.dbutil.add_chapters(manga_id, service_id, entries, fetch=False)
+        self.dbutil.add_chapters(entries, manga_id, service_id, fetch=False)
         self.update_chapter_infos([title_id], [c.chapter_identifier for c in entries], service_id)
         return True
 
@@ -216,9 +220,9 @@ class MangaDex(BaseScraper):
         titles = []
         for post in entries:
             title = post.get('title', '')
-            m = MangaDex.CHAPTER_REGEX.match(title)
-            kwargs: Dict[str, Any]
-            if not m:
+            match = MangaDex.CHAPTER_REGEX.match(title)
+            kwargs: Dict[str, Any] = {}
+            if not match:
                 m = match_title(title)
                 if not m:
                     logger.warning(f'Could not parse title from {title or post}')
@@ -226,9 +230,9 @@ class MangaDex(BaseScraper):
 
                 logger.info(f'Fallback to universal regex successful on {title or post}')
 
-                kwargs = m
+                kwargs.update(**m)
             else:
-                kwargs = m.groupdict()
+                kwargs.update(**match.groupdict())
 
             kwargs['chapter_identifier'] = post.get('link', '').split('/')[-1]
             manga_id = post.get('mangalink', '').split('/')[-1]
@@ -278,41 +282,36 @@ class MangaDex(BaseScraper):
         for k, g in groupby(sorted(entries, key=Chapter.title_id.fget), Chapter.title_id.fget):  # type: ignore
             titles[k] = list(g)  # type: ignore[index]
 
-        data = []
+        data: List[ChapterModel] = []
         manga_ids = set()
         mangadex_ids = {}
-        with self.conn:
-            with self.conn.cursor() as cur:
-                for row in self.dbutil.find_added_titles(cur, tuple(titles.keys())):
-                    manga_id = row['manga_id']
-                    manga_ids.add(manga_id)
-                    mangadex_ids[manga_id] = row['title_id']
-                    for chapter in titles.pop(row['title_id']):
-                        data.append((manga_id, service_id, chapter.title, chapter.chapter_number,
-                                     chapter.decimal, chapter.chapter_identifier,
-                                     chapter.release_date, chapter.group))
+        for ms in self.dbutil.find_added_titles(service_id, tuple(titles.keys())):
+            manga_id = ms.manga_id
+            manga_ids.add(manga_id)
+            mangadex_ids[manga_id] = ms.title_id
+            for chapter in titles.pop(ms.title_id):
+                data.append(
+                    ChapterMapper.base_chapter_to_db(chapter, manga_id, service_id)
+                )
 
-        if titles:
-            with self.conn:
-                with self.conn.cursor() as cur:
-                    for manga_id, chapters in self.dbutil.add_new_series(cur, titles, service_id, True):
-                        manga_ids.add(manga_id)
-                        if chapters:
-                            mangadex_ids[manga_id] = chapters[0].title_id
-                        for chapter in chapters:
-                            data.append((manga_id, service_id, chapter.title, chapter.chapter_number,
-                                        chapter.decimal, chapter.chapter_identifier,
-                                         chapter.release_date, chapter.group))
+        mangas = self.titles_dict_to_manga_service(titles, service_id, True)
 
-        sql = 'INSERT INTO chapters (manga_id, service_id, title, chapter_number, chapter_decimal, chapter_identifier, release_date, "group") VALUES ' \
-              '%s ON CONFLICT DO NOTHING RETURNING manga_id, chapter_number, chapter_decimal, release_date, chapter_identifier'
+        # Add new manga
+        for manga in self.dbutil.add_new_manga_and_check_duplicate_titles(mangas):
+            for chapter in titles.get(manga.title_id, []):
+                data.append(
+                    ChapterMapper.base_chapter_to_db(chapter, manga.manga_id,
+                                                     service_id)
+                )
 
         with self.conn:
             with self.conn.cursor() as cur:
-                rows = execute_values(cur, sql, data, page_size=len(data), fetch=True)
+                rows = self.dbutil.add_chapters(data, fetch=True, cur=cur)
+                if not rows:
+                    return manga_ids
                 manga_ids = {r['manga_id'] for r in rows}
                 if manga_ids:
-                    self.dbutil.update_latest_chapter(cur, tuple(c for c in get_latest_chapters(rows).values()))
+                    self.dbutil.update_latest_chapter(tuple(c for c in get_latest_chapters(rows).values()), cur=cur)
                     self.update_chapter_infos([mangadex_ids[i] for i in mangadex_ids], [c['chapter_identifier'] for c in rows], service_id)
 
         return manga_ids
@@ -329,11 +328,18 @@ class MangaDex(BaseScraper):
             return
 
         url = self.MANGADEX_API + '/manga/{}?include=chapters'
-        headers = {}
+        headers: Dict[str, str] = {}
         fails = 0
         sleep = 0.1
-        chapters = []
-        manga_info = []
+        chapters: List[Tuple[str, str, int]] = []
+        manga_info: List[Tuple[
+            Optional[str],
+            Optional[str],
+            Optional[str],
+            Optional[int],
+            int,
+            str
+        ]] = []
 
         for idx, title_id in enumerate(title_ids):
             try:
@@ -367,8 +373,8 @@ class MangaDex(BaseScraper):
             if cover:
                 cover = f'https://mangadex.org/{cover}'
 
-            artist = manga.get('artist')
-            author = manga.get('author')
+            artist: str = manga.get('artist')
+            author: str = manga.get('author')
             status = manga.get('status')
             if status:
                 status = Status.from_mangadex(int(status))

@@ -1,15 +1,17 @@
-import { MuiPickersUtilsProvider } from '@material-ui/pickers';
 import DateFnsUtils from '@date-io/date-fns';
+import { MuiPickersUtilsProvider } from '@material-ui/pickers';
 import { fireEvent, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import cookie from 'cookie';
+import signature from 'cookie-signature';
 import enLocale from 'date-fns/locale/en-GB';
-import request from 'supertest';
+import jestOpenAPI from 'jest-openapi';
 import React, { isValidElement } from 'react';
 import { act } from 'react-dom/test-utils';
-import signature from 'cookie-signature';
-import cookie from 'cookie';
+import request from 'supertest';
 
 import { UserProvider } from '../src/utils/useUser';
+import { getOpenapiSpecification } from '../swagger';
 
 // Must be mocked here
 jest.mock('notistack', () => {
@@ -177,6 +179,7 @@ export async function login(app, user, rememberMe=false) {
   const agent = request.agent(app);
   await agent
     .post('/api/login')
+    .csrf()
     .send({
       email: user.email,
       password: user.password,
@@ -280,4 +283,8 @@ export function expectErrorMessage(value, param, message='Invalid value') {
 
     expect(error.value).toEqual(value);
   };
+}
+
+export async function configureJestOpenAPI() {
+  jestOpenAPI(await getOpenapiSpecification());
 }

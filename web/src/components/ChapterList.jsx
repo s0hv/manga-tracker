@@ -5,6 +5,7 @@ import {
   TableContainer,
 } from '@material-ui/core';
 import { useSnackbar } from 'notistack';
+import { csrfHeader, useCSRF } from '../utils/csrf';
 
 import { MaterialTable } from './MaterialTable';
 import { defaultDateFormat } from '../utils/utilities';
@@ -22,6 +23,7 @@ function ChapterList(props) {
   const [count, setCount] = useState(initialChapters?.length || 0);
   const [loading, setLoading] = useState(false);
   const { enqueueSnackbar } = useSnackbar();
+  const csrf = useCSRF();
 
   useEffect(() => setChapters(initialChapters || []), [initialChapters]);
 
@@ -71,11 +73,12 @@ function ChapterList(props) {
       credentials: 'same-origin',
       headers: {
         'Content-Type': 'application/json',
+        ...csrfHeader(csrf),
       },
       body: JSON.stringify(state),
     })
       .then(handleResponse);
-  }, [handleResponse]);
+  }, [handleResponse, csrf]);
 
   const onDeleteRow = useCallback((row) => {
     const id = row.original.chapter_id;
@@ -84,9 +87,10 @@ function ChapterList(props) {
     fetch(`/api/chapter/${row.original.chapter_id}`, {
       method: 'delete',
       credentials: 'same-origin',
+      headers: csrfHeader(csrf),
     })
       .then(handleResponse);
-  }, [chapters, handleResponse]);
+  }, [chapters, handleResponse, csrf]);
 
   const columns = useMemo(() => [
     {

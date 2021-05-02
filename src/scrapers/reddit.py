@@ -9,7 +9,8 @@ from typing import Dict, Optional, List, Any
 import feedparser
 from lxml import etree
 
-from src.errors import FeedHttpError, InvalidFeedError, RequiredInformationMissing
+from src.errors import FeedHttpError, InvalidFeedError, \
+    RequiredInformationMissing
 from src.scrapers.base_scraper import BaseScraper, BaseChapter
 from src.utils.utilities import match_title, is_valid_feed, get_latest_chapters
 
@@ -97,9 +98,9 @@ class Reddit(BaseScraper):
         chapters = []
         for post in entries:
             title = post.get('title', '')
-            m = Reddit.CHAPTER_REGEX.match(title)
+            match = Reddit.CHAPTER_REGEX.match(title)
             kwargs: Dict[str, Any]
-            if not m:
+            if not match:
                 m = match_title(title)
 
                 if not m:
@@ -120,7 +121,7 @@ class Reddit(BaseScraper):
 
                     kwargs = m
             else:
-                kwargs = m.groupdict()
+                kwargs = match.groupdict()
 
             if not kwargs['chapter']:
                 logger.error(f'Failed to get chapter number from title "{title}"')
@@ -162,7 +163,7 @@ class Reddit(BaseScraper):
             is_valid_feed(feed)
         except (FeedHttpError, InvalidFeedError):
             logger.exception(f'Failed to fetch feed {feed_url}')
-            return
+            return None
 
         self.dbutil.set_manga_last_checked(service_id, manga_id, datetime.utcnow())
         self.dbutil.update_manga_next_update(service_id, manga_id, self.next_update())
@@ -173,7 +174,7 @@ class Reddit(BaseScraper):
             return False
 
         logger.info(f'{len(chapters)} new chapters on {feed_url}')
-        self.dbutil.add_chapters(manga_id, service_id, chapters, fetch=False)
+        self.dbutil.add_chapters(list(chapters), manga_id, service_id, fetch=False)
 
         chapter_rows = [{
             'chapter_decimal': c.decimal,

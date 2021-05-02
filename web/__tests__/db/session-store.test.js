@@ -1,10 +1,10 @@
 import sessionStore from '../../db/session-store';
-import db from '../../db';
+import { db, pgp } from '../../db';
+import { spyOnDb } from '../dbutils';
 
 
 afterAll(async () => {
-  const { pool } = require('../../db');
-  await pool.end();
+  await pgp.end();
 });
 
 describe('sessionStore', () => {
@@ -44,7 +44,7 @@ describe('sessionStore', () => {
     });
 
     it('Returns session when found from database and saves it to cache', async () => {
-      const spy = jest.spyOn(db, 'query');
+      const spy = spyOnDb();
       const store = new Store({ conn: db });
       const sid = 'sid_get';
       const session = { test: 1, data: 'data' };
@@ -66,7 +66,7 @@ describe('sessionStore', () => {
     });
 
     it('Returns session without database calls when it is in cache', async () => {
-      const spy = jest.spyOn(db, 'query');
+      const spy = spyOnDb();
       const store = new Store({ conn: db });
       const sid = 'sid_get_cache';
       const session = { test: 1, data: 'data' };
@@ -82,7 +82,7 @@ describe('sessionStore', () => {
 
     it('Returns error on database errors', async () => {
       const error = new Error('test');
-      const spy = jest.spyOn(db, 'query').mockImplementation(async () => throw error);
+      const spy = spyOnDb().mockImplementation(async () => throw error);
       const store = new Store({ conn: db });
       const sid = 'sid_get_error';
 
@@ -102,7 +102,7 @@ describe('sessionStore', () => {
       }};
 
     it('Saves new session to database and cache', async () => {
-      const spy = jest.spyOn(db, 'query');
+      const spy = spyOnDb();
       const store = new Store({ conn: db });
       const sid = 'sid_set';
 
@@ -116,7 +116,7 @@ describe('sessionStore', () => {
 
     it('Returns error on database errors while still setting cache', async () => {
       const error = new Error('test');
-      const spy = jest.spyOn(db, 'query').mockImplementation(async () => throw error);
+      const spy = spyOnDb().mockImplementation(async () => throw error);
       const store = new Store({ conn: db });
       const sid = 'sid_set_error';
 
@@ -133,7 +133,7 @@ describe('sessionStore', () => {
     it('Calls clearOldSessions automatically', async () => {
       jest.useFakeTimers();
 
-      const spy = jest.spyOn(db, 'query');
+      const spy = spyOnDb();
       const clearInterval = 1000;
       const store = new Store({ conn: db, clearInterval });
       const sessionSpy = jest.spyOn(store, 'clearOldSessions');
@@ -173,7 +173,7 @@ describe('sessionStore', () => {
 
       const mangaViews = require('../../utils/view-counter/manga-view-counter');
 
-      const dbSpy = jest.spyOn(db, 'query').mockImplementation(async () => ({ rows }));
+      const dbSpy = spyOnDb().mockImplementation(async () => rows);
       const clearInterval = 1000;
       const store = new Store({ conn: db, clearInterval });
       const sessionSpy = jest.spyOn(store, 'clearOldSessions');

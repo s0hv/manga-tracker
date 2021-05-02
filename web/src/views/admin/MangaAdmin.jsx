@@ -1,23 +1,21 @@
-import { useConfirm } from 'material-ui-confirm';
-import { useSnackbar } from 'notistack';
-import React, { useCallback, useMemo, useState } from 'react';
 import {
   Container,
-  Grid, IconButton,
-  Paper, Tooltip,
+  Grid,
+  IconButton,
+  Paper,
+  Tooltip,
   Typography,
 } from '@material-ui/core';
 
-import {
-  SubdirectoryArrowLeft as SubdirectoryArrowLeftIcon,
-} from '@material-ui/icons';
-
 import { makeStyles } from '@material-ui/core/styles';
-import Link from 'next/link';
 
-import {
-  Select,
-} from 'mui-rff';
+import { SubdirectoryArrowLeft as SubdirectoryArrowLeftIcon, } from '@material-ui/icons';
+import { useConfirm } from 'material-ui-confirm';
+
+import { Select, } from 'mui-rff';
+import Link from 'next/link';
+import { useSnackbar } from 'notistack';
+import React, { useCallback, useMemo, useState } from 'react';
 import MangaAliases from '../../components/MangaAliases';
 import MangaInfo from '../../components/MangaInfo';
 
@@ -26,6 +24,7 @@ import {
   EditableSelect,
   MaterialTable,
 } from '../../components/MaterialTable';
+import { csrfHeader, useCSRF } from '../../utils/csrf';
 
 
 const useStyles = makeStyles((theme) => ({
@@ -87,6 +86,7 @@ function MangaAdmin(props) {
   // Hooks
   const classes = useStyles();
   const { enqueueSnackbar } = useSnackbar();
+  const csrf = useCSRF();
   const confirm = useConfirm();
 
   const [loading, setLoading] = useState(false);
@@ -109,8 +109,8 @@ function MangaAdmin(props) {
     fetch(`/api/manga/${mangaId}`)
       .then(res => res.json())
       .then(json => {
-        setAliases(json.manga.aliases);
-        setMangaTitle(json.manga.title);
+        setAliases(json.data.aliases);
+        setMangaTitle(json.data.title);
       });
   }, [mangaId]);
 
@@ -130,6 +130,7 @@ function MangaAdmin(props) {
   const onCreateRow = useCallback((form) => {
     fetch(`/api/admin/manga/${mangaId}/scheduledRun/${form.service_id}`, {
       method: 'POST',
+      headers: csrfHeader(csrf),
     })
       .then(res => {
         if (res.status !== 200) {
@@ -145,12 +146,13 @@ function MangaAdmin(props) {
         );
       })
       .catch(err => enqueueSnackbar(err.message, { variant: 'error' }));
-  }, [mangaId, formatScheduledRuns, scheduledUpdates, enqueueSnackbar]);
+  }, [mangaId, formatScheduledRuns, scheduledUpdates, enqueueSnackbar, csrf]);
 
   const onDeleteRow = useCallback((row) => {
     const serviceId = row.values.service_id;
     fetch(`/api/admin/manga/${mangaId}/scheduledRun/${serviceId}`, {
       method: 'DELETE',
+      headers: csrfHeader(csrf),
     })
       .then(res => {
         if (res.status !== 200) {
@@ -166,7 +168,7 @@ function MangaAdmin(props) {
         }
       })
       .catch(err => enqueueSnackbar(err.message, { variant: 'error' }));
-  }, [enqueueSnackbar, formatScheduledRuns, mangaId, scheduledUpdates]);
+  }, [enqueueSnackbar, formatScheduledRuns, mangaId, scheduledUpdates, csrf]);
 
   // Table layout
   const fields = useMemo(() => [

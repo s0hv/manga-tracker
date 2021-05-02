@@ -1,7 +1,10 @@
+import time
+
 import pytest
 
-from src.tests.scrapers.testing_scraper import DummyScraper
-from src.tests.testing_utils import create_db, Postgresql, teardown_db, start_db, BaseTestClasses
+from src.tests.scrapers.testing_scraper import DummyScraper, DummyScraper2
+from src.tests.testing_utils import (create_db, Postgresql, teardown_db,
+                                     start_db, BaseTestClasses)
 from src.utils.dbutils import DbUtil
 
 
@@ -18,11 +21,15 @@ def setup_tests(request):
     if not requires_database:
         return
 
+    # No need to sleep in tests
+    time.sleep = lambda *_: None
+
     print('setting up')
     start_db()
     conn = create_db(None if not Postgresql else Postgresql.cache)
     dbutil = DbUtil(conn)
     DummyScraper(conn, dbutil).add_service()
+    DummyScraper2(conn, dbutil).add_service()
     conn.close()
 
     def fin():

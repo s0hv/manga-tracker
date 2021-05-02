@@ -1,15 +1,21 @@
 import { format, formatDistanceToNowStrict } from 'date-fns';
 import enLocale from 'date-fns/locale/en-GB';
 import throttle from 'lodash.throttle';
+import { csrfHeader } from './csrf';
 
-export const followUnfollow = (mangaId, serviceId) => {
+export const followUnfollow = (csrf, mangaId, serviceId) => {
   const url = serviceId ? `/api/user/follows?manga_id=${mangaId}&service_id=${serviceId}` :
     `/api/user/follows?manga_id=${mangaId}`;
   return throttle((event) => {
     const target = event.target;
     switch (target.textContent.toLowerCase()) {
       case 'follow':
-        fetch(url, { credentials: 'include', method: 'put' })
+        fetch(url,
+          {
+            credentials: 'include',
+            method: 'put',
+            headers: csrfHeader(csrf),
+          })
           .then(res => {
             if (res.status === 200) {
               target.textContent = 'Unfollow';
@@ -18,7 +24,11 @@ export const followUnfollow = (mangaId, serviceId) => {
         break;
 
       case 'unfollow':
-        fetch(url, { credentials: 'include', method: 'delete' })
+        fetch(url, {
+          credentials: 'include',
+          method: 'delete',
+          headers: csrfHeader(csrf),
+        })
           .then(res => {
             if (res.status === 200) {
               target.textContent = 'Follow';

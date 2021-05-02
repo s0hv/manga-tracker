@@ -1,14 +1,14 @@
+import os
 import unittest
 from datetime import datetime
+from unittest.mock import MagicMock
+from unittest.mock import patch
 
 import feedparser
 
-from src.tests.utils.test_dbutil import BaseTestClasses
-from src.tests.testing_utils import mock_feedparse
-from unittest.mock import patch
-from unittest.mock import MagicMock
 from src.scrapers.kireicake import KireiCake
-import os
+from src.tests.testing_utils import mock_feedparse
+from src.tests.utils.test_dbutil import BaseTestClasses
 
 test_feed = os.path.join(os.path.dirname(__file__), 'feed.xml')
 
@@ -160,9 +160,9 @@ class KireiCakeTest(BaseTestClasses.DatabaseTestCase):
         parse.assert_called_once()
         parse.assert_called_with('test_feed')
 
-        unique_manga = len(set(map(KireiCake.Chapter.title_id.fget, correct_entries.values())))
+        unique_manga = len(set(map(KireiCake.Chapter.title_id.fget, correct_entries.values())))  # type: ignore[attr-defined]
         self.assertIsNotNone(updated)
-        self.assertEqual(len(updated), unique_manga, 'Not all manga updated')
+        self.assertEqual(unique_manga, len(updated), 'Not all manga updated')
 
     @patch('feedparser.parse', wraps=mock_feedparse('invalid_feed'))
     def test_scrape_service_returns_nothing_on_error(self, parse: MagicMock):

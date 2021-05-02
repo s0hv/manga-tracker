@@ -1,24 +1,25 @@
-const dev = process.env.NODE_ENV !== 'production';
+// eslint-disable-next-line import/order
+const { isDev } = require('./utils/constants');
 
-// Read .env if in development
-if (dev) {
+// Read .env if in isDevelopment
+if (isDev) {
   // eslint-disable-next-line import/no-extraneous-dependencies
   require('dotenv').config({ path: '../.env' });
 }
 
 const express = require('express');
 const next_ = require('next');
+const csrf = require('csurf');
 const session = require('express-session');
 const passport = require('passport');
 const JsonStrategy = require('passport-json');
 
-const sessionDebug = require('debug')('session-debug');
-const debug = require('debug')('debug');
-
-const db = require('./db');
+const { db } = require('./db');
+const { csrfMissing } = require('./utils/constants');
 const PostgresStore = require('./db/session-store')(session);
 const { checkAuth, authenticate, requiresUser } = require('./db/auth');
 const { bruteforce, rateLimiter } = require('./utils/ratelimits');
+const { logger, expressLogger, sessionLogger } = require('./utils/logging');
 
 passport.use(
   new JsonStrategy(
@@ -40,10 +41,10 @@ passport.deserializeUser((user, done) => {
 });
 
 // Turn off when not using this app with a reverse proxy like heroku
-const reverseProxy = !dev;
-if (!dev && !process.env.SESSION_SECRET) throw new Error('No session secret given');
+const reverseProxy = !isDev;
+if (!isDev && !process.env.SESSION_SECRET) throw new Error('No session secret given');
 
-const nextApp = next_({ dev: dev, dir: __dirname });
+const nextApp = next_({ dev: isDev, dir: __dirname });
 const handle = nextApp.getRequestHandler();
 
 module.exports = nextApp.prepare()
@@ -53,13 +54,16 @@ module.exports = nextApp.prepare()
     if (reverseProxy) server.enable('trust-proxy');
 
     const store = new PostgresStore({
-      conn: db.pool,
+      conn: db,
       cacheSize: 30,
       maxAge: 7200000,
     });
     server.sessionStore = store;
 
+    server.use(require('pino-http')({ logger: expressLogger, useLevel: 'debug' }));
+
     server.use(require('body-parser').json());
+    server.use(require('body-parser').urlencoded({ extended: false }));
 
     server.use(require('cookie-parser')(null));
     server.use(session({
@@ -68,15 +72,17 @@ module.exports = nextApp.prepare()
         maxAge: 7200000,
         sameSite: 'strict',
         httpOnly: true,
-        secure: !dev,
+        secure: !isDev,
       },
       proxy: reverseProxy,
-      secret: dev ? 'secret' : process.env.SESSION_SECRET,
+      secret: isDev ? 'secret' : process.env.SESSION_SECRET,
       resave: false,
       saveUninitialized: false,
 
       store: store,
     }));
+
+    server.use(csrf({ cookie: false }));
 
     if (process.env.NODE_ENV !== 'test') {
       server.use(rateLimiter);
@@ -85,8 +91,8 @@ module.exports = nextApp.prepare()
     server.use(checkAuth(server));
 
     server.use((req, res, next) => {
-      debug('Auth cookie:', req.cookies.auth);
-      debug(req.originalUrl);
+      logger.debug('Auth cookie: %s', req.cookies.auth);
+      logger.debug(req.originalUrl);
       // if (!req.originalUrl.startsWith('/_next/static')) debug(req.originalUrl);
       next();
     });
@@ -99,7 +105,7 @@ module.exports = nextApp.prepare()
           res.cookie('auth', req.user, {
             maxAge: 2592000000, // 30d in ms
             httpOnly: true,
-            secure: !dev,
+            secure: !isDev,
             sameSite: 'strict',
           });
         }
@@ -116,7 +122,7 @@ module.exports = nextApp.prepare()
     server.use('/api/admin/manga', require('./api/admin/manga')());
 
     server.get('/login', requiresUser, (req, res) => {
-      sessionDebug(req.session.user_id);
+      sessionLogger.debug(req.session.user_id);
       if (req.isAuthenticated()) {
         res.redirect('/');
         return;
@@ -140,11 +146,27 @@ module.exports = nextApp.prepare()
     server.get('/manga/:manga_id(\\d+)', requiresUser, (req, res) => handle(req, res));
 
     server.get('/*', requiresUser, (req, res) => {
-      sessionDebug('User', req.user);
+      sessionLogger.debug('User %o', req.user);
       return handle(req, res);
     });
 
     server.get('*', (req, res) => handle(req, res));
+
+
+    // Error handlers
+    server.use((err, req, res, next) => {
+      // Handle CSRF errors
+      if (err.code === 'EBADCSRFTOKEN') {
+        res.status(403).json({
+          error: csrfMissing,
+        });
+        return;
+      }
+
+      req.log.error(err);
+
+      next(err);
+    });
 
     const port = process.env.PORT || 3000;
 

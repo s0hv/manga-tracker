@@ -1,5 +1,6 @@
 const express = require('express');
 const { body } = require('express-validator');
+const { QueryResultError } = require('pg-promise').errors;
 const { updateMangaTitle } = require('../../db/admin/manga');
 const { requiresUser } = require('../../db/auth');
 const { handleError } = require('../../db/utils');
@@ -28,7 +29,7 @@ module.exports = () => {
     getScheduledRuns(req.params.manga_id)
       .then(rows => {
         res.status(200).json({
-          data: rows.rows,
+          data: rows,
         });
       })
       .catch(err => handleError(err, res));
@@ -39,14 +40,14 @@ module.exports = () => {
     validateAdminUser(),
     mangaIdValidation(true),
     serviceIdValidation(true),
+    handleValidationErrors,
   ]);
-  router.use(scheduleRunUrl, handleValidationErrors);
   router.route(scheduleRunUrl)
     .post((req, res) => {
       scheduleMangaRun(req.params.manga_id, req.params.service_id, req.user.user_id)
-        .then(rows => {
+        .then(row => {
           res.status(200).json({
-            inserted: rows.rows[0],
+            inserted: row,
           });
         })
         .catch(err => handleError(err, res));
@@ -72,18 +73,19 @@ module.exports = () => {
   ]);
   router.post(updateTitleUrl, handleValidationErrors, (req, res) => {
     updateMangaTitle(req.params.manga_id, req.body.title)
-      .then(val => {
-        if (!val) {
-          res.status(404).json({ error: 'Manga not found' });
-        } else {
-          const row = val.rows[0];
-          const msg = row ?
-            `Replaced old alias with current title "${row.title}"` :
-            `Alias not found. Scrapping old title`;
-          res.json({ message: msg });
-        }
+      .then(row => {
+        const msg = row ?
+          `Replaced old alias with current title "${row.title}"` :
+          `Alias not found. Scrapping old title`;
+        res.json({ message: msg });
       })
-      .catch(err => handleError(err, res));
+      .catch(err => {
+        if (err instanceof QueryResultError) {
+          res.status(err.status).json({ error: 'Manga not found' });
+          return;
+        }
+        handleError(err, res);
+      });
   });
 
   return router;

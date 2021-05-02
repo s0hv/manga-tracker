@@ -1,16 +1,17 @@
 import logging
+import random
 import re
 import time
 from datetime import timedelta, datetime
-from typing import Optional, Iterable, Union, List
+from typing import Optional, List, Set, Dict, Collection
 
 import requests
 from lxml import etree
-from psycopg2.extras import execute_values
 
+from src.db.mappers.chapter_mapper import ChapterMapper
 from src.scrapers.base_scraper import BaseScraper, BaseChapter
 from src.utils.dbutils import DbUtil
-from src.utils.utilities import random_timedelta
+from src.utils.utilities import random_timedelta, get_latest_chapters
 
 logger = logging.getLogger('debug')
 title_regex = re.compile(r'https:\\/\\/www\.comixology\.com\\/cart\\/add\\/subscription\\/(\d+)\\/0\?actionType=comic&actionId=\d+')
@@ -19,14 +20,22 @@ extra_chapter_regex = re.compile(r'extra, (\d+)\.?(\d+)?', re.I)
 
 
 class Chapter(BaseChapter):
-    def __init__(self, chapter_element: etree.ElementBase, manga_title: str):
+    def __init__(self, chapter_element: etree.ElementBase):
         title = chapter_element.cssselect('.content-info .content-subtitle')[0].text or ''
         title = title.strip()
 
         if title.lower().startswith('vol'):
             self.invalid = True
             return
+
+        add_to_cart = chapter_element.cssselect('.action-button span.action-title')[0].text
+        if add_to_cart.lower() == 'pre-order':
+            self.invalid = True
+            return
+
         self.invalid = False
+
+        manga_title = chapter_element.cssselect('.content-title.cu-alc')[0].text
 
         ch = title.split('#')[-1].split('.')
         if not title:
@@ -57,14 +66,20 @@ class Chapter(BaseChapter):
         title_id = chapter_element.cssselect('.action-button.expand-action')[0].attrib.get('data-expand-menu-data', '')
         found = title_regex.findall(title_id)
         if not found:
-            raise ValueError('Title id not found for comiXology chapter')
+            # Not all titles have title id set (probably only applies to newer titles).
+            # If not mark as invalid and skip
+            self.invalid = True
+            logger.debug(f'Title id not found for {self.url}')
+            return
+            # raise ValueError('Title id not found for comiXology chapter')
 
         if len(found) > 1:
             logger.warning(f'Multiple title ids found for {self.url}')
 
         self._title_id = found[0]
         self._manga_title = manga_title
-        self.release_date_maybe = None
+        self.release_date_maybe: Optional[datetime] = None
+        self._created_at = datetime.utcnow()
 
     def __repr__(self) -> str:
         return f'{self.manga_title} chapter {self.chapter_number}: {self.title}'
@@ -86,8 +101,8 @@ class Chapter(BaseChapter):
         return self._chapter_decimal
 
     @property
-    def release_date(self) -> Optional[datetime]:
-        return self.release_date_maybe
+    def release_date(self) -> datetime:
+        return self.release_date_maybe or self._created_at
 
     @property
     def chapter_identifier(self) -> str:
@@ -117,39 +132,228 @@ class Chapter(BaseChapter):
 class ComiXology(BaseScraper):
     ID = 5
     URL = 'https://www.comixology.com'
+    FEED_URL = 'https://www.comixology.com/New-Manga-Releases/list/24959'
     NAME = 'ComiXology'
     CHAPTER_URL_FORMAT = 'https://www.comixology.com/chapter/digital-comic/{}'
-    MANGA_URL_FORMAT = 'https://www.comixology.com/series/comics-series/{}'
+    MANGA_URL_FORMAT = 'https://www.comixology.com/manga/comics-series/{}'
+    PAGE_URL = 'https://www.comixology.com/site/list?id={id}&pageNum={page}&pageLetter=null&cu=0'
 
     def __init__(self, conn, dbutil: DbUtil):
         super().__init__(conn, dbutil)
-        self.service_id = None
+        self.service_id: Optional[int] = None
+
+    @staticmethod
+    def get_chapter_elements(root: etree.ElementBase) -> List[etree.ElementBase]:
+        return list(root.cssselect('li.content-item'))
 
     @staticmethod
     def min_update_interval() -> timedelta:
         return random_timedelta(timedelta(hours=1), timedelta(hours=2))
 
     @staticmethod
-    def wait() -> None:
-        time.sleep(random_timedelta(timedelta(seconds=2), timedelta(seconds=10)).total_seconds())
+    def fetch_url(url: str, headers: Dict[str, str] = None) -> Optional[requests.Response]:
+        try:
+            r = requests.get(url, headers=headers)
+        except requests.RequestException:
+            logger.exception(f'Failed to fetch ComiXology url {url}')
+            return None
 
-    def scrape_series(self, title_id, service_id, manga_id, feed_url=None):
-        pass
+        if not r.ok:
+            logger.error(f'Failed to fetch ComiXology url {url}. HTTP {r.status_code}')
+            return None
 
-    def scrape_service(self, service_id, feed_url, last_update, title_id=None):
-        pass
+        return r
 
-    def get_chapter_release_date(self, url: str) -> Optional[datetime]:
-        r = requests.get(url)
-        if r.status_code == 429:
-            logger.error(f'Ratelimited on {self.URL}')
-            return
-
-        if r.status_code != 200:
-            return
+    @staticmethod
+    def fetch_all_issues(url: str) -> Optional[List[Chapter]]:
+        r = ComiXology.fetch_url(url)
+        if r is None:
+            return None
 
         root = etree.HTML(r.text)
-        children = root.cssselect('.credits')[0].getchildren()
+
+        section = ComiXology.find_issues_section(root.cssselect('section.list-container.grid-list'))
+        if section is None:
+            return None
+
+        chapters = ComiXology.parse_chapters(ComiXology.get_chapter_elements(section))
+
+        # Find page count
+        pager = section.cssselect('.pager')
+        if not pager:
+            return chapters
+
+        pages = int(pager[0].attrib['data-page-count'])
+
+        # Find the id for this list. Used to fetch next pages
+        if (internal_id_elem := section.find('div[@data-internal-id]')) is None:
+            logger.error(f'No internal id found for {url}')
+            return None
+
+        internal_id = internal_id_elem.attrib['data-internal-id']
+
+        # Save cookies
+        headers = {
+            'cookie': r.headers.get('set-cookie', ''),
+            'x-requested-with': 'XMLHttpRequest'
+        }
+
+        # Iterate all pages
+        for page in range(2, pages+1):
+            # Sleep for 1-3 seconds
+            time.sleep(random.randint(100, 300)/100)
+            url = ComiXology.PAGE_URL.format(id=internal_id, page=page)
+            r = ComiXology.fetch_url(url, headers)
+            if r is None:
+                break
+
+            section = etree.HTML(r.text)
+            chapters.extend(ComiXology.parse_chapters(ComiXology.get_chapter_elements(section)))
+
+        return chapters
+
+    @staticmethod
+    def wait() -> None:
+        time.sleep(random_timedelta(timedelta(seconds=2), timedelta(seconds=5)).total_seconds())
+
+    @staticmethod
+    def find_issues_section(sections: List[etree.ElementBase]) -> Optional[etree.ElementBase]:
+        for section in sections:
+            if not (title := section.cssselect('.list-title')):
+                continue
+
+            text = title[0].text.lower()
+            # One for manga page and one for latest releases page
+            if text == 'issues' or text.startswith('new manga releases'):
+                return section
+
+        return None
+
+    def process_and_add_chapters(self, service_id: int, chapters: Collection[Chapter]) -> Set[int]:
+        titles = self.group_by_manga(chapters)
+
+        manga_ids: Set[int] = set()
+        data = self.map_already_added_titles(service_id, titles, manga_ids)
+
+        # Add new manga
+        mangas = self.titles_dict_to_manga_service(titles, service_id, True)
+
+        for manga in self.dbutil.add_new_manga_and_check_duplicate_titles(mangas):
+            manga_ids.add(manga.manga_id)
+            logger.info('Adding new ComiXology manga (%s) %s', manga.manga_id, manga.title)
+            for chapter in titles.get(manga.title_id, []):
+                data.append(
+                    ChapterMapper.base_chapter_to_db(chapter, manga.manga_id, service_id)
+                )
+
+        logger.info('Adding %s chapters to ComiXology', len(data))
+
+        self.dbutil.add_chapters(data, fetch=False)
+
+        chapter_rows = [{
+            'chapter_decimal': c.chapter_decimal,
+            'manga_id': c.manga_id,
+            'chapter_number': c.chapter_number,
+            'release_date': c.release_date
+        } for c in data]
+        self.dbutil.update_latest_chapter(tuple(c for c in get_latest_chapters(chapter_rows).values()))
+
+        return manga_ids
+
+    def scrape_series(self, title_id: str, service_id: int, manga_id: Optional[int], feed_url: str = None) -> Optional[bool]:
+        chapters = self.fetch_all_issues(self.MANGA_URL_FORMAT.format(title_id))
+        if chapters is None:
+            return None
+
+        if not chapters:
+            logger.info(f'No chapters found for {title_id}')
+            return None
+
+        title = chapters[0].manga_title
+
+        chapters = self.dbutil.get_only_latest_entries(service_id, chapters, manga_id)
+        if not chapters:
+            logger.info(f'No new chapters found for {title} ({title_id})')
+            return False
+
+        logger.info(f'{len(chapters)} new chapters found for {title} ({title_id})')
+
+        limit = 30
+        add_chapters = []
+
+        for idx, chapter in enumerate(sorted(chapters, key=Chapter.chapter_number.fget, reverse=True)):  # type: ignore[attr-defined]
+            date = self.get_chapter_release_date(chapter.url)
+            if date is None:
+                break
+
+            # increment for easier count comparisons
+            idx += 1
+
+            chapter.release_date_maybe = date
+            add_chapters.append(chapter)
+            if idx == limit:
+                logger.info(f'Limiting ComiXology chapter scraping to {limit} chapters for {title} ({title_id})')
+                break
+
+            if idx != len(chapters):
+                self.wait()
+
+        ids = self.process_and_add_chapters(service_id, add_chapters)
+        return len(ids) == 1
+
+    def scrape_service(self, service_id, feed_url, last_update, title_id=None):
+        chapters = self.fetch_all_issues(feed_url)
+        if chapters is None:
+            return None
+
+        if not chapters:
+            logger.info('No chapters found for ComiXology')
+            return None
+
+        chapters = self.dbutil.get_only_latest_entries(service_id, chapters)
+
+        if not chapters:
+            return None
+
+        for idx, chapter in enumerate(chapters):
+            date = self.get_chapter_release_date(chapter.url)
+            if date is None:
+                break
+
+            chapter.release_date_maybe = date
+            if idx != len(chapters) - 1:
+                self.wait()
+
+        return self.process_and_add_chapters(service_id, chapters)
+
+    @staticmethod
+    def parse_chapters(elements: List[etree.ElementBase]) -> List[Chapter]:
+        chapters = []
+        for element in elements:
+            c = Chapter(element)
+            if c.invalid:
+                continue
+
+            chapters.append(c)
+
+        return chapters
+
+    def get_chapter_release_date(self, url: str) -> Optional[datetime]:
+        try:
+            r = requests.get(url)
+        except requests.RequestException:
+            logger.exception(f'Failed to get chapter id for {url}')
+            return None
+
+        if r.status_code == 429:
+            logger.error(f'Ratelimited on {self.URL}')
+            return None
+
+        if not r.ok:
+            return None
+
+        root = etree.HTML(r.text)
+        children = root.cssselect('.credits .subtitle,.credits .aboutText')
 
         for idx, c in enumerate(children):
             if 'digital release date' not in (c.text or '').lower().strip():
@@ -162,116 +366,19 @@ class ComiXology(BaseScraper):
                 logger.exception(f'Failed to convert release date to datetime, "{d.text}"')
                 continue
             except IndexError:
-                return
+                return None
 
-    def update_selected_manga(self, manga_links: Iterable) -> Union[None, int, bool]:
-        now = datetime.utcnow()
-        updated = 0
-        if self.service_id is None:
-            service = self.dbutil.get_service(self.URL)
-            self.service_id = service.service_id if service else None
+        return None
 
-        if not self.service_id:
-            logger.warning(f'No service found with {self.URL}')
-            return
-
-        for source in manga_links:
-            manga = source.manga
-            r = requests.get(source.manga_url)
-            if r.status_code == 429:
-                logger.error(f'Ratelimited on {self.URL}')
-                return False
-
-            if r.status_code != 200:
-                self.wait()
-                continue
-
-            root = etree.HTML(r.text)
-            chapter_elements = root.cssselect('.list-content.item-list li.content-item')
-            if not chapter_elements:
-                logger.warning(f'No chapters found for {source.manga_url}')
-                self.wait()
-                continue
-
-            chapters = []
-            for c in chapter_elements:
-                c = Chapter(c, manga.title)
-                if c.invalid:
-                    continue
-                chapters.append(c)
-
-            manga_id = manga.manga_id
-
-            # Check if any new chapters
-            new_chapters: List[Chapter] = list(self.dbutil.get_only_latest_entries(self.service_id, chapters, manga_id=manga_id))
-
-            if not new_chapters:
-                continue
-
-            logger.info('Adding %s chapters to comixology with manga id %s, %s',
-                        len(new_chapters), manga_id, manga.title)
-
-            latest_chapter = manga.latest_chapter
-            # If special chapter like extra manually get latest chapter
-            if latest_chapter == -1:
-                latest_chapter = max(chapters, key=lambda c: c.chapter_number)
-
-            chapters = list(sorted(chapters, key=Chapter.chapter_number.fget, reverse=True))
-
-            if len(new_chapters) > 1:
-                if chapters[0].chapter_number < latest_chapter:
-                    logger.warning(f'Latest chapter not the last element of chapters list when scraping {manga}')
-                else:
-                    now = self.get_chapter_release_date(chapters[0].url) or now
-            elif len(new_chapters) == 1:
-                now = self.get_chapter_release_date(new_chapters[0].url) or now
-
-            # If new chapters existed use ALL CHAPTERS!!! to calculate release dates for every chapter
-            last_chapter = None
-            for idx, chapter in enumerate(chapters):
-                if chapter.invalid:
-                    continue
-
-                chapter.release_date_maybe = now
-
-                # If extra set chapter number as previous chapter
-                if chapter.chapter_number == 0 and idx + 1 != len(chapters):
-                    chapter._chapter_number = chapters[idx + 1].chapter_number
-                    chapter._chapter_decimal = 5
-
-                if last_chapter:
-                    if not (chapter.chapter_number == last_chapter.chapter_number and chapter.decimal != last_chapter.decimal) and \
-                            chapter.chapter_number != 0 and last_chapter.chapter_number - chapter.chapter_number > 1:
-                        offset = latest_chapter - chapter.chapter_number
-                        chapter.release_date_maybe = now - manga.release_interval * offset
-                    else:
-                        chapter.release_date_maybe = last_chapter.release_date_maybe - manga.release_interval
-
-                last_chapter = chapter
-
-            manga.release_date = now
-            sql = 'INSERT INTO chapters (manga_id, service_id, title, chapter_number, chapter_decimal, chapter_identifier, release_date, "group") ' \
-                  'VALUES %s ON CONFLICT DO NOTHING'
-
-            args = []
-            # Turn new chapters into args
-            for c in new_chapters:
-                if c.invalid:
-                    continue
-                args.append((manga_id, self.service_id, c.title, c.chapter_number, c.decimal, c.chapter_identifier, c.release_date, 'comiXology'))
-
+    def add_service(self):
+        if self.dbutil.get_service(self.ID) is not None and self.dbutil.get_service_whole(self.ID) is None:
+            service_id = self.ID
             with self.conn:
                 with self.conn.cursor() as cur:
-                    if args:
-                        execute_values(cur, sql, args, page_size=200)
+                    sql = 'INSERT INTO service_whole (service_id, feed_url, last_check, next_update, last_id) VALUES ' \
+                          '(%s, %s, NULL, NULL, NULL)'
+                    cur.execute(sql, (service_id, self.FEED_URL))
 
-                    sql = 'INSERT INTO manga_service (manga_id, service_id, disabled, last_check, title_id) VALUES ' \
-                          '(%s, %s, TRUE, CURRENT_TIMESTAMP, %s) ON CONFLICT (manga_id, service_id) DO UPDATE SET ' \
-                          'last_check=EXCLUDED.last_check'
-                    cur.execute(sql, (manga.manga_id, self.service_id, manga.title_id))
-
-            self.wait()
-            updated += 1
-
-        self.set_checked(self.service_id)
-        return updated
+            return service_id
+        else:
+            super().add_service_whole()

@@ -1,15 +1,23 @@
 import request from 'supertest';
+import { csrfMissing } from '../../utils/constants';
 import { redis } from '../../utils/ratelimits';
 import { userForbidden, userUnauthorized } from '../constants';
 
 import initServer from '../initServer';
 import stopServer from '../stopServer';
-import { adminUser, expectErrorMessage, normalUser, withUser } from '../utils';
+import {
+  adminUser,
+  configureJestOpenAPI,
+  expectErrorMessage,
+  normalUser,
+  withUser,
+} from '../utils';
 
 let httpServer;
 
 beforeAll(async () => {
   ({ httpServer } = await initServer());
+  await configureJestOpenAPI();
 });
 
 beforeEach(async () => {
@@ -21,9 +29,17 @@ afterAll(async () => {
 });
 
 describe('POST /api/manga/merge', () => {
+  it('Returns 403 without CSRF token', async () => {
+    await request(httpServer)
+      .post('/api/manga/merge')
+      .expect(403)
+      .expect(expectErrorMessage(csrfMissing));
+  });
+
   it('Returns 401 without user authentication', async () => {
     await request(httpServer)
       .post('/api/manga/merge')
+      .csrf()
       .expect(401)
       .expect(expectErrorMessage(userUnauthorized));
   });
@@ -32,6 +48,7 @@ describe('POST /api/manga/merge', () => {
     await withUser(normalUser, async () => {
       await request(httpServer)
         .post('/api/manga/merge')
+        .csrf()
         .expect(403)
         .expect(expectErrorMessage(userForbidden));
     });
@@ -41,16 +58,19 @@ describe('POST /api/manga/merge', () => {
     await withUser(adminUser, async () => {
       await request(httpServer)
         .post('/api/manga/merge?base=-1')
+        .csrf()
         .expect(400)
         .expect(expectErrorMessage('-1', 'base'));
 
       await request(httpServer)
         .post('/api/manga/merge?base=NaN')
+        .csrf()
         .expect(400)
         .expect(expectErrorMessage('NaN', 'base'));
 
       await request(httpServer)
         .post('/api/manga/merge?base=abc')
+        .csrf()
         .expect(400)
         .expect(expectErrorMessage('abc', 'base'));
     });
@@ -60,16 +80,19 @@ describe('POST /api/manga/merge', () => {
     await withUser(adminUser, async () => {
       await request(httpServer)
         .post('/api/manga/merge?to_merge=-1')
+        .csrf()
         .expect(400)
         .expect(expectErrorMessage('-1', 'to_merge'));
 
       await request(httpServer)
         .post('/api/manga/merge?to_merge=NaN')
+        .csrf()
         .expect(400)
         .expect(expectErrorMessage('NaN', 'to_merge'));
 
       await request(httpServer)
         .post('/api/manga/merge?to_merge=abc')
+        .csrf()
         .expect(400)
         .expect(expectErrorMessage('abc', 'to_merge'));
     });
@@ -79,6 +102,7 @@ describe('POST /api/manga/merge', () => {
     await withUser(adminUser, async () => {
       await request(httpServer)
         .post('/api/manga/merge?to_merge=5&base=5')
+        .csrf()
         .expect(400)
         .expect(expectErrorMessage('Given ids are equal'));
     });
@@ -91,17 +115,22 @@ describe('GET /api/manga/:manga_id', () => {
     await request(httpServer)
       .get(`/api/manga/9999999`)
       .expect(404)
+      .satisfiesApiSpec()
       .expect(expectErrorMessage('Manga not found'));
   });
 
-  it('returns 404 with non positive integers', async () => {
+  it('returns 400 with non positive integers', async () => {
     await request(httpServer)
       .get(`/api/manga/-1`)
-      .expect(404);
+      .expect(400)
+      .satisfiesApiSpec()
+      .expect(expectErrorMessage('-1', 'manga_id', /positive integer/));
 
     await request(httpServer)
       .get(`/api/manga/abc`)
-      .expect(404);
+      .expect(400)
+      .satisfiesApiSpec()
+      .expect(expectErrorMessage('abc', 'manga_id', /positive integer/));
   });
 
   const chapterError = 'Amount of chapters must be a positive integer';
@@ -109,38 +138,41 @@ describe('GET /api/manga/:manga_id', () => {
     await request(httpServer)
       .get(`/api/manga/1?chapters=`)
       .expect(400)
+      .satisfiesApiSpec()
       .expect(expectErrorMessage('', 'chapters', chapterError));
 
     await request(httpServer)
       .get(`/api/manga/1?chapters=abc`)
       .expect(400)
+      .satisfiesApiSpec()
       .expect(expectErrorMessage('abc', 'chapters', chapterError));
 
     await request(httpServer)
       .get(`/api/manga/1?chapters=-1`)
       .expect(400)
+      .satisfiesApiSpec()
       .expect(expectErrorMessage('-1', 'chapters', chapterError));
+
+    await request(httpServer)
+      .get(`/api/manga/1?chapters=51`)
+      .expect(400)
+      .satisfiesApiSpec()
+      .expect(expectErrorMessage('51', 'chapters', 'Chapter amount must be 50 or less'));
   });
 
   it('returns 200 with valid manga id and chapters', async () => {
-    const checkManga = res => {
-      expect(res.body).toBeObject();
-      expect(res.body.manga).toBeTruthy();
-    };
-
     await request(httpServer)
       .get(`/api/manga/1`)
       .expect(200)
-      .expect(checkManga);
+      .satisfiesApiSpec();
 
     await request(httpServer)
       .get(`/api/manga/1?chapters=5`)
       .expect(200)
-      .expect(checkManga)
-      .expect(res => expect(res.body.manga.chapters).toHaveLength(5));
+      .satisfiesApiSpec()
+      .expect(res => expect(res.body.data.chapters).toHaveLength(5));
   });
 });
-
 
 const getChapterCount = (body) => (body && body.chapters?.length) || 0;
 

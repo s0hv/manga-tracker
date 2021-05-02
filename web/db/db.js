@@ -1,4 +1,4 @@
-const db = require('.');
+const { db } = require('.');
 
 function getLatestReleases(serviceId, mangaId, userUUID) {
   const joins = [];
@@ -75,7 +75,7 @@ function getLatestReleases(serviceId, mangaId, userUUID) {
               LIMIT 30)
         ORDER BY release_date DESC, chapter_number DESC`;
 
-  return db.query(sql, args);
+  return db.any(sql, args);
 }
 
 function getUserFollows(userId, mangaId) {

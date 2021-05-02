@@ -1,46 +1,67 @@
 import logging
 import statistics
+import typing
 from datetime import datetime, timedelta
 from typing import (
-    Union, Any, Protocol, Optional, List, Dict, Generator, Tuple, Collection,
-    Iterable, TypeVar, Type
+    Union, Any, Optional, List, Dict, Generator, Tuple, Collection,
+    Iterable, TypeVar, Callable, TYPE_CHECKING, cast, Set, Sequence
 )
 
-import typing
 from psycopg2.extensions import connection as Connection, cursor as Cursor
 from psycopg2.extras import execute_values, DictRow
 
 from src.db.models.chapter import Chapter
-from src.db.models.manga import MangaService
+from src.db.models.manga import (MangaService, Manga, MangaServicePartial,
+                                 MangaServiceWithId)
 from src.db.models.scheduled_run import ScheduledRun
 from src.db.models.services import Service, ServiceWhole
-from src.scrapers import base_scraper
 from src.utils.utilities import round_seconds
+
+if TYPE_CHECKING:
+    # noinspection PyUnresolvedReferences
+    from src.scrapers import base_scraper
 
 logger = logging.getLogger('debug')
 maintenance = logging.getLogger('maintenance')
 
 
-BaseChapter = TypeVar('BaseChapter', bound=Type['base_scraper.BaseChapter'])
+BaseChapter = TypeVar('BaseChapter', bound='base_scraper.BaseChapter')
+MangaModel = TypeVar('MangaModel', bound=Manga)
+
+# Generic function that keeps signature for decorators
+F = TypeVar('F', bound=Callable[..., Any])
 
 
-class TransactionFunction(Protocol):
-    def __call__(self, cur: Cursor, *args, **kwargs) -> Any: ...  # pragma: no cover
+def optional_generator_transaction(f: F) -> F:
+    """
+    Decorator that makes the cursor parameter optional except for generators
+    """
+    def wrapper(self: 'DbUtil', *args, **kwargs):
+        if 'cur' in kwargs:
+            for v in f(self, *args, **kwargs):
+                yield v
+
+        with self.conn:
+            with self.conn.cursor() as cur:
+                for v in f(self, *args, cur=cur, **kwargs):
+                    yield v
+
+    return cast(F, wrapper)
 
 
-def optional_transaction(f: TransactionFunction):
+def optional_transaction(f: F) -> F:
     """
     Decorator that makes the cursor parameter optional
     """
-    def wrapper(self, cur: Union[Cursor, Any], *args, **kwargs):
-        if isinstance(cur, Cursor):
-            return f(self, cur, *args, **kwargs)
+    def wrapper(self: 'DbUtil', *args, **kwargs):
+        if 'cur' in kwargs:
+            return f(self, *args, **kwargs)
 
         with self.conn:
-            with self.conn.cursor() as innerCur:
-                return f(self, innerCur, cur, *args, **kwargs)
+            with self.conn.cursor() as cur:
+                return f(self, *args, cur=cur, **kwargs)
 
-    return wrapper
+    return cast(F, wrapper)
 
 
 class DbUtil:
@@ -52,44 +73,55 @@ class DbUtil:
         return self._conn
 
     @optional_transaction
-    def update_manga_next_update(self, cur: Cursor, service_id: int, manga_id: int, next_update: datetime):
+    def update_manga_next_update(self, service_id: int, manga_id: int,
+                                 next_update: datetime, *, cur: Cursor = NotImplemented) -> None:
         sql = 'UPDATE manga_service SET next_update=%s WHERE manga_id=%s AND service_id=%s'
         cur.execute(sql, (next_update, manga_id, service_id))
 
     @optional_transaction
-    def get_service_manga(self, cur: Cursor, service_id: int, include_only=None) -> list:
+    def get_service_manga(self, service_id: int, include_only: Collection[int] = None,
+                          *, cur: Cursor = NotImplemented) -> List[MangaServicePartial]:
         if include_only:
+            raise NotImplementedError()
             # TODO filter by given manga
-            args = (service_id,)
-            sql = 'SELECT manga_id, title_id, last_check, latest_chapter, latest_decimal FROM manga_service WHERE service_id=%s'
         else:
             args = (service_id,)
-            sql = 'SELECT manga_id, title_id, last_check, latest_chapter, latest_decimal FROM manga_service WHERE service_id=%s'
+            sql = 'SELECT manga_id, title_id, last_check, latest_chapter, latest_decimal, service_id ' \
+                  'FROM manga_service WHERE service_id=%s'
 
         cur.execute(sql, args)
-        return cur.fetchall()
+        return list(map(MangaServicePartial.parse_obj, cur))
 
     @typing.overload
     @optional_transaction
-    def get_service(self, cur: Cursor, service_id: int) -> Optional[Service]: ...
+    def get_service(self, service: int, *, cur: Cursor = NotImplemented) -> Optional[Service]: ...
 
     @typing.overload
     @optional_transaction
-    def get_service(self, cur: Cursor, service_url: str) -> Optional[Service]: ...
+    def get_service(self, service: str, *, cur: Cursor = NotImplemented) -> Optional[Service]: ...
 
     @optional_transaction
-    def get_service(self, cur: Cursor, service_id_url: Union[int, str]) -> Optional[Service]:
-        if isinstance(service_id_url, int):
+    def get_service(self, service: Union[int, str], *, cur: Cursor = NotImplemented) -> Optional[Service]:
+        """
+        Get service by url or by id
+        Args:
+            service: The id or url of the service
+            cur: Optional cursor
+
+        Returns:
+            Service object
+        """
+        if isinstance(service, int):
             sql = 'SELECT * FROM services WHERE service_id=%s'
         else:
             sql = 'SELECT * FROM services WHERE url=%s'
 
-        cur.execute(sql, (service_id_url,))
+        cur.execute(sql, (service,))
         row = cur.fetchone()
-        return Service.from_dbrow(row) if row else None
+        return Service(**row) if row else None
 
     @optional_transaction
-    def set_service_disabled_until(self, cur: Cursor, service_id: int, disabled_until: datetime):
+    def set_service_disabled_until(self, service_id: int, disabled_until: datetime, *, cur: Cursor = NotImplemented):
         sql = 'UPDATE services SET disabled_until=%s WHERE service_id=%s'
         cur.execute(sql, (disabled_until, service_id))
 
@@ -102,7 +134,7 @@ class DbUtil:
         return cur
 
     @optional_transaction
-    def delete_scheduled_runs(self, cur: Cursor, to_delete: List[Tuple[int, int]]) -> int:
+    def delete_scheduled_runs(self, to_delete: List[Tuple[int, int]], *, cur: Cursor = NotImplemented) -> int:
         """
         Delete the given scheduled runs
         Args:
@@ -124,14 +156,14 @@ class DbUtil:
         return cur.rowcount
 
     @optional_transaction
-    def add_scheduled_runs(self, cur: Cursor, runs: List[ScheduledRun]):
+    def add_scheduled_runs(self, runs: List[ScheduledRun], *, cur: Cursor = NotImplemented):
         sql = 'INSERT INTO scheduled_runs (manga_id, service_id, created_by) VALUES %s'
         execute_values(cur, sql, [(sr.manga_id, sr.service_id, sr.created_by) for sr in runs])
 
     @optional_transaction
-    def update_chapter_interval(self, cur: Cursor, manga_id: int) -> None:
+    def update_chapter_interval(self, manga_id: int, *, cur: Cursor = NotImplemented) -> bool:
         sql = '''
-            SELECT MIN(release_date) release_date, chapter_number
+            SELECT MIN(release_date) as release_date, chapter_number
             FROM chapters
             WHERE manga_id=%s AND chapter_decimal IS NULL
             GROUP BY chapter_number
@@ -152,13 +184,15 @@ class DbUtil:
 
         if len(chapters) < 2:
             maintenance.info(f'Not enough chapters to calculate release interval for {manga_id}')
-            return
+            return False
 
         intervals = []
         accuracy = 60*60*4  # 4h
         for a, b in zip(chapters[:-1], chapters[1:]):
-            t = a['release_date']-b['release_date']
-            t = round_seconds(t.total_seconds(), accuracy)
+            t = round_seconds(
+                (a['release_date']-b['release_date']).total_seconds(),
+                accuracy
+            )
             # Ignore updates within 4 hours of each other
             if t < accuracy:
                 continue
@@ -166,41 +200,94 @@ class DbUtil:
 
         if not intervals:
             maintenance.info(f'Not enough valid intervals to calculate release interval for {manga_id}')
-            return
+            return False
 
-        try:
-            interval = statistics.mode(intervals)
-        except statistics.StatisticsError:
-            interval = statistics.mean(intervals)
-            interval = round_seconds(interval, accuracy)
+        # mode does not raise error since 3.8
+        # https://docs.python.org/3/library/statistics.html#statistics.mode
+        # Try to find a single most commonly occurring value.
+        # If multiple values found fall back to median
+        modes = statistics.multimode(intervals)
+        if len(modes) > 1:
+            interval_seconds = statistics.median(intervals)
+        else:
+            interval_seconds = modes[0]
 
         # TODO add warning when interval differs too much from mean
-        interval = timedelta(seconds=interval)
+        interval = timedelta(seconds=interval_seconds)
         sql = 'UPDATE manga SET release_interval=%s WHERE manga_id=%s'
         logger.info(f'Interval for {manga_id} set to {interval}')
         cur.execute(sql, (interval, manga_id))
+        return True
 
     @optional_transaction
-    def add_single_series(self, cur: Cursor, service_id: int, title_id: str,
-                          title: str, feed_url: Optional[str] = None) -> int:
-        sql = 'INSERT INTO manga (title) VALUES (%s) RETURNING manga_id'
-        cur.execute(sql, (title,))
-        manga_id = cur.fetchone()['manga_id']
-
-        sql = 'INSERT INTO manga_service (manga_id, service_id, title_id, feed_url) VALUES (%s, %s, %s, %s)'
-        cur.execute(sql, (manga_id, service_id, title_id, feed_url))
-        return manga_id
-
-    @optional_transaction
-    def get_chapters(self, cur: Cursor, service_id: int, manga_id: int, limit: int = 100) -> List[Chapter]:
+    def get_chapters(self, service_id: int, manga_id: int, limit: int = 100, *, cur: Cursor = NotImplemented) -> List[Chapter]:
         sql = 'SELECT * FROM chapters WHERE service_id=%s AND manga_id=%s LIMIT %s'
         cur.execute(sql, (service_id, manga_id, limit))
-        return list(map(Chapter.from_dbrow, cur.fetchall()))
+        return list(map(Chapter.parse_obj, cur.fetchall()))
 
     @optional_transaction
-    def add_new_manga(self, cur: Cursor, service_id: int, mangas: List[MangaService]):
-        manga_titles = {}
-        duplicates = set()
+    def manga_id_from_title(self, manga_title: str, service_id: int = None,
+                                   *, cur: Cursor = NotImplemented) -> Optional[int]:
+        """
+        Tries to find a manga id by the title.
+        If service id given will filter out manga from that service.
+        Will return None if multiple matches found
+        Args:
+            manga_title: Title of the manga
+            service_id: Optional id of the service
+            cur: Optional cursor to use
+
+        Returns:
+            The id of the manga that matches the title or None in case the amount of results was 0 or more than 1
+        """
+        args: Tuple
+        if service_id is None:
+            sql = 'SELECT manga_id FROM manga WHERE LOWER(title)=LOWER(%s) LIMIT 2'
+            args = (manga_title, )
+        else:
+            sql = 'SELECT m.manga_id FROM manga m ' \
+                  'LEFT JOIN manga_service ms ON ms.service_id=%s AND ms.manga_id=m.manga_id ' \
+                  'WHERE ms.service_id IS NULL AND LOWER(m.title)=LOWER(%s) LIMIT 2'
+            args = (service_id, manga_title)
+
+        cur.execute(sql, args)
+        rows = cur.fetchall()
+        if len(rows) > 1:
+            logger.warning(f'Multiple matches for manga\n{rows}')
+            return None
+
+        if not rows:
+            return None
+
+        return rows[0][0]
+
+    @optional_transaction
+    def split_existing_manga(self, service_id: int, mangas: Collection[MangaModel],
+                                  *, cur: Cursor = NotImplemented)\
+            -> Tuple[List[MangaModel], List[MangaModel]]:
+        """
+        Given a collection of MangaService models that are not yet added to the database,
+        this function splits the collection into two lists.
+        The first list contains objects that have titles that already exist in the database
+        and the other list contains objects that don't.
+
+        The manga_id property will be set for the manga that already exist.
+
+        This function should be called for manga of a single service only.
+
+        Args:
+            service_id: Id of the service the given manga belong to
+            mangas: A collection of manga
+            cur: Optional cursor
+
+        Returns:
+            (existing, non-existent) Tuple of two lists. One contains existing manga and the other non-existent manga
+        """
+        if not mangas:
+            return [], []
+
+        manga_titles: Dict[str, MangaModel] = {}
+        duplicates: Set[str] = set()
 
         for manga in mangas:
             manga_title = manga.title.lower()
@@ -216,10 +303,10 @@ class DbUtil:
 
             manga_titles[manga_title] = manga
 
+        # Create args in the format %s, %s, ...
         args = [(x,) for x in manga_titles.keys()]
         format_args = ','.join(['%s' for _ in args])
         already_exist = []
-        now = datetime.utcnow()
 
         if duplicates:
             logger.warning(f'All duplicates found {duplicates}')
@@ -227,163 +314,158 @@ class DbUtil:
         if format_args:
             # This sql filters out manga in this service already. This is because
             # this function assumes all series added in this function are new
-            sql = f'SELECT MIN(manga.manga_id), LOWER(title), COUNT(manga.manga_id) ' \
+            sql = f'SELECT MIN(manga.manga_id), LOWER(title), COUNT(manga.manga_id) as count ' \
                   f'FROM manga LEFT JOIN manga_service ms ON ms.service_id=%s AND manga.manga_id=ms.manga_id ' \
                   f'WHERE ms.manga_id IS NULL AND LOWER(title) IN ({format_args}) GROUP BY LOWER(title)'
 
             cur.execute(sql, (service_id, *args))
 
             for row in cur:
-                if row[2] == 1:
+                if row['count'] == 1:
                     manga = manga_titles.pop(row[1])
                     manga.manga_id = row[0]
-                    already_exist.append((row[0], service_id,
-                                          manga.disabled, now,
-                                          manga.title_id))
+                    already_exist.append(manga)
                     continue
 
-                logger.warning(f'Too many matches for manga {row[1]}')
+                logger.warning(f'Too many matches for manga {row[0]} {row[1]}')
 
-        new_manga = []
-        titles = []
+        # All existing keys should be popped from the dict at this point
+        return already_exist, list(manga_titles.values())
 
-        if already_exist:
-            sql = '''INSERT INTO manga_service (manga_id, service_id, disabled, last_check, title_id) VALUES %s 
-                     ON CONFLICT DO NOTHING'''
-            execute_values(cur, sql, already_exist,
-                           page_size=len(already_exist))
+    @optional_transaction
+    def add_new_manga_and_check_duplicate_titles(self, mangas: Sequence[MangaService],
+                                                 *, cur: Cursor = NotImplemented) -> List[MangaServiceWithId]:
+        """
+        Given a sequence of new MangaService objects that are not in the database,
+        this function adds them to the database while checking for duplicate titles.
+        The manga id property is set for the returned objects.
+        Args:
+            mangas: MangaService objects
+            cur: Optional cursor
 
-        if not manga_titles:
-            return
+        Returns:
+            The manga that got added to the database
+        """
+        if not mangas:
+            return []
 
-        for manga in manga_titles.values():
-            titles.append((manga.title,))
-            new_manga.append(manga)
+        service_id = mangas[0].service_id
 
-        sql = 'INSERT INTO manga (title) VALUES %s RETURNING manga_id, title'
-        rows = execute_values(cur, sql, titles, page_size=len(titles),
+        exists, not_exists = self.split_existing_manga(service_id, mangas, cur=cur)
+        exists.extend(self.add_new_mangas(not_exists, cur=cur))
+        self.add_manga_services(exists, cur=cur)
+
+        return list(map(MangaServiceWithId.parse_obj, exists))
+
+    @optional_transaction
+    def add_new_manga(self, manga: MangaModel, *, cur: Cursor = NotImplemented) -> MangaModel:
+        """
+        Adds a single manga to the database without any checks.
+        Wrapper for add_new_mangas that works with single objects instead of lists.
+        """
+        return self.add_new_mangas([manga], cur=cur)[0]
+
+    @optional_transaction
+    def add_new_mangas(self, mangas: Collection[MangaModel], *, cur: Cursor = NotImplemented) -> List[MangaModel]:
+        """
+        Adds the given manga to the database and updates the manga_id property.
+        Does not check if a duplicate exists
+        Args:
+            mangas: A collection of mangas to add
+            cur: Optional cursor to use
+
+        Returns:
+            A list of the given mangas
+        """
+        if not mangas:
+            return []
+
+        args = [(
+            manga.title,
+            manga.release_interval,
+            manga.latest_release,
+            manga.estimated_release,
+            manga.latest_chapter,
+            manga.views
+        )
+            for manga in mangas]
+
+        # Assume that RETURNING returns records in order
+        sql = 'INSERT INTO manga ' \
+              '(title, release_interval, latest_release, estimated_release, latest_chapter, views) ' \
+              'VALUES %s RETURNING title, manga_id'
+        rows = execute_values(cur, sql, args, page_size=len(args),
                               fetch=True)
 
-        args = []
-        for row, manga in zip(rows, new_manga):
-            if manga.title != row[1]:
+        for row, manga in zip(rows, mangas):
+            if row['title'] != manga.title:
                 logger.warning(f'Inserted manga mismatch with {manga}')
                 continue
 
-            manga.manga_id = row[0]
-            args.append((row[0], service_id, manga.disabled, now,
-                         manga.title_id))
+            manga.manga_id = row['manga_id']
 
-        sql = 'INSERT INTO manga_service (manga_id, service_id, disabled, last_check, title_id) VALUES %s'
-
-        execute_values(cur, sql, args, page_size=len(args))
-        return new_manga
-
-    @staticmethod
-    def add_new_series(cur: Cursor, manga_chapters: Dict[str, List['base_scraper.BaseChapter']],
-                       service_id: int, disable_single_update: bool = False) -> Optional[Generator[Tuple[int, List['base_scraper.BaseChapter']], None, None]]:
-        """
-
-        Args:
-            cur:
-            manga_chapters (dict): title_id: chapters.
-                chapters must have a single element with the attributes manga_title and title_id
-            service_id:
-            disable_single_update:
-
-        Returns:
-
-        """
-        manga_titles = {}
-        duplicates = set()
-
-        for title_id, chapters in manga_chapters.items():
-            chapter = chapters[0]
-            manga_title = chapter.manga_title.lower()
-            if manga_title in duplicates:
-                continue
-
-            # In case of multiple titles with the same name ignore and resolve manually
-            if manga_title in manga_titles:
-                logger.warning(f'2 or more series with same name found {chapter} AND {manga_titles[manga_title][0]}')
-                manga_titles.pop(manga_title)
-                duplicates.add(manga_title)
-                continue
-
-            manga_titles[manga_title] = chapters
-
-        args = [(x,) for x in manga_titles.keys()]
-        format_args = ','.join(['%s' for _ in args])
-        already_exist = []
-        now = datetime.utcnow()
-
-        if duplicates:
-            logger.warning(f'All duplicates found {duplicates}')
-
-        if format_args:
-            # This sql filters out manga in this service already. This is because
-            # this function assumes all series added in this function are new
-            sql = f'SELECT MIN(manga.manga_id), LOWER(title), COUNT(manga.manga_id) ' \
-                  f'FROM manga LEFT JOIN manga_service ms ON ms.service_id=%s AND manga.manga_id=ms.manga_id ' \
-                  f'WHERE ms.manga_id IS NULL AND LOWER(title) IN ({format_args}) GROUP BY LOWER(title)'
-
-            cur.execute(sql, (service_id, *args))
-
-            for row in cur:
-                if row[2] == 1:
-                    chapters = manga_titles.pop(row[1])
-                    yield row[0], chapters
-                    already_exist.append((row[0], service_id, disable_single_update, now, chapters[0].title_id))
-                    continue
-
-                logger.warning(f'Too many matches for manga {row[1]}')
-
-        new_manga = []
-        titles = []
-
-        if already_exist:
-            sql = '''INSERT INTO manga_service (manga_id, service_id, disabled, last_check, title_id) VALUES %s 
-                     ON CONFLICT DO NOTHING'''
-            execute_values(cur, sql, already_exist, page_size=len(already_exist))
-
-        if not manga_titles:
-            return
-
-        id2chapters = {}
-        for chapters in manga_titles.values():
-            titles.append((chapters[0].manga_title,))
-            new_manga.append(chapters)
-
-        sql = 'INSERT INTO manga (title) VALUES %s RETURNING manga_id, title'
-        rows = execute_values(cur, sql, titles, page_size=len(titles), fetch=True)
-
-        args = []
-        for row, chapters in zip(rows, new_manga):
-            chapter = chapters[0]
-            if chapter.manga_title != row[1]:
-                logger.warning(f'Inserted manga mismatch with {chapter}')
-                continue
-
-            args.append((row[0], service_id, disable_single_update, now, chapter.title_id))
-            id2chapters[row[0]] = chapters
-
-        sql = '''INSERT INTO manga_service (manga_id, service_id, disabled, last_check, title_id) VALUES 
-                 %s RETURNING manga_id'''
-
-        rows = execute_values(cur, sql, args, page_size=len(args), fetch=True)
-        for row in rows:
-            yield row[0], id2chapters[row[0]]
+        return list(mangas)
 
     @optional_transaction
-    def get_service_whole(self, cur: Cursor, service_id: int) -> Optional[ServiceWhole]:
+    def add_manga_service(self, manga: MangaService, *, add_manga: bool = False,
+                          cur: Cursor = NotImplemented) -> MangaService:
+        """
+        Adds the given manga service object to the database.
+        If add_manga is set to True will call add_new_manga first
+        """
+        if add_manga:
+            self.add_new_manga(manga)
+
+        return self.add_manga_services([manga], cur=cur)[0]
+
+    @optional_transaction
+    def add_manga_services(self, mangas: Collection[MangaService], *,
+                           cur: Cursor = NotImplemented) -> List[MangaService]:
+        """
+        Adds the given manga service objects to the database
+        """
+        if not mangas:
+            return []
+
+        args = [
+            (
+                m.manga_id,
+                m.service_id,
+                m.disabled,
+                m.last_check,
+                m.title_id,
+                m.next_update,
+                m.latest_chapter,
+                m.latest_decimal,
+                m.feed_url
+            ) for m in mangas
+        ]
+        sql = 'INSERT INTO manga_service ' \
+              '(manga_id, service_id, disabled, last_check, title_id, next_update, latest_chapter, latest_decimal, feed_url)  ' \
+              'VALUES %s RETURNING manga_id, title_id'
+
+        rows = execute_values(cur, sql, args, page_size=len(args),
+                              fetch=True)
+
+        for row, manga in zip(rows, mangas):
+            if row['title_id'] != manga.title_id:
+                logger.warning(f'Inserted manga mismatch with {manga}')
+                continue
+
+            manga.manga_id = row['manga_id']
+
+        return list(mangas)
+
+    @optional_transaction
+    def get_service_whole(self, service_id: int, *, cur: Cursor = NotImplemented) -> Optional[ServiceWhole]:
         sql = 'SELECT * FROM service_whole WHERE service_id=%s'
         cur.execute(sql, [service_id])
         row = cur.fetchone()
 
-        return ServiceWhole.from_dbrow(row) if row else None
+        return ServiceWhole(**row) if row else None
 
     @optional_transaction
-    def update_service_whole(self, cur: Cursor, service_id: int, update_interval: timedelta) -> None:
+    def update_service_whole(self, service_id: int, update_interval: timedelta, *, cur: Cursor = NotImplemented) -> None:
         sql = 'UPDATE services SET last_check=%s WHERE service_id=%s'
         now = datetime.utcnow()
         cur.execute(sql, [now, service_id])
@@ -391,32 +473,45 @@ class DbUtil:
         sql = 'UPDATE service_whole SET last_check=%s, next_update=%s WHERE service_id=%s'
         cur.execute(sql, [now, now + update_interval, service_id])
 
-    @staticmethod
-    def find_added_titles(cur: Cursor, title_ids: Collection[str]) -> Generator[DictRow, None, None]:
+    @optional_generator_transaction
+    def find_added_titles(self, service_id: int, title_ids: Collection[str], *, cur: Cursor = NotImplemented) -> Generator[MangaServicePartial, None, None]:
+        if len(title_ids) == 0:
+            return None
+
         format_ids = ','.join(['%s'] * len(title_ids))
-        sql = f'SELECT manga_id, title_id FROM manga_service WHERE title_id IN ({format_ids})'
-        cur.execute(sql, title_ids)
+        sql = f'SELECT * FROM manga_service WHERE service_id=%s AND title_id IN ({format_ids})'
+        cur.execute(sql, [service_id, *title_ids])
         for row in cur:
-            yield row
+            yield MangaServicePartial(**row)
 
     @optional_transaction
-    def find_service_manga(self, cur: Cursor, service_id: int, title_id: str) -> DictRow:
+    def find_service_manga(self, service_id: int, title_id: str, *, cur: Cursor = NotImplemented) -> DictRow:
         sql = 'SELECT * from manga_service WHERE service_id=%s AND title_id=%s'
         cur.execute(sql, (service_id, title_id))
         return cur.fetchone()
 
     @optional_transaction
-    def get_manga_service(self, cur: Cursor, service_id: int, title_id: str) -> Optional[MangaService]:
+    def get_manga_service(self, service_id: int, title_id: str, *, cur: Cursor = NotImplemented) -> Optional[MangaService]:
         sql = 'SELECT * FROM manga_service ms ' \
               'INNER JOIN manga m ON ms.manga_id = m.manga_id ' \
               'WHERE service_id=%s AND ms.title_id=%s'
 
         cur.execute(sql, (service_id, title_id))
         row = cur.fetchone()
-        return MangaService.from_dbrow(row) if row else None
+        return MangaService(**row) if row else None
 
     @optional_transaction
-    def update_latest_release(self, cur: Cursor, data: Collection[int]) -> None:
+    def get_manga(self, manga_id: int, *, cur: Cursor = NotImplemented) -> Optional[Manga]:
+        """
+        Get manga object from database
+        """
+        sql = 'SELECT * FROM manga WHERE manga_id=%s'
+        cur.execute(sql, (manga_id, ))
+        row = cur.fetchone()
+        return Manga(**row) if row else None
+
+    @optional_transaction
+    def update_latest_release(self, data: Collection[int], *, cur: Cursor = NotImplemented) -> None:
         format_ids = ','.join(['%s'] * len(data))
         sql = 'UPDATE manga m SET latest_release=c.release_date FROM ' \
               f'(SELECT MAX(release_date), manga_id FROM chapters WHERE manga_id IN ({format_ids}) GROUP BY manga_id) as c(release_date, manga_id)' \
@@ -425,17 +520,22 @@ class DbUtil:
 
     @typing.overload
     @optional_transaction
-    def add_chapters(self, cur: Cursor, manga_id, service_id,
-                     chapters: List['base_scraper.BaseChapter'], fetch: bool = True) -> Optional[List[DictRow]]: ...
+    def add_chapters(self, chapters: Sequence[BaseChapter], manga_id: int,
+                     service_id: int, *, fetch: bool = True, cur: Cursor = NotImplemented) -> Optional[List[DictRow]]: ...
 
     @typing.overload
     @optional_transaction
-    def add_chapters(self, cur: Cursor, chapters: List[Chapter], fetch: bool = True) -> Optional[List[DictRow]]: ...
+    def add_chapters(self, chapters: Sequence[Chapter], *, fetch: bool = True, cur: Cursor = NotImplemented) -> Optional[List[DictRow]]: ...
 
     @optional_transaction
-    def add_chapters(self, cur: Cursor, *args, fetch: bool = True) -> Optional[List[DictRow]]:
-        if len(args) == 1:
-            chapters: List[Chapter] = args[0]
+    def add_chapters(self, chapters: Union[Sequence[Chapter], Sequence[BaseChapter]],
+                     manga_id: int = None, service_id: int = None, *, fetch: bool = True, cur: Cursor = NotImplemented) -> Optional[List[DictRow]]:
+        if not chapters:
+            return None
+
+        data: List[Tuple]
+        if isinstance(chapters[0], Chapter):
+            chapters = cast(Sequence[Chapter], chapters)
             data = [
                 (
                     c.manga_id, c.service_id, c.title,
@@ -445,9 +545,7 @@ class DbUtil:
                 ) for c in chapters
             ]
         else:
-            manga_id, service_id = args[:2]
-            chapters: List['base_scraper.BaseChapter'] = args[2]
-
+            chapters = cast(Sequence[BaseChapter], chapters)
             data = [
                 (
                     manga_id, service_id, chapter.title,
@@ -458,11 +556,14 @@ class DbUtil:
             ]
 
         sql = 'INSERT INTO chapters (manga_id, service_id, title, chapter_number, chapter_decimal, chapter_identifier, release_date, "group") VALUES ' \
-              '%s ON CONFLICT DO NOTHING RETURNING manga_id, chapter_number, chapter_decimal, release_date, chapter_identifier'
+              '%s ON CONFLICT DO NOTHING'
+        if fetch:
+            sql += ' RETURNING manga_id, chapter_number, chapter_decimal, release_date, chapter_identifier'
+
         return execute_values(cur, sql, data, page_size=max(len(data), 300), fetch=fetch)
 
     @optional_transaction
-    def update_latest_chapter(self, cur: Cursor, data: Collection[Tuple[int, int, datetime]]) -> None:
+    def update_latest_chapter(self, data: Collection[Tuple[int, int, datetime]], *, cur: Cursor = NotImplemented) -> None:
         """
         Updates the latest chapter and next chapter estimates for the given manga that contain new chapters
         Args:
@@ -494,7 +595,7 @@ class DbUtil:
         execute_values(cur, sql, data)
 
     @optional_transaction
-    def update_estimated_release(self, cur: Cursor, manga_id: int) -> None:
+    def update_estimated_release(self, manga_id: int, *, cur: Cursor = NotImplemented) -> None:
         sql = 'WITH tmp AS (SELECT MAX(chapter_number) as chn FROM chapters WHERE manga_id=%(manga)s) ' \
               'UPDATE manga SET estimated_release=(' \
               ' SELECT MIN(release_date) FROM chapters ' \
@@ -516,7 +617,7 @@ class DbUtil:
         return row
 
     @optional_transaction
-    def update_chapter_titles(self, cur: Cursor, service_id: int, chapters: Iterable[BaseChapter]):
+    def update_chapter_titles(self, service_id: int, chapters: Iterable[BaseChapter], *, cur: Cursor = NotImplemented):
         service_id = int(service_id)
 
         sql = f'''
@@ -530,37 +631,44 @@ class DbUtil:
 
     @optional_transaction
     def get_only_latest_entries(self,
-                                cur: Cursor,
                                 service_id: int,
-                                entries: Iterable[BaseChapter],
+                                entries: Collection[BaseChapter],
                                 manga_id: int = None,
-                                limit: int = 400) -> Collection[BaseChapter]:
+                                limit: int = 400,
+                                *, cur: Cursor = NotImplemented) -> Collection[BaseChapter]:
+        if len(entries) > 200:
+            logger.warning('Over 200 entries passed to get_only_latest_entries')
+
+        args: Tuple = tuple(c.chapter_identifier for c in entries)
+        format_args = ','.join(('%s',) * len(args))
+
         if manga_id:
             sql = 'SELECT chapter_identifier FROM chapters ' \
-                  'WHERE service_id=%s AND manga_id=%s ORDER BY chapter_id DESC LIMIT %s'
-            args = (service_id, manga_id, limit)
+                  f'WHERE service_id=%s AND manga_id=%s AND chapter_identifier IN ({format_args})'
+            args = (service_id, manga_id, *args)
         else:
             sql = 'SELECT chapter_identifier FROM chapters ' \
-                  'WHERE service_id=%s ORDER BY chapter_id DESC LIMIT %s'
-            args = (service_id, limit)
+                  f'WHERE service_id=%s AND chapter_identifier IN ({format_args})'
+            args = (service_id, *args)
 
         try:
             cur.execute(sql, args)
-            chapters = set(r[0] for r in cur)
 
-            return set(entries).difference(chapters)
+            return set(entries).difference(set(r[0] for r in cur))
 
         except:
             logger.exception('Failed to get old chapters')
             return list(entries)
 
     @optional_transaction
-    def set_manga_last_checked(self, cur: Cursor, service_id: int, manga_id: int, last_checked: Optional[datetime]):
+    def set_manga_last_checked(self, service_id: int, manga_id: int,
+                               last_checked: Optional[datetime], *, cur: Cursor = NotImplemented):
         sql = 'UPDATE manga_service SET last_check=%s WHERE manga_id=%s AND service_id=%s'
         cur.execute(sql, [last_checked, manga_id, service_id])
 
     @optional_transaction
-    def get_newest_chapter(self, cur: Cursor, manga_id: int, service_id: Optional[int] = None):
+    def get_newest_chapter(self, manga_id: int, service_id: Optional[int] = None,
+                           *, cur: Cursor = NotImplemented):
         sql = f'SELECT * FROM chapters WHERE manga_id=%s{" AND service_id=%s" if service_id is not None else ""} ORDER BY release_date DESC LIMIT 1'
         args = (manga_id,) if service_id is None else (manga_id, service_id)
 

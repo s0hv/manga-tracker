@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Union, cast
 from xml.sax import SAXException
 
 
@@ -16,7 +16,7 @@ class FeedHttpError(BaseFeedException):
 
 class InvalidFeedError(BaseFeedException):
     def __init__(self, msg, original: Union[Exception, SAXException]):
-        exc = original.getException() if hasattr(original, 'getException') else original
+        exc = cast(SAXException, original).getException() if hasattr(original, 'getException') else original
         super().__init__(f'{msg}\n{exc}')
         self.original = original
 

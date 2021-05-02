@@ -1,4 +1,4 @@
-const db = require('.');
+const { db } = require('.');
 
 const insertFollow = (userId, mangaId, serviceId) => {
   const sql = 'INSERT INTO user_follows (manga_id, service_id, user_id) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING';
@@ -15,6 +15,6 @@ const deleteFollow = (userId, mangaId, serviceId) => {
   }
 
   const sql = `DELETE FROM user_follows WHERE user_id=$1 AND manga_id=$2 AND ${service}`;
-  return db.query(sql, args);
+  return db.result(sql, args);
 };
 module.exports.deleteFollow = deleteFollow;

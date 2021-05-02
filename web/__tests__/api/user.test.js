@@ -1,8 +1,9 @@
 import request from 'supertest';
 import { insertFollow } from '../../db/follows';
+import { csrfMissing } from '../../utils/constants';
 import { redis } from '../../utils/ratelimits';
 import { mangaIdError, userUnauthorized } from '../constants';
-import { spyOnDb } from '../dbutils';
+import { expectOnlySessionInsert, spyOnDb } from '../dbutils';
 
 import initServer from '../initServer';
 import {
@@ -37,9 +38,17 @@ afterAll(async () => {
 describe('PUT /api/user/follows', () => {
   it('Returns 401 without user authentication', async () => {
     await request(httpServer)
-      .put(`/api/user/follows`)
+      .put('/api/user/follows')
+      .csrf()
       .expect(401)
       .expect(expectErrorMessage(userUnauthorized));
+  });
+
+  it('Returns 403 without CSRF token', async () => {
+    await request(httpServer)
+      .put('/api/user/follows')
+      .expect(403)
+      .expect(expectErrorMessage(csrfMissing));
   });
 
   it('Returns 400 with invalid manga id', async () => {
@@ -47,22 +56,26 @@ describe('PUT /api/user/follows', () => {
 
     await withUser(normalUser, async () => {
       await request(httpServer)
-        .put(`/api/user/follows?manga_id=-1`)
+        .put('/api/user/follows?manga_id=-1')
+        .csrf()
         .expect(400)
         .expect(expectErrorMessage('-1', 'manga_id', errorMessage));
 
       await request(httpServer)
-        .put(`/api/user/follows?manga_id=Infinity`)
+        .put('/api/user/follows?manga_id=Infinity')
+        .csrf()
         .expect(400)
         .expect(expectErrorMessage('Infinity', 'manga_id', errorMessage));
 
       await request(httpServer)
-        .put(`/api/user/follows?manga_id=`)
+        .put('/api/user/follows?manga_id=')
+        .csrf()
         .expect(400)
         .expect(expectErrorMessage('', 'manga_id', errorMessage));
 
       await request(httpServer)
-        .put(`/api/user/follows?manga_id=2147483648`)
+        .put('/api/user/follows?manga_id=2147483648')
+        .csrf()
         .expect(400)
         .expect(expectErrorMessage('Number value out of range'));
     });
@@ -73,22 +86,26 @@ describe('PUT /api/user/follows', () => {
 
     await withUser(normalUser, async () => {
       await request(httpServer)
-        .put(`/api/user/follows?manga_id=1&service_id=abc`)
+        .put('/api/user/follows?manga_id=1&service_id=abc')
+        .csrf()
         .expect(400)
         .expect(expectErrorMessage('abc', 'service_id', errorMessage));
 
       await request(httpServer)
-        .put(`/api/user/follows?manga_id=1&service_id=`)
+        .put('/api/user/follows?manga_id=1&service_id=')
+        .csrf()
         .expect(400)
         .expect(expectErrorMessage('', 'service_id', errorMessage));
 
       await request(httpServer)
-        .put(`/api/user/follows?manga_id=1&service_id=-1`)
+        .put('/api/user/follows?manga_id=1&service_id=-1')
+        .csrf()
         .expect(400)
         .expect(expectErrorMessage('-1', 'service_id', errorMessage));
 
       await request(httpServer)
-        .put(`/api/user/follows?manga_id=1&service_id=undefined`)
+        .put('/api/user/follows?manga_id=1&service_id=undefined')
+        .csrf()
         .expect(400)
         .expect(expectErrorMessage('undefined', 'service_id', errorMessage));
     });
@@ -97,20 +114,30 @@ describe('PUT /api/user/follows', () => {
   it('Returns 200 with valid data', async () => {
     await withUser(normalUser, async () => {
       await request(httpServer)
-        .put(`/api/user/follows?manga_id=1&service_id=1`)
+        .put('/api/user/follows?manga_id=1&service_id=1')
+        .csrf()
         .expect(200);
 
       await request(httpServer)
         .put(`/api/user/follows?manga_id=1`)
+        .csrf()
         .expect(200);
     });
   });
 });
 
 describe('DELETE /api/user/follows', () => {
+  it('Returns 403 without CSRF token', async () => {
+    await request(httpServer)
+      .delete('/api/user/follows')
+      .expect(403)
+      .expect(expectErrorMessage(csrfMissing));
+  });
+
   it('Returns 401 without user authentication', async () => {
     await request(httpServer)
-      .delete(`/api/user/follows`)
+      .delete('/api/user/follows')
+      .csrf()
       .expect(401)
       .expect(expectErrorMessage(userUnauthorized));
   });
@@ -120,22 +147,26 @@ describe('DELETE /api/user/follows', () => {
 
     await withUser(normalUser, async () => {
       await request(httpServer)
-        .delete(`/api/user/follows?manga_id=-1`)
+        .delete('/api/user/follows?manga_id=-1')
+        .csrf()
         .expect(400)
         .expect(expectErrorMessage('-1', 'manga_id', errorMessage));
 
       await request(httpServer)
-        .delete(`/api/user/follows?manga_id=Infinity`)
+        .delete('/api/user/follows?manga_id=Infinity')
+        .csrf()
         .expect(400)
         .expect(expectErrorMessage('Infinity', 'manga_id', errorMessage));
 
       await request(httpServer)
-        .delete(`/api/user/follows?manga_id=`)
+        .delete('/api/user/follows?manga_id=')
+        .csrf()
         .expect(400)
         .expect(expectErrorMessage('', 'manga_id', errorMessage));
 
       await request(httpServer)
-        .delete(`/api/user/follows?manga_id=2147483648`)
+        .delete('/api/user/follows?manga_id=2147483648')
+        .csrf()
         .expect(400)
         .expect(expectErrorMessage('Number value out of range'));
     });
@@ -146,22 +177,26 @@ describe('DELETE /api/user/follows', () => {
 
     await withUser(normalUser, async () => {
       await request(httpServer)
-        .delete(`/api/user/follows?manga_id=1&service_id=abc`)
+        .delete('/api/user/follows?manga_id=1&service_id=abc')
+        .csrf()
         .expect(400)
         .expect(expectErrorMessage('abc', 'service_id', errorMessage));
 
       await request(httpServer)
-        .delete(`/api/user/follows?manga_id=1&service_id=`)
+        .delete('/api/user/follows?manga_id=1&service_id=')
+        .csrf()
         .expect(400)
         .expect(expectErrorMessage('', 'service_id', errorMessage));
 
       await request(httpServer)
-        .delete(`/api/user/follows?manga_id=1&service_id=-1`)
+        .delete('/api/user/follows?manga_id=1&service_id=-1')
+        .csrf()
         .expect(400)
         .expect(expectErrorMessage('-1', 'service_id', errorMessage));
 
       await request(httpServer)
-        .delete(`/api/user/follows?manga_id=1&service_id=undefined`)
+        .delete('/api/user/follows?manga_id=1&service_id=undefined')
+        .csrf()
         .expect(400)
         .expect(expectErrorMessage('undefined', 'service_id', errorMessage));
     });
@@ -174,29 +209,41 @@ describe('DELETE /api/user/follows', () => {
     await withUser(normalUser, async () => {
       await request(httpServer)
         .delete(`/api/user/follows?manga_id=1&service_id=1`)
+        .csrf()
         .expect(200);
 
       // Make sure resource was deleted
       await request(httpServer)
         .delete(`/api/user/follows?manga_id=1&service_id=1`)
+        .csrf()
         .expect(404);
 
       await request(httpServer)
         .delete(`/api/user/follows?manga_id=1`)
+        .csrf()
         .expect(200);
 
       // Make sure resource was deleted
       await request(httpServer)
         .delete(`/api/user/follows?manga_id=1`)
+        .csrf()
         .expect(404);
     });
   });
 });
 
 describe('POST /api/user/profile', () => {
+  it('Returns 403 without CSRF token', async () => {
+    await request(httpServer)
+      .post('/api/profile')
+      .expect(403)
+      .expect(expectErrorMessage(csrfMissing));
+  });
+
   it('returns 401 without login', async () => {
     await request(httpServer)
       .post('/api/profile')
+      .csrf()
       .expect(401)
       .expect(expectErrorMessage(userUnauthorized));
   });
@@ -205,18 +252,21 @@ describe('POST /api/user/profile', () => {
     await withUser(normalUser, async () => {
       await request(httpServer)
         .post('/api/profile')
+        .csrf()
         .send({ username: 'a'.repeat(101) })
         .expect(400)
         .expect(expectErrorMessage('a'.repeat(101), 'username', /Max username length is \d+/));
 
       await request(httpServer)
         .post('/api/profile')
+        .csrf()
         .send({ username: [1, 2]})
         .expect(400)
         .expect(expectErrorMessage([1, 2], 'username'));
 
       await request(httpServer)
         .post('/api/profile')
+        .csrf()
         .send({ username: null })
         .expect(400)
         .expect(expectErrorMessage(null, 'username'));
@@ -228,18 +278,20 @@ describe('POST /api/user/profile', () => {
       const spy = spyOnDb();
       await request(httpServer)
         .post('/api/profile')
+        .csrf()
         .send({ email: 'test@abc', password: 'notRealPassword' })
         .expect(400)
         .expect(expectErrorMessage('test@abc', 'email'));
 
       await request(httpServer)
         .post('/api/profile')
+        .csrf()
         .set('Content-Type', 'application/json; charset=UTF-8')
         .send({ email: '🤠@🤠.com', password: 'notRealPassword' })
         .expect(400)
         .expect(expectErrorMessage('🤠@🤠.com', 'email'));
 
-      expect(spy).not.toHaveBeenCalled();
+      expectOnlySessionInsert(spy);
     });
   });
 
@@ -251,6 +303,7 @@ describe('POST /api/user/profile', () => {
 
       await request(httpServer)
         .post('/api/profile')
+        .csrf()
         .send({
           newPassword: tooLong,
           repeatPassword: tooLong,
@@ -261,6 +314,7 @@ describe('POST /api/user/profile', () => {
 
       await request(httpServer)
         .post('/api/profile')
+        .csrf()
         .send({
           newPassword: tooShort,
           repeatPassword: tooShort,
@@ -269,7 +323,7 @@ describe('POST /api/user/profile', () => {
         .expect(400)
         .expect(expectErrorMessage(tooShort, 'newPassword', 'Password must be between 8 and 72 characters long'));
 
-      expect(spy).not.toHaveBeenCalled();
+      expectOnlySessionInsert(spy);
     });
   });
 
@@ -281,6 +335,7 @@ describe('POST /api/user/profile', () => {
 
       await request(httpServer)
         .post('/api/profile')
+        .csrf()
         .send({
           newPassword,
           repeatPassword,
@@ -289,7 +344,7 @@ describe('POST /api/user/profile', () => {
         .expect(400)
         .expect(expectErrorMessage(newPassword, 'newPassword', /did not match/));
 
-      expect(spy).not.toHaveBeenCalled();
+      expectOnlySessionInsert(spy);
     });
   });
 
@@ -299,17 +354,19 @@ describe('POST /api/user/profile', () => {
 
       await request(httpServer)
         .post('/api/profile')
+        .csrf()
         .send({ email: 'test@email.com' })
         .expect(401)
         .expect(expectErrorMessage('Password required for modifying email'));
 
       await request(httpServer)
         .post('/api/profile')
+        .csrf()
         .send({ newPassword: 'newPass123' })
         .expect(401)
         .expect(expectErrorMessage('Password required for modifying newPassword'));
 
-      expect(spy).not.toHaveBeenCalled();
+      expectOnlySessionInsert(spy);
     });
   });
 
@@ -319,6 +376,7 @@ describe('POST /api/user/profile', () => {
 
       await request(httpServer)
         .post('/api/profile')
+        .csrf()
         .send({
           email: 'test@email.com',
           username: 'test',
@@ -328,7 +386,7 @@ describe('POST /api/user/profile', () => {
         .expect(401)
         .expect(expectErrorMessage(/Password required for modifying/));
 
-      expect(spy).not.toHaveBeenCalled();
+      expectOnlySessionInsert(spy);
     });
   });
 
@@ -336,6 +394,7 @@ describe('POST /api/user/profile', () => {
     const agent = await login(httpServer, normalUser);
     await agent
       .post('/api/profile')
+      .csrf()
       .send({ email: adminUser.email, password: normalUser.password })
       .expect(422)
       .expect(expectErrorMessage('Email is already in use'));
@@ -351,6 +410,7 @@ describe('POST /api/user/profile', () => {
 
     await agent
       .post('/api/profile')
+      .csrf()
       .send({ email: normalUser.email, password: normalUser.password })
       .expect(200)
       .expect('set-cookie', /sess=/)
@@ -368,6 +428,7 @@ describe('POST /api/user/profile', () => {
 
     await agent
       .post('/api/profile')
+      .csrf()
       .send({ email: normalUser.email, password: normalUser.password })
       .expect(200)
       .expect('set-cookie', /sess=/);
@@ -382,6 +443,7 @@ describe('POST /api/user/profile', () => {
     // Make sure password doesn't work anymore
     await agent
       .post('/api/profile')
+      .csrf()
       .send({
         newPassword: user.password,
         repeatPassword: user.password,
@@ -392,6 +454,7 @@ describe('POST /api/user/profile', () => {
     // Change password back
     await agent
       .post('/api/profile')
+      .csrf()
       .send({
         newPassword: user.password,
         repeatPassword: user.password,
@@ -412,6 +475,7 @@ describe('POST /api/user/profile', () => {
 
     await agent
       .post('/api/profile')
+      .csrf()
       .send({
         newPassword: newPassword,
         repeatPassword: newPassword,
@@ -440,6 +504,7 @@ describe('POST /api/user/profile', () => {
 
     await agent
       .post('/api/profile')
+      .csrf()
       .send({
         newPassword: newPassword,
         repeatPassword: newPassword,
@@ -463,6 +528,7 @@ describe('POST /api/user/profile', () => {
 
     await agent
       .post('/api/profile')
+      .csrf()
       .send({ username: 'test ci edited' })
       .expect(200);
 
@@ -479,6 +545,7 @@ describe('POST /api/user/profile', () => {
 
     await agent
       .post('/api/profile')
+      .csrf()
       .send({
         newPassword: newPassword,
         repeatPassword: newPassword,

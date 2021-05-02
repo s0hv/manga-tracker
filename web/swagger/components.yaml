@@ -1,0 +1,314 @@
+components:
+  responses:
+    validationError:
+      description: Validation of a parameter failed.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/validationError'
+
+    notFound:
+      description: Requested resource was not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/genericError'
+
+  schemas:
+    validationError:
+      type: object
+      description: A validation error. The value is either an error message
+        or an object or an array of objects describing where the error happened.
+      properties:
+        error:
+          oneOf:
+            - type: array
+              items:
+                $ref: '#/components/schemas/expressValidatorError'
+            - $ref: '#/components/schemas/expressValidatorError'
+            - $ref: '#/components/schemas/genericError'
+
+      required:
+        - error
+
+    genericError:
+      type: object
+      properties:
+        error:
+          type: string
+          example: The error message
+      required:
+        - error
+
+    expressValidatorError:
+      type: object
+      properties:
+        msg:
+          type: string
+          description: The error message
+          example: Error message
+        param:
+          type: string
+          description: Name of the parameter that caused the error
+        value:
+          description: The value of the param
+        location:
+          type: string
+          description: Location of the param that caused the error
+          enum: [body, query, params, cookies, headers]
+          example: body
+
+      required:
+        - msg
+        - param
+        - value
+        - location
+
+    databaseId:
+      type: integer
+      minimum: 0
+      description: An id that identifies an object in the database
+
+    interval:
+      type: object
+      description: An object that represents a time interval
+      properties:
+        days:
+          type: integer
+          nullable: true
+        hours:
+          type: integer
+          nullable: true
+        seconds:
+          type: integer
+          nullable: true
+
+    service:
+      type: object
+      description: Contains information about a single service
+      properties:
+        title_id:
+          type: string
+        service_id:
+          $ref: '#/components/schemas/databaseId'
+        name:
+          type: string
+        url_format:
+          type: string
+          format: uri
+          example: https://mangaplus.shueisha.co.jp/viewer/{}
+        url:
+          type: string
+          format: uri
+          example: https://mangaplus.shueisha.co.jp/titles/{}
+
+      required:
+        - title_id
+        - service_id
+        - name
+        - url_format
+        - url
+
+    mangaInfo:
+      type: object
+      properties:
+        cover:
+          type: string
+          nullable: true
+          format: uri
+          example: https://mangadex.org/images/manga/20882.jpg
+        status:
+          $ref: '#/components/schemas/status'
+        artist:
+          type: string
+          nullable: true
+        author:
+          type: string
+          nullable: true
+        last_updated:
+          type: string
+          format: date-time
+          nullable: true
+        bw:
+          type: string
+          nullable: true
+          description: Bookwalker id
+          example: series/114645
+        mu:
+          type: string
+          nullable: true
+          description: Manga updates id
+          example: 139601
+        mal:
+          type: string
+          nullable: true
+          description: MyAnimeList id
+          example: 103897
+        amz:
+          type: string
+          format: uri
+          nullable: true
+          description: Amazon link
+          example: https://www.amazon.co.jp/gp/product/B075F8JBQ1
+        ebj:
+          type: string
+          format: uri
+          nullable: true
+          description: ebook japan link
+          example: https://ebookjapan.yahoo.co.jp/books/413780/
+        engtl:
+          type: string
+          format: uri
+          nullable: true
+          description: Link to the official english translation
+          example: https://www.viz.com/dr-stone
+        raw:
+          type: string
+          format: uri
+          nullable: true
+          description: Link to the official raws
+          example: https://shonenjumpplus.com/episode/13932016480029012477
+        nu:
+          type: string
+          nullable: true
+          description: Novel Updates id
+          example: tensei-shitara-slime-datta-ken
+        kt:
+          type: string
+          nullable: true
+          description: Kitsu id
+          example: 38860
+        ap:
+          type: string
+          nullable: true
+          description: Anime-Planet id
+          example: dr-stone
+        al:
+          type: string
+          nullable: true
+          description: AniList id
+          example: 98416
+
+      required:
+        - cover
+        - status
+        - artist
+        - author
+        - last_updated
+        - bw
+        - mu
+        - mal
+        - amz
+        - ebj
+        - engtl
+        - raw
+        - nu
+        - kt
+        - ap
+        - al
+
+    aliases:
+      type: array
+      description: A list of aliases of a manga
+      items:
+        type: string
+
+    status:
+      type: integer
+      enum: [0, 1, 2, 3]
+      description: >
+        Release status:
+         * `0` - Ongoing
+         * `1` - Completed
+         * `2` - Dropped
+         * `3` - Hiatus
+
+    chapter:
+      type: object
+      properties:
+        chapter_id:
+          $ref: '#/components/schemas/databaseId'
+        title:
+          type: string
+        chapter_number:
+          type: integer
+        release_date:
+          type: integer
+          format: int64
+          description: UNIX timestamp
+          example: 1613930518000
+        group:
+          type: string
+          nullable: true
+        service_id:
+          $ref: '#/components/schemas/databaseId'
+        chapter_identifier:
+          type: string
+          description: Chapter identifier that can be used in a services url_format in place of {}
+        chapter_url:
+          type: string
+          description: URL of the chapter. Not included by default.
+          nullable: true
+
+      required:
+        - chapter_id
+        - title
+        - chapter_number
+        - release_date
+        - group
+        - service_id
+        - chapter_identifier
+
+    manga:
+      description: Contains simple information on a single manga
+      type: object
+      properties:
+        manga_id:
+          $ref: '#/components/schemas/databaseId'
+        title:
+          type: string
+        release_interval:
+          $ref: '#/components/schemas/interval'
+        latest_release:
+          type: string
+          format: date-time
+          nullable: true
+        estimated_release:
+          type: string
+          format: date-time
+          nullable: true
+        latest_chapter:
+          type: integer
+          nullable: true
+
+      required:
+        - manga_id
+        - title
+        - release_interval
+        - latest_release
+        - estimated_release
+        - latest_chapter
+
+    fullManga:
+      description: Contains extended information of a single manga
+      type: object
+      properties:
+        manga:
+          allOf:
+            - $ref: '#/components/schemas/manga'
+            - $ref: '#/components/schemas/mangaInfo'
+        services:
+          type: array
+          items:
+            $ref: '#/components/schemas/service'
+        chapters:
+          type: array
+          items:
+            $ref: '#/components/schemas/chapter'
+          nullable: true
+        aliases:
+          $ref: '#/components/schemas/aliases'
+
+      required:
+        - services
+        - manga

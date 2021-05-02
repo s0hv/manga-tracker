@@ -48,6 +48,10 @@ jobs:
         flake8 src --count --select=E9,F63,F7,F82 --show-source --statistics
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 src --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+    - name: Type checks with mypy
+      run:  mypy --config-file mypy.ini ./src
+
     - name: Install db migration dependencies
       run: npm ci --ignore-scripts
     - name: Test with pytest

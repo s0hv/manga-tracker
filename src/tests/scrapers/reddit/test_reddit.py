@@ -1,11 +1,12 @@
+import os
 import pickle
 import unittest
-import os
 from unittest.mock import patch, MagicMock
 
 import feedparser
 
 import setup_logging
+from src.db.models.manga import MangaService
 from src.scrapers import Reddit
 from src.tests.testing_utils import BaseTestClasses, mock_feedparse
 
@@ -39,7 +40,17 @@ class TestRedditScraper(BaseTestClasses.ModelAssertions, BaseTestClasses.Databas
     def test_parse_feed(self, parse: MagicMock):
         reddit = Reddit(self._conn, self.dbutil)
         feed_url = 'reddit_test_feed'
-        manga_id = self.dbutil.add_single_series(Reddit.ID, 'RedditTest', 'Reddit test manga', feed_url)
+        manga_id = self.dbutil.add_manga_service(
+            MangaService(service_id=Reddit.ID, title_id='RedditTest',
+                         title='Reddit test manga', feed_url=feed_url),
+            add_manga=True
+        ).manga_id
+
+        # Mypy fix
+        if manga_id is None:
+            self.assertIsNotNone(manga_id)
+            return
+
         with self._conn:
             did_update = reddit.scrape_series('RedditTest', Reddit.ID, manga_id, feed_url)
 

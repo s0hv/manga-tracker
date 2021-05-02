@@ -3,8 +3,8 @@ import { mangaView, onSessionExpire } from '../../../utils/view-counter/manga-vi
 
 
 afterAll(async () => {
-  const { pool } = require('../../../db');
-  await pool.end();
+  const { pgp } = require('../../../db');
+  await pgp.end();
 });
 
 describe('mangaView increments manga views correctly', () => {

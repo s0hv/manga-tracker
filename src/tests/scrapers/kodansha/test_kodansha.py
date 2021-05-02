@@ -1,13 +1,17 @@
+# type: ignore
+import os
 import pickle
 import unittest
-import os
 from typing import Iterable, Union
 
+import pytest
 import responses
 
+pytest.skip('Kodansha not in use anymore.', allow_module_level=True)
+
 import setup_logging
-from src.scrapers import KodanshaComics, ComiXology, SCRAPERS
-from src.scrapers.kodansha import Manga
+from src.scrapers import ComiXology, SCRAPERS
+from src.scrapers.kodansha import Manga, KodanshaComics
 from src.tests.testing_utils import BaseTestClasses, spy_on
 from src.tests.scrapers.testing_scraper import DummyScraper
 
@@ -17,7 +21,7 @@ logger = setup_logging.setup()
 
 class DummyScraperForKodansha(DummyScraper):
     def update_selected_manga(self, manga_links: Iterable) -> Union[None, int, bool]:
-        return
+        return None
 
 
 class TestKodanshaScraper(BaseTestClasses.ModelAssertions, BaseTestClasses.DatabaseTestCase):
@@ -84,7 +88,7 @@ class TestKodanshaScraper(BaseTestClasses.ModelAssertions, BaseTestClasses.Datab
         self.assertEqual(dummy.update_selected_manga.call_count, 1, msg='Multiple manga were updated')
 
     @responses.activate
-    def test_feed_parsed_correctly(self):
+    def test_feed_updates_all(self):
         # Mock request
         test_url = 'https://www.kodanshatest.com'
         responses.add(responses.GET, test_url, body=self.read_test_site())

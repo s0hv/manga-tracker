@@ -1,12 +1,12 @@
-name: Tests
+name: Web app tests
 
 on:
   push:
-    branch: [ master, development ]
+    branches: [ master, development ]
     paths-ignore:
       - 'scripts/**'
   pull_request:
-    branch: [ master, development ]
+    branches: [ master, development ]
 
 defaults:
   run:
@@ -46,6 +46,9 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+    # Force https use since ssh does not work
+    - run: 'git config --global url."https://github.com/".insteadOf ssh://git@github.com/'
+    - run: 'git config --global url."https://".insteadOf ssh://'
 
     - name: Install deps
       run: |

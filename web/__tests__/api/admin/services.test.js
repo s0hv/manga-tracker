@@ -1,4 +1,5 @@
 import request from 'supertest';
+import { csrfMissing } from '../../../utils/constants';
 
 import { redis } from '../../../utils/ratelimits';
 
@@ -20,9 +21,17 @@ beforeEach(async () => {
 afterAll(async () => stopServer(httpServer));
 
 describe('POST /api/admin/editService', () => {
+  it('Returns 403 without CSRF token', async () => {
+    await request(httpServer)
+      .post('/api/admin/editService')
+      .expect(403)
+      .expect(expectErrorMessage(csrfMissing));
+  });
+
   it('returns unauthorized without user', async () => {
     await request(httpServer)
       .post('/api/admin/editService')
+      .csrf()
       .expect(401)
       .expect(expectErrorMessage(userUnauthorized));
   });
@@ -31,6 +40,7 @@ describe('POST /api/admin/editService', () => {
     await withUser(normalUser, async () => {
       await request(httpServer)
         .post('/api/admin/editService')
+        .csrf()
         .expect(403)
         .expect(expectErrorMessage(userForbidden));
     });
@@ -40,11 +50,13 @@ describe('POST /api/admin/editService', () => {
     await withUser(adminUser, async () => {
       await request(httpServer)
         .post('/api/admin/editService')
+        .csrf()
         .expect(400)
         .expect(expectErrorMessage(undefined, 'service_id'));
 
       await request(httpServer)
         .post('/api/admin/editService')
+        .csrf()
         .send({
           service_id: 3,
         })
@@ -53,6 +65,7 @@ describe('POST /api/admin/editService', () => {
 
       await request(httpServer)
         .post('/api/admin/editService')
+        .csrf()
         .send({
           service_name: undefined,
           disabled: undefined,
@@ -69,6 +82,7 @@ describe('POST /api/admin/editService', () => {
       // service_name
       await request(httpServer)
         .post('/api/admin/editService')
+        .csrf()
         .send({
           service_name: [1, 2, 3],
           service_id: 3,
@@ -79,6 +93,7 @@ describe('POST /api/admin/editService', () => {
       // disabled
       await request(httpServer)
         .post('/api/admin/editService')
+        .csrf()
         .send({
           disabled: '2',
           service_id: 3,
@@ -88,6 +103,7 @@ describe('POST /api/admin/editService', () => {
 
       await request(httpServer)
         .post('/api/admin/editService')
+        .csrf()
         .send({
           disabled: null,
           service_id: 3,
@@ -98,6 +114,7 @@ describe('POST /api/admin/editService', () => {
       // next_update
       await request(httpServer)
         .post('/api/admin/editService')
+        .csrf()
         .send({
           next_update: 'abc',
           service_id: 3,
@@ -107,6 +124,7 @@ describe('POST /api/admin/editService', () => {
 
       await request(httpServer)
         .post('/api/admin/editService')
+        .csrf()
         .send({
           next_update: 1602954767,
           service_id: 3,
@@ -120,6 +138,7 @@ describe('POST /api/admin/editService', () => {
     await withUser(adminUser, async () => {
       await request(httpServer)
         .post('/api/admin/editService')
+        .csrf()
         .send({
           next_update: new Date(1602954767000),
           service_name: "Jaimini's Box",
@@ -130,6 +149,7 @@ describe('POST /api/admin/editService', () => {
 
       await request(httpServer)
         .post('/api/admin/editService')
+        .csrf()
         .send({
           next_update: new Date(1205794767000),
           service_id: 3,
@@ -138,6 +158,7 @@ describe('POST /api/admin/editService', () => {
 
       await request(httpServer)
         .post('/api/admin/editService')
+        .csrf()
         .send({
           service_name: "Jaimini's Box",
           disabled: true,
