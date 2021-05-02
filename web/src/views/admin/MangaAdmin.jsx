@@ -80,7 +80,7 @@ function MangaAdmin(props) {
     mangaData: {
       manga,
       services,
-      aliases: aliasesProp
+      aliases: aliasesProp,
     },
   } = props;
 
