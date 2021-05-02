@@ -77,11 +77,15 @@ const useStyles = makeStyles((theme) => ({
 
 function MangaAdmin(props) {
   const {
-    mangaData,
+    mangaData: {
+      manga,
+      services,
+      aliases: aliasesProp
+    },
   } = props;
 
   // Constants
-  const mangaId = mangaData.manga_id;
+  const mangaId = manga.manga_id;
 
   // Hooks
   const classes = useStyles();
@@ -91,11 +95,11 @@ function MangaAdmin(props) {
 
   const [loading, setLoading] = useState(false);
   const [scheduledUpdates, setScheduledUpdates] = useState([]);
-  const [aliases, setAliases] = useState(mangaData.aliases);
-  const [mangaTitle, setMangaTitle] = useState(mangaData.title);
+  const [aliases, setAliases] = useState(aliasesProp);
+  const [mangaTitle, setMangaTitle] = useState(manga.title);
 
   const formatScheduledRuns = useCallback((runs) => runs.map(run => {
-    const found = mangaData.services.find(s => s.service_id === run.service_id);
+    const found = services.find(s => s.service_id === run.service_id);
     if (!found) {
       return run;
     }
@@ -103,7 +107,7 @@ function MangaAdmin(props) {
       ...run,
       name: found.name,
     };
-  }), [mangaData.services]);
+  }), [services]);
 
   const onTitleChange = useCallback(() => {
     fetch(`/api/manga/${mangaId}`)
@@ -177,10 +181,10 @@ function MangaAdmin(props) {
       key='service_id'
       label='Service'
       SelectDisplayProps={{ 'aria-label': 'Service select' }}
-      data={mangaData.services?.map(s => ({ value: s.service_id, label: s.name }))}
+      data={services?.map(s => ({ value: s.service_id, label: s.name }))}
       required
     />,
-  ], [mangaData.services]);
+  ], [services]);
 
   const CreateDialog = useMemo(() => ({ open, onClose }) => (
     <AddRowFormTemplate
@@ -199,7 +203,7 @@ function MangaAdmin(props) {
       EditCell: ({ row, cell, state }) => (
         <EditableSelect
           value={row.values.service_id}
-          items={mangaData.services.map(s => ({ value: s.service_id, text: s.name }))}
+          items={services.map(s => ({ value: s.service_id, text: s.name }))}
           cell={cell}
           row={row}
           state={state}
@@ -210,7 +214,7 @@ function MangaAdmin(props) {
       ),
     },
     { Header: 'Service id', accessor: 'service_id', canEdit: false },
-  ], [mangaData.services]);
+  ], [services]);
 
   return (
     <Container maxWidth='lg' disableGutters>
@@ -226,11 +230,11 @@ function MangaAdmin(props) {
           </Link>
         </div>
         <div className={classes.details}>
-          <a href={mangaData.mal} target='_blank' rel='noreferrer noopener'>
+          <a href={manga.mal} target='_blank' rel='noreferrer noopener'>
             <img
-              src={mangaData.cover}
+              src={manga.cover}
               className={classes.thumbnail}
-              alt={mangaData.title}
+              alt={manga.title}
             />
           </a>
           <Grid
@@ -238,7 +242,7 @@ function MangaAdmin(props) {
             direction='column'
             className={classes.infoGrid}
           >
-            <MangaInfo mangaData={mangaData} />
+            <MangaInfo mangaData={manga} />
             <MangaAliases
               aliases={aliases}
               mangaId={mangaId}
