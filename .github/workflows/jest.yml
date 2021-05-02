@@ -1,12 +1,12 @@
-name: Tests
+name: Web app tests
 
 on:
   push:
-    branch: [ master, development ]
+    branches: [ master, development ]
     paths-ignore:
       - 'scripts/**'
   pull_request:
-    branch: [ master, development ]
+    branches: [ master, development ]
 
 defaults:
   run:
@@ -46,6 +46,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+    - run: 'git config --global url."https://github.com/".insteadOf git@github.com:'
+    - run: git config --global url."https://".insteadOf git://
 
     - name: Install deps
       run: |
