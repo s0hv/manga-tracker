@@ -230,15 +230,15 @@ class TestComiXologyScraper(BaseTestClasses.DatabaseTestCase, BaseTestClasses.Mo
         self.assertIsNotNone(manga)
 
         # Make sure only 30 chapters were added
-        chapters = self.dbutil.get_chapters(ComiXology.ID, manga.manga_id)
+        chapters = self.dbutil.get_chapters(manga.manga_id, ComiXology.ID)
         self.assertEqual(len(chapters), 30)
 
         # Make sure rest of the chapters can be added
         success = scraper.scrape_series(title_id, ComiXology.ID, manga.manga_id)
         self.assertTrue(success)
 
-        self.dbutil.get_chapters(ComiXology.ID, manga.manga_id)
-        self.assertGreater(len(self.dbutil.get_chapters(ComiXology.ID, manga.manga_id)), 30)
+        self.dbutil.get_chapters(manga.manga_id, ComiXology.ID)
+        self.assertGreater(len(self.dbutil.get_chapters(manga.manga_id, ComiXology.ID)), 30)
 
 
 if __name__ == '__main__':

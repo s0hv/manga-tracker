@@ -73,6 +73,18 @@ class DbUtil:
         return self._conn
 
     @optional_transaction
+    def execute(self, sql: str, args: Collection[Any] = None,
+                *, fetch: bool = True, cur: Cursor = NotImplemented) -> List[DictRow]:
+        """
+        Easy way for tests to call sql functions. Should not be used outside of tests.
+        """
+        cur.execute(sql, args)
+        if fetch:
+            return cur.fetchall()
+
+        return []
+
+    @optional_transaction
     def update_manga_next_update(self, service_id: int, manga_id: int,
                                  next_update: datetime, *, cur: Cursor = NotImplemented) -> None:
         sql = 'UPDATE manga_service SET next_update=%s WHERE manga_id=%s AND service_id=%s'
@@ -219,10 +231,23 @@ class DbUtil:
         cur.execute(sql, (interval, manga_id))
         return True
 
+    @typing.overload
+    def get_chapters(self, manga_id: int, *, limit: int = 100, cur: Cursor = NotImplemented) -> List[Chapter]: ...
+
+    @typing.overload
+    def get_chapters(self, manga_id: int, service_id: int, *, limit: int = 100, cur: Cursor = NotImplemented) -> List[Chapter]: ...
+
     @optional_transaction
-    def get_chapters(self, service_id: int, manga_id: int, limit: int = 100, *, cur: Cursor = NotImplemented) -> List[Chapter]:
-        sql = 'SELECT * FROM chapters WHERE service_id=%s AND manga_id=%s LIMIT %s'
-        cur.execute(sql, (service_id, manga_id, limit))
+    def get_chapters(self, manga_id: int, service_id: int = None, *, limit: int = 100, cur: Cursor = NotImplemented) -> List[Chapter]:
+        args: Tuple
+        if service_id is None:
+            sql = 'SELECT * FROM chapters WHERE manga_id=%s LIMIT %s'
+            args = (manga_id, limit)
+        else:
+            sql = 'SELECT * FROM chapters WHERE manga_id=%s AND service_id=%s LIMIT %s'
+            args = (manga_id, service_id, limit)
+
+        cur.execute(sql, args)
         return list(map(Chapter.parse_obj, cur.fetchall()))
 
     @optional_transaction

@@ -113,7 +113,7 @@ class MangadexTests(BaseTestClasses.DatabaseTestCase):
         manga = self.dbutil.get_manga_service(MangaDex.ID, title_id)
         self.assertIsNotNone(manga)
 
-        chapters = self.dbutil.get_chapters(MangaDex.ID, manga.manga_id)
+        chapters = self.dbutil.get_chapters(manga.manga_id, MangaDex.ID)
         self.assertEqual(len(chapters), chapter_count)
 
         self.assertEqual(manga.title, data['title'])

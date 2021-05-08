@@ -3,7 +3,7 @@ import subprocess
 import sys
 import unittest
 from datetime import datetime, timedelta
-from typing import TypeVar, Optional, Union, ClassVar
+from typing import TypeVar, Optional, Union, ClassVar, Type
 from unittest import mock
 
 import feedparser
@@ -12,7 +12,9 @@ import testing.postgresql  # type: ignore[import]
 from psycopg2.extensions import connection as Connection
 from psycopg2.extras import DictCursor, DictRow
 
-from src.scrapers.base_scraper import BaseChapter
+from src.db.models.manga import MangaService
+from src.scrapers.base_scraper import BaseChapter, BaseScraper
+from src.tests.scrapers.testing_scraper import DummyScraper
 from src.utils.dbutils import DbUtil
 
 originalParse = feedparser.parse
@@ -126,13 +128,24 @@ def set_db_environ():
 
 
 class BaseTestClasses:
+    class TitleIdGenerator:
+        def __init__(self):
+            self._id = 0
+
+        def generate(self, name: str) -> str:
+            self._id += 1
+            return f'{name}_{self._id}'
 
     class DatabaseTestCase(unittest.TestCase):
         _conn: ClassVar[Connection] = NotImplemented
+        _generator: 'BaseTestClasses.TitleIdGenerator' = NotImplemented
 
         @classmethod
         def setUpClass(cls) -> None:
             cls._conn = get_conn()
+            # Integers are retained during tests but they reset to the default value
+            # for some reason. Circumvent this by using a class.
+            cls._generator = BaseTestClasses.TitleIdGenerator()
 
         @property
         def conn(self) -> Connection:
@@ -144,6 +157,14 @@ class BaseTestClasses:
         @classmethod
         def tearDownClass(cls) -> None:
             cls._conn.close()
+
+        def get_str_id(self) -> str:
+            return self._generator.generate(type(self).__name__)
+
+        def get_manga_service(self, scraper: Type['BaseScraper'] = DummyScraper) -> MangaService:
+            id_ = self.get_str_id()
+            return MangaService(service_id=scraper.ID, title_id=id_,
+                                title=f'{id_}_manga')
 
         def assertChapterEqualsRow(self, chapter: 'Chapter', row: DictRow) -> None:
             pairs = [

@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class Chapter(BaseModel):
@@ -11,6 +11,6 @@ class Chapter(BaseModel):
     title: str
     chapter_number: int
     chapter_decimal: Optional[int]
-    release_date: datetime
+    release_date: datetime = Field(default_factory=datetime.utcnow)
     chapter_identifier: str
     group: Optional[str]
