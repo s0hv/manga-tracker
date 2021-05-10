@@ -2,7 +2,7 @@
 
 exports[`Manga source list Should render correctly with items and user 1`] = `
 <nav
-  aria-labelledby="nested-list-subheader"
+  aria-label="manga sources"
   className="MuiList-root makeStyles-root-1 test-class-1 test-class-2 MuiList-padding"
 >
   <div
@@ -210,7 +210,7 @@ exports[`Manga source list Should render correctly with items and user 1`] = `
 
 exports[`Manga source list Should render correctly with items without user 1`] = `
 <nav
-  aria-labelledby="nested-list-subheader"
+  aria-label="manga sources"
   className="MuiList-root makeStyles-root-1 test-class-1 test-class-2 MuiList-padding"
 >
   <div
@@ -337,7 +337,7 @@ exports[`Manga source list Should render correctly with items without user 1`] =
 
 exports[`Manga source list Should render correctly without input 1`] = `
 <nav
-  aria-labelledby="nested-list-subheader"
+  aria-label="manga sources"
   className="MuiList-root makeStyles-root-1  MuiList-padding"
 >
   <div

@@ -17,15 +17,24 @@ const useStyles = makeStyles((theme) => ({
     },
   },
   infoTable: {
+    width: 'max-content',
+    borderSpacing: '0px 2px',
     margin: theme.spacing(1),
     '& tr:nth-child(odd)': {
       backgroundColor: theme.palette.action.hover,
+    },
+    '& th': {
+      textAlign: 'end',
+      paddingLeft: '2px',
+    },
+    '& td': {
+      paddingRight: '4px',
     },
   },
 }));
 
 
-const MangaInfo = ({ mangaData }) => {
+const MangaInfo = ({ mangaData, showId = false }) => {
   const latestRelease = mangaData.latest_release ?
     new Date(mangaData.latest_release) :
     null;
@@ -36,8 +45,14 @@ const MangaInfo = ({ mangaData }) => {
   return (
     <table className={classes.infoTable}>
       <tbody>
+        {showId && (
+          <tr>
+            <th scope='row'><Typography>Manga id:</Typography></th>
+            <td><Typography className={classes.detailText}>{mangaData.manga_id}</Typography></td>
+          </tr>
+        )}
         <tr>
-          <td><Typography>Latest release:</Typography></td>
+          <th scope='row'><Typography>Latest release:</Typography></th>
           <td>
             <Tooltip title={latestRelease ? latestRelease.toUTCString() : 'Unknown'}>
               <Typography className={classes.detailText}>
@@ -49,7 +64,7 @@ const MangaInfo = ({ mangaData }) => {
           </td>
         </tr>
         <tr>
-          <td><Typography>Estimated release interval:</Typography></td>
+          <th scope='row'><Typography>Estimated release interval:</Typography></th>
           <td>
             <Typography className={classes.detailText}>
               {(mangaData.release_interval ?
@@ -59,7 +74,7 @@ const MangaInfo = ({ mangaData }) => {
           </td>
         </tr>
         <tr>
-          <td><Typography>Estimated next release:</Typography></td>
+          <th scope='row'><Typography>Estimated next release:</Typography></th>
           <td>
             <Typography className={classes.detailText}>
               {defaultDateFormat(estimatedRelease)}
@@ -67,7 +82,7 @@ const MangaInfo = ({ mangaData }) => {
           </td>
         </tr>
         <tr>
-          <td><Typography>Latest chapter:</Typography></td>
+          <th scope='row'><Typography>Latest chapter:</Typography></th>
           <td>
             <Typography className={classes.detailText}>
               {mangaData.latest_chapter ? mangaData.latest_chapter : 'Unknown'}
@@ -75,7 +90,7 @@ const MangaInfo = ({ mangaData }) => {
           </td>
         </tr>
         <tr>
-          <td><Typography>Publication status:</Typography></td>
+          <th scope='row'><Typography>Publication status:</Typography></th>
           <td>
             <Typography className={classes.detailText}>
               {statusToString(mangaData.status)}
@@ -95,6 +110,7 @@ MangaInfo.propTypes = {
     latest_chapter: PropTypes.number,
     status: PropTypes.number,
   }).isRequired,
+  showId: PropTypes.bool,
 };
 
 export default MangaInfo;

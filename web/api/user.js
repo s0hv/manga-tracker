@@ -119,7 +119,7 @@ module.exports = app => {
                       maxAge: 2592000000, // 30d in ms
                       secure: !dev,
                       httpOnly: true,
-                      sameSite: 'strict',
+                      sameSite: 'lax',
                     });
                     regenerateSession(req)
                       .catch(sessionLogger.error)

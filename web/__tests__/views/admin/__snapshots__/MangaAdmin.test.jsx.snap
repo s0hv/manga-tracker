@@ -64,13 +64,15 @@ exports[`Manga admin page should render correctly should render correctly with d
             >
               <tbody>
                 <tr>
-                  <td>
+                  <th
+                    scope="row"
+                  >
                     <p
                       class="MuiTypography-root MuiTypography-body1"
                     >
                       Latest release:
                     </p>
-                  </td>
+                  </th>
                   <td>
                     <p
                       class="MuiTypography-root makeStyles-detailText-26 MuiTypography-body1"
@@ -81,13 +83,15 @@ exports[`Manga admin page should render correctly should render correctly with d
                   </td>
                 </tr>
                 <tr>
-                  <td>
+                  <th
+                    scope="row"
+                  >
                     <p
                       class="MuiTypography-root MuiTypography-body1"
                     >
                       Estimated release interval:
                     </p>
-                  </td>
+                  </th>
                   <td>
                     <p
                       class="MuiTypography-root makeStyles-detailText-26 MuiTypography-body1"
@@ -97,13 +101,15 @@ exports[`Manga admin page should render correctly should render correctly with d
                   </td>
                 </tr>
                 <tr>
-                  <td>
+                  <th
+                    scope="row"
+                  >
                     <p
                       class="MuiTypography-root MuiTypography-body1"
                     >
                       Estimated next release:
                     </p>
-                  </td>
+                  </th>
                   <td>
                     <p
                       class="MuiTypography-root makeStyles-detailText-26 MuiTypography-body1"
@@ -113,13 +119,15 @@ exports[`Manga admin page should render correctly should render correctly with d
                   </td>
                 </tr>
                 <tr>
-                  <td>
+                  <th
+                    scope="row"
+                  >
                     <p
                       class="MuiTypography-root MuiTypography-body1"
                     >
                       Latest chapter:
                     </p>
-                  </td>
+                  </th>
                   <td>
                     <p
                       class="MuiTypography-root makeStyles-detailText-26 MuiTypography-body1"
@@ -129,13 +137,15 @@ exports[`Manga admin page should render correctly should render correctly with d
                   </td>
                 </tr>
                 <tr>
-                  <td>
+                  <th
+                    scope="row"
+                  >
                     <p
                       class="MuiTypography-root MuiTypography-body1"
                     >
                       Publication status:
                     </p>
-                  </td>
+                  </th>
                   <td>
                     <p
                       class="MuiTypography-root makeStyles-detailText-26 MuiTypography-body1"
@@ -323,13 +333,15 @@ exports[`Manga admin page should render correctly should render correctly withou
             >
               <tbody>
                 <tr>
-                  <td>
+                  <th
+                    scope="row"
+                  >
                     <p
                       class="MuiTypography-root MuiTypography-body1"
                     >
                       Latest release:
                     </p>
-                  </td>
+                  </th>
                   <td>
                     <p
                       class="MuiTypography-root makeStyles-detailText-8 MuiTypography-body1"
@@ -340,13 +352,15 @@ exports[`Manga admin page should render correctly should render correctly withou
                   </td>
                 </tr>
                 <tr>
-                  <td>
+                  <th
+                    scope="row"
+                  >
                     <p
                       class="MuiTypography-root MuiTypography-body1"
                     >
                       Estimated release interval:
                     </p>
-                  </td>
+                  </th>
                   <td>
                     <p
                       class="MuiTypography-root makeStyles-detailText-8 MuiTypography-body1"
@@ -356,13 +370,15 @@ exports[`Manga admin page should render correctly should render correctly withou
                   </td>
                 </tr>
                 <tr>
-                  <td>
+                  <th
+                    scope="row"
+                  >
                     <p
                       class="MuiTypography-root MuiTypography-body1"
                     >
                       Estimated next release:
                     </p>
-                  </td>
+                  </th>
                   <td>
                     <p
                       class="MuiTypography-root makeStyles-detailText-8 MuiTypography-body1"
@@ -372,13 +388,15 @@ exports[`Manga admin page should render correctly should render correctly withou
                   </td>
                 </tr>
                 <tr>
-                  <td>
+                  <th
+                    scope="row"
+                  >
                     <p
                       class="MuiTypography-root MuiTypography-body1"
                     >
                       Latest chapter:
                     </p>
-                  </td>
+                  </th>
                   <td>
                     <p
                       class="MuiTypography-root makeStyles-detailText-8 MuiTypography-body1"
@@ -388,13 +406,15 @@ exports[`Manga admin page should render correctly should render correctly withou
                   </td>
                 </tr>
                 <tr>
-                  <td>
+                  <th
+                    scope="row"
+                  >
                     <p
                       class="MuiTypography-root MuiTypography-body1"
                     >
                       Publication status:
                     </p>
-                  </td>
+                  </th>
                   <td>
                     <p
                       class="MuiTypography-root makeStyles-detailText-8 MuiTypography-body1"

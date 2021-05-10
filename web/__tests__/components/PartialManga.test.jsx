@@ -1,5 +1,5 @@
 import React from 'react';
-import renderer from 'react-test-renderer';
+import { render, screen, within } from '@testing-library/react';
 import PartialManga from '../../src/components/PartialManga';
 import { emptyFullManga as emptyManga, fullManga as manga } from '../constants';
 
@@ -9,35 +9,53 @@ import { mockUTCDates } from '../utils';
 describe('Partial manga should render correctly', () => {
   mockUTCDates();
 
-  it('Should render correctly with no input', () => {
-    const tree = renderer
-      .create(<PartialManga />)
-      .toJSON();
+  const assertCorrectRender = (mangaData) => {
+    // Find title
+    expect(
+      within(screen.getByLabelText('manga title'))
+        .getByText(mangaData.title)
+    ).toBeTruthy();
 
-    expect(tree).toMatchSnapshot();
+    // Find cover
+    const cover = screen.getByAltText(mangaData.title);
+    expect(screen.getByAltText(mangaData.title).getAttribute('src')).toStrictEqual(mangaData.cover);
+    expect(cover.closest('a').getAttribute('href')).toStrictEqual(`/manga/${mangaData.manga_id}`);
+
+    // Find source list
+    expect(screen.getByLabelText('manga sources')).toBeTruthy();
+
+    // Find at least a part of the manga info component
+    expect(
+      screen.getByRole('row', { name: /latest release: /i })
+    ).toBeTruthy();
+  };
+
+  it('Should render correctly with no input', () => {
+    const { container } = render(<PartialManga />);
+
+    expect(container).toBeEmptyDOMElement();
   });
 
   it('Should render correctly with input', () => {
-    const tree = renderer
-      .create(<PartialManga mangaData={manga.manga} />)
-      .toJSON();
+    render(<PartialManga manga={manga.manga} services={manga.services} />);
 
-    expect(tree).toMatchSnapshot();
+    assertCorrectRender(manga.manga);
   });
 
   it('Should render correctly with minimal input', () => {
-    const tree = renderer
-      .create(<PartialManga mangaData={emptyManga.manga} />)
-      .toJSON();
+    render(<PartialManga manga={emptyManga.manga} />);
 
-    expect(tree).toMatchSnapshot();
+    assertCorrectRender(emptyManga.manga);
   });
 
   it('Should render correctly when showId is true', () => {
-    const tree = renderer
-      .create(<PartialManga mangaData={manga.manga} showId />)
-      .toJSON();
+    render(<PartialManga manga={manga.manga} showId />);
 
-    expect(tree).toMatchSnapshot();
+    assertCorrectRender(manga.manga);
+
+    const idRow = within(screen.getByText(/manga id/i).closest('tr'));
+    expect(
+      idRow.getByRole('cell', { name: manga.manga.manga_id.toString() })
+    ).toBeTruthy();
   });
 });

@@ -95,7 +95,7 @@
     "@next/bundle-analyzer": "^10.1.2",
     "@testing-library/jest-dom": "^5.11.10",
     "@testing-library/react": "^11.2.6",
-    "@testing-library/user-event": "^12.8.3",
+    "@testing-library/user-event": "^13.1.8",
     "@types/enzyme": "^3.10.8",
     "@types/react-table": "^7.0.29",
     "@wojtekmaj/enzyme-adapter-react-17": "^0.6.0",

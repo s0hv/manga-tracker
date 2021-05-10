@@ -257,7 +257,7 @@ module.exports.checkAuth = (app) => {
                 res.cookie('auth', newToken, {
                   httpOnly: true,
                   secure: !dev,
-                  sameSite: 'strict',
+                  sameSite: 'lax',
                   expires: expiresAt,
                 });
                 resolve(row.user_id);

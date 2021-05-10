@@ -77,7 +77,7 @@ function MangaSourceList(props) {
   return (
     <List
       component='nav'
-      aria-labelledby='nested-list-subheader'
+      aria-label='manga sources'
       className={`${classes.root} ${classesProp.join(' ')}`}
     >
       <ListItem button onClick={handleClick} className={classes.mainItem}>
@@ -98,6 +98,7 @@ MangaSourceList.propTypes = {
   followUnfollow: PropTypes.func,
   userFollows: PropTypes.arrayOf(PropTypes.number),
   classesProp: PropTypes.arrayOf(PropTypes.string),
+  openByDefault: PropTypes.bool,
 };
 
 export default MangaSourceList;

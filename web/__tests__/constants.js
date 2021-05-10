@@ -82,7 +82,7 @@ export const fullManga = {
 export const emptyFullManga = {
   manga: {
     manga_id: 2,
-    title: 'Dr. STONE',
+    title: 'Dr. STONE 2',
     release_interval: undefined,
     latest_release: null,
     estimated_release: null,

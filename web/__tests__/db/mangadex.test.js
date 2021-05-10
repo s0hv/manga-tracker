@@ -12,7 +12,8 @@ afterAll(async () => {
   await pgp.end();
 });
 
-describe('mangadex API works correctly', () => {
+// Disabled temporarily until site is working again
+describe.skip('mangadex API works correctly', () => {
   afterEach(() => {
     jest.restoreAllMocks();
     mangadexLimiter.delete('mangadex');
