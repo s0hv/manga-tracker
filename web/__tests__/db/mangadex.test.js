@@ -12,6 +12,14 @@ afterAll(async () => {
   await pgp.end();
 });
 
+// afterAll not called if no tests run.
+// This makes the program hang due to unclosed database connection
+describe('close db', () => {
+  it('closes db', () => {
+    expect(1).toEqual(1);
+  });
+});
+
 // Disabled temporarily until site is working again
 describe.skip('mangadex API works correctly', () => {
   afterEach(() => {
