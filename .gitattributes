@@ -1,0 +1,3 @@
+# Test files for scraping
+src/tests/**/*.html linguist-vendored
+src/tests/**/*.xml linguist-vendored
