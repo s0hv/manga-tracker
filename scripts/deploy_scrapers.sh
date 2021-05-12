@@ -54,13 +54,6 @@ set -a # automatically export all variables
 source .env
 set +a
 
-echo "Adding services" |& tee -a $filename
-python add_missing_services.py |& tee -a $filename
-if [ ${PIPESTATUS[0]} -ne 0 ]
-  then
-    echo -e >&2 "${YELLOW}Failed to add missing services. Manual fixes required${NC}" |& tee -a $filename
-    exit 1
-fi
 
 echo "Starting application" |& tee -a $filename
 $unbuffer pm2 start $process_name |& tee -a $filename

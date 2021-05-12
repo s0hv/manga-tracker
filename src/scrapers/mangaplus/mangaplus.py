@@ -7,7 +7,7 @@ import requests
 from psycopg2.extras import execute_batch
 
 from src.enums import Status
-from src.scrapers.base_scraper import BaseScraper, BaseChapter
+from src.scrapers.base_scraper import BaseChapter, BaseScraperWhole
 from src.utils.utilities import random_timedelta
 from .protobuf import mangaplus_pb2
 from ...db.models.manga import MangaService
@@ -265,7 +265,7 @@ class ChapterWrapper(BaseChapter):
         }
 
 
-class MangaPlus(BaseScraper):
+class MangaPlus(BaseScraperWhole):
     ID = 1
     NAME = 'MANGA Plus'
     API = 'https://jumpg-webapi.tokyo-cdn.com/api/title_detail?title_id={}'
@@ -455,6 +455,3 @@ class MangaPlus(BaseScraper):
                     cursor.execute(sql, (manga_id, Status.COMPLETED, artist, author[0]))
 
         return True
-
-    def add_service(self) -> Optional[int]:
-        return self.add_service_whole()

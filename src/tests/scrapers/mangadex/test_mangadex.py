@@ -2,7 +2,7 @@ import json
 import os
 import pickle
 import unittest
-from typing import Tuple
+from typing import Tuple, Dict
 from unittest.mock import MagicMock
 from unittest.mock import patch
 
@@ -19,20 +19,27 @@ logger = setup_logging.setup()
 
 
 class MangadexTests(BaseTestClasses.DatabaseTestCase):
+    api_data: Dict = NotImplemented
+    api_data_bytes: bytes = NotImplemented
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        super(MangadexTests, cls).setUpClass()
+
+        api_path = os.path.join(os.path.dirname(__file__), 'api_data.json')
+        with open(api_path, encoding='utf-8') as f:
+            cls.api_data = json.load(f)
+
+        with open(api_path, 'rb') as f:
+            cls.api_data_bytes = f.read()
 
     def setUp(self) -> None:
         super().setUp()
         self.mangadex = MangaDex(self._conn, self.dbutil)
 
-        api_path = os.path.join(os.path.dirname(__file__), 'api_data.json')
-        with open(api_path, encoding='utf-8') as f:
-            self.api_data = json.load(f)
-
-        with open(api_path, 'rb') as f:
-            self.api_data_bytes = f.read()
-
-    def get_api_url(self) -> Tuple[str, str]:
-        data = self.api_data['data']['manga']
+    @staticmethod
+    def get_api_url() -> Tuple[str, str]:
+        data = MangadexTests.api_data['data']['manga']
         title_id = str(data['id'])
         return f'{MangaDex.MANGADEX_API}/manga/{title_id}?include=chapters', title_id
 

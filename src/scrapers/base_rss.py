@@ -6,11 +6,10 @@ from datetime import datetime, timedelta
 from typing import Optional, List, Iterable, Dict, Pattern, Any, Type, Union
 
 import feedparser
-import psycopg2
 
 from src.db.mappers.chapter_mapper import ChapterMapper
 from src.errors import FeedHttpError, InvalidFeedError
-from src.scrapers.base_scraper import BaseScraper, BaseChapter
+from src.scrapers.base_scraper import BaseChapter, BaseScraperWhole
 from src.utils.utilities import (match_title, is_valid_feed,
                                  get_latest_chapters)
 
@@ -93,7 +92,7 @@ class RSSChapter(BaseChapter):
         return self.chapter_title or f'{"Volume " + str(self.volume) + ", " if self.volume is not None else ""}Chapter {self.chapter_number}{"" if not self.decimal else "." + str(self.decimal)}'
 
 
-class BaseRSS(BaseScraper, ABC):
+class BaseRSS(BaseScraperWhole, ABC):
     TITLE_REGEX: Pattern = NotImplemented
     Chapter: Type[RSSChapter] = RSSChapter
 
@@ -160,13 +159,6 @@ class BaseRSS(BaseScraper, ABC):
             Title of the manga
         """
         raise NotImplementedError
-
-    def set_checked(self, service_id: int) -> None:
-        try:
-            super().set_checked(service_id)
-            self.dbutil.update_service_whole(service_id, self.min_update_interval())
-        except psycopg2.Error:
-            logger.exception(f'Failed to update service {service_id}')
 
     def parse_feed(self, entries: Iterable[Dict]) -> List[RSSChapter]:
         titles = []
@@ -269,6 +261,3 @@ class BaseRSS(BaseScraper, ABC):
         self.dbutil.update_latest_chapter(tuple(c for c in get_latest_chapters(chapter_rows).values()))
 
         return manga_ids
-
-    def add_service(self):
-        self.add_service_whole()

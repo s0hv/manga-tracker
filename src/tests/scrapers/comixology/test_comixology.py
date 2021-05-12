@@ -12,7 +12,6 @@ from lxml import etree
 import setup_logging
 from src.scrapers.comixology import ComiXology
 from src.tests.testing_utils import BaseTestClasses
-from src.utils.dbutils import DbUtil
 
 base_path = os.path.dirname(__file__)
 test_chapter_site = os.path.join(base_path, 'test_chapter.html')
@@ -41,7 +40,6 @@ class TestComiXologyScraper(BaseTestClasses.DatabaseTestCase, BaseTestClasses.Mo
     @classmethod
     def setUpClass(cls) -> None:
         super(TestComiXologyScraper, cls).setUpClass()
-        ComiXology(cls._conn, DbUtil(cls._conn)).add_service()
 
         cls.page1 = cls.read_page1()
         cls.page2 = cls.read_page2()

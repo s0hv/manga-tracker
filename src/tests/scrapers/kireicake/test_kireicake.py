@@ -89,10 +89,6 @@ correct_entries = {
 
 
 class KireiCakeTest(BaseTestClasses.DatabaseTestCase):
-    def setUp(self) -> None:
-        super().setUp()
-        KireiCake(self.conn, self.dbutil).add_service()
-
     def get_scraper(self) -> KireiCake:
         return KireiCake(self.conn, self.dbutil)
 

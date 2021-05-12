@@ -12,6 +12,7 @@ from src.errors import FeedHttpError, InvalidFeedError
 if TYPE_CHECKING:
     # noinspection PyUnresolvedReferences
     from src.scrapers.base_scraper import BaseChapter as BaseChapterType
+    from src.utils.dbutils import DbUtil
 
 logger = logging.getLogger('debug')
 
@@ -114,3 +115,16 @@ def get_latest_chapters(rows: Iterable[Union[dict, DictRow]]) -> Dict[str, Tuple
         chapter_data[manga_id] = (row['manga_id'], row['chapter_number'], row['release_date'])
 
     return chapter_data
+
+
+def inject_service_values(dbutil: 'DbUtil'):
+    """
+    Injects configs and other possible values into scraper class variables.
+    Must be run before instantiating any scraper
+    """
+    configs = dbutil.get_service_configs()
+    from src.scrapers import SCRAPERS_ID
+    for config in configs:
+        Service = SCRAPERS_ID.get(config.service_id)
+        if Service is not None:
+            Service.CONFIG = config

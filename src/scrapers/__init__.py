@@ -17,6 +17,6 @@ SCRAPERS: Dict[str, Type['BaseScraper']] = {
     KireiCake.URL: KireiCake
 }
 
-SCRAPERS_ID = {
+SCRAPERS_ID: Dict[int, Type['BaseScraper']] = {
     s.ID: s for s in SCRAPERS.values()
 }

@@ -166,6 +166,12 @@ class BaseTestClasses:
             return MangaService(service_id=scraper.ID, title_id=id_,
                                 title=f'{id_}_manga')
 
+        def create_manga_service(self, scraper: Type['BaseScraper'] = DummyScraper) -> MangaService:
+            id_ = self.get_str_id()
+            ms = MangaService(service_id=scraper.ID, title_id=id_,
+                              title=f'{id_}_manga')
+            return self.dbutil.add_manga_service(ms, add_manga=True)
+
         def assertChapterEqualsRow(self, chapter: 'Chapter', row: DictRow) -> None:
             pairs = [
                 ('chapter_title', 'title'),

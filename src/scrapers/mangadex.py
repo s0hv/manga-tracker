@@ -9,7 +9,6 @@ from json.decoder import JSONDecodeError
 from typing import Dict, Collection, Iterable, Optional, List, Any, Tuple
 
 import feedparser
-import psycopg2
 import requests
 from psycopg2.extras import execute_values
 
@@ -18,7 +17,7 @@ from src.db.models.chapter import Chapter as ChapterModel
 from src.db.models.manga import MangaService
 from src.enums import Status
 from src.errors import FeedHttpError, InvalidFeedError
-from src.scrapers.base_scraper import BaseScraper, BaseChapter
+from src.scrapers.base_scraper import BaseChapter, BaseScraperWhole
 from src.utils.utilities import match_title, is_valid_feed, get_latest_chapters
 
 logger = logging.getLogger('debug')
@@ -91,11 +90,11 @@ class Chapter(BaseChapter):
         return self.chapter_title or f'{"Volume " + str(self.volume) + ", " if self.volume is not None else ""}Chapter {self.chapter_number}{"" if not self.decimal else "." + str(self.decimal)}'
 
 
-class MangaDex(BaseScraper):
+class MangaDex(BaseScraperWhole):
     ID = 2
     URL = 'https://mangadex.org'
     NAME = 'MangaDex'
-    FEED_URL = 'REPLACE ME'  # Temp url that will be replaced in the database
+    FEED_URL = 'https://api.mangadex.org'  # Temp url that will be replaced in the database
     CHAPTER_REGEX = re.compile(r'(?P<manga_title>.+) -($| (((?:Volume (?P<volume>\d+),? )?Chapter (?P<chapter>\d+)(?:\.?(?P<decimal>\d+))?)|(?:(?P<chapter_title>.+?)(( - )?Oneshot)?)$))')
     DESCRIPTION_REGEX = re.compile(r'Group: (?P<group>.+?) - Uploader: (?P<uploader>.+?) - Language: (?P<language>\w+)')
     UPDATE_INTERVAL = timedelta(minutes=30)
@@ -193,13 +192,6 @@ class MangaDex(BaseScraper):
         self.dbutil.add_chapters(entries, manga_id, service_id, fetch=False)
         self.update_chapter_infos([title_id], [c.chapter_identifier for c in entries], service_id)
         return True
-
-    def set_checked(self, service_id: int) -> None:
-        try:
-            super().set_checked(service_id)
-            self.dbutil.update_service_whole(service_id, self.min_update_interval())
-        except psycopg2.Error:
-            logger.exception(f'Failed to update service {service_id}')
 
     def get_only_latest_entries(self, service_id: int, entries: Iterable[Chapter]) -> Collection[Chapter]:
         try:
@@ -434,7 +426,3 @@ class MangaDex(BaseScraper):
             with self.conn.cursor() as cur:
                 execute_values(cur, sql, chapters, page_size=500)
                 execute_values(cur, info_sql, manga_info, page_size=500)
-
-    def add_service(self):
-        self.add_service_whole()
-        logger.error('Mangadex feed url must be changed in the service_whole table before use')

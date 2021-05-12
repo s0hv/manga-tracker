@@ -1,5 +1,6 @@
 import abc
 import logging
+from abc import ABC
 from datetime import timedelta, datetime
 from inspect import isabstract
 from itertools import groupby
@@ -14,6 +15,7 @@ from psycopg2.extensions import connection as Connection
 from src.db.mappers.chapter_mapper import ChapterMapper
 from src.db.models.chapter import Chapter as ChapterModel
 from src.db.models.manga import MangaService
+from src.db.models.services import ServiceConfig
 
 if TYPE_CHECKING:
     from src.utils.dbutils import DbUtil
@@ -123,6 +125,9 @@ class BaseScraper(abc.ABC):
     MANGA_URL_FORMAT: ClassVar[str] = NotImplemented
     """Format of manga urls"""
 
+    CONFIG: ServiceConfig = NotImplemented
+    """Service configuration values"""
+
     def __init_subclass__(cls, **kwargs):
         # Ignore for abstract classes
         if isabstract(cls):
@@ -134,9 +139,16 @@ class BaseScraper(abc.ABC):
         if cls.URL is NotImplemented:
             raise NotImplementedError("Service doesn't have the URL class property")
 
-    def __init__(self, conn, dbutil: 'DbUtil'):
+    def __init__(self, conn, dbutil: Optional['DbUtil'] = None):
+        if self.CONFIG is NotImplemented:
+            raise NotImplementedError(f'Service config value not set for {type(self).__name__}')
+
         self._conn = conn
-        self._dbutil = dbutil
+        if dbutil is None:
+            from src.utils.dbutils import DbUtil
+            self._dbutil = DbUtil(conn)
+        else:
+            self._dbutil = dbutil
 
     @property
     def conn(self) -> Connection:
@@ -199,18 +211,6 @@ class BaseScraper(abc.ABC):
                 cur.execute(sql, (self.ID, self.NAME, self.URL, self.CHAPTER_URL_FORMAT, self.MANGA_URL_FORMAT))
                 return cur.fetchone()[0]
 
-    def add_service_whole(self) -> Optional[int]:
-        service_id = BaseScraper.add_service(self)
-        if not service_id:
-            return None
-        with self.conn:
-            with self.conn.cursor() as cur:
-                sql = 'INSERT INTO service_whole (service_id, feed_url, last_check, next_update, last_id) VALUES ' \
-                      '(%s, %s, NULL, NULL, NULL)'
-                cur.execute(sql, (service_id, self.FEED_URL))
-
-        return service_id
-
     @staticmethod
     def titles_dict_to_manga_service(
             titles: Mapping[str, Sequence[BaseChapter]],
@@ -258,3 +258,24 @@ class BaseScraper(abc.ABC):
                                                      service_id))
 
         return chapters
+
+
+class BaseScraperWhole(BaseScraper, ABC):
+    def add_service(self) -> Optional[int]:
+        service_id = super().add_service()
+        if not service_id:
+            return None
+        with self.conn:
+            with self.conn.cursor() as cur:
+                sql = 'INSERT INTO service_whole (service_id, feed_url, last_check, next_update, last_id) VALUES ' \
+                      '(%s, %s, NULL, NULL, NULL)'
+                cur.execute(sql, (service_id, self.FEED_URL))
+
+        return service_id
+
+    def set_checked(self, service_id: int) -> None:
+        try:
+            super().set_checked(service_id)
+            self.dbutil.update_service_whole(service_id, self.min_update_interval())
+        except psycopg2.Error:
+            logger.exception(f'Failed to update service {service_id}')

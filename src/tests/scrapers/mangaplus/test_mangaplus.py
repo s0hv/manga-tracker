@@ -2,6 +2,7 @@ import json
 import os
 import unittest
 from base64 import b64decode
+from typing import Dict
 
 import responses
 
@@ -24,17 +25,32 @@ def find_dict_inequality(d1, d2):
 
 
 class TestMangaPlusParser(BaseTestClasses.DatabaseTestCase):
+    test_cases: Dict = NotImplemented
+    request_data_jojo: bytes = NotImplemented
+
+    @staticmethod
+    def read_test_cases() -> Dict:
+        file = os.path.dirname(__file__)
+        with open(os.path.join(file, 'mangaplus.json'), encoding='utf-8') as f:
+            return json.load(f)
+
+    @staticmethod
+    def read_request_data() -> bytes:
+        file = os.path.dirname(__file__)
+
+        with open(os.path.join(file, 'mangaplus_jojo.dat'), 'rb') as f:
+            return f.read()
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        super(TestMangaPlusParser, cls).setUpClass()
+        cls.test_cases = cls.read_test_cases()
+        cls.request_data_jojo = cls.read_request_data()
+
     def setUp(self) -> None:
         super().setUp()
         self.dbutil = spy_on(self.dbutil)
         self.mangaplus = MangaPlus(self._conn, self.dbutil)
-
-        file = os.path.dirname(__file__)
-        with open(os.path.join(file, 'mangaplus.json'), encoding='utf-8') as f:
-            self.test_cases = json.load(f)
-
-        with open(os.path.join(file, 'mangaplus_jojo.dat'), 'rb') as f:
-            self.request_data_jojo = f.read()
 
     def test_series(self):
         for case in self.test_cases:
