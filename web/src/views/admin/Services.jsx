@@ -113,6 +113,7 @@ function Services(props) {
     <Container maxWidth='lg' style={{ minWidth: '950px' }}>
       <TableContainer component={Paper}>
         <MaterialTable
+          title='Services'
           columns={columns}
           data={data}
           sortable

@@ -17,11 +17,13 @@ exports[`Services page should render correctly should render correctly with serv
         className="MuiToolbar-root MuiToolbar-regular makeStyles-root-4 MuiToolbar-gutters"
       >
         <h6
-          aria-label="Table title"
           className="MuiTypography-root makeStyles-title-5 MuiTypography-h6"
-        />
+        >
+          Services
+        </h6>
       </div>
       <table
+        aria-label="Services"
         className="MuiTable-root"
         role="table"
       >
@@ -921,11 +923,13 @@ exports[`Services page should render correctly should render correctly without s
         className="MuiToolbar-root MuiToolbar-regular makeStyles-root-4 MuiToolbar-gutters"
       >
         <h6
-          aria-label="Table title"
           className="MuiTypography-root makeStyles-title-5 MuiTypography-h6"
-        />
+        >
+          Services
+        </h6>
       </div>
       <table
+        aria-label="Services"
         className="MuiTable-root"
         role="table"
       >
