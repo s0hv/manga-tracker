@@ -3,10 +3,12 @@ import { NextSeo } from 'next-seo';
 import React from 'react';
 import withError from '../../../utils/withError';
 import Manga from '../../../views/admin/MangaAdmin';
+import { jsonSerializable } from '../../../utils/utilities';
 
 function MangaPage(props) {
   const {
     manga,
+    serviceConfigs,
   } = props;
 
   return (
@@ -17,7 +19,7 @@ function MangaPage(props) {
         noindex
       />
       <ConfirmProvider>
-        <Manga mangaData={{ ...manga }} />
+        <Manga mangaData={{ ...manga }} serviceConfigs={serviceConfigs} />
       </ConfirmProvider>
     </>
   );
@@ -29,9 +31,9 @@ export async function getServerSideProps({ req, params }) {
   }
 
   const { getFullManga } = require('../../../../db/manga');
+  const { getServiceConfigs } = require('../../../../db/services');
 
   let manga;
-  let userFollows;
   try {
     manga = await getFullManga(params.manga_id);
     if (!manga) {
@@ -44,12 +46,13 @@ export async function getServerSideProps({ req, params }) {
   if (!manga) {
     return { props: { error: 404 }};
   }
-  const data = JSON.parse(JSON.stringify(manga));
+  const data = jsonSerializable(manga);
+  const serviceConfigs = jsonSerializable(await getServiceConfigs());
 
   return {
     props: {
       manga: data,
-      follows: userFollows || [],
+      serviceConfigs,
     },
   };
 }

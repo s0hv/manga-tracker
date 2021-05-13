@@ -11,6 +11,8 @@ import {
   mockNotistackHooks,
   mockUTCDates,
   muiSelectValue,
+  withUser,
+  adminUser,
 } from '../../utils';
 import MangaAdmin from '../../../src/views/admin/MangaAdmin';
 import { fullManga } from '../../constants';
@@ -25,21 +27,54 @@ describe('Manga admin page should render correctly', () => {
   fetchMock.get('*', []);
 
   it('should render correctly without data', async () => {
-    let baseElement;
     await act(async () => {
-      ({ baseElement } = render(<MangaAdmin mangaData={{ manga: {}}} />));
+      render(<MangaAdmin mangaData={{ manga: {}}} serviceConfigs={[]} />);
     });
 
-    expect(baseElement).toMatchSnapshot();
+    expect(screen.getByRole('button', { name: 'go back to manga page' })).toBeInTheDocument();
+
+    // Aliases
+    expect(screen.queryByText(/alternative titles/i)).not.toBeInTheDocument();
+
+    // Manga info
+    expect(screen.getByText(/latest release/i)).toBeInTheDocument();
+
+    // Check that scheduled runs table is rendered
+    expect(screen.getByRole('table', { name: /scheduled runs/i })).toBeInTheDocument();
   });
 
   it('should render correctly with data', async () => {
-    let baseElement;
+    // Does not test scheduled runs. They are tested separately
     await act(async () => {
-      ({ baseElement } = render(<MangaAdmin mangaData={fullManga} />));
+      render(
+        await withUser(
+          adminUser,
+          <MangaAdmin mangaData={fullManga} serviceConfigs={[]} />
+        )
+      );
     });
 
-    expect(baseElement).toMatchSnapshot();
+    expect(screen.getByRole('button', { name: 'go back to manga page' })).toBeInTheDocument();
+
+    // Aliases
+    expect(screen.getByText(/alternative titles/i)).toBeInTheDocument();
+    expect(screen.getAllByLabelText(/set alias as main title/i)).not.toHaveLength(0);
+
+    // Manga info
+    expect(screen.getByText(/latest release/i)).toBeInTheDocument();
+
+    // Check that scheduled runs table is rendered
+    expect(screen.getByRole('table', { name: /scheduled runs/i })).toBeInTheDocument();
+  });
+
+  it('should filter out services from add scheduled run menu', async () => {
+    await act(async () => {
+      render(<MangaAdmin mangaData={fullManga} serviceConfigs={[]} />);
+    });
+
+    userEvent.click(screen.getByLabelText('add scheduled run'));
+    const form = within(screen.getByRole('presentation', { name: 'Create item form' }));
+    expect(form.queryAllByRole('option')).toHaveLength(0);
   });
 });
 
@@ -55,11 +90,20 @@ describe('Manga admin page should handle data fetching correctly', () => {
     fetchMock.get(`/api/admin/manga/${mangaId}/scheduledRuns`, getMock);
   });
 
-  const renderPage = async () => {
+  const renderPage = async (expectGetMock = true) => {
+    const serviceConfigs = [
+      {
+        service_id: fullManga.services[0].service_id,
+        scheduled_runs_enabled: true,
+      },
+    ];
     await act(async () => {
-      render(<MangaAdmin mangaData={fullManga} />);
+      render(<MangaAdmin mangaData={fullManga} serviceConfigs={serviceConfigs} />);
     });
-    expect(getMock).toHaveBeenCalledTimes(1);
+
+    if (expectGetMock) {
+      expect(getMock).toHaveBeenCalledTimes(1);
+    }
   };
 
   const submitForm = async () => {
@@ -91,14 +135,13 @@ describe('Manga admin page should handle data fetching correctly', () => {
     fetchMock.post(`/api/admin/manga/${mangaId}/scheduledRun/${serviceId}`, postMock);
     fetchMock.get(`/api/admin/manga/${mangaId}/scheduledRuns`, partialGetMock, { overwriteRoutes: true });
 
-    await act(async () => {
-      render(<MangaAdmin mangaData={fullManga} />);
-    });
+    await renderPage(false);
+
     expect(partialGetMock).toHaveBeenCalledTimes(1);
 
     expect(screen.queryByText(serviceName)).toBeNull();
 
-    userEvent.click(screen.getByLabelText('Add item'));
+    userEvent.click(screen.getByLabelText('add scheduled run'));
 
     const form = within(screen.getByRole('presentation', { name: 'Create item form' }));
     muiSelectValue(form, 'Service select', serviceName);
@@ -153,7 +196,7 @@ describe('Manga admin page should handle data fetching correctly', () => {
     expect(enqueueSnackbarMock).toHaveBeenCalledTimes(1);
     expectErrorSnackbar();
 
-    userEvent.click(screen.getByLabelText('Add item'));
+    userEvent.click(screen.getByLabelText('add scheduled run'));
 
     const form = within(screen.getByRole('presentation', { name: 'Create item form' }));
     muiSelectValue(form, 'Service select', serviceName);

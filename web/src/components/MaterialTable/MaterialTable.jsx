@@ -54,6 +54,7 @@ const MaterialTable = (props) => {
     rowCount = 0,
     loading = false,
     CreateDialog,
+    toolbarProps,
   } = props;
 
   if (data === null || data === undefined) {
@@ -112,9 +113,15 @@ const MaterialTable = (props) => {
 
   return (
     <div id={id}>
-      <TableToolbar title={title} DialogComponent={CreateDialog} creatable={creatable} />
+      <TableToolbar
+        title={title}
+        DialogComponent={CreateDialog}
+        creatable={creatable}
+        {...toolbarProps}
+      />
       <Table
         size={tableSize}
+        aria-label={title}
         {...getTableProps()}
       >
         <TableHead className={classes.tableHead}>
@@ -192,6 +199,7 @@ const propTypes = {
   rowCount: PropTypes.number,
   loading: PropTypes.bool,
   CreateDialog: PropTypes.func,
+  toolbarProps: PropTypes.object,
 };
 
 const MaterialTableWrapper = (props) => (

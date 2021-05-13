@@ -46,3 +46,12 @@ module.exports.updateServiceWhole = ({
   const sql = `${generateUpdate(serviceWhole, 'service_whole')} WHERE service_id=$1`;
   return db.result(sql, [serviceId]);
 };
+
+/**
+ * Get all service configs
+ * @returns {Promise<any[]>}
+ */
+module.exports.getServiceConfigs = () => {
+  const sql = 'SELECT * FROM service_config';
+  return db.many(sql);
+};
