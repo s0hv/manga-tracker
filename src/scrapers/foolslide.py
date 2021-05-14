@@ -29,7 +29,10 @@ class FoolSlideChapter(BaseChapter):
         chapter_url = chapter_link.attrib['href']
         self._chapter_title = chapter_link.text
 
-        match = self.chapter_number_regex.match(chapter_url).groupdict()
+        if (m := self.chapter_number_regex.match(chapter_url)) is None:
+            raise ValueError('FoolSlide regex failed to find chapter numbers')
+
+        match = m.groupdict()
         volume = match['volume']
         decimal = match['decimal']
         self._chapter_number = int(match['chapter'])
@@ -111,10 +114,11 @@ class FoolSlide(BaseScraperWhole, ABC):
     @staticmethod
     def parse_feed(html: str, manga_page: bool = False) -> List[FoolSlideChapter]:
         root: etree.ElementBase = etree.HTML(html)
+        titles: List[etree.ElementBase]
         if manga_page:
-            titles: List[etree.ElementBase] = root.cssselect('div.group > div.title')
+            titles = root.cssselect('div.group > div.title')
         else:
-            titles: List[etree.ElementBase] = root.cssselect('div.group > div.title')
+            titles = root.cssselect('div.group > div.title')
 
         chapters = []
 
@@ -133,7 +137,7 @@ class FoolSlide(BaseScraperWhole, ABC):
 
         return chapters
 
-    def scrape_series(self, title_id: str, service_id: int, manga_id: int, feed_url: Optional[str] = None) -> Optional[bool]:
+    def scrape_series(self, title_id: str, service_id: int, manga_id: Optional[int], feed_url: Optional[str] = None) -> Optional[bool]:
         r = requests.get(self.MANGA_URL_FORMAT.format(title_id))
         if not r.ok:
             logger.error(f'Failed to fetch {type(self).__name__} {feed_url}')
@@ -152,7 +156,8 @@ class FoolSlide(BaseScraperWhole, ABC):
                 )
             )
 
-        return self.handle_adding_chapters(chapters, service_id)
+        retval = self.handle_adding_chapters(chapters, service_id)
+        return retval if retval is None else bool(retval)
 
     def scrape_service(self, service_id: int, feed_url: str, last_update: Optional[datetime],
                        title_id: Optional[str] = None) -> Optional[Set[int]]:

@@ -6,8 +6,7 @@ from inspect import isabstract
 from itertools import groupby
 from operator import attrgetter
 from typing import (Optional, TYPE_CHECKING, ClassVar, Set, Dict, List,
-                    Sequence,
-                    Iterable, TypeVar, Mapping)
+                    Sequence, Iterable, TypeVar, Mapping, cast)
 
 import psycopg2
 from psycopg2.extensions import connection as Connection
@@ -126,7 +125,7 @@ class BaseChapterSimple(BaseChapter):
         self._manga_title = manga_title
         self._manga_url = manga_url
         self._group = group
-        self._release_date = release_date
+        self._release_date = release_date or datetime.utcnow()
 
     @property
     def chapter_title(self) -> Optional[str]:
@@ -367,7 +366,7 @@ class BaseScraperWhole(BaseScraper, ABC):
         entries = self.dbutil.get_only_latest_entries(service_id, entries)
         if not entries:
             logger.info(f'No new entries found for {type(self).__name__}')
-            return
+            return None
 
         logger.info('%s new chapters found for %s. %s', len(entries),
                     self.NAME,
@@ -405,4 +404,5 @@ class BaseScraperWhole(BaseScraper, ABC):
         } for c in chapters]
         self.dbutil.update_latest_chapter(tuple(c for c in get_latest_chapters(chapter_rows).values()))
 
-        return manga_ids
+        # At this point the set has no None values
+        return cast(Set[int], manga_ids)
