@@ -241,18 +241,18 @@ class BaseTestClasses:
 
     class ModelAssertions(unittest.TestCase):
         def assertChaptersEqual(self, a: BaseChapter, b: BaseChapter, ignore_date: bool = False):
-            self.assertEqual(a.chapter_title, b.chapter_title)
-            self.assertEqual(a.chapter_number, b.chapter_number)
-            self.assertEqual(a.volume, b.volume)
-            self.assertEqual(a.decimal, b.decimal)
+            self.assertEqual(a.chapter_title, b.chapter_title, msg='Chapter titles not equal')
+            self.assertEqual(a.chapter_number, b.chapter_number, msg='Chapter numbers not equal')
+            self.assertEqual(a.volume, b.volume, msg='Chapter volumes not equal')
+            self.assertEqual(a.decimal, b.decimal, msg='Chapter decimal numbers not equal')
             if not ignore_date:
-                self.assertEqual(a.release_date, b.release_date)
-            self.assertEqual(a.chapter_identifier, b.chapter_identifier)
-            self.assertEqual(a.title_id, b.title_id)
-            self.assertEqual(a.manga_title, b.manga_title)
-            self.assertEqual(a.manga_url, b.manga_url)
-            self.assertEqual(a.group, b.group)
-            self.assertEqual(a.title, b.title)
+                self.assertEqual(a.release_date, b.release_date, msg='Chapter release dates not equal')
+            self.assertEqual(a.chapter_identifier, b.chapter_identifier, msg='Chapter identifiers not equal')
+            self.assertEqual(a.title_id, b.title_id, msg='Manga title ids not equal')
+            self.assertEqual(a.manga_title, b.manga_title, msg='Manga titles not equal')
+            self.assertEqual(a.manga_url, b.manga_url, msg='Manga urls not equal')
+            self.assertEqual(a.group, b.group, msg='Chapter groups not equal')
+            self.assertEqual(a.title, b.title, msg='Chapter titles not equal')
 
 
 class Chapter(BaseChapter):
