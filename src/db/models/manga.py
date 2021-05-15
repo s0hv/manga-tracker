@@ -22,20 +22,21 @@ class Manga(BaseModel):
 class MangaInfo(BaseModel):
     manga_id: int
     cover: Optional[str] = None
-    status: Optional[int] = None
+    status: int = 0
     artist: Optional[str] = None
     author: Optional[str] = None
-    bookwalker: Optional[str] = None
-    baka_updates: Optional[str] = None
+    bw: Optional[str] = None
+    mu: Optional[str] = None
     mal: Optional[str] = None
-    amazon: Optional[str] = None
-    ebook_japan: Optional[str] = None
-    official_engtl: Optional[str] = None
+    amz: Optional[str] = None
+    ebj: Optional[str] = None
+    engtl: Optional[str] = None
     raw: Optional[str] = None
-    novel_updates: Optional[str] = None
-    kitsu: Optional[str] = None
-    anime_planet: Optional[str] = None
-    anilist: Optional[str] = None
+    nu: Optional[str] = None
+    kt: Optional[str] = None
+    ap: Optional[str] = None
+    al: Optional[str] = None
+    last_updated: datetime = Field(default_factory=datetime.utcnow)
 
 
 class MangaServicePartial(BaseModel):

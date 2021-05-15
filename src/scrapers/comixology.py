@@ -5,12 +5,11 @@ import time
 from datetime import timedelta, datetime
 from typing import Optional, List, Set, Dict, Collection
 
-import psycopg2
 import requests
 from lxml import etree
 
 from src.db.mappers.chapter_mapper import ChapterMapper
-from src.scrapers.base_scraper import BaseScraper, BaseChapter
+from src.scrapers.base_scraper import BaseChapter, BaseScraperWhole
 from src.utils.dbutils import DbUtil
 from src.utils.utilities import random_timedelta, get_latest_chapters
 
@@ -130,7 +129,7 @@ class Chapter(BaseChapter):
         return self.chapter_title
 
 
-class ComiXology(BaseScraper):
+class ComiXology(BaseScraperWhole):
     ID = 5
     URL = 'https://www.comixology.com'
     FEED_URL = 'https://www.comixology.com/New-Manga-Releases/list/24959'
@@ -139,16 +138,9 @@ class ComiXology(BaseScraper):
     MANGA_URL_FORMAT = 'https://www.comixology.com/manga/comics-series/{}'
     PAGE_URL = 'https://www.comixology.com/site/list?id={id}&pageNum={page}&pageLetter=null&cu=0'
 
-    def __init__(self, conn, dbutil: DbUtil):
+    def __init__(self, conn, dbutil: Optional[DbUtil] = None):
         super().__init__(conn, dbutil)
         self.service_id: Optional[int] = None
-
-    def set_checked(self, service_id: int) -> None:
-        try:
-            super().set_checked(service_id)
-            self.dbutil.update_service_whole(service_id, self.min_update_interval())
-        except psycopg2.Error:
-            logger.exception(f'Failed to update service {service_id}')
 
     @staticmethod
     def get_chapter_elements(root: etree.ElementBase) -> List[etree.ElementBase]:
@@ -389,4 +381,4 @@ class ComiXology(BaseScraper):
 
             return service_id
         else:
-            super().add_service_whole()
+            super().add_service()

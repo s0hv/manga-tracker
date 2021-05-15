@@ -11,7 +11,7 @@ exports[`Search should render correctly without input 1`] = `
   role="combobox"
 >
   <div
-    aria-label="Manga search"
+    aria-label="manga search"
     className="MuiInputBase-root makeStyles-inputRoot-2 MuiInputBase-adornedEnd"
     onClick={[Function]}
   >

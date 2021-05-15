@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from typing import Optional
 
+from src.db.models.services import ServiceConfig
 from src.scrapers.base_scraper import BaseScraper
 from src.utils.dbutils import DbUtil
 
@@ -11,6 +12,7 @@ class DummyScraper(BaseScraper):
     CHAPTER_URL_FORMAT = 'chapter/{}'
     MANGA_URL_FORMAT = 'manga/{}'
     NAME = 'Testing scraper'
+    CONFIG = ServiceConfig(service_id=ID)
 
     @staticmethod
     def min_update_interval() -> timedelta:
@@ -25,7 +27,7 @@ class DummyScraper(BaseScraper):
                        title_id: Optional[str] = None):
         pass
 
-    def __init__(self, conn, dbutil: DbUtil):
+    def __init__(self, conn, dbutil: Optional[DbUtil] = None):
         super().__init__(conn, dbutil)
 
 
@@ -35,3 +37,4 @@ class DummyScraper2(DummyScraper):
     CHAPTER_URL_FORMAT = 'chapter/{}'
     MANGA_URL_FORMAT = 'manga/{}'
     NAME = 'Testing scraper 2'
+    CONFIG = ServiceConfig(service_id=ID)

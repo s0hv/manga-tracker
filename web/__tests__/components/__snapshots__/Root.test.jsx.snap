@@ -81,7 +81,7 @@ exports[`Root component should render correctly Should render with empty input a
           role="combobox"
         >
           <div
-            aria-label="Manga search"
+            aria-label="manga search"
             className="MuiInputBase-root makeStyles-inputRoot-16 MuiInputBase-adornedEnd"
             onClick={[Function]}
           >
@@ -890,10 +890,14 @@ exports[`Root component should render correctly should render correctly with dat
                             fullWidth={true}
                             getOptionLabel={[Function]}
                             id="title-search"
+                            inputValue=""
+                            onChange={[Function]}
+                            onInputChange={[Function]}
                             openOnFocus={true}
                             options={Array []}
                             renderInput={[Function]}
                             renderOption={[Function]}
+                            value={null}
                           >
                             <ForwardRef(Autocomplete)
                               PopperComponent={[Function]}
@@ -931,10 +935,14 @@ exports[`Root component should render correctly should render correctly with dat
                               fullWidth={true}
                               getOptionLabel={[Function]}
                               id="title-search"
+                              inputValue=""
+                              onChange={[Function]}
+                              onInputChange={[Function]}
                               openOnFocus={true}
                               options={Array []}
                               renderInput={[Function]}
                               renderOption={[Function]}
+                              value={null}
                             >
                               <div
                                 aria-expanded={false}
@@ -946,7 +954,7 @@ exports[`Root component should render correctly should render correctly with dat
                                 role="combobox"
                               >
                                 <WithStyles(ForwardRef(InputBase))
-                                  aria-label="Manga search"
+                                  aria-label="manga search"
                                   classes={
                                     Object {
                                       "input": "makeStyles-inputInput-17",
@@ -989,11 +997,10 @@ exports[`Root component should render correctly should render correctly with dat
                                       "value": "",
                                     }
                                   }
-                                  onChange={[Function]}
                                   placeholder="Search manga"
                                 >
                                   <ForwardRef(InputBase)
-                                    aria-label="Manga search"
+                                    aria-label="manga search"
                                     classes={
                                       Object {
                                         "adornedEnd": "MuiInputBase-adornedEnd",
@@ -1052,11 +1059,10 @@ exports[`Root component should render correctly should render correctly with dat
                                         "value": "",
                                       }
                                     }
-                                    onChange={[Function]}
                                     placeholder="Search manga"
                                   >
                                     <div
-                                      aria-label="Manga search"
+                                      aria-label="manga search"
                                       className="MuiInputBase-root makeStyles-inputRoot-16 MuiInputBase-adornedEnd"
                                       onClick={[Function]}
                                     >
@@ -2320,10 +2326,14 @@ exports[`Root component should render correctly should render correctly with use
                             fullWidth={true}
                             getOptionLabel={[Function]}
                             id="title-search"
+                            inputValue=""
+                            onChange={[Function]}
+                            onInputChange={[Function]}
                             openOnFocus={true}
                             options={Array []}
                             renderInput={[Function]}
                             renderOption={[Function]}
+                            value={null}
                           >
                             <ForwardRef(Autocomplete)
                               PopperComponent={[Function]}
@@ -2361,10 +2371,14 @@ exports[`Root component should render correctly should render correctly with use
                               fullWidth={true}
                               getOptionLabel={[Function]}
                               id="title-search"
+                              inputValue=""
+                              onChange={[Function]}
+                              onInputChange={[Function]}
                               openOnFocus={true}
                               options={Array []}
                               renderInput={[Function]}
                               renderOption={[Function]}
+                              value={null}
                             >
                               <div
                                 aria-expanded={false}
@@ -2376,7 +2390,7 @@ exports[`Root component should render correctly should render correctly with use
                                 role="combobox"
                               >
                                 <WithStyles(ForwardRef(InputBase))
-                                  aria-label="Manga search"
+                                  aria-label="manga search"
                                   classes={
                                     Object {
                                       "input": "makeStyles-inputInput-17",
@@ -2419,11 +2433,10 @@ exports[`Root component should render correctly should render correctly with use
                                       "value": "",
                                     }
                                   }
-                                  onChange={[Function]}
                                   placeholder="Search manga"
                                 >
                                   <ForwardRef(InputBase)
-                                    aria-label="Manga search"
+                                    aria-label="manga search"
                                     classes={
                                       Object {
                                         "adornedEnd": "MuiInputBase-adornedEnd",
@@ -2482,11 +2495,10 @@ exports[`Root component should render correctly should render correctly with use
                                         "value": "",
                                       }
                                     }
-                                    onChange={[Function]}
                                     placeholder="Search manga"
                                   >
                                     <div
-                                      aria-label="Manga search"
+                                      aria-label="manga search"
                                       className="MuiInputBase-root makeStyles-inputRoot-16 MuiInputBase-adornedEnd"
                                       onClick={[Function]}
                                     >
@@ -2982,7 +2994,7 @@ exports[`Root component should render correctly should render correctly with use
                                                         role="combobox"
                                                       >
                                                         <div
-                                                          aria-label="Manga search"
+                                                          aria-label="manga search"
                                                           class="MuiInputBase-root makeStyles-inputRoot-16 MuiInputBase-adornedEnd"
                                                         >
                                                           <input
@@ -3142,7 +3154,7 @@ exports[`Root component should render correctly should render correctly with use
                                                         role="combobox"
                                                       >
                                                         <div
-                                                          aria-label="Manga search"
+                                                          aria-label="manga search"
                                                           class="MuiInputBase-root makeStyles-inputRoot-16 MuiInputBase-adornedEnd"
                                                         >
                                                           <input

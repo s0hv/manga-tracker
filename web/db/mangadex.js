@@ -32,7 +32,10 @@ function getLinks(fullLinks) {
   return retVal;
 }
 
-async function fetchExtraInfo(mangadexId, mangaId, chapterIds, addChapters = true, limitChapters) {
+async function fetchExtraInfo(mangadexId, mangaId, chapterIds, forcedCheck = true) {
+  return {};
+  // Temporarily disabled
+  /* eslint-disable no-unreachable */
   mangadexLimiter.consume('mangadex', 1)
     .then(() => {
       logger.info(`Fetching extra info for ${mangaId} ${mangadexId}`);
@@ -87,54 +90,9 @@ async function fetchExtraInfo(mangadexId, mangaId, chapterIds, addChapters = tru
             });
 
           // Might as well update chapter titles and add missing chapters while we're at it
-          if (addChapters && manga.chapters) {
-            const alreadyExists = new Set(chapterIds);
-
-            const chapters = (!limitChapters ?
-              manga.chapters.filter(c => c.language === 'GB' && !alreadyExists.has(c.id.toString())) :
-              manga.chapters.filter(c => c.language === 'GB')
-                // Not sorted by default
-                .sort((a, b) => (a.chapter < b.chapter ? 1 : -1))
-                .slice(0, alreadyExists.size * 0.9)
-                .filter(c => !alreadyExists.has(c.id.toString()))
-            ).map(c => {
-              const chapter = c.chapter ? c.chapter.toString() : '0';
-              return [
-                mangaId,
-                MANGADEX_ID,
-                c.title || `${c.volume !== undefined ? 'Volume ' + c.volume + ', ' : ''}${'Chapter ' + chapter}`,
-                chapter.split('.')[0], parseInt(chapter.split('.')[1]) || null,
-                new Date(c.timestamp * 1000),
-                c.id,
-                c.groups[0]?.title,
-              ];
-            });
-
-            if (chapters.length === 0) return;
-
-            logger.info(`Adding ${chapters.length} mangadex chapters to manga ${mangaId} ${manga.title}`);
-
-            const chunkSize = 50;
-
-            // This is a fucking stupid way to do bulk inserts but i don't wanna install
-            // another lib just to do a single bulk insert
-            for (let idx=0; idx < chapters.length; idx += chunkSize) {
-              const values = [];
-              const slice = chapters.slice(idx, idx+chunkSize);
-
-              for (let i=0; i<slice.length; i++) {
-                const x = i*8;
-                values.push(`($${x+1}, $${x+2}, $${x+3}, $${x+4}, $${x+5}, $${x+6}, $${x+7}, $${x+8})`);
-              }
-              const chapterSql = `INSERT INTO chapters (manga_id, service_id, title, chapter_number, chapter_decimal, release_date, chapter_identifier, "group") 
-                                  VALUES ${values.join(',')}
-                                  ON CONFLICT (service_id, chapter_identifier) DO UPDATE SET title=EXCLUDED.title`;
-              db.result(chapterSql, slice.flat())
-                .then(res => {
-                  logger.debug('Added %d new chapters', res.rowCount);
-                })
-                .catch(err => logger.error(err));
-            }
+          if (forcedCheck) {
+            const runSql = 'INSERT INTO scheduled_runs (manga_id, service_id, created_by) VALUES ($1, $2, $3)';
+            db.none(runSql, [mangaId, MANGADEX_ID, null]);
           }
         })
         .catch((err) => {

@@ -70,7 +70,7 @@ module.exports = nextApp.prepare()
       name: 'sess',
       cookie: {
         maxAge: 7200000,
-        sameSite: 'strict',
+        sameSite: 'lax',
         httpOnly: true,
         secure: !isDev,
       },
@@ -106,7 +106,7 @@ module.exports = nextApp.prepare()
             maxAge: 2592000000, // 30d in ms
             httpOnly: true,
             secure: !isDev,
-            sameSite: 'strict',
+            sameSite: 'lax',
           });
         }
         res.redirect('/');

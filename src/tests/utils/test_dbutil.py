@@ -1,7 +1,7 @@
 import statistics
 import unittest
 from datetime import datetime, timedelta
-from typing import Type, TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional
 
 import psycopg2
 
@@ -12,6 +12,7 @@ from src.tests.scrapers.testing_scraper import DummyScraper, DummyScraper2
 from src.tests.testing_utils import Chapter, BaseTestClasses, spy_on
 
 if TYPE_CHECKING:
+    # noinspection PyUnresolvedReferences
     from src.scrapers import BaseScraper
 
 
@@ -81,38 +82,12 @@ testing_series = {
 }
 
 
-class TitleIdGenerator:
-    def __init__(self):
-        self._id = 0
-
-    def generate(self, name: str) -> str:
-        self._id += 1
-        return f'{name}_{self._id}'
-
-
 class BaseDbutilTest(BaseTestClasses.DatabaseTestCase):
-    _generator: TitleIdGenerator = NotImplemented
-
-    @classmethod
-    def setUpClass(cls) -> None:
-        super(BaseDbutilTest, cls).setUpClass()
-
-        # Integers are retained during tests but they reset to the default value
-        # for some reason. Circumvent this by using a class.
-        cls._generator = TitleIdGenerator()
-
     def setUp(self) -> None:
         super().setUp()
 
         self.test_scraper = DummyScraper(self._conn, self.dbutil)
         self.test_scraper2 = DummyScraper2(self.conn, self.dbutil)
-
-    def get_str_id(self) -> str:
-        return self._generator.generate(type(self).__name__)
-
-    def get_manga_service(self, scraper: Type['BaseScraper'] = DummyScraper) -> MangaService:
-        id_ = self.get_str_id()
-        return MangaService(service_id=scraper.ID, title_id=id_, title=f'{id_}_manga')
 
 
 class TestSplitExistingManga(BaseDbutilTest):

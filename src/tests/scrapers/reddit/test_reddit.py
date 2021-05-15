@@ -15,10 +15,6 @@ logger = setup_logging.setup()
 
 
 class TestRedditScraper(BaseTestClasses.ModelAssertions, BaseTestClasses.DatabaseTestCase):
-    def setUp(self) -> None:
-        super(TestRedditScraper, self).setUp()
-        Reddit(self.conn, self.dbutil).add_service()
-
     @staticmethod
     def read_test_data():
         p = os.path.join(os.path.dirname(__file__), 'data.pickle')

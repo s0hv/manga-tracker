@@ -12,7 +12,6 @@ from lxml import etree
 import setup_logging
 from src.scrapers.comixology import ComiXology
 from src.tests.testing_utils import BaseTestClasses
-from src.utils.dbutils import DbUtil
 
 base_path = os.path.dirname(__file__)
 test_chapter_site = os.path.join(base_path, 'test_chapter.html')
@@ -41,7 +40,6 @@ class TestComiXologyScraper(BaseTestClasses.DatabaseTestCase, BaseTestClasses.Mo
     @classmethod
     def setUpClass(cls) -> None:
         super(TestComiXologyScraper, cls).setUpClass()
-        ComiXology(cls._conn, DbUtil(cls._conn)).add_service()
 
         cls.page1 = cls.read_page1()
         cls.page2 = cls.read_page2()
@@ -230,15 +228,15 @@ class TestComiXologyScraper(BaseTestClasses.DatabaseTestCase, BaseTestClasses.Mo
         self.assertIsNotNone(manga)
 
         # Make sure only 30 chapters were added
-        chapters = self.dbutil.get_chapters(ComiXology.ID, manga.manga_id)
+        chapters = self.dbutil.get_chapters(manga.manga_id, ComiXology.ID)
         self.assertEqual(len(chapters), 30)
 
         # Make sure rest of the chapters can be added
         success = scraper.scrape_series(title_id, ComiXology.ID, manga.manga_id)
         self.assertTrue(success)
 
-        self.dbutil.get_chapters(ComiXology.ID, manga.manga_id)
-        self.assertGreater(len(self.dbutil.get_chapters(ComiXology.ID, manga.manga_id)), 30)
+        self.dbutil.get_chapters(manga.manga_id, ComiXology.ID)
+        self.assertGreater(len(self.dbutil.get_chapters(manga.manga_id, ComiXology.ID)), 30)
 
 
 if __name__ == '__main__':

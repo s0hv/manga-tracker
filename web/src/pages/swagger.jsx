@@ -1,8 +1,7 @@
-import SwaggerUI from 'swagger-ui-react';
-import 'swagger-ui-react/swagger-ui.css';
+import { RedocStandalone } from 'redoc';
 
 export default function Swagger({ spec }) {
-  return <SwaggerUI spec={spec} />;
+  return <RedocStandalone spec={spec} />;
 }
 
 export async function getStaticProps() {

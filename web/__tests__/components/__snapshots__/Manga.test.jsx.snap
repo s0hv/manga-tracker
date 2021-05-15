@@ -561,7 +561,7 @@ exports[`Manga page should render correctly should render correctly with little 
         className="makeStyles-title-1"
         variant="h4"
       >
-        Dr. STONE
+        Dr. STONE 2
       </WithStyles(ForwardRef(Typography))>
     </div>
     <div
@@ -573,7 +573,7 @@ exports[`Manga page should render correctly should render correctly with little 
         target="_blank"
       >
         <img
-          alt="Dr. STONE"
+          alt="Dr. STONE 2"
           className="makeStyles-thumbnail-4"
           src={null}
         />
@@ -612,7 +612,7 @@ exports[`Manga page should render correctly should render correctly with little 
                 "raw": "null",
                 "release_interval": undefined,
                 "status": 0,
-                "title": "Dr. STONE",
+                "title": "Dr. STONE 2",
               }
             }
           />

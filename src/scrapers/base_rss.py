@@ -6,18 +6,16 @@ from datetime import datetime, timedelta
 from typing import Optional, List, Iterable, Dict, Pattern, Any, Type, Union
 
 import feedparser
-import psycopg2
 
-from src.db.mappers.chapter_mapper import ChapterMapper
 from src.errors import FeedHttpError, InvalidFeedError
-from src.scrapers.base_scraper import BaseScraper, BaseChapter
-from src.utils.utilities import (match_title, is_valid_feed,
-                                 get_latest_chapters)
+from src.scrapers.base_scraper import BaseScraperWhole, \
+    BaseChapterSimple
+from src.utils.utilities import (match_title, is_valid_feed)
 
 logger = logging.getLogger('debug')
 
 
-class RSSChapter(BaseChapter):
+class RSSChapter(BaseChapterSimple):
     """
     A sensible default implementation for a chapter in an RSS feed
     """
@@ -33,15 +31,17 @@ class RSSChapter(BaseChapter):
                  manga_url: str = None,
                  group: str = None
                  ):
-        self._chapter_title = chapter_title
-        self._chapter_number = int(chapter_number)
-        self._chapter_identifier = chapter_identifier
-        self._title_id = title_id
-        self._volume = int(volume) if volume else None
-        self._decimal = int(decimal) if decimal else None
-        self._manga_title = manga_title
-        self._manga_url = manga_url
-        self._group = group
+        super().__init__(
+            chapter_title=chapter_title,
+            chapter_number=int(chapter_number),
+            chapter_identifier=chapter_identifier,
+            title_id=title_id,
+            volume=int(volume) if volume else None,
+            decimal=int(decimal) if decimal else None,
+            manga_title=manga_title,
+            manga_url=manga_url,
+            group=group
+        )
 
         if isinstance(release_date, time.struct_time):
             self._release_date = datetime.utcfromtimestamp(timegm(release_date))
@@ -93,13 +93,15 @@ class RSSChapter(BaseChapter):
         return self.chapter_title or f'{"Volume " + str(self.volume) + ", " if self.volume is not None else ""}Chapter {self.chapter_number}{"" if not self.decimal else "." + str(self.decimal)}'
 
 
-class BaseRSS(BaseScraper, ABC):
+class BaseRSS(BaseScraperWhole, ABC):
     TITLE_REGEX: Pattern = NotImplemented
     Chapter: Type[RSSChapter] = RSSChapter
 
     def __init_subclass__(cls, **kwargs):
         if cls.TITLE_REGEX is None:
             raise NotImplementedError('Service does not have a title regex to parse entries')
+
+        super(BaseRSS, cls).__init_subclass__()
 
     @abstractmethod
     def get_chapter_id(self, entry: Dict) -> str:
@@ -161,13 +163,6 @@ class BaseRSS(BaseScraper, ABC):
         """
         raise NotImplementedError
 
-    def set_checked(self, service_id: int) -> None:
-        try:
-            super().set_checked(service_id)
-            self.dbutil.update_service_whole(service_id, self.min_update_interval())
-        except psycopg2.Error:
-            logger.exception(f'Failed to update service {service_id}')
-
     def parse_feed(self, entries: Iterable[Dict]) -> List[RSSChapter]:
         titles = []
         for entry in entries:
@@ -227,48 +222,4 @@ class BaseRSS(BaseScraper, ABC):
             logger.exception(f'Failed to fetch feed {feed_url}')
             return
 
-        entries = self.dbutil.get_only_latest_entries(service_id, self.parse_feed(feed.entries))
-
-        if not entries:
-            logger.info(f'No new entries found for {type(self).__name__}')
-            return
-
-        logger.info('%s new chapters found. %s', len(entries),
-                    [e.chapter_identifier for e in entries])
-
-        titles = self.group_by_manga(entries)
-
-        chapters = []
-        manga_ids = set()
-
-        # Find already added titles
-        for ms in self.dbutil.find_added_titles(service_id, tuple(titles.keys())):
-            manga_ids.add(ms.manga_id)
-            for chapter in titles.pop(ms.title_id):
-                chapters.append(ChapterMapper.base_chapter_to_db(chapter, ms.manga_id, service_id))
-
-        # Add new manga
-        mangas = self.titles_dict_to_manga_service(titles, service_id, True)
-
-        for manga in self.dbutil.add_new_manga_and_check_duplicate_titles(mangas):
-            manga_ids.add(manga.manga_id)
-            for chapter in titles.get(manga.title_id, []):
-                chapters.append(
-                    ChapterMapper.base_chapter_to_db(chapter, manga.manga_id,
-                                                     service_id)
-                )
-
-        self.dbutil.add_chapters(chapters, fetch=False)
-
-        chapter_rows = [{
-            'chapter_decimal': c.chapter_decimal,
-            'manga_id': c.manga_id,
-            'chapter_number': c.chapter_number,
-            'release_date': c.release_date
-        } for c in chapters]
-        self.dbutil.update_latest_chapter(tuple(c for c in get_latest_chapters(chapter_rows).values()))
-
-        return manga_ids
-
-    def add_service(self):
-        self.add_service_whole()
+        return self.handle_adding_chapters(self.parse_feed(feed.entries), service_id)

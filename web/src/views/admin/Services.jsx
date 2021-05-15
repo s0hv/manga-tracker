@@ -9,15 +9,15 @@ import {
   EditableDateTimePicker,
   MaterialTable,
 } from '../../components/MaterialTable';
-import { csrfHeader } from '../../utils/csrf';
+import { csrfHeader, useCSRF } from '../../utils/csrf';
 
 function Services(props) {
   const {
     services = [],
-    _csrf: csrf,
   } = props;
 
   const { enqueueSnackbar } = useSnackbar();
+  const csrf = useCSRF();
 
   // Format date strings back to dates for sorting
   const data = React.useMemo(() => {
@@ -113,6 +113,7 @@ function Services(props) {
     <Container maxWidth='lg' style={{ minWidth: '950px' }}>
       <TableContainer component={Paper}>
         <MaterialTable
+          title='Services'
           columns={columns}
           data={data}
           sortable

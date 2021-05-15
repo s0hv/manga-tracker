@@ -26,6 +26,7 @@ const useStyles = makeStyles((theme) => ({
     position: 'absolute',
     width: '100%',
     marginTop: theme.spacing(10),
+    zIndex: '-1',
   },
   copyright: {
     marginLeft: theme.spacing(3),

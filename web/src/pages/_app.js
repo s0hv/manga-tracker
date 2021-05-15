@@ -25,9 +25,11 @@ import { UserProvider } from '../utils/useUser';
 function MainApp({ Component, pageProps = {}, props }) {
   const [theme, setTheme] = React.useState(props.theme);
   const [user, setUser] = React.useState(props.user);
+  const [csrf, setCsrf] = React.useState(props._csrf);
   const [prefersDark, setPrefersDark] = useState(theme === 2);
 
   useEffect(() => setUser(props.user), [props.user]);
+  useEffect(() => setCsrf(props._csrf), [props._csrf]);
 
   const childSetTheme = useCallback((val) => {
     setTheme(val);
@@ -101,7 +103,7 @@ function MainApp({ Component, pageProps = {}, props }) {
           <MuiPickersUtilsProvider utils={DateFnsUtils} locale={enLocale}>
             <SnackbarProvider>
               <UserProvider value={user}>
-                <CSRFProvider value={props._csrf}>
+                <CSRFProvider value={csrf}>
                   <Root {...props}>
                     <main>
                       <Component {...pageProps} />
@@ -122,6 +124,7 @@ MainApp.getInitialProps = async function getInitialProps({ ctx: { req, res }}) {
     return { props: { statusCode: 200 }};
   }
   sessionLogger.debug('Initial props %o', req.user);
+  sessionLogger.info(csrfProps({ req }));
 
   return {
     props: {

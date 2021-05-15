@@ -21,6 +21,7 @@ module.exports = app => {
     validateAdminUser(),
     databaseIdValidation('base'),
     databaseIdValidation('to_merge'),
+    databaseIdValidation('service').optional(),
   ], (req, res) => {
     if (hadValidationError(req, res)) return;
 
@@ -29,8 +30,8 @@ module.exports = app => {
       return;
     }
 
-    const sql = 'SELECT * FROM merge_manga($1, $2)';
-    db.oneOrNone(sql, [req.query.base, req.query.to_merge])
+    const sql = 'SELECT * FROM merge_manga($1, $2, $3)';
+    db.oneOrNone(sql, [req.query.base, req.query.to_merge, req.query.service || null])
       .then(row => {
         if (!row) {
           return res.status(500).json({ error: 'No modifications done' });

@@ -1,12 +1,12 @@
 import abc
 import logging
+from abc import ABC
 from datetime import timedelta, datetime
 from inspect import isabstract
 from itertools import groupby
 from operator import attrgetter
 from typing import (Optional, TYPE_CHECKING, ClassVar, Set, Dict, List,
-                    Sequence,
-                    Iterable, TypeVar, Mapping)
+                    Sequence, Iterable, TypeVar, Mapping, cast)
 
 import psycopg2
 from psycopg2.extensions import connection as Connection
@@ -14,6 +14,8 @@ from psycopg2.extensions import connection as Connection
 from src.db.mappers.chapter_mapper import ChapterMapper
 from src.db.models.chapter import Chapter as ChapterModel
 from src.db.models.manga import MangaService
+from src.db.models.services import ServiceConfig
+from src.utils.utilities import get_latest_chapters
 
 if TYPE_CHECKING:
     from src.utils.dbutils import DbUtil
@@ -98,6 +100,78 @@ class BaseChapter(abc.ABC):
         raise TypeError(f'Incorrect type {type(other)} for less than operator')
 
 
+class BaseChapterSimple(BaseChapter):
+    """
+    A sensible default implementation for a chapter
+    """
+    def __init__(self,
+                 chapter_title: Optional[str],
+                 chapter_number: int,
+                 chapter_identifier: str,
+                 title_id: str,
+                 volume: Optional[int] = None,
+                 decimal: Optional[int] = None,
+                 release_date: Optional[datetime] = None,
+                 manga_title: str = None,
+                 manga_url: str = None,
+                 group: str = None
+                 ):
+        self._chapter_title = chapter_title
+        self._chapter_number = chapter_number
+        self._chapter_identifier = chapter_identifier
+        self._title_id = title_id
+        self._volume = volume
+        self._decimal = decimal
+        self._manga_title = manga_title
+        self._manga_url = manga_url
+        self._group = group
+        self._release_date = release_date or datetime.utcnow()
+
+    @property
+    def chapter_title(self) -> Optional[str]:
+        return self._chapter_title
+
+    @property
+    def chapter_number(self) -> int:
+        return self._chapter_number
+
+    @property
+    def volume(self) -> Optional[int]:
+        return self._volume
+
+    @property
+    def decimal(self) -> Optional[int]:
+        return self._decimal
+
+    @property
+    def release_date(self) -> datetime:
+        return self._release_date
+
+    @property
+    def chapter_identifier(self) -> str:
+        return self._chapter_identifier
+
+    @property
+    def title_id(self) -> str:
+        return self._title_id
+
+    @property
+    def manga_title(self) -> Optional[str]:
+        return self._manga_title
+
+    @property
+    def manga_url(self) -> Optional[str]:
+        return self._manga_url
+
+    @property
+    def group(self) -> Optional[str]:
+        return self._group
+
+    @property
+    def title(self) -> str:
+        return self.chapter_title or f'{"Volume " + str(self.volume) + ", " if self.volume is not None else ""}Chapter {self.chapter_number}{"" if not self.decimal else "." + str(self.decimal)}'
+
+
 ScraperChapter = TypeVar('ScraperChapter', bound=BaseChapter)
 
 
@@ -123,6 +197,9 @@ class BaseScraper(abc.ABC):
     MANGA_URL_FORMAT: ClassVar[str] = NotImplemented
     """Format of manga urls"""
 
+    CONFIG: ServiceConfig = NotImplemented
+    """Service configuration values"""
+
     def __init_subclass__(cls, **kwargs):
         # Ignore for abstract classes
         if isabstract(cls):
@@ -134,9 +211,16 @@ class BaseScraper(abc.ABC):
         if cls.URL is NotImplemented:
             raise NotImplementedError("Service doesn't have the URL class property")
 
-    def __init__(self, conn, dbutil: 'DbUtil'):
+    def __init__(self, conn, dbutil: Optional['DbUtil'] = None):
+        if self.CONFIG is NotImplemented:
+            raise NotImplementedError(f'Service config value not set for {type(self).__name__}')
+
         self._conn = conn
-        self._dbutil = dbutil
+        if dbutil is None:
+            from src.utils.dbutils import DbUtil
+            self._dbutil = DbUtil(conn)
+        else:
+            self._dbutil = dbutil
 
     @property
     def conn(self) -> Connection:
@@ -199,18 +283,6 @@ class BaseScraper(abc.ABC):
                 cur.execute(sql, (self.ID, self.NAME, self.URL, self.CHAPTER_URL_FORMAT, self.MANGA_URL_FORMAT))
                 return cur.fetchone()[0]
 
-    def add_service_whole(self) -> Optional[int]:
-        service_id = BaseScraper.add_service(self)
-        if not service_id:
-            return None
-        with self.conn:
-            with self.conn.cursor() as cur:
-                sql = 'INSERT INTO service_whole (service_id, feed_url, last_check, next_update, last_id) VALUES ' \
-                      '(%s, %s, NULL, NULL, NULL)'
-                cur.execute(sql, (service_id, self.FEED_URL))
-
-        return service_id
-
     @staticmethod
     def titles_dict_to_manga_service(
             titles: Mapping[str, Sequence[BaseChapter]],
@@ -258,3 +330,79 @@ class BaseScraper(abc.ABC):
                                                      service_id))
 
         return chapters
+
+
+class BaseScraperWhole(BaseScraper, ABC):
+    def add_service(self) -> Optional[int]:
+        service_id = super().add_service()
+        if not service_id:
+            return None
+        with self.conn:
+            with self.conn.cursor() as cur:
+                sql = 'INSERT INTO service_whole (service_id, feed_url, last_check, next_update, last_id) VALUES ' \
+                      '(%s, %s, NULL, NULL, NULL)'
+                cur.execute(sql, (service_id, self.FEED_URL))
+
+        return service_id
+
+    def set_checked(self, service_id: int) -> None:
+        try:
+            super().set_checked(service_id)
+            self.dbutil.update_service_whole(service_id, self.min_update_interval())
+        except psycopg2.Error:
+            logger.exception(f'Failed to update service {service_id}')
+
+    def handle_adding_chapters(self, entries: List[ScraperChapter], service_id: int) -> Optional[Set[int]]:
+        """
+        Given a list of parsed chapters this method will filter out already added chapters,
+        add new manga and check for duplicate title, add the new chapters and return the updated manga ids
+        Args:
+            entries: List of chapters
+            service_id: id of the service
+
+        Returns:
+            Updated manga ids or None if update was not done
+        """
+        entries = self.dbutil.get_only_latest_entries(service_id, entries)
+        if not entries:
+            logger.info(f'No new entries found for {type(self).__name__}')
+            return None
+
+        logger.info('%s new chapters found for %s. %s', len(entries),
+                    self.NAME,
+                    [e.chapter_identifier for e in entries])
+
+        titles = self.group_by_manga(entries)
+
+        chapters = []
+        manga_ids = set()
+
+        # Find already added titles
+        for ms in self.dbutil.find_added_titles(service_id, tuple(titles.keys())):
+            manga_ids.add(ms.manga_id)
+            for chapter in titles.pop(ms.title_id):
+                chapters.append(ChapterMapper.base_chapter_to_db(chapter, ms.manga_id, service_id))
+
+        # Add new manga
+        mangas = self.titles_dict_to_manga_service(titles, service_id, True)
+
+        for manga in self.dbutil.add_new_manga_and_check_duplicate_titles(mangas):
+            manga_ids.add(manga.manga_id)
+            for chapter in titles.get(manga.title_id, []):
+                chapters.append(
+                    ChapterMapper.base_chapter_to_db(chapter, manga.manga_id,
+                                                     service_id)
+                )
+
+        self.dbutil.add_chapters(chapters, fetch=False)
+
+        chapter_rows = [{
+            'chapter_decimal': c.chapter_decimal,
+            'manga_id': c.manga_id,
+            'chapter_number': c.chapter_number,
+            'release_date': c.release_date
+        } for c in chapters]
+        self.dbutil.update_latest_chapter(tuple(c for c in get_latest_chapters(chapter_rows).values()))
+
+        # At this point the set has no None values
+        return cast(Set[int], manga_ids)

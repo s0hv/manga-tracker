@@ -13,8 +13,8 @@ from psycopg2.extras import execute_values, DictRow
 from src.db.models.chapter import Chapter
 from src.db.models.manga import (MangaService, Manga, MangaServicePartial,
                                  MangaServiceWithId)
-from src.db.models.scheduled_run import ScheduledRun
-from src.db.models.services import Service, ServiceWhole
+from src.db.models.scheduled_run import ScheduledRun, ScheduledRunResult
+from src.db.models.services import Service, ServiceWhole, ServiceConfig
 from src.utils.utilities import round_seconds
 
 if TYPE_CHECKING:
@@ -73,6 +73,21 @@ class DbUtil:
         return self._conn
 
     @optional_transaction
+    def execute(self, sql: str, args: Collection[Any] = None,
+                *, fetch: bool = None, cur: Cursor = NotImplemented) -> List[DictRow]:
+        """
+        Easy way for tests to call sql functions. Should not be used outside of tests.
+        """
+        if fetch is None:
+            fetch = sql.upper().startswith('SELECT')
+
+        cur.execute(sql, args)
+        if fetch:
+            return cur.fetchall()
+
+        return []
+
+    @optional_transaction
     def update_manga_next_update(self, service_id: int, manga_id: int,
                                  next_update: datetime, *, cur: Cursor = NotImplemented) -> None:
         sql = 'UPDATE manga_service SET next_update=%s WHERE manga_id=%s AND service_id=%s'
@@ -125,13 +140,43 @@ class DbUtil:
         sql = 'UPDATE services SET disabled_until=%s WHERE service_id=%s'
         cur.execute(sql, (disabled_until, service_id))
 
-    @staticmethod
-    def get_scheduled_runs(cur: Cursor) -> Cursor:
+    @optional_transaction
+    def get_scheduled_runs(self, *, cur: Cursor = NotImplemented) -> List[ScheduledRunResult]:
+        """
+        Get scheduled runs ordered by creation time. Checks if runs are on cooldown
+        """
+        sql = 'SELECT sr.manga_id, sr.service_id, ms.title_id FROM scheduled_runs sr ' \
+              'LEFT JOIN manga_service ms ON sr.manga_id = ms.manga_id AND sr.service_id = ms.service_id ' \
+              'INNER JOIN services s ON s.service_id = ms.service_id ' \
+              'WHERE s.scheduled_runs_disabled_until IS NULL OR s.scheduled_runs_disabled_until < NOW() ' \
+              'ORDER BY created_at'
+
+        cur.execute(sql)
+        return list(map(ScheduledRunResult.parse_obj, cur))
+
+    @optional_transaction
+    def get_all_scheduled_runs(self, *, cur: Cursor = NotImplemented) -> List[ScheduledRunResult]:
         sql = 'SELECT sr.manga_id, sr.service_id, ms.title_id FROM scheduled_runs sr ' \
               'LEFT JOIN manga_service ms ON sr.manga_id = ms.manga_id AND sr.service_id = ms.service_id'
 
         cur.execute(sql)
-        return cur
+        return list(map(ScheduledRunResult.parse_obj, cur))
+
+    @optional_transaction
+    def update_scheduled_run_disabled(self, service_ids: Collection[int], *, cur: Cursor = NotImplemented):
+        """
+        Disables scheduled runs for the given services for the time defined in their config
+        """
+        if not service_ids:
+            return
+
+        format_args = ','.join(('%s',) * len(service_ids))
+        sql = 'UPDATE services s ' \
+              'SET scheduled_runs_disabled_until=NOW() + sc.scheduled_run_interval ' \
+              'FROM service_config sc ' \
+              f'WHERE sc.service_id = s.service_id AND s.service_id IN ({format_args})'
+
+        cur.execute(sql, service_ids)
 
     @optional_transaction
     def delete_scheduled_runs(self, to_delete: List[Tuple[int, int]], *, cur: Cursor = NotImplemented) -> int:
@@ -219,10 +264,23 @@ class DbUtil:
         cur.execute(sql, (interval, manga_id))
         return True
 
+    @typing.overload
+    def get_chapters(self, manga_id: int, *, limit: int = 100, cur: Cursor = NotImplemented) -> List[Chapter]: ...
+
+    @typing.overload
+    def get_chapters(self, manga_id: int, service_id: int, *, limit: int = 100, cur: Cursor = NotImplemented) -> List[Chapter]: ...
+
     @optional_transaction
-    def get_chapters(self, service_id: int, manga_id: int, limit: int = 100, *, cur: Cursor = NotImplemented) -> List[Chapter]:
-        sql = 'SELECT * FROM chapters WHERE service_id=%s AND manga_id=%s LIMIT %s'
-        cur.execute(sql, (service_id, manga_id, limit))
+    def get_chapters(self, manga_id: int, service_id: int = None, *, limit: int = 100, cur: Cursor = NotImplemented) -> List[Chapter]:
+        args: Tuple
+        if service_id is None:
+            sql = 'SELECT * FROM chapters WHERE manga_id=%s LIMIT %s'
+            args = (manga_id, limit)
+        else:
+            sql = 'SELECT * FROM chapters WHERE manga_id=%s AND service_id=%s LIMIT %s'
+            args = (manga_id, service_id, limit)
+
+        cur.execute(sql, args)
         return list(map(Chapter.parse_obj, cur.fetchall()))
 
     @optional_transaction
@@ -463,6 +521,13 @@ class DbUtil:
         row = cur.fetchone()
 
         return ServiceWhole(**row) if row else None
+
+    @optional_transaction
+    def get_service_configs(self, *, cur: Cursor = NotImplemented) -> List[ServiceConfig]:
+        sql = 'SELECT * FROM service_config'
+        cur.execute(sql)
+
+        return list(map(ServiceConfig.parse_obj, cur))
 
     @optional_transaction
     def update_service_whole(self, service_id: int, update_interval: timedelta, *, cur: Cursor = NotImplemented) -> None:

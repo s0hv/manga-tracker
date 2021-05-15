@@ -1,5 +1,5 @@
-from datetime import datetime, timezone
 import os
+from datetime import datetime, timezone
 
 import sentry_sdk
 
@@ -19,4 +19,5 @@ else:
 scheduler = UpdateScheduler()
 logger.debug("Next update in %s", scheduler.run_once()-datetime.utcnow().replace(tzinfo=timezone.utc).astimezone(tz=timezone.utc))
 
+scheduler.pool.closeall()
 sentry_sdk.flush()

@@ -12,6 +12,9 @@ omit =
     # kodansha not in use anymore
     ./src/scrapers/kodansha.py
 
+    # Nothing uses base_rss at the moment
+    ./src/scrapers/base_rss.py
+
 
 source = src
 

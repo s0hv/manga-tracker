@@ -3,7 +3,7 @@ import subprocess
 import sys
 import unittest
 from datetime import datetime, timedelta
-from typing import TypeVar, Optional, Union, ClassVar
+from typing import TypeVar, Optional, Union, ClassVar, Type
 from unittest import mock
 
 import feedparser
@@ -12,7 +12,9 @@ import testing.postgresql  # type: ignore[import]
 from psycopg2.extensions import connection as Connection
 from psycopg2.extras import DictCursor, DictRow
 
-from src.scrapers.base_scraper import BaseChapter
+from src.db.models.manga import MangaService
+from src.scrapers.base_scraper import BaseChapter, BaseScraper
+from src.tests.scrapers.testing_scraper import DummyScraper
 from src.utils.dbutils import DbUtil
 
 originalParse = feedparser.parse
@@ -126,13 +128,24 @@ def set_db_environ():
 
 
 class BaseTestClasses:
+    class TitleIdGenerator:
+        def __init__(self):
+            self._id = 0
+
+        def generate(self, name: str) -> str:
+            self._id += 1
+            return f'{name}_{self._id}'
 
     class DatabaseTestCase(unittest.TestCase):
         _conn: ClassVar[Connection] = NotImplemented
+        _generator: 'BaseTestClasses.TitleIdGenerator' = NotImplemented
 
         @classmethod
         def setUpClass(cls) -> None:
             cls._conn = get_conn()
+            # Integers are retained during tests but they reset to the default value
+            # for some reason. Circumvent this by using a class.
+            cls._generator = BaseTestClasses.TitleIdGenerator()
 
         @property
         def conn(self) -> Connection:
@@ -144,6 +157,20 @@ class BaseTestClasses:
         @classmethod
         def tearDownClass(cls) -> None:
             cls._conn.close()
+
+        def get_str_id(self) -> str:
+            return self._generator.generate(type(self).__name__)
+
+        def get_manga_service(self, scraper: Type['BaseScraper'] = DummyScraper) -> MangaService:
+            id_ = self.get_str_id()
+            return MangaService(service_id=scraper.ID, title_id=id_,
+                                title=f'{id_}_manga')
+
+        def create_manga_service(self, scraper: Type['BaseScraper'] = DummyScraper) -> MangaService:
+            id_ = self.get_str_id()
+            ms = MangaService(service_id=scraper.ID, title_id=id_,
+                              title=f'{id_}_manga')
+            return self.dbutil.add_manga_service(ms, add_manga=True)
 
         def assertChapterEqualsRow(self, chapter: 'Chapter', row: DictRow) -> None:
             pairs = [
@@ -214,18 +241,18 @@ class BaseTestClasses:
 
     class ModelAssertions(unittest.TestCase):
         def assertChaptersEqual(self, a: BaseChapter, b: BaseChapter, ignore_date: bool = False):
-            self.assertEqual(a.chapter_title, b.chapter_title)
-            self.assertEqual(a.chapter_number, b.chapter_number)
-            self.assertEqual(a.volume, b.volume)
-            self.assertEqual(a.decimal, b.decimal)
+            self.assertEqual(a.chapter_title, b.chapter_title, msg='Chapter titles not equal')
+            self.assertEqual(a.chapter_number, b.chapter_number, msg='Chapter numbers not equal')
+            self.assertEqual(a.volume, b.volume, msg='Chapter volumes not equal')
+            self.assertEqual(a.decimal, b.decimal, msg='Chapter decimal numbers not equal')
             if not ignore_date:
-                self.assertEqual(a.release_date, b.release_date)
-            self.assertEqual(a.chapter_identifier, b.chapter_identifier)
-            self.assertEqual(a.title_id, b.title_id)
-            self.assertEqual(a.manga_title, b.manga_title)
-            self.assertEqual(a.manga_url, b.manga_url)
-            self.assertEqual(a.group, b.group)
-            self.assertEqual(a.title, b.title)
+                self.assertEqual(a.release_date, b.release_date, msg='Chapter release dates not equal')
+            self.assertEqual(a.chapter_identifier, b.chapter_identifier, msg='Chapter identifiers not equal')
+            self.assertEqual(a.title_id, b.title_id, msg='Manga title ids not equal')
+            self.assertEqual(a.manga_title, b.manga_title, msg='Manga titles not equal')
+            self.assertEqual(a.manga_url, b.manga_url, msg='Manga urls not equal')
+            self.assertEqual(a.group, b.group, msg='Chapter groups not equal')
+            self.assertEqual(a.title, b.title, msg='Chapter titles not equal')
 
 
 class Chapter(BaseChapter):

@@ -11,13 +11,15 @@ import { makeStyles } from '@material-ui/core/styles';
 
 import { SubdirectoryArrowLeft as SubdirectoryArrowLeftIcon, } from '@material-ui/icons';
 import { useConfirm } from 'material-ui-confirm';
+import PropTypes from 'prop-types';
 
-import { Select, } from 'mui-rff';
+import { Select } from 'mui-rff';
 import Link from 'next/link';
 import { useSnackbar } from 'notistack';
 import React, { useCallback, useMemo, useState } from 'react';
 import MangaAliases from '../../components/MangaAliases';
 import MangaInfo from '../../components/MangaInfo';
+
 
 import {
   AddRowFormTemplate,
@@ -82,6 +84,7 @@ function MangaAdmin(props) {
       services,
       aliases: aliasesProp,
     },
+    serviceConfigs,
   } = props;
 
   // Constants
@@ -114,7 +117,7 @@ function MangaAdmin(props) {
       .then(res => res.json())
       .then(json => {
         setAliases(json.data.aliases);
-        setMangaTitle(json.data.title);
+        setMangaTitle(json.data.manga.title);
       });
   }, [mangaId]);
 
@@ -175,16 +178,25 @@ function MangaAdmin(props) {
   }, [enqueueSnackbar, formatScheduledRuns, mangaId, scheduledUpdates, csrf]);
 
   // Table layout
-  const fields = useMemo(() => [
-    <Select
-      name='service_id'
-      key='service_id'
-      label='Service'
-      SelectDisplayProps={{ 'aria-label': 'Service select' }}
-      data={services?.map(s => ({ value: s.service_id, label: s.name }))}
-      required
-    />,
-  ], [services]);
+  const fields = useMemo(() => {
+    const servicesWithRunsEnabled = new Set(
+      serviceConfigs.filter(s => s.scheduled_runs_enabled).map(s => s.service_id)
+    );
+    const data = services
+      ?.filter(s => servicesWithRunsEnabled.has(s.service_id))
+      .map(s => ({ value: s.service_id, label: s.name }));
+
+    return [
+      <Select
+        name='service_id'
+        key='service_id'
+        label='Service'
+        SelectDisplayProps={{ 'aria-label': 'Service select' }}
+        data={data}
+        required
+      />,
+    ];
+  }, [services, serviceConfigs]);
 
   const CreateDialog = useMemo(() => ({ open, onClose }) => (
     <AddRowFormTemplate
@@ -222,7 +234,7 @@ function MangaAdmin(props) {
         <div className={classes.titleBar}>
           <Typography className={classes.title} variant='h4'>{mangaTitle}</Typography>
           <Link href={`/manga/${mangaId}`}>
-            <Tooltip title='Go back'>
+            <Tooltip title='Go back' aria-label='go back to manga page'>
               <IconButton>
                 <SubdirectoryArrowLeftIcon />
               </IconButton>
@@ -260,14 +272,24 @@ function MangaAdmin(props) {
           deletable
           creatable
           CreateDialog={CreateDialog}
-          title='Forced checks'
+          title='Scheduled runs'
           fetchData={fetchData}
           onDeleteRow={onDeleteRow}
           loading={loading}
+          toolbarProps={{ addButtonLabel: 'add scheduled run' }}
         />
       </Paper>
     </Container>
   );
 }
+
+MangaAdmin.propTypes = {
+  mangaData: PropTypes.shape({
+    manga: PropTypes.object.isRequired,
+    services: PropTypes.arrayOf(PropTypes.object),
+    aliases: PropTypes.arrayOf(PropTypes.string),
+  }).isRequired,
+  serviceConfigs: PropTypes.arrayOf(PropTypes.object).isRequired,
+};
 
 export default MangaAdmin;

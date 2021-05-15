@@ -13,11 +13,6 @@ INSERT INTO manga_alias (manga_id, title) VALUES (2, 'Test abc');
 
 SELECT setval(pg_get_serial_sequence('manga', 'manga_id'), MAX(manga_id)) FROM manga;
 
--- insert services
-INSERT INTO services (service_id, service_name, url, disabled, last_check, chapter_url_format, disabled_until, manga_url_format) VALUES (1, 'MANGA Plus', 'https://mangaplus.shueisha.co.jp', false, '2020-08-06 17:39:18.412026', 'https://mangaplus.shueisha.co.jp/viewer/{}', '2020-08-06 17:55:32.412026', 'https://mangaplus.shueisha.co.jp/titles/{}');
-INSERT INTO services (service_id, service_name, url, disabled, last_check, chapter_url_format, disabled_until, manga_url_format) VALUES (2, 'MangaDex', 'https://mangadex.org', false, '2020-08-06 17:40:37.886383', 'https://mangadex.org/chapter/{}', '2020-08-06 18:10:37.885381', 'https://mangadex.org/title/{}');
-INSERT INTO service_whole (service_id, feed_url, last_check, next_update, last_id) VALUES (2, 'https://mangadex.org/rss', '2020-08-06 17:40:37.886383', '2020-08-06 18:10:37.886383', '959214');
-
 -- insert manga service relations
 INSERT INTO manga_service (manga_id, service_id, disabled, last_check, title_id, next_update, latest_chapter, latest_decimal) VALUES (1, 1, false, '2020-08-05 15:34:01.427921', '100010', '2020-08-10 16:00:00.000000', null, null);
 INSERT INTO manga_service (manga_id, service_id, disabled, last_check, title_id, next_update, latest_chapter, latest_decimal) VALUES (1, 2, true, '2020-04-06 13:05:33.853545', '20882', null, null, null);

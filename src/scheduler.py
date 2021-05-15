@@ -2,20 +2,22 @@ import logging
 import os
 import random
 import time
+from collections import Counter
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 from datetime import datetime, timedelta
 from typing import Type, ContextManager, TypedDict, Optional, Collection, List, \
-    Set, cast
+    Set, cast, Union
 
 import psycopg2
 from psycopg2.extensions import connection as Connection
 from psycopg2.extras import DictCursor
 from psycopg2.pool import ThreadedConnectionPool
 
-from src.scrapers import SCRAPERS
+from src.scrapers import SCRAPERS, SCRAPERS_ID
 from src.scrapers.base_scraper import BaseScraper
 from src.utils.dbutils import DbUtil
+from src.utils.utilities import inject_service_values
 
 logger = logging.getLogger('debug')
 
@@ -48,6 +50,9 @@ class UpdateScheduler:
                                             cursor_factory=DictCursor)
         self.thread_pool = ThreadPoolExecutor(max_workers=self.MAX_POOLS-1)
 
+        with self.conn() as conn:
+            inject_service_values(DbUtil(conn))
+
     # Workaround described in https://youtrack.jetbrains.com/issue/PY-36444
     # Required for mypy pass and PyCharm autocompletion
     def conn(self) -> ContextManager[Connection]:
@@ -71,27 +76,39 @@ class UpdateScheduler:
         return wrapper()
 
     def do_scheduled_runs(self) -> List[int]:
-        # TODO maybe make these have some ratelimits as well
         with self.conn() as conn:
             dbutil = DbUtil(conn)
             delete = []
             manga_ids = []
+            service_counter: Counter = Counter()
 
-            with conn.cursor() as cur:
-                for row in dbutil.get_scheduled_runs(cur):
-                    manga_id = row['manga_id']
-                    service_id = row['service_id']
-                    title_id = row['title_id']
-                    if not title_id:
-                        logger.error(f'Manga {manga_id} on service {service_id} scheduled but not found from manga service')
-                        delete.append((manga_id, service_id))
-                        continue
+            for sr in dbutil.get_scheduled_runs():
+                manga_id = sr.manga_id
+                service_id = sr.service_id
+                title_id = sr.title_id
+                Service = SCRAPERS_ID[service_id]
 
-                    self.force_run(service_id, manga_id)
+                if not Service.CONFIG.scheduled_runs_enabled:
+                    logger.warning(f'Tried to schedule run for service {Service.__name__} when it does not support scheduled runs.')
                     delete.append((manga_id, service_id))
-                    manga_ids.append(manga_id)
+                    continue
+
+                if service_counter.get(service_id, 0) >= Service.CONFIG.scheduled_run_limit:
+                    continue
+
+                service_counter.update((service_id,))
+
+                if not title_id:
+                    logger.error(f'Manga {manga_id} on service {service_id} scheduled but not found from manga service')
+                    delete.append((manga_id, service_id))
+                    continue
+
+                self.force_run(service_id, manga_id)
+                delete.append((manga_id, service_id))
+                manga_ids.append(manga_id)
 
             dbutil.delete_scheduled_runs(delete)
+            dbutil.update_scheduled_run_disabled(list(service_counter.keys()))
 
             return manga_ids
 
@@ -136,13 +153,17 @@ class UpdateScheduler:
 
                     idx += 1
                     if idx != len(manga_info):
-                        time.sleep(rng.randint(5, 30))
+                        time.sleep(rng.randint(200, 1000)/100)
 
                 scraper.set_checked(service_id)
 
                 return manga_ids
 
-    def force_run(self, service_id: int, manga_id: int = None):
+    def force_run(self, service_id: int, manga_id: int = None) -> Optional[Union[bool, Set[int]]]:
+        if service_id not in SCRAPERS_ID:
+            logger.warning(f'No service found with id {service_id}')
+            return None
+
         with self.conn() as conn:
             if manga_id is not None:
                 sql = '''
@@ -155,39 +176,40 @@ class UpdateScheduler:
                 with conn.cursor() as cursor:
                     cursor.execute(sql, (service_id, manga_id))
                     row = cursor.fetchone()
-                    if not row:
-                        logger.debug(f'Failed to find manga {manga_id} from service {service_id}')
-                        return
 
-                    Scraper = SCRAPERS.get(row['url'])
-                    if not Scraper:
-                        logger.error(f'Failed to find scraper for {row}')
-                        return
+                if not row:
+                    logger.debug(f'Failed to find manga {manga_id} from service {service_id}')
+                    return None
 
-                    scraper = Scraper(conn, DbUtil(conn))
+                Scraper = SCRAPERS.get(row['url'])
+                if not Scraper:
+                    logger.error(f'Failed to find scraper for {row}')
+                    return None
 
-                    title_id: str = row['title_id']
-                    manga_id = cast(int, row['manga_id'])
-                    # Feed url is the feed url of the manga or if that's not defined
-                    # the feed url of the service. Manga url always takes priority
-                    feed_url: str = row['feed_url'] or row['service_feed_url']
+                scraper = Scraper(conn)
 
-                    logger.info(f'Force updating {title_id} on service {service_id}')
-                    with conn:
-                        try:
-                            retval = scraper.scrape_series(title_id, service_id, manga_id, feed_url=feed_url)
-                        except psycopg2.Error:
-                            logger.exception(f'Database error while scraping {service_id} {scraper.NAME}: {title_id}')
-                            return
-                        except:
-                            logger.exception(f'Failed to scrape service {service_id}')
-                            return
+                title_id: str = row['title_id']
+                manga_id = cast(int, row['manga_id'])
+                # Feed url is the feed url of the manga or if that's not defined
+                # the feed url of the service. Manga url always takes priority
+                feed_url: str = row['feed_url'] or row['service_feed_url']
 
-                        if retval is None:
-                            logger.error(f'Failed to scrape series {row}')
-                            return
+                logger.info(f'Force updating {title_id} on service {service_id}')
+                with conn:
+                    try:
+                        retval = scraper.scrape_series(title_id, service_id, manga_id, feed_url=feed_url)
+                    except psycopg2.Error:
+                        logger.exception(f'Database error while scraping {service_id} {scraper.NAME}: {title_id}')
+                        return None
+                    except:
+                        logger.exception(f'Failed to scrape service {service_id}')
+                        return None
 
-                    return retval
+                    if retval is None:
+                        logger.error(f'Failed to scrape series {row}')
+                        return None
+
+                return retval
 
             else:
                 sql = """SELECT s.service_id, sw.feed_url, s.url
@@ -200,12 +222,12 @@ class UpdateScheduler:
                     row = cursor.fetchone()
                     if not row:
                         logger.debug(f'Failed to find service {service_id}')
-                        return
+                        return None
 
                 Scraper = SCRAPERS.get(row['url'])
                 if not Scraper:
                     logger.error(f'Failed to find scraper for {row}')
-                    return
+                    return None
 
                 scraper = Scraper(conn, DbUtil(conn))
                 logger.info(f'Updating service {row["url"]}')

@@ -1,17 +1,13 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import {
-  IconButton,
-  InputBase,
-  Popper,
-} from '@material-ui/core';
+import { IconButton, InputBase, Popper, } from '@material-ui/core';
 import { fade, makeStyles } from '@material-ui/core/styles';
 import Autocomplete from '@material-ui/lab/Autocomplete';
 import PropTypes from 'prop-types';
 
 import { Search as SearchIcon } from '@material-ui/icons';
 
-import NextLink from 'next/link';
 import throttle from 'lodash.throttle';
+import { useRouter } from 'next/router';
 
 const useStyles = makeStyles((theme) => ({
   search: {
@@ -61,15 +57,32 @@ export default function MangaSearch(props) {
     inputClasses = {},
     popperProps = {},
     id = 'manga-search',
+    ariaLabel = 'manga search',
+    clearOnClick = true,
+    onChange: onChangeFunc,
   } = props;
 
   const [value, setValue] = useState('');
   const [options, setOptions] = useState([]);
   const classes = useStyles();
+  const router = useRouter();
 
-  const handleChange = useCallback((event) => {
-    setValue(event.target.value);
+  const onChangeDefault = useCallback(
+    (newValue) => router.push(`/manga/${newValue.manga_id}`),
+    [router]
+  );
+  const onChange = onChangeFunc || onChangeDefault;
+
+  const handleChange = useCallback((event, newValue) => {
+    setValue(newValue);
   }, []);
+
+  const handleValueChange = useCallback((e, newValue) => {
+    if (clearOnClick) {
+      setValue('');
+    }
+    return onChange(newValue);
+  }, [clearOnClick, onChange]);
 
   const throttleFetch = useMemo(
     () => throttle((query, cb) => {
@@ -103,9 +116,7 @@ export default function MangaSearch(props) {
   }, [value, throttleFetch]);
 
   const defaultRenderListOption = useCallback((option) => (
-    <NextLink href='/manga/[id]' as={`/manga/${option.manga_id}`} prefetch={false}>
-      <div className={classes.listItem}>{option.title}</div>
-    </NextLink>
+    <div className={classes.listItem}>{option.title}</div>
   ), [classes.listItem]);
 
   const renderListOption = renderItem || defaultRenderListOption;
@@ -123,21 +134,24 @@ export default function MangaSearch(props) {
       clearOnBlur={false}
       getOptionLabel={(option => option.title)}
       filterOptions={(o) => o}
+      id={id}
+      value={null}
+      onChange={handleValueChange}
+      PopperComponent={BottomEndPopper}
+      onInputChange={handleChange}
+      inputValue={value}
       freeSolo
       openOnFocus
       fullWidth
-      id={id}
-      PopperComponent={BottomEndPopper}
       classes={{
         popper: classes.popper,
         root: classes.search,
       }}
       renderInput={(params) => (
         <InputBase
-          aria-label='Manga search'
+          aria-label={ariaLabel}
           inputProps={params.inputProps}
           ref={params.InputProps.ref}
-          onChange={handleChange}
           placeholder={placeholder}
           classes={{
             input: classes.inputInput,
@@ -160,4 +174,7 @@ MangaSearch.propTypes = {
   renderItem: PropTypes.func,
   inputClasses: PropTypes.object,
   popperProps: PropTypes.object,
+  clearOnClick: PropTypes.bool,
+  ariaLabel: PropTypes.string,
+  onChange: PropTypes.func,
 };
