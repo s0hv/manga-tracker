@@ -26,7 +26,13 @@ import {
   EditableSelect,
   MaterialTable,
 } from '../../components/MaterialTable';
-import { csrfHeader, useCSRF } from '../../utils/csrf';
+import { useCSRF } from '../../utils/csrf';
+import { getManga } from '../../api/manga';
+import {
+  getScheduledRuns,
+  createScheduledRun,
+  deleteScheduledRun
+} from '../../api/admin/manga';
 
 
 const useStyles = makeStyles((theme) => ({
@@ -113,11 +119,10 @@ function MangaAdmin(props) {
   }), [services]);
 
   const onTitleChange = useCallback(() => {
-    fetch(`/api/manga/${mangaId}`)
-      .then(res => res.json())
-      .then(json => {
-        setAliases(json.data.aliases);
-        setMangaTitle(json.data.manga.title);
+    getManga(mangaId)
+      .then(data => {
+        setAliases(data.aliases);
+        setMangaTitle(data.manga.title);
       });
   }, [mangaId]);
 
@@ -125,26 +130,15 @@ function MangaAdmin(props) {
   const fetchData = useCallback(() => {
     setLoading(true);
 
-    return fetch(`/api/admin/manga/${mangaId}/scheduledRuns`)
-      .then(res => res.json())
-      .then(json => {
-        setScheduledUpdates(formatScheduledRuns(json.data || []));
+    return getScheduledRuns(mangaId)
+      .then(data => {
+        setScheduledUpdates(formatScheduledRuns(data || []));
       })
-      .catch(console.error)
       .finally(() => setLoading(false));
   }, [formatScheduledRuns, mangaId]);
 
   const onCreateRow = useCallback((form) => {
-    fetch(`/api/admin/manga/${mangaId}/scheduledRun/${form.service_id}`, {
-      method: 'POST',
-      headers: csrfHeader(csrf),
-    })
-      .then(res => {
-        if (res.status !== 200) {
-          throw new Error(`Failed to create row ${res.status} ${res.statusText}`);
-        }
-        return res.json();
-      })
+    createScheduledRun(csrf, mangaId, form.service_id)
       .then(json => {
         setScheduledUpdates(formatScheduledRuns([...scheduledUpdates, json.inserted]));
         enqueueSnackbar(
@@ -157,22 +151,15 @@ function MangaAdmin(props) {
 
   const onDeleteRow = useCallback((row) => {
     const serviceId = row.values.service_id;
-    fetch(`/api/admin/manga/${mangaId}/scheduledRun/${serviceId}`, {
-      method: 'DELETE',
-      headers: csrfHeader(csrf),
-    })
-      .then(res => {
-        if (res.status !== 200) {
-          enqueueSnackbar(`Failed to delete row. ${res.status} ${res.statusText}`, { variant: 'error' });
-        } else {
-          setScheduledUpdates(
-            formatScheduledRuns(scheduledUpdates.filter(r => r.service_id !== serviceId))
-          );
-          enqueueSnackbar(
-            `Successfully deleted service ${row.values.name} from scheduled runs`,
-            { variant: 'success' }
-          );
-        }
+    deleteScheduledRun(csrf, mangaId, serviceId)
+      .then(() => {
+        setScheduledUpdates(
+          formatScheduledRuns(scheduledUpdates.filter(r => r.service_id !== serviceId))
+        );
+        enqueueSnackbar(
+          `Successfully deleted service ${row.values.name} from scheduled runs`,
+          { variant: 'success' }
+        );
       })
       .catch(err => enqueueSnackbar(err.message, { variant: 'error' }));
   }, [enqueueSnackbar, formatScheduledRuns, mangaId, scheduledUpdates, csrf]);

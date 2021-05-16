@@ -29,6 +29,7 @@ import MangaInfo from './MangaInfo';
 import MangaSourceList from './MangaSourceList';
 import ReleaseHeatmap from './ReleaseHeatmap';
 import { TabPanelCustom } from './utils/TabPanelCustom';
+import { getMangaReleases } from '../api/chapter';
 
 
 const useStyles = makeStyles((theme) => ({
@@ -130,8 +131,7 @@ function Manga(props) {
   const csrf = useCSRF();
 
   useEffect(() => {
-    fetch(`/api/chapter/releases/${manga.manga_id}`)
-      .then(res => res.json())
+    getMangaReleases(manga.manga_id)
       .then(js => {
         setReleaseData(js);
       });

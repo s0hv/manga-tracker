@@ -3,6 +3,10 @@ import { createContext, useContext } from 'react';
 const CSRFContext = createContext(undefined);
 export const CSRFProvider = CSRFContext.Provider;
 
+/**
+ *
+ * @return {string}
+ */
 export const useCSRF = () => useContext(CSRFContext);
 
 /**

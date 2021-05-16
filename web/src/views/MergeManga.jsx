@@ -17,7 +17,8 @@ import React, { useState, useCallback } from 'react';
 
 import Search from '../components/MangaSearch';
 import PartialManga from '../components/PartialManga';
-import { csrfHeader, useCSRF } from '../utils/csrf';
+import { useCSRF } from '../utils/csrf';
+import { getManga, postMergeManga } from '../api/manga';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -96,16 +97,9 @@ function MergeManga() {
   const [radio, setRadio] = useState('all');
   const isValid = manga1.manga?.manga_id && manga2.manga?.manga_id && manga1.manga.manga_id !== manga2.manga.manga_id;
 
-  const getMangaData = (mangaId, cb) => {
-    fetch(`/api/manga/${mangaId}`)
-      .then(res => res.json())
-      .then(js => {
-        cb(js.data);
-      })
-      .catch(err => {
-        console.error(err);
-        cb({});
-      });
+  const getMangaData = (mangaId, setManga) => {
+    getManga(mangaId)
+      .then(data => setManga(data));
   };
 
   const onManga1Select = useCallback(({ manga_id: mangaId }) => {
@@ -118,24 +112,9 @@ function MergeManga() {
   const mergeManga = () => {
     if (!isValid) return;
 
-    const service = radio === 'all' ? '' : `&service=${radio}`;
-    fetch(`/api/manga/merge/?base=${manga1.manga.manga_id}&to_merge=${manga2.manga.manga_id}${service}`,
-      {
-        credentials: 'include',
-        method: 'post',
-        headers: {
-          ...csrfHeader(csrf),
-        },
-      })
-      .then(res => {
-        if (!res.ok) {
-          setResult({ error: true, message: `${res.status} ${res.statusText}` });
-          return;
-        }
-        return res.json();
-      })
+    const service = radio === 'all' ? undefined : radio;
+    postMergeManga(csrf, manga1.manga.manga_id, manga2.manga.manga_id, service)
       .then(json => {
-        if (!json) return;
         setResult({ message: `Moved ${json.alias_count} alias(es) and ${json.chapter_count} chapter(s)` });
         setManga2({});
       })
@@ -229,6 +208,7 @@ function MergeManga() {
         <Typography
           color={result.error ? 'error' : 'initial'}
           className={classes.errorMessage}
+          aria-label='merge result'
         >
           {result.message || null}
         </Typography>

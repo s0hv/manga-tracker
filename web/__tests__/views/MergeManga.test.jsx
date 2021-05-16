@@ -1,6 +1,6 @@
 import React from 'react';
 import fetchMock from 'fetch-mock';
-import { render, screen, act, waitFor } from '@testing-library/react';
+import { render, screen, act, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import MergeManga from '../../src/views/MergeManga';
@@ -90,5 +90,41 @@ describe('Merge manga page should render correctly', () => {
     // Make sure merge controls are not visible
     expect(screen.queryByRole('radiogroup', { name: 'merge services' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /merge .+? into .+?/ })).not.toBeInTheDocument();
+  });
+
+  it('Should merge correctly', async () => {
+    const url = 'glob:/api/manga/merge?*';
+    fetchMock.mock(url, { alias_count: 1, chapter_count: 1 });
+
+    render(<MergeManga />);
+
+    // Search and select manga for both slots
+    await selectAndAssert(mockResult[0]);
+    await selectAndAssert(mockResult[1], false);
+
+    userEvent.click(
+      screen.getByRole('radio', { name: emptyFullManga.services[0].name })
+    );
+
+    const mergeBtn = screen.getByRole('button', { name: /merge .+? into .+?/ });
+
+    await act(async () => {
+      userEvent.click(mergeBtn);
+    });
+
+    expect(
+      fetchMock.called(url, { query: {
+        base: mockResult[0].manga_id.toString(),
+        to_merge: mockResult[1].manga_id.toString(),
+        service: emptyFullManga.services[0].service_id.toString(),
+      },
+      method: 'post' })
+    ).toBeTrue();
+
+    expect(
+      within(screen.getByLabelText('merge result'))
+        .getByText(/moved \d+ alias\(es\) and \d+ chapter\(s\)/i)
+    ).toBeInTheDocument();
+    expect(screen.queryByLabelText('manga to merge')).not.toBeInTheDocument();
   });
 });

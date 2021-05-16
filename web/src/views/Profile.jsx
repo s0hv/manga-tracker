@@ -1,22 +1,15 @@
 import { useSnackbar } from 'notistack';
 import React, { useCallback, useMemo } from 'react';
-import {
-  Button,
-  Container,
-  LinearProgress,
-  Paper,
-} from '@material-ui/core';
+import { Button, Container, LinearProgress, Paper, } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import { Form } from 'react-final-form';
-import {
-  TextField,
-  makeValidateSync,
-  makeRequired,
-} from 'mui-rff';
+import { TextField, makeValidateSync, makeRequired, } from 'mui-rff';
 import * as Yup from 'yup';
 import propTypes from 'prop-types';
 import CSRFInput from '../components/utils/CSRFInput';
 import { showErrorAlways } from '../utils/formUtils';
+import { useCSRF } from '../utils/csrf';
+import { updateUserProfile } from '../api/user';
 
 
 const useStyles = makeStyles((theme) => ({
@@ -57,33 +50,16 @@ const Profile = (props) => {
   } = props;
 
   const classes = useStyles();
+  const csrf = useCSRF();
   const { enqueueSnackbar } = useSnackbar();
-  const onSubmit = useCallback((values) => fetch('/api/profile',
-    {
-      method: 'post',
-      body: JSON.stringify(values),
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json; charset=utf-8',
-      },
-    })
-    .then(res => {
-      if (res.status === 200) {
-        enqueueSnackbar('Profile updated successfully', { variant: 'success' });
-        return;
-      }
-      return res.json();
-    })
-    .then(json => {
-      if (json?.error) {
-        enqueueSnackbar(json.error, { variant: 'error' });
-        return { error: json.error };
-      }
+  const onSubmit = useCallback((values) => updateUserProfile(csrf, values)
+    .then(() => {
+      enqueueSnackbar('Profile updated successfully', { variant: 'success' });
     })
     .catch(err => {
       enqueueSnackbar(err.message, { variant: 'error' });
       return { error: err.message };
-    }), [enqueueSnackbar]);
+    }), [enqueueSnackbar, csrf]);
 
   const initialValues = useMemo(() => ({
     username: user.username,

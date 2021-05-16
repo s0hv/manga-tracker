@@ -8,6 +8,7 @@ import { Search as SearchIcon } from '@material-ui/icons';
 
 import throttle from 'lodash.throttle';
 import { useRouter } from 'next/router';
+import { quickSearch } from '../api/manga';
 
 const useStyles = makeStyles((theme) => ({
   search: {
@@ -86,13 +87,8 @@ export default function MangaSearch(props) {
 
   const throttleFetch = useMemo(
     () => throttle((query, cb) => {
-      fetch('/api/quicksearch?query=' + encodeURIComponent(query))
-        .then(res => res.json())
-        .then(js => cb(js))
-        .catch(err => {
-          console.error(err);
-          cb(null);
-        });
+      quickSearch(query)
+        .then(js => cb(js));
     }, 200),
     []
   );

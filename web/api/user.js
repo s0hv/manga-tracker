@@ -136,7 +136,7 @@ module.exports = app => {
               });
           });
         } else {
-          res.status(200).end();
+          res.json({ message: 'success' });
         }
       })
       .catch(err => handleError(

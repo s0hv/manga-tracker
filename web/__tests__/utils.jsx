@@ -90,6 +90,10 @@ export function expectErrorSnackbar(msg) {
   );
 }
 
+export function getSnackbarMessage() {
+  return enqueueSnackbarMock.mock.calls[enqueueSnackbarMock.mock.calls.length-1][0];
+}
+
 export function muiSelectValue(container, selectName, value) {
   userEvent.click(container.getByLabelText(selectName));
   const listbox = within(screen.getByRole('listbox'));

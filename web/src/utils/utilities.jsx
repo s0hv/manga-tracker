@@ -12,7 +12,6 @@ export const followUnfollow = (csrf, mangaId, serviceId) => {
       case 'follow':
         fetch(url,
           {
-            credentials: 'include',
             method: 'put',
             headers: csrfHeader(csrf),
           })
@@ -25,7 +24,6 @@ export const followUnfollow = (csrf, mangaId, serviceId) => {
 
       case 'unfollow':
         fetch(url, {
-          credentials: 'include',
           method: 'delete',
           headers: csrfHeader(csrf),
         })

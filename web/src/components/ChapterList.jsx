@@ -1,14 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import {
-  Link,
-  Paper,
-  TableContainer,
-} from '@material-ui/core';
+import { Link, Paper, TableContainer, } from '@material-ui/core';
 import { useSnackbar } from 'notistack';
-import { csrfHeader, useCSRF } from '../utils/csrf';
+import { useCSRF } from '../utils/csrf';
 
 import { MaterialTable } from './MaterialTable';
 import { defaultDateFormat } from '../utils/utilities';
+import { getChapters, updateChapter, deleteChapter } from '../api/chapter';
 
 
 function ChapterList(props) {
@@ -43,21 +40,8 @@ function ChapterList(props) {
     });
   }, [serviceUrlFormats]);
 
-  const handleResponse = useCallback((r) => {
-    r.json()
-      .then(json => {
-        enqueueSnackbar(json.message || json.error, {
-          variant: json.error ? 'error' : 'success',
-        });
-      })
-      .catch(err => {
-        if (r.status !== 200) {
-          enqueueSnackbar(`${r.status} ${r.statusText}`, { variant: 'error' });
-        } else {
-          console.error(err);
-          enqueueSnackbar(err.message, { variant: 'error' });
-        }
-      });
+  const handleResponse = useCallback((json) => {
+    enqueueSnackbar(json.message, { variant: 'success' });
   }, [enqueueSnackbar]);
 
   const onSaveRow = useCallback((row, state) => {
@@ -68,29 +52,23 @@ function ChapterList(props) {
       row.values[key] = state[key];
     });
 
-    fetch(`/api/chapter/${row.original.chapter_id}`, {
-      method: 'post',
-      credentials: 'same-origin',
-      headers: {
-        'Content-Type': 'application/json',
-        ...csrfHeader(csrf),
-      },
-      body: JSON.stringify(state),
-    })
-      .then(handleResponse);
-  }, [handleResponse, csrf]);
+    updateChapter(csrf, row.original.chapter_id, state)
+      .then(handleResponse)
+      .catch(err => {
+        enqueueSnackbar(err.message, { variant: 'error' });
+      });
+  }, [csrf, handleResponse, enqueueSnackbar]);
 
   const onDeleteRow = useCallback((row) => {
     const id = row.original.chapter_id;
     setChapters(chapters.filter(c => c.chapter_id !== id));
 
-    fetch(`/api/chapter/${row.original.chapter_id}`, {
-      method: 'delete',
-      credentials: 'same-origin',
-      headers: csrfHeader(csrf),
-    })
-      .then(handleResponse);
-  }, [chapters, handleResponse, csrf]);
+    deleteChapter(csrf, id)
+      .then(handleResponse)
+      .catch(err => {
+        enqueueSnackbar(err.message, { variant: 'error' });
+      });
+  }, [chapters, csrf, handleResponse, enqueueSnackbar]);
 
   const columns = useMemo(() => [
     {
@@ -119,13 +97,11 @@ function ChapterList(props) {
     setLoading(true);
     const offset = pageIndex*pageSize;
 
-    fetch(`/api/manga/${mangaId}/chapters?limit=${pageSize}&offset=${offset}`)
-      .then(res => res.json())
+    getChapters(mangaId, pageSize, offset)
       .then(json => {
         setChapters(formatChapters(json.chapters || []));
         setCount(Number(json.count) || 0);
       })
-      .catch(console.error)
       .finally(() => setLoading(false));
   }, [formatChapters, mangaId]);
 

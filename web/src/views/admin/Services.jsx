@@ -9,7 +9,8 @@ import {
   EditableDateTimePicker,
   MaterialTable,
 } from '../../components/MaterialTable';
-import { csrfHeader, useCSRF } from '../../utils/csrf';
+import { useCSRF } from '../../utils/csrf';
+import { editService } from '../../api/admin/service';
 
 function Services(props) {
   const {
@@ -87,24 +88,9 @@ function Services(props) {
       row.values[key] = state[key];
     });
 
-    fetch('/api/admin/editService', {
-      method: 'post',
-      credentials: 'same-origin',
-      headers: {
-        'Content-Type': 'application/json',
-        ...csrfHeader(csrf),
-      },
-      body: JSON.stringify({ ...state, service_id: row.original.id }),
-    })
-      .then(res => {
-        if (res.status === 200) {
-          enqueueSnackbar('Service edited successfully', { variant: 'success' });
-        } else {
-          enqueueSnackbar(
-            `Failed to edit service. Server responded with ${res.status}`,
-            { variant: 'error' }
-          );
-        }
+    editService(csrf, { ...state, service_id: row.original.id })
+      .then(() => {
+        enqueueSnackbar('Service edited successfully', { variant: 'success' });
       })
       .catch(err => enqueueSnackbar(err.message, { variant: 'error' }));
   };

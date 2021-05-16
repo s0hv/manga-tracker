@@ -1,0 +1,3 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Sign in page functionality Should show snackbar on error 1`] = `"Server returned status undefined Bad Request"`;
