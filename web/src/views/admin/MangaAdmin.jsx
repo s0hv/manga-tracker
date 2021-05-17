@@ -9,7 +9,7 @@ import {
 
 import { makeStyles } from '@material-ui/core/styles';
 
-import { SubdirectoryArrowLeft as SubdirectoryArrowLeftIcon, } from '@material-ui/icons';
+import { SubdirectoryArrowLeft as SubdirectoryArrowLeftIcon } from '@material-ui/icons';
 import { useConfirm } from 'material-ui-confirm';
 import PropTypes from 'prop-types';
 
@@ -31,7 +31,7 @@ import { getManga } from '../../api/manga';
 import {
   getScheduledRuns,
   createScheduledRun,
-  deleteScheduledRun
+  deleteScheduledRun,
 } from '../../api/admin/manga';
 
 

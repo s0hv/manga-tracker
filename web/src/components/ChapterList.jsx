@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Link, Paper, TableContainer, } from '@material-ui/core';
+import { Link, Paper, TableContainer } from '@material-ui/core';
 import { useSnackbar } from 'notistack';
 import { useCSRF } from '../utils/csrf';
 

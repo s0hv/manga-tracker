@@ -1,0 +1,23 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`POST /api/manga/merge Returns 400 with invalid service id 1`] = `
+Array [
+  Object {
+    "location": "query",
+    "msg": "Invalid value",
+    "param": "service",
+    "value": "-1",
+  },
+]
+`;
+
+exports[`POST /api/manga/merge Returns 400 with invalid service id 2`] = `
+Array [
+  Object {
+    "location": "query",
+    "msg": "Invalid value",
+    "param": "service",
+    "value": "abc",
+  },
+]
+`;

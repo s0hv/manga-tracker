@@ -1,9 +1,9 @@
 import { useSnackbar } from 'notistack';
 import React, { useCallback, useMemo } from 'react';
-import { Button, Container, LinearProgress, Paper, } from '@material-ui/core';
+import { Button, Container, LinearProgress, Paper } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import { Form } from 'react-final-form';
-import { TextField, makeValidateSync, makeRequired, } from 'mui-rff';
+import { TextField, makeValidateSync, makeRequired } from 'mui-rff';
 import * as Yup from 'yup';
 import propTypes from 'prop-types';
 import CSRFInput from '../components/utils/CSRFInput';

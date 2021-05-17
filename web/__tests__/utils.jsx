@@ -256,6 +256,13 @@ export function withRoot(Component) {
   );
 }
 
+export function getErrorMessage(res) {
+  expect(res.body).toBeObject();
+  const errors = res.body.error;
+  expect(errors).toBeDefined();
+  return errors;
+}
+
 export function expectErrorMessage(value, param, message='Invalid value') {
   return (res) => {
     expect(res.body).toBeObject();

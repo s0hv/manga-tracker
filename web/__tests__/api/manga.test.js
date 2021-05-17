@@ -11,6 +11,7 @@ import {
   expectErrorMessage,
   normalUser,
   withUser,
+  getErrorMessage,
 } from '../utils';
 
 let httpServer;
@@ -98,13 +99,29 @@ describe('POST /api/manga/merge', () => {
     });
   });
 
-  it('Return 400 when base equals to_merge', async () => {
+  it('Returns 400 when base equals to_merge', async () => {
     await withUser(adminUser, async () => {
       await request(httpServer)
         .post('/api/manga/merge?to_merge=5&base=5')
         .csrf()
         .expect(400)
         .expect(expectErrorMessage('Given ids are equal'));
+    });
+  });
+
+  it('Returns 400 with invalid service id', async () => {
+    await withUser(adminUser, async () => {
+      await request(httpServer)
+        .post('/api/manga/merge?to_merge=1&base=2&service=-1')
+        .csrf()
+        .expect(400)
+        .expect(res => expect(getErrorMessage(res)).toMatchSnapshot());
+
+      await request(httpServer)
+        .post('/api/manga/merge?to_merge=1&base=2&service=abc')
+        .csrf()
+        .expect(400)
+        .expect(res => expect(getErrorMessage(res)).toMatchSnapshot());
     });
   });
 });

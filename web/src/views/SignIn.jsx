@@ -11,7 +11,7 @@ import {
 import { LockOutlined as LockOutlinedIcon } from '@material-ui/icons';
 import { makeStyles } from '@material-ui/core/styles';
 import { Form } from 'react-final-form';
-import { TextField, Checkboxes, } from 'mui-rff';
+import { TextField, Checkboxes } from 'mui-rff';
 import CSRFInput from '../components/utils/CSRFInput';
 import { useCSRF } from '../utils/csrf';
 import { loginUser } from '../api/user';

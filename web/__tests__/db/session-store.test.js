@@ -108,7 +108,7 @@ describe('sessionStore', () => {
 
       await expect(new Promise(resolve => store.set(sid, session, resolve)))
         .resolves
-        .toEqual(null);
+        .toBeNull();
 
       expect(spy).toHaveBeenCalledTimes(1);
       expect(store.cache.get(sid)).toEqual(session);
