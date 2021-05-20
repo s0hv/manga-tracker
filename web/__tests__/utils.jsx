@@ -299,3 +299,12 @@ export function expectErrorMessage(value, param, message='Invalid value') {
 export async function configureJestOpenAPI() {
   jestOpenAPI(await getOpenapiSpecification());
 }
+
+const counters = {};
+export const getIncrementalStringGenerator = (name) => {
+  if (counters[name] === undefined) {
+    counters[name] = 0;
+  }
+
+  return () => `${name}_${counters[name]++}`;
+};

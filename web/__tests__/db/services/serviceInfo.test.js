@@ -12,9 +12,9 @@ describe('getServices()', () => {
 
     const service = services[0];
     expect(service).toHaveProperty('id');
-    expect(service).toHaveProperty('service_name');
+    expect(service).toHaveProperty('serviceName');
     expect(service).toHaveProperty('disabled');
     expect(service).toHaveProperty('url');
-    expect(service).toHaveProperty('last_check');
+    expect(service).toHaveProperty('lastCheck');
   });
 });

@@ -1,3 +1,4 @@
+const { pattern } = require('iso8601-duration');
 const {
   param,
   query,
@@ -101,3 +102,10 @@ const handleValidationErrors = (req, res, next) => {
   next();
 };
 module.exports.handleValidationErrors = handleValidationErrors;
+
+/**
+ * @param {import('express-validator').ValidationChain} chain
+ * @return {import('express-validator').ValidationChain}
+ */
+module.exports.isISO8601Duration = (chain) => chain.custom((value) => pattern.test(value))
+  .withMessage('Value must be a valid ISO 8601 duration');

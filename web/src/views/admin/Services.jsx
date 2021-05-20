@@ -1,5 +1,5 @@
 import { useSnackbar } from 'notistack';
-import React from 'react';
+import React, { useCallback } from 'react';
 import { Checkbox, Container, Paper, TableContainer } from '@material-ui/core';
 import { format, formatDistanceToNowStrict } from 'date-fns';
 import enLocale from 'date-fns/locale/en-GB';
@@ -23,8 +23,8 @@ function Services(props) {
   // Format date strings back to dates for sorting
   const data = React.useMemo(() => {
     services.forEach(service => {
-      service.last_check = service.last_check ? new Date(service.last_check) : undefined;
-      service.next_update = service.next_update ? new Date(service.next_update) : undefined;
+      service.lastCheck = service.lastCheck ? new Date(service.lastCheck) : undefined;
+      service.nextUpdate = service.nextUpdate ? new Date(service.nextUpdate) : undefined;
     });
     return services;
   },
@@ -32,29 +32,29 @@ function Services(props) {
 
   const columns = React.useMemo(() => [
     { Header: 'Id', accessor: 'id', canEdit: false },
-    { Header: 'Name', accessor: 'service_name' },
+    { Header: 'Name', accessor: 'serviceName' },
     {
       Header: 'Last checked',
-      accessor: 'last_check',
+      accessor: 'lastCheck',
       canEdit: false,
       sortType: 'datetime',
-      Cell: ({ row }) => (row.values.last_check ?
-        `${format(row.values.last_check, 'MMM do, HH:mm', { locale: enLocale })} - ${formatDistanceToNowStrict(row.values.last_check, { addSuffix: true })}` :
+      Cell: ({ row }) => (row.values.lastCheck ?
+        `${format(row.values.lastCheck, 'MMM do, HH:mm', { locale: enLocale })} - ${formatDistanceToNowStrict(row.values.lastCheck, { addSuffix: true })}` :
         'Never'),
     },
     {
       Header: 'Next update',
-      accessor: 'next_update',
+      accessor: 'nextUpdate',
       sortType: 'basic',
-      Cell: ({ row }) => (row.values.next_update ?
-        `${format(row.values.next_update, 'MMM do, HH:mm', { locale: enLocale })} - ${formatDistanceToNowStrict(row.values.next_update, { addSuffix: true })}` :
+      Cell: ({ row }) => (row.values.nextUpdate ?
+        `${format(row.values.nextUpdate, 'MMM do, HH:mm', { locale: enLocale })} - ${formatDistanceToNowStrict(row.values.nextUpdate, { addSuffix: true })}` :
         'ASAP'),
       EditCell: ({ row, state, cell }) => (
         <EditableDateTimePicker
           clearable
           variant='inline'
           ampm={false}
-          value={row.values.next_update}
+          value={row.values.nextUpdate}
           onError={console.log}
           row={row}
           state={state}
@@ -80,7 +80,7 @@ function Services(props) {
   ],
   []);
 
-  const onSaveRow = (row, state) => {
+  const onSaveRow = useCallback((row, state) => {
     const keys = Object.keys(state);
     if (keys.length === 0) return;
 
@@ -88,12 +88,23 @@ function Services(props) {
       row.values[key] = state[key];
     });
 
-    editService(csrf, { ...state, service_id: row.original.id })
+    const body = {
+      service: {
+        serviceName: state.serviceName,
+        lastCheck: state.lastCheck,
+        disabled: state.disabled,
+      },
+      serviceWhole: {
+        nextUpdate: state.nextUpdate,
+      },
+    };
+
+    editService(csrf, row.original.id, body)
       .then(() => {
         enqueueSnackbar('Service edited successfully', { variant: 'success' });
       })
       .catch(err => enqueueSnackbar(err.message, { variant: 'error' }));
-  };
+  }, [csrf, enqueueSnackbar]);
 
   return (
     <Container maxWidth='lg' style={{ minWidth: '950px' }}>

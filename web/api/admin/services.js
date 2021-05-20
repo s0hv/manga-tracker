@@ -1,35 +1,72 @@
-const { body } = require('express-validator');
+const { body, matchedData } = require('express-validator');
 
 const { requiresUser } = require('../../db/auth');
 const { handleError } = require('../../db/utils');
-const { updateService, updateServiceWhole } = require('../../db/services');
-const { filterProperties, snakeCaseToCamelCase } = require('../../utils/utilities');
+const { updateService, updateServiceWhole, updateServiceConfig } = require('../../db/services');
 const {
   validateAdminUser,
-  hadValidationError,
+  handleValidationErrors,
+  databaseIdValidation,
+  isISO8601Duration,
 } = require('../../utils/validators');
 
 module.exports = app => {
-  app.post('/api/admin/editService', requiresUser, [
+  const validateService = [
+    body('service')
+      .isObject()
+      .optional(),
+    body('service.serviceName')
+      .isString()
+      .optional(),
+    body('service.disabled')
+      .isBoolean({ strict: true })
+      .optional()
+      .toBoolean(true),
+
+    body('serviceWhole')
+      .isObject()
+      .optional(),
+    body('serviceWhole.nextUpdate')
+      .isISO8601({ strict: true })
+      .optional({ nullable: true })
+      .toDate(),
+
+    body('serviceConfig')
+      .isObject()
+      .optional(),
+    isISO8601Duration(body('serviceConfig.checkInterval'))
+      .optional(),
+    body('serviceConfig.scheduledRunLimit')
+      .isInt({ min: 1, max: 100 })
+      .optional()
+      .withMessage('scheduledRunLimit must be between 1 and 100'),
+    body('serviceConfig.scheduledRunsEnabled')
+      .isBoolean({ strict: true })
+      .optional()
+      .toBoolean(),
+    isISO8601Duration(body('serviceConfig.scheduledRunInterval'))
+      .optional(),
+  ];
+
+  app.post('/api/admin/editService/:serviceId', requiresUser, [
     validateAdminUser(),
-    body('disabled').isBoolean().optional(),
-    body('service_name').isString().optional(),
-    body('next_update').isISO8601({ strict: true }).optional({ nullable: true }).toDate(),
-    body('service_id').isInt(),
+    databaseIdValidation('serviceId', true, 'Service id must be a positive integer'),
+    ...validateService,
+    handleValidationErrors,
   ], (req, res) => {
-    if (hadValidationError(req, res)) return;
+    const {
+      service,
+      serviceWhole,
+      serviceConfig,
+    } = matchedData(req, { includeOptionals: false, onlyValidData: true });
 
-    const serviceColumns = ['service_name', 'disabled'];
-    const serviceWholeColumns = ['next_update'];
+    const serviceId = req.params.serviceId;
 
-    const service = snakeCaseToCamelCase(filterProperties(req.body, serviceColumns));
-    const serviceWhole = snakeCaseToCamelCase(filterProperties(req.body, serviceWholeColumns));
-    const serviceId = req.body.service_id;
+    const serviceArgsExist = service && Object.keys(service).length !== 0;
+    const serviceWholeArgsExist = serviceWhole && Object.keys(serviceWhole).length !== 0;
+    const serviceConfigArgsExist = serviceConfig && Object.keys(serviceConfig).length !== 0;
 
-    const serviceArgsExist = Object.keys(service).length !== 0;
-    const serviceWholeArgsExist = Object.keys(serviceWhole).length !== 0;
-
-    if (!serviceArgsExist && !serviceWholeArgsExist) {
+    if (!serviceArgsExist && !serviceWholeArgsExist && !serviceConfigArgsExist) {
       res.status(400).json({ error: 'No valid fields given to update' });
       return;
     }
@@ -44,6 +81,10 @@ module.exports = app => {
 
     if (serviceArgsExist) {
       promise.then(() => updateService({ ...service, serviceId }));
+    }
+
+    if (serviceConfigArgsExist) {
+      promise.then(() => updateServiceConfig({ ...serviceConfig, serviceId }));
     }
 
     promise

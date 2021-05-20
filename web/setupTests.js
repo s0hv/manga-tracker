@@ -19,12 +19,20 @@ jest.mock('./db/mangadex', () => ({
 
 const Test = request.Test;
 
-// Helper function to add csrf token to request
+/**
+ * Helper function to add csrf token to request
+ * @memberOf supertest.Test
+ * @return {supertest.Test}
+ */
 Test.prototype.csrf = function csrf() {
   return this.set('X-CSRF-Token', csrfToken);
 };
 
-// Helper function to check if response matches OpenAPI spec
+/**
+ * Helper function to check if response matches OpenAPI spec
+ * @memberOf supertest.Test
+ * @return {supertest.Test}
+ */
 Test.prototype.satisfiesApiSpec = function satisfiesApiSpec() {
   return this.expect(res => expect(res).toSatisfyApiSpec());
 };
