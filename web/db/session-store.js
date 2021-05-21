@@ -70,8 +70,8 @@ module.exports = (expressSession) => {
         .then(row => {
           if (row) {
             // TODO Check set behavior
-            this.cache.set(sid, { ...row.data, user_id: row.user_id }, row.maxage);
-            return cb(null, { ...row.data, user_id: row.user_id });
+            this.cache.set(sid, { ...row.data, userId: row.userId }, row.maxage);
+            return cb(null, { ...row.data, userId: row.userId });
           }
 
           return cb(null, null);
@@ -87,7 +87,7 @@ module.exports = (expressSession) => {
       this.cache.set(sid, session);
       const sql = `INSERT INTO sessions (user_id, session_id, data, expires_at) VALUES ($1, $2, $3, $4)
                    ON CONFLICT (session_id) DO UPDATE SET user_id=$1, data=$3, expires_at=$4`;
-      this.conn.query(sql, [session.user_id, sid, session, session.cookie._expires])
+      this.conn.query(sql, [session.userId, sid, session, session.cookie._expires])
         .then(() => cb(null))
         .catch(err => {
           sessionLogger.error(err, 'Failed to edit session');
@@ -131,7 +131,7 @@ module.exports = (expressSession) => {
     clearUserSessions(uid, cb = noop) {
       sessionLogger.info('Clearing all user sessions from user %s', uid);
       const sql = 'DELETE FROM sessions WHERE user_id=$1';
-      this.cache.forEach((sess, key) => { if (sess.user_id === uid) this.cache.del(key); });
+      this.cache.forEach((sess, key) => { if (sess.userId === uid) this.cache.del(key); });
       this.conn.query(sql, [uid])
         .then(() => cb(null))
         .catch(err => {

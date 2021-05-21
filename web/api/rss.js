@@ -17,16 +17,16 @@ function createFeed(rows) {
   rows.forEach(row => {
     feed.item({
       title: row.title,
-      guid: row.chapter_id,
-      url: row.chapter_url_format.replace('{}', row.chapter_identifier),
-      description: `${row.manga_title} - Chapter ${row.chapter_number}${row.chapter_decimal ? '.' + row.chapter_decimal : ''}`,
+      guid: row.chapterId,
+      url: row.chapterUrlFormat.replace('{}', row.chapterIdentifier),
+      description: `${row.mangaTitle} - Chapter ${row.chapterNumber}${row.chapterDecimal ? '.' + row.chapterDecimal : ''}`,
       author: row.group,
-      pubDate: row.release_date,
-      source: row.service_name,
+      pubDate: row.releaseDate,
+      source: row.serviceName,
       source_url: row.url,
       custom_elements: [
-        { 'manga:id': row.manga_id },
-        { 'manga:title': row.manga_title },
+        { 'manga:id': row.mangaId },
+        { 'manga:title': row.mangaTitle },
         { 'manga:cover': row.cover },
       ],
     });
@@ -43,7 +43,7 @@ module.exports = app => {
       return;
     }
 
-    getLatestReleases(req.query.service_id, req.query.manga_id, uuid)
+    getLatestReleases(req.query.serviceId, req.query.mangaId, uuid)
       .then(rows => {
         if (rows.length === 0) {
           res.status(404).send('404');

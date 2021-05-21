@@ -69,7 +69,7 @@ export default function MangaSearch(props) {
   const router = useRouter();
 
   const onChangeDefault = useCallback(
-    (newValue) => router.push(`/manga/${newValue.manga_id}`),
+    (newValue) => router.push(`/manga/${newValue.mangaId}`),
     [router]
   );
   const onChange = onChangeFunc || onChangeDefault;

@@ -54,7 +54,7 @@ describe('sessionStore', () => {
       const sql = 'INSERT INTO sessions (user_id, session_id, expires_at, data) VALUES ($1, $2, $3, $4)';
       await db.query(sql, [null, sid, new Date(Date.now() + 60*60*60), session]);
 
-      const expected = { ...session, user_id: null };
+      const expected = { ...session, userId: null };
       await expect(new Promise(resolve => store.get(sid, (...args) => resolve(args))))
         .resolves
         .toEqual([null, expected]);

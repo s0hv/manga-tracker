@@ -24,7 +24,7 @@ module.exports.addChapter = ({
                RETURNING chapter_id`;
   releaseDate = releaseDate || new Date(Date.now());
   return db.oneOrNone(sql, [mangaId, serviceId, title, chapterNumber, chapterDecimal, releaseDate, chapterIdentifier, group])
-    .then(row => row?.chapter_id);
+    .then(row => row?.chapterId);
 };
 
 module.exports.getChapters = (mangaId, limit, offset) => {

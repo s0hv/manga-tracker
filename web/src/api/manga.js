@@ -20,7 +20,7 @@ export const getManga = (mangaId) => fetch(`/api/manga/${mangaId}`)
  */
 export const postMergeManga = (csrf, baseManga, toMerge, serviceId) => {
   const service = (serviceId === undefined) ? '' : `&service=${serviceId}`;
-  return fetch(`/api/manga/merge?base=${baseManga}&to_merge=${toMerge}${service}`, {
+  return fetch(`/api/manga/merge?base=${baseManga}&toMerge=${toMerge}${service}`, {
     method: 'post',
     headers: csrfHeader(csrf),
   })

@@ -14,9 +14,9 @@ module.exports = app => {
 
     if (req.user) {
       const sql = `UPDATE users SET theme=$1 WHERE user_id=$2`;
-      db.query(sql, [val, req.user.user_id])
+      db.query(sql, [val, req.user.userId])
         .then(() => {
-          modifyCacheUser(parseInt(req.user.user_id), { theme: val });
+          modifyCacheUser(parseInt(req.user.userId), { theme: val });
           res.status(200).end();
         })
         .catch(err => handleError(err, res));

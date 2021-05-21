@@ -20,7 +20,7 @@ import { fullManga } from '../../constants';
 
 beforeEach(() => mockNotistackHooks());
 
-const mangaId = fullManga.manga.manga_id;
+const mangaId = fullManga.manga.mangaId;
 
 describe('Manga admin page should render correctly', () => {
   mockUTCDates();
@@ -80,8 +80,8 @@ describe('Manga admin page should render correctly', () => {
 
 describe('Manga admin page should handle data fetching correctly', () => {
   const mockServices = fullManga.services.map(s => ({
-    service_id: s.service_id,
-    manga_id: mangaId,
+    serviceId: s.serviceId,
+    mangaId: mangaId,
   }));
   const getMock = jest.fn().mockReturnValue({ data: mockServices });
 
@@ -93,8 +93,8 @@ describe('Manga admin page should handle data fetching correctly', () => {
   const renderPage = async (expectGetMock = true) => {
     const serviceConfigs = [
       {
-        service_id: fullManga.services[0].service_id,
-        scheduled_runs_enabled: true,
+        serviceId: fullManga.services[0].serviceId,
+        scheduledRunsEnabled: true,
       },
     ];
     await act(async () => {
@@ -127,9 +127,9 @@ describe('Manga admin page should handle data fetching correctly', () => {
   });
 
   it('Should call the correct endpoint on adding new run', async () => {
-    const serviceId = fullManga.services[0].service_id;
+    const serviceId = fullManga.services[0].serviceId;
     const serviceName = fullManga.services[0].name;
-    const postMock = jest.fn().mockReturnValue({ inserted: { service_id: serviceId, name: serviceName }});
+    const postMock = jest.fn().mockReturnValue({ inserted: { serviceId: serviceId, name: serviceName }});
     const partialGetMock = jest.fn().mockReturnValue({ data: mockServices.slice(1, 2) });
 
     fetchMock.post(`/api/admin/manga/${mangaId}/scheduledRun/${serviceId}`, postMock);
@@ -154,7 +154,7 @@ describe('Manga admin page should handle data fetching correctly', () => {
   });
 
   it('Should remove row on delete', async () => {
-    const serviceId = fullManga.services[0].service_id;
+    const serviceId = fullManga.services[0].serviceId;
     const serviceName = fullManga.services[0].name;
     const deleteMock = jest.fn().mockReturnValue({});
 
@@ -176,7 +176,7 @@ describe('Manga admin page should handle data fetching correctly', () => {
   });
 
   it('Should show error snackbar on error', async () => {
-    const serviceId = fullManga.services[0].service_id;
+    const serviceId = fullManga.services[0].serviceId;
     const serviceName = fullManga.services[0].name;
 
     fetchMock.delete(`/api/admin/manga/${mangaId}/scheduledRun/${serviceId}`, 500);

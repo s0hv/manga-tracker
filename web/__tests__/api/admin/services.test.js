@@ -1,8 +1,7 @@
 import request from 'supertest';
+import { parse, toSeconds } from 'iso8601-duration';
 
 import { csrfMissing } from '../../../utils/constants';
-
-import { redis } from '../../../utils/ratelimits';
 
 import { userForbidden, userUnauthorized } from '../../constants';
 import initServer from '../../initServer';
@@ -22,10 +21,6 @@ let httpServer;
 
 beforeAll(async () => {
   ({ httpServer } = await initServer());
-});
-
-beforeEach(async () => {
-  await redis.flushall();
 });
 
 afterAll(async () => stopServer(httpServer));
@@ -252,8 +247,8 @@ describe('POST /api/admin/editService/:serviceId', () => {
       await new Promise(setImmediate);
 
       const originalService = await getServiceFull(serviceId);
-      originalService.serviceConfig.checkInterval = originalService.serviceConfig.checkInterval.toISOString();
-      originalService.serviceConfig.scheduledRunInterval = originalService.serviceConfig.scheduledRunInterval.toISOString();
+      originalService.serviceConfig.checkInterval = toSeconds(originalService.serviceConfig.checkInterval);
+      originalService.serviceConfig.scheduledRunInterval = toSeconds(originalService.serviceConfig.scheduledRunInterval);
 
       if (data.service) {
         expect(originalService.service).toMatchObject(data.service);
@@ -262,7 +257,11 @@ describe('POST /api/admin/editService/:serviceId', () => {
         expect(originalService.serviceWhole).toMatchObject(data.serviceWhole);
       }
       if (data.serviceConfig) {
-        expect(originalService.serviceConfig).toMatchObject(data.serviceConfig);
+        expect(originalService.serviceConfig).toMatchObject({
+          ...data.serviceConfig,
+          checkInterval: toSeconds(parse(data.serviceConfig.checkInterval)),
+          scheduledRunInterval: toSeconds(parse(data.serviceConfig.scheduledRunInterval)),
+        });
       }
     });
   };

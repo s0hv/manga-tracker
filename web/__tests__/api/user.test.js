@@ -1,7 +1,6 @@
 import request from 'supertest';
 import { insertFollow } from '../../db/follows';
 import { csrfMissing } from '../../utils/constants';
-import { redis } from '../../utils/ratelimits';
 import { mangaIdError, userUnauthorized } from '../constants';
 import { expectOnlySessionInsert, spyOnDb } from '../dbutils';
 
@@ -25,10 +24,6 @@ let httpServer;
 
 beforeAll(async () => {
   ({ httpServer } = await initServer());
-});
-
-beforeEach(async () => {
-  await redis.flushall();
 });
 
 afterAll(async () => {
@@ -56,25 +51,25 @@ describe('PUT /api/user/follows', () => {
 
     await withUser(normalUser, async () => {
       await request(httpServer)
-        .put('/api/user/follows?manga_id=-1')
+        .put('/api/user/follows?mangaId=-1')
         .csrf()
         .expect(400)
-        .expect(expectErrorMessage('-1', 'manga_id', errorMessage));
+        .expect(expectErrorMessage('-1', 'mangaId', errorMessage));
 
       await request(httpServer)
-        .put('/api/user/follows?manga_id=Infinity')
+        .put('/api/user/follows?mangaId=Infinity')
         .csrf()
         .expect(400)
-        .expect(expectErrorMessage('Infinity', 'manga_id', errorMessage));
+        .expect(expectErrorMessage('Infinity', 'mangaId', errorMessage));
 
       await request(httpServer)
-        .put('/api/user/follows?manga_id=')
+        .put('/api/user/follows?mangaId=')
         .csrf()
         .expect(400)
-        .expect(expectErrorMessage('', 'manga_id', errorMessage));
+        .expect(expectErrorMessage('', 'mangaId', errorMessage));
 
       await request(httpServer)
-        .put('/api/user/follows?manga_id=2147483648')
+        .put('/api/user/follows?mangaId=2147483648')
         .csrf()
         .expect(400)
         .expect(expectErrorMessage('Number value out of range'));
@@ -86,40 +81,40 @@ describe('PUT /api/user/follows', () => {
 
     await withUser(normalUser, async () => {
       await request(httpServer)
-        .put('/api/user/follows?manga_id=1&service_id=abc')
+        .put('/api/user/follows?mangaId=1&serviceId=abc')
         .csrf()
         .expect(400)
-        .expect(expectErrorMessage('abc', 'service_id', errorMessage));
+        .expect(expectErrorMessage('abc', 'serviceId', errorMessage));
 
       await request(httpServer)
-        .put('/api/user/follows?manga_id=1&service_id=')
+        .put('/api/user/follows?mangaId=1&serviceId=')
         .csrf()
         .expect(400)
-        .expect(expectErrorMessage('', 'service_id', errorMessage));
+        .expect(expectErrorMessage('', 'serviceId', errorMessage));
 
       await request(httpServer)
-        .put('/api/user/follows?manga_id=1&service_id=-1')
+        .put('/api/user/follows?mangaId=1&serviceId=-1')
         .csrf()
         .expect(400)
-        .expect(expectErrorMessage('-1', 'service_id', errorMessage));
+        .expect(expectErrorMessage('-1', 'serviceId', errorMessage));
 
       await request(httpServer)
-        .put('/api/user/follows?manga_id=1&service_id=undefined')
+        .put('/api/user/follows?mangaId=1&serviceId=undefined')
         .csrf()
         .expect(400)
-        .expect(expectErrorMessage('undefined', 'service_id', errorMessage));
+        .expect(expectErrorMessage('undefined', 'serviceId', errorMessage));
     });
   });
 
   it('Returns 200 with valid data', async () => {
     await withUser(normalUser, async () => {
       await request(httpServer)
-        .put('/api/user/follows?manga_id=1&service_id=1')
+        .put('/api/user/follows?mangaId=1&serviceId=1')
         .csrf()
         .expect(200);
 
       await request(httpServer)
-        .put(`/api/user/follows?manga_id=1`)
+        .put(`/api/user/follows?mangaId=1`)
         .csrf()
         .expect(200);
     });
@@ -147,25 +142,25 @@ describe('DELETE /api/user/follows', () => {
 
     await withUser(normalUser, async () => {
       await request(httpServer)
-        .delete('/api/user/follows?manga_id=-1')
+        .delete('/api/user/follows?mangaId=-1')
         .csrf()
         .expect(400)
-        .expect(expectErrorMessage('-1', 'manga_id', errorMessage));
+        .expect(expectErrorMessage('-1', 'mangaId', errorMessage));
 
       await request(httpServer)
-        .delete('/api/user/follows?manga_id=Infinity')
+        .delete('/api/user/follows?mangaId=Infinity')
         .csrf()
         .expect(400)
-        .expect(expectErrorMessage('Infinity', 'manga_id', errorMessage));
+        .expect(expectErrorMessage('Infinity', 'mangaId', errorMessage));
 
       await request(httpServer)
-        .delete('/api/user/follows?manga_id=')
+        .delete('/api/user/follows?mangaId=')
         .csrf()
         .expect(400)
-        .expect(expectErrorMessage('', 'manga_id', errorMessage));
+        .expect(expectErrorMessage('', 'mangaId', errorMessage));
 
       await request(httpServer)
-        .delete('/api/user/follows?manga_id=2147483648')
+        .delete('/api/user/follows?mangaId=2147483648')
         .csrf()
         .expect(400)
         .expect(expectErrorMessage('Number value out of range'));
@@ -177,55 +172,55 @@ describe('DELETE /api/user/follows', () => {
 
     await withUser(normalUser, async () => {
       await request(httpServer)
-        .delete('/api/user/follows?manga_id=1&service_id=abc')
+        .delete('/api/user/follows?mangaId=1&serviceId=abc')
         .csrf()
         .expect(400)
-        .expect(expectErrorMessage('abc', 'service_id', errorMessage));
+        .expect(expectErrorMessage('abc', 'serviceId', errorMessage));
 
       await request(httpServer)
-        .delete('/api/user/follows?manga_id=1&service_id=')
+        .delete('/api/user/follows?mangaId=1&serviceId=')
         .csrf()
         .expect(400)
-        .expect(expectErrorMessage('', 'service_id', errorMessage));
+        .expect(expectErrorMessage('', 'serviceId', errorMessage));
 
       await request(httpServer)
-        .delete('/api/user/follows?manga_id=1&service_id=-1')
+        .delete('/api/user/follows?mangaId=1&serviceId=-1')
         .csrf()
         .expect(400)
-        .expect(expectErrorMessage('-1', 'service_id', errorMessage));
+        .expect(expectErrorMessage('-1', 'serviceId', errorMessage));
 
       await request(httpServer)
-        .delete('/api/user/follows?manga_id=1&service_id=undefined')
+        .delete('/api/user/follows?mangaId=1&serviceId=undefined')
         .csrf()
         .expect(400)
-        .expect(expectErrorMessage('undefined', 'service_id', errorMessage));
+        .expect(expectErrorMessage('undefined', 'serviceId', errorMessage));
     });
   });
 
   it('Returns 200 with valid input and 404 on non existent resource', async () => {
-    await insertFollow(normalUser.user_id, 1, 1);
-    await insertFollow(normalUser.user_id, 1, null);
+    await insertFollow(normalUser.userId, 1, 1);
+    await insertFollow(normalUser.userId, 1, null);
 
     await withUser(normalUser, async () => {
       await request(httpServer)
-        .delete(`/api/user/follows?manga_id=1&service_id=1`)
+        .delete(`/api/user/follows?mangaId=1&serviceId=1`)
         .csrf()
         .expect(200);
 
       // Make sure resource was deleted
       await request(httpServer)
-        .delete(`/api/user/follows?manga_id=1&service_id=1`)
+        .delete(`/api/user/follows?mangaId=1&serviceId=1`)
         .csrf()
         .expect(404);
 
       await request(httpServer)
-        .delete(`/api/user/follows?manga_id=1`)
+        .delete(`/api/user/follows?mangaId=1`)
         .csrf()
         .expect(200);
 
       // Make sure resource was deleted
       await request(httpServer)
-        .delete(`/api/user/follows?manga_id=1`)
+        .delete(`/api/user/follows?mangaId=1`)
         .csrf()
         .expect(404);
     });

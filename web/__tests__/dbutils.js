@@ -41,7 +41,7 @@ export const sessionAssociatedWithUser = async (sessionId, encrypted=true) => {
 
   const sql = 'SELECT user_id FROM sessions WHERE session_id=$1';
   const row = await db.oneOrNone(sql, [sessionId]);
-  return row !== null && row.user_id !== null;
+  return row !== null && row.userId !== null;
 };
 
 export const authTokenCount = async (uuid) => {

@@ -6,19 +6,19 @@ export const csrfToken = 'test-csrf-token';
 
 export const fullManga = {
   manga: {
-    manga_id: 1,
+    mangaId: 1,
     title: 'Dr. STONE',
-    release_interval: {
+    releaseInterval: {
       days: 7,
     },
-    latest_release: '2020-07-05T16:00:00.000Z',
-    estimated_release: '2020-07-12T16:00:00.000Z',
-    latest_chapter: 157,
+    latestRelease: '2020-07-05T16:00:00.000Z',
+    estimatedRelease: '2020-07-12T16:00:00.000Z',
+    latestChapter: 157,
     cover: 'https://mangadex.org/images/manga/20882.jpg?1585634146',
     status: 0,
     artist: 'Boichi',
     author: 'Inagaki Riichiro',
-    last_updated: '2020-06-28T08:15:55.170Z',
+    lastUpdated: '2020-06-28T08:15:55.170Z',
     bw: 'https://bookwalker.jp/series/114645',
     mu: 'https://www.mangaupdates.com/series.html?id=139601',
     mal: 'https://myanimelist.net/manga/103897',
@@ -34,17 +34,17 @@ export const fullManga = {
 
   services: [
     {
-      title_id: '100010',
-      service_id: 1,
+      titleId: '100010',
+      serviceId: 1,
       name: 'MANGA Plus',
-      url_format: 'https://mangaplus.shueisha.co.jp/viewer/{}',
+      urlFormat: 'https://mangaplus.shueisha.co.jp/viewer/{}',
       url: 'https://mangaplus.shueisha.co.jp/titles/{}',
     },
     {
-      title_id: '20882',
-      service_id: 2,
+      titleId: '20882',
+      serviceId: 2,
       name: 'MangaDex',
-      url_format: 'https://mangadex.org/chapter/{}',
+      urlFormat: 'https://mangadex.org/chapter/{}',
       url: 'https://mangadex.org/title/{}',
     },
   ],
@@ -52,27 +52,27 @@ export const fullManga = {
   chapters: [
     {
       title: 'Z=157: Same Time, Same Place',
-      chapter_number: 157,
-      release_date: 1593964800000,
+      chapterNumber: 157,
+      releaseDate: 1593964800000,
       group: 'Shueisha',
-      service_id: 1,
-      chapter_identifier: '1007322',
+      serviceId: 1,
+      chapterIdentifier: '1007322',
     },
     {
       title: 'Z=156: Two Scientists',
-      chapter_number: 156,
-      release_date: null,
+      chapterNumber: 156,
+      releaseDate: null,
       group: 'MangaPlus',
-      service_id: 2,
-      chapter_identifier: '938629',
+      serviceId: 2,
+      chapterIdentifier: '938629',
     },
     {
       title: 'Z=156: Two Scientists',
-      chapter_number: 156,
-      release_date: 1593187200000,
+      chapterNumber: 156,
+      releaseDate: 1593187200000,
       group: 'Shueisha',
-      service_id: 1,
-      chapter_identifier: '1007024',
+      serviceId: 1,
+      chapterIdentifier: '1007024',
     },
   ],
 
@@ -81,17 +81,17 @@ export const fullManga = {
 
 export const emptyFullManga = {
   manga: {
-    manga_id: 2,
+    mangaId: 2,
     title: 'Dr. STONE 2',
-    release_interval: undefined,
-    latest_release: null,
-    estimated_release: null,
-    latest_chapter: null,
+    releaseInterval: undefined,
+    latestRelease: null,
+    estimatedRelease: null,
+    latestChapter: null,
     cover: null,
     status: 0,
     artist: 'Boichi',
     author: 'Inagaki Riichiro',
-    last_updated: null,
+    lastUpdated: null,
     bw: 'https://bookwalker.jp/series/114645',
     mu: 'https://www.mangaupdates.com/series.html?id=139601',
     mal: null,
@@ -107,10 +107,10 @@ export const emptyFullManga = {
 
   services: [
     {
-      title_id: '100010',
-      service_id: 1,
+      titleId: '100010',
+      serviceId: 1,
       name: 'MANGA Plus',
-      url_format: 'https://mangaplus.shueisha.co.jp/viewer/{}',
+      urlFormat: 'https://mangaplus.shueisha.co.jp/viewer/{}',
       url: 'https://mangaplus.shueisha.co.jp/titles/{}',
     },
   ],

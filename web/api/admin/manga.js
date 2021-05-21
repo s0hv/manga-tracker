@@ -21,12 +21,12 @@ module.exports = () => {
   const router = express.Router();
   router.use(requiresUser);
 
-  router.use('/:manga_id(\\d+)/scheduledRuns', [
+  router.use('/:mangaId(\\d+)/scheduledRuns', [
     validateAdminUser(),
     mangaIdValidation(true),
   ]);
-  router.get('/:manga_id(\\d+)/scheduledRuns', handleValidationErrors, (req, res) => {
-    getScheduledRuns(req.params.manga_id)
+  router.get('/:mangaId(\\d+)/scheduledRuns', handleValidationErrors, (req, res) => {
+    getScheduledRuns(req.params.mangaId)
       .then(rows => {
         res.status(200).json({
           data: rows,
@@ -35,7 +35,7 @@ module.exports = () => {
       .catch(err => handleError(err, res));
   });
 
-  const scheduleRunUrl = '/:manga_id(\\d+)/scheduledRun/:service_id(\\d+)';
+  const scheduleRunUrl = '/:mangaId(\\d+)/scheduledRun/:serviceId(\\d+)';
   router.use(scheduleRunUrl, [
     validateAdminUser(),
     mangaIdValidation(true),
@@ -44,7 +44,7 @@ module.exports = () => {
   ]);
   router.route(scheduleRunUrl)
     .post((req, res) => {
-      scheduleMangaRun(req.params.manga_id, req.params.service_id, req.user.user_id)
+      scheduleMangaRun(req.params.mangaId, req.params.serviceId, req.user.userId)
         .then(row => {
           res.status(200).json({
             inserted: row,
@@ -54,7 +54,7 @@ module.exports = () => {
     })
 
     .delete((req, res) => {
-      deleteScheduledRun(req.params.manga_id, req.params.service_id)
+      deleteScheduledRun(req.params.mangaId, req.params.serviceId)
         .then(rows => {
           if (rows.rowCount > 0) {
             res.status(200).end();
@@ -65,14 +65,14 @@ module.exports = () => {
         .catch(err => handleError(err, res));
     });
 
-  const updateTitleUrl = '/:manga_id(\\d+)/title';
+  const updateTitleUrl = '/:mangaId(\\d+)/title';
   router.use(updateTitleUrl, [
     validateAdminUser(),
     mangaIdValidation(true),
     body('title').isString().bail().isLength({ min: 1 }),
   ]);
   router.post(updateTitleUrl, handleValidationErrors, (req, res) => {
-    updateMangaTitle(req.params.manga_id, req.body.title)
+    updateMangaTitle(req.params.mangaId, req.body.title)
       .then(row => {
         const msg = row ?
           `Replaced old alias with current title "${row.title}"` :

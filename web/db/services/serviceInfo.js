@@ -1,4 +1,3 @@
-const camelcaseKeys = require('camelcase-keys');
 const { db } = require('..');
 
 function getServices() {
@@ -9,8 +8,7 @@ function getServices() {
                FROM services s LEFT JOIN service_whole sw ON s.service_id = sw.service_id
                ORDER BY s.service_id`;
 
-  return db.many(sql)
-    .then(rows => camelcaseKeys(rows));
+  return db.many(sql);
 }
 
 module.exports.getServices = getServices;

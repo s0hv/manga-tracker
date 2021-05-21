@@ -6,7 +6,7 @@ const mangaSearch = (query, count) => client.search({
   index,
   body: {
     size: count || 5,
-    fields: ['manga_id', 'title'],
+    fields: ['mangaId', 'title'],
     _source: false,
 
     query: {

@@ -122,7 +122,7 @@ module.exports = nextApp.prepare()
     server.use('/api/admin/manga', require('./api/admin/manga')());
 
     server.get('/login', requiresUser, (req, res) => {
-      sessionLogger.debug(req.session.user_id);
+      sessionLogger.debug(req.session.userId);
       if (req.isAuthenticated()) {
         res.redirect('/');
         return;
@@ -143,7 +143,7 @@ module.exports = nextApp.prepare()
       res.json({ user: req.user });
     });
 
-    server.get('/manga/:manga_id(\\d+)', requiresUser, (req, res) => handle(req, res));
+    server.get('/manga/:mangaId(\\d+)', requiresUser, (req, res) => handle(req, res));
 
     server.get('/*', requiresUser, (req, res) => {
       sessionLogger.debug('User %o', req.user);

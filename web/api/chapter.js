@@ -12,11 +12,11 @@ const { dbLogger } = require('../utils/logging');
 const BASE_URL = '/api/chapter';
 
 module.exports = app => {
-  app.post(`${BASE_URL}/:chapter_id(\\d+)`, requiresUser, [
+  app.post(`${BASE_URL}/:chapterId(\\d+)`, requiresUser, [
     validateAdminUser(),
     validateBody('title').isString().optional(),
-    validateBody('chapter_number').isInt().optional(),
-    validateBody('chapter_decimal').isInt().optional({ nullable: true }),
+    validateBody('chapterNumber').isInt().optional(),
+    validateBody('chapterDecimal').isInt().optional({ nullable: true }),
     validateBody('group').isString().optional(),
     handleValidationErrors,
   ], (req, res) => {
@@ -26,15 +26,15 @@ module.exports = app => {
       return;
     }
 
-    const chapterId = Number(req.params.chapter_id);
+    const chapterId = Number(req.params.chapterId);
 
     req.log.info(`Updating chapter ${chapterId} with data %o`, body);
 
     const chapter = {
       chapterId,
       title: body.title,
-      chapterNumber: body.chapter_number,
-      chapterDecimal: body.chapter_decimal,
+      chapterNumber: body.chapterNumber,
+      chapterDecimal: body.chapterDecimal,
       group: body.group,
     };
 
@@ -55,17 +55,17 @@ module.exports = app => {
       });
   });
 
-  app.delete(`${BASE_URL}/:chapter_id(\\d+)`, requiresUser, [
+  app.delete(`${BASE_URL}/:chapterId(\\d+)`, requiresUser, [
     validateAdminUser(),
     handleValidationErrors,
   ], (req, res) => {
-    deleteChapter(Number(req.params.chapter_id))
+    deleteChapter(Number(req.params.chapterId))
       .then(row => {
         if (row) {
-          dbLogger.info(`Deleted chapter from service ${row.service_id} and identifier ${row.chapter_identifier}`);
-          res.status(200).json({ message: `Successfully deleted chapter ${row.chapter_id}` });
+          dbLogger.info(`Deleted chapter from service ${row.serviceId} and identifier ${row.chapterIdentifier}`);
+          res.status(200).json({ message: `Successfully deleted chapter ${row.chapterId}` });
         } else {
-          res.status(404).json({ error: `Chapter with id ${req.params.chapter_id} not found` });
+          res.status(404).json({ error: `Chapter with id ${req.params.chapterId} not found` });
         }
       })
       .catch(err => {
@@ -73,8 +73,8 @@ module.exports = app => {
       });
   });
 
-  app.get(`${BASE_URL}/releases/:manga_id(\\d+)`, (req, res) => {
-    const mangaId = Number(req.params.manga_id);
+  app.get(`${BASE_URL}/releases/:mangaId(\\d+)`, (req, res) => {
+    const mangaId = Number(req.params.mangaId);
     if (Number.isNaN(mangaId)) {
       res.status(400).json({ error: 'Invalid manga id given' });
       return;

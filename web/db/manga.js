@@ -1,3 +1,4 @@
+const camelcaseKeys = require('camelcase-keys');
 const { link: Link } = require('mangadex-full-api');
 
 const { db } = require('.');
@@ -71,17 +72,12 @@ function getFullManga(mangaId, chapters) {
         return null;
       }
 
-      const mdIdx = row.services.findIndex(v => v.service_id === MANGADEX_ID);
+      row = camelcaseKeys(row, { deep: true });
+
+      const mdIdx = row.services.findIndex(v => v.serviceId === MANGADEX_ID);
       // If info doesn't exist or 2 weeks since last update
-      if ((!row.last_updated || (Date.now() - row.last_updated)/8.64E7 > 14) && mdIdx >= 0) {
-        return fetchExtraInfo(row.services[mdIdx].title_id, mangaId,
-          (limit && row.chapters) ? row.chapters.filter(c => c.service_id === MANGADEX_ID).map(c => c.chapter_identifier) : null,
-          Boolean(limit),
-          Boolean(row.last_updated))
-          .then(extra => {
-            formatLinks(extra);
-            return formatFullManga({ ...row, ...extra });
-          });
+      if ((!row.lastUpdated || (Date.now() - row.lastUpdated)/8.64E7 > 14) && mdIdx >= 0) {
+        fetchExtraInfo(row.services[mdIdx].titleId, mangaId);
       }
 
       formatLinks(row);

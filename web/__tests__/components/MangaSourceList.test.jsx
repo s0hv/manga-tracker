@@ -12,20 +12,20 @@ expect.addSnapshotSerializer(createSerializer({ mode: 'deep' }));
 
 const services = [
   {
-    title_id: '100010',
-    service_id: 1,
+    titleId: '100010',
+    serviceId: 1,
     name: 'MANGA Plus',
     url: 'https://mangaplus.shueisha.co.jp/titles/{}',
   },
   {
-    title_id: '20882',
-    service_id: 2,
+    titleId: '20882',
+    serviceId: 2,
     name: 'MangaDex',
     url: 'https://mangadex.org/title/{}',
   },
   {
-    title_id: 'test_series_1',
-    service_id: 3,
+    titleId: 'test_series_1',
+    serviceId: 3,
     name: 'TestService',
     url: 'https://test.com/manga/{}',
   },
@@ -70,8 +70,8 @@ describe('Manga source list', () => {
   it('should fail to render with invalid services', () => {
     // At the moment missing name or service id don't throw errors
     const invalid = [{
-      title_id: 'test_series_1',
-      service_id: 3,
+      titleId: 'test_series_1',
+      serviceId: 3,
     }];
 
     expect(() => createShallow()(

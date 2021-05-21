@@ -37,14 +37,14 @@ export async function getServerSideProps({ req, params }) {
   let manga;
   let userFollows;
   try {
-    manga = await getFullManga(params.manga_id, 25);
+    manga = await getFullManga(params.mangaId, 25);
     if (!manga) {
       return { props: { error: 404 }};
     }
 
-    if (req.user?.user_id) {
-      userFollows = (await getUserFollows(req.user.user_id, params?.manga_id))
-        .map(service => service.service_id);
+    if (req.user?.userId) {
+      userFollows = (await getUserFollows(req.user.userId, params?.mangaId))
+        .map(service => service.serviceId);
     }
   } catch (e) {
     return { props: { error: e?.status || 404 }};

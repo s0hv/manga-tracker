@@ -10,24 +10,24 @@ describe('Follows page should render correctly', () => {
     {
       title: 'Dr. STONE',
       cover: 'https://mangadex.org/images/manga/20882.jpg?1585634146',
-      manga_id: 1,
-      latest_chapter: 90,
-      latest_release: '2020-08-20T15:36:07.865Z',
+      mangaId: 1,
+      latestChapter: 90,
+      latestRelease: '2020-08-20T15:36:07.865Z',
       services: [
         {
-          service_id: 1,
-          service_name: 'MANGA Plus',
-          title_id: '100010',
+          serviceId: 1,
+          serviceName: 'MANGA Plus',
+          titleId: '100010',
           url: 'https://mangaplus.shueisha.co.jp/titles/{}',
         },
         {
-          service_id: 2,
-          service_name: 'MangaDex',
-          title_id: '20882',
+          serviceId: 2,
+          serviceName: 'MangaDex',
+          titleId: '20882',
           url: 'https://mangadex.org/title/{}',
         },
       ],
-      followed_services: [
+      followedServices: [
         1,
         null,
       ],
@@ -35,33 +35,33 @@ describe('Follows page should render correctly', () => {
     {
       title: 'Shuumatsu no Valkyrie',
       cover: 'https://mangadex.org/images/manga/33537.jpg?1591183509',
-      manga_id: 8,
+      mangaId: 8,
       services: [
         {
-          service_id: 2,
-          service_name: 'MangaDex',
-          title_id: '33537',
+          serviceId: 2,
+          serviceName: 'MangaDex',
+          titleId: '33537',
           url: 'https://mangadex.org/title/{}',
         },
       ],
-      followed_services: [
+      followedServices: [
         null,
       ],
     },
     {
       title: 'Kengan Omega',
       cover: 'https://mangadex.org/images/manga/33538.jpg?1593474917',
-      manga_id: 64,
-      latest_chapter: 10,
+      mangaId: 64,
+      latestChapter: 10,
       services: [
         {
-          service_id: 2,
-          service_name: 'MangaDex',
-          title_id: '33538',
+          serviceId: 2,
+          serviceName: 'MangaDex',
+          titleId: '33538',
           url: 'https://mangadex.org/title/{}',
         },
       ],
-      followed_services: [
+      followedServices: [
         null,
       ],
     },

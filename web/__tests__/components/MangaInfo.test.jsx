@@ -7,12 +7,12 @@ import { mockUTCDates } from '../utils';
 describe('MangaInfo should render correctly', () => {
   mockUTCDates();
   const mangaData = {
-    release_interval: {
+    releaseInterval: {
       days: 7,
     },
-    latest_release: '2020-07-05T16:00:00.000Z',
-    estimated_release: '2020-07-12T16:00:00.000Z',
-    latest_chapter: 157,
+    latestRelease: '2020-07-05T16:00:00.000Z',
+    estimatedRelease: '2020-07-12T16:00:00.000Z',
+    latestChapter: 157,
     status: 0,
   };
 

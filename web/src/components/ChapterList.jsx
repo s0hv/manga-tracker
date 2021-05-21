@@ -29,11 +29,11 @@ function ChapterList(props) {
 
     return chs.map(chapter => {
       const newChapter = { ...chapter };
-      newChapter.release_date = new Date(chapter.release_date * 1000);
+      newChapter.releaseDate = new Date(chapter.releaseDate * 1000);
 
-      const urlFormat = serviceUrlFormats && serviceUrlFormats[chapter.service_id];
+      const urlFormat = serviceUrlFormats && serviceUrlFormats[chapter.serviceId];
       if (urlFormat) {
-        newChapter.url = urlFormat.replace('{}', chapter.chapter_url);
+        newChapter.url = urlFormat.replace('{}', chapter.chapterUrl);
       }
 
       return newChapter;
@@ -52,7 +52,7 @@ function ChapterList(props) {
       row.values[key] = state[key];
     });
 
-    updateChapter(csrf, row.original.chapter_id, state)
+    updateChapter(csrf, row.original.chapterId, state)
       .then(handleResponse)
       .catch(err => {
         enqueueSnackbar(err.message, { variant: 'error' });
@@ -60,8 +60,8 @@ function ChapterList(props) {
   }, [csrf, handleResponse, enqueueSnackbar]);
 
   const onDeleteRow = useCallback((row) => {
-    const id = row.original.chapter_id;
-    setChapters(chapters.filter(c => c.chapter_id !== id));
+    const id = row.original.chapterId;
+    setChapters(chapters.filter(c => c.chapterId !== id));
 
     deleteChapter(csrf, id)
       .then(handleResponse)
@@ -82,13 +82,13 @@ function ChapterList(props) {
         </Link>
       ),
     },
-    { Header: 'Chapter', accessor: 'chapter_number' },
+    { Header: 'Chapter', accessor: 'chapterNumber' },
     {
       Header: 'Released',
-      accessor: 'release_date',
+      accessor: 'releaseDate',
       canEdit: false,
       sortType: 'datetime',
-      Cell: ({ row }) => defaultDateFormat(row.values.release_date),
+      Cell: ({ row }) => defaultDateFormat(row.values.releaseDate),
     },
     { Header: 'Group', accessor: 'group' },
   ], []);

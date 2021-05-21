@@ -1,5 +1,8 @@
 import { getMangaPartial } from '../../../db/manga';
-import { mangaView, onSessionExpire } from '../../../utils/view-counter/manga-view-counter';
+import {
+  mangaView,
+  onSessionExpire
+} from '../../../utils/view-counter/manga-view-counter';
 
 
 afterAll(async () => {
@@ -28,12 +31,12 @@ describe('mangaView increments manga views correctly', () => {
   it('Increments the given manga id', () => {
     const sess = {};
     const mangaId = '1';
-    mangaView(sess, { manga_id: mangaId });
+    mangaView(sess, { mangaId: mangaId });
 
     expect(sess.mangaViews).toHaveProperty(mangaId);
     expect(sess.mangaViews[mangaId]).toStrictEqual(1);
 
-    mangaView(sess, { manga_id: mangaId });
+    mangaView(sess, { mangaId: mangaId });
     expect(sess.mangaViews[mangaId]).toStrictEqual(2);
   });
 });

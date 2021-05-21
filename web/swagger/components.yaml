@@ -87,13 +87,13 @@ components:
       type: object
       description: Contains information about a single service
       properties:
-        title_id:
+        titleId:
           type: string
-        service_id:
+        serviceId:
           $ref: '#/components/schemas/databaseId'
         name:
           type: string
-        url_format:
+        urlFormat:
           type: string
           format: uri
           example: https://mangaplus.shueisha.co.jp/viewer/{}
@@ -103,10 +103,10 @@ components:
           example: https://mangaplus.shueisha.co.jp/titles/{}
 
       required:
-        - title_id
-        - service_id
+        - titleId
+        - serviceId
         - name
-        - url_format
+        - urlFormat
         - url
 
     mangaInfo:
@@ -125,7 +125,7 @@ components:
         author:
           type: string
           nullable: true
-        last_updated:
+        lastUpdated:
           type: string
           format: date-time
           nullable: true
@@ -194,7 +194,7 @@ components:
         - status
         - artist
         - author
-        - last_updated
+        - lastUpdated
         - bw
         - mu
         - mal
@@ -226,13 +226,13 @@ components:
     chapter:
       type: object
       properties:
-        chapter_id:
+        chapterId:
           $ref: '#/components/schemas/databaseId'
         title:
           type: string
-        chapter_number:
+        chapterNumber:
           type: integer
-        release_date:
+        releaseDate:
           type: integer
           format: int64
           description: UNIX timestamp
@@ -240,54 +240,54 @@ components:
         group:
           type: string
           nullable: true
-        service_id:
+        serviceId:
           $ref: '#/components/schemas/databaseId'
-        chapter_identifier:
+        chapterIdentifier:
           type: string
-          description: Chapter identifier that can be used in a services url_format in place of {}
-        chapter_url:
+          description: Chapter identifier that can be used in a services urlFormat in place of {}
+        chapterUrl:
           type: string
           description: URL of the chapter. Not included by default.
           nullable: true
 
       required:
-        - chapter_id
+        - chapterId
         - title
-        - chapter_number
-        - release_date
+        - chapterNumber
+        - releaseDate
         - group
-        - service_id
-        - chapter_identifier
+        - serviceId
+        - chapterIdentifier
 
     manga:
       description: Contains simple information on a single manga
       type: object
       properties:
-        manga_id:
+        mangaId:
           $ref: '#/components/schemas/databaseId'
         title:
           type: string
-        release_interval:
+        releaseInterval:
           $ref: '#/components/schemas/interval'
-        latest_release:
+        latestRelease:
           type: string
           format: date-time
           nullable: true
-        estimated_release:
+        estimatedRelease:
           type: string
           format: date-time
           nullable: true
-        latest_chapter:
+        latestChapter:
           type: integer
           nullable: true
 
       required:
-        - manga_id
+        - mangaId
         - title
-        - release_interval
-        - latest_release
-        - estimated_release
-        - latest_chapter
+        - releaseInterval
+        - latestRelease
+        - estimatedRelease
+        - latestChapter
 
     fullManga:
       description: Contains extended information of a single manga

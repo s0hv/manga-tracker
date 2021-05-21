@@ -1,3 +1,4 @@
+const camelcaseKeys = require('camelcase-keys');
 const { query } = require('express-validator');
 
 const { handleElasticError, extractFields } = require('../db/elasticsearch/utils');
@@ -23,7 +24,7 @@ module.exports = app => {
 
     mangaSearch(req.query.query)
       .then(result => extractFields(result, ['title'], 'manga'))
-      .then(results => res.json(results))
+      .then(results => res.json(camelcaseKeys(results)))
       .catch(err => handleElasticError(err, res));
   });
 

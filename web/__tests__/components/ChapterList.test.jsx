@@ -13,27 +13,27 @@ describe('Chapter list should render correctly', () => {
   const chapters = [
     {
       title: 'Z=157: Same Time, Same Place',
-      chapter_number: 157,
-      release_date: new Date(1593964800000),
+      chapterNumber: 157,
+      releaseDate: new Date(1593964800000),
       group: 'Shueisha',
-      service_id: 1,
-      chapter_url: 'https://mangaplus.shueisha.co.jp/titles/1007322',
+      serviceId: 1,
+      chapterUrl: 'https://mangaplus.shueisha.co.jp/titles/1007322',
     },
     {
       title: 'Z=156: Two Scientists',
-      chapter_number: 156,
-      release_date: new Date(null),
+      chapterNumber: 156,
+      releaseDate: new Date(null),
       group: 'MangaPlus',
-      service_id: 2,
-      chapter_url: 'https://mangadex.org/title/938629',
+      serviceId: 2,
+      chapterUrl: 'https://mangadex.org/title/938629',
     },
     {
       title: 'Z=156: Two Scientists',
-      chapter_number: 156,
-      release_date: new Date(1593187200000),
+      chapterNumber: 156,
+      releaseDate: new Date(1593187200000),
       group: 'Shueisha',
-      service_id: 1,
-      chapter_url: 'https://mangaplus.shueisha.co.jp/titles/1007024',
+      serviceId: 1,
+      chapterUrl: 'https://mangaplus.shueisha.co.jp/titles/1007024',
     },
   ];
 
@@ -68,17 +68,17 @@ describe('Chapter list should render correctly', () => {
 
 describe('Chapter list should allow editing', () => {
   const testChapter = {
-    chapter_id: 1,
+    chapterId: 1,
     title: 'Test chapter',
-    chapter_number: 1,
-    release_date: new Date(1593964800000),
+    chapterNumber: 1,
+    releaseDate: new Date(1593964800000),
     group: 'Test group',
-    service_id: 1,
-    chapter_url: 'https://mangaplus.shueisha.co.jp/titles/1007322',
+    serviceId: 1,
+    chapterUrl: 'https://mangaplus.shueisha.co.jp/titles/1007322',
   };
 
   const serviceUrlFormats = {
-    [testChapter.service_id]: '{}',
+    [testChapter.serviceId]: '{}',
   };
 
   const mangaId = 1;
@@ -105,7 +105,7 @@ describe('Chapter list should allow editing', () => {
 
     const updatedChapter = {
       title: 'Test edit',
-      chapter_number: 5,
+      chapterNumber: 5,
       group: 'Test group edit',
     };
 
@@ -117,8 +117,8 @@ describe('Chapter list should allow editing', () => {
       updatedChapter.title
     );
     await editInput(
-      wrapper.find('input').find({ defaultValue: testChapter.chapter_number }),
-      updatedChapter.chapter_number
+      wrapper.find('input').find({ defaultValue: testChapter.chapterNumber }),
+      updatedChapter.chapterNumber
     );
     await editInput(
       wrapper.find('input').find({ defaultValue: testChapter.group }),
@@ -138,7 +138,7 @@ describe('Chapter list should allow editing', () => {
   it('Should delete correctly', async () => {
     const deleteMock = jest.fn();
     deleteMock.mockImplementation(() => Promise.resolve({}));
-    fetchMock.delete(`path:/api/chapter/${testChapter.chapter_id}`, deleteMock);
+    fetchMock.delete(`path:/api/chapter/${testChapter.chapterId}`, deleteMock);
 
     const chapters = [testChapter];
     mockChapters(chapters);

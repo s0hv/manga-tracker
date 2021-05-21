@@ -33,7 +33,7 @@ export async function getServerSideProps({ req }) {
   let error;
   let follows;
   try {
-    follows = await getFollows(req.user?.user_id);
+    follows = await getFollows(req.user?.userId);
   } catch (e) {
     error = e;
   }

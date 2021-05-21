@@ -19,7 +19,7 @@ describe('Partial manga should render correctly', () => {
     // Find cover
     const cover = screen.getByAltText(mangaData.title);
     expect(screen.getByAltText(mangaData.title).getAttribute('src')).toStrictEqual(mangaData.cover);
-    expect(cover.closest('a').getAttribute('href')).toStrictEqual(`/manga/${mangaData.manga_id}`);
+    expect(cover.closest('a').getAttribute('href')).toStrictEqual(`/manga/${mangaData.mangaId}`);
 
     // Find source list
     expect(screen.getByLabelText('manga sources')).toBeTruthy();
@@ -55,7 +55,7 @@ describe('Partial manga should render correctly', () => {
 
     const idRow = within(screen.getByText(/manga id/i).closest('tr'));
     expect(
-      idRow.getByRole('cell', { name: manga.manga.manga_id.toString() })
+      idRow.getByRole('cell', { name: manga.manga.mangaId.toString() })
     ).toBeTruthy();
   });
 });

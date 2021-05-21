@@ -69,13 +69,13 @@ function Follows(props) {
   const columnsMd = 2;
 
   const renderFollow = (follow) => {
-    const followedServices = follow.followed_services;
+    const followedServices = follow.followedServices;
 
     return (
-      <Grid item xs={12/columnsXs} md={12/columnsMd} key={follow.manga_id}>
+      <Grid item xs={12/columnsXs} md={12/columnsMd} key={follow.mangaId}>
         <Typography className={classes.followTitle}>{follow.title}</Typography>
         <div className={classes.followContent}>
-          <NextLink href='/manga/[id]' as={`/manga/${follow.manga_id}`} passHref>
+          <NextLink href='/manga/[id]' as={`/manga/${follow.mangaId}`} passHref>
             <a target='_blank'>
               <img
                 src={follow.cover}
@@ -93,7 +93,7 @@ function Follows(props) {
                   </td>
                   <td>
                     <Typography>
-                      {defaultDateDistanceToNow(new Date(follow.latest_release))}
+                      {defaultDateDistanceToNow(new Date(follow.latestRelease))}
                     </Typography>
                   </td>
                 </tr>
@@ -102,7 +102,7 @@ function Follows(props) {
                     <Typography>Latest chapter: </Typography>
                   </td>
                   <td>
-                    <Typography>{follow.latest_chapter || 'No chapters'}</Typography>
+                    <Typography>{follow.latestChapter || 'No chapters'}</Typography>
                   </td>
                 </tr>
               </tbody>
@@ -110,15 +110,15 @@ function Follows(props) {
             <List className={classes.serviceList}>
               <ListItem key='all_services' className={classes.followService} disableGutters>
                 <ListItemText primary='All services' className={classes.serviceName} />
-                <Button variant='contained' color='primary' onClick={followUnfollow(csrf, follow.manga_id)}>
+                <Button variant='contained' color='primary' onClick={followUnfollow(csrf, follow.mangaId)}>
                   {followedServices.indexOf(null) < 0 ? 'Follow' : 'Unfollow'}
                 </Button>
               </ListItem>
               {follow.services.map((service) => (
-                <ListItem key={service.service_id} className={classes.followService} disableGutters>
-                  <ListItemText primary={service.service_name} className={classes.serviceName} />
-                  <Button variant='contained' color='primary' onClick={followUnfollow(csrf, follow.manga_id, service.service_id)}>
-                    {followedServices.indexOf(service.service_id) < 0 ? 'Follow' : 'Unfollow'}
+                <ListItem key={service.serviceId} className={classes.followService} disableGutters>
+                  <ListItemText primary={service.serviceName} className={classes.serviceName} />
+                  <Button variant='contained' color='primary' onClick={followUnfollow(csrf, follow.mangaId, service.serviceId)}>
+                    {followedServices.indexOf(service.serviceId) < 0 ? 'Follow' : 'Unfollow'}
                   </Button>
                 </ListItem>
               ))}

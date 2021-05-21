@@ -1,19 +1,15 @@
-const camelcaseKeys = require('camelcase-keys');
 const snakecaseKeys = require('snakecase-keys');
 
 const { generateUpdate } = require('../utils');
 const { db } = require('..');
 
-const getService = (serviceId) => db.oneOrNone('SELECT * FROM services WHERE service_id=$1', [serviceId])
-  .then(row => camelcaseKeys(row));
+const getService = (serviceId) => db.oneOrNone('SELECT * FROM services WHERE service_id=$1', [serviceId]);
 module.exports.getService = getService;
 
-const getServiceWhole = (serviceId) => db.oneOrNone('SELECT * FROM service_whole WHERE service_id=$1', [serviceId])
-  .then(row => camelcaseKeys(row));
+const getServiceWhole = (serviceId) => db.oneOrNone('SELECT * FROM service_whole WHERE service_id=$1', [serviceId]);
 module.exports.getServiceWhole = getServiceWhole;
 
-const getServiceConfig = (serviceId) => db.oneOrNone('SELECT * FROM service_config WHERE service_id=$1', [serviceId])
-  .then(row => camelcaseKeys(row));
+const getServiceConfig = (serviceId) => db.oneOrNone('SELECT * FROM service_config WHERE service_id=$1', [serviceId]);
 module.exports.getServiceConfig = getServiceConfig;
 
 module.exports.getServiceFull = (serviceId) => {

@@ -46,7 +46,7 @@ module.exports = app => {
   ], (req, res) => {
     if (hadValidationError(req, res)) return;
 
-    const args = [req.user.user_id];
+    const args = [req.user.userId];
     const cols = [];
     const {
       newPassword: newPass,
@@ -99,12 +99,12 @@ module.exports = app => {
         }
 
         if (pw) {
-          app.sessionStore.clearUserSessions(req.user.user_id, (err) => {
+          app.sessionStore.clearUserSessions(req.user.userId, (err) => {
             if (err) {
               return res.status(500).json({ error: 'Internal server error' });
             }
 
-            clearUserAuthTokens(req.user.user_id)
+            clearUserAuthTokens(req.user.userId)
               .then(() => {
                 if (!req.cookies.auth) {
                   regenerateSession(req)
@@ -113,7 +113,7 @@ module.exports = app => {
                   return;
                 }
 
-                generateAuthToken(req.user.user_id, req.user.uuid)
+                generateAuthToken(req.user.userId, req.user.uuid)
                   .then(token => {
                     res.cookie('auth', token, {
                       maxAge: 2592000000, // 30d in ms
@@ -147,15 +147,15 @@ module.exports = app => {
   });
 
   app.post('/api/logout', requiresUser, (req, res) => {
-    if (!req.user?.user_id) return res.redirect('/');
+    if (!req.user?.userId) return res.redirect('/');
 
-    userLogger.debug('Logging out user %s', req.user.user_id);
+    userLogger.debug('Logging out user %s', req.user.userId);
 
     req.session.destroy((err) => {
       if (err) console.error(err);
       res.clearCookie('sess');
       if (req.cookies.auth) {
-        clearUserAuthToken(req.user.user_id, req.cookies.auth, () => {
+        clearUserAuthToken(req.user.userId, req.cookies.auth, () => {
           res.clearCookie('auth');
           res.redirect('/');
         });
@@ -173,7 +173,7 @@ module.exports = app => {
   ], (req, res) => {
     if (hadValidationError(req, res)) return;
 
-    insertFollow(req.user.user_id, req.query.manga_id, req.query.service_id)
+    insertFollow(req.user.userId, req.query.mangaId, req.query.serviceId)
       .then(() => res.status(200).end())
       .catch(err => handleError(err, res));
   });
@@ -185,7 +185,7 @@ module.exports = app => {
   ], (req, res) => {
     if (hadValidationError(req, res)) return;
 
-    deleteFollow(req.user.user_id, req.query.manga_id, req.query.service_id)
+    deleteFollow(req.user.userId, req.query.mangaId, req.query.serviceId)
       .then(rows => {
         if (rows.rowCount === 0) return res.status(404).end();
         res.status(200).end();

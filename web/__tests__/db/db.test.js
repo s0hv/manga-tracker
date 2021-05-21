@@ -40,15 +40,15 @@ describe('getLatestReleases()', () => {
 describe('getUserFollows()', () => {
   const mangaId = 1;
   it('Returns service ids of manga follow', async () => {
-    const rows = await getUserFollows(normalUser.user_id, mangaId);
+    const rows = await getUserFollows(normalUser.userId, mangaId);
     expect(rows.length).toBeGreaterThan(0);
     rows.forEach(r => {
-      expect(r).toHaveProperty('service_id');
+      expect(r).toHaveProperty('serviceId');
     });
   });
 
   it('Returns empty list with not found manga id', async () => {
-    const rows = await getUserFollows(normalUser.user_id, 9999999);
+    const rows = await getUserFollows(normalUser.userId, 9999999);
     expect(rows).toHaveLength(0);
   });
 });

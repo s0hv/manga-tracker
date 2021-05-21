@@ -10,6 +10,7 @@ const {
   validateAdminUser,
   databaseIdValidation,
   limitValidation,
+  handleValidationErrors,
 } = require('../utils/validators');
 const { requiresUser } = require('../db/auth');
 const { getFullManga } = require('../db/manga');
@@ -20,18 +21,18 @@ module.exports = app => {
   app.post('/api/manga/merge', requiresUser, [
     validateAdminUser(),
     databaseIdValidation('base'),
-    databaseIdValidation('to_merge'),
+    databaseIdValidation('toMerge'),
     databaseIdValidation('service').optional(),
   ], (req, res) => {
     if (hadValidationError(req, res)) return;
 
-    if (req.query.base === req.query.to_merge) {
+    if (req.query.base === req.query.toMerge) {
       res.status(400).json({ error: 'Given ids are equal' });
       return;
     }
 
     const sql = 'SELECT * FROM merge_manga($1, $2, $3)';
-    db.oneOrNone(sql, [req.query.base, req.query.to_merge, req.query.service || null])
+    db.oneOrNone(sql, [req.query.base, req.query.toMerge, req.query.service || null])
       .then(row => {
         if (!row) {
           return res.status(500).json({ error: 'No modifications done' });
@@ -80,17 +81,16 @@ module.exports = app => {
    *       404:
    *         $ref: '#/components/responses/notFound'
    */
-  app.get('/api/manga/:manga_id', [
+  app.get('/api/manga/:mangaId', [
     mangaIdValidation(true),
     limitValidation('chapters', false, 'Amount of chapters must be a positive integer')
       .bail()
       .isInt({ max: 50 })
       .withMessage('Chapter amount must be 50 or less')
       .optional(),
+    handleValidationErrors,
   ], (req, res) => {
-    if (hadValidationError(req, res)) return;
-
-    getFullManga(req.params.manga_id, req.query.chapters)
+    getFullManga(req.params.mangaId, req.query.chapters)
       .then(manga => {
         if (!manga) {
           res.status(404).json({ error: 'Manga not found' });
@@ -101,14 +101,14 @@ module.exports = app => {
       .catch(err => handleError(err, res));
   });
 
-  app.get(`${BASE_URL}/:manga_id(\\d+)/chapters`, [
+  app.get(`${BASE_URL}/:mangaId(\\d+)/chapters`, [
     mangaIdValidation(true),
     query('limit').isInt({ min: 0, max: 200 }).optional().withMessage('Limit must be an integer between 0 and 200'),
     query('offset').isInt({ min: 0 }).optional().withMessage('Offset must be a positive integer'),
   ], (req, res) => {
     if (hadValidationError(req, res)) return;
 
-    const mangaId = Number(req.params.manga_id);
+    const mangaId = Number(req.params.mangaId);
     let limit;
     let offset;
 

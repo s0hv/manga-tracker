@@ -9,18 +9,18 @@ import { fullManga, emptyFullManga } from '../constants';
 describe('Merge manga page should render correctly', () => {
   const mockResult = [
     {
-      manga_id: 1,
+      mangaId: 1,
       title: fullManga.manga.title,
     },
     {
-      manga_id: 2,
+      mangaId: 2,
       title: emptyFullManga.manga.title,
     },
   ];
 
   fetchMock.mock('glob:/api/quicksearch?query=*', mockResult);
-  fetchMock.mock(`glob:/api/manga/${fullManga.manga.manga_id}`, { data: fullManga });
-  fetchMock.mock(`glob:/api/manga/${emptyFullManga.manga.manga_id}`, { data: emptyFullManga });
+  fetchMock.mock(`glob:/api/manga/${fullManga.manga.mangaId}`, { data: fullManga });
+  fetchMock.mock(`glob:/api/manga/${emptyFullManga.manga.mangaId}`, { data: emptyFullManga });
 
   const selectItem = async (item) => {
     await waitFor(() => expect(
@@ -94,7 +94,7 @@ describe('Merge manga page should render correctly', () => {
 
   it('Should merge correctly', async () => {
     const url = 'glob:/api/manga/merge?*';
-    fetchMock.mock(url, { alias_count: 1, chapter_count: 1 });
+    fetchMock.mock(url, { aliasCount: 1, chapterCount: 1 });
 
     render(<MergeManga />);
 
@@ -114,9 +114,9 @@ describe('Merge manga page should render correctly', () => {
 
     expect(
       fetchMock.called(url, { query: {
-        base: mockResult[0].manga_id.toString(),
-        to_merge: mockResult[1].manga_id.toString(),
-        service: emptyFullManga.services[0].service_id.toString(),
+        base: mockResult[0].mangaId.toString(),
+        toMerge: mockResult[1].mangaId.toString(),
+        service: emptyFullManga.services[0].serviceId.toString(),
       },
       method: 'post' })
     ).toBeTrue();

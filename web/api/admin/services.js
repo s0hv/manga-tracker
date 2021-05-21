@@ -6,7 +6,7 @@ const { updateService, updateServiceWhole, updateServiceConfig } = require('../.
 const {
   validateAdminUser,
   handleValidationErrors,
-  databaseIdValidation,
+  serviceIdValidation,
   isISO8601Duration,
 } = require('../../utils/validators');
 
@@ -50,7 +50,7 @@ module.exports = app => {
 
   app.post('/api/admin/editService/:serviceId', requiresUser, [
     validateAdminUser(),
-    databaseIdValidation('serviceId', true, 'Service id must be a positive integer'),
+    serviceIdValidation(true),
     ...validateService,
     handleValidationErrors,
   ], (req, res) => {

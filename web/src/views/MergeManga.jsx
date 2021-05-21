@@ -77,8 +77,8 @@ const ServicesList = ({ services, value, setValue }) => {
           <FormControlLabel
             control={<Radio />}
             label={service.name}
-            value={service.service_id.toString()}
-            key={service.service_id}
+            value={service.serviceId.toString()}
+            key={service.serviceId}
           />
         ))}
       </RadioGroup>
@@ -95,17 +95,17 @@ function MergeManga() {
   const [manga2, setManga2] = useState({});
   const [result, setResult] = useState({});
   const [radio, setRadio] = useState('all');
-  const isValid = manga1.manga?.manga_id && manga2.manga?.manga_id && manga1.manga.manga_id !== manga2.manga.manga_id;
+  const isValid = manga1.manga?.mangaId && manga2.manga?.mangaId && manga1.manga.mangaId !== manga2.manga.mangaId;
 
   const getMangaData = (mangaId, setManga) => {
     getManga(mangaId)
       .then(data => setManga(data));
   };
 
-  const onManga1Select = useCallback(({ manga_id: mangaId }) => {
+  const onManga1Select = useCallback(({ mangaId }) => {
     getMangaData(mangaId, setManga1);
   }, []);
-  const onManga2Select = useCallback(({ manga_id: mangaId }) => {
+  const onManga2Select = useCallback(({ mangaId }) => {
     getMangaData(mangaId, setManga2);
   }, []);
 
@@ -113,9 +113,9 @@ function MergeManga() {
     if (!isValid) return;
 
     const service = radio === 'all' ? undefined : radio;
-    postMergeManga(csrf, manga1.manga.manga_id, manga2.manga.manga_id, service)
+    postMergeManga(csrf, manga1.manga.mangaId, manga2.manga.mangaId, service)
       .then(json => {
-        setResult({ message: `Moved ${json.alias_count} alias(es) and ${json.chapter_count} chapter(s)` });
+        setResult({ message: `Moved ${json.aliasCount} alias(es) and ${json.chapterCount} chapter(s)` });
         setManga2({});
       })
       .catch(err => setResult({ error: true, message: err.message }))

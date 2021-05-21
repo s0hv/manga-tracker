@@ -39,13 +39,13 @@ function PartialManga(props) {
 
   const classes = useStyles();
 
-  if (!manga || !manga.manga_id) return null;
+  if (!manga || !manga.mangaId) return null;
 
   return (
     <div>
       <Typography className={classes.title} variant='h5' aria-label='manga title'>{manga.title}</Typography>
       <div className={classes.details}>
-        <a href={`/manga/${manga.manga_id}`} target='_blank' rel='noopener noreferrer'>
+        <a href={`/manga/${manga.mangaId}`} target='_blank' rel='noopener noreferrer'>
           <img
             src={manga.cover}
             className={classes.thumbnail}

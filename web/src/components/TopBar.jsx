@@ -116,7 +116,7 @@ function TopBar(props) {
     handleClose();
     const val = activeTheme === 1 ? 2 : 1;
     setTheme(val);
-    updateUserTheme(csrf(), val)
+    updateUserTheme(csrf, val)
       .catch(console.error);
   };
 

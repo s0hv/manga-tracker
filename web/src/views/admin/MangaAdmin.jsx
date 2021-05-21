@@ -94,7 +94,7 @@ function MangaAdmin(props) {
   } = props;
 
   // Constants
-  const mangaId = manga.manga_id;
+  const mangaId = manga.mangaId;
 
   // Hooks
   const classes = useStyles();
@@ -108,7 +108,7 @@ function MangaAdmin(props) {
   const [mangaTitle, setMangaTitle] = useState(manga.title);
 
   const formatScheduledRuns = useCallback((runs) => runs.map(run => {
-    const found = services.find(s => s.service_id === run.service_id);
+    const found = services.find(s => s.serviceId === run.serviceId);
     if (!found) {
       return run;
     }
@@ -138,11 +138,11 @@ function MangaAdmin(props) {
   }, [formatScheduledRuns, mangaId]);
 
   const onCreateRow = useCallback((form) => {
-    createScheduledRun(csrf, mangaId, form.service_id)
+    createScheduledRun(csrf, mangaId, form.serviceId)
       .then(json => {
         setScheduledUpdates(formatScheduledRuns([...scheduledUpdates, json.inserted]));
         enqueueSnackbar(
-          `Successfully scheduled manga ${mangaId} to be checked on service ${form.service_id}`,
+          `Successfully scheduled manga ${mangaId} to be checked on service ${form.serviceId}`,
           { variant: 'success' }
         );
       })
@@ -150,11 +150,11 @@ function MangaAdmin(props) {
   }, [mangaId, formatScheduledRuns, scheduledUpdates, enqueueSnackbar, csrf]);
 
   const onDeleteRow = useCallback((row) => {
-    const serviceId = row.values.service_id;
+    const serviceId = row.values.serviceId;
     deleteScheduledRun(csrf, mangaId, serviceId)
       .then(() => {
         setScheduledUpdates(
-          formatScheduledRuns(scheduledUpdates.filter(r => r.service_id !== serviceId))
+          formatScheduledRuns(scheduledUpdates.filter(r => r.serviceId !== serviceId))
         );
         enqueueSnackbar(
           `Successfully deleted service ${row.values.name} from scheduled runs`,
@@ -167,16 +167,16 @@ function MangaAdmin(props) {
   // Table layout
   const fields = useMemo(() => {
     const servicesWithRunsEnabled = new Set(
-      serviceConfigs.filter(s => s.scheduled_runs_enabled).map(s => s.service_id)
+      serviceConfigs.filter(s => s.scheduledRunsEnabled).map(s => s.serviceId)
     );
     const data = services
-      ?.filter(s => servicesWithRunsEnabled.has(s.service_id))
-      .map(s => ({ value: s.service_id, label: s.name }));
+      ?.filter(s => servicesWithRunsEnabled.has(s.serviceId))
+      .map(s => ({ value: s.serviceId, label: s.name }));
 
     return [
       <Select
-        name='service_id'
-        key='service_id'
+        name='serviceId'
+        key='serviceId'
         label='Service'
         SelectDisplayProps={{ 'aria-label': 'Service select' }}
         data={data}
@@ -201,18 +201,18 @@ function MangaAdmin(props) {
       accessor: 'name',
       EditCell: ({ row, cell, state }) => (
         <EditableSelect
-          value={row.values.service_id}
-          items={services.map(s => ({ value: s.service_id, text: s.name }))}
+          value={row.values.serviceId}
+          items={services.map(s => ({ value: s.serviceId, text: s.name }))}
           cell={cell}
           row={row}
           state={state}
           onChange={(serviceId) => {
-            state.rowEditStates[row.id].service_id = serviceId;
+            state.rowEditStates[row.id].serviceId = serviceId;
           }}
         />
       ),
     },
-    { Header: 'Service id', accessor: 'service_id', canEdit: false },
+    { Header: 'Service id', accessor: 'serviceId', canEdit: false },
   ], [services]);
 
   return (

@@ -9,7 +9,7 @@ const mangaView = (session, params) => {
     session.mangaViews = {};
   }
 
-  const mangaId = params.manga_id;
+  const mangaId = params.mangaId;
   if (!mangaId) {
     return;
   }
