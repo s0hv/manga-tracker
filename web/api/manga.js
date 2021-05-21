@@ -46,8 +46,8 @@ module.exports = app => {
    * @openapi
    * /manga/{mangaId}:
    *   get:
-   *     summary: Returns information about a single manga
-   *     description: Welcome to swagger-jsdoc!
+   *     summary: Get manga
+   *     description: Get information about a manga
    *     parameters:
    *       - name: mangaId
    *         in: path
@@ -59,7 +59,7 @@ module.exports = app => {
    *       - name: chapters
    *         in: query
    *         required: false
-   *         description: How many chapters to include
+   *         description: How many chapters to include. If not included no chapters returned
    *         schema:
    *           type: integer
    *           minimum: 0
@@ -101,6 +101,71 @@ module.exports = app => {
       .catch(err => handleError(err, res));
   });
 
+  /**
+   *  @openapi
+   *  /manga/{mangaId}/chapters:
+   *    get:
+   *      summary: Get chapters
+   *      description: >
+   *        Get the chapters of a manga. Results are sorted by the release date
+   *        in descending order.
+   *      parameters:
+   *        - name: mangaId
+   *          in: path
+   *          required: true
+   *          description: Id of the manga
+   *          schema:
+   *            $ref: '#/components/schemas/databaseId'
+   *
+   *        - name: limit
+   *          in: query
+   *          required: false
+   *          description: Amount of chapters to fetch.
+   *          schema:
+   *            type: integer
+   *            minimum: 0
+   *            maximum: 200
+   *            default: 50
+   *
+   *        - name: offset
+   *          in: query
+   *          required: false
+   *          description: Offset used when fetching.
+   *          schema:
+   *            type: integer
+   *            minimum: 0
+   *            default: 0
+   *
+   *      responses:
+   *        200:
+   *          description: Returns a list of chapters and the amount of all chapters
+   *          content:
+   *            application/json:
+   *              schema:
+   *                type: object
+   *                properties:
+   *                  data:
+   *                    type: object
+   *                    properties:
+   *                      count:
+   *                        type: integer
+   *                        minimum: 0
+   *                      chapters:
+   *                        type: array
+   *                        items:
+   *                          $ref: '#/components/schemas/chapter'
+   *
+   *                    required:
+   *                      - count
+   *                      - chapters
+   *
+   *                required:
+   *                  - data
+   *        400:
+   *          $ref: '#/components/responses/validationError'
+   *        404:
+   *          $ref: '#/components/responses/notFound'
+   */
   app.get(`${BASE_URL}/:mangaId(\\d+)/chapters`, [
     mangaIdValidation(true),
     query('limit').isInt({ min: 0, max: 200 }).optional().withMessage('Limit must be an integer between 0 and 200'),
@@ -130,7 +195,7 @@ module.exports = app => {
           res.status(404).json({ error: 'No manga found with given id' });
           return;
         }
-        res.json(rows);
+        res.json({ data: rows });
       })
       .catch(err => handleError(err, res));
   });

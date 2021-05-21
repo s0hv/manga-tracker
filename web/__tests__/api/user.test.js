@@ -19,6 +19,7 @@ import {
   unsignCookie,
   withUser,
 } from '../utils';
+import { redis } from '../../utils/ratelimits';
 
 let httpServer;
 
@@ -28,6 +29,10 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await stopServer(httpServer);
+});
+
+beforeEach(async () => {
+  await redis.flushall();
 });
 
 describe('PUT /api/user/follows', () => {

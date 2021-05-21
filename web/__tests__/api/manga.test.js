@@ -274,8 +274,8 @@ describe('GET /api/manga/:mangaId/chapters', () => {
     await Promise.all([
       request(httpServer)
         .get(`${validUrl}?offset=3`)
+        .satisfiesApiSpec()
         .expect('Content-Type', /json/)
-        .expect(res => expect(getChapterCount(res.body)).toBeGreaterThan(0))
         .expect(200),
     ]);
   });

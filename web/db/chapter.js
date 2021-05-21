@@ -30,7 +30,7 @@ module.exports.addChapter = ({
 module.exports.getChapters = (mangaId, limit, offset) => {
   const sql = `
     SELECT
-        COUNT(*) as count,
+        COUNT(*)::INT as count,
         (
             SELECT json_agg(ch)
             FROM (
@@ -38,10 +38,11 @@ module.exports.getChapters = (mangaId, limit, offset) => {
                     chapter_id,
                     title,
                     chapter_number,
-                    EXTRACT(EPOCH from release_date) as release_date,
+                    chapter_decimal,
+                    EXTRACT(EPOCH from release_date)::BIGINT as release_date,
                     "group",
                     service_id,
-                    chapter_identifier as chapter_url
+                    chapter_identifier
                 FROM chapters WHERE manga_id=$1
                 ORDER BY chapter_number DESC, chapter_decimal DESC NULLS LAST
                 LIMIT $2 ${offset ? 'OFFSET $3' : ''}

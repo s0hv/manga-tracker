@@ -230,8 +230,14 @@ components:
           $ref: '#/components/schemas/databaseId'
         title:
           type: string
+          description: Title of the chapter
         chapterNumber:
           type: integer
+          description: Integer part of the chapter number
+        chapterDecimal:
+          type: integer
+          description: Decimal part of the chapter number
+          nullable: true
         releaseDate:
           type: integer
           format: int64
