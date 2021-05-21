@@ -241,13 +241,13 @@ describe('GET /api/manga/:mangaId/chapters', () => {
       request(httpServer)
         .get(`${validUrl}`)
         .expect('Content-Type', /json/)
-        .expect(res => expect(getChapterCount(res.body)).toBeGreaterThan(0))
+        .satisfiesApiSpec()
         .expect(200),
 
       request(httpServer)
         .get(`${validUrl}?limit=5`)
         .expect('Content-Type', /json/)
-        .expect(res => expect(getChapterCount(res.body)).toEqual(5))
+        .satisfiesApiSpec()
         .expect(200),
     ]);
   });
