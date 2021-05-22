@@ -145,48 +145,15 @@ describe('GET /api/manga/:mangaId', () => {
       .expect(expectErrorMessage('abc', 'mangaId', /positive integer/));
   });
 
-  const chapterError = 'Amount of chapters must be a positive integer';
-  it('returns 400 with invalid chapter count', async () => {
-    await request(httpServer)
-      .get(`/api/manga/1?chapters=`)
-      .expect(400)
-      .satisfiesApiSpec()
-      .expect(expectErrorMessage('', 'chapters', chapterError));
-
-    await request(httpServer)
-      .get(`/api/manga/1?chapters=abc`)
-      .expect(400)
-      .satisfiesApiSpec()
-      .expect(expectErrorMessage('abc', 'chapters', chapterError));
-
-    await request(httpServer)
-      .get(`/api/manga/1?chapters=-1`)
-      .expect(400)
-      .satisfiesApiSpec()
-      .expect(expectErrorMessage('-1', 'chapters', chapterError));
-
-    await request(httpServer)
-      .get(`/api/manga/1?chapters=51`)
-      .expect(400)
-      .satisfiesApiSpec()
-      .expect(expectErrorMessage('51', 'chapters', 'Chapter amount must be 50 or less'));
-  });
-
-  it('returns 200 with valid manga id and chapters', async () => {
+  it('returns 200 with valid manga id', async () => {
     await request(httpServer)
       .get(`/api/manga/1`)
       .expect(200)
       .satisfiesApiSpec();
-
-    await request(httpServer)
-      .get(`/api/manga/1?chapters=5`)
-      .expect(200)
-      .satisfiesApiSpec()
-      .expect(res => expect(res.body.data.chapters).toHaveLength(5));
   });
 });
 
-const getChapterCount = (body) => (body && body.chapters?.length) || 0;
+const getChapterCount = (body) => (body && body?.data?.chapters?.length) || 0;
 
 describe('GET /api/manga/:mangaId/chapters', () => {
   const validUrl = '/api/manga/1/chapters';
@@ -247,8 +214,9 @@ describe('GET /api/manga/:mangaId/chapters', () => {
       request(httpServer)
         .get(`${validUrl}?limit=5`)
         .expect('Content-Type', /json/)
+        .expect(200)
         .satisfiesApiSpec()
-        .expect(200),
+        .expect(res => expect(getChapterCount(res.body)).toEqual(5)),
     ]);
   });
 
@@ -274,6 +242,36 @@ describe('GET /api/manga/:mangaId/chapters', () => {
     await Promise.all([
       request(httpServer)
         .get(`${validUrl}?offset=3`)
+        .satisfiesApiSpec()
+        .expect('Content-Type', /json/)
+        .expect(200),
+    ]);
+  });
+
+  it('Returns 400 with invalid sort column', async () => {
+    await Promise.all([
+      request(httpServer)
+        .get(`${validUrl}?sortBy=test`)
+        .expect('Content-Type', /json/)
+        .expect(res => expect(getErrorMessage(res)).toMatchSnapshot())
+        .expect(400),
+    ]);
+  });
+
+  it('Returns 400 with invalid sort direction', async () => {
+    await Promise.all([
+      request(httpServer)
+        .get(`${validUrl}?sort=test`)
+        .expect('Content-Type', /json/)
+        .expect(res => expect(getErrorMessage(res)).toMatchSnapshot())
+        .expect(400),
+    ]);
+  });
+
+  it('Returns chapters with valid sort column and direction', async () => {
+    await Promise.all([
+      request(httpServer)
+        .get(`${validUrl}?sortBy=chapter_number&sort=desc`)
         .satisfiesApiSpec()
         .expect('Content-Type', /json/)
         .expect(200),

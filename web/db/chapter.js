@@ -1,5 +1,5 @@
 const { generateUpdate } = require('./utils');
-const { db } = require('.');
+const { db, pgp } = require('.');
 
 module.exports.getChapterReleases = (mangaId) => {
   const sql = `SELECT extract(EPOCH FROM date_trunc('day', release_date)) as "timestamp", CAST(count(release_date) as int) count 
@@ -27,7 +27,21 @@ module.exports.addChapter = ({
     .then(row => row?.chapterId);
 };
 
-module.exports.getChapters = (mangaId, limit, offset) => {
+const defaultSort = [
+  {
+    col: 'chapter_number',
+    desc: true,
+  },
+  {
+    col: 'chapter_decimal',
+    desc: true,
+    nullsLast: true,
+  },
+];
+module.exports.defaultSort = defaultSort;
+module.exports.getChapters = (mangaId, limit, offset, sortBy = defaultSort) => {
+  sortBy = sortBy.length > 0 ? sortBy : defaultSort;
+  const sorting = sortBy.map(sort => `${pgp.as.name(sort.col)}${sort.desc ? ' DESC' : ''}${sort.nullsLast ? ' NULLS LAST' : ''}`).join(',');
   const sql = `
     SELECT
         COUNT(*)::INT as count,
@@ -44,7 +58,7 @@ module.exports.getChapters = (mangaId, limit, offset) => {
                     service_id,
                     chapter_identifier
                 FROM chapters WHERE manga_id=$1
-                ORDER BY chapter_number DESC, chapter_decimal DESC NULLS LAST
+                ORDER BY ${sorting}
                 LIMIT $2 ${offset ? 'OFFSET $3' : ''}
             ) as ch
         ) as chapters,

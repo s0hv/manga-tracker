@@ -105,7 +105,6 @@ describe('Chapter list should allow editing', () => {
 
     const updatedChapter = {
       title: 'Test edit',
-      chapterNumber: 5,
       group: 'Test group edit',
     };
 
@@ -115,10 +114,6 @@ describe('Chapter list should allow editing', () => {
     await editInput(
       wrapper.find('input').find({ defaultValue: testChapter.title }),
       updatedChapter.title
-    );
-    await editInput(
-      wrapper.find('input').find({ defaultValue: testChapter.chapterNumber }),
-      updatedChapter.chapterNumber
     );
     await editInput(
       wrapper.find('input').find({ defaultValue: testChapter.group }),

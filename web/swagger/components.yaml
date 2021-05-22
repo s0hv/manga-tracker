@@ -251,10 +251,6 @@ components:
         chapterIdentifier:
           type: string
           description: Chapter identifier that can be used in a services urlFormat in place of {}
-        chapterUrl:
-          type: string
-          description: URL of the chapter. Not included by default.
-          nullable: true
 
       required:
         - chapterId
@@ -307,11 +303,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/service'
-        chapters:
-          type: array
-          items:
-            $ref: '#/components/schemas/chapter'
-          nullable: true
         aliases:
           $ref: '#/components/schemas/aliases'
 

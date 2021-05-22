@@ -326,10 +326,13 @@ exports[`Chapter list should render correctly with chapters 1`] = `
             "Cell": [Function],
             "Header": "Title",
             "accessor": "title",
+            "disableSortBy": true,
           },
           Object {
+            "Cell": [Function],
             "Header": "Chapter",
             "accessor": "chapterNumber",
+            "canEdit": false,
           },
           Object {
             "Cell": [Function],
@@ -712,10 +715,13 @@ exports[`Chapter list should render correctly with chapters and edit 1`] = `
             "Cell": [Function],
             "Header": "Title",
             "accessor": "title",
+            "disableSortBy": true,
           },
           Object {
+            "Cell": [Function],
             "Header": "Chapter",
             "accessor": "chapterNumber",
+            "canEdit": false,
           },
           Object {
             "Cell": [Function],
@@ -1098,10 +1104,13 @@ exports[`Chapter list should render correctly without chapters 1`] = `
             "Cell": [Function],
             "Header": "Title",
             "accessor": "title",
+            "disableSortBy": true,
           },
           Object {
+            "Cell": [Function],
             "Header": "Chapter",
             "accessor": "chapterNumber",
+            "canEdit": false,
           },
           Object {
             "Cell": [Function],

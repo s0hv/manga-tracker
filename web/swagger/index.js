@@ -12,7 +12,7 @@ const options = {
     }],
     info: {
       title: 'Manga tracker public API',
-      version: '0.2.0',
+      version: '0.2.1',
     },
   },
   apis: ['./api/**/*.js'], // Path relative to application root

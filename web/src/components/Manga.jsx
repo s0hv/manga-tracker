@@ -229,7 +229,6 @@ function Manga(props) {
         </Tabs>
         <TabPanelCustom value={activeTab} index={0} noRerenderOnChange>
           <ChapterList
-            chapters={mangaChapters}
             editable={editing}
             serviceUrlFormats={serviceUrlFormats}
             mangaId={manga.mangaId}

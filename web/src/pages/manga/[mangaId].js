@@ -37,7 +37,7 @@ export async function getServerSideProps({ req, params }) {
   let manga;
   let userFollows;
   try {
-    manga = await getFullManga(params.mangaId, 25);
+    manga = await getFullManga(params.mangaId);
     if (!manga) {
       return { props: { error: 404 }};
     }

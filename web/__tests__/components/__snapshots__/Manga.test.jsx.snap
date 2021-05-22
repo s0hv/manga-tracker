@@ -128,37 +128,6 @@ exports[`Manga page should render correctly Should render correctly as admin 1`]
       value={0}
     >
       <ChapterList
-        chapters={
-          Array [
-            Object {
-              "chapterIdentifier": "1007322",
-              "chapterNumber": 157,
-              "group": "Shueisha",
-              "releaseDate": 2020-07-05T16:00:00.000Z,
-              "serviceId": 1,
-              "title": "Z=157: Same Time, Same Place",
-              "url": "https://mangaplus.shueisha.co.jp/viewer/1007322",
-            },
-            Object {
-              "chapterIdentifier": "938629",
-              "chapterNumber": 156,
-              "group": "MangaPlus",
-              "releaseDate": 1970-01-01T00:00:00.000Z,
-              "serviceId": 2,
-              "title": "Z=156: Two Scientists",
-              "url": "https://mangadex.org/chapter/938629",
-            },
-            Object {
-              "chapterIdentifier": "1007024",
-              "chapterNumber": 156,
-              "group": "Shueisha",
-              "releaseDate": 2020-06-26T16:00:00.000Z,
-              "serviceId": 1,
-              "title": "Z=156: Two Scientists",
-              "url": "https://mangaplus.shueisha.co.jp/viewer/1007024",
-            },
-          ]
-        }
         editable={false}
         mangaId={1}
         serviceUrlFormats={
@@ -310,37 +279,6 @@ exports[`Manga page should render correctly should render correctly 1`] = `
       value={0}
     >
       <ChapterList
-        chapters={
-          Array [
-            Object {
-              "chapterIdentifier": "1007322",
-              "chapterNumber": 157,
-              "group": "Shueisha",
-              "releaseDate": 2020-07-05T16:00:00.000Z,
-              "serviceId": 1,
-              "title": "Z=157: Same Time, Same Place",
-              "url": "https://mangaplus.shueisha.co.jp/viewer/1007322",
-            },
-            Object {
-              "chapterIdentifier": "938629",
-              "chapterNumber": 156,
-              "group": "MangaPlus",
-              "releaseDate": 1970-01-01T00:00:00.000Z,
-              "serviceId": 2,
-              "title": "Z=156: Two Scientists",
-              "url": "https://mangadex.org/chapter/938629",
-            },
-            Object {
-              "chapterIdentifier": "1007024",
-              "chapterNumber": 156,
-              "group": "Shueisha",
-              "releaseDate": 2020-06-26T16:00:00.000Z,
-              "serviceId": 1,
-              "title": "Z=156: Two Scientists",
-              "url": "https://mangaplus.shueisha.co.jp/viewer/1007024",
-            },
-          ]
-        }
         editable={false}
         mangaId={1}
         serviceUrlFormats={
@@ -492,37 +430,6 @@ exports[`Manga page should render correctly should render correctly when logged 
       value={0}
     >
       <ChapterList
-        chapters={
-          Array [
-            Object {
-              "chapterIdentifier": "1007322",
-              "chapterNumber": 157,
-              "group": "Shueisha",
-              "releaseDate": 2020-07-05T16:00:00.000Z,
-              "serviceId": 1,
-              "title": "Z=157: Same Time, Same Place",
-              "url": "https://mangaplus.shueisha.co.jp/viewer/1007322",
-            },
-            Object {
-              "chapterIdentifier": "938629",
-              "chapterNumber": 156,
-              "group": "MangaPlus",
-              "releaseDate": 1970-01-01T00:00:00.000Z,
-              "serviceId": 2,
-              "title": "Z=156: Two Scientists",
-              "url": "https://mangadex.org/chapter/938629",
-            },
-            Object {
-              "chapterIdentifier": "1007024",
-              "chapterNumber": 156,
-              "group": "Shueisha",
-              "releaseDate": 2020-06-26T16:00:00.000Z,
-              "serviceId": 1,
-              "title": "Z=156: Two Scientists",
-              "url": "https://mangaplus.shueisha.co.jp/viewer/1007024",
-            },
-          ]
-        }
         editable={false}
         mangaId={1}
         serviceUrlFormats={
@@ -659,7 +566,6 @@ exports[`Manga page should render correctly should render correctly with little 
       value={0}
     >
       <ChapterList
-        chapters={Array []}
         editable={false}
         mangaId={2}
         serviceUrlFormats={

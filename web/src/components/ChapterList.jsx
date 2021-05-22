@@ -33,7 +33,7 @@ function ChapterList(props) {
 
       const urlFormat = serviceUrlFormats && serviceUrlFormats[chapter.serviceId];
       if (urlFormat) {
-        newChapter.url = urlFormat.replace('{}', chapter.chapterUrl);
+        newChapter.url = urlFormat.replace('{}', chapter.chapterIdentifier);
       }
 
       return newChapter;
@@ -74,6 +74,7 @@ function ChapterList(props) {
     {
       Header: 'Title',
       accessor: 'title',
+      disableSortBy: true,
       Cell: ({ row }) => (
         <Link href={row.original.url} target='_blank' style={{ textDecoration: 'none' }} rel='noopener noreferrer'>
           <span>
@@ -82,7 +83,19 @@ function ChapterList(props) {
         </Link>
       ),
     },
-    { Header: 'Chapter', accessor: 'chapterNumber' },
+    {
+      Header: 'Chapter',
+      accessor: 'chapterNumber',
+      canEdit: false,
+      Cell: ({ row }) => {
+        const {
+          chapterNumber,
+          chapterDecimal,
+        } = row.original;
+
+        return `${chapterNumber}${typeof chapterDecimal === 'number' ? '.' + chapterDecimal : ''}`;
+      },
+    },
     {
       Header: 'Released',
       accessor: 'releaseDate',
@@ -93,11 +106,11 @@ function ChapterList(props) {
     { Header: 'Group', accessor: 'group' },
   ], []);
 
-  const fetchData = useCallback((pageIndex, pageSize) => {
+  const fetchData = useCallback((pageIndex, pageSize, sortBy) => {
     setLoading(true);
     const offset = pageIndex*pageSize;
 
-    getChapters(mangaId, pageSize, offset)
+    getChapters(mangaId, pageSize, offset, sortBy)
       .then(json => {
         setChapters(formatChapters(json.chapters || []));
         setCount(Number(json.count) || 0);

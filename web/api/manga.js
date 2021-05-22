@@ -56,14 +56,6 @@ module.exports = app => {
    *         schema:
    *           $ref: '#/components/schemas/databaseId'
    *
-   *       - name: chapters
-   *         in: query
-   *         required: false
-   *         description: How many chapters to include. If not included no chapters returned
-   *         schema:
-   *           type: integer
-   *           minimum: 0
-   *           maximum: 50
    *     responses:
    *       200:
    *         description: Returns a JSON containing information about the manga
@@ -83,14 +75,9 @@ module.exports = app => {
    */
   app.get('/api/manga/:mangaId', [
     mangaIdValidation(true),
-    limitValidation('chapters', false, 'Amount of chapters must be a positive integer')
-      .bail()
-      .isInt({ max: 50 })
-      .withMessage('Chapter amount must be 50 or less')
-      .optional(),
     handleValidationErrors,
   ], (req, res) => {
-    getFullManga(req.params.mangaId, req.query.chapters)
+    getFullManga(req.params.mangaId)
       .then(manga => {
         if (!manga) {
           res.status(404).json({ error: 'Manga not found' });
@@ -136,6 +123,22 @@ module.exports = app => {
    *            minimum: 0
    *            default: 0
    *
+   *        - name: sortBy
+   *          in: query
+   *          required: false
+   *          description: The column used for sorting.
+   *          schema:
+   *            type: string
+   *            enum: ['chapter_number', 'group', 'chapter_id', 'release_date']
+   *
+   *        - name: sort
+   *          in: query
+   *          required: false
+   *          description: The sorting direction.
+   *          schema:
+   *            type: string
+   *            enum: ['asc', 'desc']
+   *
    *      responses:
    *        200:
    *          description: Returns a list of chapters and the amount of all chapters
@@ -170,9 +173,22 @@ module.exports = app => {
     mangaIdValidation(true),
     query('limit').isInt({ min: 0, max: 200 }).optional().withMessage('Limit must be an integer between 0 and 200'),
     query('offset').isInt({ min: 0 }).optional().withMessage('Offset must be a positive integer'),
+    query('sortBy')
+      .isString()
+      .optional()
+      .bail()
+      .toLowerCase()
+      .isIn(['chapter_id', 'chapter_number', 'release_date', 'group'])
+      .withMessage('Sort column must be one of "chapter_id", "chapter_number", "release_date", "group"'),
+    query('sort')
+      .isString()
+      .optional()
+      .bail()
+      .toLowerCase()
+      .isIn(['asc', 'desc'])
+      .withMessage('Sorting direction must be one of "asc" or "desc"'),
+    handleValidationErrors,
   ], (req, res) => {
-    if (hadValidationError(req, res)) return;
-
     const mangaId = Number(req.params.mangaId);
     let limit;
     let offset;
@@ -189,7 +205,28 @@ module.exports = app => {
       return;
     }
 
-    getChapters(mangaId, limit, offset)
+    const sortBy = [];
+    const isDesc = req.query.sort === 'desc';
+
+    if (req.query.sortBy === 'chapter_number') {
+      sortBy.push({
+        col: 'chapter_number',
+        desc: isDesc,
+      });
+      sortBy.push({
+        col: 'chapter_decimal',
+        desc: isDesc,
+        nullsLast: isDesc,
+      });
+    } else if (req.query.sortBy) {
+      sortBy.push({
+        col: req.query.sortBy,
+        desc: isDesc,
+        nullsLast: isDesc,
+      });
+    }
+
+    getChapters(mangaId, limit, offset, sortBy)
       .then(rows => {
         if (!rows) {
           res.status(404).json({ error: 'No manga found with given id' });
