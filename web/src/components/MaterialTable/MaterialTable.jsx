@@ -158,7 +158,7 @@ const MaterialTable = (props) => {
         <TableBody {...getTableBodyProps()}>
           {loading && new Array(10).fill(0).map(() => (
             <TableRow>
-              {headerGroups[0].headers.map((col) => (
+              {headerGroups[0].headers.map(() => (
                 <TableCell className={classes.skeleton}>
                   <Skeleton />
                 </TableCell>

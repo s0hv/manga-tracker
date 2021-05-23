@@ -245,6 +245,8 @@ describe('POST /api/admin/editService/:serviceId', () => {
         .expect(200);
 
       await new Promise(setImmediate);
+      // Sleep for a bit here to make sure changes get flushed to database
+      await new Promise(r => setTimeout(r, 20));
 
       const originalService = await getServiceFull(serviceId);
       originalService.serviceConfig.checkInterval = toSeconds(originalService.serviceConfig.checkInterval);
