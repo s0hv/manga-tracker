@@ -1,7 +1,4 @@
-// For a detailed explanation regarding each configuration property, visit:
-// https://jestjs.io/docs/en/configuration.html
-
-module.exports = {
+const baseConfig = {
   // All imported modules in your tests should be mocked automatically
   // automock: false,
 
@@ -22,12 +19,6 @@ module.exports = {
 
   // A set of global variables that need to be available in all test environments
   // globals: {},
-
-  // The glob patterns Jest uses to detect test files
-  testMatch: [
-    '**/__tests__/**/test*.[jt]s?(x)',
-    '**/__tests__/**/*.test.[jt]s?(x)',
-  ],
 
   // Automatically clear mock calls and instances between every test
   clearMocks: true,
@@ -127,9 +118,6 @@ module.exports = {
   // A preset that is used as a base for Jest's configuration
   // preset: undefined,
 
-  // Run tests from one or more projects
-  // projects: undefined,
-
   // Use this configuration option to add custom reporters to Jest
   // reporters: undefined,
 
@@ -161,9 +149,6 @@ module.exports = {
 
   // A list of paths to modules that run some code to configure or set up the testing framework before each test
   // setupFilesAfterEnv: [],
-
-  // The test environment that will be used for testing
-  // testEnvironment: "node",
 
   // Options that will be passed to the testEnvironment
   // testEnvironmentOptions: {},
@@ -210,4 +195,26 @@ module.exports = {
 
   // Whether to use watchman for file crawling
   // watchman: true,
+};
+
+
+module.exports = {
+  projects: [
+    {
+      ...baseConfig,
+      displayName: 'frontend',
+      testEnvironment: 'jsdom',
+      testMatch: [
+        '<rootDir>/__tests__/**/*.test.[jt]sx',
+      ],
+    },
+    {
+      ...baseConfig,
+      displayName: 'backend',
+      testEnvironment: 'node',
+      testMatch: [
+        '<rootDir>/__tests__/**/*.test.[jt]s',
+      ],
+    },
+  ],
 };

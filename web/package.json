@@ -92,10 +92,7 @@
       "last 1 safari version"
     ]
   },
-  "sideEffects": [
-    "./db/index.js",
-    "./utils/logging.js"
-  ],
+  "sideEffects": false,
   "devDependencies": {
     "@babel/preset-env": "^7.13.12",
     "@elastic/elasticsearch-mock": "^0.3.0",
@@ -107,7 +104,7 @@
     "@types/react-table": "^7.0.29",
     "@wojtekmaj/enzyme-adapter-react-17": "^0.6.0",
     "babel-eslint": "^10.1.0",
-    "babel-jest": "^26.6.3",
+    "babel-jest": "^27.0.1",
     "cookie": "^0.4.1",
     "cookie-signature": "^1.1.0",
     "cross-env": "^7.0.3",
@@ -123,7 +120,7 @@
     "eslint-plugin-react-hooks": "^4.2.0",
     "fetch-mock": "^9.11.0",
     "identity-obj-proxy": "^3.0.0",
-    "jest": "^26.6.3",
+    "jest": "^27.0.1",
     "jest-extended": "^0.11.5",
     "jest-openapi": "^0.13.0",
     "node-fetch": "^2.6.1",
