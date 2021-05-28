@@ -81,3 +81,4 @@ jobs:
       REDIS_PORT: 6379
       DEBUG: debug,session-*,auth-info
       TZ: UTC
+      LEVEL: silent

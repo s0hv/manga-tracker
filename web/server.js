@@ -1,5 +1,5 @@
 // eslint-disable-next-line import/order
-const { isDev } = require('./utils/constants');
+const { isDev, isTest } = require('./utils/constants');
 
 // Read .env if in isDevelopment
 if (isDev) {
@@ -57,6 +57,7 @@ module.exports = nextApp.prepare()
       conn: db,
       cacheSize: 30,
       maxAge: 7200000,
+      clearInterval: isTest ? null : 7.2e+6,
     });
     server.sessionStore = store;
 

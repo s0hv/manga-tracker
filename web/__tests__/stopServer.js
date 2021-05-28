@@ -8,4 +8,5 @@ export default async (httpServer) => {
 
   await pgp.end();
   await elasticsearch.close();
+  jest.clearAllTimers();
 };
