@@ -52,6 +52,12 @@ module.exports.filterProperties = (o, keys, filterUndefined = true) => {
 const underscoreToCamelCase = (s) => s.replace(/(_[a-z])/g, letter => letter[1].toUpperCase());
 
 /**
+ * Turns camelCase into snake_case
+ * @param {String} s
+ */
+module.exports.snakeCase = (s) => s.replace(/[A-Z]/g, letter => `_${letter[0].toLowerCase()}`);
+
+/**
  * Makes object keys camelCase instead of snake_case
  * @param o
  * @returns {Object} camelCase object

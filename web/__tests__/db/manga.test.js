@@ -9,7 +9,7 @@ afterAll(async () => {
 
 describe('getFollows(userId)', () => {
   it('Returns followed manga with valid user', async () => {
-    const follows = await getFollows(normalUser.user_id);
+    const follows = await getFollows(normalUser.userId);
     expect(follows).toBeDefined();
     expect(follows.length).toBeGreaterThan(0);
   });
@@ -38,7 +38,7 @@ describe('getFollows(userId)', () => {
 
 describe('getAliases(mangaId)', () => {
   it('Returns aliases successfully', async () => {
-    const aliases = await getAliases(testManga.manga_id);
+    const aliases = await getAliases(testManga.mangaId);
     expect(aliases.map(a => a.title).sort()).toEqual(testManga.aliases.sort());
   });
 

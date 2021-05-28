@@ -2,13 +2,16 @@ import React from 'react';
 import { render, screen, act, fireEvent } from '@testing-library/react';
 import fetchMock from 'fetch-mock';
 
-import { mockNotistackHooks, expectErrorSnackbar } from '../utils';
+import {
+  mockNotistackHooks,
+  expectErrorSnackbar,
+  getSnackbarMessage,
+} from '../utils';
 import SignIn from '../../src/views/SignIn';
 
 beforeEach(() => mockNotistackHooks());
 
 describe('Sign in page functionality', () => {
-  const Response = fetchMock.config.Response;
   const replaceMock = jest.fn();
 
   delete window.location;
@@ -50,15 +53,15 @@ describe('Sign in page functionality', () => {
   });
 
   it('Should show snackbar on error', async () => {
-    const errorMessage = 'test error';
-    fetchMock.post('/api/login', new Response(errorMessage, { status: 400 }));
+    fetchMock.post('/api/login', { status: 400 });
     prepareSignIn();
 
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: /sign in/i }));
     });
 
-    expectErrorSnackbar(errorMessage);
+    expectErrorSnackbar();
+    expect(getSnackbarMessage()).toMatchSnapshot();
     expect(fetchMock.calls('/api/login')).toHaveLength(1);
     expect(replaceMock).toHaveBeenCalledTimes(0);
   });

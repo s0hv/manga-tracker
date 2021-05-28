@@ -56,18 +56,18 @@ function MangaSourceList(props) {
 
   function renderItem(item) {
     return (
-      <ListItem className={classes.nested} key={item.service_id}>
+      <ListItem className={classes.nested} key={item.serviceId}>
         <Typography>
-          <Link href={item.url.replace('{}', item.title_id)} target='_blank' rel='noopener noreferrer'>{item.name}</Link>
+          <Link href={item.url.replace('{}', item.titleId)} target='_blank' rel='noopener noreferrer'>{item.name}</Link>
         </Typography>
         {isAuthenticated && (
           <Button
             variant='contained'
             color='primary'
-            onClick={followUnfollow(item.service_id)}
+            onClick={followUnfollow(item.serviceId)}
             name={`Follow ${item.name}`}
           >
-            {userFollows.indexOf(item.service_id) < 0 ? 'Follow' : 'Unfollow'}
+            {userFollows.indexOf(item.serviceId) < 0 ? 'Follow' : 'Unfollow'}
           </Button>
         )}
       </ListItem>

@@ -20,15 +20,15 @@ describe('Search should render correctly', () => {
   it('with valid input', async () => {
     const mockResult = [
       {
-        manga_id: 1,
+        mangaId: 1,
         title: 'Test 1',
       },
       {
-        manga_id: 2,
+        mangaId: 2,
         title: 'Test 2',
       },
       {
-        manga_id: 3,
+        mangaId: 3,
         title: 'Test 3',
       },
     ];

@@ -1,0 +1,3 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Requests should be handled correctly Should show error snackbar on fetch error 1`] = `"Unexpected error occurred"`;

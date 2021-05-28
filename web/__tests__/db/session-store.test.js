@@ -10,6 +10,8 @@ afterAll(async () => {
 describe('sessionStore', () => {
   afterEach(() => {
     jest.restoreAllMocks();
+    jest.clearAllTimers();
+    jest.useRealTimers();
   });
 
   const Store = sessionStore(require('express-session'));
@@ -54,7 +56,7 @@ describe('sessionStore', () => {
       const sql = 'INSERT INTO sessions (user_id, session_id, expires_at, data) VALUES ($1, $2, $3, $4)';
       await db.query(sql, [null, sid, new Date(Date.now() + 60*60*60), session]);
 
-      const expected = { ...session, user_id: null };
+      const expected = { ...session, userId: null };
       await expect(new Promise(resolve => store.get(sid, (...args) => resolve(args))))
         .resolves
         .toEqual([null, expected]);
@@ -108,7 +110,7 @@ describe('sessionStore', () => {
 
       await expect(new Promise(resolve => store.set(sid, session, resolve)))
         .resolves
-        .toEqual(null);
+        .toBeNull();
 
       expect(spy).toHaveBeenCalledTimes(1);
       expect(store.cache.get(sid)).toEqual(session);
@@ -130,19 +132,6 @@ describe('sessionStore', () => {
   });
 
   describe('clearOldSessions and manga views', () => {
-    it('Calls clearOldSessions automatically', async () => {
-      jest.useFakeTimers();
-
-      const spy = spyOnDb();
-      const clearInterval = 1000;
-      const store = new Store({ conn: db, clearInterval });
-      const sessionSpy = jest.spyOn(store, 'clearOldSessions');
-
-      jest.advanceTimersByTime(clearInterval+1);
-      expect(spy).toHaveBeenCalled();
-      expect(sessionSpy).toHaveBeenCalledTimes(1);
-    });
-
     it('mergeSessionViews merges sessions correctly', (done) => {
       jest.useFakeTimers();
 
@@ -174,13 +163,14 @@ describe('sessionStore', () => {
       const mangaViews = require('../../utils/view-counter/manga-view-counter');
 
       const dbSpy = spyOnDb().mockImplementation(async () => rows);
-      const clearInterval = 1000;
-      const store = new Store({ conn: db, clearInterval });
+      const sessionClearInterval = 1000;
+      const store = new Store({ conn: db, clearInterval: sessionClearInterval });
       const sessionSpy = jest.spyOn(store, 'clearOldSessions');
 
       // This must be wrapped with done since otherwise the callback is not used in evaluation
       jest.spyOn(mangaViews, 'onSessionExpire')
         .mockImplementation((sess) => {
+          clearInterval(store.clearInterval);
           try {
             expect(sess).toEqual(expected);
             expect(dbSpy).toHaveBeenCalled();
@@ -189,9 +179,25 @@ describe('sessionStore', () => {
           } catch (err) {
             done(err);
           }
+          jest.runAllTimers();
         });
 
-      jest.advanceTimersByTime(clearInterval+1);
+      jest.advanceTimersByTime(sessionClearInterval+1);
+    });
+
+    it('Calls clearOldSessions automatically', async () => {
+      jest.useFakeTimers();
+
+      const spy = spyOnDb();
+      const sessionClearInterval = 1000;
+      const store = new Store({ conn: db, clearInterval: sessionClearInterval });
+      const sessionSpy = jest.spyOn(store, 'clearOldSessions');
+
+      jest.advanceTimersByTime(sessionClearInterval+1);
+      clearInterval(store.clearInterval);
+      expect(spy).toHaveBeenCalled();
+      expect(sessionSpy).toHaveBeenCalledTimes(1);
+      jest.runAllTimers();
     });
   });
 });

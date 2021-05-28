@@ -2,7 +2,7 @@ import React, { useCallback, useState } from 'react';
 
 import { makeStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types';
-import { Tooltip, Typography, Toolbar, IconButton, } from '@material-ui/core';
+import { Tooltip, Typography, Toolbar, IconButton } from '@material-ui/core';
 import { Add as AddIcon } from '@material-ui/icons';
 
 const useStyles = makeStyles(theme => ({

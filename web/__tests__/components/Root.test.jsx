@@ -1,67 +1,35 @@
 import React from 'react';
-import renderer from 'react-test-renderer';
-import { createMount, createShallow } from '@material-ui/core/test-utils';
+import { render, screen } from '@testing-library/react';
 
 import Root from '../../src/components/Root';
-import { adminUser, mockUTCDates, withUser } from '../utils';
 
-const DummyComponent = () => <div />;
+const dummyLabel = 'test label';
+const DummyComponent = () => <div aria-label={dummyLabel} />;
 
 describe('Root component should render correctly', () => {
-  mockUTCDates();
-
-  // Replace current year with a fixed year
-  jest.spyOn(Date.prototype, 'getFullYear')
-    .mockImplementation(jest.fn(() => 2020));
-
   it('Should render with empty input', () => {
-    const tree = renderer
-      .create(<Root><DummyComponent /></Root>)
-      .toJSON();
+    render(<Root><DummyComponent /></Root>);
 
-    expect(tree).toMatchSnapshot();
+    expect(screen.getByLabelText(dummyLabel)).toBeInTheDocument();
+    expect(screen.queryByRole('contentinfo')).not.toBeInTheDocument();
   });
 
   it('Should render with empty input and correct status code', () => {
-    const tree = renderer
-      .create(<Root statusCode={200}><DummyComponent /></Root>)
-      .toJSON();
+    render(<Root statusCode={200}><DummyComponent /></Root>);
 
-    expect(tree).toMatchSnapshot();
-  });
+    const currentYear = new Date().getFullYear();
 
-  it('should render correctly with data', () => {
-    const tree = createMount()(
-      <Root
-        statusCode={200}
-        activeTheme={1}
-        setTheme={() => null}
-      >
-        <DummyComponent />
-      </Root>
-    );
+    expect(screen.getByLabelText(dummyLabel)).toBeInTheDocument();
+    expect(screen.getByRole('contentinfo')).toBeInTheDocument();
 
-    expect(tree).toMatchSnapshot();
-  });
-
-  it('should render correctly with user', async () => {
-    const elem = await withUser(
-      adminUser,
-      <Root
-        statusCode={200}
-        activeTheme={1}
-        setTheme={() => null}
-      >
-        <DummyComponent />
-      </Root>
-    );
-    const tree = createMount()(elem);
-
-    expect(tree).toMatchSnapshot();
+    const copyrightPattern = new RegExp(`^copyright . s0hv ${currentYear}.?$`, 'i');
+    expect(screen.getByText((_, node) => copyrightPattern.test(node.textContent))).toBeInTheDocument();
+    expect(screen.getByLabelText('license')).toBeInTheDocument();
+    expect(screen.getByLabelText('github repository')).toBeInTheDocument();
   });
 
   it('Should only return children on non 200 status code', () => {
-    const wrapper = createShallow()(
+    render(
       <Root
         statusCode={400}
         activeTheme={1}
@@ -70,7 +38,8 @@ describe('Root component should render correctly', () => {
         <DummyComponent />
       </Root>
     );
-    // Check that dummy is the top level component
-    expect(wrapper.find(DummyComponent).parent()).toHaveLength(0);
+
+    expect(screen.getByLabelText(dummyLabel)).toBeInTheDocument();
+    expect(screen.queryByRole('contentinfo')).not.toBeInTheDocument();
   });
 });

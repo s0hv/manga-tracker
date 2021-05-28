@@ -1,3 +1,6 @@
+const camelcaseKeys = require('camelcase-keys');
+const { performance } = require('perf_hooks');
+
 const { queryLogger } = require('../utils/logging');
 
 const isTest = process.env.NODE_ENV === 'test';
@@ -12,14 +15,22 @@ const pgp = require('pg-promise')({
   receive(data, result, e) {
     const { duration } = result;
 
+    // This should result in minimal performance impact except on the first query,
+    // as the object keys are not yet cached at that point
+    const t0 = performance.now();
+    result.rows = camelcaseKeys(data, { deep: true });
+    const camelCaseDuration = performance.now() - t0;
+
     if (queryLogger.level === 'debug') {
       queryLogger.debug({
         params: e.params,
         duration: `${duration}ms`,
+        camelCaseDuration,
       }, e.query);
     } else {
       queryLogger.info({
         duration: `${duration}ms`,
+        camelCaseDuration,
       }, e.query);
     }
   },

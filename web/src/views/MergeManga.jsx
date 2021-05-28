@@ -17,7 +17,8 @@ import React, { useState, useCallback } from 'react';
 
 import Search from '../components/MangaSearch';
 import PartialManga from '../components/PartialManga';
-import { csrfHeader, useCSRF } from '../utils/csrf';
+import { useCSRF } from '../utils/csrf';
+import { getManga, postMergeManga } from '../api/manga';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -76,8 +77,8 @@ const ServicesList = ({ services, value, setValue }) => {
           <FormControlLabel
             control={<Radio />}
             label={service.name}
-            value={service.service_id.toString()}
-            key={service.service_id}
+            value={service.serviceId.toString()}
+            key={service.serviceId}
           />
         ))}
       </RadioGroup>
@@ -94,49 +95,27 @@ function MergeManga() {
   const [manga2, setManga2] = useState({});
   const [result, setResult] = useState({});
   const [radio, setRadio] = useState('all');
-  const isValid = manga1.manga?.manga_id && manga2.manga?.manga_id && manga1.manga.manga_id !== manga2.manga.manga_id;
+  const isValid = manga1.manga?.mangaId && manga2.manga?.mangaId && manga1.manga.mangaId !== manga2.manga.mangaId;
 
-  const getMangaData = (mangaId, cb) => {
-    fetch(`/api/manga/${mangaId}`)
-      .then(res => res.json())
-      .then(js => {
-        cb(js.data);
-      })
-      .catch(err => {
-        console.error(err);
-        cb({});
-      });
+  const getMangaData = (mangaId, setManga) => {
+    getManga(mangaId)
+      .then(data => setManga(data));
   };
 
-  const onManga1Select = useCallback(({ manga_id: mangaId }) => {
+  const onManga1Select = useCallback(({ mangaId }) => {
     getMangaData(mangaId, setManga1);
   }, []);
-  const onManga2Select = useCallback(({ manga_id: mangaId }) => {
+  const onManga2Select = useCallback(({ mangaId }) => {
     getMangaData(mangaId, setManga2);
   }, []);
 
   const mergeManga = () => {
     if (!isValid) return;
 
-    const service = radio === 'all' ? '' : `&service=${radio}`;
-    fetch(`/api/manga/merge/?base=${manga1.manga.manga_id}&to_merge=${manga2.manga.manga_id}${service}`,
-      {
-        credentials: 'include',
-        method: 'post',
-        headers: {
-          ...csrfHeader(csrf),
-        },
-      })
-      .then(res => {
-        if (!res.ok) {
-          setResult({ error: true, message: `${res.status} ${res.statusText}` });
-          return;
-        }
-        return res.json();
-      })
+    const service = radio === 'all' ? undefined : radio;
+    postMergeManga(csrf, manga1.manga.mangaId, manga2.manga.mangaId, service)
       .then(json => {
-        if (!json) return;
-        setResult({ message: `Moved ${json.alias_count} alias(es) and ${json.chapter_count} chapter(s)` });
+        setResult({ message: `Moved ${json.aliasCount} alias(es) and ${json.chapterCount} chapter(s)` });
         setManga2({});
       })
       .catch(err => setResult({ error: true, message: err.message }))
@@ -229,6 +208,7 @@ function MergeManga() {
         <Typography
           color={result.error ? 'error' : 'initial'}
           className={classes.errorMessage}
+          aria-label='merge result'
         >
           {result.message || null}
         </Typography>

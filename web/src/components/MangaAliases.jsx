@@ -7,12 +7,14 @@ import {
   List,
   ListItem,
   ListItemText,
-  Typography, Tooltip,
+  Typography,
+  Tooltip,
 } from '@material-ui/core';
 
 import PropTypes from 'prop-types';
-import { csrfHeader, useCSRF } from '../utils/csrf';
+import { useCSRF } from '../utils/csrf';
 import { useUser } from '../utils/useUser';
+import { updateMangaTitle } from '../api/admin/manga';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -54,31 +56,13 @@ const MangaAliases = (props) => {
       confirmationText: 'Yes',
       cancellationText: 'No',
     }).then(() => {
-      fetch(`/api/admin/manga/${mangaId}/title`, {
-        method: 'POST',
-        credentials: 'same-origin',
-        headers: {
-          'Content-Type': 'application/json',
-          ...csrfHeader(csrf),
-        },
-        body: JSON.stringify({ title }),
-      })
-
-        .then(res => res.json())
-
+      updateMangaTitle(csrf, mangaId, title)
         .then(json => {
-          if (json.error) {
-            enqueueSnackbar(
-              `Failed to set alias as main title. ${json.error}`,
-              { variant: 'error', autoHideDuration }
-            );
-          } else if (onTitleUpdate) {
-            enqueueSnackbar(
-              `Set "${title}" as the main title. ${json.message}`,
-              { variant: 'success', autoHideDuration }
-            );
-            onTitleUpdate();
-          }
+          enqueueSnackbar(
+            `Set "${title}" as the main title. ${json.message}`,
+            { variant: 'success', autoHideDuration }
+          );
+          onTitleUpdate();
         })
 
         .catch(err => enqueueSnackbar(

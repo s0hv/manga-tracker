@@ -1,3 +1,4 @@
+const { pattern } = require('iso8601-duration');
 const {
   param,
   query,
@@ -16,10 +17,10 @@ module.exports.databaseIdValidation = databaseIdValidation;
 // Technically the same behavior
 module.exports.limitValidation = databaseIdValidation;
 
-const mangaIdValidation = (fromParam) => databaseIdValidation('manga_id', fromParam, 'Manga id must be a positive integer');
+const mangaIdValidation = (fromParam) => databaseIdValidation('mangaId', fromParam, 'Manga id must be a positive integer');
 module.exports.mangaIdValidation = mangaIdValidation;
 
-const serviceIdValidation = (fromParam) => databaseIdValidation('service_id', fromParam, 'Service id must be a positive integer');
+const serviceIdValidation = (fromParam) => databaseIdValidation('serviceId', fromParam, 'Service id must be a positive integer');
 module.exports.serviceIdValidation = serviceIdValidation;
 
 const positiveTinyInt = (field) => query(field).isInt({ min: 0, max: 127 });
@@ -101,3 +102,10 @@ const handleValidationErrors = (req, res, next) => {
   next();
 };
 module.exports.handleValidationErrors = handleValidationErrors;
+
+/**
+ * @param {import('express-validator').ValidationChain} chain
+ * @return {import('express-validator').ValidationChain}
+ */
+module.exports.isISO8601Duration = (chain) => chain.custom((value) => pattern.test(value))
+  .withMessage('Value must be a valid ISO 8601 duration');

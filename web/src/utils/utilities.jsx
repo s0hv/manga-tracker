@@ -4,15 +4,14 @@ import throttle from 'lodash.throttle';
 import { csrfHeader } from './csrf';
 
 export const followUnfollow = (csrf, mangaId, serviceId) => {
-  const url = serviceId ? `/api/user/follows?manga_id=${mangaId}&service_id=${serviceId}` :
-    `/api/user/follows?manga_id=${mangaId}`;
+  const url = serviceId ? `/api/user/follows?mangaId=${mangaId}&serviceId=${serviceId}` :
+    `/api/user/follows?mangaId=${mangaId}`;
   return throttle((event) => {
     const target = event.target;
     switch (target.textContent.toLowerCase()) {
       case 'follow':
         fetch(url,
           {
-            credentials: 'include',
             method: 'put',
             headers: csrfHeader(csrf),
           })
@@ -25,7 +24,6 @@ export const followUnfollow = (csrf, mangaId, serviceId) => {
 
       case 'unfollow':
         fetch(url, {
-          credentials: 'include',
           method: 'delete',
           headers: csrfHeader(csrf),
         })

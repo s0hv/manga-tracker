@@ -1,6 +1,6 @@
 import React from 'react';
 import fetchMock from 'fetch-mock';
-import { render, screen, act, waitFor } from '@testing-library/react';
+import { render, screen, act, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import MergeManga from '../../src/views/MergeManga';
@@ -9,18 +9,18 @@ import { fullManga, emptyFullManga } from '../constants';
 describe('Merge manga page should render correctly', () => {
   const mockResult = [
     {
-      manga_id: 1,
+      mangaId: 1,
       title: fullManga.manga.title,
     },
     {
-      manga_id: 2,
+      mangaId: 2,
       title: emptyFullManga.manga.title,
     },
   ];
 
   fetchMock.mock('glob:/api/quicksearch?query=*', mockResult);
-  fetchMock.mock(`glob:/api/manga/${fullManga.manga.manga_id}`, { data: fullManga });
-  fetchMock.mock(`glob:/api/manga/${emptyFullManga.manga.manga_id}`, { data: emptyFullManga });
+  fetchMock.mock(`glob:/api/manga/${fullManga.manga.mangaId}`, { data: fullManga });
+  fetchMock.mock(`glob:/api/manga/${emptyFullManga.manga.mangaId}`, { data: emptyFullManga });
 
   const selectItem = async (item) => {
     await waitFor(() => expect(
@@ -90,5 +90,41 @@ describe('Merge manga page should render correctly', () => {
     // Make sure merge controls are not visible
     expect(screen.queryByRole('radiogroup', { name: 'merge services' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /merge .+? into .+?/ })).not.toBeInTheDocument();
+  });
+
+  it('Should merge correctly', async () => {
+    const url = 'glob:/api/manga/merge?*';
+    fetchMock.mock(url, { aliasCount: 1, chapterCount: 1 });
+
+    render(<MergeManga />);
+
+    // Search and select manga for both slots
+    await selectAndAssert(mockResult[0]);
+    await selectAndAssert(mockResult[1], false);
+
+    userEvent.click(
+      screen.getByRole('radio', { name: emptyFullManga.services[0].name })
+    );
+
+    const mergeBtn = screen.getByRole('button', { name: /merge .+? into .+?/ });
+
+    await act(async () => {
+      userEvent.click(mergeBtn);
+    });
+
+    expect(
+      fetchMock.called(url, { query: {
+        base: mockResult[0].mangaId.toString(),
+        toMerge: mockResult[1].mangaId.toString(),
+        service: emptyFullManga.services[0].serviceId.toString(),
+      },
+      method: 'post' })
+    ).toBeTrue();
+
+    expect(
+      within(screen.getByLabelText('merge result'))
+        .getByText(/moved \d+ alias\(es\) and \d+ chapter\(s\)/i)
+    ).toBeInTheDocument();
+    expect(screen.queryByLabelText('manga to merge')).not.toBeInTheDocument();
   });
 });

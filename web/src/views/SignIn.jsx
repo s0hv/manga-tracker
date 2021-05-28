@@ -11,12 +11,11 @@ import {
 import { LockOutlined as LockOutlinedIcon } from '@material-ui/icons';
 import { makeStyles } from '@material-ui/core/styles';
 import { Form } from 'react-final-form';
-import {
-  TextField,
-  Checkboxes,
-} from 'mui-rff';
+import { TextField, Checkboxes } from 'mui-rff';
 import CSRFInput from '../components/utils/CSRFInput';
-import { csrfHeader, useCSRF } from '../utils/csrf';
+import { useCSRF } from '../utils/csrf';
+import { loginUser } from '../api/user';
+import { handleResponse, handleError } from '../api/utilities';
 
 
 const useStyles = makeStyles((theme) => ({
@@ -44,32 +43,17 @@ export default function SignIn() {
   const csrf = useCSRF();
   const { enqueueSnackbar } = useSnackbar();
 
-  const onSubmit = data => fetch('/api/login',
-    {
-      method: 'post',
-      body: JSON.stringify(data),
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json; charset=utf-8',
-        ...csrfHeader(csrf),
-      },
-      redirect: 'follow',
-    })
+  const onSubmit = data => loginUser(csrf, data)
     .then(res => {
-      if (res.status === 200) {
+      if (res.ok) {
         window.location.replace(res.url);
         return;
       }
-      return res.text();
-    })
-    .then(err => {
-      if (!err) return;
-      enqueueSnackbar(err, { variant: 'error' });
-      return { error: err };
+      return handleResponse(res)
+        .catch(handleError);
     })
     .catch(err => {
-      console.error(err);
-      enqueueSnackbar('Unknown error', { variant: 'error' });
+      enqueueSnackbar(err.message, { variant: 'error' });
       return { error: err.message };
     });
 

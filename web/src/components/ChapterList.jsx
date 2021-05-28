@@ -1,14 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import {
-  Link,
-  Paper,
-  TableContainer,
-} from '@material-ui/core';
+import { Link, Paper, TableContainer } from '@material-ui/core';
 import { useSnackbar } from 'notistack';
-import { csrfHeader, useCSRF } from '../utils/csrf';
+import { useCSRF } from '../utils/csrf';
 
 import { MaterialTable } from './MaterialTable';
 import { defaultDateFormat } from '../utils/utilities';
+import { getChapters, updateChapter, deleteChapter } from '../api/chapter';
 
 
 function ChapterList(props) {
@@ -32,32 +29,19 @@ function ChapterList(props) {
 
     return chs.map(chapter => {
       const newChapter = { ...chapter };
-      newChapter.release_date = new Date(chapter.release_date * 1000);
+      newChapter.releaseDate = new Date(chapter.releaseDate * 1000);
 
-      const urlFormat = serviceUrlFormats && serviceUrlFormats[chapter.service_id];
+      const urlFormat = serviceUrlFormats && serviceUrlFormats[chapter.serviceId];
       if (urlFormat) {
-        newChapter.url = urlFormat.replace('{}', chapter.chapter_url);
+        newChapter.url = urlFormat.replace('{}', chapter.chapterIdentifier);
       }
 
       return newChapter;
     });
   }, [serviceUrlFormats]);
 
-  const handleResponse = useCallback((r) => {
-    r.json()
-      .then(json => {
-        enqueueSnackbar(json.message || json.error, {
-          variant: json.error ? 'error' : 'success',
-        });
-      })
-      .catch(err => {
-        if (r.status !== 200) {
-          enqueueSnackbar(`${r.status} ${r.statusText}`, { variant: 'error' });
-        } else {
-          console.error(err);
-          enqueueSnackbar(err.message, { variant: 'error' });
-        }
-      });
+  const handleResponse = useCallback((json) => {
+    enqueueSnackbar(json.message, { variant: 'success' });
   }, [enqueueSnackbar]);
 
   const onSaveRow = useCallback((row, state) => {
@@ -68,34 +52,29 @@ function ChapterList(props) {
       row.values[key] = state[key];
     });
 
-    fetch(`/api/chapter/${row.original.chapter_id}`, {
-      method: 'post',
-      credentials: 'same-origin',
-      headers: {
-        'Content-Type': 'application/json',
-        ...csrfHeader(csrf),
-      },
-      body: JSON.stringify(state),
-    })
-      .then(handleResponse);
-  }, [handleResponse, csrf]);
+    updateChapter(csrf, row.original.chapterId, state)
+      .then(handleResponse)
+      .catch(err => {
+        enqueueSnackbar(err.message, { variant: 'error' });
+      });
+  }, [csrf, handleResponse, enqueueSnackbar]);
 
   const onDeleteRow = useCallback((row) => {
-    const id = row.original.chapter_id;
-    setChapters(chapters.filter(c => c.chapter_id !== id));
+    const id = row.original.chapterId;
+    setChapters(chapters.filter(c => c.chapterId !== id));
 
-    fetch(`/api/chapter/${row.original.chapter_id}`, {
-      method: 'delete',
-      credentials: 'same-origin',
-      headers: csrfHeader(csrf),
-    })
-      .then(handleResponse);
-  }, [chapters, handleResponse, csrf]);
+    deleteChapter(csrf, id)
+      .then(handleResponse)
+      .catch(err => {
+        enqueueSnackbar(err.message, { variant: 'error' });
+      });
+  }, [chapters, csrf, handleResponse, enqueueSnackbar]);
 
   const columns = useMemo(() => [
     {
       Header: 'Title',
       accessor: 'title',
+      disableSortBy: true,
       Cell: ({ row }) => (
         <Link href={row.original.url} target='_blank' style={{ textDecoration: 'none' }} rel='noopener noreferrer'>
           <span>
@@ -104,28 +83,38 @@ function ChapterList(props) {
         </Link>
       ),
     },
-    { Header: 'Chapter', accessor: 'chapter_number' },
+    {
+      Header: 'Chapter',
+      accessor: 'chapterNumber',
+      canEdit: false,
+      Cell: ({ row }) => {
+        const {
+          chapterNumber,
+          chapterDecimal,
+        } = row.original;
+
+        return `${chapterNumber}${typeof chapterDecimal === 'number' ? '.' + chapterDecimal : ''}`;
+      },
+    },
     {
       Header: 'Released',
-      accessor: 'release_date',
+      accessor: 'releaseDate',
       canEdit: false,
       sortType: 'datetime',
-      Cell: ({ row }) => defaultDateFormat(row.values.release_date),
+      Cell: ({ row }) => defaultDateFormat(row.values.releaseDate),
     },
     { Header: 'Group', accessor: 'group' },
   ], []);
 
-  const fetchData = useCallback((pageIndex, pageSize) => {
+  const fetchData = useCallback((pageIndex, pageSize, sortBy) => {
     setLoading(true);
     const offset = pageIndex*pageSize;
 
-    fetch(`/api/manga/${mangaId}/chapters?limit=${pageSize}&offset=${offset}`)
-      .then(res => res.json())
+    getChapters(mangaId, pageSize, offset, sortBy)
       .then(json => {
         setChapters(formatChapters(json.chapters || []));
         setCount(Number(json.count) || 0);
       })
-      .catch(console.error)
       .finally(() => setLoading(false));
   }, [formatChapters, mangaId]);
 

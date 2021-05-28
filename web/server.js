@@ -1,5 +1,5 @@
 // eslint-disable-next-line import/order
-const { isDev } = require('./utils/constants');
+const { isDev, isTest } = require('./utils/constants');
 
 // Read .env if in isDevelopment
 if (isDev) {
@@ -57,6 +57,7 @@ module.exports = nextApp.prepare()
       conn: db,
       cacheSize: 30,
       maxAge: 7200000,
+      clearInterval: isTest ? null : 7.2e+6,
     });
     server.sessionStore = store;
 
@@ -122,7 +123,7 @@ module.exports = nextApp.prepare()
     server.use('/api/admin/manga', require('./api/admin/manga')());
 
     server.get('/login', requiresUser, (req, res) => {
-      sessionLogger.debug(req.session.user_id);
+      sessionLogger.debug(req.session.userId);
       if (req.isAuthenticated()) {
         res.redirect('/');
         return;
@@ -143,7 +144,7 @@ module.exports = nextApp.prepare()
       res.json({ user: req.user });
     });
 
-    server.get('/manga/:manga_id(\\d+)', requiresUser, (req, res) => handle(req, res));
+    server.get('/manga/:mangaId(\\d+)', requiresUser, (req, res) => handle(req, res));
 
     server.get('/*', requiresUser, (req, res) => {
       sessionLogger.debug('User %o', req.user);

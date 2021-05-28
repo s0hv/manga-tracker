@@ -1,13 +1,20 @@
 import request from 'supertest';
-import { deleteScheduledRun, scheduleMangaRun } from '../../../db/admin/management';
+import {
+  deleteScheduledRun,
+  scheduleMangaRun
+} from '../../../db/admin/management';
 import { getMangaPartial, getAliases } from '../../../db/manga';
 import { csrfMissing } from '../../../utils/constants';
-import { redis } from '../../../utils/ratelimits';
 
 import { userForbidden, userUnauthorized } from '../../constants';
 import initServer from '../../initServer';
 import stopServer from '../../stopServer';
-import { adminUser, normalUser, withUser, expectErrorMessage } from '../../utils';
+import {
+  adminUser,
+  normalUser,
+  withUser,
+  expectErrorMessage
+} from '../../utils';
 
 let httpServer;
 
@@ -15,13 +22,9 @@ beforeAll(async () => {
   ({ httpServer } = await initServer());
 });
 
-beforeEach(async () => {
-  await redis.flushall();
-});
-
 afterAll(async () => stopServer(httpServer));
 
-describe('POST /api/admin/manga/:manga_id/scheduledRun/:service_id', () => {
+describe('POST /api/admin/manga/:mangaId/scheduledRun/:serviceId', () => {
   const serviceId = 1;
   const mangaId = 1;
   const url = `/api/admin/manga/${mangaId}/scheduledRun/${serviceId}`;
@@ -82,9 +85,9 @@ describe('POST /api/admin/manga/:manga_id/scheduledRun/:service_id', () => {
 
           const inserted = res.body.inserted;
           expect(inserted).toBeObject();
-          expect(inserted.service_id).toStrictEqual(serviceId);
-          expect(inserted.manga_id).toStrictEqual(mangaId);
-          expect(inserted.created_by).toStrictEqual(adminUser.user_id);
+          expect(inserted.serviceId).toStrictEqual(serviceId);
+          expect(inserted.mangaId).toStrictEqual(mangaId);
+          expect(inserted.createdBy).toStrictEqual(adminUser.userId);
         });
 
       await deleteScheduledRun(mangaId, serviceId);
@@ -109,7 +112,7 @@ describe('POST /api/admin/manga/:manga_id/scheduledRun/:service_id', () => {
   });
 });
 
-describe('DELETE /api/admin/manga/:manga_id/scheduledRun/:service_id', () => {
+describe('DELETE /api/admin/manga/:mangaId/scheduledRun/:serviceId', () => {
   const serviceId = 1;
   const mangaId = 1;
   const url = `/api/admin/manga/${mangaId}/scheduledRun/${serviceId}`;
@@ -160,7 +163,7 @@ describe('DELETE /api/admin/manga/:manga_id/scheduledRun/:service_id', () => {
 
   it('returns ok with valid data', async () => {
     await withUser(adminUser, async () => {
-      await scheduleMangaRun(mangaId, serviceId, adminUser.user_id);
+      await scheduleMangaRun(mangaId, serviceId, adminUser.userId);
       await request(httpServer)
         .delete(url)
         .csrf()
@@ -178,11 +181,11 @@ describe('DELETE /api/admin/manga/:manga_id/scheduledRun/:service_id', () => {
   });
 });
 
-describe('GET /api/admin/manga/:manga_id/scheduledRuns', () => {
+describe('GET /api/admin/manga/:mangaId/scheduledRuns', () => {
   const serviceId = 1;
   const mangaId = 2;
   const url = `/api/admin/manga/${mangaId}/scheduledRuns`;
-  beforeAll(() => scheduleMangaRun(mangaId, serviceId, adminUser.user_id));
+  beforeAll(() => scheduleMangaRun(mangaId, serviceId, adminUser.userId));
   afterAll(() => deleteScheduledRun(mangaId, serviceId));
 
   it('returns unauthorized without user', async () => {
@@ -225,8 +228,8 @@ describe('GET /api/admin/manga/:manga_id/scheduledRuns', () => {
           const data = res.body.data;
           expect(data).toBeArray();
           expect(data).toHaveLength(1);
-          expect(data[0].service_id).toStrictEqual(serviceId);
-          expect(data[0].manga_id).toStrictEqual(mangaId);
+          expect(data[0].serviceId).toStrictEqual(serviceId);
+          expect(data[0].mangaId).toStrictEqual(mangaId);
         });
     });
   });
@@ -243,7 +246,7 @@ describe('GET /api/admin/manga/:manga_id/scheduledRuns', () => {
 });
 
 
-describe('POST /api/admin/manga/:manga_id/title', () => {
+describe('POST /api/admin/manga/:mangaId/title', () => {
   const mangaId = 1;
   const url = `/api/admin/manga/${mangaId}/title`;
 

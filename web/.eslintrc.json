@@ -5,7 +5,8 @@
         "plugin:react/recommended",
         "plugin:import/errors",
         "plugin:import/warnings",
-        "plugin:jsx-a11y/recommended"
+        "plugin:jsx-a11y/recommended",
+        "plugin:jest/style"
     ],
     "parser": "babel-eslint",
     "parserOptions": {
@@ -15,7 +16,7 @@
             "jsx": true
         }
     },
-    "plugins": ["react", "react-hooks"],
+    "plugins": ["react", "react-hooks", "jest"],
     "rules": {
         "semi": ["warn", "always", {"omitLastInOneLineBlock": true}],
         "quotes": ["warn", "single", {
@@ -33,6 +34,17 @@
             "exports": "always-multiline",
             "functions": "never"
         }],
+        "react/jsx-filename-extension": [1, { "extensions": [".js", ".jsx"] }],
+        "object-curly-spacing": ["warn", "always", {
+            "arraysInObjects":  false,
+            "objectsInObjects":  false
+        }],
+        "operator-linebreak": ["warn", "after"],
+        "jest/no-large-snapshots": ["warn", { "maxSize":  15 }],
+        "jest/expect-expect": ["warn", {
+            "assertFunctionNames": ["expect", "expect*", "assert*", "request.**.expect"]
+        }],
+
         "prefer-template": "off",
         "arrow-parens": "off",
         "no-console": "off",
@@ -44,14 +56,8 @@
         "no-plusplus": "off",
         "no-param-reassign": "off",
         "object-shorthand": "off",
-        "react/jsx-filename-extension": [1, { "extensions": [".js", ".jsx"] }],
-        "object-curly-spacing": ["warn", "always", {
-            "arraysInObjects":  false,
-            "objectsInObjects":  false
-        }],
         "max-len": "off",
         "no-inner-declarations": "off",
-        "operator-linebreak": ["warn", "after"],
         "react/require-default-props": "off",
         "react/jsx-props-no-spreading": "off",
         "jsx-a11y/anchor-is-valid": "off",

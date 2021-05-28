@@ -9,7 +9,7 @@ import {
 
 import { makeStyles } from '@material-ui/core/styles';
 
-import { SubdirectoryArrowLeft as SubdirectoryArrowLeftIcon, } from '@material-ui/icons';
+import { SubdirectoryArrowLeft as SubdirectoryArrowLeftIcon } from '@material-ui/icons';
 import { useConfirm } from 'material-ui-confirm';
 import PropTypes from 'prop-types';
 
@@ -26,7 +26,13 @@ import {
   EditableSelect,
   MaterialTable,
 } from '../../components/MaterialTable';
-import { csrfHeader, useCSRF } from '../../utils/csrf';
+import { useCSRF } from '../../utils/csrf';
+import { getManga } from '../../api/manga';
+import {
+  getScheduledRuns,
+  createScheduledRun,
+  deleteScheduledRun,
+} from '../../api/admin/manga';
 
 
 const useStyles = makeStyles((theme) => ({
@@ -88,7 +94,7 @@ function MangaAdmin(props) {
   } = props;
 
   // Constants
-  const mangaId = manga.manga_id;
+  const mangaId = manga.mangaId;
 
   // Hooks
   const classes = useStyles();
@@ -102,7 +108,7 @@ function MangaAdmin(props) {
   const [mangaTitle, setMangaTitle] = useState(manga.title);
 
   const formatScheduledRuns = useCallback((runs) => runs.map(run => {
-    const found = services.find(s => s.service_id === run.service_id);
+    const found = services.find(s => s.serviceId === run.serviceId);
     if (!found) {
       return run;
     }
@@ -113,11 +119,10 @@ function MangaAdmin(props) {
   }), [services]);
 
   const onTitleChange = useCallback(() => {
-    fetch(`/api/manga/${mangaId}`)
-      .then(res => res.json())
-      .then(json => {
-        setAliases(json.data.aliases);
-        setMangaTitle(json.data.manga.title);
+    getManga(mangaId)
+      .then(data => {
+        setAliases(data.aliases);
+        setMangaTitle(data.manga.title);
       });
   }, [mangaId]);
 
@@ -125,30 +130,19 @@ function MangaAdmin(props) {
   const fetchData = useCallback(() => {
     setLoading(true);
 
-    return fetch(`/api/admin/manga/${mangaId}/scheduledRuns`)
-      .then(res => res.json())
-      .then(json => {
-        setScheduledUpdates(formatScheduledRuns(json.data || []));
+    return getScheduledRuns(mangaId)
+      .then(data => {
+        setScheduledUpdates(formatScheduledRuns(data || []));
       })
-      .catch(console.error)
       .finally(() => setLoading(false));
   }, [formatScheduledRuns, mangaId]);
 
   const onCreateRow = useCallback((form) => {
-    fetch(`/api/admin/manga/${mangaId}/scheduledRun/${form.service_id}`, {
-      method: 'POST',
-      headers: csrfHeader(csrf),
-    })
-      .then(res => {
-        if (res.status !== 200) {
-          throw new Error(`Failed to create row ${res.status} ${res.statusText}`);
-        }
-        return res.json();
-      })
+    createScheduledRun(csrf, mangaId, form.serviceId)
       .then(json => {
         setScheduledUpdates(formatScheduledRuns([...scheduledUpdates, json.inserted]));
         enqueueSnackbar(
-          `Successfully scheduled manga ${mangaId} to be checked on service ${form.service_id}`,
+          `Successfully scheduled manga ${mangaId} to be checked on service ${form.serviceId}`,
           { variant: 'success' }
         );
       })
@@ -156,23 +150,16 @@ function MangaAdmin(props) {
   }, [mangaId, formatScheduledRuns, scheduledUpdates, enqueueSnackbar, csrf]);
 
   const onDeleteRow = useCallback((row) => {
-    const serviceId = row.values.service_id;
-    fetch(`/api/admin/manga/${mangaId}/scheduledRun/${serviceId}`, {
-      method: 'DELETE',
-      headers: csrfHeader(csrf),
-    })
-      .then(res => {
-        if (res.status !== 200) {
-          enqueueSnackbar(`Failed to delete row. ${res.status} ${res.statusText}`, { variant: 'error' });
-        } else {
-          setScheduledUpdates(
-            formatScheduledRuns(scheduledUpdates.filter(r => r.service_id !== serviceId))
-          );
-          enqueueSnackbar(
-            `Successfully deleted service ${row.values.name} from scheduled runs`,
-            { variant: 'success' }
-          );
-        }
+    const serviceId = row.values.serviceId;
+    deleteScheduledRun(csrf, mangaId, serviceId)
+      .then(() => {
+        setScheduledUpdates(
+          formatScheduledRuns(scheduledUpdates.filter(r => r.serviceId !== serviceId))
+        );
+        enqueueSnackbar(
+          `Successfully deleted service ${row.values.name} from scheduled runs`,
+          { variant: 'success' }
+        );
       })
       .catch(err => enqueueSnackbar(err.message, { variant: 'error' }));
   }, [enqueueSnackbar, formatScheduledRuns, mangaId, scheduledUpdates, csrf]);
@@ -180,16 +167,16 @@ function MangaAdmin(props) {
   // Table layout
   const fields = useMemo(() => {
     const servicesWithRunsEnabled = new Set(
-      serviceConfigs.filter(s => s.scheduled_runs_enabled).map(s => s.service_id)
+      serviceConfigs.filter(s => s.scheduledRunsEnabled).map(s => s.serviceId)
     );
     const data = services
-      ?.filter(s => servicesWithRunsEnabled.has(s.service_id))
-      .map(s => ({ value: s.service_id, label: s.name }));
+      ?.filter(s => servicesWithRunsEnabled.has(s.serviceId))
+      .map(s => ({ value: s.serviceId, label: s.name }));
 
     return [
       <Select
-        name='service_id'
-        key='service_id'
+        name='serviceId'
+        key='serviceId'
         label='Service'
         SelectDisplayProps={{ 'aria-label': 'Service select' }}
         data={data}
@@ -214,18 +201,18 @@ function MangaAdmin(props) {
       accessor: 'name',
       EditCell: ({ row, cell, state }) => (
         <EditableSelect
-          value={row.values.service_id}
-          items={services.map(s => ({ value: s.service_id, text: s.name }))}
+          value={row.values.serviceId}
+          items={services.map(s => ({ value: s.serviceId, text: s.name }))}
           cell={cell}
           row={row}
           state={state}
           onChange={(serviceId) => {
-            state.rowEditStates[row.id].service_id = serviceId;
+            state.rowEditStates[row.id].serviceId = serviceId;
           }}
         />
       ),
     },
-    { Header: 'Service id', accessor: 'service_id', canEdit: false },
+    { Header: 'Service id', accessor: 'serviceId', canEdit: false },
   ], [services]);
 
   return (

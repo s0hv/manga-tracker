@@ -7,6 +7,7 @@ import {
   expectErrorSnackbar,
   expectSuccessSnackbar,
   normalUser,
+  getSnackbarMessage,
 } from '../utils';
 import Profile from '../../src/views/Profile';
 
@@ -103,6 +104,7 @@ describe('Requests should be handled correctly', () => {
     });
 
     expect(fetchMock.calls('/api/profile')).toHaveLength(1);
-    expectErrorSnackbar(errorMessage);
+    expectErrorSnackbar();
+    expect(getSnackbarMessage()).toMatchSnapshot();
   });
 });

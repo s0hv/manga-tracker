@@ -1,7 +1,6 @@
 import request from 'supertest';
 import { addChapter } from '../../db/chapter';
 import { csrfMissing } from '../../utils/constants';
-import { redis } from '../../utils/ratelimits';
 import { userForbidden, userUnauthorized } from '../constants';
 import initServer from '../initServer';
 import stopServer from '../stopServer';
@@ -13,16 +12,13 @@ beforeAll(async () => {
   ({ httpServer } = await initServer());
 });
 
-beforeEach(async () => {
-  await redis.flushall();
-});
 
 afterAll(async () => {
   await stopServer(httpServer);
 });
 
 
-describe('POST /api/chapter/:chapter_id', () => {
+describe('POST /api/chapter/:chapterId', () => {
   it('Returns 403 without CSRF token', async () => {
     await request(httpServer)
       .post('/api/chapter/1')
@@ -97,16 +93,16 @@ describe('POST /api/chapter/:chapter_id', () => {
       await request(httpServer)
         .post('/api/chapter/99999999')
         .csrf()
-        .send({ chapter_number: 'abc' })
+        .send({ chapterNumber: 'abc' })
         .expect(400)
-        .expect(expectErrorMessage('abc', 'chapter_number'));
+        .expect(expectErrorMessage('abc', 'chapterNumber'));
 
       await request(httpServer)
         .post('/api/chapter/99999999')
         .csrf()
-        .send({ chapter_number: null })
+        .send({ chapterNumber: null })
         .expect(400)
-        .expect(expectErrorMessage(null, 'chapter_number'));
+        .expect(expectErrorMessage(null, 'chapterNumber'));
 
       // Title
       await request(httpServer)
@@ -127,16 +123,16 @@ describe('POST /api/chapter/:chapter_id', () => {
       await request(httpServer)
         .post('/api/chapter/99999999')
         .csrf()
-        .send({ chapter_decimal: 'abc' })
+        .send({ chapterDecimal: 'abc' })
         .expect(400)
-        .expect(expectErrorMessage('abc', 'chapter_decimal'));
+        .expect(expectErrorMessage('abc', 'chapterDecimal'));
 
       await request(httpServer)
         .post('/api/chapter/99999999')
         .csrf()
-        .send({ chapter_decimal: []})
+        .send({ chapterDecimal: []})
         .expect(400)
-        .expect(expectErrorMessage([], 'chapter_decimal'));
+        .expect(expectErrorMessage([], 'chapterDecimal'));
 
       // Group
       await request(httpServer)
@@ -162,8 +158,8 @@ describe('POST /api/chapter/:chapter_id', () => {
         .csrf()
         .send({
           title: 'edited title',
-          chapter_number: 1,
-          chapter_decimal: 5,
+          chapterNumber: 1,
+          chapterDecimal: 5,
           group: 'test group',
         })
         .expect(200);
@@ -180,7 +176,7 @@ describe('POST /api/chapter/:chapter_id', () => {
         .post('/api/chapter/1')
         .csrf()
         .send({
-          chapter_number: 2,
+          chapterNumber: 2,
         })
         .expect(200);
 
@@ -188,7 +184,7 @@ describe('POST /api/chapter/:chapter_id', () => {
         .post('/api/chapter/1')
         .csrf()
         .send({
-          chapter_decimal: null,
+          chapterDecimal: null,
         })
         .expect(200);
 
@@ -203,7 +199,7 @@ describe('POST /api/chapter/:chapter_id', () => {
   });
 });
 
-describe('DELETE /api/chapter/:chapter_id', () => {
+describe('DELETE /api/chapter/:chapterId', () => {
   it('Returns 403 without CSRF token', async () => {
     await request(httpServer)
       .delete('/api/chapter/1')

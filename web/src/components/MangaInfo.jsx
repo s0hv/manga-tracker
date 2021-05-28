@@ -35,10 +35,10 @@ const useStyles = makeStyles((theme) => ({
 
 
 const MangaInfo = ({ mangaData, showId = false }) => {
-  const latestRelease = mangaData.latest_release ?
-    new Date(mangaData.latest_release) :
+  const latestRelease = mangaData.latestRelease ?
+    new Date(mangaData.latestRelease) :
     null;
-  const estimatedRelease = new Date(mangaData.estimated_release);
+  const estimatedRelease = new Date(mangaData.estimatedRelease);
 
 
   const classes = useStyles();
@@ -48,7 +48,7 @@ const MangaInfo = ({ mangaData, showId = false }) => {
         {showId && (
           <tr>
             <th scope='row'><Typography>Manga id:</Typography></th>
-            <td><Typography className={classes.detailText}>{mangaData.manga_id}</Typography></td>
+            <td><Typography className={classes.detailText}>{mangaData.mangaId}</Typography></td>
           </tr>
         )}
         <tr>
@@ -67,8 +67,8 @@ const MangaInfo = ({ mangaData, showId = false }) => {
           <th scope='row'><Typography>Estimated release interval:</Typography></th>
           <td>
             <Typography className={classes.detailText}>
-              {(mangaData.release_interval ?
-                `${mangaData.release_interval?.days || 0} days ${mangaData.release_interval?.hours || 0} hours` :
+              {(mangaData.releaseInterval ?
+                `${mangaData.releaseInterval?.days || 0} days ${mangaData.releaseInterval?.hours || 0} hours` :
                 'Unknown')}
             </Typography>
           </td>
@@ -85,7 +85,7 @@ const MangaInfo = ({ mangaData, showId = false }) => {
           <th scope='row'><Typography>Latest chapter:</Typography></th>
           <td>
             <Typography className={classes.detailText}>
-              {mangaData.latest_chapter ? mangaData.latest_chapter : 'Unknown'}
+              {mangaData.latestChapter ? mangaData.latestChapter : 'Unknown'}
             </Typography>
           </td>
         </tr>
@@ -104,10 +104,10 @@ const MangaInfo = ({ mangaData, showId = false }) => {
 
 MangaInfo.propTypes = {
   mangaData: PropTypes.shape({
-    latest_release: PropTypes.string,
-    estimated_release: PropTypes.string,
-    release_interval: PropTypes.object,
-    latest_chapter: PropTypes.number,
+    latestRelease: PropTypes.string,
+    estimatedRelease: PropTypes.string,
+    releaseInterval: PropTypes.object,
+    latestChapter: PropTypes.number,
     status: PropTypes.number,
   }).isRequired,
   showId: PropTypes.bool,

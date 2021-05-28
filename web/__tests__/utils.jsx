@@ -23,10 +23,10 @@ jest.mock('notistack', () => {
 });
 
 export const adminUser = {
-  user_id: 1,
-  user_uuid: '22fc15c9-37b9-4869-af86-b334333dedd8',
+  userId: 1,
+  userUuid: '22fc15c9-37b9-4869-af86-b334333dedd8',
   username: 'test ci admin',
-  joined_at: new Date(Date.now()),
+  joinedAt: new Date(Date.now()),
   theme: 2,
   admin: true,
   password: 'te!st-pa#ss)wo(rd123',
@@ -34,10 +34,10 @@ export const adminUser = {
 };
 
 export const normalUser = {
-  user_id: 3,
+  userId: 3,
   uuid: 'cf5eddfd-e0fe-4e6e-b339-70be6f33794d',
   username: 'test ci',
-  joined_at: new Date(Date.now()),
+  joinedAt: new Date(Date.now()),
   theme: 2,
   admin: false,
   password: 'te!st-pa#ss)wo(rd123',
@@ -45,10 +45,10 @@ export const normalUser = {
 };
 
 export const authTestUser = {
-  user_id: 3,
+  userId: 3,
   uuid: 'db598f65-c558-4205-937f-b0f149dda1fa',
   username: 'test ci auth',
-  joined_at: new Date(Date.now()),
+  joinedAt: new Date(Date.now()),
   theme: 2,
   admin: false,
   password: 'te!st-pa#ss)wo(rd123',
@@ -56,9 +56,9 @@ export const authTestUser = {
 };
 
 export const testManga = {
-  manga_id: 2,
+  mangaId: 2,
   title: 'ABCDEFG',
-  latest_chapter: 1,
+  latestChapter: 1,
   aliases: [
     'Test alias 2',
     'Test abc',
@@ -88,6 +88,10 @@ export function expectErrorSnackbar(msg) {
     msg || expect.anything(),
     expect.objectContaining({ variant: 'error' })
   );
+}
+
+export function getSnackbarMessage() {
+  return enqueueSnackbarMock.mock.calls[enqueueSnackbarMock.mock.calls.length-1][0];
 }
 
 export function muiSelectValue(container, selectName, value) {
@@ -252,6 +256,13 @@ export function withRoot(Component) {
   );
 }
 
+export function getErrorMessage(res) {
+  expect(res.body).toBeObject();
+  const errors = res.body.error;
+  expect(errors).toBeDefined();
+  return errors;
+}
+
 export function expectErrorMessage(value, param, message='Invalid value') {
   return (res) => {
     expect(res.body).toBeObject();
@@ -288,3 +299,12 @@ export function expectErrorMessage(value, param, message='Invalid value') {
 export async function configureJestOpenAPI() {
   jestOpenAPI(await getOpenapiSpecification());
 }
+
+const counters = {};
+export const getIncrementalStringGenerator = (name) => {
+  if (counters[name] === undefined) {
+    counters[name] = 0;
+  }
+
+  return () => `${name}_${counters[name]++}`;
+};

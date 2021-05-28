@@ -11,6 +11,7 @@ import {
   TablePagination,
   CircularProgress,
 } from '@material-ui/core';
+import { Skeleton } from '@material-ui/lab';
 import { makeStyles, darken } from '@material-ui/core/styles';
 import PropTypes from 'prop-types';
 
@@ -30,6 +31,9 @@ const useStyles = makeStyles((theme) => ({
     display: 'flex',
     justifyContent: 'flex-end',
     alignItems: 'center',
+  },
+  skeleton: {
+    fontSize: '1.2rem',
   },
 }));
 
@@ -55,6 +59,8 @@ const MaterialTable = (props) => {
     loading = false,
     CreateDialog,
     toolbarProps,
+    hooks = [],
+    tableOptions = {},
   } = props;
 
   if (data === null || data === undefined) {
@@ -74,7 +80,7 @@ const MaterialTable = (props) => {
     prepareRow,
     setPageSize,
     gotoPage,
-    state: { pageIndex, pageSize },
+    state: { pageIndex, pageSize, sortBy },
   } = useTable({
     columns,
     data,
@@ -92,16 +98,20 @@ const MaterialTable = (props) => {
     manualPagination: true,
     pageCount: -1, // This is handled by the TablePagination component
     autoResetPage: false,
+    manualSortBy: typeof fetchData === 'function',
+    autoResetSortBy: typeof fetchData !== 'function',
+    ...tableOptions,
   },
   useSortBy,
   useEditable,
-  usePagination);
+  usePagination,
+  ...hooks);
 
   useEffect(() => {
     if (typeof fetchData !== 'function') return;
 
-    fetchData(pageIndex, pageSize);
-  }, [fetchData, pageIndex, pageSize]);
+    fetchData(pageIndex, pageSize, sortBy);
+  }, [fetchData, pageIndex, pageSize, sortBy]);
 
   const onChangePage = useCallback((e, page) => {
     gotoPage(page);
@@ -146,6 +156,15 @@ const MaterialTable = (props) => {
           ))}
         </TableHead>
         <TableBody {...getTableBodyProps()}>
+          {loading && new Array(10).fill(0).map(() => (
+            <TableRow>
+              {headerGroups[0].headers.map(() => (
+                <TableCell className={classes.skeleton}>
+                  <Skeleton />
+                </TableCell>
+              ))}
+            </TableRow>
+          ))}
           {rows.map(row => {
             prepareRow(row);
             return (
@@ -200,6 +219,9 @@ const propTypes = {
   loading: PropTypes.bool,
   CreateDialog: PropTypes.func,
   toolbarProps: PropTypes.object,
+  hooks: PropTypes.arrayOf(PropTypes.func),
+  tableOptions: PropTypes.object,
+  tableInitialState: PropTypes.object,
 };
 
 const MaterialTableWrapper = (props) => (

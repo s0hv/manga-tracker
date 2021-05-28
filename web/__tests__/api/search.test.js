@@ -1,5 +1,4 @@
 import request from 'supertest';
-import { redis } from '../../utils/ratelimits';
 
 import initServer from '../initServer';
 import stopServer from '../stopServer';
@@ -9,10 +8,6 @@ let httpServer;
 
 beforeAll(async () => {
   ({ httpServer } = await initServer());
-});
-
-beforeEach(async () => {
-  await redis.flushall();
 });
 
 afterAll(async () => {

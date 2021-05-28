@@ -21,10 +21,11 @@ import {
 import { makeStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types';
 import NextLink from 'next/link';
-import { csrfHeader, useCSRF } from '../utils/csrf';
+import { useCSRF } from '../utils/csrf';
 
 import MangaSearch from './MangaSearch';
 import { useUser } from '../utils/useUser';
+import { updateUserTheme, logoutUser } from '../api/user';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -115,21 +116,13 @@ function TopBar(props) {
     handleClose();
     const val = activeTheme === 1 ? 2 : 1;
     setTheme(val);
-    fetch(`/api/settings/theme?value=${val}`, {
-      method: 'post',
-      credentials: 'include',
-      headers: csrfHeader(csrf),
-    })
+    updateUserTheme(csrf, val)
       .catch(console.error);
   };
 
   const handleLogout = () => {
     handleClose();
-    fetch('/api/logout', {
-      method: 'post',
-      credentials: 'include',
-      headers: csrfHeader(csrf),
-    })
+    logoutUser(csrf)
       .then(res => {
         window.location.replace(res.url);
       })

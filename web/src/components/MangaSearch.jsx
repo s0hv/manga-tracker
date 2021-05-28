@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { IconButton, InputBase, Popper, } from '@material-ui/core';
+import { IconButton, InputBase, Popper } from '@material-ui/core';
 import { fade, makeStyles } from '@material-ui/core/styles';
 import Autocomplete from '@material-ui/lab/Autocomplete';
 import PropTypes from 'prop-types';
@@ -8,6 +8,7 @@ import { Search as SearchIcon } from '@material-ui/icons';
 
 import throttle from 'lodash.throttle';
 import { useRouter } from 'next/router';
+import { quickSearch } from '../api/manga';
 
 const useStyles = makeStyles((theme) => ({
   search: {
@@ -68,7 +69,7 @@ export default function MangaSearch(props) {
   const router = useRouter();
 
   const onChangeDefault = useCallback(
-    (newValue) => router.push(`/manga/${newValue.manga_id}`),
+    (newValue) => router.push(`/manga/${newValue.mangaId}`),
     [router]
   );
   const onChange = onChangeFunc || onChangeDefault;
@@ -86,13 +87,8 @@ export default function MangaSearch(props) {
 
   const throttleFetch = useMemo(
     () => throttle((query, cb) => {
-      fetch('/api/quicksearch?query=' + encodeURIComponent(query))
-        .then(res => res.json())
-        .then(js => cb(js))
-        .catch(err => {
-          console.error(err);
-          cb(null);
-        });
+      quickSearch(query)
+        .then(js => cb(js));
     }, 200),
     []
   );

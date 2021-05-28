@@ -15,7 +15,7 @@ const Profile = (props) => (
 export default Profile;
 
 export async function getServerSideProps({ req, res }) {
-  if (!req.user || !req.user.user_id) {
+  if (!req.user || !req.user.userId) {
     res.redirect('/login');
     return { props: {}};
   }
