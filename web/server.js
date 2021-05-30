@@ -13,6 +13,7 @@ const csrf = require('csurf');
 const session = require('express-session');
 const passport = require('passport');
 const JsonStrategy = require('passport-json');
+const helmet = require('helmet');
 
 const { db } = require('./db');
 const { csrfMissing } = require('./utils/constants');
@@ -50,7 +51,14 @@ const handle = nextApp.getRequestHandler();
 module.exports = nextApp.prepare()
   .then(() => {
     const server = express();
-    server.disable('x-powered-by');
+    server.use(helmet({
+      contentSecurityPolicy: {
+        directives: {
+          imgSrc: "'self' https://mangadex.org",
+        },
+        useDefaults: true,
+      },
+    }));
     if (reverseProxy) server.enable('trust-proxy');
 
     const store = new PostgresStore({
