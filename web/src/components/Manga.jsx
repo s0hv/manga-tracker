@@ -10,7 +10,7 @@ import {
   Typography,
 } from '@material-ui/core';
 
-import { makeStyles } from '@material-ui/core/styles';
+import { makeStyles, useTheme } from '@material-ui/core/styles';
 
 import {
   Edit as EditIcon,
@@ -18,6 +18,7 @@ import {
 } from '@material-ui/icons';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useCSRF } from '../utils/csrf';
 import { useUser } from '../utils/useUser';
@@ -49,13 +50,14 @@ const useStyles = makeStyles((theme) => ({
     display: 'flex',
   },
   thumbnail: {
-    maxWidth: '250px',
-    maxHeight: '355px',
+    position: 'relative',
+    width: '250px',
+    height: '355px',
     [theme.breakpoints.down('sm')]: {
-      maxWidth: '200px',
+      width: '200px',
     },
     [theme.breakpoints.down('xs')]: {
-      maxWidth: '250px',
+      width: '250px',
     },
   },
   details: {
@@ -102,6 +104,7 @@ const useStyles = makeStyles((theme) => ({
   infoGrid: {
     marginLeft: theme.spacing(4),
     width: 'fit-content',
+    overflow: 'auto',
     [theme.breakpoints.down('xs')]: {
       marginLeft: '0px',
     },
@@ -118,7 +121,6 @@ function Manga(props) {
   const {
     mangaData: {
       manga,
-      chapters,
       services,
       aliases,
     },
@@ -126,6 +128,7 @@ function Manga(props) {
   } = props;
 
   const [releaseData, setReleaseData] = useState([]);
+  const theme = useTheme();
   const [activeTab, setActiveTab] = useState(0);
   const changeTab = useCallback((e, newVal) => setActiveTab(newVal), []);
   const csrf = useCSRF();
@@ -148,18 +151,6 @@ function Manga(props) {
     services.forEach(service => { serviceMap[service.serviceId] = service.urlFormat });
     return serviceMap;
   }, [services]);
-
-  const mangaChapters = React.useMemo(() => {
-    if (!chapters) return [];
-    const serviceMap = {};
-    services.forEach(service => { serviceMap[service.serviceId] = service.urlFormat });
-    return chapters.map(chapter => {
-      const newChapter = { ...chapter };
-      newChapter.releaseDate = new Date(chapter.releaseDate);
-      newChapter.url = serviceMap[chapter.serviceId].replace('{}', chapter.chapterIdentifier);
-      return newChapter;
-    });
-  }, [chapters, services]);
 
   return (
     <Container maxWidth='lg' disableGutters>
@@ -184,13 +175,20 @@ function Manga(props) {
           )}
         </div>
         <div className={classes.details}>
-          <a href={manga.mal} target='_blank' rel='noreferrer noopener'>
-            <img
-              src={manga.cover}
-              className={classes.thumbnail}
-              alt={manga.title}
-            />
-          </a>
+          <div style={{ position: 'relative' }} className={classes.thumbnail}>
+            <a href={manga.mal} target='_blank' rel='noreferrer noopener' aria-label='myanimelist page of the manga'>
+              {manga.cover && (
+                <Image
+                  src={`${manga.cover}.256.jpg`}
+                  alt={manga.title}
+                  layout='fill'
+                  objectFit='contain'
+                  sizes={`${theme.breakpoints.down('sm')} 200px, 250px`}
+                  unoptimized
+                />
+              )}
+            </a>
+          </div>
           <Grid
             container
             justify='space-between'

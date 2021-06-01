@@ -1,21 +1,28 @@
 const camelcaseKeys = require('camelcase-keys');
-const { link: Link } = require('mangadex-full-api');
 
 const { db } = require('.');
-const { fetchExtraInfo } = require('./mangadex');
+const { fetchExtraInfo, MANGADEX_ID } = require('./mangadex');
 const { HttpError } = require('../utils/errors');
 const { mangadexLogger } = require('../utils/logging');
 
-const MANGADEX_ID = 2; // Id of the mangadex service in the database
+const links = {
+  al: 'https://anilist.co/manga/',
+  ap: 'https://www.anime-planet.com/manga/',
+  bw: 'https://bookwalker.jp/',
+  mu: 'https://www.mangaupdates.com/series.html?id=',
+  nu: 'https://www.novelupdates.com/series/',
+  kt: 'https://kitsu.io/manga/',
+  mal: 'https://myanimelist.net/manga/',
+};
 
 function formatLinks(row) {
   if (typeof row !== 'object') return;
 
   Object.keys(row).forEach(key => {
-    const link = Link[key];
+    const link = links[key];
     if (!link || !row[key]) return;
 
-    row[key] = link.prefix + row[key];
+    row[key] = link + row[key];
   });
 }
 module.exports.formatLinks = formatLinks;

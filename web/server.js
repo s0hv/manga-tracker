@@ -54,7 +54,7 @@ module.exports = nextApp.prepare()
     server.use(helmet({
       contentSecurityPolicy: {
         directives: {
-          imgSrc: "'self' https://mangadex.org",
+          imgSrc: "'self' https://uploads.mangadex.org",
         },
         useDefaults: true,
       },

@@ -47,8 +47,8 @@ const bruteOpts = {
 };
 
 const mangadexLimiter = new RateLimiterMemory({
-  points: 3,
-  duration: 6,
+  points: 4,
+  duration: 1,
 });
 
 module.exports.mangadexLimiter = mangadexLimiter;

@@ -8,6 +8,10 @@ module.exports = (phase, { defaultConfig }) => {
     future: {
       webpack5: true,
     },
+    images: {
+      domains: ['uploads.mangadex.org'],
+      deviceSizes: [600, 960, 1280, 1920],
+    },
   });
 
   if (process.env.ANALYZE) {
