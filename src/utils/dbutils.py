@@ -530,6 +530,13 @@ class DbUtil:
         return list(map(ServiceConfig.parse_obj, cur))
 
     @optional_transaction
+    def get_services(self, *, cur: Cursor = NotImplemented) -> List[Service]:
+        sql = 'SELECT * FROM services'
+        cur.execute(sql)
+
+        return list(map(Service.parse_obj, cur))
+
+    @optional_transaction
     def update_service_whole(self, service_id: int, update_interval: timedelta, *, cur: Cursor = NotImplemented) -> None:
         sql = 'UPDATE services SET last_check=%s WHERE service_id=%s'
         now = datetime.utcnow()

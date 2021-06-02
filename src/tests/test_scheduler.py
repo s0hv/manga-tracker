@@ -82,6 +82,21 @@ class SchedulerRunTest(BaseTestClasses.DatabaseTestCase):
         self.assertIsNone(self.scheduler.force_run(DummyScraper.ID, -1))
         self.assertLogs('debug', 'debug')
 
+    def test_do_scheduled_runs_with_disabled_service(self):
+        sql = 'UPDATE services SET disabled=TRUE WHERE service_id=%s'
+        self.dbutil.execute(sql, [DummyScraper.ID])
+
+        try:
+            ms = self.create_manga_service(DummyScraper)
+            self.dbutil.add_scheduled_runs([
+                ScheduledRun(manga_id=ms.manga_id, service_id=DummyScraper.ID)
+            ])
+            self.assertFalse(self.scheduler.do_scheduled_runs())
+        finally:
+            sql = 'UPDATE services SET disabled=FALSE WHERE service_id=%s'
+            self.dbutil.execute(sql, [DummyScraper.ID])
+            self.dbutil.execute('TRUNCATE TABLE scheduled_runs')
+
 
 if __name__ == '__main__':
     unittest.main()

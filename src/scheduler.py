@@ -6,6 +6,7 @@ from collections import Counter
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 from datetime import datetime, timedelta
+from operator import attrgetter
 from typing import Type, ContextManager, TypedDict, Optional, Collection, List, \
     Set, cast, Union
 
@@ -82,6 +83,8 @@ class UpdateScheduler:
             manga_ids = []
             service_counter: Counter = Counter()
 
+            disabled_services = set(map(attrgetter('service_id'), filter(attrgetter('disabled'), dbutil.get_services())))
+
             for sr in dbutil.get_scheduled_runs():
                 manga_id = sr.manga_id
                 service_id = sr.service_id
@@ -90,6 +93,11 @@ class UpdateScheduler:
 
                 if not Service.CONFIG.scheduled_runs_enabled:
                     logger.warning(f'Tried to schedule run for service {Service.__name__} when it does not support scheduled runs.')
+                    delete.append((manga_id, service_id))
+                    continue
+
+                if service_id in disabled_services:
+                    logger.warning(f'Tried to schedule run for service {Service.__name__} when it is disabled.')
                     delete.append((manga_id, service_id))
                     continue
 
