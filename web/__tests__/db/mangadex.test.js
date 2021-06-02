@@ -17,15 +17,16 @@ describe('mangadex API works correctly', () => {
     jest.spyOn(Cover, 'get')
       .mockImplementation(async () => ({ imageSource: 'test' }));
   });
-  afterEach(() => {
+  afterEach(async () => {
     jest.restoreAllMocks();
+    await mangadexLimiter.delete('mangadex');
   });
 
 
   it('Does a database update on success', async () => {
     const dbSpy = spyOnDb();
 
-    await fetchExtraInfo(1, 1);
+    await fetchExtraInfo(1, 2);
 
     expect(dbSpy).toHaveBeenCalledTimes(2);
   });
@@ -36,7 +37,7 @@ describe('mangadex API works correctly', () => {
       .rejects
       .toHaveProperty('msBeforeNext');
 
-    await fetchExtraInfo(1, 1);
+    await fetchExtraInfo(1, 2);
 
     expect(dbSpy).toHaveBeenCalledTimes(1);
   });
@@ -47,7 +48,7 @@ describe('mangadex API works correctly', () => {
       .mockImplementation(async () => throw err);
     const dbSpy = spyOnDb();
 
-    await fetchExtraInfo(1, 1);
+    await fetchExtraInfo(1, 2);
 
     expect(dbSpy).toHaveBeenCalledTimes(1);
     expect(spy).toHaveBeenCalled();

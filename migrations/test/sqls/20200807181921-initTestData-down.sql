@@ -1,9 +1,3 @@
-TRUNCATE TABLE user_follows CASCADE;
-TRUNCATE TABLE users CASCADE;
-TRUNCATE TABLE manga_info CASCADE;
-TRUNCATE TABLE chapters CASCADE;
-TRUNCATE TABLE manga_service CASCADE;
-TRUNCATE TABLE service_whole CASCADE;
-TRUNCATE TABLE services CASCADE;
-TRUNCATE TABLE manga_alias CASCADE;
-TRUNCATE TABLE manga CASCADE;
+DROP TABLE auth_tokens, chapters, manga, manga_alias, manga_info, manga_service,
+    migrations, scheduled_runs, service_whole, services, sessions, user_follows,
+    users;

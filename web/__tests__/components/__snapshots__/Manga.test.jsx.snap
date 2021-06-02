@@ -21,17 +21,30 @@ exports[`Manga page should render correctly Should render correctly as admin 1`]
     <div
       className="makeStyles-details-5"
     >
-      <a
-        href="https://myanimelist.net/manga/103897"
-        rel="noreferrer noopener"
-        target="_blank"
+      <div
+        className="makeStyles-thumbnail-4"
+        style={
+          Object {
+            "position": "relative",
+          }
+        }
       >
-        <img
-          alt="Dr. STONE"
-          className="makeStyles-thumbnail-4"
-          src="https://mangadex.org/images/manga/20882.jpg?1585634146"
-        />
-      </a>
+        <a
+          aria-label="myanimelist page of the manga"
+          href="https://myanimelist.net/manga/103897"
+          rel="noreferrer noopener"
+          target="_blank"
+        >
+          <Image
+            alt="Dr. STONE"
+            layout="fill"
+            objectFit="contain"
+            sizes="@media (max-width:959.95px) 200px, 250px"
+            src="https://mangadex.org/images/manga/20882.jpg?1585634146.256.jpg"
+            unoptimized={true}
+          />
+        </a>
+      </div>
       <WithStyles(ForwardRef(Grid))
         className="makeStyles-rootGrid-12"
         container={true}
@@ -172,17 +185,30 @@ exports[`Manga page should render correctly should render correctly 1`] = `
     <div
       className="makeStyles-details-5"
     >
-      <a
-        href="https://myanimelist.net/manga/103897"
-        rel="noreferrer noopener"
-        target="_blank"
+      <div
+        className="makeStyles-thumbnail-4"
+        style={
+          Object {
+            "position": "relative",
+          }
+        }
       >
-        <img
-          alt="Dr. STONE"
-          className="makeStyles-thumbnail-4"
-          src="https://mangadex.org/images/manga/20882.jpg?1585634146"
-        />
-      </a>
+        <a
+          aria-label="myanimelist page of the manga"
+          href="https://myanimelist.net/manga/103897"
+          rel="noreferrer noopener"
+          target="_blank"
+        >
+          <Image
+            alt="Dr. STONE"
+            layout="fill"
+            objectFit="contain"
+            sizes="@media (max-width:959.95px) 200px, 250px"
+            src="https://mangadex.org/images/manga/20882.jpg?1585634146.256.jpg"
+            unoptimized={true}
+          />
+        </a>
+      </div>
       <WithStyles(ForwardRef(Grid))
         className="makeStyles-rootGrid-12"
         container={true}
@@ -323,17 +349,30 @@ exports[`Manga page should render correctly should render correctly when logged 
     <div
       className="makeStyles-details-5"
     >
-      <a
-        href="https://myanimelist.net/manga/103897"
-        rel="noreferrer noopener"
-        target="_blank"
+      <div
+        className="makeStyles-thumbnail-4"
+        style={
+          Object {
+            "position": "relative",
+          }
+        }
       >
-        <img
-          alt="Dr. STONE"
-          className="makeStyles-thumbnail-4"
-          src="https://mangadex.org/images/manga/20882.jpg?1585634146"
-        />
-      </a>
+        <a
+          aria-label="myanimelist page of the manga"
+          href="https://myanimelist.net/manga/103897"
+          rel="noreferrer noopener"
+          target="_blank"
+        >
+          <Image
+            alt="Dr. STONE"
+            layout="fill"
+            objectFit="contain"
+            sizes="@media (max-width:959.95px) 200px, 250px"
+            src="https://mangadex.org/images/manga/20882.jpg?1585634146.256.jpg"
+            unoptimized={true}
+          />
+        </a>
+      </div>
       <WithStyles(ForwardRef(Grid))
         className="makeStyles-rootGrid-12"
         container={true}
@@ -474,17 +513,21 @@ exports[`Manga page should render correctly should render correctly with little 
     <div
       className="makeStyles-details-5"
     >
-      <a
-        href={null}
-        rel="noreferrer noopener"
-        target="_blank"
+      <div
+        className="makeStyles-thumbnail-4"
+        style={
+          Object {
+            "position": "relative",
+          }
+        }
       >
-        <img
-          alt="Dr. STONE 2"
-          className="makeStyles-thumbnail-4"
-          src={null}
+        <a
+          aria-label="myanimelist page of the manga"
+          href={null}
+          rel="noreferrer noopener"
+          target="_blank"
         />
-      </a>
+      </div>
       <WithStyles(ForwardRef(Grid))
         className="makeStyles-rootGrid-12"
         container={true}

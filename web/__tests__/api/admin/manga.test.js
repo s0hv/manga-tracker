@@ -15,6 +15,7 @@ import {
   withUser,
   expectErrorMessage
 } from '../../utils';
+import { createMangaService } from '../../dbutils';
 
 let httpServer;
 
@@ -183,10 +184,13 @@ describe('DELETE /api/admin/manga/:mangaId/scheduledRun/:serviceId', () => {
 
 describe('GET /api/admin/manga/:mangaId/scheduledRuns', () => {
   const serviceId = 1;
-  const mangaId = 2;
-  const url = `/api/admin/manga/${mangaId}/scheduledRuns`;
-  beforeAll(() => scheduleMangaRun(mangaId, serviceId, adminUser.userId));
-  afterAll(() => deleteScheduledRun(mangaId, serviceId));
+  let mangaId;
+  let url;
+  beforeAll(async () => {
+    mangaId = await createMangaService(serviceId);
+    await scheduleMangaRun(mangaId, serviceId, adminUser.userId);
+    url = `/api/admin/manga/${mangaId}/scheduledRuns`;
+  });
 
   it('returns unauthorized without user', async () => {
     await request(httpServer)
