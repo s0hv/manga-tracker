@@ -22,7 +22,7 @@ function fetchExtraInfo(mangadexMangaId, mangaId) {
     .then(() => Manga.get(mangadexMangaId))
     .then(manga => Cover.get(manga.mainCover.id))
     .then(cover => db.none(
-      'UPDATE manga_info SET cover=$1 WHERE manga_id=$2',
+      'UPDATE manga_info SET cover=$1, last_updated=CURRENT_TIMESTAMP WHERE manga_id=$2',
       [cover.imageSource, mangaId]
     ))
     .catch(() => undefined);
