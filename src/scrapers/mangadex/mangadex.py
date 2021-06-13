@@ -74,6 +74,7 @@ class MangaDex(BaseScraperWhole):
     UPDATE_INTERVAL = timedelta(minutes=15)
     CHAPTER_URL_FORMAT = 'https://mangadex.org/chapter/{}'
     MANGA_URL_FORMAT = 'https://mangadex.org/title/{}'
+    COVER_FORMAT: str = 'https://uploads.mangadex.org/covers/{title_id}/{file_name}'
 
     def __init__(self, conn, dbutil: Optional[DbUtil] = None):
         super().__init__(conn, dbutil)
@@ -115,9 +116,16 @@ class MangaDex(BaseScraperWhole):
         manga_infos: List[MangaInfo] = []
         for manga_id, manga in mangas.items():
             links = manga.data.attributes.links
+            cover: Optional[str] = None
+            if manga.cover:
+                cover = self.COVER_FORMAT.format(
+                    title_id=manga.data.id,
+                    file_name=manga.cover.attributes.file_name
+                )
+
             manga_infos.append(
                 MangaInfo(manga_id=manga_id,
-                          cover=manga.cover.attributes.file_name if manga.cover else None,
+                          cover=cover,
                           status=manga.data.attributes.status.to_int(),
                           **links.dict()))
 
