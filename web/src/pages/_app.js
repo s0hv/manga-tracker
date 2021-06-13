@@ -1,11 +1,6 @@
 import DateFnsUtils from '@date-io/date-fns';
 import { CssBaseline } from '@material-ui/core';
-import { blue } from '@material-ui/core/colors';
-import {
-  createMuiTheme,
-  responsiveFontSizes,
-  ThemeProvider,
-} from '@material-ui/core/styles';
+import { ThemeProvider, } from '@material-ui/core/styles';
 import { MuiPickersUtilsProvider } from '@material-ui/pickers';
 import enLocale from 'date-fns/locale/en-GB';
 import { DefaultSeo } from 'next-seo';
@@ -20,6 +15,7 @@ import Root from '../components/Root';
 import { ProgressBar } from '../components/utils/ProgressBar';
 import { csrfProps, CSRFProvider } from '../utils/csrf';
 import { UserProvider } from '../utils/useUser';
+import { getTheme } from '../../utils/theme';
 
 
 function MainApp({ Component, pageProps = {}, props }) {
@@ -63,18 +59,8 @@ function MainApp({ Component, pageProps = {}, props }) {
   props.user = user;
   props.setTheme = childSetTheme;
 
-  const activeTheme = React.useMemo(
-    () => responsiveFontSizes(createMuiTheme({
-      palette: {
-        type: prefersDark ? 'dark' : 'light',
-        primary: blue,
-        background: {
-          default: prefersDark ? '#282c34' : '#FFFFFF',
-        },
-      },
-    })),
-    [prefersDark]
-  );
+  const activeTheme = React.useMemo(() => getTheme(prefersDark),
+    [prefersDark]);
 
   return (
     <React.Fragment>

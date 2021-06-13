@@ -57,8 +57,8 @@ class MangaServicePartial(BaseModel):
         return SCRAPERS_ID[self.service_id]
 
     def scrape_series(self, conn: Connection, dbutil: 'DbUtil'):
-        if self.manga_id is None:
-            raise ValueError('Manga id was None')
+        if self.manga_id is None or self.feed_url is None:
+            raise ValueError('Manga id or feed url was None')
         scraper = self.Scraper(conn, dbutil)
         return scraper.scrape_series(self.title_id, self.service_id, self.manga_id, self.feed_url)
 

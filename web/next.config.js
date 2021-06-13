@@ -3,10 +3,28 @@ const withTM = require('next-transpile-modules')(['frappe-charts', 'react-frappe
 module.exports = (phase, { defaultConfig }) => {
   const conf = withTM({
     ...defaultConfig,
+    webpack(config) {
+      if (config.resolve.fallback) {
+        config.resolve.fallback.fs = false;
+      }
+      return defaultConfig.webpack ? defaultConfig.webpack(config) : config;
+    },
     poweredByHeader: false,
     reactStrictMode: true,
     future: {
       webpack5: true,
+    },
+    images: {
+      domains: ['uploads.mangadex.org'],
+      deviceSizes: [300, 600, 960, 1280],
+    },
+    async rewrites() {
+      return [
+        {
+          source: '/api',
+          destination: '/swagger',
+        },
+      ];
     },
   });
 

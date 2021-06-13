@@ -1,14 +1,15 @@
 import os
-import pickle
 import unittest
 from unittest.mock import patch, MagicMock
 
 import feedparser
 
 import setup_logging
+from src.constants import NO_GROUP
 from src.db.models.manga import MangaService
 from src.scrapers import Reddit
-from src.tests.testing_utils import BaseTestClasses, mock_feedparse
+from src.tests.testing_utils import (BaseTestClasses, mock_feedparse,
+                                     load_chapters_snapshot)
 
 test_feed = os.path.join(os.path.dirname(__file__), 'test_data.xml')
 logger = setup_logging.setup()
@@ -17,14 +18,13 @@ logger = setup_logging.setup()
 class TestRedditScraper(BaseTestClasses.ModelAssertions, BaseTestClasses.DatabaseTestCase):
     @staticmethod
     def read_test_data():
-        p = os.path.join(os.path.dirname(__file__), 'data.pickle')
-        with open(p, 'rb') as f:
-            return pickle.load(f)
+        p = os.path.join(os.path.dirname(__file__), 'chapters.json')
+        return load_chapters_snapshot(p)
 
     def test_feed_parsed_correctly(self):
         feed = feedparser.parse(test_feed)
         self.assertGreater(len(feed.entries), 0)
-        chapters = Reddit.parse_feed(feed.entries)
+        chapters = Reddit.parse_feed(feed.entries, group_id=NO_GROUP)
         self.assertEqual(len(chapters), len(feed.entries))
 
         correct_chapters = self.read_test_data()
@@ -35,7 +35,7 @@ class TestRedditScraper(BaseTestClasses.ModelAssertions, BaseTestClasses.Databas
     @patch('feedparser.parse', wraps=mock_feedparse(test_feed))
     def test_parse_feed(self, parse: MagicMock):
         reddit = Reddit(self._conn, self.dbutil)
-        feed_url = 'reddit_test_feed'
+        feed_url = 'https://www.reddit.com/r/Test/search.rss?sort=new'
         manga_id = self.dbutil.add_manga_service(
             MangaService(service_id=Reddit.ID, title_id='RedditTest',
                          title='Reddit test manga', feed_url=feed_url),

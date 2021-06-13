@@ -6,7 +6,7 @@ from inspect import isabstract
 from itertools import groupby
 from operator import attrgetter
 from typing import (Optional, TYPE_CHECKING, ClassVar, Set, Dict, List,
-                    Sequence, Iterable, TypeVar, Mapping, cast)
+                    Sequence, Iterable, TypeVar, Mapping, cast, Collection)
 
 import psycopg2
 from psycopg2.extensions import connection as Connection
@@ -79,6 +79,15 @@ class BaseChapter(abc.ABC):
     def title(self) -> str:
         raise NotImplementedError
 
+    @property
+    @abc.abstractmethod
+    def group_id(self) -> int:
+        """
+        Should return the id of the group. Setting group id can be deferred
+        but an error must be risen if it's get without a value
+        """
+        raise NotImplementedError
+
     def __str__(self):
         return f'{self.manga_title} {self.chapter_number} / {self.chapter_identifier}'
 
@@ -114,7 +123,8 @@ class BaseChapterSimple(BaseChapter):
                  release_date: Optional[datetime] = None,
                  manga_title: str = None,
                  manga_url: str = None,
-                 group: str = None
+                 group: str = None,
+                 group_id: Optional[int] = None
                  ):
         self._chapter_title = chapter_title
         self._chapter_number = chapter_number
@@ -126,6 +136,7 @@ class BaseChapterSimple(BaseChapter):
         self._manga_url = manga_url
         self._group = group
         self._release_date = release_date or datetime.utcnow()
+        self._group_id = group_id
 
     @property
     def chapter_title(self) -> Optional[str]:
@@ -166,6 +177,17 @@ class BaseChapterSimple(BaseChapter):
     @property
     def group(self) -> Optional[str]:
         return self._group
+
+    @property
+    def group_id(self) -> int:
+        if self._group_id is None:
+            raise ValueError(f'Group id is None. Expected it to be int {self}')
+
+        return self._group_id
+
+    @group_id.setter
+    def group_id(self, value: int):
+        self._group_id = value
 
     @property
     def title(self) -> str:
@@ -254,7 +276,7 @@ class BaseScraper(abc.ABC):
         return datetime.utcnow() + self.min_update_interval()
 
     @abc.abstractmethod
-    def scrape_series(self, title_id: str, service_id: int, manga_id: int, feed_url: Optional[str] = None) -> Optional[bool]:
+    def scrape_series(self, title_id: str, service_id: int, manga_id: int, feed_url: str) -> Optional[bool]:
         """
         Returns:
             Boolean that tells if the manga was updated (True) or not (False).
@@ -286,19 +308,18 @@ class BaseScraper(abc.ABC):
     @staticmethod
     def titles_dict_to_manga_service(
             titles: Mapping[str, Sequence[BaseChapter]],
-            service_id: int, disabled: bool = False) -> List[MangaService]:
+            service_id: int, disabled: bool = False, manga_title: str = None) -> List[MangaService]:
         """
         Turns a dict Dict[title_id, chapters] into a list of MangaService objects.
         """
         mangas: List[MangaService] = []
         for title_id, chapters in titles.items():
-            ch = chapters[0]
             mangas.append(
                 MangaService(
                     service_id=service_id,
                     disabled=disabled,
                     title_id=title_id,
-                    title=ch.manga_title)
+                    title=manga_title if manga_title is not None else chapters[0].manga_title)
             )
 
         return mangas
@@ -331,6 +352,50 @@ class BaseScraper(abc.ABC):
 
         return chapters
 
+    def update_latest_chapter(self, chapters: Iterable[ChapterModel]) -> None:
+        chapter_rows = [{
+            'chapter_decimal': c.chapter_decimal,
+            'manga_id': c.manga_id,
+            'chapter_number': c.chapter_number,
+            'release_date': c.release_date
+        } for c in chapters]
+        self.dbutil.update_latest_chapter(
+            tuple(c for c in get_latest_chapters(chapter_rows).values())
+        )
+
+    def add_new_manga_with_dupe_check(self, service_id: int,
+                                      mangas: Sequence[MangaService],
+                                      manga_ids: Set[int],
+                                      chapters: List[ChapterModel],
+                                      titles: Dict[str, List[ScraperChapter]]) -> None:
+        """
+        Calls DbUtil.add_new_manga_and_check_duplicate_titles
+        to add the given manga to the database with checks for duplicate titles.
+        Adds appropriate ChapterModel objects to the chapters list
+        """
+        for manga in self.dbutil.add_new_manga_and_check_duplicate_titles(mangas):
+            manga_ids.add(manga.manga_id)
+            for chapter in titles.get(manga.title_id, []):
+                chapters.append(
+                    ChapterMapper.base_chapter_to_db(chapter, manga.manga_id,
+                                                     service_id)
+                )
+
+    def get_new_entries(self, service_id: int, entries: Collection[ScraperChapter]) -> Optional[Collection[ScraperChapter]]:
+        """
+        Get only the new chapters to a service. Returns None if no new entries found.
+        """
+        entries = self.dbutil.get_only_latest_entries(service_id, entries)
+        if not entries:
+            logger.info(f'No new entries found for {type(self).__name__}')
+            return None
+
+        logger.info('%s new chapters found for %s. %s', len(entries),
+                    self.NAME,
+                    [e.chapter_identifier for e in entries])
+
+        return entries
+
 
 class BaseScraperWhole(BaseScraper, ABC):
     def add_service(self) -> Optional[int]:
@@ -346,6 +411,10 @@ class BaseScraperWhole(BaseScraper, ABC):
         return service_id
 
     def set_checked(self, service_id: int) -> None:
+        """
+        Sets the service and service_whole as checked based on the min_update_interval
+        defined by the service
+        """
         try:
             super().set_checked(service_id)
             self.dbutil.update_service_whole(service_id, self.min_update_interval())
@@ -363,14 +432,9 @@ class BaseScraperWhole(BaseScraper, ABC):
         Returns:
             Updated manga ids or None if update was not done
         """
-        entries = self.dbutil.get_only_latest_entries(service_id, entries)
+        entries = self.get_new_entries(service_id, entries)
         if not entries:
-            logger.info(f'No new entries found for {type(self).__name__}')
             return None
-
-        logger.info('%s new chapters found for %s. %s', len(entries),
-                    self.NAME,
-                    [e.chapter_identifier for e in entries])
 
         titles = self.group_by_manga(entries)
 
@@ -386,23 +450,17 @@ class BaseScraperWhole(BaseScraper, ABC):
         # Add new manga
         mangas = self.titles_dict_to_manga_service(titles, service_id, True)
 
-        for manga in self.dbutil.add_new_manga_and_check_duplicate_titles(mangas):
-            manga_ids.add(manga.manga_id)
-            for chapter in titles.get(manga.title_id, []):
-                chapters.append(
-                    ChapterMapper.base_chapter_to_db(chapter, manga.manga_id,
-                                                     service_id)
-                )
+        self.add_new_manga_with_dupe_check(
+            service_id,
+            mangas,
+            cast(Set[int], manga_ids),
+            chapters,
+            titles
+        )
 
         self.dbutil.add_chapters(chapters, fetch=False)
 
-        chapter_rows = [{
-            'chapter_decimal': c.chapter_decimal,
-            'manga_id': c.manga_id,
-            'chapter_number': c.chapter_number,
-            'release_date': c.release_date
-        } for c in chapters]
-        self.dbutil.update_latest_chapter(tuple(c for c in get_latest_chapters(chapter_rows).values()))
+        self.update_latest_chapter(chapters)
 
         # At this point the set has no None values
         return cast(Set[int], manga_ids)

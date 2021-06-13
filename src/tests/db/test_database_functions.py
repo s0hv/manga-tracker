@@ -6,6 +6,8 @@ import psycopg2.errors
 import pytest
 from pydantic import BaseModel
 
+from src.constants import NO_GROUP
+from src.db.models.authors import MangaArtist, AuthorPartial, MangaAuthor
 from src.db.models.chapter import Chapter
 from src.db.models.manga import MangaService, MangaInfo
 from src.scrapers import MangaPlus
@@ -49,7 +51,7 @@ class TestMergeManga(BaseTestClasses.DatabaseTestCase):
         mi = MangaInfo(
             manga_id=ms.manga_id,
             cover=self.get_str_id(),
-            status=status, artist=self.get_str_id(), author=self.get_str_id(),
+            status=status,
             bw=self.get_str_id(), mu=self.get_str_id(),
             mal=self.get_str_id(), amz=self.get_str_id(),
             ebj=self.get_str_id(), engtl=self.get_str_id(),
@@ -58,15 +60,27 @@ class TestMergeManga(BaseTestClasses.DatabaseTestCase):
             al=self.get_str_id(), last_updated=datetime.utcnow()  # I don't understand but tzinfo is not required here
         )
 
-        sql = 'INSERT INTO manga_info (manga_id, cover, status, artist, author, bw, mu, mal, amz, ebj, engtl, raw, nu, kt, ap, al, last_updated) ' \
-              'VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'
+        sql = 'INSERT INTO manga_info (manga_id, cover, status, bw, mu, mal, amz, ebj, engtl, raw, nu, kt, ap, al, last_updated) ' \
+              'VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'
         self.dbutil.execute(sql,
-                            (mi.manga_id, mi.cover, mi.status, mi.artist, mi.author,
+                            (mi.manga_id, mi.cover, mi.status,
                              mi.bw, mi.mu, mi.mal, mi.amz, mi.ebj, mi.engtl,
                              mi.raw, mi.nu, mi.kt, mi.ap, mi.al, mi.last_updated),
                             fetch=False)
 
         return mi
+
+    def create_artist(self, manga_id: int) -> MangaArtist:
+        author = list(self.dbutil.add_authors([AuthorPartial(name=self.get_str_id())]))[0]
+        ma = MangaArtist(author_id=author.author_id, manga_id=manga_id)
+        self.dbutil.add_manga_artists([ma])
+        return ma
+
+    def create_author(self, manga_id: int) -> MangaAuthor:
+        author = list(self.dbutil.add_authors([AuthorPartial(name=self.get_str_id())]))[0]
+        ma = MangaAuthor(author_id=author.author_id, manga_id=manga_id)
+        self.dbutil.add_manga_authors([ma])
+        return ma
 
     def get_manga_info(self, manga_id: int) -> Optional[MangaInfo]:
         rows = self.dbutil.execute('SELECT * FROM manga_info WHERE manga_id=%s', (manga_id,))
@@ -81,7 +95,8 @@ class TestMergeManga(BaseTestClasses.DatabaseTestCase):
         return [Chapter(manga_id=manga.manga_id, service_id=manga.service_id,
                         title=f'chapter_{id_}', chapter_number=1,
                         chapter_identifier=id_,
-                        release_date=self.utcnow())
+                        release_date=self.utcnow(),
+                        group_id=NO_GROUP)
                 for id_ in [self.get_str_id() for _ in range(n)]]
 
     def create_aliases(self, manga_id: int, n: int) -> List[str]:
@@ -249,6 +264,69 @@ class TestMergeManga(BaseTestClasses.DatabaseTestCase):
         self.assertIsNone(
             self.get_manga_info(m1.manga_id)
         )
+
+    def test_merge_author_artist_with_third_manga(self):
+        m1 = self.create_manga_service(DummyScraper)
+        m2 = self.create_manga_service(DummyScraper2)
+        mar2 = self.create_artist(m2.manga_id)
+        mau2 = self.create_author(m2.manga_id)
+
+        m3 = m2.copy()
+        m3.service_id = MangaPlus.ID
+        self.dbutil.add_manga_service(m3)
+
+        result = self.merge_manga(m1.manga_id, m2.manga_id, m2.service_id)
+
+        # Aliases should not be transferred in service specific operation
+        self.assertEqual(
+            result,
+            MergeResult(alias_count=0, chapter_count=0)
+        )
+
+        # Make sure artists and authors not merged
+        m_art = self.dbutil.get_manga_artists(m1.manga_id)
+        self.assertListEqual(m_art, [], msg='Artists were merged when they should not have been')
+
+        m_aut = self.dbutil.get_manga_authors(m1.manga_id)
+        self.assertListEqual(m_aut, [], msg='Authors were transferred when they should not have been')
+
+        # Make sure old artists and authors exist
+        m_art = self.dbutil.get_manga_artists(m2.manga_id)
+        self.assertCountEqual(m_art, [mar2],)
+
+        m_aut = self.dbutil.get_manga_authors(m2.manga_id)
+        self.assertCountEqual(m_aut, [mau2])
+
+    def test_merge_author_artist_successfully(self):
+        m1 = self.create_manga_service(DummyScraper)
+        m2 = self.create_manga_service(DummyScraper2)
+
+        mar2 = self.create_artist(m2.manga_id)
+        mar2.manga_id = m1.manga_id
+        mau2 = self.create_author(m2.manga_id)
+        mau2.manga_id = m1.manga_id
+
+        result = self.merge_manga(m1.manga_id, m2.manga_id)
+
+        # Aliases should not be transferred in service specific operation
+        self.assertEqual(
+            result,
+            MergeResult(alias_count=0, chapter_count=0)
+        )
+
+        # Make sure artists and authors not merged
+        m_art = self.dbutil.get_manga_artists(m1.manga_id)
+        self.assertCountEqual(m_art, [mar2], )
+
+        m_aut = self.dbutil.get_manga_authors(m1.manga_id)
+        self.assertCountEqual(m_aut, [mau2])
+
+        # Make sure old artists and authors exist
+        m_art = self.dbutil.get_manga_artists(m2.manga_id)
+        self.assertListEqual(m_art, [], msg='Artists were merged when they should not have been')
+
+        m_aut = self.dbutil.get_manga_authors(m2.manga_id)
+        self.assertListEqual(m_aut, [], msg='Authors were transferred when they should not have been')
 
 
 if __name__ == '__main__':

@@ -18,6 +18,7 @@ import {
 } from '@material-ui/icons';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useCSRF } from '../utils/csrf';
 import { useUser } from '../utils/useUser';
@@ -31,10 +32,11 @@ import ReleaseHeatmap from './ReleaseHeatmap';
 import { TabPanelCustom } from './utils/TabPanelCustom';
 import { getMangaReleases } from '../api/chapter';
 
+const verticalBreakpoint = 910;
 
 const useStyles = makeStyles((theme) => ({
   title: {
-    width: '75%',
+    width: '85%',
     textAlign: 'left',
     paddingBottom: '10px',
     [theme.breakpoints.down('sm')]: {
@@ -47,35 +49,48 @@ const useStyles = makeStyles((theme) => ({
   },
   titleBarButtonsContainer: {
     display: 'flex',
+    width: '15%',
+    justifyContent: 'flex-end',
+    [theme.breakpoints.down('xs')]: {
+      flexFlow: 'column',
+      width: '12%',
+    },
   },
   thumbnail: {
-    maxWidth: '250px',
-    maxHeight: '355px',
-    [theme.breakpoints.down('sm')]: {
-      maxWidth: '200px',
-    },
+    minWidth: '100px',
+    width: '300px',
     [theme.breakpoints.down('xs')]: {
-      maxWidth: '250px',
+      width: '250px',
+    },
+
+    // Forced overrides for next image
+    '& div': {
+      position: 'static !important',
+    },
+    '& div > img': {
+      position: 'static !important',
+      width: 'auto !important',
+      height: 'auto !important',
     },
   },
   details: {
     display: 'flex',
     flexFlow: 'row',
-    [theme.breakpoints.down('xs')]: {
+    [theme.breakpoints.down(verticalBreakpoint)]: {
       flexFlow: 'wrap',
       justifyContent: 'center',
     },
   },
   detailText: {
     marginLeft: '5px',
-    [theme.breakpoints.down('sm')]: {
+    [theme.breakpoints.down(verticalBreakpoint)]: {
       marginLeft: '3px',
     },
   },
   infoTable: {
     marginLeft: '30px',
     marginTop: '3px',
-    [theme.breakpoints.down('sm')]: {
+    [theme.breakpoints.down(verticalBreakpoint)]: {
       marginLeft: '20px',
     },
     [theme.breakpoints.down('xs')]: {
@@ -84,7 +99,7 @@ const useStyles = makeStyles((theme) => ({
   },
   sourceList: {
     marginLeft: '35px',
-    [theme.breakpoints.down('sm')]: {
+    [theme.breakpoints.down(verticalBreakpoint)]: {
       marginLeft: '23px',
     },
     [theme.breakpoints.down('xs')]: {
@@ -102,12 +117,13 @@ const useStyles = makeStyles((theme) => ({
   infoGrid: {
     marginLeft: theme.spacing(4),
     width: 'fit-content',
+    overflow: 'auto',
     [theme.breakpoints.down('xs')]: {
       marginLeft: '0px',
     },
   },
   rootGrid: {
-    [theme.breakpoints.down('xs')]: {
+    [theme.breakpoints.down('sm')]: {
       justifyContent: 'center',
     },
   },
@@ -118,7 +134,6 @@ function Manga(props) {
   const {
     mangaData: {
       manga,
-      chapters,
       services,
       aliases,
     },
@@ -149,18 +164,6 @@ function Manga(props) {
     return serviceMap;
   }, [services]);
 
-  const mangaChapters = React.useMemo(() => {
-    if (!chapters) return [];
-    const serviceMap = {};
-    services.forEach(service => { serviceMap[service.serviceId] = service.urlFormat });
-    return chapters.map(chapter => {
-      const newChapter = { ...chapter };
-      newChapter.releaseDate = new Date(chapter.releaseDate);
-      newChapter.url = serviceMap[chapter.serviceId].replace('{}', chapter.chapterIdentifier);
-      return newChapter;
-    });
-  }, [chapters, services]);
-
   return (
     <Container maxWidth='lg' disableGutters>
       <Paper className={classes.paper}>
@@ -184,13 +187,18 @@ function Manga(props) {
           )}
         </div>
         <div className={classes.details}>
-          <a href={manga.mal} target='_blank' rel='noreferrer noopener'>
-            <img
-              src={manga.cover}
-              className={classes.thumbnail}
-              alt={manga.title}
-            />
-          </a>
+          <div className={classes.thumbnail}>
+            <a href={manga.mal} target='_blank' rel='noreferrer noopener' aria-label='myanimelist page of the manga'>
+              {manga.cover && (
+                <Image
+                  src={`${manga.cover}`}
+                  alt={manga.title}
+                  layout='fill'
+                  objectFit='contain'
+                />
+              )}
+            </a>
+          </div>
           <Grid
             container
             justify='space-between'

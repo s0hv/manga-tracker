@@ -8,12 +8,12 @@ import pytz
 import requests
 from lxml import etree
 
-from src.scrapers.base_scraper import BaseScraperWhole, BaseChapter
+from src.scrapers.base_scraper import BaseScraperWhole, BaseChapterSimple
 
 logger = logging.getLogger('debug')
 
 
-class FoolSlideChapter(BaseChapter):
+class FoolSlideChapter(BaseChapterSimple):
     """
     FoolSlide chapter
     """
@@ -23,11 +23,12 @@ class FoolSlideChapter(BaseChapter):
     def __init__(self,
                  chapter_element: etree.ElementBase,
                  manga_title: str,
-                 title_id: str
+                 title_id: str,
+                 group_id: Optional[int] = None
                  ):
         chapter_link = chapter_element.find('div/a')
         chapter_url = chapter_link.attrib['href']
-        self._chapter_title = chapter_link.text
+        chapter_title = chapter_link.text
 
         if (m := self.chapter_number_regex.match(chapter_url)) is None:
             raise ValueError('FoolSlide regex failed to find chapter numbers')
@@ -35,66 +36,36 @@ class FoolSlideChapter(BaseChapter):
         match = m.groupdict()
         volume = match['volume']
         decimal = match['decimal']
-        self._chapter_number = int(match['chapter'])
-        self._volume = int(volume) if volume != '0' else None
-        self._decimal = int(decimal) if decimal else None
+        chapter_number = int(match['chapter'])
+        volume = int(volume) if volume != '0' else None
+        decimal = int(decimal) if decimal else None
 
-        self._chapter_identifier = title_id + chapter_url.split(f'{title_id}')[1].rstrip('/')
+        chapter_identifier = title_id + chapter_url.split(f'{title_id}')[1].rstrip('/')
 
-        self._group = chapter_element.cssselect('.meta_r a')[0].text
+        group = chapter_element.cssselect('.meta_r a')[0].text
 
         release_text = chapter_element.cssselect('.meta_r a')[0].tail.strip(', \n').lower()
         if release_text == 'today':
-            self._release_date = datetime.combine(date.today(), datetime.min.time())
+            release_date = datetime.combine(date.today(), datetime.min.time())
         elif release_text == 'yesterday':
-            self._release_date = datetime.combine(date.today() - timedelta(hours=24), datetime.min.time())
+            release_date = datetime.combine(date.today() - timedelta(hours=24), datetime.min.time())
         else:
-            self._release_date = datetime.strptime(release_text, '%Y.%m.%d')
+            release_date = datetime.strptime(release_text, '%Y.%m.%d')
 
-        self._release_date.replace(tzinfo=pytz.utc)
+        release_date.replace(tzinfo=pytz.utc)
 
-        self._title_id = title_id
-        self._manga_title = manga_title
-
-    @property
-    def chapter_title(self) -> Optional[str]:
-        return self._chapter_title
-
-    @property
-    def chapter_number(self) -> int:
-        return self._chapter_number
-
-    @property
-    def volume(self) -> Optional[int]:
-        return self._volume
-
-    @property
-    def decimal(self) -> Optional[int]:
-        return self._decimal
-
-    @property
-    def release_date(self) -> datetime:
-        return self._release_date
-
-    @property
-    def chapter_identifier(self) -> str:
-        return self._chapter_identifier
-
-    @property
-    def title_id(self) -> str:
-        return self._title_id
-
-    @property
-    def manga_title(self) -> Optional[str]:
-        return self._manga_title
-
-    @property
-    def manga_url(self) -> Optional[str]:
-        return None
-
-    @property
-    def group(self) -> Optional[str]:
-        return self._group
+        super().__init__(
+            chapter_title=chapter_title,
+            chapter_number=chapter_number,
+            chapter_identifier=chapter_identifier,
+            title_id=title_id,
+            volume=volume,
+            decimal=decimal,
+            release_date=release_date,
+            manga_title=manga_title,
+            group=group,
+            group_id=group_id
+        )
 
     @property
     def title(self) -> str:
@@ -112,13 +83,9 @@ class FoolSlide(BaseScraperWhole, ABC):
         return url.split('/series/', 1)[1].strip('/')
 
     @staticmethod
-    def parse_feed(html: str, manga_page: bool = False) -> List[FoolSlideChapter]:
+    def parse_feed(html: str, group_id: int) -> List[FoolSlideChapter]:
         root: etree.ElementBase = etree.HTML(html)
-        titles: List[etree.ElementBase]
-        if manga_page:
-            titles = root.cssselect('div.group > div.title')
-        else:
-            titles = root.cssselect('div.group > div.title')
+        titles: List[etree.ElementBase] = root.cssselect('div.group > div.title')
 
         chapters = []
 
@@ -131,17 +98,23 @@ class FoolSlide(BaseScraperWhole, ABC):
                     FoolSlideChapter(
                         chapter_elem,
                         manga_title=manga_title,
-                        title_id=title_id
+                        title_id=title_id,
+                        group_id=group_id
                     )
                 )
 
         return chapters
+
+    def get_group_id(self) -> int:
+        return self.dbutil.get_or_create_group(self.NAME).group_id
 
     def scrape_series(self, title_id: str, service_id: int, manga_id: Optional[int], feed_url: Optional[str] = None) -> Optional[bool]:
         r = requests.get(self.MANGA_URL_FORMAT.format(title_id))
         if not r.ok:
             logger.error(f'Failed to fetch {type(self).__name__} {feed_url}')
             return None
+
+        group_id = self.get_group_id()
 
         # Series specific parsing can be done in a more simple manner
         root: etree.ElementBase = etree.HTML(r.text)
@@ -152,7 +125,8 @@ class FoolSlide(BaseScraperWhole, ABC):
                 FoolSlideChapter(
                     chapter_elem,
                     manga_title=root.cssselect('h1.title')[0].text.strip(),
-                    title_id=title_id
+                    title_id=title_id,
+                    group_id=group_id
                 )
             )
 
@@ -166,4 +140,7 @@ class FoolSlide(BaseScraperWhole, ABC):
             logger.error(f'Failed to fetch {type(self).__name__} {feed_url}')
             return None
 
-        return self.handle_adding_chapters(self.parse_feed(r.text), service_id)
+        return self.handle_adding_chapters(
+            self.parse_feed(r.text, self.get_group_id()),
+            service_id
+        )

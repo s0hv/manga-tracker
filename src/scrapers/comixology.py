@@ -3,24 +3,24 @@ import random
 import re
 import time
 from datetime import timedelta, datetime
-from typing import Optional, List, Set, Dict, Collection
+from typing import Optional, List, Set, Dict, Collection, cast
 
 import requests
 from lxml import etree
 
 from src.db.mappers.chapter_mapper import ChapterMapper
-from src.scrapers.base_scraper import BaseChapter, BaseScraperWhole
+from src.scrapers.base_scraper import BaseScraperWhole, BaseChapterSimple
 from src.utils.dbutils import DbUtil
 from src.utils.utilities import random_timedelta, get_latest_chapters
 
 logger = logging.getLogger('debug')
-title_regex = re.compile(r'https:\\/\\/www\.comixology\.com\\/cart\\/add\\/subscription\\/(\d+)\\/0\?actionType=comic&actionId=\d+')
+title_regex = re.compile(r'https:\\/\\/www\.comixology\.com\\/cart\\/add\\/(?:subscription|comic)\\/(\d+)\\/0\?actionType=comic&actionId=\d+')
 extra_regex = re.compile(r'.+? extra (\d+)\.(\d+)', re.I)
 extra_chapter_regex = re.compile(r'extra, (\d+)\.?(\d+)?', re.I)
 
 
-class Chapter(BaseChapter):
-    def __init__(self, chapter_element: etree.ElementBase):
+class Chapter(BaseChapterSimple):
+    def __init__(self, chapter_element: etree.ElementBase, group_id: Optional[int] = None):
         title = chapter_element.cssselect('.content-info .content-subtitle')[0].text or ''
         title = title.strip()
 
@@ -52,16 +52,16 @@ class Chapter(BaseChapter):
             ch = special_match.groups()
 
         try:
-            self._chapter_number = int(ch[0] or 0)
+            chapter_number = int(ch[0] or 0)
         except ValueError:
-            self._chapter_number = 0
-        self._chapter_decimal = None
+            chapter_number = 0
+        chapter_decimal = None
         if len(ch) > 1 and ch[1] is not None:
-            self._chapter_decimal = int(ch[1])
+            chapter_decimal = int(ch[1])
 
-        self._title = title
+        title = title
         self.url = chapter_element.cssselect('a.content-details')[0].attrib['href']
-        self._chapter_identifier = chapter_element.cssselect('a.content-details')[0].attrib['href'].split('/')[-1]
+        chapter_identifier = chapter_element.cssselect('a.content-details')[0].attrib['href'].split('/')[-1]
 
         title_id = chapter_element.cssselect('.action-button.expand-action')[0].attrib.get('data-expand-menu-data', '')
         found = title_regex.findall(title_id)
@@ -76,53 +76,35 @@ class Chapter(BaseChapter):
         if len(found) > 1:
             logger.warning(f'Multiple title ids found for {self.url}')
 
-        self._title_id = found[0]
-        self._manga_title = manga_title
+        title_id = found[0]
         self.release_date_maybe: Optional[datetime] = None
         self._created_at = datetime.utcnow()
+
+        super().__init__(
+            chapter_title=title,
+            chapter_number=chapter_number,
+            chapter_identifier=chapter_identifier,
+            title_id=title_id,
+            volume=None,
+            decimal=chapter_decimal,
+            release_date=None,
+            manga_title=manga_title,
+            manga_url=None,
+            group=ComiXology.NAME,
+            group_id=group_id
+        )
 
     def __repr__(self) -> str:
         return f'{self.manga_title} chapter {self.chapter_number}: {self.title}'
 
     @property
     def chapter_title(self) -> str:
-        return self._title
-
-    @property
-    def chapter_number(self) -> int:
-        return self._chapter_number
-
-    @property
-    def volume(self) -> None:
-        return None
-
-    @property
-    def decimal(self) -> Optional[int]:
-        return self._chapter_decimal
+        # Guaranteed string in this class
+        return cast(str, self._chapter_title)
 
     @property
     def release_date(self) -> datetime:
         return self.release_date_maybe or self._created_at
-
-    @property
-    def chapter_identifier(self) -> str:
-        return self._chapter_identifier
-
-    @property
-    def title_id(self) -> str:
-        return self._title_id
-
-    @property
-    def manga_title(self) -> str:
-        return self._manga_title
-
-    @property
-    def manga_url(self) -> None:
-        return None
-
-    @property
-    def group(self) -> str:
-        return 'comiXology'
 
     @property
     def title(self) -> str:
@@ -164,8 +146,8 @@ class ComiXology(BaseScraperWhole):
 
         return r
 
-    @staticmethod
-    def fetch_all_issues(url: str) -> Optional[List[Chapter]]:
+    def fetch_all_issues(self, url: str) -> Optional[List[Chapter]]:
+        group_id = self.dbutil.get_or_create_group(self.NAME).group_id
         r = ComiXology.fetch_url(url)
         if r is None:
             return None
@@ -176,7 +158,7 @@ class ComiXology(BaseScraperWhole):
         if section is None:
             return None
 
-        chapters = ComiXology.parse_chapters(ComiXology.get_chapter_elements(section))
+        chapters = ComiXology.parse_chapters(ComiXology.get_chapter_elements(section), group_id=group_id)
 
         # Find page count
         pager = section.cssselect('.pager')
@@ -208,7 +190,7 @@ class ComiXology(BaseScraperWhole):
                 break
 
             section = etree.HTML(r.text)
-            chapters.extend(ComiXology.parse_chapters(ComiXology.get_chapter_elements(section)))
+            chapters.extend(ComiXology.parse_chapters(ComiXology.get_chapter_elements(section), group_id=group_id))
 
         return chapters
 
@@ -327,10 +309,10 @@ class ComiXology(BaseScraperWhole):
         return self.process_and_add_chapters(service_id, chapters)
 
     @staticmethod
-    def parse_chapters(elements: List[etree.ElementBase]) -> List[Chapter]:
+    def parse_chapters(elements: List[etree.ElementBase], group_id: int = None) -> List[Chapter]:
         chapters = []
         for element in elements:
-            c = Chapter(element)
+            c = Chapter(element, group_id=group_id)
             if c.invalid:
                 continue
 

@@ -1,106 +1,33 @@
-const { Manga, link: Links } = require('mangadex-full-api');
+const { Manga, Cover } = require('mangadex-full-api');
 
-const { db } = require('.');
 const { mangadexLimiter } = require('../utils/ratelimits');
-const logger = require('../utils/logging').mangadexLogger;
+const { db } = require('.');
+const { dbLogger } = require('../utils/logging');
 
 const MANGADEX_ID = 2; // Id of the mangadex service in the database
-const linkObjects = {
-  al: Links.al,
-  ap: Links.ap,
-  bw: Links.bw,
-  kt: Links.kt,
-  mu: Links.mu,
-  amz: Links.amz,
-  ebj: Links.ebj,
-  mal: Links.mal,
-  raw: Links.raw,
-  engtl: Links.engtl,
-  nu: Links.nu,
-};
+module.exports.MANGADEX_ID = MANGADEX_ID;
 
-function getLinks(fullLinks) {
-  const retVal = {};
-  Object.keys(fullLinks).forEach(site => {
-    const link = fullLinks[site];
-    const lo = linkObjects[site];
-    if (!lo) return;
+/**
+ * Queues the manga for a scheduled run and fetches the mangadex cover for it unless ratelimited
+ * @param {string} mangadexMangaId
+ * @param {Number|string} mangaId
+ * @return {Promise}
+ */
+function fetchExtraInfo(mangadexMangaId, mangaId) {
+  const sql = 'INSERT INTO scheduled_runs (manga_id, service_id, created_by) VALUES ($1, $2, NULL) ON CONFLICT DO NOTHING';
+  const p1 = db.none(sql, [mangaId, MANGADEX_ID])
+    .catch(dbLogger.error);
 
-    retVal[site] = link.replace(lo.prefix, '');
-  });
+  const p2 = mangadexLimiter.consume('mangadex', 1)
+    .then(() => Manga.get(mangadexMangaId))
+    .then(manga => Cover.get(manga.mainCover.id))
+    .then(cover => db.none(
+      'UPDATE manga_info SET cover=$1 WHERE manga_id=$2',
+      [cover.imageSource, mangaId]
+    ))
+    .catch(() => undefined);
 
-  return retVal;
-}
-
-async function fetchExtraInfo(mangadexId, mangaId, chapterIds, forcedCheck = true) {
-  return {};
-  // Temporarily disabled
-  /* eslint-disable no-unreachable */
-  mangadexLimiter.consume('mangadex', 1)
-    .then(() => {
-      logger.info(`Fetching extra info for ${mangaId} ${mangadexId}`);
-      new Manga(mangadexId).fill(mangadexId)
-        .then((manga) => {
-          const sql = `INSERT INTO manga_info as mi (manga_id, cover, artist, author, bw, mu, mal, amz, ebj, engtl, raw, nu, kt, ap, al)
-                       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
-                       ON CONFLICT (manga_id) DO UPDATE SET cover=excluded.cover,
-                                                            artist=COALESCE(excluded.artist, mi.artist),
-                                                            author=COALESCE(excluded.author, mi.author),
-                                                            bw=excluded.bw,
-                                                            mu=excluded.mu,
-                                                            mal=excluded.mal,
-                                                            amz=excluded.amz,
-                                                            ebj=excluded.ebj,
-                                                            engtl=excluded.engtl,
-                                                            raw=excluded.raw,
-                                                            nu=excluded.nu,
-                                                            kt=excluded.kt,
-                                                            ap=excluded.ap,
-                                                            al=excluded.al,
-                                                            last_updated=CURRENT_TIMESTAMP
-                       RETURNING *`;
-
-          const links = getLinks(manga.links);
-          const vals = [
-            mangaId,
-            manga.cover,
-            manga.artists[0],
-            manga.authors[0],
-            links.bw,
-            links.mu,
-            links.mal,
-            links.amz,
-            links.ebj,
-            links.engtl,
-            links.raw,
-            links.nu,
-            links.kt,
-            links.ap,
-            links.al,
-          ];
-
-          db.oneOrNone(sql, vals)
-            .then(row => {
-              if (!row) return {};
-              return row;
-            })
-            .catch(err => {
-              console.error(err);
-              return {};
-            });
-
-          // Might as well update chapter titles and add missing chapters while we're at it
-          if (forcedCheck) {
-            const runSql = 'INSERT INTO scheduled_runs (manga_id, service_id, created_by) VALUES ($1, $2, $3)';
-            db.none(runSql, [mangaId, MANGADEX_ID, null]);
-          }
-        })
-        .catch((err) => {
-          logger.error(err);
-          return {};
-        });
-    })
-    .catch(() => {});
+  return Promise.all([p1, p2]);
 }
 
 module.exports.fetchExtraInfo = fetchExtraInfo;

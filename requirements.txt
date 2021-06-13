@@ -6,11 +6,17 @@ cssselect~=1.1.0
 psycopg2~=2.8.6
 pytz==2021.1
 protobuf==3.15.8
-mypy==0.812
+mypy==0.902
 mypy-protobuf~=2.4
-sentry-sdk~=0.19.5
+sentry-sdk==1.1.0
 git+https://github.com/tk0miya/testing.postgresql.git#egg=testing.postgresql
-pytest~=6.2.3
-responses~=0.13.2
-pytest-cov~=2.11.1
-pydantic~=1.8.1
+pytest~=6.2.4
+responses~=0.13.3
+pytest-cov~=2.12.1
+pydantic~=1.8.2
+ratelimit~=2.2.1
+
+# stubs
+types-pytz~=0.1.1
+types-protobuf~=0.1.12
+types-requests~=0.1.11

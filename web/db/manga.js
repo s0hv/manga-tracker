@@ -1,21 +1,28 @@
 const camelcaseKeys = require('camelcase-keys');
-const { link: Link } = require('mangadex-full-api');
 
 const { db } = require('.');
-const { fetchExtraInfo } = require('./mangadex');
+const { fetchExtraInfo, MANGADEX_ID } = require('./mangadex');
 const { HttpError } = require('../utils/errors');
 const { mangadexLogger } = require('../utils/logging');
 
-const MANGADEX_ID = 2; // Id of the mangadex service in the database
+const links = {
+  al: 'https://anilist.co/manga/',
+  ap: 'https://www.anime-planet.com/manga/',
+  bw: 'https://bookwalker.jp/',
+  mu: 'https://www.mangaupdates.com/series.html?id=',
+  nu: 'https://www.novelupdates.com/series/',
+  kt: 'https://kitsu.io/manga/',
+  mal: 'https://myanimelist.net/manga/',
+};
 
 function formatLinks(row) {
   if (typeof row !== 'object') return;
 
   Object.keys(row).forEach(key => {
-    const link = Link[key];
+    const link = links[key];
     if (!link || !row[key]) return;
 
-    row[key] = link.prefix + row[key];
+    row[key] = link + row[key];
   });
 }
 module.exports.formatLinks = formatLinks;
@@ -47,7 +54,7 @@ function getFullManga(mangaId) {
 
   const sql = `SELECT manga.manga_id, title, release_interval, latest_release, estimated_release, manga.latest_chapter,
                         array_agg(json_build_object('title_id', ms.title_id, 'service_id', ms.service_id, 'name', s.service_name, 'url_format', chapter_url_format, 'url', s.manga_url_format)) as services,
-                        mi.cover, mi.status, mi.artist, mi.author, mi.last_updated,
+                        mi.cover, mi.status, mi.last_updated,
                         mi.bw, mi.mu, mi.mal, mi.amz, mi.ebj, mi.engtl, mi.raw, mi.nu, mi.kt, mi.ap, mi.al,
                         (SELECT array_agg(title) FROM manga_alias ma WHERE ma.manga_id=$1) as aliases
                FROM manga LEFT JOIN manga_info mi ON manga.manga_id = mi.manga_id

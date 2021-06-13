@@ -1,19 +1,11 @@
 /* eslint-disable */
 import React from 'react';
-import Document, {Head, Html, Main, NextScript} from 'next/document';
-import {createMuiTheme, ServerStyleSheets} from '@material-ui/core/styles';
-import {blue} from '@material-ui/core/colors';
+import Document, { Head, Html, Main, NextScript } from 'next/document';
+import { ServerStyleSheets } from '@material-ui/core/styles';
+import { getTheme } from '../../utils/theme';
 
 // Create a theme instance.
-const theme = createMuiTheme({
-  palette: {
-      type: 'dark',
-      primary: blue,
-    background: {
-        default: '#282c34'
-    }
-  },
-})
+const theme = getTheme()
 
 
 export default class MyDocument extends Document {
