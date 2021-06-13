@@ -27,8 +27,10 @@ function getLatestReleases(serviceId, mangaId, userUUID) {
 
   const sql = `
         WITH chapters_filtered AS (
-            SELECT chapter_id, title, chapter_number, chapter_decimal, release_date, chapter_identifier, c.service_id, c.manga_id, c."group"
-            FROM chapters c ${joins.join(' ')}
+            SELECT chapter_id, title, chapter_number, chapter_decimal, release_date, chapter_identifier, c.service_id, c.manga_id, g.name as "group"
+            FROM chapters as c
+            INNER JOIN groups g ON g.group_id = c.group_id 
+            ${joins.join(' ')}
             ${where.length > 0 ? 'WHERE ' + where.join(' AND ') : ''}
         )
         SELECT 
