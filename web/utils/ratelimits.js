@@ -62,7 +62,7 @@ const rateLimiterRedis = new RateLimiterRedis(rateLimitOpts);
 
 const rateLimiter = (req, res, next) => {
   const key = req.session ? req.session.userId : req.ip;
-  const pointsToConsume = req.session.userId ? 1 : 5;
+  const pointsToConsume = req.session.userId ? 1 : 3;
   rateLimiterRedis.consume(key, pointsToConsume)
     .then(() => next())
     .catch(() => {

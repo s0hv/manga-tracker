@@ -10,7 +10,7 @@ import {
   Typography,
 } from '@material-ui/core';
 
-import { makeStyles, useTheme } from '@material-ui/core/styles';
+import { makeStyles } from '@material-ui/core/styles';
 
 import {
   Edit as EditIcon,
@@ -32,10 +32,11 @@ import ReleaseHeatmap from './ReleaseHeatmap';
 import { TabPanelCustom } from './utils/TabPanelCustom';
 import { getMangaReleases } from '../api/chapter';
 
+const verticalBreakpoint = 910;
 
 const useStyles = makeStyles((theme) => ({
   title: {
-    width: '75%',
+    width: '85%',
     textAlign: 'left',
     paddingBottom: '10px',
     [theme.breakpoints.down('sm')]: {
@@ -48,36 +49,48 @@ const useStyles = makeStyles((theme) => ({
   },
   titleBarButtonsContainer: {
     display: 'flex',
+    width: '15%',
+    justifyContent: 'flex-end',
+    [theme.breakpoints.down('xs')]: {
+      flexFlow: 'column',
+      width: '12%',
+    },
   },
   thumbnail: {
-    position: 'relative',
-    width: '250px',
-    height: '355px',
-    [theme.breakpoints.down('sm')]: {
-      width: '200px',
-    },
+    minWidth: '100px',
+    width: '300px',
     [theme.breakpoints.down('xs')]: {
       width: '250px',
+    },
+
+    // Forced overrides for next image
+    '& div': {
+      position: 'static !important',
+    },
+    '& div > img': {
+      position: 'static !important',
+      width: 'auto !important',
+      height: 'auto !important',
     },
   },
   details: {
     display: 'flex',
     flexFlow: 'row',
-    [theme.breakpoints.down('xs')]: {
+    [theme.breakpoints.down(verticalBreakpoint)]: {
       flexFlow: 'wrap',
       justifyContent: 'center',
     },
   },
   detailText: {
     marginLeft: '5px',
-    [theme.breakpoints.down('sm')]: {
+    [theme.breakpoints.down(verticalBreakpoint)]: {
       marginLeft: '3px',
     },
   },
   infoTable: {
     marginLeft: '30px',
     marginTop: '3px',
-    [theme.breakpoints.down('sm')]: {
+    [theme.breakpoints.down(verticalBreakpoint)]: {
       marginLeft: '20px',
     },
     [theme.breakpoints.down('xs')]: {
@@ -86,7 +99,7 @@ const useStyles = makeStyles((theme) => ({
   },
   sourceList: {
     marginLeft: '35px',
-    [theme.breakpoints.down('sm')]: {
+    [theme.breakpoints.down(verticalBreakpoint)]: {
       marginLeft: '23px',
     },
     [theme.breakpoints.down('xs')]: {
@@ -110,7 +123,7 @@ const useStyles = makeStyles((theme) => ({
     },
   },
   rootGrid: {
-    [theme.breakpoints.down('xs')]: {
+    [theme.breakpoints.down('sm')]: {
       justifyContent: 'center',
     },
   },
@@ -128,7 +141,6 @@ function Manga(props) {
   } = props;
 
   const [releaseData, setReleaseData] = useState([]);
-  const theme = useTheme();
   const [activeTab, setActiveTab] = useState(0);
   const changeTab = useCallback((e, newVal) => setActiveTab(newVal), []);
   const csrf = useCSRF();
@@ -175,16 +187,14 @@ function Manga(props) {
           )}
         </div>
         <div className={classes.details}>
-          <div style={{ position: 'relative' }} className={classes.thumbnail}>
+          <div className={classes.thumbnail}>
             <a href={manga.mal} target='_blank' rel='noreferrer noopener' aria-label='myanimelist page of the manga'>
               {manga.cover && (
                 <Image
-                  src={`${manga.cover}.256.jpg`}
+                  src={`${manga.cover}`}
                   alt={manga.title}
                   layout='fill'
                   objectFit='contain'
-                  sizes={`${theme.breakpoints.down('sm')} 200px, 250px`}
-                  unoptimized
                 />
               )}
             </a>

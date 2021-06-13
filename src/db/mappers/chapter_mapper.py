@@ -18,5 +18,6 @@ class ChapterMapper:
             chapter_decimal=base.decimal,
             release_date=base.release_date,
             chapter_identifier=base.chapter_identifier,
-            group=base.group
+            group=base.group,
+            group_id=base.group_id
         )

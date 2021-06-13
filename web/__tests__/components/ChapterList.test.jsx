@@ -105,7 +105,6 @@ describe('Chapter list should allow editing', () => {
 
     const updatedChapter = {
       title: 'Test edit',
-      group: 'Test group edit',
     };
 
     const wrapper = createMount()(<ChapterList chapters={chapters} editable mangaId={mangaId} />);
@@ -114,10 +113,6 @@ describe('Chapter list should allow editing', () => {
     await editInput(
       wrapper.find('input').find({ defaultValue: testChapter.title }),
       updatedChapter.title
-    );
-    await editInput(
-      wrapper.find('input').find({ defaultValue: testChapter.group }),
-      updatedChapter.group
     );
 
     await act(async () => {

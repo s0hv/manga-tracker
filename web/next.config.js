@@ -3,6 +3,12 @@ const withTM = require('next-transpile-modules')(['frappe-charts', 'react-frappe
 module.exports = (phase, { defaultConfig }) => {
   const conf = withTM({
     ...defaultConfig,
+    webpack(config) {
+      if (config.resolve.fallback) {
+        config.resolve.fallback.fs = false;
+      }
+      return defaultConfig.webpack ? defaultConfig.webpack(config) : config;
+    },
     poweredByHeader: false,
     reactStrictMode: true,
     future: {
@@ -10,7 +16,15 @@ module.exports = (phase, { defaultConfig }) => {
     },
     images: {
       domains: ['uploads.mangadex.org'],
-      deviceSizes: [600, 960, 1280, 1920],
+      deviceSizes: [300, 600, 960, 1280],
+    },
+    async rewrites() {
+      return [
+        {
+          source: '/api',
+          destination: '/swagger',
+        },
+      ];
     },
   });
 

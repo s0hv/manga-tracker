@@ -7,6 +7,7 @@ import responses
 from src.scrapers.base_scraper import BaseChapterSimple
 from src.scrapers.kireicake import KireiCake
 from src.tests.utils.test_dbutil import BaseTestClasses
+from src.utils.dbutils import DbUtil
 
 test_feed = os.path.join(os.path.dirname(__file__), 'feed.html')
 
@@ -62,6 +63,7 @@ correct_entries = {
 
 class KireiCakeTest(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAssertions):
     test_data: str = NotImplemented
+    group_id: int = NotImplemented
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -69,12 +71,16 @@ class KireiCakeTest(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsser
         with open(test_feed, 'r', encoding='utf-8') as f:
             cls.test_data = f.read()
 
+        cls.group_id = DbUtil(cls._conn).get_or_create_group(KireiCake.NAME).group_id
+        for c in correct_entries.values():
+            c.group_id = cls.group_id
+
     def get_scraper(self) -> KireiCake:
         return KireiCake(self.conn, self.dbutil)
 
     def test_parse_entries_returns_correct_entries(self):
         kc = self.get_scraper()
-        entries = kc.parse_feed(self.test_data)
+        entries = kc.parse_feed(self.test_data, group_id=self.group_id)
 
         # Make sure all entries are present
         self.assertEqual(len(entries), len(correct_entries.keys()))
@@ -96,6 +102,7 @@ class KireiCakeTest(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsser
         self.assertEqual(unique_manga, len(updated), 'Not all manga updated')
 
         self.assertFalse(kc.scrape_service(kc.ID, KireiCake.FEED_URL, None))
+        self.assertMangaWithTitleFound('Helck: Völundio ~Surreal Sword Saga~')
 
     @responses.activate
     def test_scrape_service_returns_nothing_on_error_status(self):

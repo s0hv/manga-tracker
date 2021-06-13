@@ -3,7 +3,6 @@ import os
 import random
 import time
 from collections import Counter
-from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 from datetime import datetime, timedelta
 from operator import attrgetter
@@ -11,6 +10,7 @@ from typing import Type, ContextManager, TypedDict, Optional, Collection, List, 
     Set, cast, Union
 
 import psycopg2
+from concurrent.futures import ThreadPoolExecutor
 from psycopg2.extensions import connection as Connection
 from psycopg2.extras import DictCursor
 from psycopg2.pool import ThreadedConnectionPool
@@ -21,13 +21,26 @@ from src.utils.dbutils import DbUtil
 from src.utils.utilities import inject_service_values
 
 logger = logging.getLogger('debug')
+db_logger = logging.getLogger('database')
 
 
 class MangaServiceInfo(TypedDict):
     manga_id: int
     title_id: str
     service_id: int
-    feed_url: Optional[str]
+    feed_url: str
+
+
+class LoggingDictCursor(DictCursor):
+    # noinspection PyShadowingBuiltins
+    def execute(self, query, vars=None):
+        try:
+            return super(LoggingDictCursor, self).execute(query, vars)
+        finally:
+            if isinstance(self.query, bytes):
+                db_logger.debug(self.query.decode('utf-8'))
+            else:
+                db_logger.debug(self.query)
 
 
 class UpdateScheduler:
@@ -42,13 +55,16 @@ class UpdateScheduler:
             'db_port': os.environ['DB_PORT']
         }
 
-        self.pool = ThreadedConnectionPool(1, self.MAX_POOLS,
-                                            host=config['db_host'],
-                                            port=config['db_port'],
-                                            user=config['db_user'],
-                                            password=config['db_pass'],
-                                            dbname=config['db'],
-                                            cursor_factory=DictCursor)
+        self.pool = ThreadedConnectionPool(
+            1,
+            self.MAX_POOLS,
+            host=config['db_host'],
+            port=config['db_port'],
+            user=config['db_user'],
+            password=config['db_pass'],
+            dbname=config['db'],
+            cursor_factory=LoggingDictCursor
+        )
         self.thread_pool = ThreadPoolExecutor(max_workers=self.MAX_POOLS-1)
 
         with self.conn() as conn:

@@ -1,18 +1,25 @@
 import logging
 import re
 from datetime import datetime, timedelta, timezone
+from enum import Enum
 from typing import Optional, List, Union, Tuple
 
+import psycopg2
 import requests
-from psycopg2.extras import execute_batch
 
+from src.db.mappers.chapter_mapper import ChapterMapper, Chapter as ChapterModel
+from src.db.models.authors import AuthorPartial
+from src.db.models.manga import MangaService
 from src.enums import Status
-from src.scrapers.base_scraper import BaseChapter, BaseScraperWhole
+from src.scrapers.base_scraper import BaseChapter, BaseScraperWhole, BaseScraper
 from src.utils.utilities import random_timedelta
 from .protobuf import mangaplus_pb2
-from ...db.models.manga import MangaService
 
 logger = logging.getLogger('debug')
+
+
+class UpdateTiming(Enum):
+    NOT_REGULARLY = 'NOT_REGULARLY'
 
 
 class TitleWrapper:
@@ -201,14 +208,19 @@ class ResponseWrapper:
 
 
 class ChapterWrapper(BaseChapter):
-    def __init__(self, chapter: mangaplus_pb2.Chapter, manga_title):
+    def __init__(self, chapter: mangaplus_pb2.Chapter, manga_title: str, group_id: int = None):
         self._chapter = chapter
         self._chapter_number, self._chapter_decimal = MangaPlus.parse_chapter(chapter.name)
         self._manga_title = manga_title
+        self._group_id = group_id
 
     @property
     def chapter_title(self) -> Optional[str]:
         return self._chapter.sub_title
+
+    @property
+    def name(self) -> str:
+        return self._chapter.name
 
     @property
     def chapter_number(self) -> int:
@@ -247,7 +259,17 @@ class ChapterWrapper(BaseChapter):
 
     @property
     def group(self) -> str:
-        return 'Shueisha'
+        return MangaPlus.GROUP
+
+    @property
+    def group_id(self) -> int:
+        if self._group_id is None:
+            raise ValueError('Group id is None')
+        return self._group_id
+
+    @group_id.setter
+    def group_id(self, value: int):
+        self._group_id = value
 
     @property
     def title(self) -> str:
@@ -276,6 +298,7 @@ class MangaPlus(BaseScraperWhole):
     SPECIAL_CHAPTER_REGEX = re.compile(r'\s*(#?ex|one[- ]?shot)s*', re.I)
     CHAPTER_URL_FORMAT = 'https://mangaplus.shueisha.co.jp/viewer/{}'
     MANGA_URL_FORMAT = 'https://mangaplus.shueisha.co.jp/titles/{}'
+    GROUP = 'Shueisha'
 
     @staticmethod
     def min_update_interval() -> timedelta:
@@ -292,9 +315,10 @@ class MangaPlus(BaseScraperWhole):
 
         return int(match.groups()[0]), None
 
-    def parse_series(self, title_id: str) -> Union[bool, Optional[TitleDetailViewWrapper]]:
+    @staticmethod
+    def parse_series(title_id: str) -> Union[bool, Optional[TitleDetailViewWrapper]]:
         try:
-            r = requests.get(self.API.format(title_id))
+            r = requests.get(MangaPlus.API.format(title_id))
         except requests.RequestException:
             logger.exception('Failed to fetch series')
             return None
@@ -390,15 +414,15 @@ class MangaPlus(BaseScraperWhole):
         return self.add_chapters(series, service_id, manga_id)
 
     def add_chapters(self, series: TitleDetailViewWrapper, service_id: int, manga_id: int) -> Optional[bool]:
-        sql = 'INSERT INTO chapters (manga_id, service_id, title, chapter_number, chapter_decimal, chapter_identifier, release_date, "group") ' \
-              'VALUES (%s, %s, %s, %s, %s, %s, %s, \'Shueisha\') ON CONFLICT DO NOTHING '
+        group = self.dbutil.get_or_create_group(self.GROUP)
 
-        base_values = (manga_id, service_id)
+        group_id = group.group_id
         chapters: List[ChapterWrapper] = [*series.first_chapter_list, *series.last_chapter_list]
 
         # Update chapter number for special chapters
         prev_chapter = None
         for c in chapters:
+            c.group_id = group_id
             if not prev_chapter:
                 prev_chapter = c
                 continue
@@ -409,9 +433,13 @@ class MangaPlus(BaseScraperWhole):
 
             c._chapter_number = prev_chapter.chapter_number
 
-        data = [(*base_values, c.title, c.chapter_number, c.decimal,
-                 c.chapter_identifier, c.release_date)
-                for c in chapters]
+        entries = self.get_new_entries(service_id, chapters) or []
+
+        new_chapters: List[ChapterModel] = []
+        for chapter in entries:
+            new_chapters.append(
+                ChapterMapper.base_chapter_to_db(chapter, manga_id, service_id)
+            )
 
         now = datetime.utcnow()
         next_update: Optional[datetime] = now + timedelta(hours=4)
@@ -422,8 +450,15 @@ class MangaPlus(BaseScraperWhole):
         elif series.non_appearance_info:
             release_info = series.non_appearance_info.lower()
             if 'hiatus' in release_info:
-                next_update = now + timedelta(days=1)
+                next_update = now + timedelta(days=2) + self.min_update_interval()
             elif 'completed' in release_info:
+                next_update = None
+                disabled = True
+                completed = True
+        # Disable one shots
+        elif series.update_timing == UpdateTiming.NOT_REGULARLY.value and chapters:
+            if chapters[0].name.lower().replace('-', '') == 'oneshot':
+                logger.info(f'One shot found for {self.NAME} title {series.title.name} / {series.title.title_id}. Disabling it.')
                 next_update = None
                 disabled = True
                 completed = True
@@ -439,7 +474,7 @@ class MangaPlus(BaseScraperWhole):
 
         with self.conn:
             with self.conn.cursor() as cursor:
-                execute_batch(cursor, sql, data)
+                self.dbutil.add_chapters(new_chapters, fetch=False)
 
                 sql = 'UPDATE manga_service SET last_check=%s, next_update=%s, disabled=%s WHERE manga_id=%s AND service_id=%s'
                 cursor.execute(sql, [now, next_update, disabled, manga_id, service_id])
@@ -447,11 +482,35 @@ class MangaPlus(BaseScraperWhole):
                     self.dbutil.update_latest_chapter(((manga_id, newest_chapter.chapter_number, newest_chapter.release_date),), cur=cursor)
 
                 if completed:
-                    sql = 'INSERT INTO manga_info (manga_id, status, artist, author) VALUES (%s, %s, %s, %s) ON CONFLICT (manga_id) DO UPDATE SET status=EXCLUDED.status'
-                    author = series.title.author.split(' / ')
-                    artist = ''
-                    if len(author) > 1:
-                        artist = author[1]
-                    cursor.execute(sql, (manga_id, Status.COMPLETED, artist, author[0]))
+                    sql = 'INSERT INTO manga_info (manga_id, status) VALUES (%s, %s) ON CONFLICT (manga_id) DO UPDATE SET status=EXCLUDED.status'
+                    cursor.execute(sql, (manga_id, Status.COMPLETED))
+
+                # Add manga authors if necessary
+                authors = series.title.author.split(' / ')
+                author = AuthorPartial(name=authors[0])
+                artist = None
+                if len(authors) > 1:
+                    # Sometimes artist name starts with art by
+                    art_by = 'art by '
+                    if authors[1].lower().startswith(art_by):
+                        artist = AuthorPartial(name=authors[1][len(art_by):])
+                    else:
+                        artist = AuthorPartial(name=authors[1])
+                self.dbutil.add_manga_author_artist_if_not_exist(
+                    manga_id,
+                    author,
+                    artist,
+                    cur=cursor
+                )
 
         return True
+
+    def set_checked(self, service_id: int) -> None:
+        """
+        Mangaplus new series checks should only be done seldom
+        """
+        try:
+            BaseScraper.set_checked(self, service_id)
+            self.dbutil.update_service_whole(service_id, timedelta(days=2))
+        except psycopg2.Error:
+            logger.exception(f'Failed to update service disabled time for {self.NAME} {service_id}')

@@ -188,6 +188,8 @@ describe('POST /api/chapter/:chapterId', () => {
         })
         .expect(200);
 
+      // Disabled for now as group editing not allowed
+      /*
       await request(httpServer)
         .post('/api/chapter/1')
         .csrf()
@@ -195,6 +197,7 @@ describe('POST /api/chapter/:chapterId', () => {
           group: 'test group 2',
         })
         .expect(200);
+      */
     });
   });
 });

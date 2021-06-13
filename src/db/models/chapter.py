@@ -14,3 +14,4 @@ class Chapter(BaseModel):
     release_date: datetime = Field(default_factory=datetime.utcnow)
     chapter_identifier: str
     group: Optional[str]
+    group_id: int

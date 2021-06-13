@@ -344,6 +344,7 @@ exports[`Chapter list should render correctly with chapters 1`] = `
           Object {
             "Header": "Group",
             "accessor": "group",
+            "canEdit": false,
           },
         ]
       }
@@ -733,6 +734,7 @@ exports[`Chapter list should render correctly with chapters and edit 1`] = `
           Object {
             "Header": "Group",
             "accessor": "group",
+            "canEdit": false,
           },
         ]
       }
@@ -1122,6 +1124,7 @@ exports[`Chapter list should render correctly without chapters 1`] = `
           Object {
             "Header": "Group",
             "accessor": "group",
+            "canEdit": false,
           },
         ]
       }

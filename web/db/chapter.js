@@ -1,3 +1,4 @@
+const { NO_GROUP } = require('../utils/constants');
 const { generateUpdate } = require('./utils');
 const { db, pgp } = require('.');
 
@@ -17,9 +18,9 @@ module.exports.addChapter = ({
   chapterDecimal,
   releaseDate,
   chapterIdentifier,
-  group,
+  group = NO_GROUP,
 }) => {
-  const sql = `INSERT INTO chapters (manga_id, service_id, title, chapter_number, chapter_decimal, release_date, chapter_identifier, "group") 
+  const sql = `INSERT INTO chapters (manga_id, service_id, title, chapter_number, chapter_decimal, release_date, chapter_identifier, group_id) 
                VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
                RETURNING chapter_id`;
   releaseDate = releaseDate || new Date(Date.now());
@@ -54,10 +55,12 @@ module.exports.getChapters = (mangaId, limit, offset, sortBy = defaultSort) => {
                     chapter_number,
                     chapter_decimal,
                     EXTRACT(EPOCH from release_date)::BIGINT as release_date,
-                    "group",
+                    g.name as "group",
                     service_id,
                     chapter_identifier
-                FROM chapters WHERE manga_id=$1
+                FROM chapters
+                INNER JOIN groups g ON g.group_id = chapters.group_id
+                WHERE manga_id=$1
                 ORDER BY ${sorting}
                 LIMIT $2 ${offset ? 'OFFSET $3' : ''}
             ) as ch
@@ -93,7 +96,7 @@ module.exports.editChapter = async ({
   chapterDecimal,
   releaseDate,
   chapterIdentifier,
-  group,
+  // group,
 }) => {
   const chapter = {
     title,
@@ -101,7 +104,7 @@ module.exports.editChapter = async ({
     chapter_decimal: chapterDecimal,
     release_date: releaseDate,
     chapter_identifier: chapterIdentifier,
-    group,
+    // group,
   };
 
 

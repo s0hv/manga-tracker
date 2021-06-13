@@ -1,5 +1,4 @@
 import os
-import pickle
 import re
 import unittest
 from datetime import datetime
@@ -10,8 +9,9 @@ import responses
 from lxml import etree
 
 import setup_logging
+from src.constants import NO_GROUP
 from src.scrapers.comixology import ComiXology
-from src.tests.testing_utils import BaseTestClasses
+from src.tests.testing_utils import BaseTestClasses, load_chapters_snapshot
 
 base_path = os.path.dirname(__file__)
 test_chapter_site = os.path.join(base_path, 'test_chapter.html')
@@ -108,6 +108,9 @@ class TestComiXologyScraper(BaseTestClasses.DatabaseTestCase, BaseTestClasses.Mo
         # Make sure nothing is updated afterwards
         self.assertIsNone(scraper.scrape_service(ComiXology.ID, self.page1_url, None))
 
+        # make sure manga titles are parsed correctly
+        self.assertMangaWithTitleFound('Cardcaptor Sakura: Clear Card')
+
     @responses.activate
     def test_scrape_service_works_without_page_2(self):
         self.set_up_responses(page2=requests.RequestException())
@@ -193,10 +196,9 @@ class TestComiXologyScraper(BaseTestClasses.DatabaseTestCase, BaseTestClasses.Mo
 
         self.assertGreater(len(chapter_elements), 0)
         now = datetime.utcnow()
-        parsed = ComiXology.parse_chapters(chapter_elements)
+        parsed = ComiXology.parse_chapters(chapter_elements, NO_GROUP)
 
-        with open(os.path.join(base_path, 'chapters.pickle'), 'rb') as f:
-            loaded = pickle.load(f)
+        loaded = load_chapters_snapshot(os.path.join(base_path, 'chapters.json'))
 
         self.assertGreater(len(loaded), 0)
         self.assertEqual(len(parsed), len(loaded))

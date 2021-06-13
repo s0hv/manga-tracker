@@ -1,0 +1,88 @@
+{
+  "data": [
+    {
+      "chapter_title": "Issue #50",
+      "chapter_number": 50,
+      "volume": null,
+      "decimal": null,
+      "release_date": "2021-06-08T20:28:19.831485",
+      "chapter_identifier": "931127",
+      "title_id": "91138",
+      "manga_title": "APOSIMZ",
+      "manga_url": null,
+      "group": "ComiXology",
+      "title": "Issue #50",
+      "group_id": 1
+    },
+    {
+      "chapter_title": "Issue #53",
+      "chapter_number": 53,
+      "volume": null,
+      "decimal": null,
+      "release_date": "2021-06-08T20:28:19.833487",
+      "chapter_identifier": "931132",
+      "title_id": "101757",
+      "manga_title": "Cardcaptor Sakura: Clear Card",
+      "manga_url": null,
+      "group": "ComiXology",
+      "title": "Issue #53",
+      "group_id": 1
+    },
+    {
+      "chapter_title": "Issue #141",
+      "chapter_number": 141,
+      "volume": null,
+      "decimal": null,
+      "release_date": "2021-06-08T20:28:19.835489",
+      "chapter_identifier": "931022",
+      "title_id": "121247",
+      "manga_title": "EDENS ZERO",
+      "manga_url": null,
+      "group": "ComiXology",
+      "title": "Issue #141",
+      "group_id": 1
+    },
+    {
+      "chapter_title": "Issue #39",
+      "chapter_number": 39,
+      "volume": null,
+      "decimal": null,
+      "release_date": "2021-06-08T20:28:19.842496",
+      "chapter_identifier": "931052",
+      "title_id": "151711",
+      "manga_title": "Shangri-La Frontier",
+      "manga_url": null,
+      "group": "ComiXology",
+      "title": "Issue #39",
+      "group_id": 1
+    },
+    {
+      "chapter_title": "Issue #14",
+      "chapter_number": 14,
+      "volume": null,
+      "decimal": null,
+      "release_date": "2021-06-08T20:28:19.844498",
+      "chapter_identifier": "931072",
+      "title_id": "154431",
+      "manga_title": "The Seven Deadly Sins: Four Knights of the Apocalypse",
+      "manga_url": null,
+      "group": "ComiXology",
+      "title": "Issue #14",
+      "group_id": 1
+    },
+    {
+      "chapter_title": "Issue #141.2",
+      "chapter_number": 141,
+      "volume": null,
+      "decimal": 2,
+      "release_date": "2021-06-08T20:28:19.845498",
+      "chapter_identifier": "931032",
+      "title_id": "89060",
+      "manga_title": "To Your Eternity",
+      "manga_url": null,
+      "group": "ComiXology",
+      "title": "Issue #141.2",
+      "group_id": 1
+    }
+  ]
+}

@@ -1,0 +1,177 @@
+{
+  "results": [
+    {
+      "result": "ok",
+      "data": {
+        "id": "8b74224c-74a9-4062-ae1b-7ef1c7f1994d",
+        "type": "chapter",
+        "attributes": {
+          "volume": null,
+          "chapter": "24.5",
+          "title": "The Boss Geng Chen has landed",
+          "translatedLanguage": "en",
+          "publishAt": "2021-03-27T00:46:38+00:00",
+          "createdAt": "2021-03-27T00:46:38+00:00",
+          "updatedAt": "2021-03-27T00:46:38+00:00"
+        }
+      },
+      "relationships": [
+        {
+          "id": "bfd1bb98-e59d-4617-8186-2b5fd21db4bc",
+          "type": "scanlation_group",
+          "attributes": {
+            "name": "The NoNames",
+            "createdAt": "2021-04-19T21:45:59+00:00",
+            "updatedAt": "2021-04-19T21:45:59+00:00",
+            "version": 1
+          }
+        },
+        {
+          "id": "6fe9349a-8eeb-42cf-bead-e6f40b2653de",
+          "type": "manga"
+        }
+      ]
+    },
+    {
+      "result": "ok",
+      "data": {
+        "id": "c30b67e9-c337-471b-9f72-65a9ae56dbc7",
+        "type": "chapter",
+        "attributes": {
+          "volume": "1.5",
+          "chapter": "46",
+          "title": "Words from the Heart (2)",
+          "translatedLanguage": "en",
+          "publishAt": "2021-03-26T03:45:18+00:00",
+          "createdAt": "2021-03-26T03:45:18+00:00",
+          "updatedAt": "2021-03-26T03:45:18+00:00"
+        }
+      },
+      "relationships": [
+        {
+          "id": "021677e3-e0b4-43c4-a396-4fcfd503b8b3",
+          "type": "scanlation_group",
+          "attributes": {
+            "name": "PMScans",
+            "createdAt": "2021-04-19T21:45:59+00:00",
+            "updatedAt": "2021-04-19T21:45:59+00:00",
+            "version": 1
+          }
+        },
+        {
+          "id": "bfd1bb98-e59d-4617-8186-2b5fd21db4bc",
+          "type": "scanlation_group",
+          "attributes": {
+            "name": "The NoNames",
+            "createdAt": "2021-04-19T21:45:59+00:00",
+            "updatedAt": "2021-04-19T21:45:59+00:00",
+            "version": 1
+          }
+        },
+        {
+          "id": "6fe9349a-8eeb-42cf-bead-e6f40b2653de",
+          "type": "manga"
+        }
+      ]
+    },
+    {
+      "result": "ok",
+      "data": {
+        "id": "035339a1-4b32-4e60-8c02-39735c8ca5b4",
+        "type": "chapter",
+        "attributes": {
+          "volume": null,
+          "chapter": null,
+          "title": "Words from the Heart (1)",
+          "translatedLanguage": "en",
+          "publishAt": "2021-03-26T03:44:11+00:00",
+          "createdAt": "2021-03-26T03:44:11+00:00",
+          "updatedAt": "2021-03-26T03:44:11+00:00"
+        }
+      },
+      "relationships": [
+        {
+          "id": "021677e3-e0b4-43c4-a396-4fcfd503b8b3",
+          "type": "scanlation_group",
+          "attributes": {
+            "name": "PMScans",
+            "createdAt": "2021-04-19T21:45:59+00:00",
+            "updatedAt": "2021-04-19T21:45:59+00:00",
+            "version": 1
+          }
+        },
+        {
+          "id": "b145fa37-e63a-4c1c-a1b8-dc2d3e2ef351",
+          "type": "manga"
+        }
+      ]
+    },
+    {
+      "result": "ok",
+      "data": {
+        "id": "1c307e2b-6c5b-4fe6-aa40-74ba31b89306",
+        "type": "chapter",
+        "attributes": {
+          "volume": 1,
+          "chapter": "65.5",
+          "title": "",
+          "translatedLanguage": "en",
+          "publishAt": "2021-03-25T14:03:06+00:00",
+          "createdAt": "2021-03-25T14:03:06+00:00",
+          "updatedAt": "2021-03-25T14:03:06+00:00"
+        }
+      },
+      "relationships": [
+        {
+          "id": "c6caec6a-a0bb-4864-bc27-e0b6e07455c6",
+          "type": "scanlation_group",
+          "attributes": {
+            "name": "Twilight Scans",
+            "createdAt": "2021-04-19T21:45:59+00:00",
+            "updatedAt": "2021-04-19T21:45:59+00:00",
+            "version": 1
+          }
+        },
+        {
+          "id": "fdc7ceb1-dbcf-4624-b50f-772b0e36380c",
+          "type": "manga"
+        }
+      ]
+    },
+    {
+      "result": "ok",
+      "data": {
+        "id": "cdfe2d56-e9ca-489e-9900-5cfbb9f9d080",
+        "type": "chapter",
+        "attributes": {
+          "volume": null,
+          "chapter": "193",
+          "title": "",
+          "translatedLanguage": "en",
+          "publishAt": "2021-03-25T02:58:34+00:00",
+          "createdAt": "2021-03-25T02:58:34+00:00",
+          "updatedAt": "2021-03-25T02:58:34+00:00"
+        }
+      },
+      "relationships": [
+        {
+          "id": "bfd1bb98-e59d-4617-8186-2b5fd21db4bc",
+          "type": "scanlation_group",
+          "attributes": {
+            "name": "The NoNames",
+            "createdAt": "2021-04-19T21:45:59+00:00",
+            "updatedAt": "2021-04-19T21:45:59+00:00",
+            "version": 1
+          }
+        },
+        {
+          "id": "4280a53c-817d-4d5c-8276-55dfbd9e4a51",
+          "type": "manga"
+        }
+      ]
+    }
+  ],
+  "limit": 100,
+  "offset": 0,
+  "total": 10000
+}

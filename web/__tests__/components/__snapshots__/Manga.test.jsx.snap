@@ -23,11 +23,6 @@ exports[`Manga page should render correctly Should render correctly as admin 1`]
     >
       <div
         className="makeStyles-thumbnail-4"
-        style={
-          Object {
-            "position": "relative",
-          }
-        }
       >
         <a
           aria-label="myanimelist page of the manga"
@@ -39,9 +34,7 @@ exports[`Manga page should render correctly Should render correctly as admin 1`]
             alt="Dr. STONE"
             layout="fill"
             objectFit="contain"
-            sizes="@media (max-width:959.95px) 200px, 250px"
-            src="https://mangadex.org/images/manga/20882.jpg?1585634146.256.jpg"
-            unoptimized={true}
+            src="https://mangadex.org/images/manga/20882.jpg?1585634146"
           />
         </a>
       </div>
@@ -187,11 +180,6 @@ exports[`Manga page should render correctly should render correctly 1`] = `
     >
       <div
         className="makeStyles-thumbnail-4"
-        style={
-          Object {
-            "position": "relative",
-          }
-        }
       >
         <a
           aria-label="myanimelist page of the manga"
@@ -203,9 +191,7 @@ exports[`Manga page should render correctly should render correctly 1`] = `
             alt="Dr. STONE"
             layout="fill"
             objectFit="contain"
-            sizes="@media (max-width:959.95px) 200px, 250px"
-            src="https://mangadex.org/images/manga/20882.jpg?1585634146.256.jpg"
-            unoptimized={true}
+            src="https://mangadex.org/images/manga/20882.jpg?1585634146"
           />
         </a>
       </div>
@@ -351,11 +337,6 @@ exports[`Manga page should render correctly should render correctly when logged 
     >
       <div
         className="makeStyles-thumbnail-4"
-        style={
-          Object {
-            "position": "relative",
-          }
-        }
       >
         <a
           aria-label="myanimelist page of the manga"
@@ -367,9 +348,7 @@ exports[`Manga page should render correctly should render correctly when logged 
             alt="Dr. STONE"
             layout="fill"
             objectFit="contain"
-            sizes="@media (max-width:959.95px) 200px, 250px"
-            src="https://mangadex.org/images/manga/20882.jpg?1585634146.256.jpg"
-            unoptimized={true}
+            src="https://mangadex.org/images/manga/20882.jpg?1585634146"
           />
         </a>
       </div>
@@ -515,11 +494,6 @@ exports[`Manga page should render correctly should render correctly with little 
     >
       <div
         className="makeStyles-thumbnail-4"
-        style={
-          Object {
-            "position": "relative",
-          }
-        }
       >
         <a
           aria-label="myanimelist page of the manga"

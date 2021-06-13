@@ -119,12 +119,6 @@ components:
           example: https://mangadex.org/images/manga/20882.jpg
         status:
           $ref: '#/components/schemas/status'
-        artist:
-          type: string
-          nullable: true
-        author:
-          type: string
-          nullable: true
         lastUpdated:
           type: string
           format: date-time
@@ -192,8 +186,6 @@ components:
       required:
         - cover
         - status
-        - artist
-        - author
         - lastUpdated
         - bw
         - mu

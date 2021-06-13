@@ -9,7 +9,6 @@ const {
   hadValidationError,
   validateAdminUser,
   databaseIdValidation,
-  limitValidation,
   handleValidationErrors,
 } = require('../utils/validators');
 const { requiresUser } = require('../db/auth');

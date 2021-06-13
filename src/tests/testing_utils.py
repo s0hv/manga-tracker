@@ -1,19 +1,24 @@
+import json
 import os
 import subprocess
 import sys
 import unittest
 from datetime import datetime, timedelta
-from typing import TypeVar, Optional, Union, ClassVar, Type
+from typing import TypeVar, Optional, Union, Type, List
 from unittest import mock
 
 import feedparser
 import psycopg2
 import testing.postgresql  # type: ignore[import]
 from psycopg2.extensions import connection as Connection
-from psycopg2.extras import DictCursor, DictRow
+from psycopg2.extras import DictRow
+from pydantic import BaseModel
 
+from src.constants import NO_GROUP
 from src.db.models.manga import MangaService
-from src.scrapers.base_scraper import BaseChapter, BaseScraper
+from src.scheduler import LoggingDictCursor
+from src.scrapers.base_scraper import BaseChapter, BaseScraper, \
+    BaseChapterSimple
 from src.tests.scrapers.testing_scraper import DummyScraper
 from src.utils.dbutils import DbUtil
 
@@ -63,11 +68,11 @@ def create_conn(postgres: Optional[testing.postgresql.Postgresql]) -> Connection
             dbname=os.environ['DB_NAME'],
             user=os.environ['DB_USER'],
             password=os.environ['PGPASSWORD'],
-            cursor_factory=DictCursor
+            cursor_factory=LoggingDictCursor
         )
     else:
         conn = psycopg2.connect(**postgres.dsn(),
-                                cursor_factory=DictCursor)
+                                cursor_factory=LoggingDictCursor)
     conn.set_client_encoding('UTF8')
     return conn
 
@@ -137,7 +142,7 @@ class BaseTestClasses:
             return f'{name}_{self._id}'
 
     class DatabaseTestCase(unittest.TestCase):
-        _conn: ClassVar[Connection] = NotImplemented
+        _conn: Connection = NotImplemented
         _generator: 'BaseTestClasses.TitleIdGenerator' = NotImplemented
 
         @classmethod
@@ -232,6 +237,12 @@ class BaseTestClasses:
 
             self.assertIsNotNone(row, msg=f'Manga {title_id} not found')
 
+        def assertMangaWithTitleFound(self, title: str):
+            self.assertIsNotNone(
+                self.dbutil.find_manga_by_title(title),
+                msg=f'Manga with title {title} not found when expected to be found'
+            )
+
         @staticmethod
         def utcnow() -> datetime:
             """
@@ -240,78 +251,95 @@ class BaseTestClasses:
             return datetime.utcnow().replace(tzinfo=psycopg2.tz.FixedOffsetTimezone(offset=0, name=None))
 
     class ModelAssertions(unittest.TestCase):
-        def assertChaptersEqual(self, a: BaseChapter, b: BaseChapter, ignore_date: bool = False):
-            self.assertEqual(a.chapter_title, b.chapter_title, msg='Chapter titles not equal')
-            self.assertEqual(a.chapter_number, b.chapter_number, msg='Chapter numbers not equal')
-            self.assertEqual(a.volume, b.volume, msg='Chapter volumes not equal')
-            self.assertEqual(a.decimal, b.decimal, msg='Chapter decimal numbers not equal')
+        def assertChaptersEqual(self, a: Union[BaseChapter, 'ChapterTestModel'],
+                                b: Union[BaseChapter, 'ChapterTestModel'], ignore_date: bool = False):
+            self.assertEqual(a.chapter_title, b.chapter_title, msg=f'Chapter titles not equal for {a.chapter_identifier}')
+            self.assertEqual(a.chapter_number, b.chapter_number, msg=f'Chapter numbers not equal for {a.chapter_identifier}')
+            self.assertEqual(a.volume, b.volume, msg=f'Chapter volumes not equal for {a.chapter_identifier}')
+            self.assertEqual(a.decimal, b.decimal, msg=f'Chapter decimal numbers not equal for {a.chapter_identifier}')
             if not ignore_date:
-                self.assertEqual(a.release_date, b.release_date, msg='Chapter release dates not equal')
-            self.assertEqual(a.chapter_identifier, b.chapter_identifier, msg='Chapter identifiers not equal')
-            self.assertEqual(a.title_id, b.title_id, msg='Manga title ids not equal')
-            self.assertEqual(a.manga_title, b.manga_title, msg='Manga titles not equal')
-            self.assertEqual(a.manga_url, b.manga_url, msg='Manga urls not equal')
-            self.assertEqual(a.group, b.group, msg='Chapter groups not equal')
-            self.assertEqual(a.title, b.title, msg='Chapter titles not equal')
+                self.assertEqual(a.release_date, b.release_date, msg=f'Chapter release dates not equal for {a.chapter_identifier}')
+            self.assertEqual(a.chapter_identifier, b.chapter_identifier, msg=f'Chapter identifiers not equal for {a.chapter_identifier}')
+            self.assertEqual(a.title_id, b.title_id, msg=f'Manga title ids not equal for {a.chapter_identifier}')
+            self.assertEqual(a.manga_title, b.manga_title, msg=f'Manga titles not equal for {a.chapter_identifier}')
+            self.assertEqual(a.manga_url, b.manga_url, msg=f'Manga urls not equal for {a.chapter_identifier}')
+            self.assertEqual(a.group, b.group, msg=f'Chapter groups not equal for {a.chapter_identifier}')
+            self.assertEqual(a.title, b.title, msg=f'Chapter titles not equal for {a.chapter_identifier}')
+            self.assertEqual(a.group_id, b.group_id, msg=f'Group ids are not equal for {a.chapter_identifier}')
 
 
-class Chapter(BaseChapter):
+class Chapter(BaseChapterSimple):
     def __init__(self, chapter_title: str = None, chapter_number: int = 0,
                  volume: int = None, decimal: int = None,
                  release_date: datetime = None, chapter_identifier: str = '',
-                 title_id: str = None, manga_title: str = None,
-                 manga_url: str = None, group: str = None):
-        self._chapter_title = chapter_title
-        self._chapter_number = chapter_number
-        self._volume = volume
-        self._decimal = decimal
-        self._release_date = release_date or datetime.utcnow()
-        self._chapter_identifier = chapter_identifier
-        self._title_id = title_id
-        self._manga_title = manga_title
-        self._manga_url = manga_url
-        self._group = group
-
-    @property
-    def chapter_title(self) -> Optional[str]:
-        return self._chapter_title
-
-    @property
-    def chapter_number(self) -> int:
-        return self._chapter_number
-
-    @property
-    def volume(self) -> Optional[int]:
-        return self._volume
-
-    @property
-    def decimal(self) -> Optional[int]:
-        return self._decimal
-
-    @property
-    def release_date(self) -> datetime:
-        return self._release_date
-
-    @property
-    def chapter_identifier(self) -> str:
-        return self._chapter_identifier
-
-    @property
-    def title_id(self) -> Optional[str]:
-        return self._title_id
-
-    @property
-    def manga_title(self) -> Optional[str]:
-        return self._manga_title
-
-    @property
-    def manga_url(self) -> Optional[str]:
-        return self._manga_url
-
-    @property
-    def group(self) -> Optional[str]:
-        return self._group
+                 title_id: str = '', manga_title: str = None,
+                 manga_url: str = None, group: str = None,
+                 group_id: int = NO_GROUP):
+        super().__init__(
+            chapter_title=chapter_title,
+            chapter_number=chapter_number,
+            chapter_identifier=chapter_identifier,
+            title_id=title_id,
+            volume=volume,
+            decimal=decimal,
+            release_date=release_date,
+            manga_title=manga_title,
+            manga_url=manga_url,
+            group=group,
+            group_id=group_id
+        )
 
     @property
     def title(self) -> str:
         return self.chapter_title or 'No title'
+
+
+class ChapterTestModel(BaseModel):
+    chapter_title: Optional[str]
+    chapter_number: int
+    volume: Optional[int]
+    decimal: Optional[int]
+    release_date: datetime
+    chapter_identifier: str
+    title_id: Optional[str]
+    manga_title: Optional[str]
+    manga_url: Optional[str]
+    group: Optional[str]
+    title: str
+    group_id: int
+
+    @classmethod
+    def from_chapter(cls, c: BaseChapter):
+        return cls(
+            chapter_title=c.chapter_title,
+            chapter_number=c.chapter_number,
+            volume=c.volume,
+            decimal=c.decimal,
+            release_date=c.release_date,
+            chapter_identifier=c.chapter_identifier,
+            title_id=c.title_id,
+            manga_title=c.manga_title,
+            manga_url=c.manga_url,
+            group=c.group,
+            title=c.title,
+            group_id=c.group_id
+        )
+
+    def __lt__(self, other):
+        return self.chapter_identifier < other.chapter_identifier
+
+
+class ChapterSnapshot(BaseModel):
+    data: List[ChapterTestModel]
+
+
+def save_chapters_snapshot(chapters: List[BaseChapter], filename: str):
+    chs = list(map(ChapterTestModel.from_chapter, chapters))
+
+    with open(filename, 'w', encoding='utf-8') as f:
+        f.write(ChapterSnapshot(data=chs).json(ensure_ascii=False, indent=2))
+
+
+def load_chapters_snapshot(filename: str) -> List[ChapterTestModel]:
+    with open(filename, 'r', encoding='utf-8') as f:
+        return ChapterSnapshot.parse_obj(json.load(f)).data

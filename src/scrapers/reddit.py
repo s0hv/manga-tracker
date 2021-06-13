@@ -9,68 +9,32 @@ from typing import Dict, Optional, List, Any
 import feedparser
 from lxml import etree
 
-from src.errors import FeedHttpError, InvalidFeedError, \
-    RequiredInformationMissing
-from src.scrapers.base_scraper import BaseScraper, BaseChapter
+from src.errors import FeedHttpError, InvalidFeedError
+from src.scrapers.base_scraper import BaseScraper, BaseChapterSimple
 from src.utils.utilities import match_title, is_valid_feed, get_latest_chapters
 
 logger = logging.getLogger('debug')
 
 
-class Chapter(BaseChapter):
+class Chapter(BaseChapterSimple):
     def __init__(self, chapter: Optional[str], chapter_identifier: str, title_id: str,
                  manga_url: str, chapter_title: Optional[str] = None,
                  release_date: Optional[time.struct_time] = None, volume: Optional[int] = None,
-                 decimal: Optional[int] = None, group: Optional[str] = None, **_):
-        self._chapter_title = chapter_title or None
-        self._chapter_number = int(chapter) if chapter else 0
-        self._volume = int(volume) if volume is not None else None
-        self._decimal = int(decimal) if decimal else None
-        self._release_date = datetime.utcfromtimestamp(timegm(release_date)) if release_date else datetime.utcnow()
-        self._chapter_identifier = chapter_identifier
-        self._title_id = title_id
-        self._manga_url = manga_url
-        self._group = group
-
-    @property
-    def chapter_title(self) -> Optional[str]:
-        return self._chapter_title
-
-    @property
-    def chapter_number(self) -> int:
-        return self._chapter_number
-
-    @property
-    def volume(self) -> Optional[int]:
-        return self._volume
-
-    @property
-    def decimal(self) -> Optional[int]:
-        return self._decimal
-
-    @property
-    def release_date(self) -> datetime:
-        return self._release_date
-
-    @property
-    def chapter_identifier(self) -> str:
-        return self._chapter_identifier
-
-    @property
-    def title_id(self) -> str:
-        return self._title_id
-
-    @property
-    def manga_title(self) -> str:
-        return ''
-
-    @property
-    def manga_url(self) -> str:
-        return self._manga_url
-
-    @property
-    def group(self) -> Optional[str]:
-        return self._group
+                 decimal: Optional[int] = None, group: Optional[str] = None,
+                 group_id: Optional[int] = None,
+                 **_):
+        super().__init__(
+            chapter_title=chapter_title or None,
+            chapter_number=int(chapter) if chapter else 0,
+            decimal=int(decimal) if decimal else None,
+            chapter_identifier=chapter_identifier,
+            title_id=title_id,
+            volume=int(volume) if volume is not None else None,
+            release_date=datetime.utcfromtimestamp(timegm(release_date)) if release_date else datetime.utcnow(),
+            group=group,
+            manga_url=manga_url,
+            group_id=group_id
+        )
 
     @property
     def title(self) -> str:
@@ -94,7 +58,7 @@ class Reddit(BaseScraper):
         return Reddit.UPDATE_INTERVAL
 
     @staticmethod
-    def parse_feed(entries: typing.Iterable[dict]) -> List[Chapter]:
+    def parse_feed(entries: typing.Iterable[dict], group_id: int = None) -> List[Chapter]:
         chapters = []
         for post in entries:
             title = post.get('title', '')
@@ -128,6 +92,7 @@ class Reddit(BaseScraper):
                 continue
 
             kwargs['chapter_title'] = title
+            kwargs['group_id'] = group_id
 
             # The tree might have more than one root element so force it to have only a single one
             tree = etree.fromstring(f"<root>{post.get('summary', '')}</root>")
@@ -154,10 +119,7 @@ class Reddit(BaseScraper):
 
         return chapters
 
-    def scrape_series(self, title_id: str, service_id: int, manga_id: int, feed_url: Optional[str] = None) -> Optional[bool]:
-        if not feed_url:
-            raise RequiredInformationMissing('Feed url is missing when it is required')
-
+    def scrape_series(self, title_id: str, service_id: int, manga_id: int, feed_url: str) -> Optional[bool]:
         feed = feedparser.parse(feed_url)
         try:
             is_valid_feed(feed)
@@ -168,7 +130,10 @@ class Reddit(BaseScraper):
         self.dbutil.set_manga_last_checked(service_id, manga_id, datetime.utcnow())
         self.dbutil.update_manga_next_update(service_id, manga_id, self.next_update())
 
-        chapters = self.dbutil.get_only_latest_entries(service_id, self.parse_feed(feed.entries))
+        group_name = '/'.join(feed_url.split('reddit.com/')[1].split('/')[:2])
+        group_id = self.dbutil.get_or_create_group(group_name).group_id
+
+        chapters = self.dbutil.get_only_latest_entries(service_id, self.parse_feed(feed.entries, group_id=group_id))
         if not chapters:
             logger.debug(f'Nothing to update in {feed_url}')
             return False

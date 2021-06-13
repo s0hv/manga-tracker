@@ -1,10 +1,11 @@
 import statistics
 import unittest
 from datetime import datetime, timedelta
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, List
 
 import psycopg2
 
+from src.constants import NO_GROUP
 from src.db.models.chapter import Chapter as ChapterModel
 from src.db.models.manga import MangaService, Manga, MangaServicePartial
 from src.db.models.services import Service
@@ -36,7 +37,6 @@ testing_series = {
             chapter_identifier='test_id_1_2.5',
             title_id='test_manga_1',
             manga_title='test manga 1',
-            group='test group 2'
         ),
         Chapter(
             chapter_title='test 1 no vol',
@@ -76,7 +76,6 @@ testing_series = {
             title_id='test_manga_2',
             manga_title='test manga 2',
             manga_url='abc',
-            group='test group'
         )
     ]
 }
@@ -495,10 +494,10 @@ class TestDbUtil(BaseDbutilTest):
                 release = datetime.utcnow()
 
                 sql = 'INSERT INTO chapters ' \
-                      '(manga_id, service_id, title, chapter_number, chapter_decimal, chapter_identifier, release_date) ' \
-                      'VALUES (%s, %s, %s, %s, %s, %s, %s)'
+                      '(manga_id, service_id, title, chapter_number, chapter_decimal, chapter_identifier, release_date, group_id) ' \
+                      'VALUES (%s, %s, %s, %s, %s, %s, %s, %s)'
                 cur.execute(sql, (manga_id, DummyScraper.ID, 'test title',
-                                  999, 5, '123456789987654321', release))
+                                  999, 5, '123456789987654321', release, NO_GROUP))
 
                 row = self.dbutil.update_estimated_release(manga_id, cur=cur)
                 self.assertIsNotNone(row)
@@ -579,7 +578,8 @@ class TestUpdateInterval(BaseDbutilTest):
             title=f'{id_}_chapter',
             chapter_identifier=id_,
             chapter_number=chapter_number,
-            release_date=release_date or datetime.utcnow()
+            release_date=release_date or datetime.utcnow(),
+            group_id=NO_GROUP
         )
 
     def test_with_under_three_chapters(self):
@@ -813,6 +813,124 @@ class TestUpdateInterval(BaseDbutilTest):
         self.assertEqual(
             self.dbutil.get_manga(manga_id=m.manga_id).release_interval,
             interval
+        )
+
+
+class TestUpdateMangaTitle(BaseDbutilTest):
+    def gen_title(self) -> str:
+        return f'{self.get_str_id()}_manga'
+
+    def create_manga(self, title: str = None) -> Manga:
+        ms = Manga(title=title or self.gen_title())
+        return self.dbutil.add_new_manga(ms)
+
+    def get_manga_aliases(self, manga_id: int) -> List[str]:
+        sql = 'SELECT title FROM manga_alias WHERE manga_id=%s'
+        return [row['title'] for row in self.dbutil.execute(sql, (manga_id,))]
+
+    def create_manga_alias(self, manga_id: int, alias: str) -> None:
+        sql = 'INSERT INTO manga_alias (manga_id, title) VALUES (%s, %s)'
+        self.dbutil.execute(sql, (manga_id, alias))
+
+    def test_without_data(self):
+        self.assertIsNone(self.dbutil.update_manga_titles([]))
+
+    def test_with_all_new_titles(self):
+        # Create manga and titles
+        m1 = self.create_manga()
+        m2 = self.create_manga()
+
+        new_title1 = self.gen_title()
+        new_title2 = self.gen_title()
+
+        # Do update
+        self.dbutil.update_manga_titles([
+            (m1.manga_id, new_title1),
+            (m2.manga_id, new_title2)
+        ])
+
+        # Assert correct changes
+        self.assertEqual(
+            self.dbutil.get_manga(m1.manga_id).title,
+            new_title1
+        )
+        self.assertEqual(
+            self.dbutil.get_manga(m2.manga_id).title,
+            new_title2
+        )
+
+        self.assertEqual(
+            self.get_manga_aliases(m1.manga_id),
+            [m1.title]
+        )
+        self.assertEqual(
+            self.get_manga_aliases(m2.manga_id),
+            [m2.title]
+        )
+
+    def test_with_new_and_duplicate_titles(self):
+        # Create manga and titles
+        m1 = self.create_manga()
+        m2 = self.create_manga()
+
+        new_title1 = self.gen_title()
+        old_title2 = m2.title
+
+        # Do update
+        self.dbutil.update_manga_titles([
+            (m1.manga_id, new_title1),
+            (m2.manga_id, old_title2)
+        ])
+
+        # Assert correct changes
+        self.assertEqual(
+            self.dbutil.get_manga(m1.manga_id).title,
+            new_title1
+        )
+        self.assertEqual(
+            self.dbutil.get_manga(m2.manga_id).title,
+            old_title2
+        )
+
+        self.assertEqual(
+            self.get_manga_aliases(m1.manga_id),
+            [m1.title]
+        )
+        self.assertFalse(self.get_manga_aliases(m2.manga_id),
+                         'Manga alias list should have been empty')
+
+    def test_with_existing_alias(self):
+        # Create manga and titles
+        m1 = self.create_manga()
+        m2 = self.create_manga()
+        self.create_manga_alias(m2.manga_id, m2.title)
+
+        new_title1 = self.gen_title()
+        new_title2 = self.gen_title()
+
+        # Do update
+        self.dbutil.update_manga_titles([
+            (m1.manga_id, new_title1),
+            (m2.manga_id, new_title2)
+        ])
+
+        # Assert correct changes
+        self.assertEqual(
+            self.dbutil.get_manga(m1.manga_id).title,
+            new_title1
+        )
+        self.assertEqual(
+            self.dbutil.get_manga(m2.manga_id).title,
+            new_title2
+        )
+
+        self.assertEqual(
+            self.get_manga_aliases(m1.manga_id),
+            [m1.title]
+        )
+        self.assertEqual(
+            self.get_manga_aliases(m2.manga_id),
+            [m2.title]
         )
 
 

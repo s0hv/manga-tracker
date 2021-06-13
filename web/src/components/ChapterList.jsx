@@ -103,7 +103,7 @@ function ChapterList(props) {
       sortType: 'datetime',
       Cell: ({ row }) => defaultDateFormat(row.values.releaseDate),
     },
-    { Header: 'Group', accessor: 'group' },
+    { Header: 'Group', accessor: 'group', canEdit: false },
   ], []);
 
   const fetchData = useCallback((pageIndex, pageSize, sortBy) => {
