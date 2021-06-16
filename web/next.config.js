@@ -11,9 +11,6 @@ module.exports = (phase, { defaultConfig }) => {
     },
     poweredByHeader: false,
     reactStrictMode: true,
-    future: {
-      webpack5: true,
-    },
     images: {
       domains: ['uploads.mangadex.org'],
       deviceSizes: [300, 600, 960, 1280],
