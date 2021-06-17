@@ -9,7 +9,7 @@ describe('Follows page should render correctly', () => {
   const follows = [
     {
       title: 'Dr. STONE',
-      cover: 'https://mangadex.org/images/manga/20882.jpg?1585634146',
+      cover: '/images/test.png',
       mangaId: 1,
       latestChapter: 90,
       latestRelease: '2020-08-20T15:36:07.865Z',
@@ -34,7 +34,7 @@ describe('Follows page should render correctly', () => {
     },
     {
       title: 'Shuumatsu no Valkyrie',
-      cover: 'https://mangadex.org/images/manga/33537.jpg?1591183509',
+      cover: '/images/test2.png',
       mangaId: 8,
       services: [
         {
@@ -50,7 +50,7 @@ describe('Follows page should render correctly', () => {
     },
     {
       title: 'Kengan Omega',
-      cover: 'https://mangadex.org/images/manga/33538.jpg?1593474917',
+      cover: '/images/test3.png',
       mangaId: 64,
       latestChapter: 10,
       services: [

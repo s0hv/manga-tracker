@@ -13,7 +13,8 @@ module.exports = (phase, { defaultConfig }) => {
     reactStrictMode: true,
     images: {
       domains: ['uploads.mangadex.org'],
-      deviceSizes: [300, 600, 960, 1280],
+      deviceSizes: [300, 600, 960],
+      imageSizes: [128, 192, 256, 512],
     },
     async rewrites() {
       return [

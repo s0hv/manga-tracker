@@ -9,7 +9,7 @@ import { mockUTCDates } from '../utils';
 describe('Partial manga should render correctly', () => {
   mockUTCDates();
 
-  const assertCorrectRender = (mangaData) => {
+  const assertCorrectRender = (mangaData, hasCover = true) => {
     // Find title
     expect(
       within(screen.getByLabelText('manga title'))
@@ -17,9 +17,11 @@ describe('Partial manga should render correctly', () => {
     ).toBeTruthy();
 
     // Find cover
-    const cover = screen.getByAltText(mangaData.title);
-    expect(screen.getByAltText(mangaData.title).getAttribute('src')).toStrictEqual(mangaData.cover);
-    expect(cover.closest('a').getAttribute('href')).toStrictEqual(`/manga/${mangaData.mangaId}`);
+    if (hasCover) {
+      const cover = screen.getByAltText(mangaData.title);
+      expect(screen.getByAltText(mangaData.title).getAttribute('src')).toStartWith(mangaData.cover);
+      expect(cover.closest('a').getAttribute('href')).toStrictEqual(`/manga/${mangaData.mangaId}`);
+    }
 
     // Find source list
     expect(screen.getByLabelText('manga sources')).toBeTruthy();
@@ -45,7 +47,7 @@ describe('Partial manga should render correctly', () => {
   it('Should render correctly with minimal input', () => {
     render(<PartialManga manga={emptyManga.manga} />);
 
-    assertCorrectRender(emptyManga.manga);
+    assertCorrectRender(emptyManga.manga, false);
   });
 
   it('Should render correctly when showId is true', () => {

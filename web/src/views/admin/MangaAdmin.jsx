@@ -33,6 +33,7 @@ import {
   createScheduledRun,
   deleteScheduledRun,
 } from '../../api/admin/manga';
+import { MangaCover } from '../../components/MangaCover';
 
 
 const useStyles = makeStyles((theme) => ({
@@ -48,16 +49,6 @@ const useStyles = makeStyles((theme) => ({
     display: 'flex',
     justifyContent: 'space-between',
   },
-  thumbnail: {
-    maxWidth: '250px',
-    maxHeight: '355px',
-    [theme.breakpoints.down('sm')]: {
-      maxWidth: '200px',
-    },
-    [theme.breakpoints.down('xs')]: {
-      maxWidth: '250px',
-    },
-  },
   details: {
     display: 'flex',
     flexFlow: 'row',
@@ -68,7 +59,7 @@ const useStyles = makeStyles((theme) => ({
   },
   paper: {
     padding: '1em',
-    minWidth: '440px',
+    minWidth: '400px',
   },
   addRowForm: {
     minWidth: '150px',
@@ -220,7 +211,7 @@ function MangaAdmin(props) {
       <Paper className={classes.paper}>
         <div className={classes.titleBar}>
           <Typography className={classes.title} variant='h4'>{mangaTitle}</Typography>
-          <Link href={`/manga/${mangaId}`}>
+          <Link href={`/manga/${mangaId}`} passHref>
             <Tooltip title='Go back' aria-label='go back to manga page'>
               <IconButton>
                 <SubdirectoryArrowLeftIcon />
@@ -230,9 +221,8 @@ function MangaAdmin(props) {
         </div>
         <div className={classes.details}>
           <a href={manga.mal} target='_blank' rel='noreferrer noopener'>
-            <img
-              src={manga.cover}
-              className={classes.thumbnail}
+            <MangaCover
+              url={manga.cover}
               alt={manga.title}
             />
           </a>

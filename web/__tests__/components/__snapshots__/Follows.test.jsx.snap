@@ -13,26 +13,99 @@ exports[`Follows page should render correctly should render correctly with follo
       <div
         className="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-12 MuiGrid-grid-md-6"
       >
-        <p
-          className="MuiTypography-root makeStyles-followTitle-2 MuiTypography-body1"
+        <h4
+          className="MuiTypography-root makeStyles-followTitle-2 MuiTypography-h4 MuiTypography-alignCenter"
         >
           Dr. STONE
-        </p>
+        </h4>
         <div
           className="makeStyles-followContent-3"
         >
-          <a
-            href="/manga/1"
-            onClick={[Function]}
-            onMouseEnter={[Function]}
-            target="_blank"
+          <div
+            className="makeStyles-thumbnail-5"
           >
-            <img
-              alt="Dr. STONE"
-              className="makeStyles-thumbnail-5"
-              src="https://mangadex.org/images/manga/20882.jpg?1585634146"
-            />
-          </a>
+            <a
+              href="/manga/1"
+              onClick={[Function]}
+              onMouseEnter={[Function]}
+              target="_blank"
+            >
+              <div
+                style={
+                  Object {
+                    "bottom": 0,
+                    "boxSizing": "border-box",
+                    "display": "block",
+                    "left": 0,
+                    "margin": 0,
+                    "overflow": "hidden",
+                    "position": "absolute",
+                    "right": 0,
+                    "top": 0,
+                  }
+                }
+              >
+                <noscript>
+                  <img
+                    alt="Dr. STONE"
+                    decoding="async"
+                    sizes="(max-width: 600px) 192px, 256px"
+                    src="/images/test.png.256.jpg"
+                    srcSet="/_next/image?url=%2Fimages%2Ftest.png.256.jpg&w=16&q=75 16w, /_next/image?url=%2Fimages%2Ftest.png.256.jpg&w=32&q=75 32w, /_next/image?url=%2Fimages%2Ftest.png.256.jpg&w=48&q=75 48w, /_next/image?url=%2Fimages%2Ftest.png.256.jpg&w=64&q=75 64w, /_next/image?url=%2Fimages%2Ftest.png.256.jpg&w=96&q=75 96w, /_next/image?url=%2Fimages%2Ftest.png.256.jpg&w=128&q=75 128w, /_next/image?url=%2Fimages%2Ftest.png.256.jpg&w=256&q=75 256w, /_next/image?url=%2Fimages%2Ftest.png.256.jpg&w=384&q=75 384w, /_next/image?url=%2Fimages%2Ftest.png.256.jpg&w=640&q=75 640w, /_next/image?url=%2Fimages%2Ftest.png.256.jpg&w=750&q=75 750w, /_next/image?url=%2Fimages%2Ftest.png.256.jpg&w=828&q=75 828w, /_next/image?url=%2Fimages%2Ftest.png.256.jpg&w=1080&q=75 1080w, /_next/image?url=%2Fimages%2Ftest.png.256.jpg&w=1200&q=75 1200w, /_next/image?url=%2Fimages%2Ftest.png.256.jpg&w=1920&q=75 1920w, /_next/image?url=%2Fimages%2Ftest.png.256.jpg&w=2048&q=75 2048w, /_next/image?url=%2Fimages%2Ftest.png.256.jpg&w=3840&q=75 3840w"
+                    style={
+                      Object {
+                        "border": "none",
+                        "bottom": 0,
+                        "boxSizing": "border-box",
+                        "display": "block",
+                        "height": 0,
+                        "left": 0,
+                        "margin": "auto",
+                        "maxHeight": "100%",
+                        "maxWidth": "100%",
+                        "minHeight": "100%",
+                        "minWidth": "100%",
+                        "objectFit": "contain",
+                        "objectPosition": undefined,
+                        "padding": 0,
+                        "position": "absolute",
+                        "right": 0,
+                        "top": 0,
+                        "width": 0,
+                      }
+                    }
+                  />
+                </noscript>
+                <img
+                  alt="Dr. STONE"
+                  decoding="async"
+                  src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+                  style={
+                    Object {
+                      "border": "none",
+                      "bottom": 0,
+                      "boxSizing": "border-box",
+                      "display": "block",
+                      "height": 0,
+                      "left": 0,
+                      "margin": "auto",
+                      "maxHeight": "100%",
+                      "maxWidth": "100%",
+                      "minHeight": "100%",
+                      "minWidth": "100%",
+                      "objectFit": "contain",
+                      "objectPosition": undefined,
+                      "padding": 0,
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                      "width": 0,
+                    }
+                  }
+                />
+              </div>
+            </a>
+          </div>
           <div
             className="makeStyles-followDetails-4"
           >
@@ -196,26 +269,99 @@ exports[`Follows page should render correctly should render correctly with follo
       <div
         className="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-12 MuiGrid-grid-md-6"
       >
-        <p
-          className="MuiTypography-root makeStyles-followTitle-2 MuiTypography-body1"
+        <h4
+          className="MuiTypography-root makeStyles-followTitle-2 MuiTypography-h4 MuiTypography-alignCenter"
         >
           Shuumatsu no Valkyrie
-        </p>
+        </h4>
         <div
           className="makeStyles-followContent-3"
         >
-          <a
-            href="/manga/8"
-            onClick={[Function]}
-            onMouseEnter={[Function]}
-            target="_blank"
+          <div
+            className="makeStyles-thumbnail-5"
           >
-            <img
-              alt="Shuumatsu no Valkyrie"
-              className="makeStyles-thumbnail-5"
-              src="https://mangadex.org/images/manga/33537.jpg?1591183509"
-            />
-          </a>
+            <a
+              href="/manga/8"
+              onClick={[Function]}
+              onMouseEnter={[Function]}
+              target="_blank"
+            >
+              <div
+                style={
+                  Object {
+                    "bottom": 0,
+                    "boxSizing": "border-box",
+                    "display": "block",
+                    "left": 0,
+                    "margin": 0,
+                    "overflow": "hidden",
+                    "position": "absolute",
+                    "right": 0,
+                    "top": 0,
+                  }
+                }
+              >
+                <noscript>
+                  <img
+                    alt="Shuumatsu no Valkyrie"
+                    decoding="async"
+                    sizes="(max-width: 600px) 192px, 256px"
+                    src="/images/test2.png.256.jpg"
+                    srcSet="/_next/image?url=%2Fimages%2Ftest2.png.256.jpg&w=16&q=75 16w, /_next/image?url=%2Fimages%2Ftest2.png.256.jpg&w=32&q=75 32w, /_next/image?url=%2Fimages%2Ftest2.png.256.jpg&w=48&q=75 48w, /_next/image?url=%2Fimages%2Ftest2.png.256.jpg&w=64&q=75 64w, /_next/image?url=%2Fimages%2Ftest2.png.256.jpg&w=96&q=75 96w, /_next/image?url=%2Fimages%2Ftest2.png.256.jpg&w=128&q=75 128w, /_next/image?url=%2Fimages%2Ftest2.png.256.jpg&w=256&q=75 256w, /_next/image?url=%2Fimages%2Ftest2.png.256.jpg&w=384&q=75 384w, /_next/image?url=%2Fimages%2Ftest2.png.256.jpg&w=640&q=75 640w, /_next/image?url=%2Fimages%2Ftest2.png.256.jpg&w=750&q=75 750w, /_next/image?url=%2Fimages%2Ftest2.png.256.jpg&w=828&q=75 828w, /_next/image?url=%2Fimages%2Ftest2.png.256.jpg&w=1080&q=75 1080w, /_next/image?url=%2Fimages%2Ftest2.png.256.jpg&w=1200&q=75 1200w, /_next/image?url=%2Fimages%2Ftest2.png.256.jpg&w=1920&q=75 1920w, /_next/image?url=%2Fimages%2Ftest2.png.256.jpg&w=2048&q=75 2048w, /_next/image?url=%2Fimages%2Ftest2.png.256.jpg&w=3840&q=75 3840w"
+                    style={
+                      Object {
+                        "border": "none",
+                        "bottom": 0,
+                        "boxSizing": "border-box",
+                        "display": "block",
+                        "height": 0,
+                        "left": 0,
+                        "margin": "auto",
+                        "maxHeight": "100%",
+                        "maxWidth": "100%",
+                        "minHeight": "100%",
+                        "minWidth": "100%",
+                        "objectFit": "contain",
+                        "objectPosition": undefined,
+                        "padding": 0,
+                        "position": "absolute",
+                        "right": 0,
+                        "top": 0,
+                        "width": 0,
+                      }
+                    }
+                  />
+                </noscript>
+                <img
+                  alt="Shuumatsu no Valkyrie"
+                  decoding="async"
+                  src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+                  style={
+                    Object {
+                      "border": "none",
+                      "bottom": 0,
+                      "boxSizing": "border-box",
+                      "display": "block",
+                      "height": 0,
+                      "left": 0,
+                      "margin": "auto",
+                      "maxHeight": "100%",
+                      "maxWidth": "100%",
+                      "minHeight": "100%",
+                      "minWidth": "100%",
+                      "objectFit": "contain",
+                      "objectPosition": undefined,
+                      "padding": 0,
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                      "width": 0,
+                    }
+                  }
+                />
+              </div>
+            </a>
+          </div>
           <div
             className="makeStyles-followDetails-4"
           >
@@ -341,26 +487,99 @@ exports[`Follows page should render correctly should render correctly with follo
       <div
         className="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-12 MuiGrid-grid-md-6"
       >
-        <p
-          className="MuiTypography-root makeStyles-followTitle-2 MuiTypography-body1"
+        <h4
+          className="MuiTypography-root makeStyles-followTitle-2 MuiTypography-h4 MuiTypography-alignCenter"
         >
           Kengan Omega
-        </p>
+        </h4>
         <div
           className="makeStyles-followContent-3"
         >
-          <a
-            href="/manga/64"
-            onClick={[Function]}
-            onMouseEnter={[Function]}
-            target="_blank"
+          <div
+            className="makeStyles-thumbnail-5"
           >
-            <img
-              alt="Kengan Omega"
-              className="makeStyles-thumbnail-5"
-              src="https://mangadex.org/images/manga/33538.jpg?1593474917"
-            />
-          </a>
+            <a
+              href="/manga/64"
+              onClick={[Function]}
+              onMouseEnter={[Function]}
+              target="_blank"
+            >
+              <div
+                style={
+                  Object {
+                    "bottom": 0,
+                    "boxSizing": "border-box",
+                    "display": "block",
+                    "left": 0,
+                    "margin": 0,
+                    "overflow": "hidden",
+                    "position": "absolute",
+                    "right": 0,
+                    "top": 0,
+                  }
+                }
+              >
+                <noscript>
+                  <img
+                    alt="Kengan Omega"
+                    decoding="async"
+                    sizes="(max-width: 600px) 192px, 256px"
+                    src="/images/test3.png.256.jpg"
+                    srcSet="/_next/image?url=%2Fimages%2Ftest3.png.256.jpg&w=16&q=75 16w, /_next/image?url=%2Fimages%2Ftest3.png.256.jpg&w=32&q=75 32w, /_next/image?url=%2Fimages%2Ftest3.png.256.jpg&w=48&q=75 48w, /_next/image?url=%2Fimages%2Ftest3.png.256.jpg&w=64&q=75 64w, /_next/image?url=%2Fimages%2Ftest3.png.256.jpg&w=96&q=75 96w, /_next/image?url=%2Fimages%2Ftest3.png.256.jpg&w=128&q=75 128w, /_next/image?url=%2Fimages%2Ftest3.png.256.jpg&w=256&q=75 256w, /_next/image?url=%2Fimages%2Ftest3.png.256.jpg&w=384&q=75 384w, /_next/image?url=%2Fimages%2Ftest3.png.256.jpg&w=640&q=75 640w, /_next/image?url=%2Fimages%2Ftest3.png.256.jpg&w=750&q=75 750w, /_next/image?url=%2Fimages%2Ftest3.png.256.jpg&w=828&q=75 828w, /_next/image?url=%2Fimages%2Ftest3.png.256.jpg&w=1080&q=75 1080w, /_next/image?url=%2Fimages%2Ftest3.png.256.jpg&w=1200&q=75 1200w, /_next/image?url=%2Fimages%2Ftest3.png.256.jpg&w=1920&q=75 1920w, /_next/image?url=%2Fimages%2Ftest3.png.256.jpg&w=2048&q=75 2048w, /_next/image?url=%2Fimages%2Ftest3.png.256.jpg&w=3840&q=75 3840w"
+                    style={
+                      Object {
+                        "border": "none",
+                        "bottom": 0,
+                        "boxSizing": "border-box",
+                        "display": "block",
+                        "height": 0,
+                        "left": 0,
+                        "margin": "auto",
+                        "maxHeight": "100%",
+                        "maxWidth": "100%",
+                        "minHeight": "100%",
+                        "minWidth": "100%",
+                        "objectFit": "contain",
+                        "objectPosition": undefined,
+                        "padding": 0,
+                        "position": "absolute",
+                        "right": 0,
+                        "top": 0,
+                        "width": 0,
+                      }
+                    }
+                  />
+                </noscript>
+                <img
+                  alt="Kengan Omega"
+                  decoding="async"
+                  src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+                  style={
+                    Object {
+                      "border": "none",
+                      "bottom": 0,
+                      "boxSizing": "border-box",
+                      "display": "block",
+                      "height": 0,
+                      "left": 0,
+                      "margin": "auto",
+                      "maxHeight": "100%",
+                      "maxWidth": "100%",
+                      "minHeight": "100%",
+                      "minWidth": "100%",
+                      "objectFit": "contain",
+                      "objectPosition": undefined,
+                      "padding": 0,
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                      "width": 0,
+                    }
+                  }
+                />
+              </div>
+            </a>
+          </div>
           <div
             className="makeStyles-followDetails-4"
           >

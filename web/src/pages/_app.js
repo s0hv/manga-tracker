@@ -1,6 +1,6 @@
 import DateFnsUtils from '@date-io/date-fns';
 import { CssBaseline } from '@material-ui/core';
-import { ThemeProvider, } from '@material-ui/core/styles';
+import { ThemeProvider } from '@material-ui/core/styles';
 import { MuiPickersUtilsProvider } from '@material-ui/pickers';
 import enLocale from 'date-fns/locale/en-GB';
 import { DefaultSeo } from 'next-seo';

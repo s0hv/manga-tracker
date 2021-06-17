@@ -18,7 +18,6 @@ import {
 } from '@material-ui/icons';
 
 import Link from 'next/link';
-import Image from 'next/image';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useCSRF } from '../utils/csrf';
 import { useUser } from '../utils/useUser';
@@ -31,6 +30,7 @@ import MangaSourceList from './MangaSourceList';
 import ReleaseHeatmap from './ReleaseHeatmap';
 import { TabPanelCustom } from './utils/TabPanelCustom';
 import { getMangaReleases } from '../api/chapter';
+import { MangaCover } from './MangaCover';
 
 const verticalBreakpoint = 910;
 
@@ -54,23 +54,6 @@ const useStyles = makeStyles((theme) => ({
     [theme.breakpoints.down('xs')]: {
       flexFlow: 'column',
       width: '12%',
-    },
-  },
-  thumbnail: {
-    minWidth: '100px',
-    width: '300px',
-    [theme.breakpoints.down('xs')]: {
-      width: '250px',
-    },
-
-    // Forced overrides for next image
-    '& div': {
-      position: 'static !important',
-    },
-    '& div > img': {
-      position: 'static !important',
-      width: 'auto !important',
-      height: 'auto !important',
     },
   },
   details: {
@@ -171,7 +154,7 @@ function Manga(props) {
           <Typography className={classes.title} variant='h4'>{manga.title}</Typography>
           {user?.admin && (
             <div className={classes.titleBarButtonsContainer}>
-              <Link href={`/admin/manga/${manga.mangaId}`} prefetch={false}>
+              <Link href={`/admin/manga/${manga.mangaId}`} passHref>
                 <Tooltip title='Admin page'>
                   <IconButton>
                     <SettingsIcon />
@@ -187,18 +170,12 @@ function Manga(props) {
           )}
         </div>
         <div className={classes.details}>
-          <div className={classes.thumbnail}>
-            <a href={manga.mal} target='_blank' rel='noreferrer noopener' aria-label='myanimelist page of the manga'>
-              {manga.cover && (
-                <Image
-                  src={`${manga.cover}`}
-                  alt={manga.title}
-                  layout='fill'
-                  objectFit='contain'
-                />
-              )}
-            </a>
-          </div>
+          <a href={manga.mal} target='_blank' rel='noreferrer noopener' aria-label='myanimelist page of the manga'>
+            <MangaCover
+              url={manga.cover}
+              alt={manga.title}
+            />
+          </a>
           <Grid
             container
             justify='space-between'

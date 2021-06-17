@@ -31,7 +31,7 @@ describe('Manga admin page should render correctly', () => {
       render(<MangaAdmin mangaData={{ manga: {}}} serviceConfigs={[]} />);
     });
 
-    expect(screen.getByRole('button', { name: 'go back to manga page' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'go back to manga page' })).toBeInTheDocument();
 
     // Aliases
     expect(screen.queryByText(/alternative titles/i)).not.toBeInTheDocument();
@@ -54,7 +54,7 @@ describe('Manga admin page should render correctly', () => {
       );
     });
 
-    expect(screen.getByRole('button', { name: 'go back to manga page' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'go back to manga page' })).toBeInTheDocument();
 
     // Aliases
     expect(screen.getByText(/alternative titles/i)).toBeInTheDocument();

@@ -10,10 +10,12 @@ import {
   Paper,
   Typography,
 } from '@material-ui/core';
+import Image from 'next/image';
 import NextLink from 'next/link';
 import { useCSRF } from '../utils/csrf';
 
 import { defaultDateDistanceToNow, followUnfollow } from '../utils/utilities';
+import { nextImageFix } from '../../utils/theme';
 
 
 const useStyles = makeStyles((theme) => ({
@@ -27,6 +29,7 @@ const useStyles = makeStyles((theme) => ({
   },
   followContent: {
     display: 'flex',
+    justifyContent: 'center',
   },
   followDetails: {
     display: 'flex',
@@ -34,16 +37,12 @@ const useStyles = makeStyles((theme) => ({
     paddingLeft: theme.spacing(2),
   },
   thumbnail: {
-    paddingLeft: theme.spacing(2),
-    maxWidth: '200px',
-    height: '250px',
-    [theme.breakpoints.down('sm')]: {
-      maxWidth: '180px',
-    },
+    width: '100%',
+    maxWidth: '256px',
     [theme.breakpoints.down('xs')]: {
-      maxWidth: '145px',
-      height: '175px',
+      maxWidth: '192px',
     },
+    ...nextImageFix,
   },
   serviceList: {
     overflow: 'auto',
@@ -73,17 +72,27 @@ function Follows(props) {
 
     return (
       <Grid item xs={12/columnsXs} md={12/columnsMd} key={follow.mangaId}>
-        <Typography className={classes.followTitle}>{follow.title}</Typography>
+        <Typography
+          className={classes.followTitle}
+          variant='h4'
+          align='center'
+        >
+          {follow.title}
+        </Typography>
         <div className={classes.followContent}>
-          <NextLink href='/manga/[id]' as={`/manga/${follow.mangaId}`} passHref>
-            <a target='_blank'>
-              <img
-                src={follow.cover}
-                className={classes.thumbnail}
-                alt={follow.title}
-              />
-            </a>
-          </NextLink>
+          <div className={classes.thumbnail}>
+            <NextLink href='/manga/[id]' as={`/manga/${follow.mangaId}`} passHref>
+              <a target='_blank'>
+                <Image
+                  src={`${follow.cover}.256.jpg`}
+                  alt={follow.title}
+                  layout='fill'
+                  objectFit='contain'
+                  sizes='(max-width: 600px) 192px, 256px'
+                />
+              </a>
+            </NextLink>
+          </div>
           <div className={classes.followDetails}>
             <table>
               <tbody>
