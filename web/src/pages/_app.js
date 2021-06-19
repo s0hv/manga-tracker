@@ -15,7 +15,7 @@ import Root from '../components/Root';
 import { ProgressBar } from '../components/utils/ProgressBar';
 import { csrfProps, CSRFProvider } from '../utils/csrf';
 import { UserProvider } from '../utils/useUser';
-import { getTheme } from '../../utils/theme';
+import { getTheme } from '../utils/theme';
 
 
 function MainApp({ Component, pageProps = {}, props }) {

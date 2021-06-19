@@ -15,7 +15,7 @@ import NextLink from 'next/link';
 import { useCSRF } from '../utils/csrf';
 
 import { defaultDateDistanceToNow, followUnfollow } from '../utils/utilities';
-import { nextImageFix } from '../../utils/theme';
+import { nextImageFix } from '../utils/theme';
 
 
 const useStyles = makeStyles((theme) => ({
