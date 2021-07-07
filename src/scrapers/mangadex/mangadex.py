@@ -82,10 +82,6 @@ class MangaDex(BaseScraperWhole):
         self.api = MangadexAPI()
 
     @staticmethod
-    def min_update_interval() -> timedelta:
-        return MangaDex.UPDATE_INTERVAL
-
-    @staticmethod
     def parse_feed(entries: Iterable[ChapterResult]) -> List[Chapter]:
         chapters = []
         for chapter in entries:

@@ -12,6 +12,5 @@ class KireiCake(FoolSlide):
     MANGA_URL_FORMAT = 'https://reader.kireicake.com/series/{}'
     UPDATE_INTERVAL = timedelta(hours=1)
 
-    @staticmethod
-    def min_update_interval() -> timedelta:
-        return KireiCake.UPDATE_INTERVAL
+    def _(self):
+        pass

@@ -73,10 +73,10 @@ class FoolSlideChapter(BaseChapterSimple):
 
 
 class FoolSlide(BaseScraperWhole, ABC):
-    @staticmethod
+    # Required or the class wont be marked as abstract
     @abstractmethod
-    def min_update_interval() -> timedelta:
-        raise NotImplementedError
+    def _(self):
+        pass
 
     @staticmethod
     def get_title_id(url: str) -> str:

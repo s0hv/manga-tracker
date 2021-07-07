@@ -14,8 +14,7 @@ class DummyScraper(BaseScraper):
     NAME = 'Testing scraper'
     CONFIG = ServiceConfig(service_id=ID)
 
-    @staticmethod
-    def min_update_interval() -> timedelta:
+    def min_update_interval(self) -> timedelta:
         return timedelta(0)
 
     def scrape_series(self, title_id: str, service_id: int, manga_id: int,

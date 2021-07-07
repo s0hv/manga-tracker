@@ -12,7 +12,6 @@ from lxml import etree
 from psycopg2.extras import execute_values
 
 from src.scrapers.base_scraper import BaseScraper, BaseChapter
-from src.utils.utilities import random_timedelta
 
 logger = logging.getLogger('debug')
 
@@ -130,10 +129,6 @@ class KodanshaComics(BaseScraper):
     def __init__(self, conn, dbutil):
         warnings.warn("Support for kodansha has been dropped", DeprecationWarning)
         super().__init__(conn, dbutil)
-
-    @staticmethod
-    def min_update_interval() -> timedelta:
-        return random_timedelta(timedelta(hours=1), timedelta(hours=2))
 
     def scrape_series(self, title_id: str, service_id: int, manga_id: Optional[int], feed_url: str = None) -> Optional[bool]:
         if feed_url is None:

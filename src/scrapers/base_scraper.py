@@ -265,12 +265,11 @@ class BaseScraper(abc.ABC):
 
         self.conn.commit()
 
-    @staticmethod
-    def min_update_interval() -> timedelta:
+    def min_update_interval(self) -> timedelta:
         """
         Minimum time between two checks on this service
         """
-        raise NotImplementedError
+        return self.CONFIG.check_interval
 
     def next_update(self) -> datetime:
         return datetime.utcnow() + self.min_update_interval()

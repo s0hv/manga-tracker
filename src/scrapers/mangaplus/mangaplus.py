@@ -300,8 +300,7 @@ class MangaPlus(BaseScraperWhole):
     MANGA_URL_FORMAT = 'https://mangaplus.shueisha.co.jp/titles/{}'
     GROUP = 'Shueisha'
 
-    @staticmethod
-    def min_update_interval() -> timedelta:
+    def min_update_interval(self) -> timedelta:
         return random_timedelta(timedelta(minutes=10), timedelta(minutes=20))
 
     @staticmethod
@@ -511,6 +510,6 @@ class MangaPlus(BaseScraperWhole):
         """
         try:
             BaseScraper.set_checked(self, service_id)
-            self.dbutil.update_service_whole(service_id, timedelta(days=2))
+            self.dbutil.update_service_whole(service_id, self.CONFIG.check_interval)
         except psycopg2.Error:
             logger.exception(f'Failed to update service disabled time for {self.NAME} {service_id}')

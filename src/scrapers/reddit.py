@@ -54,10 +54,6 @@ class Reddit(BaseScraper):
     SPECIAL_REGEX = re.compile(r'volume \d+ (bonus)? chapter .+?', re.I)
 
     @staticmethod
-    def min_update_interval() -> timedelta:
-        return Reddit.UPDATE_INTERVAL
-
-    @staticmethod
     def parse_feed(entries: typing.Iterable[dict], group_id: int = None) -> List[Chapter]:
         chapters = []
         for post in entries:

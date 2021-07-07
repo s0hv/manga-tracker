@@ -128,8 +128,7 @@ class ComiXology(BaseScraperWhole):
     def get_chapter_elements(root: etree.ElementBase) -> List[etree.ElementBase]:
         return list(root.cssselect('li.content-item'))
 
-    @staticmethod
-    def min_update_interval() -> timedelta:
+    def min_update_interval(self) -> timedelta:
         return random_timedelta(timedelta(hours=1), timedelta(hours=2))
 
     @staticmethod

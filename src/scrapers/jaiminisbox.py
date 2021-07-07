@@ -4,7 +4,7 @@ import logging
 import re
 import warnings
 from calendar import timegm
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Optional, Dict, Any
 
 import feedparser
@@ -98,10 +98,6 @@ class JaiminisBox(BaseScraper):
 
     def scrape_series(self, title_id, service_id, manga_id, feed_url=None):
         pass
-
-    @staticmethod
-    def min_update_interval() -> timedelta:
-        return JaiminisBox.UPDATE_INTERVAL
 
     def set_checked(self, service_id: int) -> None:
         try:
