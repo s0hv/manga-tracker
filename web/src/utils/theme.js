@@ -19,3 +19,15 @@ export const getTheme = (prefersDark) => responsiveFontSizes(createMuiTheme({
     },
   },
 }));
+
+export const nextImageFix = {
+  // Forced overrides for next image
+  '& div': {
+    position: 'static !important',
+  },
+  '& div > img': {
+    position: 'static !important',
+    width: 'auto !important',
+    height: 'auto !important',
+  },
+};

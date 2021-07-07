@@ -1,7 +1,7 @@
 import request from 'supertest';
 import {
   deleteScheduledRun,
-  scheduleMangaRun
+  scheduleMangaRun,
 } from '../../../db/admin/management';
 import { getMangaPartial, getAliases } from '../../../db/manga';
 import { csrfMissing } from '../../../utils/constants';
@@ -13,7 +13,7 @@ import {
   adminUser,
   normalUser,
   withUser,
-  expectErrorMessage
+  expectErrorMessage,
 } from '../../utils';
 import { createMangaService } from '../../dbutils';
 

@@ -5,6 +5,7 @@ import PropTypes from 'prop-types';
 
 import MangaSourceList from './MangaSourceList';
 import MangaInfo from './MangaInfo';
+import { MangaCover } from './MangaCover';
 
 const useStyles = makeStyles((theme) => ({
   title: {
@@ -13,13 +14,6 @@ const useStyles = makeStyles((theme) => ({
     paddingBottom: '10px',
     [theme.breakpoints.down('sm')]: {
       ...theme.typography.h6,
-    },
-  },
-  thumbnail: {
-    maxWidth: '200px',
-    maxHeight: '300px',
-    [theme.breakpoints.down('sm')]: {
-      maxWidth: '125px',
     },
   },
   details: {
@@ -46,9 +40,8 @@ function PartialManga(props) {
       <Typography className={classes.title} variant='h5' aria-label='manga title'>{manga.title}</Typography>
       <div className={classes.details}>
         <a href={`/manga/${manga.mangaId}`} target='_blank' rel='noopener noreferrer'>
-          <img
-            src={manga.cover}
-            className={classes.thumbnail}
+          <MangaCover
+            url={manga.cover}
             alt={manga.title}
           />
         </a>

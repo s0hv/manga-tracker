@@ -6,7 +6,8 @@
         "plugin:import/errors",
         "plugin:import/warnings",
         "plugin:jsx-a11y/recommended",
-        "plugin:jest/style"
+        "plugin:jest/style",
+        "next"
     ],
     "parser": "babel-eslint",
     "parserOptions": {

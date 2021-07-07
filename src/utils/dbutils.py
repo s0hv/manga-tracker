@@ -723,6 +723,9 @@ class DbUtil:
                                 manga_id: int = None,
                                 limit: int = 400,
                                 *, cur: Cursor = NotImplemented) -> Collection[BaseChapter]:
+        if not entries:
+            return []
+
         if len(entries) > 200:
             logger.warning('Over 200 entries passed to get_only_latest_entries')
 

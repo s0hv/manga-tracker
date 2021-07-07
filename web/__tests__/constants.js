@@ -14,7 +14,7 @@ export const fullManga = {
     latestRelease: '2020-07-05T16:00:00.000Z',
     estimatedRelease: '2020-07-12T16:00:00.000Z',
     latestChapter: 157,
-    cover: 'https://mangadex.org/images/manga/20882.jpg?1585634146',
+    cover: '/images/test.png',
     status: 0,
     artist: 'Boichi',
     author: 'Inagaki Riichiro',

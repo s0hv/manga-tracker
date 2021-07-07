@@ -6,7 +6,7 @@ exports[`Manga page should render correctly Should render correctly as admin 1`]
   maxWidth="lg"
 >
   <WithStyles(ForwardRef(Paper))
-    className="makeStyles-paper-10"
+    className="makeStyles-paper-9"
   >
     <div
       className="makeStyles-titleBar-2"
@@ -19,32 +19,26 @@ exports[`Manga page should render correctly Should render correctly as admin 1`]
       </WithStyles(ForwardRef(Typography))>
     </div>
     <div
-      className="makeStyles-details-5"
+      className="makeStyles-details-4"
     >
-      <div
-        className="makeStyles-thumbnail-4"
+      <a
+        aria-label="myanimelist page of the manga"
+        href="https://myanimelist.net/manga/103897"
+        rel="noreferrer noopener"
+        target="_blank"
       >
-        <a
-          aria-label="myanimelist page of the manga"
-          href="https://myanimelist.net/manga/103897"
-          rel="noreferrer noopener"
-          target="_blank"
-        >
-          <Image
-            alt="Dr. STONE"
-            layout="fill"
-            objectFit="contain"
-            src="https://mangadex.org/images/manga/20882.jpg?1585634146"
-          />
-        </a>
-      </div>
+        <MangaCover
+          alt="Dr. STONE"
+          url="/images/test.png"
+        />
+      </a>
       <WithStyles(ForwardRef(Grid))
-        className="makeStyles-rootGrid-12"
+        className="makeStyles-rootGrid-11"
         container={true}
         justify="space-between"
       >
         <WithStyles(ForwardRef(Grid))
-          className="makeStyles-infoGrid-11"
+          className="makeStyles-infoGrid-10"
           container={true}
           direction="column"
         >
@@ -57,7 +51,7 @@ exports[`Manga page should render correctly Should render correctly as admin 1`]
                 "artist": "Boichi",
                 "author": "Inagaki Riichiro",
                 "bw": "https://bookwalker.jp/series/114645",
-                "cover": "https://mangadex.org/images/manga/20882.jpg?1585634146",
+                "cover": "/images/test.png",
                 "ebj": "https://www.ebookjapan.jp/ebj/413780/",
                 "engtl": "https://www.viz.com/dr-stone",
                 "estimatedRelease": "2020-07-12T16:00:00.000Z",
@@ -89,7 +83,7 @@ exports[`Manga page should render correctly Should render correctly as admin 1`]
         <MangaSourceList
           classesProp={
             Array [
-              "makeStyles-sourceList-8",
+              "makeStyles-sourceList-7",
             ]
           }
           followUnfollow={[Function]}
@@ -163,7 +157,7 @@ exports[`Manga page should render correctly should render correctly 1`] = `
   maxWidth="lg"
 >
   <WithStyles(ForwardRef(Paper))
-    className="makeStyles-paper-10"
+    className="makeStyles-paper-9"
   >
     <div
       className="makeStyles-titleBar-2"
@@ -176,32 +170,26 @@ exports[`Manga page should render correctly should render correctly 1`] = `
       </WithStyles(ForwardRef(Typography))>
     </div>
     <div
-      className="makeStyles-details-5"
+      className="makeStyles-details-4"
     >
-      <div
-        className="makeStyles-thumbnail-4"
+      <a
+        aria-label="myanimelist page of the manga"
+        href="https://myanimelist.net/manga/103897"
+        rel="noreferrer noopener"
+        target="_blank"
       >
-        <a
-          aria-label="myanimelist page of the manga"
-          href="https://myanimelist.net/manga/103897"
-          rel="noreferrer noopener"
-          target="_blank"
-        >
-          <Image
-            alt="Dr. STONE"
-            layout="fill"
-            objectFit="contain"
-            src="https://mangadex.org/images/manga/20882.jpg?1585634146"
-          />
-        </a>
-      </div>
+        <MangaCover
+          alt="Dr. STONE"
+          url="/images/test.png"
+        />
+      </a>
       <WithStyles(ForwardRef(Grid))
-        className="makeStyles-rootGrid-12"
+        className="makeStyles-rootGrid-11"
         container={true}
         justify="space-between"
       >
         <WithStyles(ForwardRef(Grid))
-          className="makeStyles-infoGrid-11"
+          className="makeStyles-infoGrid-10"
           container={true}
           direction="column"
         >
@@ -214,7 +202,7 @@ exports[`Manga page should render correctly should render correctly 1`] = `
                 "artist": "Boichi",
                 "author": "Inagaki Riichiro",
                 "bw": "https://bookwalker.jp/series/114645",
-                "cover": "https://mangadex.org/images/manga/20882.jpg?1585634146",
+                "cover": "/images/test.png",
                 "ebj": "https://www.ebookjapan.jp/ebj/413780/",
                 "engtl": "https://www.viz.com/dr-stone",
                 "estimatedRelease": "2020-07-12T16:00:00.000Z",
@@ -246,7 +234,7 @@ exports[`Manga page should render correctly should render correctly 1`] = `
         <MangaSourceList
           classesProp={
             Array [
-              "makeStyles-sourceList-8",
+              "makeStyles-sourceList-7",
             ]
           }
           followUnfollow={[Function]}
@@ -320,7 +308,7 @@ exports[`Manga page should render correctly should render correctly when logged 
   maxWidth="lg"
 >
   <WithStyles(ForwardRef(Paper))
-    className="makeStyles-paper-10"
+    className="makeStyles-paper-9"
   >
     <div
       className="makeStyles-titleBar-2"
@@ -333,32 +321,26 @@ exports[`Manga page should render correctly should render correctly when logged 
       </WithStyles(ForwardRef(Typography))>
     </div>
     <div
-      className="makeStyles-details-5"
+      className="makeStyles-details-4"
     >
-      <div
-        className="makeStyles-thumbnail-4"
+      <a
+        aria-label="myanimelist page of the manga"
+        href="https://myanimelist.net/manga/103897"
+        rel="noreferrer noopener"
+        target="_blank"
       >
-        <a
-          aria-label="myanimelist page of the manga"
-          href="https://myanimelist.net/manga/103897"
-          rel="noreferrer noopener"
-          target="_blank"
-        >
-          <Image
-            alt="Dr. STONE"
-            layout="fill"
-            objectFit="contain"
-            src="https://mangadex.org/images/manga/20882.jpg?1585634146"
-          />
-        </a>
-      </div>
+        <MangaCover
+          alt="Dr. STONE"
+          url="/images/test.png"
+        />
+      </a>
       <WithStyles(ForwardRef(Grid))
-        className="makeStyles-rootGrid-12"
+        className="makeStyles-rootGrid-11"
         container={true}
         justify="space-between"
       >
         <WithStyles(ForwardRef(Grid))
-          className="makeStyles-infoGrid-11"
+          className="makeStyles-infoGrid-10"
           container={true}
           direction="column"
         >
@@ -371,7 +353,7 @@ exports[`Manga page should render correctly should render correctly when logged 
                 "artist": "Boichi",
                 "author": "Inagaki Riichiro",
                 "bw": "https://bookwalker.jp/series/114645",
-                "cover": "https://mangadex.org/images/manga/20882.jpg?1585634146",
+                "cover": "/images/test.png",
                 "ebj": "https://www.ebookjapan.jp/ebj/413780/",
                 "engtl": "https://www.viz.com/dr-stone",
                 "estimatedRelease": "2020-07-12T16:00:00.000Z",
@@ -403,7 +385,7 @@ exports[`Manga page should render correctly should render correctly when logged 
         <MangaSourceList
           classesProp={
             Array [
-              "makeStyles-sourceList-8",
+              "makeStyles-sourceList-7",
             ]
           }
           followUnfollow={[Function]}
@@ -477,7 +459,7 @@ exports[`Manga page should render correctly should render correctly with little 
   maxWidth="lg"
 >
   <WithStyles(ForwardRef(Paper))
-    className="makeStyles-paper-10"
+    className="makeStyles-paper-9"
   >
     <div
       className="makeStyles-titleBar-2"
@@ -490,25 +472,26 @@ exports[`Manga page should render correctly should render correctly with little 
       </WithStyles(ForwardRef(Typography))>
     </div>
     <div
-      className="makeStyles-details-5"
+      className="makeStyles-details-4"
     >
-      <div
-        className="makeStyles-thumbnail-4"
+      <a
+        aria-label="myanimelist page of the manga"
+        href={null}
+        rel="noreferrer noopener"
+        target="_blank"
       >
-        <a
-          aria-label="myanimelist page of the manga"
-          href={null}
-          rel="noreferrer noopener"
-          target="_blank"
+        <MangaCover
+          alt="Dr. STONE 2"
+          url={null}
         />
-      </div>
+      </a>
       <WithStyles(ForwardRef(Grid))
-        className="makeStyles-rootGrid-12"
+        className="makeStyles-rootGrid-11"
         container={true}
         justify="space-between"
       >
         <WithStyles(ForwardRef(Grid))
-          className="makeStyles-infoGrid-11"
+          className="makeStyles-infoGrid-10"
           container={true}
           direction="column"
         >
@@ -545,7 +528,7 @@ exports[`Manga page should render correctly should render correctly with little 
         <MangaSourceList
           classesProp={
             Array [
-              "makeStyles-sourceList-8",
+              "makeStyles-sourceList-7",
             ]
           }
           followUnfollow={[Function]}

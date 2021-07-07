@@ -1,6 +1,6 @@
 import DateFnsUtils from '@date-io/date-fns';
 import { CssBaseline } from '@material-ui/core';
-import { ThemeProvider, } from '@material-ui/core/styles';
+import { ThemeProvider } from '@material-ui/core/styles';
 import { MuiPickersUtilsProvider } from '@material-ui/pickers';
 import enLocale from 'date-fns/locale/en-GB';
 import { DefaultSeo } from 'next-seo';
@@ -15,7 +15,7 @@ import Root from '../components/Root';
 import { ProgressBar } from '../components/utils/ProgressBar';
 import { csrfProps, CSRFProvider } from '../utils/csrf';
 import { UserProvider } from '../utils/useUser';
-import { getTheme } from '../../utils/theme';
+import { getTheme } from '../utils/theme';
 
 
 function MainApp({ Component, pageProps = {}, props }) {
