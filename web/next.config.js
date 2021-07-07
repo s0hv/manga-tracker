@@ -24,6 +24,10 @@ module.exports = (phase, { defaultConfig }) => {
         },
       ];
     },
+    eslint: {
+      // ESLint not in production dependencies
+      ignoreDuringBuilds: true,
+    },
   });
 
   if (process.env.ANALYZE) {
