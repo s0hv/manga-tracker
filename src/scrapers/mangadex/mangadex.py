@@ -192,6 +192,9 @@ class MangaDex(BaseScraperWhole):
         self.dbutil.add_manga_artists(manga_artist)
 
     def get_group_ids_by_mangadex_id(self, group_ids: Sequence[str]) -> Dict[str, int]:
+        if len(group_ids) == 0:
+            return {}
+
         format_args = self.dbutil.get_format_args(group_ids)
         sql = f'SELECT mangadex_id, group_id FROM groups WHERE mangadex_id IN ({format_args})'
         result: Dict[str, int] = {}
