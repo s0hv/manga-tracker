@@ -81,7 +81,7 @@ class MangadexResult(GenericModel, Generic[DataT]):
 class ChapterAttributes(BaseModel):
     volume: Optional[str]
     chapter: Optional[str]
-    title: str
+    title: Optional[str]
     publish_at: datetime = Field(..., alias='publishAt')
 
 

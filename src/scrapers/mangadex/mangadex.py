@@ -19,7 +19,7 @@ logger = logging.getLogger('debug')
 
 class Chapter(BaseChapterSimple):
     def __init__(self, chapter_number: Optional[str], chapter_identifier: str,
-                 manga_id: str, release_date: datetime, chapter_title: str,
+                 manga_id: str, release_date: datetime, chapter_title: Optional[str],
                  volume: Optional[str] = None,
                  group: Optional[MangadexData[ScanlationGroupAttributes]] = None,
                  manga_title: Optional[str] = None,
