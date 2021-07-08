@@ -806,6 +806,9 @@ class DbUtil:
         """
         Returns the manga ids that do not have an artist assigned to them
         """
+        if not manga_ids:
+            return set()
+
         format_args = self.get_format_args(manga_ids)
         sql = f'SELECT manga_id FROM manga_artists WHERE manga_id IN ({format_args})'
         cur.execute(sql, list(manga_ids))
@@ -816,6 +819,9 @@ class DbUtil:
         """
         Returns the manga ids that do not have an author assigned to them
         """
+        if not manga_ids:
+            return set()
+
         format_args = self.get_format_args(manga_ids)
         sql = f'SELECT manga_id FROM manga_authors WHERE manga_id IN ({format_args})'
         cur.execute(sql, list(manga_ids))

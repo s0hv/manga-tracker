@@ -28,10 +28,17 @@ class Chapter(BaseChapterSimple):
             _chapter_number = 0
             _decimal = None
         else:
-            # Split chapter number to decimal part and integer part
-            n = list(map(int, chapter_number.split('.')))
-            _chapter_number = n[0]
-            _decimal = None if len(n) == 1 else n[1]
+            try:
+                # Split chapter number to decimal part and integer part
+                n = list(map(int, chapter_number.split('.')))
+            except ValueError:
+                if chapter_number.lower() not in ('prologue', 'special'):
+                    logger.warning(f'Failed to parse chapter number {chapter_number} for {manga_id}')
+                _chapter_number = 0
+                _decimal = None
+            else:
+                _chapter_number = n[0]
+                _decimal = None if len(n) == 1 else n[1]
 
         try:
             _volume = int(volume) if volume is not None else None
