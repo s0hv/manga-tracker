@@ -13,19 +13,22 @@ import typing_extensions
 
 DESCRIPTOR: google.protobuf.descriptor.FileDescriptor = ...
 
+class Action(metaclass=_Action):
+    V = typing.NewType('V', builtins.int)
+
 global___Action = Action
-class _Action(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[Action.V], builtins.type):
+
+DEFAULT = Action.V(0)
+UNAUTHORIZED = Action.V(1)
+MAINTENANCE = Action.V(2)
+GEOIP_BLOCKING = Action.V(3)
+
+class _Action(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[Action.V], builtins.type):  # type: ignore
     DESCRIPTOR: google.protobuf.descriptor.EnumDescriptor = ...
     DEFAULT = Action.V(0)
     UNAUTHORIZED = Action.V(1)
     MAINTENANCE = Action.V(2)
     GEOIP_BLOCKING = Action.V(3)
-class Action(metaclass=_Action):
-    V = typing.NewType('V', builtins.int)
-DEFAULT = Action.V(0)
-UNAUTHORIZED = Action.V(1)
-MAINTENANCE = Action.V(2)
-GEOIP_BLOCKING = Action.V(3)
 
 class UpdatedTitle(google.protobuf.message.Message):
     DESCRIPTOR: google.protobuf.descriptor.Descriptor = ...
@@ -99,14 +102,16 @@ global___Popup = Popup
 
 class Title(google.protobuf.message.Message):
     DESCRIPTOR: google.protobuf.descriptor.Descriptor = ...
-    class _Language(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[Language.V], builtins.type):
+    class Language(metaclass=_Language):
+        V = typing.NewType('V', builtins.int)
+
+    ENGLISH = Title.Language.V(0)
+    SPANISH = Title.Language.V(1)
+
+    class _Language(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[Language.V], builtins.type):  # type: ignore
         DESCRIPTOR: google.protobuf.descriptor.EnumDescriptor = ...
         ENGLISH = Title.Language.V(0)
         SPANISH = Title.Language.V(1)
-    class Language(metaclass=_Language):
-        V = typing.NewType('V', builtins.int)
-    ENGLISH = Title.Language.V(0)
-    SPANISH = Title.Language.V(1)
 
     TITLE_ID_FIELD_NUMBER: builtins.int
     NAME_FIELD_NUMBER: builtins.int
@@ -168,7 +173,20 @@ global___Chapter = Chapter
 
 class TitleDetailView(google.protobuf.message.Message):
     DESCRIPTOR: google.protobuf.descriptor.Descriptor = ...
-    class _UpdateTiming(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[UpdateTiming.V], builtins.type):
+    class UpdateTiming(metaclass=_UpdateTiming):
+        V = typing.NewType('V', builtins.int)
+
+    NOT_REGULARLY = TitleDetailView.UpdateTiming.V(0)
+    MONDAY = TitleDetailView.UpdateTiming.V(1)
+    TUESDAY = TitleDetailView.UpdateTiming.V(2)
+    WEDNESDAY = TitleDetailView.UpdateTiming.V(3)
+    THURSDAY = TitleDetailView.UpdateTiming.V(4)
+    FRIDAY = TitleDetailView.UpdateTiming.V(5)
+    SATURDAY = TitleDetailView.UpdateTiming.V(6)
+    SUNDAY = TitleDetailView.UpdateTiming.V(7)
+    DAY = TitleDetailView.UpdateTiming.V(8)
+
+    class _UpdateTiming(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[UpdateTiming.V], builtins.type):  # type: ignore
         DESCRIPTOR: google.protobuf.descriptor.EnumDescriptor = ...
         NOT_REGULARLY = TitleDetailView.UpdateTiming.V(0)
         MONDAY = TitleDetailView.UpdateTiming.V(1)
@@ -179,17 +197,6 @@ class TitleDetailView(google.protobuf.message.Message):
         SATURDAY = TitleDetailView.UpdateTiming.V(6)
         SUNDAY = TitleDetailView.UpdateTiming.V(7)
         DAY = TitleDetailView.UpdateTiming.V(8)
-    class UpdateTiming(metaclass=_UpdateTiming):
-        V = typing.NewType('V', builtins.int)
-    NOT_REGULARLY = TitleDetailView.UpdateTiming.V(0)
-    MONDAY = TitleDetailView.UpdateTiming.V(1)
-    TUESDAY = TitleDetailView.UpdateTiming.V(2)
-    WEDNESDAY = TitleDetailView.UpdateTiming.V(3)
-    THURSDAY = TitleDetailView.UpdateTiming.V(4)
-    FRIDAY = TitleDetailView.UpdateTiming.V(5)
-    SATURDAY = TitleDetailView.UpdateTiming.V(6)
-    SUNDAY = TitleDetailView.UpdateTiming.V(7)
-    DAY = TitleDetailView.UpdateTiming.V(8)
 
     TITLE_FIELD_NUMBER: builtins.int
     TITLE_IMAGE_URL_FIELD_NUMBER: builtins.int
@@ -283,7 +290,7 @@ class SuccessResult(google.protobuf.message.Message):
         ) -> None: ...
     def HasField(self, field_name: typing_extensions.Literal[u"all_titles",b"all_titles",u"result",b"result",u"title_detail",b"title_detail",u"web_home_view",b"web_home_view"]) -> builtins.bool: ...
     def ClearField(self, field_name: typing_extensions.Literal[u"all_titles",b"all_titles",u"result",b"result",u"title_detail",b"title_detail",u"web_home_view",b"web_home_view"]) -> None: ...
-    def WhichOneof(self, oneof_group: typing_extensions.Literal[u"result",b"result"]) -> typing_extensions.Literal["all_titles","title_detail","web_home_view"]: ...
+    def WhichOneof(self, oneof_group: typing_extensions.Literal[u"result",b"result"]) -> typing.Optional[typing_extensions.Literal["all_titles","title_detail","web_home_view"]]: ...
 global___SuccessResult = SuccessResult
 
 class ErrorResult(google.protobuf.message.Message):
