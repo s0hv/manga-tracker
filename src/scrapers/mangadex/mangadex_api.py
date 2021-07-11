@@ -246,12 +246,18 @@ GenericMangadexResults = TypeVar('GenericMangadexResults', bound=MangadexResult)
 
 
 # noinspection PyPep8Naming
-def request_to_model(r: requests.Response, Model: Type[GenericResults]) -> Iterable[GenericResults]:
+def request_to_model(r: requests.Response, Model: Type[GenericResults], continue_on_error: bool = False) -> Iterable[GenericResults]:
     for result in handle_response(r)['results']:
         try:
             yield Model(**result)
         except ValidationError:
             logger.warning(f'Failed to parse result for model {Model.__name__} {result}', exc_info=True)
+        except Exception as e:
+            logger.exception(f'Unexpected error when parsing model {Model.__name__} {result}')
+            if continue_on_error:
+                continue
+
+            raise e
 
 
 api_rate_limiter = rate_limited(5, 1)
@@ -292,7 +298,7 @@ class MangadexAPI:
 
         r = requests.get(f'{self.base_url}/manga?{"&".join(params)}')
 
-        return request_to_model(r, MangaResult)
+        return request_to_model(r, MangaResult, continue_on_error=True)
 
     @sleep_and_retry
     @api_rate_limiter

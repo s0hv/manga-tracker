@@ -96,17 +96,22 @@ class MangaDex(BaseScraperWhole):
                 logger.warning(f'Chapter not ok {chapter}')
                 continue
 
-            # Mypy thinks attrs is of type DataT which makes no sense as DataT is a TypeVar
-            attrs: ChapterAttributes = chapter.data.attributes  # type: ignore[assignment]
-            chapters.append(Chapter(
-                attrs.chapter,
-                chapter.data.id,
-                chapter.manga_id,
-                attrs.publish_at,
-                attrs.title,
-                attrs.volume,
-                chapter.group
-            ))
+            try:
+                # Mypy thinks attrs is of type DataT which makes no sense as DataT is a TypeVar
+                attrs: ChapterAttributes = chapter.data.attributes  # type: ignore[assignment]
+                chapters.append(Chapter(
+                    attrs.chapter,
+                    chapter.data.id,
+                    chapter.manga_id,
+                    attrs.publish_at,
+                    attrs.title,
+                    attrs.volume,
+                    chapter.group
+                ))
+            except:
+                logger.exception(f'Failed to parse chapter {chapter}')
+                continue
+
         return chapters
 
     def update_manga_info_and_title(self, mangas: Dict[int, MangaResult]):
