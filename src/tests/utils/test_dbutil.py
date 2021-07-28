@@ -631,7 +631,7 @@ class TestUpdateInterval(BaseDbutilTest):
 
         def get_chapter(decimal: int = None) -> ChapterModel:
             chapter = self.get_chapter(m, chapter_number)
-            chapter.chapter_decimal = decimal
+            chapter.chapter_decimal = decimal  # type: ignore[assignment]
 
             return chapter
 
@@ -768,7 +768,7 @@ class TestUpdateInterval(BaseDbutilTest):
 
             chapter = self.get_chapter(m, chapter_number, t)
             if decimal:
-                chapter.chapter_decimal = decimal
+                chapter.chapter_decimal = decimal # type: ignore[assignment]
                 decimal = None
             else:
                 decimal = 5
