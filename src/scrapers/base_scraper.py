@@ -9,6 +9,7 @@ from typing import (Optional, TYPE_CHECKING, ClassVar, Set, Dict, List,
                     Sequence, Iterable, TypeVar, Mapping, cast, Collection)
 
 import psycopg2
+import pydantic
 from psycopg2.extensions import connection as Connection
 
 from src.db.mappers.chapter_mapper import ChapterMapper
@@ -375,10 +376,13 @@ class BaseScraper(abc.ABC):
         for manga in self.dbutil.add_new_manga_and_check_duplicate_titles(mangas):
             manga_ids.add(manga.manga_id)
             for chapter in titles.get(manga.title_id, []):
-                chapters.append(
-                    ChapterMapper.base_chapter_to_db(chapter, manga.manga_id,
-                                                     service_id)
-                )
+                try:
+                    chapters.append(
+                        ChapterMapper.base_chapter_to_db(chapter, manga.manga_id,
+                                                         service_id)
+                    )
+                except pydantic.ValidationError:
+                    logger.exception(f'Failed to map chapter {chapter} to db model')
 
     def get_new_entries(self, service_id: int, entries: Collection[ScraperChapter]) -> Optional[Collection[ScraperChapter]]:
         """
