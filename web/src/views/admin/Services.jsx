@@ -51,7 +51,6 @@ function Services(props) {
         'ASAP'),
       EditCell: ({ row, state, cell }) => (
         <EditableDateTimePicker
-          clearable
           variant='inline'
           ampm={false}
           value={row.values.nextUpdate}

@@ -14,6 +14,20 @@ Array [
       className="MuiTable-root"
       role="table"
     >
+      <colgroup>
+        <col
+          key="id"
+        />
+        <col
+          key="editableString"
+        />
+        <col
+          key="editableTime"
+        />
+        <col
+          key="editableCheckbox"
+        />
+      </colgroup>
       <thead
         className="MuiTableHead-root makeStyles-tableHead-2"
         role={null}
@@ -229,6 +243,7 @@ Array [
               className="makeStyles-editCell-1"
             >
               <button
+                aria-label="edit row"
                 className="MuiButtonBase-root MuiIconButton-root"
                 disabled={false}
                 name="edit"
@@ -347,6 +362,7 @@ Array [
               className="makeStyles-editCell-1"
             >
               <button
+                aria-label="edit row"
                 className="MuiButtonBase-root MuiIconButton-root"
                 disabled={false}
                 name="edit"
@@ -465,6 +481,7 @@ Array [
               className="makeStyles-editCell-1"
             >
               <button
+                aria-label="edit row"
                 className="MuiButtonBase-root MuiIconButton-root"
                 disabled={false}
                 name="edit"
@@ -591,6 +608,20 @@ Array [
       className="MuiTable-root"
       role="table"
     >
+      <colgroup>
+        <col
+          key="id"
+        />
+        <col
+          key="editableString"
+        />
+        <col
+          key="editableTime"
+        />
+        <col
+          key="editableCheckbox"
+        />
+      </colgroup>
       <thead
         className="MuiTableHead-root makeStyles-tableHead-2"
         role={null}

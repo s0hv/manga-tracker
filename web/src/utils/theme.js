@@ -1,7 +1,7 @@
-import { responsiveFontSizes, createMuiTheme } from '@material-ui/core/styles';
+import { responsiveFontSizes, createTheme } from '@material-ui/core/styles';
 import { blue } from '@material-ui/core/colors';
 
-export const getTheme = (prefersDark) => responsiveFontSizes(createMuiTheme({
+export const getTheme = (prefersDark) => responsiveFontSizes(createTheme({
   palette: {
     type: prefersDark ? 'dark' : 'light',
     primary: blue,

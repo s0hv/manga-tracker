@@ -72,6 +72,20 @@ function ChapterList(props) {
 
   const columns = useMemo(() => [
     {
+      Header: 'Ch.',
+      accessor: 'chapterNumber',
+      canEdit: false,
+      width: '50px',
+      Cell: ({ row }) => {
+        const {
+          chapterNumber,
+          chapterDecimal,
+        } = row.original;
+
+        return `${chapterNumber}${typeof chapterDecimal === 'number' ? '.' + chapterDecimal : ''}`;
+      },
+    },
+    {
       Header: 'Title',
       accessor: 'title',
       disableSortBy: true,
@@ -82,19 +96,6 @@ function ChapterList(props) {
           </span>
         </Link>
       ),
-    },
-    {
-      Header: 'Chapter',
-      accessor: 'chapterNumber',
-      canEdit: false,
-      Cell: ({ row }) => {
-        const {
-          chapterNumber,
-          chapterDecimal,
-        } = row.original;
-
-        return `${chapterNumber}${typeof chapterDecimal === 'number' ? '.' + chapterDecimal : ''}`;
-      },
     },
     {
       Header: 'Released',

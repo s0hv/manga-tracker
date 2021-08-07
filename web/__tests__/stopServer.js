@@ -1,4 +1,4 @@
-export default async (httpServer) => {
+export default async function stopServer(httpServer) {
   console.log('Closing server');
   const { pgp } = require('../db');
   const elasticsearch = require('../db/elasticsearch');
@@ -9,4 +9,4 @@ export default async (httpServer) => {
   await pgp.end();
   await elasticsearch.close();
   jest.clearAllTimers();
-};
+}

@@ -172,10 +172,15 @@ function useInstance(instance) {
 }
 
 function DefaultEditCell({ value, cell, state }) {
+  let name = cell.column.Header;
+  if (typeof name !== 'string') {
+    name = cell.column.id;
+  }
   return (
     <Input
       defaultValue={value}
       onChange={(event => processCellEdit(event.target.value, state.rowEditStates, cell))}
+      aria-label={`${name} input`}
     />
   );
 }
@@ -236,15 +241,15 @@ function visibleColumns(columns, { instance }) {
         return (
           <div className={classes.editCell}>
             {!row.beingEdited ? (
-              <IconButton onClick={() => onStartEdit(row)} name='edit'>
+              <IconButton onClick={() => onStartEdit(row)} name='edit' aria-label='edit row'>
                 <EditIcon />
               </IconButton>
             ) : (
               <>
-                <IconButton name='save' onClick={() => onSaveEdit(row, state, inst)}>
+                <IconButton name='save' onClick={() => onSaveEdit(row, state, inst)} aria-label='save row'>
                   <SaveIcon />
                 </IconButton>
-                <IconButton name='cancel' onClick={() => onCancelEdit(row, state, inst)}>
+                <IconButton name='cancel' onClick={() => onCancelEdit(row, state, inst)} aria-label='cancel edit'>
                   <CancelIcon />
                 </IconButton>
               </>

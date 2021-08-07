@@ -35,7 +35,7 @@ exports[`Manga page should render correctly Should render correctly as admin 1`]
       <WithStyles(ForwardRef(Grid))
         className="makeStyles-rootGrid-11"
         container={true}
-        justify="space-between"
+        justifyContent="space-between"
       >
         <WithStyles(ForwardRef(Grid))
           className="makeStyles-infoGrid-10"
@@ -186,7 +186,7 @@ exports[`Manga page should render correctly should render correctly 1`] = `
       <WithStyles(ForwardRef(Grid))
         className="makeStyles-rootGrid-11"
         container={true}
-        justify="space-between"
+        justifyContent="space-between"
       >
         <WithStyles(ForwardRef(Grid))
           className="makeStyles-infoGrid-10"
@@ -337,7 +337,7 @@ exports[`Manga page should render correctly should render correctly when logged 
       <WithStyles(ForwardRef(Grid))
         className="makeStyles-rootGrid-11"
         container={true}
-        justify="space-between"
+        justifyContent="space-between"
       >
         <WithStyles(ForwardRef(Grid))
           className="makeStyles-infoGrid-10"
@@ -488,7 +488,7 @@ exports[`Manga page should render correctly should render correctly with little 
       <WithStyles(ForwardRef(Grid))
         className="makeStyles-rootGrid-11"
         container={true}
-        justify="space-between"
+        justifyContent="space-between"
       >
         <WithStyles(ForwardRef(Grid))
           className="makeStyles-infoGrid-10"

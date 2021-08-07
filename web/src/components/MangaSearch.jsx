@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { IconButton, InputBase, Popper } from '@material-ui/core';
-import { fade, makeStyles } from '@material-ui/core/styles';
+import { alpha, makeStyles } from '@material-ui/core/styles';
 import Autocomplete from '@material-ui/lab/Autocomplete';
 import PropTypes from 'prop-types';
 
@@ -14,9 +14,9 @@ const useStyles = makeStyles((theme) => ({
   search: {
     position: 'relative',
     borderRadius: theme.shape.borderRadius,
-    backgroundColor: fade(theme.palette.common.white, 0.15),
+    backgroundColor: alpha(theme.palette.common.white, 0.15),
     '&:hover': {
-      backgroundColor: fade(theme.palette.common.white, 0.25),
+      backgroundColor: alpha(theme.palette.common.white, 0.25),
     },
     width: 'auto',
     [theme.breakpoints.down(400)]: {
@@ -79,11 +79,19 @@ export default function MangaSearch(props) {
   }, []);
 
   const handleValueChange = useCallback((e, newValue) => {
+    // If no option has been selected on change, use the first option
+    if (typeof newValue === 'string') {
+      if (options.length === 0) {
+        return;
+      }
+
+      newValue = options[0];
+    }
     if (clearOnClick) {
       setValue('');
     }
     return onChange(newValue);
-  }, [clearOnClick, onChange]);
+  }, [clearOnClick, onChange, options]);
 
   const throttleFetch = useMemo(
     () => throttle((query, cb) => {
@@ -128,7 +136,7 @@ export default function MangaSearch(props) {
       options={options}
       renderOption={renderListOption}
       clearOnBlur={false}
-      getOptionLabel={(option => option.title)}
+      getOptionLabel={(option => (typeof option === 'string' ? option : option.title))}
       filterOptions={(o) => o}
       id={id}
       value={null}

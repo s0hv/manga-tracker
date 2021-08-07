@@ -135,11 +135,12 @@ function MergeManga() {
     <Container maxWidth='xl' component={Paper} className={classes.root}>
       <Grid
         container
-        justify='space-between'
+        justifyContent='space-between'
         wrap='nowrap'
       >
         <div className={classes.mangaView}>
           <Search
+            id='base-manga-search'
             inputClasses={{
               input: classes.searchInput,
               root: classes.inputRoot,
@@ -159,6 +160,7 @@ function MergeManga() {
         </div>
         <div className={classes.mangaView}>
           <Search
+            id='to-merge-manga-search'
             inputClasses={{
               input: classes.searchInput,
               root: classes.inputRoot,

@@ -65,7 +65,7 @@ function MangaSourceList(props) {
             variant='contained'
             color='primary'
             onClick={followUnfollow(item.serviceId)}
-            name={`Follow ${item.name}`}
+            aria-label={`Follow ${item.name}`}
           >
             {userFollows.indexOf(item.serviceId) < 0 ? 'Follow' : 'Unfollow'}
           </Button>
@@ -80,12 +80,17 @@ function MangaSourceList(props) {
       aria-label='manga sources'
       className={`${classes.root} ${classesProp.join(' ')}`}
     >
-      <ListItem button onClick={handleClick} className={classes.mainItem}>
+      <ListItem
+        button
+        onClick={handleClick}
+        className={classes.mainItem}
+        aria-label={`${open ? 'close' : 'open'} follows`}
+      >
         <ListItemText primary='Manga sources' className={classes.listOpener} />
         {open ? <ExpandLess /> : <ExpandMore />}
       </ListItem>
       <Collapse in={open} timeout='auto' unmountOnExit>
-        <List component='div' disablePadding>
+        <List component='div' disablePadding aria-hidden={!open}>
           {items.map((item, index) => renderItem(item, index))}
         </List>
       </Collapse>
