@@ -1,9 +1,10 @@
 import React from 'react';
-import { createMount, createShallow } from '@material-ui/core/test-utils';
 import { createSerializer } from 'enzyme-to-json';
-import 'jest-extended';
-import { Collapse } from '@material-ui/core';
+import { render, screen } from '@testing-library/react';
 
+import 'jest-extended';
+
+import userEvent from '@testing-library/user-event';
 import MangaSourceList from '../../src/components/MangaSourceList';
 import { normalUser, withUser } from '../utils';
 
@@ -36,13 +37,13 @@ const follows = [1];
 
 describe('Manga source list', () => {
   it('Should render correctly without input', () => {
-    const wrapper = createMount()(<MangaSourceList />);
+    render(<MangaSourceList />);
 
-    expect(wrapper).toMatchSnapshot();
+    expect(screen.queryByRole('listitem')).not.toBeInTheDocument();
   });
 
   it('Should render correctly with items without user', () => {
-    const wrapper = createMount()(
+    render(
       <MangaSourceList
         items={services}
         classesProp={['test-class-1', 'test-class-2']}
@@ -50,21 +51,24 @@ describe('Manga source list', () => {
       />
     );
 
-    expect(wrapper).toMatchSnapshot();
+    expect(screen.queryAllByRole('listitem')).toHaveLength(services.length);
+    expect(screen.queryByRole('button', { name: /follow /i })).not.toBeInTheDocument();
   });
 
   it('Should render correctly with items and user', async () => {
-    const elem = await withUser(normalUser, (
-      <MangaSourceList
-        items={services}
-        userFollows={follows}
-        classesProp={['test-class-1', 'test-class-2']}
-        openByDefault
-      />
-    ));
+    render(
+      await withUser(normalUser, (
+        <MangaSourceList
+          items={services}
+          userFollows={follows}
+          classesProp={['test-class-1', 'test-class-2']}
+          openByDefault
+        />
+      ))
+    );
 
-    const wrapper = createMount()(elem);
-    expect(wrapper).toMatchSnapshot();
+    expect(screen.queryAllByRole('listitem')).toHaveLength(services.length);
+    expect(screen.queryAllByRole('button', { name: /follow /i })).toHaveLength(services.length);
   });
 
   it('should fail to render with invalid services', () => {
@@ -74,7 +78,7 @@ describe('Manga source list', () => {
       serviceId: 3,
     }];
 
-    expect(() => createShallow()(
+    expect(() => render(
       <MangaSourceList
         items={invalid}
         classesProp={['test-class-1', 'test-class-2']}
@@ -90,43 +94,53 @@ describe('Manga source list should handle user input', () => {
     const createEvent = jest.fn();
     createEvent.mockImplementation(() => followUnfollow);
 
-    const elem = await withUser(normalUser, (
-      <MangaSourceList
-        items={services}
-        userFollows={follows}
-        classesProp={['test-class-1', 'test-class-2']}
-        followUnfollow={createEvent}
-        openByDefault
-      />
-    ));
+    render(
+      await withUser(normalUser, (
+        <MangaSourceList
+          items={services}
+          userFollows={follows}
+          classesProp={['test-class-1', 'test-class-2']}
+          followUnfollow={createEvent}
+          openByDefault
+        />
+      ))
+    );
 
-    const wrapper = createMount()(elem);
     expect(createEvent).toHaveBeenCalledTimes(services.length);
     expect(followUnfollow).toHaveBeenCalledTimes(0);
 
-    wrapper.find('button').first().simulate('click');
+    userEvent.click(
+      screen.getByRole(
+        'button',
+        { name: new RegExp(`follow ${services[0].name}`, 'i') }
+      )
+    );
     expect(followUnfollow).toHaveBeenCalledTimes(1);
   });
 
   it('Should open and close collapsed list on clicks', async () => {
-    const elem = await withUser(normalUser, (
-      <MangaSourceList
-        items={services}
-        userFollows={follows}
-        classesProp={['test-class-1', 'test-class-2']}
-      />
-    ));
+    render(
+      await withUser(normalUser, (
+        <MangaSourceList
+          items={services}
+          userFollows={follows}
+          classesProp={['test-class-1', 'test-class-2']}
+        />
+      ))
+    );
 
-    const wrapper = createMount()(elem);
-    expect(wrapper.exists('button')).toBeFalse();
+    expect(screen.queryByRole('listitem')).not.toBeInTheDocument();
 
-    wrapper.find('div[role="button"]').simulate('click');
+    userEvent.click(
+      screen.getByRole('button', { name: /open follows/i })
+    );
 
-    expect(wrapper.exists('button')).toBeTrue();
+    expect(screen.queryAllByRole('button', { name: /follow /i })).toHaveLength(services.length);
 
-    wrapper.find('div[role="button"]').simulate('click');
+    userEvent.click(
+      screen.getByRole('button', { name: /close follows/i })
+    );
 
-    // Make sure collapse was updated to false
-    expect(wrapper.find(Collapse).exists({ in: false })).toBeTrue();
+    expect(screen.queryByRole('listitem')).not.toBeInTheDocument();
   });
 });

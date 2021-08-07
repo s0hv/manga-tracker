@@ -178,7 +178,7 @@ function Manga(props) {
           </a>
           <Grid
             container
-            justify='space-between'
+            justifyContent='space-between'
             className={classes.rootGrid}
           >
             <Grid

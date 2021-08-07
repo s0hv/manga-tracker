@@ -1,70 +1,13 @@
 import React from 'react';
 import fetchMock from 'fetch-mock';
-import { createMount, createShallow } from '@material-ui/core/test-utils';
-import { act } from '@testing-library/react';
 
-import { editInput, mockUTCDates, mockNotistackHooks } from '../utils';
+import { act, render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+
+import { mockNotistackHooks } from '../utils';
 import ChapterList from '../../src/components/ChapterList';
 
 mockNotistackHooks();
-
-describe('Chapter list should render correctly', () => {
-  mockUTCDates();
-  const chapters = [
-    {
-      title: 'Z=157: Same Time, Same Place',
-      chapterNumber: 157,
-      releaseDate: new Date(1593964800000),
-      group: 'Shueisha',
-      serviceId: 1,
-      chapterUrl: 'https://mangaplus.shueisha.co.jp/titles/1007322',
-    },
-    {
-      title: 'Z=156: Two Scientists',
-      chapterNumber: 156,
-      releaseDate: new Date(null),
-      group: 'MangaPlus',
-      serviceId: 2,
-      chapterUrl: 'https://mangadex.org/title/938629',
-    },
-    {
-      title: 'Z=156: Two Scientists',
-      chapterNumber: 156,
-      releaseDate: new Date(1593187200000),
-      group: 'Shueisha',
-      serviceId: 1,
-      chapterUrl: 'https://mangaplus.shueisha.co.jp/titles/1007024',
-    },
-  ];
-
-  it('with chapters', () => {
-    const wrapper = createShallow()(
-      <ChapterList chapters={chapters} />
-    );
-
-    expect(wrapper).toMatchSnapshot();
-  });
-
-  it('without chapters', () => {
-    const wrapper = createShallow()(
-      <ChapterList chapters={[]} />
-    );
-
-    expect(wrapper).toMatchSnapshot();
-
-    expect(() => createShallow()(
-      <ChapterList chapters={null} />
-    )).not.toThrow();
-  });
-
-  it('with chapters and edit', () => {
-    const wrapper = createShallow()(
-      <ChapterList chapters={chapters} editable />
-    );
-
-    expect(wrapper).toMatchSnapshot();
-  });
-});
 
 describe('Chapter list should allow editing', () => {
   const testChapter = {
@@ -103,20 +46,30 @@ describe('Chapter list should allow editing', () => {
     const chapters = [testChapter];
     mockChapters(chapters);
 
+    const addedCharacters = 'test';
     const updatedChapter = {
-      title: 'Test edit',
+      title: chapters[0].title + addedCharacters,
     };
 
-    const wrapper = createMount()(<ChapterList chapters={chapters} editable mangaId={mangaId} />);
-    wrapper.find('button[name="edit"]').simulate('click');
+    await act(async () => {
+      render(
+        <ChapterList
+          chapters={chapters}
+          mangaId={mangaId}
+          editable
+        />
+      );
+    });
 
-    await editInput(
-      wrapper.find('input').find({ defaultValue: testChapter.title }),
-      updatedChapter.title
+    userEvent.click(screen.getByRole('button', { name: /edit row/i }));
+
+    await userEvent.type(
+      screen.getByLabelText(/title input/i),
+      addedCharacters
     );
 
     await act(async () => {
-      wrapper.find('button[name="save"]').simulate('click');
+      userEvent.click(screen.getByRole('button', { name: /save row/i }));
     });
 
     expect(postMock).toHaveBeenCalledTimes(1);
@@ -133,20 +86,22 @@ describe('Chapter list should allow editing', () => {
     const chapters = [testChapter];
     mockChapters(chapters);
 
-    const wrapper = createMount()(<ChapterList
-      chapters={chapters}
-      editable
-      mangaId={mangaId}
-      serviceUrlFormats={serviceUrlFormats}
-    />);
-    wrapper.find('button[name="edit"]').simulate('click');
+    await act(async () => {
+      render(<ChapterList
+        chapters={chapters}
+        editable
+        mangaId={mangaId}
+        serviceUrlFormats={serviceUrlFormats}
+      />);
+    });
+    userEvent.click(screen.getByRole('button', { name: /edit row/i }));
 
     await act(async () => {
-      wrapper.find('button[name="delete"]').simulate('click');
+      userEvent.click(screen.getByRole('button', { name: /delete row/i }));
     });
-    wrapper.update();
+
     await act(async () => {
-      wrapper.find('button[aria-label="Confirm delete row"]').simulate('click');
+      userEvent.click(screen.getByRole('button', { name: /confirm delete row/i }));
     });
 
     expect(deleteMock).toHaveBeenCalledTimes(1);
@@ -155,31 +110,36 @@ describe('Chapter list should allow editing', () => {
   it('Should update data when chapters prop changes', async () => {
     mockChapters([]);
 
-    let wrapper = null;
+    let rerender;
     await act(async () => {
-      wrapper = createMount()(
+      const retVal = render(
         <ChapterList
           chapters={[]}
           mangaId={mangaId}
           serviceUrlFormats={serviceUrlFormats}
         />
       );
+      rerender = retVal.rerender;
     });
-    expect(wrapper.exists('td')).toBeFalse();
+    expect(screen.queryByRole('cell')).not.toBeInTheDocument();
 
-    wrapper.setProps({ chapters: [testChapter]});
-    wrapper.update();
+    rerender(
+      <ChapterList
+        chapters={[testChapter]}
+        mangaId={mangaId}
+        serviceUrlFormats={serviceUrlFormats}
+      />
+    );
 
-    expect(wrapper.exists('td')).toBeTrue();
+    expect(screen.queryByRole('cell', { name: testChapter.title })).toBeInTheDocument();
   });
 
   it('Should try to fetch chapters', async () => {
     const chapters = [testChapter];
     const chaptersMock = mockChapters(chapters);
 
-    let wrapper = null;
     await act(async () => {
-      wrapper = createMount()(
+      render(
         <ChapterList
           chapters={[]}
           mangaId={mangaId}
@@ -188,10 +148,7 @@ describe('Chapter list should allow editing', () => {
       );
     });
 
-    expect(wrapper).not.toBeNull();
     expect(chaptersMock).toHaveBeenCalledTimes(1);
-
-    wrapper.update();
-    expect(wrapper.exists('td')).toBeTrue();
+    expect(screen.queryByRole('cell', { name: chapters[0].title })).toBeInTheDocument();
   });
 });

@@ -1,4 +1,4 @@
-export default async () => {
+export default async function initServer() {
   jest.mock('./../db/auth', () => ({
     ...jest.requireActual('./../db/auth'),
     requiresUser: jest.fn().mockImplementation(jest.requireActual('./../db/auth').requiresUser),
@@ -32,4 +32,4 @@ export default async () => {
     httpServer,
     addr,
   };
-};
+}

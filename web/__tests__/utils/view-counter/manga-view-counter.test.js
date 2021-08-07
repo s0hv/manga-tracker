@@ -1,5 +1,5 @@
 import { getMangaPartial } from '../../../db/manga';
-import { mangaView, onSessionExpire, } from '../../../utils/view-counter';
+import { mangaView, onSessionExpire } from '../../../utils/view-counter';
 
 
 afterAll(async () => {

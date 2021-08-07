@@ -27,6 +27,13 @@ exports[`Services page should render correctly should render correctly with serv
         className="MuiTable-root"
         role="table"
       >
+        <colgroup>
+          <col />
+          <col />
+          <col />
+          <col />
+          <col />
+        </colgroup>
         <thead
           className="MuiTableHead-root makeStyles-tableHead-2"
           role={null}
@@ -287,6 +294,7 @@ exports[`Services page should render correctly should render correctly with serv
                 className="makeStyles-editCell-1"
               >
                 <button
+                  aria-label="edit row"
                   className="MuiButtonBase-root MuiIconButton-root"
                   disabled={false}
                   name="edit"
@@ -412,6 +420,7 @@ exports[`Services page should render correctly should render correctly with serv
                 className="makeStyles-editCell-1"
               >
                 <button
+                  aria-label="edit row"
                   className="MuiButtonBase-root MuiIconButton-root"
                   disabled={false}
                   name="edit"
@@ -537,6 +546,7 @@ exports[`Services page should render correctly should render correctly with serv
                 className="makeStyles-editCell-1"
               >
                 <button
+                  aria-label="edit row"
                   className="MuiButtonBase-root MuiIconButton-root"
                   disabled={false}
                   name="edit"
@@ -662,6 +672,7 @@ exports[`Services page should render correctly should render correctly with serv
                 className="makeStyles-editCell-1"
               >
                 <button
+                  aria-label="edit row"
                   className="MuiButtonBase-root MuiIconButton-root"
                   disabled={false}
                   name="edit"
@@ -787,6 +798,7 @@ exports[`Services page should render correctly should render correctly with serv
                 className="makeStyles-editCell-1"
               >
                 <button
+                  aria-label="edit row"
                   className="MuiButtonBase-root MuiIconButton-root"
                   disabled={false}
                   name="edit"
@@ -933,6 +945,13 @@ exports[`Services page should render correctly should render correctly without s
         className="MuiTable-root"
         role="table"
       >
+        <colgroup>
+          <col />
+          <col />
+          <col />
+          <col />
+          <col />
+        </colgroup>
         <thead
           className="MuiTableHead-root makeStyles-tableHead-2"
           role={null}

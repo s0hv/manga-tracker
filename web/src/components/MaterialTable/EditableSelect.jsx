@@ -43,7 +43,7 @@ export const EditableSelect = (props) => {
       onChange={handleChange}
     >
       {items.map(item => (
-        <MenuItem value={item.value}>{item.text}</MenuItem>
+        <MenuItem value={item.value} key={item.value}>{item.text}</MenuItem>
       ))}
     </Select>
   );
