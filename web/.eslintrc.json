@@ -45,6 +45,7 @@
         "jest/expect-expect": ["warn", {
             "assertFunctionNames": ["expect", "expect*", "assert*", "request.**.expect"]
         }],
+        "no-unused-vars": ["warn", { "argsIgnorePattern":  "^_" }],
 
         "prefer-template": "off",
         "arrow-parens": "off",
@@ -70,7 +71,6 @@
         "prefer-default-export": "off",
         "import/prefer-default-export": "off",
         "react/jsx-key": "off",
-        "no-unused-vars": "warn",
         "no-unused-expressions": "off",
         "react/display-name": "off",
         "max-classes-per-file": "off",
