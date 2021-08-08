@@ -155,3 +155,8 @@ export const statusToString = (status) => {
       return 'Ongoing';
   }
 };
+
+export const isInteger = (s) => (
+  Number.isInteger(s) ||
+  /^\d+$/.test(s)
+);

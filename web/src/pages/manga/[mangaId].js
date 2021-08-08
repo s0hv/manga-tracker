@@ -3,6 +3,7 @@ import React from 'react';
 
 import Manga from '../../components/Manga';
 import withError from '../../utils/withError';
+import { isInteger } from '../../utils/utilities';
 
 function MangaPage(props) {
   const {
@@ -28,6 +29,10 @@ function MangaPage(props) {
 }
 
 export async function getServerSideProps({ req, params }) {
+  if (!isInteger(params.mangaId)) {
+    return { props: { error: 404 }};
+  }
+
   const { getFullManga } = require('../../../db/manga');
   const { getUserFollows } = require('../../../db/db');
 
