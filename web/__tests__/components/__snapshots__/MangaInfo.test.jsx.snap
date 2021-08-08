@@ -2,6 +2,7 @@
 
 exports[`MangaInfo should render correctly Should render correctly with data 1`] = `
 <table
+  aria-label="manga information"
   className="makeStyles-infoTable-2"
 >
   <tbody>

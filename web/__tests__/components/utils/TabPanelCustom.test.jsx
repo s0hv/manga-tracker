@@ -1,81 +1,84 @@
 import React from 'react';
-import { createMount, createShallow } from '@material-ui/core/test-utils';
+import { render, screen } from '@testing-library/react';
 import { TabPanelCustom } from '../../../src/components/utils/TabPanelCustom';
 
-const DummyComponent = () => <span>test</span>;
+const testId = 'testId';
+const DummyComponent = () => <span data-testid={testId}>test</span>;
 
 describe('TabPanelCustom should handle rerender logic correctly', () => {
   it('Should render when initial index matches value', () => {
-    const wrapper = createShallow()(
+    render(
       <TabPanelCustom value={0} index={0}>
         <DummyComponent />
       </TabPanelCustom>
     );
-    expect(wrapper.exists(DummyComponent)).toBeTrue();
-    expect(wrapper.exists('div[hidden=true]')).toBeFalse();
+    expect(screen.getByTestId(testId)).toBeInTheDocument();
   });
 
   it('Should not render when initial index does not match value', () => {
-    const wrapper = createShallow()(
+    render(
       <TabPanelCustom value={0} index={1}>
         <DummyComponent />
       </TabPanelCustom>
     );
-    expect(wrapper.exists(DummyComponent)).toBeFalse();
-    expect(wrapper.exists('div[hidden=true]')).toBeTrue();
+    expect(screen.queryByTestId(testId)).not.toBeInTheDocument();
   });
 
   it('Should not render when initial index does not match value and norerender is true', () => {
-    const wrapper = createShallow()(
+    render(
       <TabPanelCustom value={0} index={1} noRerenderOnChange>
         <DummyComponent />
       </TabPanelCustom>
     );
-    expect(wrapper.exists(DummyComponent)).toBeFalse();
-    expect(wrapper.exists('div[hidden=false]')).toBeTrue();
+    expect(screen.queryByTestId(testId)).not.toBeInTheDocument();
   });
 
   it('Should hide and not render the element on change', () => {
-    const wrapper = createShallow()(
+    const { rerender } = render(
       <TabPanelCustom value={0} index={0}>
         <DummyComponent />
       </TabPanelCustom>
     );
-    expect(wrapper.exists(DummyComponent)).toBeTrue();
-    expect(wrapper.exists('div[hidden=false]')).toBeTrue();
+    expect(screen.getByTestId(testId)).toBeInTheDocument();
 
-    wrapper.setProps({ value: 1 });
-    wrapper.update();
+    rerender(
+      <TabPanelCustom value={1} index={0}>
+        <DummyComponent />
+      </TabPanelCustom>
+    );
 
-    expect(wrapper.exists(DummyComponent)).toBeFalse();
-    expect(wrapper.exists('div[hidden=true]')).toBeTrue();
+    expect(screen.queryByTestId(testId)).not.toBeInTheDocument();
   });
 
   it('Should hide the element while keeping it rendered on change with noRerenderOnChange', () => {
-    // https://github.com/enzymejs/enzyme/issues/2086
-    const wrapper = createMount()(
+    const { rerender } = render(
       <TabPanelCustom value={0} index={0} noRerenderOnChange>
         <DummyComponent />
       </TabPanelCustom>
     );
-    expect(wrapper.exists(DummyComponent)).toBeTrue();
-    expect(wrapper.exists('div[hidden=false]')).toBeTrue();
+    expect(screen.getByTestId(testId)).toBeInTheDocument();
 
-    wrapper.setProps({ value: 1 });
-    wrapper.update();
+    rerender(
+      <TabPanelCustom value={1} index={0} noRerenderOnChange>
+        <DummyComponent />
+      </TabPanelCustom>
+    );
 
-    expect(wrapper.exists(DummyComponent)).toBeTrue();
-    expect(wrapper.exists('div[hidden=false]')).toBeTrue();
+    expect(screen.getByTestId(testId)).toBeInTheDocument();
 
-    let style = wrapper.find('div[hidden=false]').get(0).props.style;
-    expect(style).toHaveProperty('display', 'none');
+    // The panel should still exist in the document tree as hidden
+    expect(screen.getByRole('tabpanel', { hidden: true }).style)
+      .toHaveProperty('display', 'none');
 
-    wrapper.setProps({ value: 0 });
-    wrapper.update();
+    rerender(
+      <TabPanelCustom value={0} index={0} noRerenderOnChange>
+        <DummyComponent />
+      </TabPanelCustom>
+    );
 
-    expect(wrapper.exists(DummyComponent)).toBeTrue();
-    expect(wrapper.exists('div[hidden=false]')).toBeTrue();
-    style = wrapper.find('div[hidden=false]').get(0).props.style;
-    expect(style).toHaveProperty('display', undefined);
+    expect(screen.getByTestId(testId)).toBeInTheDocument();
+
+    expect(screen.getByRole('tabpanel').style)
+      .toHaveProperty('display', '');
   });
 });

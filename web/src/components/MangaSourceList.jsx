@@ -41,7 +41,7 @@ const useStyles = makeStyles((theme) => ({
 function MangaSourceList(props) {
   const {
     items = [],
-    followUnfollow = () => undefined,
+    followUnfollow = (_) => undefined,
     userFollows = [],
     classesProp = [],
     openByDefault = false,
@@ -76,7 +76,6 @@ function MangaSourceList(props) {
 
   return (
     <List
-      component='nav'
       aria-label='manga sources'
       className={`${classes.root} ${classesProp.join(' ')}`}
     >

@@ -43,7 +43,7 @@ const MangaInfo = ({ mangaData, showId = false }) => {
 
   const classes = useStyles();
   return (
-    <table className={classes.infoTable}>
+    <table className={classes.infoTable} aria-label='manga information'>
       <tbody>
         {showId && (
           <tr>

@@ -135,7 +135,7 @@ function Manga(props) {
       });
   }, [manga.mangaId]);
 
-  const { isAuthenticated, user } = useUser();
+  const { isAuthenticated, isAdmin } = useUser();
 
   const classes = useStyles();
   const [editing, setEditing] = useState(false);
@@ -152,7 +152,7 @@ function Manga(props) {
       <Paper className={classes.paper}>
         <div className={classes.titleBar}>
           <Typography className={classes.title} variant='h4'>{manga.title}</Typography>
-          {user?.admin && (
+          {isAdmin && (
             <div className={classes.titleBarButtonsContainer}>
               <Link href={`/admin/manga/${manga.mangaId}`} passHref>
                 <Tooltip title='Admin page'>
@@ -203,6 +203,7 @@ function Manga(props) {
             color='primary'
             onClick={followUnfollow(csrf, manga.mangaId, null)}
             className={classes.followButton}
+            aria-label='Follow all releases'
           >
             {userFollows.indexOf(null) < 0 ? 'Follow' : 'Unfollow'}
           </Button>
