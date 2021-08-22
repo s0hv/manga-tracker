@@ -1,5 +1,5 @@
 import React from 'react';
-import renderer from 'react-test-renderer';
+import { render, screen, within } from '@testing-library/react';
 import Follows from '../../src/components/Follows';
 import { mockUTCDates } from '../utils';
 
@@ -67,19 +67,38 @@ describe('Follows page should render correctly', () => {
     },
   ];
 
-  it('should render correctly without follows', () => {
-    const tree = renderer
-      .create(<Follows />)
-      .toJSON();
-
-    expect(tree).toMatchSnapshot();
+  it('should render no text without follows', () => {
+    render(<Follows />);
+    expect(screen.queryByText(/.+/)).not.toBeInTheDocument();
   });
 
   it('should render correctly with follows', () => {
-    const tree = renderer
-      .create(<Follows follows={follows} />)
-      .toJSON();
+    render(<Follows follows={follows} />);
 
-    expect(tree).toMatchSnapshot();
+    expect(follows.length).toBeGreaterThan(0);
+
+    follows.forEach(follow => {
+      const elem = within(screen.getByText(follow.title).parentElement);
+
+      if (!follow.latestRelease) {
+        expect(elem.getByRole('row', { name: /latest release: unknown/i })).toBeInTheDocument();
+      } else {
+        expect(elem.getByRole('row', { name: /latest release: \d+ \w+ ago/i })).toBeInTheDocument();
+      }
+
+      if (!follow.latestChapter) {
+        expect(elem.getByRole('row', { name: /latest chapter: no chapters/i })).toBeInTheDocument();
+      } else {
+        expect(elem.getByRole('row', { name: /latest chapter: \d+/i })).toBeInTheDocument();
+      }
+
+      const serviceList = within(elem.getByLabelText('manga services'));
+      expect(serviceList.getByText(/all services/i)).toBeInTheDocument();
+      follow.services.forEach(service => {
+        expect(serviceList.getByText(service.serviceName)).toBeInTheDocument();
+      });
+
+      expect(serviceList.getAllByRole('button', { name: /(un)?follow/i })).toHaveLength(follow.services.length+1);
+    });
   });
 });
