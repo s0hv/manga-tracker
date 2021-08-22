@@ -1,26 +1,64 @@
 import React from 'react';
 import { render, screen, within, fireEvent, act } from '@testing-library/react';
 import fetchMock from 'fetch-mock';
-import { create } from 'react-test-renderer';
 
 import MangaAliases from '../../src/components/MangaAliases';
-import { adminUser, withUser } from '../utils';
+import { adminUser, withUser, normalUser } from '../utils';
 
 describe('MangaAliases renders correctly', () => {
   it('Should render correctly without aliases', () => {
-    expect(create(<MangaAliases />)).toMatchSnapshot();
-    expect(create(<MangaAliases aliases={[]} />)).toMatchSnapshot();
+    const { container, rerender } = render(<MangaAliases />);
+    expect(container.childElementCount).toStrictEqual(0);
+
+    rerender(<MangaAliases aliases={[]} />);
+    expect(container.childElementCount).toStrictEqual(0);
   });
 
   it('Should render correctly with aliases', () => {
-    expect(create(<MangaAliases aliases={['a', 'b', 'c']} />)).toMatchSnapshot();
+    const aliases = ['test_1', 'test_2', 'test_3'];
+    render(<MangaAliases aliases={aliases} />);
+
+    expect(screen.getByText(/^alternative titles$/i)).toBeInTheDocument();
+
+    aliases.forEach(alias => {
+      expect(screen.getByText(alias)).toBeInTheDocument();
+    });
+
+    expect(screen.getAllByRole('listitem')).toHaveLength(aliases.length);
   });
 
-  it('Should render correctly with editing allowed', async () => {
-    expect(create(
+  it('Should render correctly with editing allowed as admin', async () => {
+    const aliases = ['a', 'b', 'c'];
+    render(
       await withUser(adminUser,
-        <MangaAliases aliases={['a', 'b', 'c']} allowEdits />)
-    )).toMatchSnapshot();
+        <MangaAliases aliases={aliases} allowEdits />)
+    );
+
+    const listItems = screen.getAllByRole('listitem');
+    expect(listItems).toHaveLength(aliases.length);
+
+    listItems.forEach(listItem => {
+      const li = within(listItem);
+      expect(li.getByRole('button', { name: /set alias as main title/i }))
+        .toBeInTheDocument();
+    });
+  });
+
+  it('Should not render buttons when allowEdits without admin', async () => {
+    const aliases = ['a', 'b', 'c'];
+    render(
+      await withUser(normalUser,
+        <MangaAliases aliases={aliases} allowEdits />)
+    );
+
+    const listItems = screen.getAllByRole('listitem');
+    expect(listItems).toHaveLength(aliases.length);
+
+    listItems.forEach(listItem => {
+      const li = within(listItem);
+      expect(li.queryByRole('button', { name: /set alias as main title/i }))
+        .not.toBeInTheDocument();
+    });
   });
 });
 
