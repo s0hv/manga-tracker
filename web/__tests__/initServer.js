@@ -14,6 +14,18 @@ export default async function initServer() {
       path: ['/_search', '/:index/_search'],
     }, () => ({ hits: { hits: []}}));
 
+    // https://github.com/elastic/elasticsearch-js-mock/issues/18#issuecomment-900365420
+    // Needed as the es client >=@7.14.0 validates whether it is connected to a real ES instance
+    // by GETting / and checking these fields in the response
+    mock.add({ method: 'GET', path: '/' }, () => ({
+      name: 'mocked-es-instance',
+      version: {
+        number: '7.12.1',
+        build_flavor: 'default',
+      },
+      tagline: 'You Know, for Search',
+    }));
+
     return new Client({
       node: 'http://localhost:9200',
       Connection: mock.getConnection(),

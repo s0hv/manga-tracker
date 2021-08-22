@@ -26,11 +26,11 @@ const logger = pino(
 
 module.exports = {
   logger,
-  mangadexLogger: logger.child({ level: level || 'debug', name: 'mangadex' }),
-  expressLogger: logger.child({ level: level || 'info', name: 'express' }),
-  sessionLogger: logger.child({ level: level || 'debug', name: 'session' }),
-  userLogger: logger.child({ level: level || 'debug', name: 'user' }),
-  queryLogger: logger.child({ level: level || 'debug', name: 'dbQuery' }),
-  dbLogger: logger.child({ level: level || 'debug', name: 'db' }),
-  authLogger: logger.child({ level: level || 'debug', name: 'auth' }),
+  mangadexLogger: logger.child({ name: 'mangadex' }, { level: level || 'debug' }),
+  expressLogger: logger.child({ name: 'express' }, { level: level || 'info' }),
+  sessionLogger: logger.child({ name: 'session' }, { level: level || 'debug' }),
+  userLogger: logger.child({ name: 'user' }, { level: level || 'debug' }),
+  queryLogger: logger.child({ name: 'dbQuery' }, { level: level || 'debug' }),
+  dbLogger: logger.child({ name: 'db' }, { level: level || 'debug' }),
+  authLogger: logger.child({ name: 'auth' }, { level: level || 'debug' }),
 };

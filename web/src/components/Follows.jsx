@@ -97,9 +97,9 @@ function Follows(props) {
             <table>
               <tbody>
                 <tr>
-                  <td>
+                  <th>
                     <Typography>Latest release: </Typography>
-                  </td>
+                  </th>
                   <td>
                     <Typography>
                       {defaultDateDistanceToNow(new Date(follow.latestRelease))}
@@ -107,16 +107,16 @@ function Follows(props) {
                   </td>
                 </tr>
                 <tr>
-                  <td>
+                  <th>
                     <Typography>Latest chapter: </Typography>
-                  </td>
+                  </th>
                   <td>
                     <Typography>{follow.latestChapter || 'No chapters'}</Typography>
                   </td>
                 </tr>
               </tbody>
             </table>
-            <List className={classes.serviceList}>
+            <List className={classes.serviceList} aria-label='manga services'>
               <ListItem key='all_services' className={classes.followService} disableGutters>
                 <ListItemText primary='All services' className={classes.serviceName} />
                 <Button variant='contained' color='primary' onClick={followUnfollow(csrf, follow.mangaId)}>
