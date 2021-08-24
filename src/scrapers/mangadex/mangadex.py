@@ -217,6 +217,7 @@ class MangaDex(BaseScraperWhole):
         """
         valid_chapters: List[Chapter] = []
         existing: Dict[str, int] = {}
+        no_group = [e for e in entries if not e.mangadex_group]
 
         # Add group id to chapters and add them to valid_chapters
         def map_chapters(chapters: List[Chapter]) -> List[Chapter]:
@@ -284,6 +285,11 @@ class MangaDex(BaseScraperWhole):
             for chapter in missing_group:
                 chapter.group_id = NO_GROUP
                 valid_chapters.append(chapter)
+
+        # Some chapters are uploaded as no group
+        for chapter in no_group:
+            chapter.group_id = NO_GROUP
+            valid_chapters.append(chapter)
 
         return valid_chapters
 

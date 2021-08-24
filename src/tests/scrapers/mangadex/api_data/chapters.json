@@ -155,16 +155,6 @@
       },
       "relationships": [
         {
-          "id": "bfd1bb98-e59d-4617-8186-2b5fd21db4bc",
-          "type": "scanlation_group",
-          "attributes": {
-            "name": "The NoNames",
-            "createdAt": "2021-04-19T21:45:59+00:00",
-            "updatedAt": "2021-04-19T21:45:59+00:00",
-            "version": 1
-          }
-        },
-        {
           "id": "4280a53c-817d-4d5c-8276-55dfbd9e4a51",
           "type": "manga"
         }

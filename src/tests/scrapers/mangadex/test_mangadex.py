@@ -17,7 +17,6 @@ from src.scrapers.mangadex import MangaDex, ChapterResult
 from src.tests.testing_utils import BaseTestClasses, ChapterTestModel
 from src.utils.dbutils import DbUtil
 
-test_feed = os.path.join(os.path.dirname(__file__), 'feed.xml')
 logger = setup_logging.setup()
 
 correct_parsed_chapters = list(sorted([
@@ -77,7 +76,7 @@ correct_parsed_chapters = list(sorted([
         release_date='2021-03-25T02:58:34+00:00',
         chapter_identifier='cdfe2d56-e9ca-489e-9900-5cfbb9f9d080',
         title_id='4280a53c-817d-4d5c-8276-55dfbd9e4a51',
-        group='The NoNames',
+        group=None,
         title='Chapter 193',
         group_id=NO_GROUP)
 ], key=lambda c: c.chapter_identifier))
@@ -157,7 +156,7 @@ class MangadexTests(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsser
         service_id = self.mangadex.ID
         chapter_count = 5
         manga_count = 4
-        group_count = 3
+        group_count = 4
         author_count = 4
         artist_count = 4
 
