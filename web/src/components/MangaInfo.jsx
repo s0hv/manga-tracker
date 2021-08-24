@@ -1,4 +1,4 @@
-import { Tooltip, Typography } from '@material-ui/core';
+import { Typography } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import React from 'react';
 import PropTypes from 'prop-types';
@@ -54,13 +54,11 @@ const MangaInfo = ({ mangaData, showId = false }) => {
         <tr>
           <th scope='row'><Typography>Latest release:</Typography></th>
           <td>
-            <Tooltip title={latestRelease ? latestRelease.toUTCString() : 'Unknown'}>
-              <Typography className={classes.detailText}>
-                {latestRelease ?
-                  defaultDateFormat(latestRelease) + ' - ' + defaultDateDistanceToNow(latestRelease) :
-                  'Unknown'}
-              </Typography>
-            </Tooltip>
+            <Typography className={classes.detailText}>
+              {latestRelease ?
+                defaultDateFormat(latestRelease) + ' - ' + defaultDateDistanceToNow(latestRelease) :
+                'Unknown'}
+            </Typography>
           </td>
         </tr>
         <tr>
