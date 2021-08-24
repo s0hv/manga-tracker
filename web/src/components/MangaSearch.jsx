@@ -153,8 +153,10 @@ export default function MangaSearch(props) {
       }}
       renderInput={(params) => (
         <InputBase
-          aria-label={ariaLabel}
-          inputProps={params.inputProps}
+          inputProps={{
+            ...params.inputProps,
+            'aria-label': ariaLabel,
+          }}
           ref={params.InputProps.ref}
           placeholder={placeholder}
           classes={{

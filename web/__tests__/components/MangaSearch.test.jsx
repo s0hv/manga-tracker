@@ -1,20 +1,20 @@
 import React from 'react';
-import { act } from 'react-dom/test-utils';
-import { createMount } from '@material-ui/core/test-utils';
+import { render, screen, act } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import fetchMock from 'fetch-mock';
-import { createSerializer } from 'enzyme-to-json';
 
 import MangaSearch from '../../src/components/MangaSearch';
 
 fetchMock.config.overwriteRoutes = true;
-expect.addSnapshotSerializer(createSerializer({ mode: 'deep' }));
 
 
 describe('Search should render correctly', () => {
   it('without input', () => {
-    const tree = createMount()(<MangaSearch id='test-id' />);
+    render(<MangaSearch />);
 
-    expect(tree).toMatchSnapshot();
+    expect(screen.getByRole('textbox', { name: 'manga search' })).toBeInTheDocument();
+    // Autocomplete has the role combobox
+    expect(screen.getByRole('combobox')).toBeInTheDocument();
   });
 
   it('with valid input', async () => {
@@ -36,68 +36,58 @@ describe('Search should render correctly', () => {
 
     fetchMock.mock('glob:/api/quicksearch?query=*', searchFn);
 
-    const wrapper = createMount()(
-      <MangaSearch id='test-input-id' />
-    );
+    render(<MangaSearch />);
 
     // Find search input
-    const input = wrapper.find('input#test-input-id');
-    expect(input).toHaveLength(1);
+    const input = screen.getByRole('textbox');
 
     // Simulate text changes and test that the quicksearch endpoint wasn't called
     await act(async () => {
-      input.simulate('change', { target: { value: 'test search' }});
+      await userEvent.type(input, 'test search', { delay: 1 });
     });
-    expect(searchFn).toHaveBeenCalledTimes(1);
-    wrapper.update();
+    expect(searchFn).toHaveBeenCalled();
 
-    const listItems = wrapper.find('li');
+    const listItems = screen.getAllByRole('option');
     expect(listItems).toHaveLength(mockResult.length);
     // Order is important as the first result is the most likely
-    expect(listItems.map(l => l.text()))
+    expect(listItems.map(l => l.textContent))
       .toEqual(mockResult.map(r => r.title));
   });
 });
 
 describe('Search should behave correctly with user input', () => {
-  it('Should not do requests of under 3 characters', () => {
+  it('Should not do requests of under 3 characters', async () => {
     const searchFn = jest.fn().mockImplementation(() => []);
 
     fetchMock.mock('glob:/api/quicksearch?query=*', searchFn);
 
-    const wrapper = createMount()(
-      <MangaSearch id='test-input-id' />
-    );
+    render(<MangaSearch />);
 
     // Find search input
-    const input = wrapper.find('input#test-input-id');
-    expect(input).toHaveLength(1);
-
-    // Simulate text changes and test that the quicksearch endpoint wasn't called
-    input.simulate('change', { target: { value: 'x' }});
-    input.simulate('change', { target: { value: 'a' }});
-    input.simulate('change', { target: { value: 'a' }});
-    input.simulate('change', { target: { value: '' }});
-
-    expect(searchFn).toHaveBeenCalledTimes(0);
-  });
-
-  it('Should do a request with 3 or more characters', async () => {
-    const searchFn = jest.fn().mockImplementation(() => []);
-
-    fetchMock.mock('glob:/api/quicksearch?query=*', searchFn);
-
-    const wrapper = createMount()(
-      <MangaSearch id='test-input-id' />
-    );
-
-    // Find search input
-    const input = wrapper.find('input#test-input-id');
-    expect(input).toHaveLength(1);
+    const input = screen.getByRole('textbox');
 
     // Simulate text changes and test that the quicksearch endpoint wasn't called
     await act(async () => {
-      input.simulate('change', { target: { value: 'ab' }});
+      await userEvent.type(input, 'a{backspace}b{backspace}c', { delay: 1 });
+    });
+
+    expect(searchFn).toHaveBeenCalledTimes(0);
+    expect(screen.queryAllByRole('option')).toHaveLength(0);
+  });
+
+  it('Should do a request with 2 or more characters', async () => {
+    const searchFn = jest.fn().mockImplementation(() => []);
+
+    fetchMock.mock('glob:/api/quicksearch?query=*', searchFn);
+
+    render(<MangaSearch />);
+
+    // Find search input
+    const input = screen.getByRole('textbox');
+
+    // Simulate text changes
+    await act(async () => {
+      await userEvent.type(input, 'ab', { delay: 1 });
     });
     expect(searchFn).toHaveBeenCalledTimes(1);
   });
@@ -107,20 +97,19 @@ describe('Search should behave correctly with user input', () => {
 
     fetchMock.mock('glob:/api/quicksearch?query=*', searchFn);
 
-    const wrapper = createMount()(
-      <MangaSearch id='test-input-id' />
-    );
+    render(<MangaSearch />);
 
     // Find search input
-    const input = wrapper.find('input#test-input-id');
-    expect(input).toHaveLength(1);
+    const input = screen.getByRole('textbox');
 
-    // Simulate text changes and test that the quicksearch endpoint wasn't called
+    // Simulate text changes and test that the quicksearch endpoint
+    // was called only once
     await act(async () => {
-      input.simulate('change', { target: { value: 'abc' }});
-      input.simulate('change', { target: { value: 'abcd' }});
-      input.simulate('change', { target: { value: 'abcde' }});
+      await userEvent.type(input, 'abcdef', { delay: 20 });
     });
     expect(searchFn).toHaveBeenCalledTimes(1);
+    expect(fetchMock.called('glob:/api/quicksearch?query=*', { query: {
+      query: 'ab',
+    }})).toBeTrue();
   });
 });
