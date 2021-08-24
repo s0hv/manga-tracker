@@ -45,7 +45,10 @@
         "jest/expect-expect": ["warn", {
             "assertFunctionNames": ["expect", "expect*", "assert*", "request.**.expect"]
         }],
-        "no-unused-vars": ["warn", { "argsIgnorePattern":  "^_" }],
+        "no-unused-vars": ["warn", {
+            "argsIgnorePattern":  "^_",
+            "ignoreRestSiblings": true
+        }],
 
         "prefer-template": "off",
         "arrow-parens": "off",
