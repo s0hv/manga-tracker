@@ -7,6 +7,7 @@ import MangaSearch from '../../src/components/MangaSearch';
 
 fetchMock.config.overwriteRoutes = true;
 
+beforeEach(() => fetchMock.reset());
 
 describe('Search should render correctly', () => {
   it('without input', () => {
@@ -71,7 +72,6 @@ describe('Search should behave correctly with user input', () => {
       await userEvent.type(input, 'a{backspace}b{backspace}c', { delay: 10 });
     });
 
-    console.log(fetchMock.calls('glob:/api/quicksearch?query=*'));
     expect(searchFn).toHaveBeenCalledTimes(0);
     expect(screen.queryAllByRole('option')).toHaveLength(0);
   });
@@ -106,10 +106,9 @@ describe('Search should behave correctly with user input', () => {
     // Simulate text changes and test that the quicksearch endpoint
     // was called only once
     await act(async () => {
-      await userEvent.type(input, 'abcdef', { delay: 20 });
+      await userEvent.type(input, 'abcdef', { delay: 1 });
     });
 
-    console.log(fetchMock.calls('glob:/api/quicksearch?query=*'));
     expect(searchFn).toHaveBeenCalledTimes(1);
     expect(fetchMock.called('glob:/api/quicksearch?query=*', { query: {
       query: 'ab',
