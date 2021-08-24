@@ -71,6 +71,7 @@ describe('Search should behave correctly with user input', () => {
       await userEvent.type(input, 'a{backspace}b{backspace}c', { delay: 10 });
     });
 
+    console.log(fetchMock.calls('glob:/api/quicksearch?query=*'));
     expect(searchFn).toHaveBeenCalledTimes(0);
     expect(screen.queryAllByRole('option')).toHaveLength(0);
   });
@@ -107,6 +108,8 @@ describe('Search should behave correctly with user input', () => {
     await act(async () => {
       await userEvent.type(input, 'abcdef', { delay: 20 });
     });
+
+    console.log(fetchMock.calls('glob:/api/quicksearch?query=*'));
     expect(searchFn).toHaveBeenCalledTimes(1);
     expect(fetchMock.called('glob:/api/quicksearch?query=*', { query: {
       query: 'ab',

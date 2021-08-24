@@ -97,7 +97,7 @@ export default function MangaSearch(props) {
     () => throttle((query, cb) => {
       quickSearch(query)
         .then(js => cb(js));
-    }, 200),
+    }, 200, { trailing: false }),
     []
   );
 
