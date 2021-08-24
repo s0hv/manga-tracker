@@ -68,7 +68,7 @@ describe('Search should behave correctly with user input', () => {
 
     // Simulate text changes and test that the quicksearch endpoint wasn't called
     await act(async () => {
-      await userEvent.type(input, 'a{backspace}b{backspace}c', { delay: 1 });
+      await userEvent.type(input, 'a{backspace}b{backspace}c', { delay: 10 });
     });
 
     expect(searchFn).toHaveBeenCalledTimes(0);
