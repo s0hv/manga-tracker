@@ -7,7 +7,7 @@ import {
   mockUTCDates,
   normalUser,
   withUser,
-  mockNotistackHooks
+  mockNotistackHooks,
 } from '../utils';
 import Manga from '../../src/components/Manga';
 import { emptyFullManga as emptyManga, fullManga as manga } from '../constants';

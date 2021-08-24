@@ -4,6 +4,9 @@ export const mangaIdError = 'Manga id must be a positive integer';
 
 export const csrfToken = 'test-csrf-token';
 
+export const defaultDateFormat = '\\w{3} \\d{1,2}\\w{2} \\d+, \\d{2}:\\d{2}';
+export const defaultDateDistanceFormat = '\\d+ \\w+';
+
 export const fullManga = {
   manga: {
     mangaId: 1,
