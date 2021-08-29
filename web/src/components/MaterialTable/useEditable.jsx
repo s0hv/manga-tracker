@@ -180,7 +180,9 @@ function DefaultEditCell({ value, cell, state }) {
     <Input
       defaultValue={value}
       onChange={(event => processCellEdit(event.target.value, state.rowEditStates, cell))}
-      aria-label={`${name} input`}
+      inputProps={{
+        'aria-label': `${name} input`,
+      }}
     />
   );
 }
