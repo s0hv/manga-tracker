@@ -43,7 +43,6 @@ exports[`Services page should render correctly should render correctly with serv
             role="row"
           >
             <th
-              aria-sort={null}
               className="MuiTableCell-root MuiTableCell-head"
               colSpan={1}
               role="columnheader"
@@ -55,7 +54,6 @@ exports[`Services page should render correctly should render correctly with serv
               }
             />
             <th
-              aria-sort={null}
               className="MuiTableCell-root MuiTableCell-head"
               colSpan={1}
               onClick={[Function]}
@@ -66,7 +64,6 @@ exports[`Services page should render correctly should render correctly with serv
                   "cursor": "pointer",
                 }
               }
-              title="Toggle SortBy"
             >
               <span
                 aria-disabled={false}
@@ -99,7 +96,6 @@ exports[`Services page should render correctly should render correctly with serv
               </span>
             </th>
             <th
-              aria-sort={null}
               className="MuiTableCell-root MuiTableCell-head"
               colSpan={1}
               onClick={[Function]}
@@ -110,7 +106,6 @@ exports[`Services page should render correctly should render correctly with serv
                   "cursor": "pointer",
                 }
               }
-              title="Toggle SortBy"
             >
               <span
                 aria-disabled={false}
@@ -143,7 +138,6 @@ exports[`Services page should render correctly should render correctly with serv
               </span>
             </th>
             <th
-              aria-sort={null}
               className="MuiTableCell-root MuiTableCell-head"
               colSpan={1}
               onClick={[Function]}
@@ -154,7 +148,6 @@ exports[`Services page should render correctly should render correctly with serv
                   "cursor": "pointer",
                 }
               }
-              title="Toggle SortBy"
             >
               <span
                 aria-disabled={false}
@@ -187,7 +180,6 @@ exports[`Services page should render correctly should render correctly with serv
               </span>
             </th>
             <th
-              aria-sort={null}
               className="MuiTableCell-root MuiTableCell-head"
               colSpan={1}
               onClick={[Function]}
@@ -198,7 +190,6 @@ exports[`Services page should render correctly should render correctly with serv
                   "cursor": "pointer",
                 }
               }
-              title="Toggle SortBy"
             >
               <span
                 aria-disabled={false}
@@ -231,7 +222,6 @@ exports[`Services page should render correctly should render correctly with serv
               </span>
             </th>
             <th
-              aria-sort={null}
               className="MuiTableCell-root MuiTableCell-head"
               colSpan={1}
               onClick={[Function]}
@@ -242,7 +232,6 @@ exports[`Services page should render correctly should render correctly with serv
                   "cursor": "pointer",
                 }
               }
-              title="Toggle SortBy"
               width="1%"
             >
               <span
@@ -278,6 +267,7 @@ exports[`Services page should render correctly should render correctly with serv
           </tr>
         </thead>
         <tbody
+          aria-live="polite"
           className="MuiTableBody-root"
           role="rowgroup"
         >
@@ -961,7 +951,6 @@ exports[`Services page should render correctly should render correctly without s
             role="row"
           >
             <th
-              aria-sort={null}
               className="MuiTableCell-root MuiTableCell-head"
               colSpan={1}
               role="columnheader"
@@ -973,7 +962,6 @@ exports[`Services page should render correctly should render correctly without s
               }
             />
             <th
-              aria-sort={null}
               className="MuiTableCell-root MuiTableCell-head"
               colSpan={1}
               onClick={[Function]}
@@ -984,7 +972,6 @@ exports[`Services page should render correctly should render correctly without s
                   "cursor": "pointer",
                 }
               }
-              title="Toggle SortBy"
             >
               <span
                 aria-disabled={false}
@@ -1017,7 +1004,6 @@ exports[`Services page should render correctly should render correctly without s
               </span>
             </th>
             <th
-              aria-sort={null}
               className="MuiTableCell-root MuiTableCell-head"
               colSpan={1}
               onClick={[Function]}
@@ -1028,7 +1014,6 @@ exports[`Services page should render correctly should render correctly without s
                   "cursor": "pointer",
                 }
               }
-              title="Toggle SortBy"
             >
               <span
                 aria-disabled={false}
@@ -1061,7 +1046,6 @@ exports[`Services page should render correctly should render correctly without s
               </span>
             </th>
             <th
-              aria-sort={null}
               className="MuiTableCell-root MuiTableCell-head"
               colSpan={1}
               onClick={[Function]}
@@ -1072,7 +1056,6 @@ exports[`Services page should render correctly should render correctly without s
                   "cursor": "pointer",
                 }
               }
-              title="Toggle SortBy"
             >
               <span
                 aria-disabled={false}
@@ -1105,7 +1088,6 @@ exports[`Services page should render correctly should render correctly without s
               </span>
             </th>
             <th
-              aria-sort={null}
               className="MuiTableCell-root MuiTableCell-head"
               colSpan={1}
               onClick={[Function]}
@@ -1116,7 +1098,6 @@ exports[`Services page should render correctly should render correctly without s
                   "cursor": "pointer",
                 }
               }
-              title="Toggle SortBy"
             >
               <span
                 aria-disabled={false}
@@ -1149,7 +1130,6 @@ exports[`Services page should render correctly should render correctly without s
               </span>
             </th>
             <th
-              aria-sort={null}
               className="MuiTableCell-root MuiTableCell-head"
               colSpan={1}
               onClick={[Function]}
@@ -1160,7 +1140,6 @@ exports[`Services page should render correctly should render correctly without s
                   "cursor": "pointer",
                 }
               }
-              title="Toggle SortBy"
               width="1%"
             >
               <span
@@ -1196,6 +1175,7 @@ exports[`Services page should render correctly should render correctly without s
           </tr>
         </thead>
         <tbody
+          aria-live="polite"
           className="MuiTableBody-root"
           role="rowgroup"
         />
