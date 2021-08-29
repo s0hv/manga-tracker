@@ -1,11 +1,7 @@
 import React from 'react';
-import { createMount, createShallow } from '@material-ui/core/test-utils';
 import fetchMock from 'fetch-mock';
-import { createSerializer } from 'enzyme-to-json';
-import { act } from 'react-dom/test-utils';
-
-import { format } from 'date-fns';
-import enLocale from 'date-fns/locale/en-GB';
+import { render, screen, act, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { Checkbox } from '@material-ui/core';
 import {
   defaultOnSaveRow,
@@ -13,10 +9,11 @@ import {
   EditableDateTimePicker,
   MaterialTable,
 } from '../../src/components/MaterialTable';
-import { editInput, mockUTCDates, withRoot } from '../utils';
+import { mockUTCDates, withRoot } from '../utils';
+import { defaultDateFormatRegex } from '../constants';
+import { defaultDateFormat } from '../../src/utils/utilities';
 
 fetchMock.config.overwriteRoutes = true;
-expect.addSnapshotSerializer(createSerializer({ mode: 'deep' }));
 
 const columns = [
   { Header: 'ID', accessor: 'id', canEdit: false },
@@ -25,7 +22,7 @@ const columns = [
     Header: 'Editable time',
     accessor: 'editableTime',
     sortType: 'datetime',
-    Cell: ({ row }) => format(row.values.editableTime, 'MMM do, HH:mm', { locale: enLocale }),
+    Cell: ({ row }) => defaultDateFormat(row.values.editableTime),
     EditCell: ({ row, state, cell }) => (
       <EditableDateTimePicker
         clearable={1}
@@ -70,7 +67,7 @@ const data = [
 ];
 
 function createWrapper(props) {
-  return createMount()(
+  render(
     withRoot(
       <MaterialTable {...props} />
     )
@@ -79,37 +76,132 @@ function createWrapper(props) {
 
 describe('It should render correctly', () => {
   mockUTCDates();
+
+  const expectNoLoadingElements = () => {
+    expect(screen.queryByLabelText(/loading icon/i)).not.toBeInTheDocument();
+  };
+
+  const expectNoEditElements = () => {
+    expect(screen.queryByRole('button', { name: /edit row/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /delete row/i })).not.toBeInTheDocument();
+  };
+
+  const expectEditElementsExist = () => {
+    expect(screen.getAllByRole('button', { name: /edit row/i })).toBeTruthy();
+    expect(screen.getAllByRole('button', { name: /delete row/i })).toBeTruthy();
+    expect(screen.getAllByRole('button', { name: /add item/i })).toBeTruthy();
+  };
+
+  const expectHeadersExist = (headers = columns) => {
+    headers.forEach(col => {
+      expect(screen.getByRole('columnheader', { name: col.Header })).toBeInTheDocument();
+    });
+  };
+
   test('without data', () => {
-    const wrapper = createMount()(
+    render(
       <MaterialTable
         columns={columns}
         data={[]}
       />
     );
 
-    expect(wrapper).toMatchSnapshot();
+    // Only header row should exist
+    expect(screen.getAllByRole('row')).toHaveLength(1);
+
+    expect(screen.queryByRole('button')).not.toBeInTheDocument();
+
+    expectNoLoadingElements();
+    expectNoEditElements();
+    expectHeadersExist();
   });
 
   test('without data (null)', () => {
-    expect(() => createShallow()(
+    expect(() => render(
       <MaterialTable
         columns={columns}
         data={null}
       />
-    ).dive().dive()).toThrow(TypeError);
+    )).toThrow(TypeError);
   });
 
   test('with data', () => {
-    const wrapper = createMount()(
+    render(
       <MaterialTable
         columns={columns}
         data={data}
         editable
+        deletable
+        creatable
         sortable
+        pagination
+        CreateDialog={() => null}
       />
     );
 
-    expect(wrapper).toMatchSnapshot();
+    // Make sure sort buttons exist
+    columns.forEach(col => {
+      expect(screen.getByRole('button', { name: col.Header }));
+    });
+
+    // Data rows + header row
+    expect(screen.getAllByRole('row')).toHaveLength(data.length + 1);
+
+    expectNoLoadingElements();
+
+    expectEditElementsExist();
+
+    screen.getAllByRole('row')
+      .slice(1)
+      .forEach((rowElem, idx) => {
+        const row = within(rowElem);
+        const values = data[idx];
+
+        expect(row.getByRole('cell', { name: values.id })).toBeInTheDocument();
+        expect(row.getByRole('cell', { name: values.editableString })).toBeInTheDocument();
+        expect(row.getByRole('cell', { name: new RegExp(defaultDateFormatRegex, 'i') })).toBeInTheDocument();
+        expect(row.getByRole('checkbox', { checked: values.editableCheckbox }));
+      });
+
+    // Test pagination element
+    const pagination = within(screen.getByRole('navigation', { name: /table pagination/i }));
+
+    expect(pagination.getByRole('button', { name: /first page/i })).toBeInTheDocument();
+    expect(pagination.getByRole('button', { name: /previous page/i })).toBeInTheDocument();
+    expect(pagination.getByRole('button', { name: /next page/i })).toBeInTheDocument();
+    expect(pagination.getByRole('button', { name: /last page/i })).toBeInTheDocument();
+  });
+
+  test('when loading with existing rows', () => {
+    render(
+      <MaterialTable
+        columns={columns}
+        data={data}
+        loading
+        pagination
+      />
+    );
+
+    expect(screen.getByRole('progressbar', { name: /loading icon/i }));
+    // No skeletons should be visible
+    expect(screen.getAllByRole('row', { hidden: true })).toHaveLength(data.length + 1);
+  });
+
+  test('when loading without existing rows', () => {
+    render(
+      <MaterialTable
+        columns={columns}
+        data={[]}
+        loading
+        pagination
+      />
+    );
+
+    expect(screen.getByRole('progressbar', { name: /loading icon/i }));
+    expect(screen.getAllByRole('row')).toHaveLength(1);
+
+    // Skeletons should be rendered
+    expect(screen.getAllByRole('row', { hidden: true }).length).toBeGreaterThan(1);
   });
 });
 
@@ -117,125 +209,157 @@ describe('Should handle editing', () => {
   test('should call save when save clicked', async () => {
     const onSave = jest.fn();
 
-    const wrapper = createWrapper({
+    createWrapper({
       columns,
       data,
       onSaveRow: onSave,
       editable: true,
     });
 
-    const row = wrapper.findWhere(w => w.key() === 'row_0');
-    expect(row).toHaveLength(1);
-    await act(async () => row.find('button[name="edit"]').simulate('click'));
-    wrapper.update();
-    await act(async () => wrapper.find('button[name="save"]').simulate('click'));
-    wrapper.update();
+    const row = within(screen.getAllByRole('row')[1]);
+    expect(row).toBeDefined();
+
+    act(() => {
+      userEvent.click(
+        row.getByRole('button', { name: /edit row/i })
+      );
+    });
+
+    act(() => {
+      userEvent.click(
+        row.getByRole('button', { name: /save row/i })
+      );
+    });
 
     expect(onSave).toHaveBeenCalledTimes(1);
-    expect(wrapper.exists('button[name="cancel"]')).toStrictEqual(false);
+    expect(screen.queryByRole('button', { name: /cancel edit/i })).not.toBeInTheDocument();
   });
 
   it('should not call save when cancel clicked', async () => {
     const onSave = jest.fn();
 
-    const wrapper = createWrapper({
+    createWrapper({
       columns,
       data,
       onSaveRow: onSave,
       editable: true,
     });
 
-    const row = wrapper.findWhere(w => w.key() === 'row_0');
-    expect(row).toHaveLength(1);
-    await act(async () => row.find('button[name="edit"]').simulate('click'));
-    wrapper.update();
-    await act(async () => wrapper.find('button[name="cancel"]').simulate('click'));
-    wrapper.update();
+    const row = within(screen.getAllByRole('row')[1]);
+    expect(row).toBeDefined();
 
-    expect(onSave).toHaveBeenCalledTimes(0);
-    expect(wrapper.exists('button[name="cancel"]')).toStrictEqual(false);
+    act(() => {
+      userEvent.click(
+        row.getByRole('button', { name: /edit row/i })
+      );
+    });
+
+    act(() => {
+      userEvent.click(
+        row.getByRole('button', { name: /cancel edit/i })
+      );
+    });
+
+    expect(onSave).not.toHaveBeenCalled();
+    expect(screen.queryByRole('button', { name: /save row/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /cancel edit/i })).not.toBeInTheDocument();
   });
 
   it('should not allow editing non editable columns', async () => {
     const onSave = jest.fn();
 
-    const wrapper = createWrapper({
+    createWrapper({
       columns,
       data,
       onSaveRow: onSave,
       editable: true,
     });
 
-    let row = wrapper.findWhere(w => w.key() === 'row_0');
-    expect(row).toHaveLength(1);
-    await act(async () => row.find('button[name="edit"]').simulate('click'));
-    wrapper.update();
+    expect(columns[0].canEdit).toBeFalse();
 
-    row = wrapper.findWhere(w => w.key() === 'row_0');
-    const cell = row.findWhere(r => r.key() === 'cell_0_id');
+    const row = within(screen.getAllByRole('row')[1]);
+    expect(row).toBeDefined();
 
+    act(() => {
+      userEvent.click(
+        row.getByRole('button', { name: /edit row/i })
+      );
+    });
+
+    const cell = within(row.getByText(data[0].id).closest('td'));
     // Make sure that no input is present
-    expect(cell.exists('input')).toStrictEqual(false);
-    expect(cell.find('td').text()).toStrictEqual(data[0].id);
+    expect(cell.queryByRole('textbox')).not.toBeInTheDocument();
   });
 
   it('should allow editing string columns', async () => {
     const onSave = jest.fn().mockImplementation(defaultOnSaveRow);
 
-    const wrapper = createWrapper({
+    createWrapper({
       columns,
       data,
       onSaveRow: onSave,
       editable: true,
     });
 
-    let row = wrapper.findWhere(w => w.key() === 'row_0');
-    expect(row).toHaveLength(1);
-    row.find('button[name="edit"]').simulate('click');
-    wrapper.update();
+    const row = within(screen.getAllByRole('row')[1]);
+    expect(row).toBeDefined();
+
+    act(() => {
+      userEvent.click(
+        row.getByRole('button', { name: /edit row/i })
+      );
+    });
 
     // Find input and change its value
-    row = wrapper.findWhere(w => w.key() === 'row_0');
-    const cell = row.findWhere(r => r.key() === 'cell_0_editableString');
-    const input = cell.find('input');
-    expect(input).toHaveLength(1);
-    const newVal = 'value changed';
-    await editInput(input, newVal);
+    const input = row.getByLabelText(/editable string input/i);
 
-    row.find('button[name="save"]').simulate('click');
-    wrapper.update();
+    const newVal = 'value changed';
+
+    await act(async () => {
+      userEvent.clear(input);
+      await userEvent.type(input, newVal, { delay: 1 });
+    });
+
+    act(() => {
+      userEvent.click(
+        row.getByRole('button', { name: /save row/i })
+      );
+    });
 
     expect(onSave).toHaveBeenCalledTimes(1);
     expect(onSave).toHaveBeenCalledWith(expect.anything(), { editableString: newVal }, expect.anything());
-    expect(wrapper
-      .findWhere(r => r.key() === 'cell_0_editableString')
-      .find('td').text()).toStrictEqual(newVal);
+
+    expect(row.getByText(newVal)).toBeInTheDocument();
   });
 
   it('should allow editing checkbox', async () => {
     const onSave = jest.fn().mockImplementation(defaultOnSaveRow);
 
-    const wrapper = createWrapper({
+    createWrapper({
       columns,
       data,
       onSaveRow: onSave,
       editable: true,
     });
 
-    let row = wrapper.findWhere(w => w.key() === 'row_0');
-    expect(row).toHaveLength(1);
-    row.find('button[name="edit"]').simulate('click');
-    wrapper.update();
+    const row = within(screen.getAllByRole('row')[1]);
+    expect(row).toBeDefined();
+
+    act(() => {
+      userEvent.click(
+        row.getByRole('button', { name: /edit row/i })
+      );
+    });
 
     // Find checkbox and click it to change it's value
-    row = wrapper.findWhere(w => w.key() === 'row_0');
-    const cell = row.findWhere(r => r.key() === 'cell_0_editableCheckbox');
-    const checkbox = cell.find('input');
-    expect(checkbox).toHaveLength(1);
-    checkbox.simulate('change', { target: { checked: !data[0].editableCheckbox }});
+    const checkbox = row.getByRole('checkbox', { checked: data[0].editableCheckbox });
+    userEvent.click(checkbox);
 
-    row.find('button[name="save"]').simulate('click');
-    wrapper.update();
+    act(() => {
+      userEvent.click(
+        row.getByRole('button', { name: /save row/i })
+      );
+    });
 
     expect(onSave).toHaveBeenCalledTimes(1);
     expect(onSave).toHaveBeenCalledWith(expect.anything(), { editableCheckbox: !data[0].editableCheckbox }, expect.anything());

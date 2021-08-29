@@ -144,7 +144,16 @@ const MaterialTable = (props) => {
             <TableRow {...headerGroup.getHeaderGroupProps()}>
               {headerGroup.headers.map(col => (
                 <TableCell
-                  {...col.getHeaderProps(col.getSortByToggleProps({ width: col.widthSuggestion }))}
+                  aria-sort={
+                    /* eslint-disable-next-line no-nested-ternary */
+                    col.isSorted ?
+                      (col.isSortedDesc ? 'descending' : 'ascending') :
+                      undefined
+                  }
+                  {...col.getHeaderProps(col.getSortByToggleProps({
+                    width: col.widthSuggestion,
+                    title: undefined,
+                  }))}
                 >
                   {col.canSort ? (
                     <TableSortLabel
@@ -160,10 +169,10 @@ const MaterialTable = (props) => {
             </TableRow>
           ))}
         </TableHead>
-        <TableBody {...getTableBodyProps()}>
-          {loading && skeletonCount.forEach((_, i) => (
+        <TableBody {...getTableBodyProps()} aria-live='polite'>
+          {loading && !rows.length && skeletonCount.map((_, i) => (
             // eslint-disable-next-line react/no-array-index-key
-            <TableRow key={i}>
+            <TableRow key={i} aria-hidden>
               {headerGroups[0].headers.map((h) => (
                 <TableCell className={classes.skeleton} key={h.id}>
                   <Skeleton />
@@ -190,9 +199,9 @@ const MaterialTable = (props) => {
       </Table>
       {pagination && (
         <div className={classes.pagination}>
-          {loading && <CircularProgress size={30} />}
+          {loading && <CircularProgress size={30} aria-label='Loading icon' />}
           <TablePagination
-            component='div'
+            component='nav'
             count={rowCount}
             page={pageIndex}
             rowsPerPage={pageSize}
@@ -200,6 +209,7 @@ const MaterialTable = (props) => {
             onRowsPerPageChange={onChangePageSize}
             ActionsComponent={TablePaginationActions}
             labelDisplayedRows={labelDisplayedRows}
+            aria-label='Table pagination'
           />
         </div>
       )}

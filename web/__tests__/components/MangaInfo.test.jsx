@@ -3,7 +3,10 @@ import { render, screen } from '@testing-library/react';
 
 import MangaInfo from '../../src/components/MangaInfo';
 import { mockUTCDates } from '../utils';
-import { defaultDateFormat, defaultDateDistanceFormat } from '../constants';
+import {
+  defaultDateFormatRegex,
+  defaultDateDistanceFormat
+} from '../constants';
 
 describe('MangaInfo should render correctly', () => {
   mockUTCDates();
@@ -31,7 +34,7 @@ describe('MangaInfo should render correctly', () => {
     expect(
       screen.getByRole(
         'row',
-        { name: new RegExp(`latest release: ${defaultDateFormat} - ${defaultDateDistanceFormat}`, 'i') }
+        { name: new RegExp(`latest release: ${defaultDateFormatRegex} - ${defaultDateDistanceFormat}`, 'i') }
       )
     ).toBeInTheDocument();
 
@@ -42,7 +45,7 @@ describe('MangaInfo should render correctly', () => {
     expect(
       screen.getByRole(
         'row',
-        { name: new RegExp(`estimated next release: ${defaultDateFormat}`, 'i') }
+        { name: new RegExp(`estimated next release: ${defaultDateFormatRegex}`, 'i') }
       )
     ).toBeInTheDocument();
 
