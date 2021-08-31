@@ -105,6 +105,6 @@ describe('Requests should be handled correctly', () => {
 
     expect(fetchMock.calls('/api/profile')).toHaveLength(1);
     expectErrorSnackbar();
-    expect(getSnackbarMessage()).toMatchSnapshot();
+    expect(getSnackbarMessage()).toMatchInlineSnapshot(`"Unexpected error occurred"`);
   });
 });
