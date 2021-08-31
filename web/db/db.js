@@ -51,7 +51,7 @@ function getLatestReleases(serviceId, mangaId, userUUID) {
         FROM chapters_filtered c 
             INNER JOIN manga m on c.manga_id = m.manga_id
             INNER JOIN services s on c.service_id = s.service_id
-            INNER JOIN manga_info mi ON m.manga_id = mi.manga_id
+            LEFT JOIN manga_info mi ON m.manga_id = mi.manga_id
         WHERE c.release_date > NOW() - INTERVAL '1 hour'
         UNION 
               (SELECT 
@@ -72,7 +72,7 @@ function getLatestReleases(serviceId, mangaId, userUUID) {
               FROM chapters_filtered c
                   INNER JOIN manga m on c.manga_id = m.manga_id
                   INNER JOIN services s on c.service_id = s.service_id
-                  INNER JOIN manga_info mi ON m.manga_id = mi.manga_id
+                  LEFT JOIN manga_info mi ON m.manga_id = mi.manga_id
               ORDER BY release_date DESC, chapter_number DESC
               LIMIT 30)
         ORDER BY release_date DESC, chapter_number DESC`;
