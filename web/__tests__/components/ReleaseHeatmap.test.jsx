@@ -1,11 +1,19 @@
-import { Typography } from '@material-ui/core';
 import React from 'react';
-import { createShallow } from '@material-ui/core/test-utils';
-import ReactFrappeChart from 'react-frappe-charts';
+import { render, screen } from '@testing-library/react';
 
 import ReleaseHeatmap from '../../src/components/ReleaseHeatmap';
 
 describe('Release heatmap', () => {
+  // https://stackoverflow.com/a/65606342/6046713
+  // mock ResizeObserver
+  window.ResizeObserver =
+    window.ResizeObserver ||
+    jest.fn().mockImplementation(() => ({
+      disconnect: jest.fn(),
+      observe: jest.fn(),
+      unobserve: jest.fn(),
+    }));
+
   const data = [
     { timestamp: 1564088400, count: 3 },
     { timestamp: 1589662800, count: 1 },
@@ -17,41 +25,36 @@ describe('Release heatmap', () => {
     { timestamp: 1593118800, count: 2 },
   ];
 
-  it('Should use given id and title', () => {
-    const wrapper = createShallow()(
-      <ReleaseHeatmap dataRows={data} id='test-id' title='test title' />
+  it('Should render correctly', () => {
+    const title = 'Test title';
+    render(
+      <ReleaseHeatmap dataRows={data} title={title} />
     );
 
-    expect(wrapper.exists('div#test-id')).toBeTrue();
-    expect(wrapper.find(Typography).get(0).props.children).toStrictEqual('test title');
+    expect(screen.getByText(title)).toBeInTheDocument();
+    expect(screen.getAllByText(/\d+ \((\d+|no) releases\)/i)).toBeTruthy();
   });
 
   it('Should work without data', () => {
-    const wrapper = createShallow()(
-      <ReleaseHeatmap dataRows={undefined} id='test-id' />
+    render(
+      <ReleaseHeatmap dataRows={undefined} title={null} />
     );
 
-    expect(wrapper.exists('div#test-id')).toBeTrue();
-  });
-
-  it('Should work without data', () => {
-    const wrapper = createShallow()(
-      <ReleaseHeatmap dataRows={undefined} id='test-id' />
-    );
-
-    expect(wrapper.exists('div#test-id')).toBeTrue();
+    // No text should be rendered
+    expect(screen.queryByText(/.+/)).not.toBeInTheDocument();
   });
 
   it('Should update data when it changes', () => {
-    const wrapper = createShallow()(
+    const { rerender } = render(
       <ReleaseHeatmap dataRows={undefined} />
     );
 
-    expect(wrapper.exists(ReactFrappeChart)).toBeFalse();
+    expect(screen.queryByText(/\d+ \((\d+|no) releases\)/)).not.toBeInTheDocument();
 
-    wrapper.setProps({ dataRows: data });
-    wrapper.update();
+    rerender(
+      <ReleaseHeatmap dataRows={data} />
+    );
 
-    expect(wrapper.exists(ReactFrappeChart)).toBeTrue();
+    expect(screen.getAllByText(/\d+ \((\d+|no) releases\)/)).toBeTruthy();
   });
 });
