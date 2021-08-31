@@ -70,12 +70,12 @@ class Status(Enum):
 class MangadexData(GenericModel, Generic[DataT]):
     id: str
     attributes: DataT
+    relationships: Optional[List[Relationship]]
 
 
 class MangadexResult(GenericModel, Generic[DataT]):
     result: MangadexResultStatus
     data: MangadexData[DataT]
-    relationships: List[Relationship]
 
 
 class ChapterAttributes(BaseModel):
@@ -101,10 +101,11 @@ class ChapterResult(MangadexResult[ChapterAttributes]):
         """
         Maps data for reference expanded objects
         """
-        if 'relationships' not in data:
+        relationships = data['data'].get('relationships')
+        if not relationships:
             return data
 
-        for r in data['relationships']:
+        for r in relationships:
             if 'attributes' not in r:
                 continue
 
@@ -118,17 +119,19 @@ class ChapterResult(MangadexResult[ChapterAttributes]):
 
     @property
     def manga_id(self) -> str:
-        for relationship in self.relationships:
-            if relationship.type == 'manga':
-                return relationship.id
+        if self.data.relationships:
+            for relationship in self.data.relationships:
+                if relationship.type == 'manga':
+                    return relationship.id
 
         raise ValueError(f'Manga id not found for {self}')
 
     @property
     def group_id(self) -> str:
-        for relationship in self.relationships:
-            if relationship.type == 'scanlation_group':
-                return relationship.id
+        if self.data.relationships:
+            for relationship in self.data.relationships:
+                if relationship.type == 'scanlation_group':
+                    return relationship.id
 
         raise ValueError(f'Scanlation group id not found for {self}')
 
@@ -170,12 +173,13 @@ class MangaResult(MangadexResult[MangaAttributes]):
         """
         Maps data for reference expanded objects
         """
-        if 'relationships' not in data:
+        relationships = data['data'].get('relationships')
+        if not relationships:
             return data
 
         authors = []
         artists = []
-        for r in data['relationships']:
+        for r in relationships:
             if 'attributes' not in r:
                 continue
 
@@ -195,19 +199,22 @@ class MangaResult(MangadexResult[MangaAttributes]):
         return data
 
     def author_relationships(self) -> Iterable[Relationship]:
-        for relationship in self.relationships:
-            if relationship.type == 'author':
-                yield relationship
+        if self.data.relationships:
+            for relationship in self.data.relationships:
+                if relationship.type == 'author':
+                    yield relationship
 
     def artist_relationships(self) -> Iterable[Relationship]:
-        for relationship in self.relationships:
-            if relationship.type == 'artist':
-                yield relationship
+        if self.data.relationships:
+            for relationship in self.data.relationships:
+                if relationship.type == 'artist':
+                    yield relationship
 
     def cover_id(self) -> Optional[str]:
-        for relationship in self.relationships:
-            if relationship.type == 'cover_art':
-                return relationship.id
+        if self.data.relationships:
+            for relationship in self.data.relationships:
+                if relationship.type == 'cover_art':
+                    return relationship.id
 
         return None
 
