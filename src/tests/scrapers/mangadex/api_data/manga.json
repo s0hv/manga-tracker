@@ -24,47 +24,47 @@
           "createdAt": "2020-03-27T13:11:12+00:00",
           "updatedAt": "2021-05-25T15:50:05+00:00",
           "version": 2
-        }
-      },
-      "relationships": [
-        {
-          "id": "ebce8634-e42e-4b5f-8d34-938dbdc8a3c5",
-          "type": "author",
-          "attributes": {
-            "name": "Yeowool",
-            "createdAt": "2021-04-19T21:59:45+00:00",
-            "updatedAt": "2021-04-19T21:59:45+00:00",
-            "version": 1
-          }
         },
-        {
-          "id": "8c1325f8-fc77-44d2-86da-ee1b62280ba6",
-          "type": "artist",
-          "attributes": {
-            "name": "Inballo",
-            "createdAt": "2021-04-19T21:59:45+00:00",
-            "updatedAt": "2021-04-19T21:59:45+00:00",
-            "version": 1
+        "relationships": [
+          {
+            "id": "ebce8634-e42e-4b5f-8d34-938dbdc8a3c5",
+            "type": "author",
+            "attributes": {
+              "name": "Yeowool",
+              "createdAt": "2021-04-19T21:59:45+00:00",
+              "updatedAt": "2021-04-19T21:59:45+00:00",
+              "version": 1
+            }
+          },
+          {
+            "id": "8c1325f8-fc77-44d2-86da-ee1b62280ba6",
+            "type": "artist",
+            "attributes": {
+              "name": "Inballo",
+              "createdAt": "2021-04-19T21:59:45+00:00",
+              "updatedAt": "2021-04-19T21:59:45+00:00",
+              "version": 1
+            }
+          },
+          {
+            "id": "96194809-7ad5-4cae-b067-f4004c45e868",
+            "type": "artist",
+            "attributes": {
+              "name": "Eunmin",
+              "createdAt": "2021-04-19T21:59:45+00:00",
+              "updatedAt": "2021-04-19T21:59:45+00:00",
+              "version": 1
+            }
+          },
+          {
+            "id": "895b3519-3149-4f19-97c1-e1827d19b046",
+            "type": "cover_art",
+            "attributes": {
+              "fileName": "ce20d324-b04e-4cfd-9b46-d2dd06c37436.jpg"
+            }
           }
-        },
-        {
-          "id": "96194809-7ad5-4cae-b067-f4004c45e868",
-          "type": "artist",
-          "attributes": {
-            "name": "Eunmin",
-            "createdAt": "2021-04-19T21:59:45+00:00",
-            "updatedAt": "2021-04-19T21:59:45+00:00",
-            "version": 1
-          }
-        },
-        {
-          "id": "895b3519-3149-4f19-97c1-e1827d19b046",
-          "type": "cover_art",
-          "attributes": {
-            "fileName": "ce20d324-b04e-4cfd-9b46-d2dd06c37436.jpg"
-          }
-        }
-      ]
+        ]
+      }
     },
     {
       "result": "ok",
@@ -93,37 +93,37 @@
           "createdAt": "2019-04-23T03:20:48+00:00",
           "updatedAt": "2021-05-25T15:41:38+00:00",
           "version": 2
-        }
-      },
-      "relationships": [
-        {
-          "id": "98784376-494a-48e1-a1a4-227b6c9c686f",
-          "type": "author",
-          "attributes": {
-            "name": "Hideki",
-            "createdAt": "2021-04-19T21:59:45+00:00",
-            "updatedAt": "2021-04-19T21:59:45+00:00",
-            "version": 1
-          }
         },
-        {
-          "id": "96194809-7ad5-4cae-b067-f4004c45e868",
-          "type": "artist",
-          "attributes": {
-            "name": "Eunmin",
-            "createdAt": "2021-04-19T21:59:45+00:00",
-            "updatedAt": "2021-04-19T21:59:45+00:00",
-            "version": 1
+        "relationships": [
+          {
+            "id": "98784376-494a-48e1-a1a4-227b6c9c686f",
+            "type": "author",
+            "attributes": {
+              "name": "Hideki",
+              "createdAt": "2021-04-19T21:59:45+00:00",
+              "updatedAt": "2021-04-19T21:59:45+00:00",
+              "version": 1
+            }
+          },
+          {
+            "id": "96194809-7ad5-4cae-b067-f4004c45e868",
+            "type": "artist",
+            "attributes": {
+              "name": "Eunmin",
+              "createdAt": "2021-04-19T21:59:45+00:00",
+              "updatedAt": "2021-04-19T21:59:45+00:00",
+              "version": 1
+            }
+          },
+          {
+            "id": "b1c27dac-3182-4f9c-84e9-d62a0b03e727",
+            "type": "cover_art",
+            "attributes": {
+              "fileName": "d389179e-0c65-4d91-b772-7dcc1662310e.jpg"
+            }
           }
-        },
-        {
-          "id": "b1c27dac-3182-4f9c-84e9-d62a0b03e727",
-          "type": "cover_art",
-          "attributes": {
-            "fileName": "d389179e-0c65-4d91-b772-7dcc1662310e.jpg"
-          }
-        }
-      ]
+        ]
+      }
     },
     {
       "result": "ok",
@@ -146,47 +146,47 @@
           "createdAt": "2020-06-07T06:29:17+00:00",
           "updatedAt": "2021-05-25T15:46:34+00:00",
           "version": 2
-        }
-      },
-      "relationships": [
-        {
-          "id": "98784376-494a-48e1-a1a4-227b6c9c686f",
-          "type": "author",
-          "attributes": {
-            "name": "Hideki",
-            "createdAt": "2021-04-19T21:59:45+00:00",
-            "updatedAt": "2021-04-19T21:59:45+00:00",
-            "version": 1
-          }
         },
-        {
-          "id": "d21a9418-817a-43e5-a4d2-bf1e7391d7ec",
-          "type": "author",
+        "relationships": [
+          {
+            "id": "98784376-494a-48e1-a1a4-227b6c9c686f",
+            "type": "author",
             "attributes": {
-            "name": "This is already added to the database",
-            "createdAt": "2021-04-19T21:59:45+00:00",
-            "updatedAt": "2021-04-19T21:59:45+00:00",
-            "version": 1
+              "name": "Hideki",
+              "createdAt": "2021-04-19T21:59:45+00:00",
+              "updatedAt": "2021-04-19T21:59:45+00:00",
+              "version": 1
+            }
+          },
+          {
+            "id": "d21a9418-817a-43e5-a4d2-bf1e7391d7ec",
+            "type": "author",
+              "attributes": {
+              "name": "This is already added to the database",
+              "createdAt": "2021-04-19T21:59:45+00:00",
+              "updatedAt": "2021-04-19T21:59:45+00:00",
+              "version": 1
+            }
+          },
+          {
+            "id": "98784376-494a-48e1-a1a4-227b6c9c686f",
+            "type": "artist",
+            "attributes": {
+              "name": "Hideki",
+              "createdAt": "2021-04-19T21:59:45+00:00",
+              "updatedAt": "2021-04-19T21:59:45+00:00",
+              "version": 1
+            }
+          },
+          {
+            "id": "924887ec-1a17-4f6f-83cf-8c21da336629",
+            "type": "cover_art",
+            "attributes": {
+              "fileName": "bf03703e-f6d9-4fdd-ae3a-a9eb768a239c.jpg"
+            }
           }
-        },
-        {
-          "id": "98784376-494a-48e1-a1a4-227b6c9c686f",
-          "type": "artist",
-          "attributes": {
-            "name": "Hideki",
-            "createdAt": "2021-04-19T21:59:45+00:00",
-            "updatedAt": "2021-04-19T21:59:45+00:00",
-            "version": 1
-          }
-        },
-        {
-          "id": "924887ec-1a17-4f6f-83cf-8c21da336629",
-          "type": "cover_art",
-          "attributes": {
-            "fileName": "bf03703e-f6d9-4fdd-ae3a-a9eb768a239c.jpg"
-          }
-        }
-      ]
+        ]
+      }
     }
   ],
   "limit": 10,
