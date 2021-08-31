@@ -1,13 +1,10 @@
 /* eslint-disable import/no-extraneous-dependencies */
 import '@testing-library/jest-dom/extend-expect';
-import Adapter from '@wojtekmaj/enzyme-adapter-react-17';
 
-import { configure } from 'enzyme';
 import 'jest-extended';
 import request from 'supertest';
 import { csrfToken } from './__tests__/constants';
 
-configure({ adapter: new Adapter() });
 
 require('dotenv').config({ path: '../.env' });
 
