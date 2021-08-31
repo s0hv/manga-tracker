@@ -1,5 +1,4 @@
 import React from 'react';
-import { createSerializer } from 'enzyme-to-json';
 import { render, screen } from '@testing-library/react';
 
 import 'jest-extended';
@@ -7,9 +6,6 @@ import 'jest-extended';
 import userEvent from '@testing-library/user-event';
 import MangaSourceList from '../../src/components/MangaSourceList';
 import { normalUser, withUser } from '../utils';
-
-expect.addSnapshotSerializer(createSerializer({ mode: 'deep' }));
-
 
 const services = [
   {

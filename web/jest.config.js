@@ -39,7 +39,7 @@ const baseConfig = {
   },
 
   // A list of paths to snapshot serializer modules Jest should use for snapshot testing
-  snapshotSerializers: ['enzyme-to-json/serializer'],
+  // snapshotSerializers: [],
 
   // Indicates whether the coverage information should be collected while executing the test
   // collectCoverage: false,
