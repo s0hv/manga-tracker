@@ -1,5 +1,5 @@
 import React from 'react';
-import renderer from 'react-test-renderer';
+import { render, screen, within } from '@testing-library/react';
 
 import { mockNotistackHooks, mockUTCDates } from '../../utils';
 import Services from '../../../src/views/admin/Services';
@@ -51,19 +51,31 @@ describe('Services page should render correctly', () => {
     },
   ];
 
-  it('should render correctly without services', () => {
-    const tree = renderer
-      .create(<Services />)
-      .toJSON();
+  const expectHeadersExist = () => {
+    const headerRow = within(screen.getAllByRole('row')[0]);
 
-    expect(tree).toMatchSnapshot();
+    expect(headerRow.getByText('Id')).toBeInTheDocument();
+    expect(headerRow.getByText('Name')).toBeInTheDocument();
+    expect(headerRow.getByText('Last checked')).toBeInTheDocument();
+    expect(headerRow.getByText('Next update')).toBeInTheDocument();
+    expect(headerRow.getByText('Disabled')).toBeInTheDocument();
+  };
+
+  it('should render correctly without services', () => {
+    render(<Services />);
+
+    expect(screen.getByText('Services')).toBeInTheDocument();
+    expect(screen.getAllByRole('row')).toHaveLength(1);
+
+    expectHeadersExist();
   });
 
   it('should render correctly with services', () => {
-    const tree = renderer
-      .create(<Services services={services} />)
-      .toJSON();
+    render(<Services services={services} />);
 
-    expect(tree).toMatchSnapshot();
+    expect(screen.getByText('Services')).toBeInTheDocument();
+    expect(screen.getAllByRole('row')).toHaveLength(services.length + 1);
+
+    expectHeadersExist();
   });
 });
