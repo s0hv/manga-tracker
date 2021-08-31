@@ -7,7 +7,6 @@ import signature from 'cookie-signature';
 import enLocale from 'date-fns/locale/en-GB';
 import jestOpenAPI from 'jest-openapi';
 import React, { isValidElement } from 'react';
-import { act } from 'react-dom/test-utils';
 import request from 'supertest';
 
 import { UserProvider } from '../src/utils/useUser';
@@ -227,13 +226,6 @@ export function expectCookieDeleted(cookieName) {
     expect(found).toBeDefined();
     expect(new Date(found.Expires).getTime()).toStrictEqual(0);
   };
-}
-
-export async function editInput(input, value) {
-  await act(async () => {
-    input.simulate('change', { target: { value }, currentTarget: { value }});
-    input.instance().value = value;
-  });
 }
 
 export function decodeAuthToken(tokenValue) {
