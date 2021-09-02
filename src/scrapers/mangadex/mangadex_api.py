@@ -1,6 +1,7 @@
 import logging
 from datetime import datetime
 from enum import Enum
+from itertools import chain
 from typing import Optional, List, Union, Dict, Iterable, Literal, TypeVar, \
     Type, TypedDict, Generic
 
@@ -16,6 +17,7 @@ logger = logging.getLogger('debug')
 
 SortDirection = Literal['asc', 'desc']
 DataT = TypeVar('DataT')
+MAX_LIMIT = 100
 
 SortColumns = TypedDict('SortColumns', {
     'createdAt': SortDirection,
@@ -310,8 +312,8 @@ class MangadexAPI:
     @sleep_and_retry
     @api_rate_limiter
     def get_chapters(self, sort_by: SortColumns, *, languages: List[str],
-                     manga_id: str = None, limit: int = 100,
-                     include_groups: bool = True) -> Iterable[ChapterResult]:
+                     manga_id: str = None, limit: int = MAX_LIMIT,
+                     include_groups: bool = True, offset: int = None) -> Iterable[ChapterResult]:
         params = []
         order = []
         for k, v in sort_by.items():
@@ -326,14 +328,33 @@ class MangadexAPI:
             params.append(f'manga={manga_id}')
 
         if limit:
-            params.append(f'limit={limit}')
+            params.append(f'limit={min(limit, MAX_LIMIT)}')
 
         if include_groups:
             params.append('includes[]=scanlation_group')
 
+        if offset:
+            params.append(f'offset={offset}')
+
         r = requests.get(f'{self.base_url}/chapter?{"&".join(params)}')
 
-        return request_to_model(r, ChapterResult)
+        if limit > MAX_LIMIT:
+            data = r.json()
+            its = [request_to_model(r, ChapterResult)]
+
+            if data['total'] > data['offset'] + data['limit']:
+                its.append(self.get_chapters(
+                    sort_by=sort_by,
+                    languages=languages,
+                    manga_id=manga_id,
+                    limit=limit - MAX_LIMIT,
+                    include_groups=include_groups,
+                    offset=(offset or 0) + MAX_LIMIT
+                ))
+
+            return chain(*its)
+        else:
+            return request_to_model(r, ChapterResult)
 
     # Commented out as it's not required after reference expansion was introduced
     # def fetch_chunked(self, api_path: str, ids: List[str], model: Type[GenericMangadexResults]) -> Dict[str, GenericMangadexResults]:

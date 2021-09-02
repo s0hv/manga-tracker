@@ -293,10 +293,10 @@ class MangaDex(BaseScraperWhole):
 
         return valid_chapters
 
-    def fetch_chapters(self, api_url: str, title_id: str = None) -> Optional[List[Chapter]]:
+    def fetch_chapters(self, api_url: str, title_id: str = None, limit: int = 100) -> Optional[List[Chapter]]:
         self.api.base_url = api_url
         try:
-            result = self.api.get_chapters({'publishAt': 'desc'}, manga_id=title_id, languages=['en'])
+            result = self.api.get_chapters({'publishAt': 'desc'}, manga_id=title_id, languages=['en'], limit=limit)
             return list(self.parse_feed(result))
         except JSONDecodeError:
             logger.exception(f'Failed to parse mangadex response')
@@ -305,12 +305,12 @@ class MangaDex(BaseScraperWhole):
             logger.exception(f'Failed to parse mangadex result {e}')
             return None
 
-    def do_update(self, service_id: int, feed_url: str, title_id: str = None) -> Optional[Set[int]]:
+    def do_update(self, service_id: int, feed_url: str, title_id: str = None, limit: int = 100) -> Optional[Set[int]]:
         """
         Handles fetching the chapter feed and adding the results to the database
         and other required operations
         """
-        parsed = self.fetch_chapters(feed_url, title_id=title_id)
+        parsed = self.fetch_chapters(feed_url, title_id=title_id, limit=limit)
         if not parsed:
             return None
 
@@ -375,7 +375,7 @@ class MangaDex(BaseScraperWhole):
         return manga_ids
 
     def scrape_series(self, title_id: str, service_id: int, manga_id: int, feed_url: str) -> Optional[bool]:
-        return bool(self.do_update(service_id, feed_url, title_id))
+        return bool(self.do_update(service_id, feed_url, title_id, limit=300))
 
     def scrape_service(self, service_id: int, feed_url: str, last_update: Optional[datetime], title_id: Optional[str] = None):
         return self.do_update(service_id, feed_url)
