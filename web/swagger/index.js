@@ -1,6 +1,6 @@
 const fs = require('fs');
 const util = require('util');
-const swaggerJsdoc = require('swagger-jsdoc').default;
+const swaggerJsdoc = require('swagger-jsdoc');
 const YAML = require('yaml');
 
 const readFile = util.promisify(fs.readFile);
