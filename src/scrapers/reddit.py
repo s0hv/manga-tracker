@@ -68,7 +68,7 @@ class Reddit(BaseScraper):
                     # to set any properties
                     special = Reddit.SPECIAL_REGEX.match(title)
                     if not special:
-                        logger.warning(f'Could not parse title from {title or post}')
+                        logger.info(f'Could not parse title from {title or post}')
                         continue
 
                     # Special cases don't have a chapter number shown so default to 0
