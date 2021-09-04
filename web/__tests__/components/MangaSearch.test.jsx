@@ -106,7 +106,7 @@ describe('Search should behave correctly with user input', () => {
     // Simulate text changes and test that the quicksearch endpoint
     // was called only once
     await act(async () => {
-      await userEvent.type(input, 'abcdef', { delay: 1 });
+      await userEvent.type(input, 'abcd', { delay: 1 });
     });
 
     expect(searchFn).toHaveBeenCalledTimes(1);
