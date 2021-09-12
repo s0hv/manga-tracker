@@ -137,7 +137,7 @@ class MangadexTests(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsser
         self.assertLogs(logger, logging.ERROR)
 
     def test_parse_feed(self):
-        chapters = parse_obj_as(List[ChapterResult], self.chapters_data['results'])
+        chapters = parse_obj_as(List[ChapterResult], self.chapters_data['data'])
         parsed = self.mangadex.parse_feed(chapters)
         for chapter in parsed:
             # Parse feed does not handle fetching groups

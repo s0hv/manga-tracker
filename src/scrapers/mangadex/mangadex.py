@@ -92,16 +92,12 @@ class MangaDex(BaseScraperWhole):
     def parse_feed(entries: Iterable[ChapterResult]) -> List[Chapter]:
         chapters = []
         for chapter in entries:
-            if not chapter.ok:
-                logger.warning(f'Chapter not ok {chapter}')
-                continue
-
             try:
                 # Mypy thinks attrs is of type DataT which makes no sense as DataT is a TypeVar
-                attrs: ChapterAttributes = chapter.data.attributes  # type: ignore[assignment]
+                attrs: ChapterAttributes = chapter.attributes  # type: ignore[assignment]
                 chapters.append(Chapter(
                     attrs.chapter,
-                    chapter.data.id,
+                    chapter.id,
                     chapter.manga_id,
                     attrs.publish_at,
                     attrs.title,
@@ -123,23 +119,23 @@ class MangaDex(BaseScraperWhole):
         # Tuple of cover url, manga id
         manga_infos: List[MangaInfo] = []
         for manga_id, manga in mangas.items():
-            links = manga.data.attributes.links
+            links = manga.attributes.links
             cover: Optional[str] = None
             if manga.cover:
                 cover = self.COVER_FORMAT.format(
-                    title_id=manga.data.id,
+                    title_id=manga.id,
                     file_name=manga.cover.attributes.file_name
                 )
 
             manga_infos.append(
                 MangaInfo(manga_id=manga_id,
                           cover=cover,
-                          status=manga.data.attributes.status.to_int(),
+                          status=manga.attributes.status.to_int(),
                           **links.dict()))
 
         self.dbutil.update_manga_infos(manga_infos, update_last_check=False)
         self.dbutil.update_manga_titles([
-            (manga_id, m.data.attributes.title) for manga_id, m in mangas.items()
+            (manga_id, m.attributes.title) for manga_id, m in mangas.items()
         ])
 
     def add_authors(self, mangas: List[Tuple[MangaResult, int]]):
@@ -337,7 +333,7 @@ class MangaDex(BaseScraperWhole):
             if m.title_id not in manga_infos:
                 mangas.pop(idx)
             else:
-                m.title = manga_infos[m.title_id].data.attributes.title
+                m.title = manga_infos[m.title_id].attributes.title
 
         # Add new manga
         self.add_new_manga_with_dupe_check(
@@ -393,6 +389,6 @@ class MangaDex(BaseScraperWhole):
                 return mangas
 
             for manga in parsed:
-                mangas[manga.data.id] = manga
+                mangas[manga.id] = manga
 
         return mangas

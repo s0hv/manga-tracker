@@ -75,11 +75,6 @@ class MangadexData(GenericModel, Generic[DataT]):
     relationships: Optional[List[Relationship]]
 
 
-class MangadexResult(GenericModel, Generic[DataT]):
-    result: MangadexResultStatus
-    data: MangadexData[DataT]
-
-
 class ChapterAttributes(BaseModel):
     volume: Optional[str]
     chapter: Optional[str]
@@ -91,19 +86,15 @@ class ScanlationGroupAttributes(BaseModel):
     name: str
 
 
-class ChapterResult(MangadexResult[ChapterAttributes]):
+class ChapterResult(MangadexData[ChapterAttributes]):
     group: Optional[MangadexData[ScanlationGroupAttributes]]
-
-    @property
-    def ok(self) -> bool:
-        return self.result == MangadexResultStatus.ok
 
     @root_validator(pre=True)
     def restructure_data(cls, data):
         """
         Maps data for reference expanded objects
         """
-        relationships = data['data'].get('relationships')
+        relationships = data.get('relationships')
         if not relationships:
             return data
 
@@ -121,8 +112,8 @@ class ChapterResult(MangadexResult[ChapterAttributes]):
 
     @property
     def manga_id(self) -> str:
-        if self.data.relationships:
-            for relationship in self.data.relationships:
+        if self.relationships:
+            for relationship in self.relationships:
                 if relationship.type == 'manga':
                     return relationship.id
 
@@ -130,8 +121,8 @@ class ChapterResult(MangadexResult[ChapterAttributes]):
 
     @property
     def group_id(self) -> str:
-        if self.data.relationships:
-            for relationship in self.data.relationships:
+        if self.relationships:
+            for relationship in self.relationships:
                 if relationship.type == 'scanlation_group':
                     return relationship.id
 
@@ -162,10 +153,10 @@ class CoverAttributes(BaseModel):
     file_name: str = Field(..., alias='fileName')
 
 
-class MangaResult(MangadexResult[MangaAttributes]):
+class MangaResult(MangadexData[MangaAttributes]):
     # We need to redefine this here as mypy is too stupid to understand
     # nested generics
-    data: MangadexData[MangaAttributes]
+    attributes: MangaAttributes
     authors: Optional[List[MangadexData[AuthorAttributes]]]
     artists: Optional[List[MangadexData[AuthorAttributes]]]
     cover: Optional[MangadexData[CoverAttributes]]
@@ -175,7 +166,7 @@ class MangaResult(MangadexResult[MangaAttributes]):
         """
         Maps data for reference expanded objects
         """
-        relationships = data['data'].get('relationships')
+        relationships = data.get('relationships')
         if not relationships:
             return data
 
@@ -201,36 +192,36 @@ class MangaResult(MangadexResult[MangaAttributes]):
         return data
 
     def author_relationships(self) -> Iterable[Relationship]:
-        if self.data.relationships:
-            for relationship in self.data.relationships:
+        if self.relationships:
+            for relationship in self.relationships:
                 if relationship.type == 'author':
                     yield relationship
 
     def artist_relationships(self) -> Iterable[Relationship]:
-        if self.data.relationships:
-            for relationship in self.data.relationships:
+        if self.relationships:
+            for relationship in self.relationships:
                 if relationship.type == 'artist':
                     yield relationship
 
     def cover_id(self) -> Optional[str]:
-        if self.data.relationships:
-            for relationship in self.data.relationships:
+        if self.relationships:
+            for relationship in self.relationships:
                 if relationship.type == 'cover_art':
                     return relationship.id
 
         return None
 
 
-class AuthorResult(MangadexResult[AuthorAttributes]):
-    data: MangadexData[AuthorAttributes]
+class AuthorResult(MangadexData[AuthorAttributes]):
+    pass
 
 
-class CoverResult(MangadexResult[CoverAttributes]):
-    data: MangadexData[CoverAttributes]
+class CoverResult(MangadexData[CoverAttributes]):
+    pass
 
 
-class ScanlationGroupResult(MangadexResult[ScanlationGroupAttributes]):
-    data: MangadexData[ScanlationGroupAttributes]
+class ScanlationGroupResult(MangadexData[ScanlationGroupAttributes]):
+    pass
 
 
 def handle_response(r: requests.Response) -> Dict:
@@ -243,20 +234,20 @@ def handle_response(r: requests.Response) -> Dict:
 def try_parse_result(r: requests.Response) -> Dict:
     data = r.json()
 
-    if 'results' not in data:
-        raise ValueError('Results not found in response', data)
+    if 'data' not in data:
+        raise ValueError('Data not found in response', data)
 
     return data
 
 
 # This does not work correctly and consistently when bound=MangadexResult
 GenericResults = TypeVar('GenericResults', bound=BaseModel)
-GenericMangadexResults = TypeVar('GenericMangadexResults', bound=MangadexResult)
+GenericMangadexResults = TypeVar('GenericMangadexResults', bound=MangadexData)
 
 
 # noinspection PyPep8Naming
 def request_to_model(r: requests.Response, Model: Type[GenericResults], continue_on_error: bool = False) -> Iterable[GenericResults]:
-    for result in handle_response(r)['results']:
+    for result in handle_response(r)['data']:
         try:
             yield Model(**result)
         except ValidationError:
