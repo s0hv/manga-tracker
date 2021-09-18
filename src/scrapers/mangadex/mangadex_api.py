@@ -304,7 +304,8 @@ class MangadexAPI:
     @api_rate_limiter
     def get_chapters(self, sort_by: SortColumns, *, languages: List[str],
                      manga_id: str = None, limit: int = MAX_LIMIT,
-                     include_groups: bool = True, offset: int = None) -> Iterable[ChapterResult]:
+                     include_groups: bool = True, offset: int = None,
+                     include_future_updates=False) -> Iterable[ChapterResult]:
         params = []
         order = []
         for k, v in sort_by.items():
@@ -326,6 +327,8 @@ class MangadexAPI:
 
         if offset:
             params.append(f'offset={offset}')
+
+        params.append(f'includeFutureUpdates={"1" if include_future_updates else "0"}')
 
         r = requests.get(f'{self.base_url}/chapter?{"&".join(params)}')
 
