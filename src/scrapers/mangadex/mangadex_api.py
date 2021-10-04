@@ -134,6 +134,22 @@ class MangaAttributes(BaseModel):
     links: Links
     status: Status
 
+    @root_validator(pre=True)
+    def restructure_data(cls, data):
+        if 'en' in data['title']:
+            return data
+
+        alt_titles = data.get('altTitles')
+        if not alt_titles:
+            return data
+
+        for alt_title in alt_titles:
+            if 'en' not in alt_title:
+                continue
+
+            data['title']['en'] = alt_title['en']
+            return data
+
     @validator('title', pre=True)
     def validate_title(cls, v):
         return v['en']
