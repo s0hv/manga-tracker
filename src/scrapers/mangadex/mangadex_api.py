@@ -139,9 +139,7 @@ class MangaAttributes(BaseModel):
         if 'en' in data['title']:
             return data
 
-        alt_titles = data.get('altTitles')
-        if not alt_titles:
-            return data
+        alt_titles = data.get('altTitles', [])
 
         for alt_title in alt_titles:
             if 'en' not in alt_title:
@@ -149,6 +147,10 @@ class MangaAttributes(BaseModel):
 
             data['title']['en'] = alt_title['en']
             return data
+
+        # If no english alt titles found just use the first official title no matter what language it is
+        data['title']['en'] = next(iter(data['title'].values()))
+        return data
 
     @validator('title', pre=True)
     def validate_title(cls, v):
