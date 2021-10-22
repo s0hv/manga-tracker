@@ -118,8 +118,8 @@
     "fetch-mock": "^9.11.0",
     "identity-obj-proxy": "^3.0.0",
     "jest": "^27.0.1",
-    "jest-extended": "^0.11.5",
-    "jest-openapi": "^0.13.0",
+    "jest-extended": "^1.1.0",
+    "jest-openapi": "^0.14.1",
     "node-fetch": "^2.6.1",
     "supertest": "^6.1.3"
   }

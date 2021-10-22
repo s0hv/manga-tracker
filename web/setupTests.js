@@ -1,11 +1,12 @@
 /* eslint-disable import/no-extraneous-dependencies */
 import '@testing-library/jest-dom/extend-expect';
 
-import 'jest-extended';
+import * as matchers from 'jest-extended';
 import request from 'supertest';
 import { csrfToken } from './__tests__/constants';
 
 
+expect.extend(matchers);
 require('dotenv').config({ path: '../.env' });
 
 // Don't want API calls to 3rd party services during tests
