@@ -13,7 +13,7 @@ const pretty = process.env.PRETTY ?
 const logger = pino({
   transport: {
     target: pretty ? 'pino-pretty' : 'pino/file',
-    level: level || 'warn',
+    level,
     options: pretty ? {
       colorize: true,
       translateTime: 'SYS:HH:MM:ss.l',
