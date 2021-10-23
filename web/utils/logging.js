@@ -10,17 +10,19 @@ const pretty = process.env.PRETTY ?
   /^(y|yes|true|on)$/i.test(process.env.PRETTY) :
   isDev;
 
-const logger = pino({
-  transport: {
-    target: pretty ? 'pino-pretty' : 'pino/file',
-    level,
-    options: pretty ? {
-      colorize: true,
-      translateTime: 'SYS:HH:MM:ss.l',
-      ignore: 'hostname,ns',
-    } : undefined,
-  },
-});
+const logger = pino(
+  {
+    level: level || 'debug',
+    prettyPrint: pretty ?
+      {
+        colorize: true,
+        translateTime: 'SYS:HH:MM:ss.l',
+        ignore: 'hostname,ns',
+      } :
+      false,
+    name: 'logger',
+  }
+);
 
 module.exports = {
   logger,
