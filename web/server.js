@@ -70,7 +70,9 @@ module.exports = nextApp.prepare()
     });
     server.sessionStore = store;
 
-    server.use(require('pino-http')({ logger: expressLogger, useLevel: 'debug' }));
+    if (!isTest) {
+      server.use(require('pino-http')({ logger: expressLogger, useLevel: 'debug' }));
+    }
 
     server.use(require('body-parser').json());
     server.use(require('body-parser').urlencoded({ extended: false }));
