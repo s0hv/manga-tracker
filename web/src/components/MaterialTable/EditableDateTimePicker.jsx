@@ -1,5 +1,6 @@
 import React from 'react';
-import { KeyboardDateTimePicker } from '@material-ui/pickers';
+import DateTimePicker from '@mui/lab/DateTimePicker';
+import { TextField } from '@mui/material';
 
 import { processCellEdit } from './useEditable';
 
@@ -30,9 +31,10 @@ export default function EditableDateTimePicker(props) {
   };
 
   return (
-    <KeyboardDateTimePicker
+    <DateTimePicker
       value={date}
       onChange={handleChange}
+      renderInput={(params) => <TextField {...params} variant='standard' />}
       {...pickerProps}
     />
   );

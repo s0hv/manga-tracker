@@ -1,5 +1,5 @@
 import React from 'react';
-import { makeStyles } from '@material-ui/core/styles';
+import { styled } from '@mui/material/styles';
 import {
   Button,
   Container,
@@ -9,7 +9,7 @@ import {
   ListItemText,
   Paper,
   Typography,
-} from '@material-ui/core';
+} from '@mui/material';
 import Image from 'next/image';
 import NextLink from 'next/link';
 import { useCSRF } from '../utils/csrf';
@@ -18,51 +18,34 @@ import { defaultDateDistanceToNow, followUnfollow } from '../utils/utilities';
 import { nextImageFix } from '../utils/theme';
 
 
-const useStyles = makeStyles((theme) => ({
-  root: {
-    flexGrow: 1,
-    padding: theme.spacing(2),
-  },
-  followTitle: {
-    paddingTop: theme.spacing(2),
-    paddingLeft: theme.spacing(2),
-  },
-  followContent: {
-    display: 'flex',
-    justifyContent: 'center',
-  },
-  followDetails: {
-    display: 'flex',
-    flexDirection: 'column',
-    paddingLeft: theme.spacing(2),
-  },
-  thumbnail: {
-    width: '100%',
-    maxWidth: '256px',
-    [theme.breakpoints.down('xs')]: {
-      maxWidth: '192px',
-    },
-    ...nextImageFix,
-  },
-  serviceList: {
-    overflow: 'auto',
-    maxHeight: '250px',
-  },
-  followService: {
-    display: 'flex',
-    justifyContent: 'space-between',
-  },
-  serviceName: {
-    marginRight: theme.spacing(2),
-  },
+const FollowContent = styled('div')({
+  display: 'flex',
+  justifyContent: 'center',
+});
+
+const FollowDetails = styled('div')(({ theme }) => ({
+  display: 'flex',
+  flexDirection: 'column',
+  paddingLeft: theme.spacing(2),
 }));
+
+const Thumbnail = styled('div')(({ theme }) => ({
+  width: '100%',
+  maxWidth: '256px',
+  [theme.breakpoints.down('sm')]: {
+    maxWidth: '192px',
+  },
+  ...nextImageFix,
+}));
+
+const serviceNameText = { mr: 2 };
+const followServiceItem = { display: 'flex', justifyContent: 'space-between' };
 
 function Follows(props) {
   const {
     follows = [],
   } = props;
 
-  const classes = useStyles();
   const csrf = useCSRF();
   const columnsXs = 1;
   const columnsMd = 2;
@@ -73,14 +56,14 @@ function Follows(props) {
     return (
       <Grid item xs={12/columnsXs} md={12/columnsMd} key={follow.mangaId}>
         <Typography
-          className={classes.followTitle}
+          sx={{ pt: 2, pl: 2 }}
           variant='h4'
           align='center'
         >
           {follow.title}
         </Typography>
-        <div className={classes.followContent}>
-          <div className={classes.thumbnail}>
+        <FollowContent>
+          <Thumbnail>
             <NextLink href='/manga/[id]' as={`/manga/${follow.mangaId}`} passHref>
               <a target='_blank'>
                 <Image
@@ -92,8 +75,8 @@ function Follows(props) {
                 />
               </a>
             </NextLink>
-          </div>
-          <div className={classes.followDetails}>
+          </Thumbnail>
+          <FollowDetails>
             <table>
               <tbody>
                 <tr>
@@ -116,24 +99,24 @@ function Follows(props) {
                 </tr>
               </tbody>
             </table>
-            <List className={classes.serviceList} aria-label='manga services'>
-              <ListItem key='all_services' className={classes.followService} disableGutters>
-                <ListItemText primary='All services' className={classes.serviceName} />
+            <List sx={{ overflow: 'auto', maxHeight: '250px' }} aria-label='manga services'>
+              <ListItem key='all_services' disableGutters sx={followServiceItem}>
+                <ListItemText primary='All services' sx={serviceNameText} />
                 <Button variant='contained' color='primary' onClick={followUnfollow(csrf, follow.mangaId)}>
                   {followedServices.indexOf(null) < 0 ? 'Follow' : 'Unfollow'}
                 </Button>
               </ListItem>
               {follow.services.map((service) => (
-                <ListItem key={service.serviceId} className={classes.followService} disableGutters>
-                  <ListItemText primary={service.serviceName} className={classes.serviceName} />
+                <ListItem key={service.serviceId} sx={followServiceItem} disableGutters>
+                  <ListItemText primary={service.serviceName} sx={serviceNameText} />
                   <Button variant='contained' color='primary' onClick={followUnfollow(csrf, follow.mangaId, service.serviceId)}>
                     {followedServices.indexOf(service.serviceId) < 0 ? 'Follow' : 'Unfollow'}
                   </Button>
                 </ListItem>
               ))}
             </List>
-          </div>
-        </div>
+          </FollowDetails>
+        </FollowContent>
       </Grid>
     );
   };
@@ -141,7 +124,7 @@ function Follows(props) {
   return (
 
     <Container maxWidth='lg' disableGutters>
-      <Paper className={classes.root}>
+      <Paper sx={{ flexGrow: 1, p: 2 }}>
         <Grid container spacing={1}>
           {follows.map(renderFollow)}
         </Grid>

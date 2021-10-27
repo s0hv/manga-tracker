@@ -7,9 +7,9 @@ import {
   Grid,
   Link,
   Typography,
-} from '@material-ui/core';
-import { LockOutlined as LockOutlinedIcon } from '@material-ui/icons';
-import { makeStyles } from '@material-ui/core/styles';
+} from '@mui/material';
+import { LockOutlined as LockOutlinedIcon } from '@mui/icons-material';
+import { styled } from '@mui/material/styles';
 import { Form } from 'react-final-form';
 import { TextField, Checkboxes } from 'mui-rff';
 import CSRFInput from '../components/utils/CSRFInput';
@@ -18,33 +18,24 @@ import { loginUser } from '../api/user';
 import { handleResponse, handleError } from '../api/utilities';
 
 
-const useStyles = makeStyles((theme) => ({
-  paper: {
-    marginTop: theme.spacing(8),
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-  },
-  avatar: {
-    margin: theme.spacing(1),
-    backgroundColor: theme.palette.secondary.main,
-  },
-  form: {
-    width: '100%', // Fix IE 11 issue.
-    marginTop: theme.spacing(1),
-  },
-  submit: {
-    margin: theme.spacing(3, 0, 2),
-  },
+const Root = styled('div')(({ theme }) => ({
+  marginTop: theme.spacing(8),
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+}));
+
+const SignInForm = styled('form')(({ theme }) => ({
+  marginTop: theme.spacing(1),
 }));
 
 export default function SignIn() {
-  const classes = useStyles();
   const csrf = useCSRF();
   const { enqueueSnackbar } = useSnackbar();
 
   const onSubmit = data => loginUser(csrf, data)
     .then(res => {
+      console.log(res);
       if (res.ok) {
         window.location.replace(res.url);
         return;
@@ -59,8 +50,8 @@ export default function SignIn() {
 
   return (
     <Container component='main' maxWidth='xs'>
-      <div className={classes.paper}>
-        <Avatar className={classes.avatar}>
+      <Root>
+        <Avatar sx={{ m: 1, backgroundColor: 'secondary.main' }}>
           <LockOutlinedIcon />
         </Avatar>
         <Typography component='h1' variant='h5'>
@@ -70,8 +61,7 @@ export default function SignIn() {
           onSubmit={onSubmit}
         >
           {({ handleSubmit }) => (
-            <form
-              className={classes.form}
+            <SignInForm
               onSubmit={handleSubmit}
             >
               <TextField
@@ -109,7 +99,7 @@ export default function SignIn() {
                 fullWidth
                 variant='contained'
                 color='primary'
-                className={classes.submit}
+                sx={{ mt: 3, mb: 2 }}
               >
                 Sign In
               </Button>
@@ -126,10 +116,10 @@ export default function SignIn() {
                   </Link>
                 </Grid>
               </Grid>
-            </form>
+            </SignInForm>
           )}
         </Form>
-      </div>
+      </Root>
     </Container>
   );
 }

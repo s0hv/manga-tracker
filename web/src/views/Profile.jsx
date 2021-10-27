@@ -1,7 +1,7 @@
 import { useSnackbar } from 'notistack';
 import React, { useCallback, useMemo } from 'react';
-import { Button, Container, LinearProgress, Paper } from '@material-ui/core';
-import { makeStyles } from '@material-ui/core/styles';
+import { Button, Container, LinearProgress, Paper } from '@mui/material';
+import { styled } from '@mui/material/styles';
 import { Form } from 'react-final-form';
 import { TextField, makeValidateSync, makeRequired } from 'mui-rff';
 import * as Yup from 'yup';
@@ -12,20 +12,10 @@ import { useCSRF } from '../utils/csrf';
 import { updateUserProfile } from '../api/user';
 
 
-const useStyles = makeStyles((theme) => ({
-  root: {
-    minHeight: '400px',
-    minWidth: '300px',
-    padding: theme.spacing(2),
-  },
-  form: {
-    width: '100%',
-    paddingTop: theme.spacing(8),
-    paddingBottom: theme.spacing(4),
-  },
-  submit: {
-    margin: theme.spacing(3, 0, 2),
-  },
+const ProfileForm = styled('form')(({ theme }) => ({
+  width: '100%',
+  paddingTop: theme.spacing(8),
+  paddingBottom: theme.spacing(4),
 }));
 
 const schema = Yup.object().shape({
@@ -49,7 +39,6 @@ const Profile = (props) => {
     user = {},
   } = props;
 
-  const classes = useStyles();
   const csrf = useCSRF();
   const { enqueueSnackbar } = useSnackbar();
   const onSubmit = useCallback((values) => updateUserProfile(csrf, values)
@@ -73,7 +62,7 @@ const Profile = (props) => {
 
   return (
     <Container maxWidth='lg'>
-      <Paper className={classes.root}>
+      <Paper sx={{ minWidth: '300px', minHeight: '400px', p: 2 }}>
         <Container component='main' maxWidth='xs'>
           <Form
             onSubmit={onSubmit}
@@ -81,9 +70,8 @@ const Profile = (props) => {
             initialValues={initialValues}
             subscription={subscription}
             render={({ handleSubmit, hasValidationErrors, submitting }) => (
-              <form
+              <ProfileForm
                 id='profileEditForm'
-                className={classes.form}
                 noValidate
                 onSubmit={handleSubmit}
               >
@@ -150,13 +138,13 @@ const Profile = (props) => {
                   disabled={submitting || hasValidationErrors}
                   variant='contained'
                   color='primary'
-                  className={classes.submit}
+                  sx={{ mt: 3, mb: 2 }}
                 >
                   Update profile
                 </Button>
                 {submitting && <LinearProgress variant='query' />}
                 {/* TODO Add alert on success or error */}
-              </form>
+              </ProfileForm>
             )}
           />
         </Container>

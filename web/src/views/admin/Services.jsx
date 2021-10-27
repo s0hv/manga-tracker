@@ -1,6 +1,6 @@
 import { useSnackbar } from 'notistack';
 import React, { useCallback } from 'react';
-import { Checkbox, Container, Paper, TableContainer } from '@material-ui/core';
+import { Checkbox, Container, Paper, TableContainer } from '@mui/material';
 import { format, formatDistanceToNowStrict } from 'date-fns';
 import enLocale from 'date-fns/locale/en-GB';
 

@@ -1,9 +1,10 @@
-import DateFnsUtils from '@date-io/date-fns';
-import { CssBaseline } from '@material-ui/core';
-import { ThemeProvider } from '@material-ui/core/styles';
-import { MuiPickersUtilsProvider } from '@material-ui/pickers';
+import { CssBaseline } from '@mui/material';
+import { ThemeProvider, StyledEngineProvider } from '@mui/material/styles';
+import AdapterDateFns from '@mui/lab/AdapterDateFns';
+import LocalizationProvider from '@mui/lab/LocalizationProvider';
 import enLocale from 'date-fns/locale/en-GB';
 import { DefaultSeo } from 'next-seo';
+import { CacheProvider } from '@emotion/react';
 
 import Head from 'next/head';
 import { SnackbarProvider } from 'notistack';
@@ -12,13 +13,18 @@ import { sessionLogger } from '../../utils/logging';
 
 import Root from '../components/Root';
 
-import { ProgressBar } from '../components/utils/ProgressBar';
+import ProgressBar from '../components/utils/ProgressBar';
 import { csrfProps, CSRFProvider } from '../utils/csrf';
 import { UserProvider } from '../utils/useUser';
 import { getTheme } from '../utils/theme';
+import createEmotionCache from '../utils/createEmotionCache';
 
 
-function MainApp({ Component, pageProps = {}, props }) {
+// Client-side cache, shared for the whole session of the user in the browser.
+const clientSideEmotionCache = createEmotionCache();
+
+
+function MainApp({ Component, pageProps = {}, emotionCache = clientSideEmotionCache, props }) {
   const [theme, setTheme] = React.useState(props.theme);
   const [user, setUser] = React.useState(props.user);
   const [csrf, setCsrf] = React.useState(props._csrf);
@@ -33,13 +39,6 @@ function MainApp({ Component, pageProps = {}, props }) {
       window.localStorage.setItem('darkTheme', val.toString());
     }
   }, [user]);
-
-  useEffect(() => {
-    const jssStyles = document.querySelector('#jss-server-side');
-    if (jssStyles) {
-      jssStyles.parentElement.removeChild(jssStyles);
-    }
-  }, []);
 
   useEffect(() => {
     setPrefersDark(theme === 2);
@@ -65,7 +64,7 @@ function MainApp({ Component, pageProps = {}, props }) {
   return (
     <React.Fragment>
       <Head>
-        <meta name='viewport' content='minimum-scale=1, initial-scale=1, width=device-width' />
+        <meta name='viewport' content='initial-scale=1, width=device-width' />
       </Head>
       <DefaultSeo
         titleTemplate='%s - Manga tracker'
@@ -83,23 +82,27 @@ function MainApp({ Component, pageProps = {}, props }) {
           <Component {...pageProps} />
         </main>
       ) : (
-        <ThemeProvider theme={activeTheme}>
-          <CssBaseline />
-          <ProgressBar />
-          <MuiPickersUtilsProvider utils={DateFnsUtils} locale={enLocale}>
-            <SnackbarProvider>
-              <UserProvider value={user}>
-                <CSRFProvider value={csrf}>
-                  <Root {...props}>
-                    <main>
-                      <Component {...pageProps} />
-                    </main>
-                  </Root>
-                </CSRFProvider>
-              </UserProvider>
-            </SnackbarProvider>
-          </MuiPickersUtilsProvider>
-        </ThemeProvider>
+        <CacheProvider value={emotionCache}>
+          <StyledEngineProvider injectFirst>
+            <ThemeProvider theme={activeTheme}>
+              <ProgressBar />
+              <CssBaseline />
+              <LocalizationProvider dateAdapter={AdapterDateFns} locale={enLocale}>
+                <SnackbarProvider>
+                  <UserProvider value={user}>
+                    <CSRFProvider value={csrf}>
+                      <Root {...props}>
+                        <main>
+                          <Component {...pageProps} />
+                        </main>
+                      </Root>
+                    </CSRFProvider>
+                  </UserProvider>
+                </SnackbarProvider>
+              </LocalizationProvider>
+            </ThemeProvider>
+          </StyledEngineProvider>
+        </CacheProvider>
       )}
     </React.Fragment>
   );

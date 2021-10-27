@@ -1,5 +1,5 @@
 import React from 'react';
-import { Select, MenuItem } from '@material-ui/core';
+import { Select, MenuItem } from '@mui/material';
 import PropTypes from 'prop-types';
 import { processCellEdit } from './useEditable';
 

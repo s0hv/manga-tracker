@@ -2,7 +2,7 @@ import React from 'react';
 import fetchMock from 'fetch-mock';
 import { render, screen, act, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { Checkbox } from '@material-ui/core';
+import { Checkbox } from '@mui/material';
 import {
   defaultOnSaveRow,
   EditableCheckbox,
@@ -25,7 +25,7 @@ const columns = [
     Cell: ({ row }) => defaultDateFormat(row.values.editableTime),
     EditCell: ({ row, state, cell }) => (
       <EditableDateTimePicker
-        clearable={1}
+        clearable
         variant='inline'
         ampm={false}
         value={row.values.editableTime}

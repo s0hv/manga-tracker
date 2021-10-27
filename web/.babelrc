@@ -1,27 +1,22 @@
 {
-  "env": {
-    "test": {
-      "presets": [
-        "next/babel"
-      ]
-    },
-    "development": {
-      "presets": [
-        "next/babel"
-      ]
-    },
-    "production": {
-      "presets": [
-        "next/babel"
-      ]
-    }
-  },
+  "presets": [
+    [
+      "next/babel",
+      {
+        "preset-react": {
+          "runtime": "automatic",
+          "importSource": "@emotion/react"
+        }
+      }
+    ]
+  ],
   "plugins": [
     "@babel/plugin-proposal-throw-expressions",
+    "@emotion/babel-plugin",
     [
       "import",
       {
-        "libraryName": "@material-ui/core",
+        "libraryName": "@mui/material",
         "libraryDirectory": "",
         "camel2DashComponentName": false
       },
@@ -30,7 +25,7 @@
     [
       "import",
       {
-        "libraryName": "@material-ui/icons",
+        "libraryName": "@mui/icons-material",
         "libraryDirectory": "",
         "camel2DashComponentName": false
       },

@@ -9,18 +9,23 @@ describe('ProgressBar', () => {
   const mockNProgress = jest.genMockFromModule('nprogress');
   jest.mock('nprogress', () => mockNProgress);
 
-  it('Correctly sets handlers', () => {
+  it('Should not do anything on import', () => {
     require('../../../src/components/utils/ProgressBar');
+
+    expect(routerMock.onRouteChangeStart).toBeUndefined();
+    expect(routerMock.onRouteChangeComplete).toBeUndefined();
+    expect(routerMock.onRouteChangeError).toBeUndefined();
+    expect(mockNProgress.configure).not.toHaveBeenCalled();
+  });
+
+  it('Correctly sets handlers', () => {
+    const { default: ProgressBar } = require('../../../src/components/utils/ProgressBar');
+    const { container } = render(<ProgressBar />);
+    expect(container.children).toBeEmpty();
 
     expect(routerMock.onRouteChangeStart).toBeFunction();
     expect(routerMock.onRouteChangeComplete).toBeFunction();
     expect(routerMock.onRouteChangeError).toBeFunction();
     expect(mockNProgress.configure).toHaveBeenCalled();
-  });
-
-  it('Returns null when rendered', () => {
-    const { ProgressBar } = require('../../../src/components/utils/ProgressBar');
-    const { container } = render(<ProgressBar />);
-    expect(container.children).toBeEmpty();
   });
 });

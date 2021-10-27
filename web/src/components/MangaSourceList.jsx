@@ -1,6 +1,6 @@
 import React from 'react';
-import ExpandMore from '@material-ui/icons/ExpandMore';
-import ExpandLess from '@material-ui/icons/ExpandLess';
+import ExpandMore from '@mui/icons-material/ExpandMore';
+import ExpandLess from '@mui/icons-material/ExpandLess';
 import {
   Button,
   Collapse,
@@ -9,32 +9,17 @@ import {
   ListItem,
   ListItemText,
   Typography,
-} from '@material-ui/core';
-import { makeStyles } from '@material-ui/core/styles';
+} from '@mui/material';
+import { styled } from '@mui/material/styles';
 import PropTypes from 'prop-types';
 import { useUser } from '../utils/useUser';
 
 
-const useStyles = makeStyles((theme) => ({
-  root: {
-    width: '100%',
-    maxWidth: 360,
-    backgroundColor: theme.palette.background.paper,
-  },
-  mainItem: {
-    borderRadius: theme.shape.borderRadius,
-    backgroundColor: theme.palette.primary.main,
-    '&:hover': {
-      backgroundColor: theme.palette.primary.dark,
-    },
-  },
-  nested: {
-    paddingLeft: theme.spacing(4),
-    display: 'flex',
-    justifyContent: 'space-between',
-  },
-  listOpener: {
-    color: theme.palette.primary.contrastText,
+const ListItemStyled = styled(ListItem)(({ theme }) => ({
+  borderRadius: theme.shape.borderRadius,
+  backgroundColor: theme.palette.primary.main,
+  '&:hover': {
+    backgroundColor: theme.palette.primary.dark,
   },
 }));
 
@@ -48,7 +33,6 @@ function MangaSourceList(props) {
   } = props;
 
   const { isAuthenticated } = useUser();
-  const classes = useStyles();
   const [open, setOpen] = React.useState(openByDefault);
   const handleClick = () => {
     setOpen(!open);
@@ -56,9 +40,16 @@ function MangaSourceList(props) {
 
   function renderItem(item) {
     return (
-      <ListItem className={classes.nested} key={item.serviceId}>
+      <ListItem key={item.serviceId} sx={{ pl: 4, display: 'flex', justifyContent: 'space-between' }}>
         <Typography>
-          <Link href={item.url.replace('{}', item.titleId)} target='_blank' rel='noopener noreferrer'>{item.name}</Link>
+          <Link
+            href={item.url.replace('{}', item.titleId)}
+            target='_blank'
+            rel='noopener noreferrer'
+            underline='hover'
+          >
+            {item.name}
+          </Link>
         </Typography>
         {isAuthenticated && (
           <Button
@@ -77,17 +68,17 @@ function MangaSourceList(props) {
   return (
     <List
       aria-label='manga sources'
-      className={`${classes.root} ${classesProp.join(' ')}`}
+      sx={{ width: '100%', maxWidth: '360px' }}
+      className={`${classesProp.join(' ')}`}
     >
-      <ListItem
+      <ListItemStyled
         button
         onClick={handleClick}
-        className={classes.mainItem}
         aria-label={`${open ? 'close' : 'open'} follows`}
       >
-        <ListItemText primary='Manga sources' className={classes.listOpener} />
+        <ListItemText primary='Manga sources' sx={{ color: 'primary.contrastText' }} />
         {open ? <ExpandLess /> : <ExpandMore />}
-      </ListItem>
+      </ListItemStyled>
       <Collapse in={open} timeout='auto' unmountOnExit>
         <List component='div' disablePadding aria-hidden={!open}>
           {items.map((item, index) => renderItem(item, index))}

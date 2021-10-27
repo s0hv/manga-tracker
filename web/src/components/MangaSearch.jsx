@@ -1,32 +1,33 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { IconButton, InputBase, Popper } from '@material-ui/core';
-import { alpha, makeStyles } from '@material-ui/core/styles';
-import Autocomplete from '@material-ui/lab/Autocomplete';
+import { IconButton, InputBase, Popper } from '@mui/material';
+import { alpha, styled } from '@mui/material/styles';
+import Autocomplete from '@mui/material/Autocomplete';
 import PropTypes from 'prop-types';
 
-import { Search as SearchIcon } from '@material-ui/icons';
+import { Search as SearchIcon } from '@mui/icons-material';
 
 import throttle from 'lodash.throttle';
 import { useRouter } from 'next/router';
 import { quickSearch } from '../api/manga';
 
-const useStyles = makeStyles((theme) => ({
-  search: {
-    position: 'relative',
-    borderRadius: theme.shape.borderRadius,
-    backgroundColor: alpha(theme.palette.common.white, 0.15),
-    '&:hover': {
-      backgroundColor: alpha(theme.palette.common.white, 0.25),
-    },
-    width: 'auto',
-    [theme.breakpoints.down(400)]: {
+const PREFIX = 'MangaSearch';
+const classes = {
+  root: `${PREFIX}-root`,
+  search: `${PREFIX}-search`,
+  inputInput: `${PREFIX}-inputInput`,
+  popper: `${PREFIX}-popper`,
+};
 
-    },
+const StyledAutocomplete = styled(Autocomplete)(({ theme }) => ({
+  position: 'relative',
+  borderRadius: theme.shape.borderRadius,
+  width: 'auto',
+  backgroundColor: alpha(theme.palette.common.white, 0.15),
+  '&:hover': {
+    backgroundColor: alpha(theme.palette.common.white, 0.25),
   },
-  inputRoot: {
-    color: 'inherit',
-  },
-  inputInput: {
+
+  [`& .${classes.inputInput}`]: {
     width: '100%',
     marginLeft: '1em',
     transition: theme.transitions.create('width'),
@@ -37,7 +38,8 @@ const useStyles = makeStyles((theme) => ({
       },
     },
   },
-  popper: {
+
+  [`& .${classes.popper}`]: {
     zIndex: theme.zIndex.modal,
     marginTop: '10px',
     width: '200px !important',
@@ -45,10 +47,11 @@ const useStyles = makeStyles((theme) => ({
       width: '450px !important',
     },
   },
-  listItem: {
-    width: '100%',
-  },
 }));
+
+const ListItem = styled('div')({
+  width: '100%',
+});
 
 
 export default function MangaSearch(props) {
@@ -65,7 +68,6 @@ export default function MangaSearch(props) {
 
   const [value, setValue] = useState('');
   const [options, setOptions] = useState([]);
-  const classes = useStyles();
   const router = useRouter();
 
   const onChangeDefault = useCallback(
@@ -119,9 +121,11 @@ export default function MangaSearch(props) {
     };
   }, [value, throttleFetch]);
 
-  const defaultRenderListOption = useCallback((option) => (
-    <div className={classes.listItem}>{option.title}</div>
-  ), [classes.listItem]);
+  const defaultRenderListOption = useCallback((renderProps, option) => (
+    <li {...renderProps}>
+      <ListItem>{option.title}</ListItem>
+    </li>
+  ), []);
 
   const renderListOption = renderItem || defaultRenderListOption;
 
@@ -132,12 +136,12 @@ export default function MangaSearch(props) {
   ), [popperProps]);
 
   return (
-    <Autocomplete
+    <StyledAutocomplete
       options={options}
       renderOption={renderListOption}
       clearOnBlur={false}
       getOptionLabel={(option => (typeof option === 'string' ? option : option.title))}
-      filterOptions={(o) => o}
+      filterOptions={(o) => o} // Always render all options
       id={id}
       value={null}
       onChange={handleValueChange}
@@ -149,7 +153,6 @@ export default function MangaSearch(props) {
       fullWidth
       classes={{
         popper: classes.popper,
-        root: classes.search,
       }}
       renderInput={(params) => (
         <InputBase
@@ -161,11 +164,10 @@ export default function MangaSearch(props) {
           placeholder={placeholder}
           classes={{
             input: classes.inputInput,
-            root: classes.inputRoot,
             ...inputClasses,
           }}
           endAdornment={(
-            <IconButton>
+            <IconButton size='large'>
               <SearchIcon />
             </IconButton>
           )}

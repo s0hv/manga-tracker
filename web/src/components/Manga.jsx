@@ -8,14 +8,14 @@ import {
   Tabs,
   Tooltip,
   Typography,
-} from '@material-ui/core';
+} from '@mui/material';
 
-import { makeStyles } from '@material-ui/core/styles';
+import { styled } from '@mui/material/styles';
 
 import {
   Edit as EditIcon,
   Settings as SettingsIcon,
-} from '@material-ui/icons';
+} from '@mui/icons-material';
 
 import Link from 'next/link';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
@@ -34,80 +34,49 @@ import { MangaCover } from './MangaCover';
 
 const verticalBreakpoint = 910;
 
-const useStyles = makeStyles((theme) => ({
-  title: {
-    width: '85%',
-    textAlign: 'left',
-    paddingBottom: '10px',
-    [theme.breakpoints.down('sm')]: {
-      width: '100%',
-    },
+const TitleBar = styled('div')({
+  display: 'flex',
+  justifyContent: 'space-between',
+});
+
+const MangaTitle = styled(Typography)(({ theme }) => ({
+  width: '85%',
+  textAlign: 'left',
+  paddingBottom: '10px',
+  [theme.breakpoints.down('md')]: {
+    width: '100%',
   },
-  titleBar: {
-    display: 'flex',
-    justifyContent: 'space-between',
+}));
+
+const TitleBarButtonsContainer = styled('div')(({ theme }) => ({
+  display: 'flex',
+  width: '15%',
+  justifyContent: 'flex-end',
+  [theme.breakpoints.down('sm')]: {
+    flexFlow: 'column',
+    width: '12%',
   },
-  titleBarButtonsContainer: {
-    display: 'flex',
-    width: '15%',
-    justifyContent: 'flex-end',
-    [theme.breakpoints.down('xs')]: {
-      flexFlow: 'column',
-      width: '12%',
-    },
+}));
+
+const PREFIX = 'Manga';
+const classes = {
+  sourceList: `${PREFIX}-sourceList`,
+};
+
+const DetailsContainer = styled('div')(({ theme }) => ({
+  display: 'flex',
+  flexFlow: 'row',
+  [theme.breakpoints.down(verticalBreakpoint)]: {
+    flexFlow: 'wrap',
+    justifyContent: 'center',
   },
-  details: {
-    display: 'flex',
-    flexFlow: 'row',
-    [theme.breakpoints.down(verticalBreakpoint)]: {
-      flexFlow: 'wrap',
-      justifyContent: 'center',
-    },
-  },
-  detailText: {
-    marginLeft: '5px',
-    [theme.breakpoints.down(verticalBreakpoint)]: {
-      marginLeft: '3px',
-    },
-  },
-  infoTable: {
-    marginLeft: '30px',
-    marginTop: '3px',
-    [theme.breakpoints.down(verticalBreakpoint)]: {
-      marginLeft: '20px',
-    },
-    [theme.breakpoints.down('xs')]: {
-      marginLeft: '10px',
-    },
-  },
-  sourceList: {
+  [`& .${classes.sourceList}`]: {
     marginLeft: '35px',
     [theme.breakpoints.down(verticalBreakpoint)]: {
       marginLeft: '23px',
     },
-    [theme.breakpoints.down('xs')]: {
-      marginLeft: '13px',
-    },
-  },
-  followButton: {
-    marginTop: theme.spacing(2),
-    marginBottom: theme.spacing(2),
-  },
-  paper: {
-    padding: '1em',
-    minWidth: '440px',
-  },
-  infoGrid: {
-    marginLeft: theme.spacing(4),
-    width: 'fit-content',
-    overflow: 'auto',
-    [theme.breakpoints.down('xs')]: {
-      marginLeft: '0px',
-    },
-  },
-  rootGrid: {
     [theme.breakpoints.down('sm')]: {
-      justifyContent: 'center',
+      marginLeft: '13px',
     },
   },
 }));
@@ -137,7 +106,6 @@ function Manga(props) {
 
   const { isAuthenticated, isAdmin } = useUser();
 
-  const classes = useStyles();
   const [editing, setEditing] = useState(false);
   const startEditing = useCallback(() => setEditing(!editing), [editing]);
 
@@ -149,27 +117,27 @@ function Manga(props) {
 
   return (
     <Container maxWidth='lg' disableGutters>
-      <Paper className={classes.paper}>
-        <div className={classes.titleBar}>
-          <Typography className={classes.title} variant='h4'>{manga.title}</Typography>
+      <Paper sx={{ p: '1em', minWidth: '440px' }}>
+        <TitleBar>
+          <MangaTitle variant='h4'>{manga.title}</MangaTitle>
           {isAdmin && (
-            <div className={classes.titleBarButtonsContainer}>
+            <TitleBarButtonsContainer>
               <Link href={`/admin/manga/${manga.mangaId}`} passHref>
                 <Tooltip title='Admin page'>
-                  <IconButton>
+                  <IconButton size='large'>
                     <SettingsIcon />
                   </IconButton>
                 </Tooltip>
               </Link>
               <Tooltip title='Edit chapters'>
-                <IconButton onClick={startEditing}>
+                <IconButton onClick={startEditing} size='large'>
                   <EditIcon />
                 </IconButton>
               </Tooltip>
-            </div>
+            </TitleBarButtonsContainer>
           )}
-        </div>
-        <div className={classes.details}>
+        </TitleBar>
+        <DetailsContainer>
           <a href={manga.mal} target='_blank' rel='noreferrer noopener' aria-label='myanimelist page of the manga'>
             <MangaCover
               url={manga.cover}
@@ -178,13 +146,13 @@ function Manga(props) {
           </a>
           <Grid
             container
-            justifyContent='space-between'
-            className={classes.rootGrid}
+            justifyContent='center'
+            sx={{ justifyContent: { sm: 'space-between' }}}
           >
             <Grid
               container
               direction='column'
-              className={classes.infoGrid}
+              sx={{ width: 'fit-content', overflow: 'auto', ml: { xs: 0, md: 4 }}}
             >
               <MangaInfo mangaData={manga} />
               <MangaAliases aliases={aliases} />
@@ -196,13 +164,13 @@ function Manga(props) {
               followUnfollow={(serviceId) => followUnfollow(csrf, manga.mangaId, serviceId)}
             />
           </Grid>
-        </div>
+        </DetailsContainer>
         {isAuthenticated && (
           <Button
             variant='contained'
             color='primary'
             onClick={followUnfollow(csrf, manga.mangaId, null)}
-            className={classes.followButton}
+            sx={{ mt: 2, mb: 2 }}
             aria-label='Follow all releases'
           >
             {userFollows.indexOf(null) < 0 ? 'Follow' : 'Unfollow'}
