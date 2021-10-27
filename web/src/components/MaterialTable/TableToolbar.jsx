@@ -1,19 +1,8 @@
 import React, { useCallback, useState } from 'react';
 
-import { makeStyles } from '@material-ui/core/styles';
 import PropTypes from 'prop-types';
-import { Tooltip, Typography, Toolbar, IconButton } from '@material-ui/core';
-import { Add as AddIcon } from '@material-ui/icons';
-
-const useStyles = makeStyles(theme => ({
-  root: {
-    paddingLeft: theme.spacing(2),
-    paddingRight: theme.spacing(1),
-  },
-  title: {
-    flex: '1 1 100%',
-  },
-}));
+import { Tooltip, Typography, Toolbar, IconButton } from '@mui/material';
+import { Add as AddIcon } from '@mui/icons-material';
 
 export const TableToolbar = props => {
   const {
@@ -23,23 +12,20 @@ export const TableToolbar = props => {
     addButtonLabel = 'add item',
   } = props;
 
-  const classes = useStyles();
   const [createOpen, setCreateOpen] = useState(false);
   const handleClose = useCallback(() => setCreateOpen(false), []);
   const handleOpen = useCallback(() => setCreateOpen(true), []);
 
   return (
-    <Toolbar
-      className={classes.root}
-    >
+    <Toolbar sx={{ pl: 2, pr: 1 }}>
       {creatable && (
         <Tooltip title='Add'>
-          <IconButton aria-label={addButtonLabel} onClick={handleOpen}>
+          <IconButton aria-label={addButtonLabel} onClick={handleOpen} size="large">
             <AddIcon />
           </IconButton>
         </Tooltip>
       )}
-      <Typography className={classes.title} variant='h6'>
+      <Typography variant='h6' sx={{ flex: '1 1 100%' }}>
         {title}
       </Typography>
       {creatable && <DialogComponent open={createOpen} onClose={handleClose} />}

@@ -26,6 +26,5 @@
   "cacheDirectories": [
     "web/.next/cache/",
     "node_modules/"
-  ],
-  "devDependencies": {}
+  ]
 }

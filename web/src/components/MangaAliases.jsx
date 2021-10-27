@@ -1,5 +1,5 @@
-import { makeStyles } from '@material-ui/core/styles';
-import { DoubleArrow as DoubleArrowIcon } from '@material-ui/icons';
+import { styled } from '@mui/material/styles';
+import { DoubleArrow as DoubleArrowIcon } from '@mui/icons-material';
 
 import React, { useCallback } from 'react';
 import {
@@ -9,30 +9,17 @@ import {
   ListItemText,
   Typography,
   Tooltip,
-} from '@material-ui/core';
+} from '@mui/material';
 
 import PropTypes from 'prop-types';
 import { useCSRF } from '../utils/csrf';
 import { useUser } from '../utils/useUser';
 import { updateMangaTitle } from '../api/admin/manga';
 
-const useStyles = makeStyles((theme) => ({
-  root: {
-    margin: theme.spacing(1),
-    maxHeight: '250px',
-    width: 'max-content',
-  },
-  list: {
-    overflow: 'auto',
-    maxHeight: '100%',
-  },
-  listItem: {
-    marginTop: '0px',
-    marginBottom: '0px',
-  },
-  promoteIcon: {
-    transform: 'rotate(-90deg)',
-  },
+const Root = styled('div')(({ theme }) => ({
+  margin: theme.spacing(1),
+  maxHeight: '250px',
+  width: 'max-content',
 }));
 
 const MangaAliases = (props) => {
@@ -45,7 +32,6 @@ const MangaAliases = (props) => {
     allowEdits=false,
   } = props;
 
-  const classes = useStyles();
   const { isAdmin } = useUser();
   const autoHideDuration = 8000;
   const csrf = useCSRF();
@@ -76,12 +62,12 @@ const MangaAliases = (props) => {
   if (!aliases || aliases.length === 0) return null;
 
   return (
-    <div id='manga-aliases' className={classes.root}>
+    <Root id='manga-aliases'>
       <Typography>Alternative titles</Typography>
-      <List className={classes.list}>
+      <List sx={{ overflow: 'auto', maxHeight: '100%' }}>
         {aliases.map(alias => (
           <ListItem key={alias} dense>
-            <ListItemText primary={alias} className={classes.listItem} />
+            <ListItemText primary={alias} sx={{ mt: '0px', mb: '0px' }} />
             {allowEdits && isAdmin && (
               <Tooltip title='Set as main title'>
                 <IconButton
@@ -89,14 +75,14 @@ const MangaAliases = (props) => {
                   onClick={() => onAliasPromote(alias)}
                   aria-label='Set alias as main title'
                 >
-                  <DoubleArrowIcon className={classes.promoteIcon} />
+                  <DoubleArrowIcon sx={{ transform: 'rotate(-90deg)' }} />
                 </IconButton>
               </Tooltip>
             )}
           </ListItem>
         ))}
       </List>
-    </div>
+    </Root>
   );
 };
 

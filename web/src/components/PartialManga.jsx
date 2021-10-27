@@ -1,27 +1,27 @@
 import React from 'react';
-import { Grid, Typography } from '@material-ui/core';
-import { makeStyles } from '@material-ui/core/styles';
+import { Grid, Typography } from '@mui/material';
+import { styled } from '@mui/material/styles';
 import PropTypes from 'prop-types';
 
 import MangaSourceList from './MangaSourceList';
 import MangaInfo from './MangaInfo';
 import { MangaCover } from './MangaCover';
 
-const useStyles = makeStyles((theme) => ({
-  title: {
-    width: '100%',
-    textAlign: 'left',
-    paddingBottom: '10px',
-    [theme.breakpoints.down('sm')]: {
-      ...theme.typography.h6,
-    },
+const DetailsContainer = styled('div')({
+  display: 'flex',
+});
+
+const MangaTitle = styled(Typography)(({ theme }) => ({
+  width: '100%',
+  textAlign: 'left',
+  paddingBottom: '10px',
+  [theme.breakpoints.down('md')]: {
+    ...theme.typography.h6,
   },
-  details: {
-    display: 'flex',
-  },
-  sourceList: {
-    marginLeft: theme.spacing(3),
-  },
+}));
+
+const SourceList = styled('div')(({ theme }) => ({
+  marginLeft: theme.spacing(3),
 }));
 
 function PartialManga(props) {
@@ -31,14 +31,12 @@ function PartialManga(props) {
     services,
   } = props;
 
-  const classes = useStyles();
-
   if (!manga || !manga.mangaId) return null;
 
   return (
     <div>
-      <Typography className={classes.title} variant='h5' aria-label='manga title'>{manga.title}</Typography>
-      <div className={classes.details}>
+      <MangaTitle variant='h5' aria-label='manga title'>{manga.title}</MangaTitle>
+      <DetailsContainer>
         <a href={`/manga/${manga.mangaId}`} target='_blank' rel='noopener noreferrer'>
           <MangaCover
             url={manga.cover}
@@ -51,14 +49,14 @@ function PartialManga(props) {
           direction='column'
         >
           <MangaInfo mangaData={manga} showId={showId} />
-          <div className={classes.sourceList}>
+          <SourceList>
             <MangaSourceList
               items={services}
               openByDefault
             />
-          </div>
+          </SourceList>
         </Grid>
-      </div>
+      </DetailsContainer>
     </div>
   );
 }

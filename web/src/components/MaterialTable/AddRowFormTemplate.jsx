@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import { useCallback } from 'react';
 import PropTypes from 'prop-types';
 import {
   Button,
@@ -6,9 +6,10 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-} from '@material-ui/core';
+} from '@mui/material';
 import { Form } from 'react-final-form';
 
+/** @jsxImportSource @emotion/react */
 
 export const AddRowFormTemplate = (props) => {
   const {
@@ -17,7 +18,7 @@ export const AddRowFormTemplate = (props) => {
     onSubmit,
     onClose,
     title,
-    formClass,
+    formStyles,
     closeOnSubmit = true,
     ...formProps
   } = props;
@@ -39,7 +40,7 @@ export const AddRowFormTemplate = (props) => {
               onSubmit={handleSubmit}
               noValidate={!!formProps.validate}
               id='create-row-form'
-              className={formClass}
+              css={formStyles}
             >
               {fields}
             </form>
@@ -74,5 +75,5 @@ AddRowFormTemplate.propTypes = {
   onClose: PropTypes.func.isRequired,
   open: PropTypes.bool.isRequired,
   title: PropTypes.string,
-  formClass: PropTypes.string,
+  formStyles: PropTypes.object,
 };

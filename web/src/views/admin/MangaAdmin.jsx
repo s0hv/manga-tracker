@@ -5,11 +5,11 @@ import {
   Paper,
   Tooltip,
   Typography,
-} from '@material-ui/core';
+} from '@mui/material';
 
-import { makeStyles } from '@material-ui/core/styles';
+import { styled } from '@mui/material/styles';
 
-import { SubdirectoryArrowLeft as SubdirectoryArrowLeftIcon } from '@material-ui/icons';
+import { SubdirectoryArrowLeft as SubdirectoryArrowLeftIcon } from '@mui/icons-material';
 import { useConfirm } from 'material-ui-confirm';
 import PropTypes from 'prop-types';
 
@@ -35,44 +35,33 @@ import {
 } from '../../api/admin/manga';
 import { MangaCover } from '../../components/MangaCover';
 
+const formStyles = {
+  minWidth: '150px',
+  paddingTop: '0.5em',
+};
 
-const useStyles = makeStyles((theme) => ({
-  title: {
-    width: '75%',
-    textAlign: 'left',
-    paddingBottom: '10px',
-    [theme.breakpoints.down('sm')]: {
-      width: '100%',
-    },
-  },
-  titleBar: {
-    display: 'flex',
-    justifyContent: 'space-between',
-  },
-  details: {
-    display: 'flex',
-    flexFlow: 'row',
-    [theme.breakpoints.down('xs')]: {
-      flexFlow: 'wrap',
-      justifyContent: 'center',
-    },
-  },
-  paper: {
-    padding: '1em',
-    minWidth: '400px',
-  },
-  addRowForm: {
-    minWidth: '150px',
-  },
-  infoGrid: {
-    marginLeft: theme.spacing(4),
-    width: 'fit-content',
-    [theme.breakpoints.down('xs')]: {
-      marginLeft: '0px',
-    },
+const TitleBar = styled('div')({
+  display: 'flex',
+  justifyContent: 'space-between',
+});
+
+const MangaTitle = styled(Typography)(({ theme }) => ({
+  width: '75%',
+  textAlign: 'left',
+  paddingBottom: '10px',
+  [theme.breakpoints.down('md')]: {
+    width: '100%',
   },
 }));
 
+const DetailsContainer = styled('div')(({ theme }) => ({
+  display: 'flex',
+  flexFlow: 'row',
+  [theme.breakpoints.down('sm')]: {
+    flexFlow: 'wrap',
+    justifyContent: 'center',
+  },
+}));
 
 function MangaAdmin(props) {
   const {
@@ -88,7 +77,6 @@ function MangaAdmin(props) {
   const mangaId = manga.mangaId;
 
   // Hooks
-  const classes = useStyles();
   const { enqueueSnackbar } = useSnackbar();
   const csrf = useCSRF();
   const confirm = useConfirm();
@@ -182,9 +170,9 @@ function MangaAdmin(props) {
       onSubmit={onCreateRow}
       onClose={onClose}
       open={open}
-      formClass={classes.addRowForm}
+      formStyles={formStyles}
     />
-  ), [fields, onCreateRow, classes.addRowForm]);
+  ), [fields, onCreateRow]);
 
   const columns = useMemo(() => [
     {
@@ -208,18 +196,18 @@ function MangaAdmin(props) {
 
   return (
     <Container maxWidth='lg' disableGutters>
-      <Paper className={classes.paper}>
-        <div className={classes.titleBar}>
-          <Typography className={classes.title} variant='h4'>{mangaTitle}</Typography>
+      <Paper sx={{ p: '1em', minWidth: '400px' }}>
+        <TitleBar>
+          <MangaTitle variant='h4'>{mangaTitle}</MangaTitle>
           <Link href={`/manga/${mangaId}`} passHref>
             <Tooltip title='Go back' aria-label='go back to manga page'>
-              <IconButton>
+              <IconButton size='large'>
                 <SubdirectoryArrowLeftIcon />
               </IconButton>
             </Tooltip>
           </Link>
-        </div>
-        <div className={classes.details}>
+        </TitleBar>
+        <DetailsContainer>
           <a href={manga.mal} target='_blank' rel='noreferrer noopener'>
             <MangaCover
               url={manga.cover}
@@ -229,7 +217,7 @@ function MangaAdmin(props) {
           <Grid
             container
             direction='column'
-            className={classes.infoGrid}
+            sx={{ ml: { sx: '0px', sm: 4 }, width: 'fit-content' }}
           >
             <MangaInfo mangaData={manga} />
             <MangaAliases
@@ -241,7 +229,7 @@ function MangaAdmin(props) {
               allowEdits
             />
           </Grid>
-        </div>
+        </DetailsContainer>
         <MaterialTable
           data={scheduledUpdates}
           columns={columns}

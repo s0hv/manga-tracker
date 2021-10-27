@@ -1,35 +1,36 @@
 import React from 'react';
-import { Divider, Link, Typography, IconButton } from '@material-ui/core';
-import { makeStyles } from '@material-ui/core/styles';
-import GitHubIcon from '@material-ui/icons/GitHub';
+import { Divider, Link, Typography, IconButton } from '@mui/material';
+import { styled } from '@mui/material/styles';
+import GitHubIcon from '@mui/icons-material/GitHub';
 import PropTypes from 'prop-types';
 
 import TopBar from './TopBar';
 
 
-const useStyles = makeStyles((theme) => ({
-  root: {
-    width: '100%',
-    overflow: 'auto',
-    minWidth: '400px',
-    minHeight: '100vh',
-    position: 'relative',
-  },
-  container: {
-    paddingTop: theme.spacing(10),
-  },
-  footer: {
-    bottom: '0px',
-    position: 'absolute',
-    width: '100%',
-  },
-  footerContent: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginLeft: theme.spacing(3),
-    marginRight: theme.spacing(3),
-  },
+const Root = styled('div')({
+  width: '100%',
+  overflow: 'auto',
+  minWidth: '400px',
+  minHeight: '100vh',
+  position: 'relative',
+});
+
+const FooterContainer = styled('div')(({ theme }) => ({
+  paddingTop: theme.spacing(10),
+}));
+
+const FooterStyled = styled('footer')({
+  bottom: '0px',
+  position: 'absolute',
+  width: '100%',
+});
+
+const FooterContent = styled('div')(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  marginLeft: theme.spacing(3),
+  marginRight: theme.spacing(3),
 }));
 
 function Copyright(props) {
@@ -53,33 +54,36 @@ export default function Layout(props) {
     setTheme,
     children,
   } = props;
-  const classes = useStyles();
 
   if (statusCode !== 200) {
     return children;
   }
 
   return (
-    <div className={classes.root}>
+    <Root>
       <TopBar setTheme={setTheme} activeTheme={activeTheme} />
       {children}
-      <div className={classes.container}>
-        <footer className={classes.footer}>
+      <FooterContainer>
+        <FooterStyled>
           <Divider variant='middle' />
-          <div className={classes.footerContent}>
+          <FooterContent>
             <Copyright />
             <div>
               <Link color='inherit' href='https://github.com/s0hv/manga-tracker/blob/master/LICENSE' aria-label='license'>
                 License
               </Link>
-              <IconButton component='a' href='https://github.com/s0hv/manga-tracker' aria-label='github repository'>
+              <IconButton
+                component='a'
+                href='https://github.com/s0hv/manga-tracker'
+                aria-label='github repository'
+                size="large">
                 <GitHubIcon />
               </IconButton>
             </div>
-          </div>
-        </footer>
-      </div>
-    </div>
+          </FooterContent>
+        </FooterStyled>
+      </FooterContainer>
+    </Root>
   );
 }
 

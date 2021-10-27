@@ -1,65 +1,47 @@
 import React from 'react';
 
-import {
-  Container,
-  IconButton,
-  Paper,
-  Typography,
-} from '@material-ui/core';
-import { lighten, makeStyles } from '@material-ui/core/styles';
-import {
-  RssFeed as RssFeedIcon,
-} from '@material-ui/icons';
+import { Container, IconButton, Paper, Typography, } from '@mui/material';
+import { lighten, styled } from '@mui/material/styles';
+import { RssFeed as RssFeedIcon } from '@mui/icons-material';
 import PropTypes from 'prop-types';
 
 import FollowsComponent from '../components/Follows';
 import { useUser } from '../utils/useUser';
 
-
-const useStyles = makeStyles((theme) => ({
-  followCard: {
-    height: '100%',
-    overflow: 'hidden',
-    marginBottom: theme.spacing(2),
-    backgroundColor: lighten(theme.palette.background.paper, 0.05),
-  },
-  title: {
-    marginLeft: theme.spacing(2),
-    marginTop: theme.spacing(1),
-  },
-  topRow: {
-    display: 'flex',
-    justifyContent: 'space-between',
-  },
-  rssLink: {
-    alignSelf: 'center',
-    height: '100%',
-  },
+const FollowCard = styled(Paper)(({ theme }) => ({
+  height: '100%',
+  overflow: 'hidden',
+  marginBottom: theme.spacing(2),
+  backgroundColor: lighten(theme.palette.background.paper, 0.05),
 }));
 
+const TopRow = styled('div')({
+  display: 'flex',
+  justifyContent: 'space-between',
+});
+
 const Follows = (props) => {
-  const classes = useStyles();
   const { user } = useUser();
 
   return (
     <Container maxWidth='lg'>
-      <Paper className={classes.followCard}>
-        <div className={classes.topRow}>
-          <Typography variant='h2' className={classes.title}>
+      <FollowCard>
+        <TopRow>
+          <Typography variant='h2' sx={{ ml: 2, mt: 2 }}>
             Follows
           </Typography>
           <IconButton
             href={`/rss/${user.uuid.replace(/-/g, '')}`}
             target='_blank'
-            className={classes.rssLink}
+            sx={{ alignSelf: 'center', height: '100%' }}
             size='medium'
             aria-label='Follows RSS feed'
           >
             <RssFeedIcon fontSize='large' />
           </IconButton>
-        </div>
+        </TopRow>
         <FollowsComponent {...props} />
-      </Paper>
+      </FollowCard>
     </Container>
   );
 };

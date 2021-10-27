@@ -1,5 +1,5 @@
-import { Typography } from '@material-ui/core';
-import { makeStyles } from '@material-ui/core/styles';
+import { Typography } from '@mui/material';
+import { styled } from '@mui/material/styles';
 import React from 'react';
 import PropTypes from 'prop-types';
 
@@ -9,27 +9,26 @@ import {
   statusToString,
 } from '../utils/utilities';
 
-const useStyles = makeStyles((theme) => ({
-  detailText: {
-    marginLeft: '5px',
-    [theme.breakpoints.down('sm')]: {
-      marginLeft: '3px',
-    },
+const DetailText = styled(Typography)(({ theme }) => ({
+  marginLeft: '5px',
+  [theme.breakpoints.down('md')]: {
+    marginLeft: '3px',
   },
-  infoTable: {
-    width: 'max-content',
-    borderSpacing: '0px 2px',
-    margin: theme.spacing(1),
-    '& tr:nth-child(odd)': {
-      backgroundColor: theme.palette.action.hover,
-    },
-    '& th': {
-      textAlign: 'end',
-      paddingLeft: '2px',
-    },
-    '& td': {
-      paddingRight: '4px',
-    },
+}));
+
+const InfoTable = styled('table')(({ theme }) => ({
+  width: 'max-content',
+  borderSpacing: '0px 2px',
+  margin: theme.spacing(1),
+  '& tr:nth-of-type(odd)': {
+    backgroundColor: theme.palette.action.hover,
+  },
+  '& th': {
+    textAlign: 'end',
+    paddingLeft: '2px',
+  },
+  '& td': {
+    paddingRight: '4px',
   },
 }));
 
@@ -40,63 +39,61 @@ const MangaInfo = ({ mangaData, showId = false }) => {
     null;
   const estimatedRelease = new Date(mangaData.estimatedRelease);
 
-
-  const classes = useStyles();
   return (
-    <table className={classes.infoTable} aria-label='manga information'>
+    <InfoTable aria-label='manga information'>
       <tbody>
         {showId && (
           <tr>
             <th scope='row'><Typography>Manga id:</Typography></th>
-            <td><Typography className={classes.detailText}>{mangaData.mangaId}</Typography></td>
+            <td><DetailText>{mangaData.mangaId}</DetailText></td>
           </tr>
         )}
         <tr>
           <th scope='row'><Typography>Latest release:</Typography></th>
           <td>
-            <Typography className={classes.detailText}>
+            <DetailText>
               {latestRelease ?
                 defaultDateFormat(latestRelease) + ' - ' + defaultDateDistanceToNow(latestRelease) :
                 'Unknown'}
-            </Typography>
+            </DetailText>
           </td>
         </tr>
         <tr>
           <th scope='row'><Typography>Estimated release interval:</Typography></th>
           <td>
-            <Typography className={classes.detailText}>
+            <DetailText>
               {(mangaData.releaseInterval ?
                 `${mangaData.releaseInterval?.days || 0} days ${mangaData.releaseInterval?.hours || 0} hours` :
                 'Unknown')}
-            </Typography>
+            </DetailText>
           </td>
         </tr>
         <tr>
           <th scope='row'><Typography>Estimated next release:</Typography></th>
           <td>
-            <Typography className={classes.detailText}>
+            <DetailText>
               {defaultDateFormat(estimatedRelease)}
-            </Typography>
+            </DetailText>
           </td>
         </tr>
         <tr>
           <th scope='row'><Typography>Latest chapter:</Typography></th>
           <td>
-            <Typography className={classes.detailText}>
+            <DetailText>
               {mangaData.latestChapter ? mangaData.latestChapter : 'Unknown'}
-            </Typography>
+            </DetailText>
           </td>
         </tr>
         <tr>
           <th scope='row'><Typography>Publication status:</Typography></th>
           <td>
-            <Typography className={classes.detailText}>
+            <DetailText>
               {statusToString(mangaData.status)}
-            </Typography>
+            </DetailText>
           </td>
         </tr>
       </tbody>
-    </table>
+    </InfoTable>
   );
 };
 

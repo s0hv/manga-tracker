@@ -1,26 +1,22 @@
 import React from 'react';
-import { makeStyles } from '@material-ui/core/styles';
-import Typography from '@material-ui/core/Typography';
+import { styled } from '@mui/material/styles';
+import Typography from '@mui/material/Typography';
 
-const useStyles = makeStyles(() => ({
-  root: {
-    textAlign: 'center',
-    height: '50vh',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-}));
+const Root = styled('div')({
+  textAlign: 'center',
+  height: '50vh',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+});
 
 function App() {
-  const classes = useStyles();
-
   return (
-    <div className={classes.root}>
+    <Root>
       <Typography variant='h1'>
         Home page
       </Typography>
-    </div>
+    </Root>
   );
 }
 

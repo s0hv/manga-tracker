@@ -1,11 +1,11 @@
 import React, { useEffect } from 'react';
-import { IconButton, Input } from '@material-ui/core';
+import { IconButton, Input } from '@mui/material';
 import {
   Cancel as CancelIcon,
   Edit as EditIcon,
   Save as SaveIcon,
   Delete as DeleteIcon,
-} from '@material-ui/icons';
+} from '@mui/icons-material';
 import { actions, defaultColumn } from 'react-table';
 
 import { noop } from '../../utils/utilities';
@@ -201,7 +201,7 @@ function visibleColumns(columns, { instance }) {
   if (disableDeleting) arr.push('__delete');
 
   instance.initialState.hiddenColumns = [
-    ...initialState.hiddenColumns || [],
+    ...(initialState.hiddenColumns || []),
     ...arr,
   ];
 
@@ -243,15 +243,30 @@ function visibleColumns(columns, { instance }) {
         return (
           <div className={classes.editCell}>
             {!row.beingEdited ? (
-              <IconButton onClick={() => onStartEdit(row)} name='edit' aria-label='edit row'>
+              <IconButton
+                onClick={() => onStartEdit(row)}
+                name='edit'
+                aria-label='edit row'
+                size='large'
+              >
                 <EditIcon />
               </IconButton>
             ) : (
               <>
-                <IconButton name='save' onClick={() => onSaveEdit(row, state, inst)} aria-label='save row'>
+                <IconButton
+                  name='save'
+                  onClick={() => onSaveEdit(row, state, inst)}
+                  aria-label='save row'
+                  size='large'
+                >
                   <SaveIcon />
                 </IconButton>
-                <IconButton name='cancel' onClick={() => onCancelEdit(row, state, inst)} aria-label='cancel edit'>
+                <IconButton
+                  name='cancel'
+                  onClick={() => onCancelEdit(row, state, inst)}
+                  aria-label='cancel edit'
+                  size='large'
+                >
                   <CancelIcon />
                 </IconButton>
               </>
@@ -279,7 +294,12 @@ function visibleColumns(columns, { instance }) {
       Cell: (inst) => {
         const { row } = inst;
         return (
-          <IconButton name='delete' onClick={() => onDelete(row)} aria-label='Delete row'>
+          <IconButton
+            name='delete'
+            onClick={() => onDelete(row)}
+            aria-label='Delete row'
+            size='large'
+          >
             <DeleteIcon />
           </IconButton>
         );
@@ -306,7 +326,7 @@ function useOptions(options) {
     initialState: {
       ...initialState,
       hiddenColumns: [
-        ...initialState.hiddenColumns || [],
+        ...(initialState.hiddenColumns || []),
         ...arr,
       ],
     },

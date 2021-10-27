@@ -1,32 +1,23 @@
 import React from 'react';
-import { Paper, Typography } from '@material-ui/core';
-import { makeStyles } from '@material-ui/core/styles';
+import { Paper, Typography } from '@mui/material';
+import { styled } from '@mui/material/styles';
 
-const useStyles = makeStyles((theme) => ({
-  paper: {
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: theme.palette.background.paper,
-    minHeight: '100vh',
-    verticalAlign: 'center',
-  },
-  text: {
-    textAlign: 'center',
-    color: theme.palette.text.primary,
-    alignItems: 'center',
-  },
+const Root = styled(Paper)(({ theme }) => ({
+  display: 'flex',
+  flexDirection: 'column',
+  justifyContent: 'center',
+  alignItems: 'center',
+  backgroundColor: theme.palette.background.paper,
+  minHeight: '100vh',
+  verticalAlign: 'center',
 }));
 
 export default function NotFound() {
-  const classes = useStyles();
-
   return (
-    <Paper className={classes.paper} square>
-      <Typography className={classes.text} component='h1' variant='h1'>
+    <Root square>
+      <Typography component='h1' variant='h1' sx={{ textAlign: 'center', color: 'text.primary', alignItems: 'center' }}>
         404 Not found
       </Typography>
-    </Paper>
+    </Root>
   );
 }

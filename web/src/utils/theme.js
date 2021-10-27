@@ -1,13 +1,11 @@
-import { responsiveFontSizes, createTheme } from '@material-ui/core/styles';
-import { blue } from '@material-ui/core/colors';
+import { responsiveFontSizes, createTheme } from '@mui/material/styles';
+import { blue } from '@mui/material/colors';
 
 export const getTheme = (prefersDark) => responsiveFontSizes(createTheme({
   palette: {
-    type: prefersDark ? 'dark' : 'light',
+    mode: prefersDark ? 'dark' : 'light',
     primary: blue,
-    background: {
-      default: prefersDark ? '#282c34' : '#FFFFFF',
-    },
+
   },
   breakpoints: {
     values: {

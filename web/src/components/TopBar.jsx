@@ -8,7 +8,7 @@ import {
   Person as PersonIcon,
   ViewList as ViewListIcon,
   WbSunny as SunIcon,
-} from '@material-ui/icons';
+} from '@mui/icons-material';
 import {
   AppBar,
   Button,
@@ -17,8 +17,8 @@ import {
   MenuItem,
   Toolbar,
   Typography,
-} from '@material-ui/core';
-import { makeStyles } from '@material-ui/core/styles';
+} from '@mui/material';
+import { styled } from '@mui/material/styles';
 import PropTypes from 'prop-types';
 import NextLink from 'next/link';
 import { useCSRF } from '../utils/csrf';
@@ -27,26 +27,26 @@ import MangaSearch from './MangaSearch';
 import { useUser } from '../utils/useUser';
 import { updateUserTheme, logoutUser } from '../api/user';
 
-const useStyles = makeStyles((theme) => ({
-  root: {
+const PREFIX = 'TopBar';
+const classes = {
+  grow: `${PREFIX}-grow`,
+  titleIcon: `${PREFIX}-titleIcon`,
+  menuItemIcon: `${PREFIX}-menuItemIcon`,
+};
+
+
+const Root = styled('div')(({ theme }) => ({
+  flexGrow: 1,
+  position: 'static',
+  width: '100%',
+  minWidth: '300px',
+  left: 0,
+
+  [`& .${classes.grow}`]: {
     flexGrow: 1,
-    position: 'sticky',
-    width: '100%',
-    minWidth: '300px',
-    left: 0,
   },
-  grow: {
-    flexGrow: 1,
-  },
-  title: {
-    flexGrow: 1,
-    marginRight: theme.spacing(2),
-    [theme.breakpoints.down(500)]: {
-      display: 'none',
-    },
-    cursor: 'pointer',
-  },
-  titleIcon: {
+
+  [`& .${classes.titleIcon}`]: {
     flexGrow: 1,
     marginRight: theme.spacing(1),
     justifyContent: 'flex-start',
@@ -55,31 +55,30 @@ const useStyles = makeStyles((theme) => ({
       display: 'none',
     },
   },
-  profileIcon: {
-    position: 'relative',
-    marginLeft: theme.spacing(2),
-    float: 'right',
-  },
-  loginButton: {
-    position: 'relative',
-    marginLeft: theme.spacing(3),
-    float: 'right',
-  },
-  popper: {
-    zIndex: theme.zIndex.modal,
-    marginTop: '10px',
-    width: '200px',
-    [theme.breakpoints.up('sm')]: {
-      width: '450px',
-    },
-  },
-  menuItemIcon: {
+}));
+
+
+const MenuStyled = styled(Menu)(({ theme }) => ({
+  [`& .${classes.menuItemIcon}`]: {
     marginRight: theme.spacing(1),
   },
-  menuLink: {
-    textDecoration: 'none',
-    color: 'inherit',
+}));
+
+
+const SiteTitle = styled(Typography)(({ theme }) => ({
+  flexGrow: 0,
+  marginRight: theme.spacing(2),
+  [theme.breakpoints.down(500)]: {
+    display: 'none',
   },
+  cursor: 'pointer',
+}));
+
+
+const ProfileIconContainer = styled('div')(({ theme }) => ({
+  position: 'relative',
+  marginLeft: theme.spacing(2),
+  float: 'right',
 }));
 
 const LinkComponent = React.forwardRef(({ href, prefetch, as, Component, children, passHref=false, ...props }, ref) => (
@@ -99,7 +98,6 @@ function TopBar(props) {
   } = props;
 
   const { user } = useUser();
-  const classes = useStyles();
   const csrf = useCSRF();
   const [anchorEl, setAnchorEl] = React.useState(null);
   const open = Boolean(anchorEl);
@@ -133,13 +131,13 @@ function TopBar(props) {
   };
 
   return (
-    <div className={classes.root}>
+    <Root>
       <AppBar position='static'>
         <Toolbar>
           <NextLink href='/' prefetch={false}>
-            <Typography className={classes.title} variant='h6' noWrap>
+            <SiteTitle variant='h6' noWrap>
               Manga tracker
-            </Typography>
+            </SiteTitle>
           </NextLink>
           <LinkComponent
             Component={IconButton}
@@ -158,22 +156,22 @@ function TopBar(props) {
             placeholder='Search manga'
           />
           {(user && (
-          <div className={classes.profileIcon}>
+          <ProfileIconContainer>
             <IconButton
               aria-label='account of current user'
               aria-controls='menu-appbar'
               aria-haspopup='true'
               onClick={handleClick}
               color='inherit'
+              size='large'
             >
               <AccountCircle fontSize='large' />
             </IconButton>
-            <Menu
+            <MenuStyled
               id='menu-appbar'
               disableScrollLock
               anchorEl={anchorEl}
               elevation={0}
-              getContentAnchorEl={null}
               anchorOrigin={{
                 vertical: 'bottom',
                 horizontal: 'right',
@@ -204,13 +202,13 @@ function TopBar(props) {
               <MenuItem onClick={handleLogout}>
                 <ExitToAppIcon className={classes.menuItemIcon} /> Logout
               </MenuItem>
-            </Menu>
-          </div>
+            </MenuStyled>
+          </ProfileIconContainer>
           )
           ) || (
           <React.Fragment>
             <NextLink href='/login' prefetch={false}>
-              <Button variant='outlined' className={classes.loginButton}>
+              <Button variant='outlined' sx={{ position: 'relative', ml: 3, mr: 1, float: 'right' }}>
                 Login
               </Button>
             </NextLink>
@@ -218,14 +216,15 @@ function TopBar(props) {
               aria-label='Switch theme'
               onClick={handleThemeChange}
               color='inherit'
+              size='large'
             >
-              {activeTheme === 2 ? <SunIcon className={classes.menuItemIcon} /> : <MoonIcon className={classes.menuItemIcon} />}
+              {activeTheme === 2 ? <SunIcon /> : <MoonIcon />}
             </IconButton>
           </React.Fragment>
           )}
         </Toolbar>
       </AppBar>
-    </div>
+    </Root>
   );
 }
 

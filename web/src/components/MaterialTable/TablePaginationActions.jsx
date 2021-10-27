@@ -1,25 +1,22 @@
-import { IconButton } from '@material-ui/core';
-import { makeStyles } from '@material-ui/core/styles';
+import { IconButton } from '@mui/material';
+import { styled } from '@mui/material/styles';
 
 import {
   FirstPage as FirstPageIcon,
   LastPage as LastPageIcon,
   KeyboardArrowLeft,
   KeyboardArrowRight,
-} from '@material-ui/icons';
+} from '@mui/icons-material';
 import React from 'react';
 
-const useStyles = makeStyles((theme) => ({
-  root: {
-    flexShrink: 0,
-    marginLeft: theme.spacing(2.5),
-  },
+const Root = styled('div')(({ theme }) => ({
+  flexShrink: 0,
+  marginLeft: theme.spacing(2.5),
 }));
 
 // Big part copied from here
 // https://material-ui.com/components/tables/#custom-pagination-actions
 const TablePaginationActions = (props) => {
-  const classes = useStyles();
   const { count, page, rowsPerPage, onPageChange } = props;
 
   const handleFirstPageButtonClick = (event) => {
@@ -39,21 +36,28 @@ const TablePaginationActions = (props) => {
   };
 
   return (
-    <div className={classes.root}>
+    <Root>
       <IconButton
         onClick={handleFirstPageButtonClick}
         disabled={page === 0}
         aria-label='first page'
+        size='large'
       >
         <FirstPageIcon />
       </IconButton>
-      <IconButton onClick={handleBackButtonClick} disabled={page === 0} aria-label='previous page'>
+      <IconButton
+        onClick={handleBackButtonClick}
+        disabled={page === 0}
+        aria-label='previous page'
+        size='large'
+      >
         <KeyboardArrowLeft />
       </IconButton>
       <IconButton
         onClick={handleNextButtonClick}
         disabled={page >= Math.ceil(count / rowsPerPage) - 1}
         aria-label='next page'
+        size='large'
       >
         <KeyboardArrowRight />
       </IconButton>
@@ -61,10 +65,11 @@ const TablePaginationActions = (props) => {
         onClick={handleLastPageButtonClick}
         disabled={page >= Math.ceil(count / rowsPerPage) - 1}
         aria-label='last page'
+        size='large'
       >
         <LastPageIcon />
       </IconButton>
-    </div>
+    </Root>
   );
 };
 

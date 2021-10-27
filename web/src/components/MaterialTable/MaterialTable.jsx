@@ -10,32 +10,36 @@ import {
   TableSortLabel,
   TablePagination,
   CircularProgress,
-} from '@material-ui/core';
-import { Skeleton } from '@material-ui/lab';
-import { makeStyles, darken } from '@material-ui/core/styles';
+  Skeleton,
+} from '@mui/material';
+import { darken, styled } from '@mui/material/styles';
 import PropTypes from 'prop-types';
 
 import TablePaginationActions from './TablePaginationActions';
 import { TableToolbar } from './TableToolbar';
 import { useEditable } from './useEditable';
 
-const useStyles = makeStyles((theme) => ({
-  editCell: {
+const TableHeadStyled = styled(TableHead)(({ theme }) => ({
+  backgroundColor: darken(theme.palette.background.paper, 0.01),
+}));
+
+const PaginationContainer = styled('div')({
+  display: 'flex',
+  justifyContent: 'flex-end',
+  alignItems: 'center',
+});
+
+const PREFIX = 'MaterialTable';
+const classes = {
+  editCell: `${PREFIX}-editCell`,
+};
+
+const Root = styled('div')({
+  [`& .${classes.editCell}`]: {
     display: 'flex',
     justifyContent: 'center',
   },
-  tableHead: {
-    backgroundColor: darken(theme.palette.background.paper, 0.1),
-  },
-  pagination: {
-    display: 'flex',
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-  },
-  skeleton: {
-    fontSize: '1.2rem',
-  },
-}));
+});
 
 const skeletonCount = new Array(10).fill(0);
 
@@ -69,7 +73,6 @@ const MaterialTable = (props) => {
     throw new TypeError('Data not given to table');
   }
 
-  const classes = useStyles();
   const [rowsPerPage] = useState(rowsPerPageInitial);
   const confirm = useConfirm();
 
@@ -124,7 +127,7 @@ const MaterialTable = (props) => {
   );
 
   return (
-    <div id={id}>
+    <Root id={id}>
       <TableToolbar
         title={title}
         DialogComponent={CreateDialog}
@@ -139,7 +142,7 @@ const MaterialTable = (props) => {
         <colgroup>
           {columns.map(col => <col width={col.width} key={col.accessor} />)}
         </colgroup>
-        <TableHead className={classes.tableHead}>
+        <TableHeadStyled>
           {headerGroups.map(headerGroup => (
             <TableRow {...headerGroup.getHeaderGroupProps()}>
               {headerGroup.headers.map(col => (
@@ -168,13 +171,13 @@ const MaterialTable = (props) => {
               ))}
             </TableRow>
           ))}
-        </TableHead>
+        </TableHeadStyled>
         <TableBody {...getTableBodyProps()} aria-live='polite'>
           {loading && !rows.length && skeletonCount.map((_, i) => (
             // eslint-disable-next-line react/no-array-index-key
             <TableRow key={i} aria-hidden>
               {headerGroups[0].headers.map((h) => (
-                <TableCell className={classes.skeleton} key={h.id}>
+                <TableCell key={h.id} sx={{ fontSize: '1.2rem' }}>
                   <Skeleton />
                 </TableCell>
               ))}
@@ -198,7 +201,7 @@ const MaterialTable = (props) => {
         </TableBody>
       </Table>
       {pagination && (
-        <div className={classes.pagination}>
+        <PaginationContainer>
           {loading && <CircularProgress size={30} aria-label='Loading icon' />}
           <TablePagination
             component='nav'
@@ -211,9 +214,9 @@ const MaterialTable = (props) => {
             labelDisplayedRows={labelDisplayedRows}
             aria-label='Table pagination'
           />
-        </div>
+        </PaginationContainer>
       )}
-    </div>
+    </Root>
   );
 };
 

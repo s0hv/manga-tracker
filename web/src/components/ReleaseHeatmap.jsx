@@ -1,33 +1,28 @@
 import React, { useMemo } from 'react';
 import ReactFrappeChart from 'react-frappe-charts';
-import { makeStyles } from '@material-ui/core/styles';
-import { Typography } from '@material-ui/core';
+import { Typography } from '@mui/material';
+import { styled } from '@mui/material/styles';
+
 import { groupByYear } from '../utils/utilities';
 
-const useStyles = makeStyles((theme) => ({
-  root: {
-    minHeight: '213px',
-  },
-  yearContainer: {
-    display: 'flex',
-    flexFlow: 'column',
-    textAlign: 'center',
-    width: 'min-content',
-    maxWidth: '100vw',
-    '& > div': {
-      overflow: 'auto',
-    },
-  },
-  yearPadding: {
-    marginTop: theme.spacing(2),
-  },
-  '@global': {
-    '.domain-name, .subdomain-name': {
-      fill: theme.palette.text.secondary,
-    },
+const Root = styled('div')(({ theme }) => ({
+  minHeight: '213px',
+
+  '& .domain-name, & .subdomain-name': {
+    fill: theme.palette.text.secondary,
   },
 }));
 
+const YearContainer = styled('div')({
+  display: 'flex',
+  flexFlow: 'column',
+  textAlign: 'center',
+  width: 'min-content',
+  maxWidth: '100vw',
+  '& > div': {
+    overflow: 'auto',
+  },
+});
 
 const ReleaseHeatmap = (props) => {
   const {
@@ -36,18 +31,15 @@ const ReleaseHeatmap = (props) => {
     dataRows,
   } = props;
 
-  const classes = useStyles();
-
   const dataGrouped = useMemo(() => groupByYear(dataRows), [dataRows]);
 
-
   return (
-    <div id={id} className={classes.root}>
+    <Root id={id}>
       <Typography>{title}</Typography>
-      <div className={classes.yearContainer}>
+      <YearContainer>
         {Object.keys(dataGrouped).sort().reverse().map(year => (
           <React.Fragment key={year}>
-            <Typography className={classes.yearPadding}>
+            <Typography sx={{ mt: 2 }}>
               {`${year} (${dataGrouped[year].total || 'no'} releases)`}
             </Typography>
             {!dataGrouped[year].empty && (
@@ -58,8 +50,8 @@ const ReleaseHeatmap = (props) => {
             )}
           </React.Fragment>
         ))}
-      </div>
-    </div>
+      </YearContainer>
+    </Root>
   );
 };
 

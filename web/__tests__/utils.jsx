@@ -1,5 +1,5 @@
-import DateFnsUtils from '@date-io/date-fns';
-import { MuiPickersUtilsProvider } from '@material-ui/pickers';
+import AdapterDateFns from '@mui/lab/AdapterDateFns';
+import LocalizationProvider from '@mui/lab/LocalizationProvider';
 import { fireEvent, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import cookie from 'cookie';
@@ -242,9 +242,9 @@ export function encodeAuthToken(lookup, token, uuid) {
 
 export function withRoot(Component) {
   return (
-    <MuiPickersUtilsProvider utils={DateFnsUtils} locale={enLocale}>
+    <LocalizationProvider dateAdapter={AdapterDateFns} locale={enLocale}>
       {Component}
-    </MuiPickersUtilsProvider>
+    </LocalizationProvider>
   );
 }
 
