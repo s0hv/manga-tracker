@@ -20,7 +20,7 @@ export const TableToolbar = props => {
     <Toolbar sx={{ pl: 2, pr: 1 }}>
       {creatable && (
         <Tooltip title='Add'>
-          <IconButton aria-label={addButtonLabel} onClick={handleOpen} size="large">
+          <IconButton aria-label={addButtonLabel} onClick={handleOpen} size='large'>
             <AddIcon />
           </IconButton>
         </Tooltip>

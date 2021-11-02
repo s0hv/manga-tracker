@@ -5,7 +5,7 @@ import MangaInfo from '../../src/components/MangaInfo';
 import { mockUTCDates } from '../utils';
 import {
   defaultDateFormatRegex,
-  defaultDateDistanceFormat
+  defaultDateDistanceFormat,
 } from '../constants';
 
 describe('MangaInfo should render correctly', () => {

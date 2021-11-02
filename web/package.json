@@ -4,7 +4,7 @@
   "private": true,
   "license": "AGPL-3.0",
   "engines": {
-    "node": "^14"
+    "node": "^16"
   },
   "scripts": {
     "start": "node server.js",
@@ -51,9 +51,9 @@
     "material-ui-confirm": "^3.0.2",
     "mobx": "^6.3.0",
     "mui-rff": "^5.0.0",
-    "next": "^11.1.0",
+    "next": "^12.0.2",
     "next-seo": "^4.25.1",
-    "next-transpile-modules": "^8.0.0",
+    "next-transpile-modules": "^9.0.0",
     "nodemon": "^2.0.7",
     "notistack": "^2.0.2",
     "nprogress": "^0.2.0",
@@ -99,7 +99,7 @@
   "devDependencies": {
     "@babel/preset-env": "^7.13.12",
     "@elastic/elasticsearch-mock": "^0.3.0",
-    "@next/bundle-analyzer": "^11.0.0",
+    "@next/bundle-analyzer": "^11.1.2",
     "@testing-library/jest-dom": "^5.11.10",
     "@testing-library/react": "^12.0.0",
     "@testing-library/user-event": "^13.1.8",
@@ -112,7 +112,7 @@
     "dotenv": "^10.0.0",
     "eslint": "^7.28.0",
     "eslint-config-airbnb": "^18.2.1",
-    "eslint-config-next": "^11.0.0",
+    "eslint-config-next": "^12.0.2",
     "eslint-plugin-import": "^2.22.1",
     "eslint-plugin-jest": "^24.3.6",
     "eslint-plugin-jsx-a11y": "^6.4.1",
