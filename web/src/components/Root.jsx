@@ -76,7 +76,8 @@ export default function Layout(props) {
                 component='a'
                 href='https://github.com/s0hv/manga-tracker'
                 aria-label='github repository'
-                size="large">
+                size='large'
+              >
                 <GitHubIcon />
               </IconButton>
             </div>
