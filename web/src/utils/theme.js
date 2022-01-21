@@ -20,10 +20,10 @@ export const getTheme = (prefersDark) => responsiveFontSizes(createTheme({
 
 export const nextImageFix = {
   // Forced overrides for next image
-  '& div': {
+  '& span': {
     position: 'static !important',
   },
-  '& div > img': {
+  '& span > img': {
     position: 'static !important',
     width: 'auto !important',
     height: 'auto !important',
