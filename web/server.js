@@ -56,6 +56,7 @@ module.exports = nextApp.prepare()
         directives: {
           imgSrc: "'self' https://uploads.mangadex.org data:", // data: used by redoc
           workerSrc: "'self' blob:", // blob: used by redoc
+          scriptSrc: isDev ? "'self' 'unsafe-eval'" : undefined, // required for fast refresh
         },
         useDefaults: true,
       },
