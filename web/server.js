@@ -51,13 +51,18 @@ const handle = nextApp.getRequestHandler();
 module.exports = nextApp.prepare()
   .then(() => {
     const server = express();
+
+    const directives = {
+      imgSrc: "'self' https://uploads.mangadex.org data:", // data: used by redoc
+      workerSrc: "'self' blob:", // blob: used by redoc
+    };
+    if (isDev) {
+      directives.scriptSrc = "'self' 'unsafe-eval'"; // required for fast refresh
+    }
+
     server.use(helmet({
       contentSecurityPolicy: {
-        directives: {
-          imgSrc: "'self' https://uploads.mangadex.org data:", // data: used by redoc
-          workerSrc: "'self' blob:", // blob: used by redoc
-          scriptSrc: isDev ? "'self' 'unsafe-eval'" : undefined, // required for fast refresh
-        },
+        directives,
         useDefaults: true,
       },
     }));
