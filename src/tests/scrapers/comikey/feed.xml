@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0">
+    <channel>
+        <title>Latest Releases</title>
+        <link>https://comikey.com/sapi/feed.rss</link>
+        <description>Latest releases of serialized Manga &amp; Webtoons
+        </description>
+        <atom:link href="https://comikey.com/sapi/feed.rss"
+                   rel="self"></atom:link>
+        <language>en-us</language>
+        <lastBuildDate>Thu, 01 Jan 2022 08:00:00 -0800</lastBuildDate>
+        <ttl>60</ttl>
+        <item>
+            <title>Test title Episode 20</title>
+            <link>
+                https://comikey.com/read/test-title/kN6mRk/episode-20/
+            </link>
+            <pubDate>Thu, 20 Jan 2022 08:00:00 -0800</pubDate>
+            <guid>e4p:episode:EPI-kN6mRk</guid>
+        </item>
+        <item>
+            <title>This a manga Chapter 111: This a chapter name</title>
+            <link>
+                https://comikey.com/read/test-title/k2z19k/chapter-111/
+            </link>
+            <pubDate>Thu, 20 Jan 2022 07:00:00 -0800</pubDate>
+            <guid>e4p:episode:EPI-k2z19k</guid>
+        </item>
+        <item>
+            <title>Manga with Special 83: name
+            </title>
+            <link>
+                https://comikey.com/read/special-name/eZYOYD/chapter-83/
+            </link>
+            <pubDate>Thu, 20 Jan 2022 07:00:00 -0800</pubDate>
+            <guid>e4p:episode:EPI-eZYOYD</guid>
+        </item>
+        <item>
+            <title>Manga Chapter 84.4
+            </title>
+            <link>
+                https://comikey.com/read/test-title/kGp5gD/chapter-84-4/
+            </link>
+            <pubDate>Thu, 20 Jan 2022 07:00:00 -0800</pubDate>
+            <guid>e4p:episode:EPI-kGp5gD</guid>
+        </item>
+        <item>
+            <title>Decimal chapter Chapter 29.1: abcde</title>
+            <link>
+                https://comikey.com/read/test-title/oKrVMe/chapter-29-1/
+            </link>
+            <pubDate>Thu, 20 Jan 2022 07:00:00 -0800</pubDate>
+            <guid>e4p:episode:EPI-oKrVMe</guid>
+        </item>
+        <item>
+            <title>Manga with Special 83</title>
+            <link>
+                https://comikey.com/read/special-name/k1z13D/chapter-83/
+            </link>
+            <pubDate>Thu, 20 Jan 2022 07:00:00 -0800</pubDate>
+            <guid>e4p:episode:EPI-k1z13D</guid>
+        </item>
+    </channel>
+</rss>

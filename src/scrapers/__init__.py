@@ -1,5 +1,6 @@
 from typing import TYPE_CHECKING, Dict, Type
 
+from src.scrapers.comikey import Comikey
 from src.scrapers.comixology import ComiXology
 from src.scrapers.kireicake import KireiCake
 from src.scrapers.mangadex import MangaDex
@@ -14,7 +15,8 @@ SCRAPERS: Dict[str, Type['BaseScraper']] = {
     MangaPlus.URL: MangaPlus,
     ComiXology.URL: ComiXology,
     Reddit.URL: Reddit,
-    KireiCake.URL: KireiCake
+    KireiCake.URL: KireiCake,
+    Comikey.URL: Comikey
 }
 
 SCRAPERS_ID: Dict[int, Type['BaseScraper']] = {

@@ -3,7 +3,8 @@ import time
 from abc import ABC, abstractmethod
 from calendar import timegm
 from datetime import datetime, timedelta
-from typing import Optional, List, Iterable, Dict, Pattern, Any, Type, Union
+from typing import Optional, List, Iterable, Dict, Pattern, Any, Type, Union, \
+    Set
 
 import feedparser
 
@@ -24,6 +25,7 @@ class RSSChapter(BaseChapterSimple):
                  chapter_number: str,
                  chapter_identifier: str,
                  title_id: str,
+                 group_id: int,
                  volume: str = None,
                  decimal: str = None,
                  release_date: Optional[Union[time.struct_time, datetime]] = None,
@@ -40,7 +42,8 @@ class RSSChapter(BaseChapterSimple):
             decimal=int(decimal) if decimal else None,
             manga_title=manga_title,
             manga_url=manga_url,
-            group=group
+            group=group,
+            group_id=group_id
         )
 
         if isinstance(release_date, time.struct_time):
@@ -154,7 +157,7 @@ class BaseRSS(BaseScraperWhole, ABC):
     @abstractmethod
     def get_manga_title(self, entry: Dict) -> Optional[str]:
         """
-        Get the title of the manga
+        Get the title of the manga. If None is returned use manga_title key from regex.
         Args:
             entry: A single entry in the RSS feed
 
@@ -163,7 +166,10 @@ class BaseRSS(BaseScraperWhole, ABC):
         """
         raise NotImplementedError
 
-    def parse_feed(self, entries: Iterable[Dict]) -> List[RSSChapter]:
+    def get_group_id(self) -> int:
+        return self.dbutil.get_or_create_group(self.NAME).group_id
+
+    def parse_feed(self, entries: Iterable[Dict], group_id: int) -> List[RSSChapter]:
         titles = []
         for entry in entries:
             title = entry.get('title', '')
@@ -192,9 +198,13 @@ class BaseRSS(BaseScraperWhole, ABC):
             if 'chapter_title' not in kwargs:
                 kwargs['chapter_title'] = self.get_chapter_title(entry)
 
-            kwargs['manga_url'] = self.MANGA_URL_FORMAT.format(kwargs['title_id'])
+            if self.MANGA_URL_FORMAT is None or self.MANGA_URL_FORMAT == NotImplemented:
+                kwargs['manga_url'] = None
+            else:
+                kwargs['manga_url'] = self.MANGA_URL_FORMAT.format(kwargs['title_id'])
             kwargs['release_date'] = entry.get('published_parsed') or entry.get('updated_parsed')
             kwargs['group'] = self.get_group(entry)
+            kwargs['group_id'] = group_id
 
             try:
                 titles.append(self.Chapter(**kwargs))
@@ -205,20 +215,30 @@ class BaseRSS(BaseScraperWhole, ABC):
         return titles
 
     def min_update_interval(self) -> timedelta:
-        return BaseRSS.UPDATE_INTERVAL
+        return self.UPDATE_INTERVAL
 
     def scrape_series(self, title_id: str, service_id: int, manga_id: int,
                       feed_url: Optional[str] = None) -> Optional[bool]:
         pass
 
-    def scrape_service(self, service_id: int, feed_url: str,
-                       last_update: Optional[datetime],
-                       title_id: Optional[str] = None):
-        feed = feedparser.parse(feed_url if not title_id else feed_url + f'/manga_id/{title_id}')
+    def get_feed_chapters(self, feed_url):
+        feed = feedparser.parse(feed_url)
         try:
             is_valid_feed(feed)
         except (FeedHttpError, InvalidFeedError):
             logger.exception(f'Failed to fetch feed {feed_url}')
             return
 
-        return self.handle_adding_chapters(self.parse_feed(feed.entries), service_id)
+        return self.parse_feed(feed.entries, self.get_group_id())
+
+    def add_from_feed_url(self, service_id: int, feed_url: str) -> Optional[Set[int]]:
+        entries = self.get_feed_chapters(feed_url)
+        if entries is None:
+            return None
+
+        return self.handle_adding_chapters(entries, service_id)
+
+    def scrape_service(self, service_id: int, feed_url: str,
+                       last_update: Optional[datetime],
+                       title_id: Optional[str] = None):
+        return self.add_from_feed_url(service_id, feed_url)

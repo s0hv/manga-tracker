@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0">
+    <channel>
+        <title>Test manga</title>
+        <link>https://comikey.com/sapi/comics/1/feed.rss</link>
+        <description>description
+        </description>
+        <atom:link href="https://comikey.com/sapi/comics/1/feed.rss" rel="self"></atom:link>
+        <language>en-us</language>
+        <category>Drama</category>
+        <category>Action</category>
+        <copyright>Author 1 | Author 2</copyright>
+        <lastBuildDate>Wed, 19 Jan 2022 11:00:00 -0800</lastBuildDate>
+        <ttl>300</ttl>
+        <item>
+            <title>Episode 20</title>
+            <link>
+                https://comikey.com/read/test-title/abc/episode-20/
+            </link>
+            <pubDate>Thu, 20 Jan 2022 08:00:00 -0800</pubDate>
+            <guid>e4p:episode:EPI-abc</guid>
+        </item>
+        <item>
+            <title>Chapter 21: Name</title>
+            <link>
+                https://comikey.com/read/test-title/abcdef/episode-21/
+            </link>
+            <pubDate>Thu, 20 Jan 2022 08:00:00 -0800</pubDate>
+            <guid>e4p:episode:EPI-abcdef</guid>
+        </item>
+    </channel>
+</rss>
