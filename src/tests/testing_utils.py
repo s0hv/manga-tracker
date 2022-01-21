@@ -2,6 +2,7 @@ import json
 import os
 import subprocess
 import sys
+import typing
 import unittest
 from datetime import datetime, timedelta
 from typing import TypeVar, Optional, Union, Type, List
@@ -21,6 +22,9 @@ from src.scrapers.base_scraper import BaseChapter, BaseScraper, \
     BaseChapterSimple
 from src.tests.scrapers.testing_scraper import DummyScraper
 from src.utils.dbutils import DbUtil
+
+if typing.TYPE_CHECKING:
+    from src.db.models.chapter import Chapter as DbChapter
 
 originalParse = feedparser.parse
 
@@ -250,6 +254,32 @@ class BaseTestClasses:
             """
             return datetime.utcnow().replace(tzinfo=psycopg2.tz.FixedOffsetTimezone(offset=0, name=None))
 
+        @staticmethod
+        def dbChapterSortKey(chapter: 'DbChapter'):
+            return chapter.chapter_identifier
+
+        def assertDbChaptersEqual(self, a: 'DbChapter', expected: 'DbChapter', include_id: bool = False):
+            self.assertEqual(a.chapter_number, expected.chapter_number, msg=f'Chapter numbers not equal for {a.chapter_identifier}')
+            self.assertEqual(a.chapter_decimal, expected.chapter_decimal, msg=f'Chapter decimal numbers not equal for {a.chapter_identifier}')
+            self.assertDatesEqual(a.release_date, expected.release_date)
+            self.assertEqual(a.chapter_identifier, expected.chapter_identifier, msg=f'Chapter identifiers not equal for {a.chapter_identifier}')
+            self.assertEqual(a.manga_id, expected.manga_id, msg=f'Manga ids not equal for {a.chapter_identifier}')
+            self.assertEqual(a.group, expected.group, msg=f'Chapter groups not equal for {a.chapter_identifier}')
+            self.assertEqual(a.title, expected.title, msg=f'Chapter titles not equal for {a.chapter_identifier}')
+            self.assertEqual(a.group_id, expected.group_id, msg=f'Group ids are not equal for {a.chapter_identifier}')
+            self.assertEqual(a.service_id, expected.service_id, msg=f'Service ids not equal for {a.chapter_identifier}')
+
+            if include_id:
+                self.assertEqual(a.chapter_id, expected.chapter_id, msg=f'Chapter ids not equal for {a.chapter_identifier}')
+
+        def assertAllDbChaptersEqual(self, chapters: List['DbChapter'], expected: List['DbChapter'], include_id: bool = False):
+            self.assertEqual(len(chapters), len(expected), msg='Different amount of chapters passed')
+
+            for chapter, expect in zip(
+                    sorted(chapters, key=self.dbChapterSortKey),
+                    sorted(expected, key=self.dbChapterSortKey)):
+                self.assertDbChaptersEqual(chapter, expect, include_id=include_id)
+
     class ModelAssertions(unittest.TestCase):
         def assertChaptersEqual(self, a: Union[BaseChapter, 'ChapterTestModel'],
                                 b: Union[BaseChapter, 'ChapterTestModel'], ignore_date: bool = False):
@@ -266,6 +296,22 @@ class BaseTestClasses:
             self.assertEqual(a.group, b.group, msg=f'Chapter groups not equal for {a.chapter_identifier}')
             self.assertEqual(a.title, b.title, msg=f'Chapter titles not equal for {a.chapter_identifier}')
             self.assertEqual(a.group_id, b.group_id, msg=f'Group ids are not equal for {a.chapter_identifier}')
+
+        @staticmethod
+        def chapterSortKey(chapter: Union[BaseChapter, 'ChapterTestModel']):
+            return chapter.chapter_identifier
+
+        def assertAllChaptersEqual(self, chapters: Union[List[BaseChapter], List['ChapterTestModel']],
+                                   expected: Union[List[BaseChapter], List['ChapterTestModel']],
+                                   ignore_date: bool = False):
+            self.assertEqual(len(chapters), len(expected), msg='Different amount of chapters passed')
+
+            for chapter, expect in zip(sorted(chapters, key=self.chapterSortKey), sorted(expected, key=self.chapterSortKey)):
+                self.assertChaptersEqual(
+                    typing.cast(BaseChapter, chapter),
+                    typing.cast(BaseChapter, expect),
+                    ignore_date=ignore_date
+                )
 
 
 class Chapter(BaseChapterSimple):
@@ -327,6 +373,15 @@ class ChapterTestModel(BaseModel):
 
     def __lt__(self, other):
         return self.chapter_identifier < other.chapter_identifier
+
+    def __hash__(self):
+        return hash(self.chapter_identifier)
+
+    def __eq__(self, other):
+        if hasattr(other, 'chapter_identifier'):
+            return other.chapter_identifier == self.chapter_identifier
+        else:
+            return self.chapter_identifier == other
 
 
 class ChapterSnapshot(BaseModel):

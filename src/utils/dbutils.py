@@ -284,15 +284,22 @@ class DbUtil:
     @overload
     def get_chapters(self, manga_id: int, service_id: int, *, limit: int = 100, cur: Cursor = NotImplemented) -> List[Chapter]: ...
 
+    @overload
+    def get_chapters(self, manga_id: Optional[None], service_id: int, *, limit: int = 100, cur: Cursor = NotImplemented) -> List[Chapter]: ...
+
     @optional_transaction
-    def get_chapters(self, manga_id: int, service_id: int = None, *, limit: int = 100, cur: Cursor = NotImplemented) -> List[Chapter]:
+    def get_chapters(self, manga_id: Optional[int], service_id: int = None, *, limit: int = 100, cur: Cursor = NotImplemented) -> List[Chapter]:
         args: Tuple
         if service_id is None:
             sql = 'SELECT * FROM chapters WHERE manga_id=%s LIMIT %s'
             args = (manga_id, limit)
         else:
-            sql = 'SELECT * FROM chapters WHERE manga_id=%s AND service_id=%s LIMIT %s'
-            args = (manga_id, service_id, limit)
+            if manga_id is None:
+                sql = 'SELECT * FROM chapters WHERE service_id=%s LIMIT %s'
+                args = (service_id, limit)
+            else:
+                sql = 'SELECT * FROM chapters WHERE manga_id=%s AND service_id=%s LIMIT %s'
+                args = (manga_id, service_id, limit)
 
         cur.execute(sql, args)
         return list(map(Chapter.parse_obj, cur.fetchall()))
