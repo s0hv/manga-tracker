@@ -63,7 +63,7 @@
     "pg-format": "^1.0.4",
     "pg-promise": "^10.10.1",
     "pino": "^6.11.3",
-    "pino-http": "^5.5.0",
+    "pino-http": "^6.6.0",
     "pino-pretty": "^6.0.0",
     "prop-types": "^15.7.2",
     "rate-limiter-flexible": "^2.2.1",
