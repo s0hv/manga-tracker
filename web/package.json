@@ -51,7 +51,7 @@
     "material-ui-confirm": "^3.0.2",
     "mobx": "^6.3.0",
     "mui-rff": "^5.0.0",
-    "next": "^12.0.2",
+    "next": "^12.0.10",
     "next-seo": "^4.25.1",
     "next-transpile-modules": "^9.0.0",
     "nodemon": "^2.0.7",
