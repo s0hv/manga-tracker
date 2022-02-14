@@ -64,6 +64,7 @@ export default function MangaSearch(props) {
     ariaLabel = 'manga search',
     clearOnClick = true,
     onChange: onChangeFunc,
+    searchThrottleTimeout = 200,
   } = props;
 
   const [value, setValue] = useState('');
@@ -99,8 +100,8 @@ export default function MangaSearch(props) {
     () => throttle((query, cb) => {
       quickSearch(query)
         .then(js => cb(js));
-    }, 200, { trailing: false }),
-    []
+    }, searchThrottleTimeout, { trailing: false }),
+    [searchThrottleTimeout]
   );
 
   useEffect(() => {

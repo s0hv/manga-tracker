@@ -98,7 +98,7 @@ describe('Search should behave correctly with user input', () => {
 
     fetchMock.mock('glob:/api/quicksearch?query=*', searchFn);
 
-    render(<MangaSearch />);
+    render(<MangaSearch searchThrottleTimeout={1000} />);
 
     // Find search input
     const input = screen.getByRole('textbox');
