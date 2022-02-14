@@ -65,7 +65,7 @@ jobs:
       with:
         flags: scraper
         name: Scraper coverage
-        files: '*/manga-tracker/coverage/coverage.xml'
+        files: './coverage/coverage.xml'
 
     env:
       DB_HOST: postgres
