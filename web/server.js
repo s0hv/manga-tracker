@@ -65,6 +65,8 @@ module.exports = nextApp.prepare()
         directives,
         useDefaults: true,
       },
+      crossOriginResourcePolicy: false,
+      crossOriginEmbedderPolicy: false,
     }));
     if (reverseProxy) server.enable('trust-proxy');
 
