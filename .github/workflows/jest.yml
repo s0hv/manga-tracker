@@ -13,7 +13,7 @@ defaults:
 
 jobs:
   build:
-
+    name: Web app tests
     runs-on: ubuntu-latest
     container: node:14-stretch
 
