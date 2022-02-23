@@ -33,13 +33,13 @@ module.exports = (expressSession) => {
 
       this.cache = new LRU({
         max: options.cacheSize || 50,
-        maxAge: options.maxAge || 7200000, // 2 h in ms
+        ttl: options.maxAge || 7200000, // 2 h in ms
         noDisposeOnSet: true,
       });
 
       this.touchCache = new LRU({
         max: 50,
-        maxAge: 1000*2, // 2s
+        ttl: 1000*2, // 2s
       });
 
       // Clear sessions every two hours
@@ -74,7 +74,7 @@ module.exports = (expressSession) => {
         .then(row => {
           if (row) {
             // TODO Check set behavior
-            this.cache.set(sid, { ...row.data, userId: row.userId }, row.maxage);
+            this.cache.set(sid, { ...row.data, userId: row.userId }, { ttl: row.maxage });
             return cb(null, { ...row.data, userId: row.userId });
           }
 
@@ -102,7 +102,7 @@ module.exports = (expressSession) => {
     destroy(sid, cb = noop) {
       const session = this.cache.peek(sid);
       sessionLogger.debug('Delete session %s %o', sid, session);
-      this.cache.del(sid);
+      this.cache.delete(sid);
       const sql = 'DELETE FROM sessions WHERE session_id=$1';
 
       mangaViews.onSessionExpire(session)
@@ -135,7 +135,7 @@ module.exports = (expressSession) => {
     clearUserSessions(uid, cb = noop) {
       sessionLogger.info('Clearing all user sessions from user %s', uid);
       const sql = 'DELETE FROM sessions WHERE user_id=$1';
-      this.cache.forEach((sess, key) => { if (sess.userId === uid) this.cache.del(key); });
+      this.cache.forEach((sess, key) => { if (sess.userId === uid) this.cache.delete(key); });
       this.conn.query(sql, [uid])
         .then(() => cb(null))
         .catch(err => {
