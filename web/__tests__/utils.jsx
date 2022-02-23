@@ -224,7 +224,7 @@ export function expectCookieDeleted(cookieName) {
     const found = getCookieFromRes(res, cookieName);
 
     expect(found).toBeDefined();
-    expect(new Date(found.Expires).getTime()).toStrictEqual(0);
+    expect(new Date(found.Expires).getTime()).toBe(0);
   };
 }
 

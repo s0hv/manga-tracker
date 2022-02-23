@@ -216,7 +216,7 @@ describe('GET /api/manga/:mangaId/chapters', () => {
         .expect('Content-Type', /json/)
         .expect(200)
         .satisfiesApiSpec()
-        .expect(res => expect(getChapterCount(res.body)).toEqual(5)),
+        .expect(res => expect(getChapterCount(res.body)).toBe(5)),
     ]);
   });
 

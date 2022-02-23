@@ -18,8 +18,10 @@ import {
   decodeAuthToken,
   deleteCookie,
   encodeAuthToken,
-  expectCookieDeleted, expectErrorMessage,
-  getCookie, getCookieFromRes,
+  expectCookieDeleted,
+  expectErrorMessage,
+  getCookie,
+  getCookieFromRes,
   login,
   normalUser,
 } from '../utils';
@@ -273,8 +275,8 @@ describe('Test authentication', () => {
       .expect(401);
 
     // Make sure sessions and tokens deleted
-    expect(await authTokenCount(uuid)).toStrictEqual(0);
-    expect(await userSessionCount(uuid)).toStrictEqual(0);
+    expect(await authTokenCount(uuid)).toBe(0);
+    expect(await userSessionCount(uuid)).toBe(0);
 
     // Make sure session does not exist
     await request(httpServer)

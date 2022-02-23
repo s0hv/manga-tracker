@@ -9,7 +9,9 @@ import {
 
 import { styled } from '@mui/material/styles';
 
-import { SubdirectoryArrowLeft as SubdirectoryArrowLeftIcon } from '@mui/icons-material';
+import {
+  SubdirectoryArrowLeft as SubdirectoryArrowLeftIcon
+} from '@mui/icons-material';
 import { useConfirm } from 'material-ui-confirm';
 import PropTypes from 'prop-types';
 
@@ -164,7 +166,9 @@ function MangaAdmin(props) {
     ];
   }, [services, serviceConfigs]);
 
-  const CreateDialog = useMemo(() => ({ open, onClose }) => (
+  // The component is memoized with use callback. I don't see a problem
+  // eslint-disable-next-line react/no-unstable-nested-components
+  const CreateDialog = useCallback(() => ({ open, onClose }) => (
     <AddRowFormTemplate
       fields={fields}
       onSubmit={onCreateRow}

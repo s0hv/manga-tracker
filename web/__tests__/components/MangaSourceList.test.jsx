@@ -53,14 +53,16 @@ describe('Manga source list', () => {
 
   it('Should render correctly with items and user', async () => {
     render(
-      await withUser(normalUser, (
-        <MangaSourceList
-          items={services}
-          userFollows={follows}
-          classesProp={['test-class-1', 'test-class-2']}
-          openByDefault
-        />
-      ))
+      await withUser(
+        normalUser, (
+          <MangaSourceList
+            items={services}
+            userFollows={follows}
+            classesProp={['test-class-1', 'test-class-2']}
+            openByDefault
+          />
+        )
+      )
     );
 
     expect(screen.queryAllByRole('listitem')).toHaveLength(services.length);
@@ -91,15 +93,17 @@ describe('Manga source list should handle user input', () => {
     createEvent.mockImplementation(() => followUnfollow);
 
     render(
-      await withUser(normalUser, (
-        <MangaSourceList
-          items={services}
-          userFollows={follows}
-          classesProp={['test-class-1', 'test-class-2']}
-          followUnfollow={createEvent}
-          openByDefault
-        />
-      ))
+      await withUser(
+        normalUser, (
+          <MangaSourceList
+            items={services}
+            userFollows={follows}
+            classesProp={['test-class-1', 'test-class-2']}
+            followUnfollow={createEvent}
+            openByDefault
+          />
+        )
+      )
     );
 
     expect(createEvent).toHaveBeenCalledTimes(services.length);
@@ -116,13 +120,15 @@ describe('Manga source list should handle user input', () => {
 
   it('Should open and close collapsed list on clicks', async () => {
     render(
-      await withUser(normalUser, (
-        <MangaSourceList
-          items={services}
-          userFollows={follows}
-          classesProp={['test-class-1', 'test-class-2']}
-        />
-      ))
+      await withUser(
+        normalUser, (
+          <MangaSourceList
+            items={services}
+            userFollows={follows}
+            classesProp={['test-class-1', 'test-class-2']}
+          />
+        )
+      )
     );
 
     expect(screen.queryByRole('listitem')).not.toBeInTheDocument();
