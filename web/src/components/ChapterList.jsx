@@ -8,6 +8,15 @@ import { defaultDateFormat } from '../utils/utilities';
 import { getChapters, updateChapter, deleteChapter } from '../api/chapter';
 
 
+const TitleCell = ({ row }) => (
+  <Link href={row.original.url} target='_blank' style={{ textDecoration: 'none' }} rel='noopener noreferrer'>
+    <span>
+      {row.values.title}
+    </span>
+  </Link>
+);
+
+
 function ChapterList(props) {
   const {
     chapters: initialChapters,
@@ -89,13 +98,7 @@ function ChapterList(props) {
       Header: 'Title',
       accessor: 'title',
       disableSortBy: true,
-      Cell: ({ row }) => (
-        <Link href={row.original.url} target='_blank' style={{ textDecoration: 'none' }} rel='noopener noreferrer'>
-          <span>
-            {row.values.title}
-          </span>
-        </Link>
-      ),
+      Cell: TitleCell,
     },
     {
       Header: 'Released',
@@ -120,23 +123,21 @@ function ChapterList(props) {
   }, [formatChapters, mangaId]);
 
   return (
-    <>
-      <TableContainer component={Paper}>
-        <MaterialTable
-          columns={columns}
-          data={chapters}
-          onSaveRow={onSaveRow}
-          onDeleteRow={onDeleteRow}
-          fetchData={fetchData}
-          rowCount={count}
-          loading={loading}
-          sortable
-          editable={editable}
-          deletable={editable}
-          pagination
-        />
-      </TableContainer>
-    </>
+    <TableContainer component={Paper}>
+      <MaterialTable
+        columns={columns}
+        data={chapters}
+        onSaveRow={onSaveRow}
+        onDeleteRow={onDeleteRow}
+        fetchData={fetchData}
+        rowCount={count}
+        loading={loading}
+        sortable
+        editable={editable}
+        deletable={editable}
+        pagination
+      />
+    </TableContainer>
   );
 }
 export default ChapterList;
