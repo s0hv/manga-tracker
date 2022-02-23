@@ -31,10 +31,10 @@ describe('mangaView increments manga views correctly', () => {
     mangaView(sess, { mangaId: mangaId });
 
     expect(sess.mangaViews).toHaveProperty(mangaId);
-    expect(sess.mangaViews[mangaId]).toStrictEqual(1);
+    expect(sess.mangaViews[mangaId]).toBe(1);
 
     mangaView(sess, { mangaId: mangaId });
-    expect(sess.mangaViews[mangaId]).toStrictEqual(2);
+    expect(sess.mangaViews[mangaId]).toBe(2);
   });
 });
 

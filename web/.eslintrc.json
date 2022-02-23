@@ -9,7 +9,7 @@
         "plugin:jest/style",
         "next"
     ],
-    "parser": "babel-eslint",
+    "parser": "@babel/eslint-parser",
     "parserOptions": {
         "ecmaVersion": 2018,
         "sourceType": "module",
@@ -49,6 +49,9 @@
             "argsIgnorePattern":  "^_",
             "ignoreRestSiblings": true
         }],
+        "react/function-component-definition": "off",
+        "function-paren-newline": ["error", "consistent"],
+        "react/no-unstable-nested-components": ["error", { "allowAsProps":  true }],
 
         "prefer-template": "off",
         "arrow-parens": "off",
@@ -77,7 +80,8 @@
         "no-unused-expressions": "off",
         "react/display-name": "off",
         "max-classes-per-file": "off",
-        "react/forbid-prop-types": "off"
+        "react/forbid-prop-types": "off",
+        "no-promise-executor-return": "off"
     },
     "env": {
         "browser": true,

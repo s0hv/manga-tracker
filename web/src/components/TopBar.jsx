@@ -134,6 +134,7 @@ function TopBar(props) {
     <Root>
       <AppBar position='static'>
         <Toolbar>
+          {/* eslint-disable-next-line @next/next/link-passhref */}
           <NextLink href='/' prefetch={false}>
             <SiteTitle variant='h6' noWrap>
               Manga tracker
@@ -207,6 +208,7 @@ function TopBar(props) {
           )
           ) || (
           <React.Fragment>
+            {/* eslint-disable-next-line @next/next/link-passhref */}
             <NextLink href='/login' prefetch={false}>
               <Button variant='outlined' sx={{ position: 'relative', ml: 3, mr: 1, float: 'right' }}>
                 Login

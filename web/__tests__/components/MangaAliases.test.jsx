@@ -8,10 +8,10 @@ import { adminUser, withUser, normalUser } from '../utils';
 describe('MangaAliases renders correctly', () => {
   it('Should render correctly without aliases', () => {
     const { container, rerender } = render(<MangaAliases />);
-    expect(container.childElementCount).toStrictEqual(0);
+    expect(container.childElementCount).toBe(0);
 
     rerender(<MangaAliases aliases={[]} />);
-    expect(container.childElementCount).toStrictEqual(0);
+    expect(container.childElementCount).toBe(0);
   });
 
   it('Should render correctly with aliases', () => {
@@ -30,8 +30,10 @@ describe('MangaAliases renders correctly', () => {
   it('Should render correctly with editing allowed as admin', async () => {
     const aliases = ['a', 'b', 'c'];
     render(
-      await withUser(adminUser,
-        <MangaAliases aliases={aliases} allowEdits />)
+      await withUser(
+        adminUser,
+        <MangaAliases aliases={aliases} allowEdits />
+      )
     );
 
     const listItems = screen.getAllByRole('listitem');
@@ -47,8 +49,10 @@ describe('MangaAliases renders correctly', () => {
   it('Should not render buttons when allowEdits without admin', async () => {
     const aliases = ['a', 'b', 'c'];
     render(
-      await withUser(normalUser,
-        <MangaAliases aliases={aliases} allowEdits />)
+      await withUser(
+        normalUser,
+        <MangaAliases aliases={aliases} allowEdits />
+      )
     );
 
     const listItems = screen.getAllByRole('listitem');
@@ -78,7 +82,8 @@ describe('MangaAliases should promote alias correctly', () => {
     );
 
     render(
-      await withUser(adminUser,
+      await withUser(
+        adminUser,
         <MangaAliases
           aliases={aliases}
           allowEdits
@@ -86,7 +91,8 @@ describe('MangaAliases should promote alias correctly', () => {
           onTitleUpdate={onTitleUpdate}
           confirm={confirm}
           enqueueSnackbar={enqueueSnackbar}
-        />)
+        />
+      )
     );
 
     expect(screen.getByText(aliases[0])).toBeTruthy();
@@ -115,7 +121,8 @@ describe('MangaAliases should promote alias correctly', () => {
     const enqueueSnackbar = jest.fn();
 
     render(
-      await withUser(adminUser,
+      await withUser(
+        adminUser,
         <MangaAliases
           aliases={aliases}
           allowEdits
@@ -123,7 +130,8 @@ describe('MangaAliases should promote alias correctly', () => {
           onTitleUpdate={onTitleUpdate}
           confirm={confirm}
           enqueueSnackbar={enqueueSnackbar}
-        />)
+        />
+      )
     );
 
     const row = within(screen.getByText(aliases[0]).closest('li'));

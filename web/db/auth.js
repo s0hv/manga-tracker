@@ -9,7 +9,7 @@ const { sessionLogger } = require('../utils/logging');
 
 const userCache = new LRU(({
   max: 50,
-  maxAge: 86400000, // 1 day in ms
+  ttl: 86400000, // 1 day in ms
   noDisposeOnSet: true,
   updateAgeOnGet: true,
 }));

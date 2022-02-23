@@ -13,13 +13,15 @@ const pretty = process.env.PRETTY ?
 const logger = pino(
   {
     level: level || 'debug',
-    prettyPrint: pretty ?
+    transport: pretty ? {
+      target: 'pino-pretty',
+      options:
       {
         colorize: true,
         translateTime: 'SYS:HH:MM:ss.l',
         ignore: 'hostname,ns',
-      } :
-      false,
+      },
+    } : undefined,
     name: 'logger',
   }
 );
