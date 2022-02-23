@@ -166,9 +166,9 @@ function MangaAdmin(props) {
     ];
   }, [services, serviceConfigs]);
 
-  // The component is memoized with use callback. I don't see a problem
+  // The component is memoized with useMemo. I don't see a problem
   // eslint-disable-next-line react/no-unstable-nested-components
-  const CreateDialog = useCallback(() => ({ open, onClose }) => (
+  const CreateDialog = useMemo(() => ({ open, onClose }) => (
     <AddRowFormTemplate
       fields={fields}
       onSubmit={onCreateRow}
