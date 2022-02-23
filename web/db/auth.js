@@ -136,6 +136,10 @@ module.exports.requiresUser = (req, res, next) => {
   });
 };
 
+/**
+ * @param {Number} uid
+ * @return {Promise<any>}
+ */
 function clearUserAuthTokens(uid) {
   const sql = `DELETE FROM auth_tokens WHERE user_id=$1`;
   return db.query(sql, [uid]);
@@ -303,5 +307,5 @@ module.exports.modifyCacheUser = (uid, modifications) => {
 };
 
 module.exports.clearUserCache = () => {
-  userCache.reset();
+  userCache.clear();
 };

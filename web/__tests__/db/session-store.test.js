@@ -32,7 +32,7 @@ describe('sessionStore', () => {
       maxAge,
     });
 
-    expect(store.cache.maxAge).toStrictEqual(maxAge);
+    expect(store.cache.ttl).toStrictEqual(maxAge);
     expect(store.cache.max).toStrictEqual(cacheSize);
   });
 
@@ -73,7 +73,7 @@ describe('sessionStore', () => {
       const sid = 'sid_get_cache';
       const session = { test: 1, data: 'data' };
 
-      store.cache.set(sid, session, 60*60*60);
+      store.cache.set(sid, session, { ttl: 60*60*60 });
 
       await expect(new Promise(resolve => store.get(sid, (...args) => resolve(args))))
         .resolves
