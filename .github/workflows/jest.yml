@@ -6,7 +6,6 @@ on:
     paths-ignore:
       - 'scripts/**'
   pull_request:
-    branches: [ master, development ]
 
 defaults:
   run:

@@ -166,8 +166,7 @@ class BaseRSS(BaseScraperWhole, ABC):
         """
         raise NotImplementedError
 
-    @staticmethod
-    def skip_entry(entry: Dict) -> bool:
+    def skip_entry(self, entry: Dict) -> bool:
         """
         Whether to skip the given entry
         Args:
