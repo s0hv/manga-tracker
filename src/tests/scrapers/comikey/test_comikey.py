@@ -216,3 +216,22 @@ class ComikeyTest(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsserti
             new_chapters,
             correct_chapters_manga_feed
         )
+
+    @patch.object(Comikey, 'get_chapter_id')
+    def test_language_skip(self, mock: MagicMock):
+        chapter_ids = [
+            'test/kjZYvk/bab-bahasa-123',
+            'test/o6r5Lo/capitulo-portugues-1/',
+            'abc/k5bVOD/capitulo-espanol-100'
+        ]
+        for chapter_id in chapter_ids:
+            mock.return_value = chapter_id
+            self.assertTrue(self.comikey.skip_entry({}), msg='Chapter in another language was not skipped')
+
+        valid_chapters = [
+            'test/eZ5PLD/chapter-123',
+            'a/k2Ga7D/episode-1'
+        ]
+        for chapter_id in valid_chapters:
+            mock.return_value = chapter_id
+            self.assertFalse(self.comikey.skip_entry({}), msg='Valid chapter skipped')

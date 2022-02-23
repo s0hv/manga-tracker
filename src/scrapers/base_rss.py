@@ -166,12 +166,27 @@ class BaseRSS(BaseScraperWhole, ABC):
         """
         raise NotImplementedError
 
+    @staticmethod
+    def skip_entry(entry: Dict) -> bool:
+        """
+        Whether to skip the given entry
+        Args:
+            entry: A single entry in the RSS feed
+
+        Returns:
+             Whether this entry will be skipped or not
+        """
+        return False
+
     def get_group_id(self) -> int:
         return self.dbutil.get_or_create_group(self.NAME).group_id
 
     def parse_feed(self, entries: Iterable[Dict], group_id: int) -> List[RSSChapter]:
         titles = []
         for entry in entries:
+            if self.skip_entry(entry):
+                continue
+
             title = entry.get('title', '')
             match = self.TITLE_REGEX.match(title)
             kwargs: Dict[str, Any]
