@@ -50,7 +50,7 @@ class Comikey(BaseRSS):
     def skip_entry(self, entry: Dict) -> bool:
         chapter_id = self.get_chapter_id(entry).strip('/').split('/')[-1]
         # Skip non english chapters for now
-        return re.match(r'^(capitulo-(espanol|portugues)|bab-bahasa)-\d+$', chapter_id, re.I) is not None
+        return re.match(r'^(capitulo-(espanol|portugues)|bab-bahasa)(-|\d)+$', chapter_id, re.I) is not None
 
     def get_group(self, entry: Dict) -> Optional[str]:
         return self.NAME

@@ -222,7 +222,8 @@ class ComikeyTest(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsserti
         chapter_ids = [
             'test/kjZYvk/bab-bahasa-123',
             'test/o6r5Lo/capitulo-portugues-1/',
-            'abc/k5bVOD/capitulo-espanol-100'
+            'abc/k5bVOD/capitulo-espanol-100',
+            'abc/k5bVOD/capitulo-espanol-100-1'
         ]
         for chapter_id in chapter_ids:
             mock.return_value = chapter_id
@@ -230,7 +231,8 @@ class ComikeyTest(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsserti
 
         valid_chapters = [
             'test/eZ5PLD/chapter-123',
-            'a/k2Ga7D/episode-1'
+            'a/k2Ga7D/episode-1',
+            'a/k2Ga7D/episode-1-1'
         ]
         for chapter_id in valid_chapters:
             mock.return_value = chapter_id
