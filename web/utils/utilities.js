@@ -33,7 +33,7 @@ module.exports.regenerateSession = regenerateSession;
  * @param {String[]} keys Key that the object is allowed to have
  * @param {Boolean} filterUndefined Whether to filter out undefined values or not
  * @returns {Object} Output object with filtered properties
- */
+
 module.exports.filterProperties = (o, keys, filterUndefined = true) => {
   const keySet = new Set(keys);
 
@@ -44,26 +44,4 @@ module.exports.filterProperties = (o, keys, filterUndefined = true) => {
       return out;
     }, {});
 };
-
-/**
- * Turns snake_case string into camelCase
- * @param {String} s
- */
-const underscoreToCamelCase = (s) => s.replace(/(_[a-z])/g, letter => letter[1].toUpperCase());
-
-/**
- * Turns camelCase into snake_case
- * @param {String} s
- */
-module.exports.snakeCase = (s) => s.replace(/[A-Z]/g, letter => `_${letter[0].toLowerCase()}`);
-
-/**
- * Makes object keys camelCase instead of snake_case
- * @param o
- * @returns {Object} camelCase object
- */
-module.exports.snakeCaseToCamelCase = (o) => Object.keys(o)
-  .reduce((out, key) => {
-    out[underscoreToCamelCase(key)] = o[key];
-    return out;
-  }, {});
+*/

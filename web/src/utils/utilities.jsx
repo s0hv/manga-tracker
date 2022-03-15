@@ -61,6 +61,7 @@ export const defaultDateDistanceToNow = (date, ifUndefined='Unknown') => {
 
 export const noop = () => {};
 
+/**
 export const cmpBy = (arr, accessor, cmp) => {
   if (!arr || arr.length === 0) {
     return undefined;
@@ -84,6 +85,7 @@ export const cmpBy = (arr, accessor, cmp) => {
 
 export const minBy = (arr, accessor) => cmpBy(arr, accessor, (a, b) => a < b);
 export const maxBy = (arr, accessor) => cmpBy(arr, accessor, (a, b) => a > b);
+*/
 
 /**
  * Groups given data on a year by year basis ready for heatmaps
@@ -160,3 +162,86 @@ export const isInteger = (s) => (
   Number.isInteger(s) ||
   /^\d+$/.test(s)
 );
+
+
+/**
+ * This callback type is called `requestCallback` and is displayed as a global symbol.
+ *
+ * @callback groupByGetKey
+ * @param {any} value
+ */
+
+/**
+ *
+ * @param {any[]} arr
+ * @param {string|groupByGetKey} getKey Either an object property name or a function that returns the group key
+ * @param {object} options
+ * @param {boolean} options.keepOrder If true the order of the array will be kept the same
+ * meaning the same key can be grouped multiple times
+ */
+export const groupBy = (arr, getKey, { keepOrder = true } = {}) => {
+  if (!Array.isArray(arr)) {
+    throw new TypeError('Input must be an array');
+  }
+
+  if (arr.length === 0) {
+    return [];
+  }
+
+  if (typeof getKey === 'string') {
+    const _key = getKey;
+    getKey = (o) => o[_key];
+  }
+
+  if (keepOrder) {
+    const groups = [];
+    let currentGroup = [];
+    let currentGroupKey;
+    arr.forEach((o) => {
+      const key = getKey(o);
+      if (key !== currentGroupKey) {
+        if (currentGroup.length > 0) {
+          groups.push(currentGroup);
+        }
+        currentGroup = [];
+        currentGroup.group = key;
+        currentGroupKey = key;
+      }
+
+      currentGroup.push(o);
+    });
+
+    if (currentGroup.length > 0) {
+      currentGroup.group = currentGroupKey;
+      groups.push(currentGroup);
+    }
+
+    return groups;
+  }
+
+  // Set is iterated in insertion order https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set#description
+  const order = new Set();
+  const group = {};
+
+  arr.forEach((o) => {
+    const key = getKey(o);
+    // If group made add to that
+    if (order.has(key)) {
+      group[key].push(o);
+    } else {
+      // No group yet. Create new group and add group key to order
+      group[key] = [o];
+      order.add(key);
+    }
+  });
+
+  const retVal = [];
+  order.forEach((groupKey) => retVal.push(group[groupKey]));
+  return retVal;
+};
+
+/**
+ * Turns camelCase into snake_case
+ * @param {String} s
+ */
+export const snakeCase = (s) => s.replace(/[A-Z]/g, letter => `_${letter[0].toLowerCase()}`);

@@ -7,6 +7,8 @@ export const csrfToken = 'test-csrf-token';
 export const defaultDateFormatRegex = '\\w{3} \\d{1,2}\\w{2} \\d+, \\d{2}:\\d{2}';
 export const defaultDateDistanceFormat = '\\d+ \\w+';
 
+export const testChapterUrlFormat = 'https://test-url.com/chapter/{}';
+
 export const fullManga = {
   manga: {
     mangaId: 1,
@@ -56,7 +58,7 @@ export const fullManga = {
     {
       title: 'Z=157: Same Time, Same Place',
       chapterNumber: 157,
-      releaseDate: 1593964800000,
+      releaseDate: new Date(1593964800000),
       group: 'Shueisha',
       serviceId: 1,
       chapterIdentifier: '1007322',
@@ -72,7 +74,7 @@ export const fullManga = {
     {
       title: 'Z=156: Two Scientists',
       chapterNumber: 156,
-      releaseDate: 1593187200000,
+      releaseDate: new Date(1593187200000),
       group: 'Shueisha',
       serviceId: 1,
       chapterIdentifier: '1007024',
