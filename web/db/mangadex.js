@@ -22,6 +22,8 @@ function fetchExtraInfo(mangadexMangaId, mangaId) {
     .then(() => Manga.get(mangadexMangaId))
     .then(manga => Cover.get(manga.mainCover.id))
     .then(cover => db.none(
+      // Might sometimes result in the update not being done due to missing manga_info row.
+      // This should be rare and the scheduled run should fix the cover when it is run.
       'UPDATE manga_info SET cover=$1, last_updated=CURRENT_TIMESTAMP WHERE manga_id=$2',
       [cover.imageSource, mangaId]
     ))

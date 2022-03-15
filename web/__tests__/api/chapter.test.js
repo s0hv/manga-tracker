@@ -4,12 +4,19 @@ import { csrfMissing } from '../../utils/constants';
 import { userForbidden, userUnauthorized } from '../constants';
 import initServer from '../initServer';
 import stopServer from '../stopServer';
-import { adminUser, expectErrorMessage, normalUser, withUser } from '../utils';
+import {
+  adminUser,
+  expectErrorMessage,
+  normalUser,
+  withUser,
+  configureJestOpenAPI,
+} from '../utils';
 
 let httpServer;
 
 beforeAll(async () => {
   ({ httpServer } = await initServer());
+  await configureJestOpenAPI();
 });
 
 
@@ -272,5 +279,18 @@ describe('DELETE /api/chapter/:chapterId', () => {
         .csrf()
         .expect(200);
     });
+  });
+});
+
+describe('GET /api/chapter/latest', () => {
+  it('Should match api spec', async () => {
+    await request(httpServer)
+      .get('/api/chapter/latest')
+      .expect(res => {
+        expect(res.body).toBeObject();
+        expect(res.body.data).toBeArray();
+        expect(res.body.data).not.toHaveLength(0);
+      })
+      .satisfiesApiSpec();
   });
 });

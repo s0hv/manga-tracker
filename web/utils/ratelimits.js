@@ -2,19 +2,16 @@ const Redis = require('ioredis');
 const { RateLimiterRedis, RateLimiterMemory } = require('rate-limiter-flexible');
 const ExpressBruteFlexible = require('rate-limiter-flexible/lib/ExpressBruteFlexible');
 
-let redisArgs = [{
-  host: process.env.REDIS_HOST,
-  port: process.env.REDIS_PORT || process.env.REDIS_URL,
+const redis = new Redis(process.env.REDIS_URL, {
   enableOfflineQueue: process.env.NODE_ENV !== 'production',
   showFriendlyErrorStack: process.env.NODE_ENV !== 'production',
-}];
-if (process.env.REDIS_URL) {
-  redisArgs = [process.env.REDIS_URL, {
-    enableOfflineQueue: process.env.NODE_ENV !== 'production',
-    showFriendlyErrorStack: process.env.NODE_ENV !== 'production',
-  }];
-}
-const redis = new Redis(...redisArgs);
+  retryStrategy: (times) => {
+    if (times > 3) {
+      return new Error('Redis offline');
+    }
+    return 200;
+  },
+});
 
 redis.on('error', err => {
   console.error('Redis error', err);
