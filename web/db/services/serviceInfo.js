@@ -10,5 +10,18 @@ function getServices() {
 
   return db.many(sql);
 }
-
 module.exports.getServices = getServices;
+
+function getServicesForApi() {
+  const sql = `
+    SELECT s.service_id, 
+           service_name as name, 
+           disabled, 
+           url,
+           s.chapter_url_format,
+           s.manga_url_format
+    FROM services s`;
+  return db.many(sql);
+}
+module.exports.getServicesForApi = getServicesForApi;
+

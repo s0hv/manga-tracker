@@ -65,9 +65,13 @@ components:
         - location
 
     databaseId:
-      type: integer
-      minimum: 0
-      description: An id that identifies an object in the database
+      oneOf:
+        - type: integer
+          minimum: 0
+          description: An id that identifies an object in the database
+        - type: string
+          pattern: "^\\d+$"
+          description: An id that identifies an object in the database
 
     interval:
       type: object
@@ -84,6 +88,35 @@ components:
           nullable: true
 
     service:
+      type: object
+      description: Contains information of a manga providing service
+      properties:
+        serviceId:
+          $ref: '#/components/schemas/databaseId'
+        name:
+          type: string
+        disabled:
+          type: boolean
+        url:
+          type: string
+        chapterUrlFormat:
+          type: string
+          format: uri
+          example: https://mangaplus.shueisha.co.jp/viewer/{}
+        mangaUrlFormat:
+          type: string
+          format: uri
+          example: https://mangaplus.shueisha.co.jp/titles/{}
+
+      required:
+        - serviceId
+        - name
+        - disabled
+        - url
+        - chapterUrlFormat
+        - mangaUrlFormat
+
+    mangaService:
       type: object
       description: Contains information about a single service
       properties:
@@ -231,10 +264,10 @@ components:
           description: Decimal part of the chapter number
           nullable: true
         releaseDate:
-          type: integer
-          format: int64
-          description: UNIX timestamp
-          example: 1613930518000
+          type: string
+          format: date-time
+          description: Datetime string
+          example: '2020-05-24T14:24:12.320Z'
         group:
           type: string
           nullable: true
@@ -252,6 +285,24 @@ components:
         - group
         - serviceId
         - chapterIdentifier
+
+    chapterWithManga:
+      allOf:
+        - $ref: '#/components/schemas/chapter'
+        - type: object
+          properties:
+            mangaId:
+              $ref: '#/components/schemas/databaseId'
+            manga:
+              type: string
+            cover:
+              type: string
+              format: uri
+
+          required:
+            - mangaId
+            - manga
+
 
     manga:
       description: Contains simple information on a single manga
@@ -294,7 +345,7 @@ components:
         services:
           type: array
           items:
-            $ref: '#/components/schemas/service'
+            $ref: '#/components/schemas/mangaService'
         aliases:
           $ref: '#/components/schemas/aliases'
 

@@ -1,8 +1,14 @@
-const { body: validateBody } = require('express-validator');
+const { body: validateBody,
+  query
+} = require('express-validator');
 
 const { NoColumnsError } = require('../db/errors');
 const { requiresUser } = require('../db/auth');
-const { editChapter, deleteChapter } = require('../db/chapter');
+const {
+  editChapter,
+  deleteChapter,
+  getLatestChapters,
+} = require('../db/chapter');
 const { validateAdminUser, handleValidationErrors } = require('../utils/validators');
 const { getChapterReleases } = require('../db/chapter');
 const { handleError } = require('../db/utils');
@@ -82,6 +88,41 @@ module.exports = app => {
 
     getChapterReleases(mangaId)
       .then(rows => res.status(200).json(rows))
+      .catch(err => handleError(err, res));
+  });
+
+  /**
+   *  @openapi
+   *  /chapter/latest:
+   *    get:
+   *      summary: Get a list of chapters sorted by release date
+   *      responses:
+   *        200:
+   *          description: Returns the list of chapters
+   *          content:
+   *            application/json:
+   *              schema:
+   *                type: object
+   *                properties:
+   *                  data:
+   *                    type: array
+   *                    items:
+   *                      $ref: '#/components/schemas/chapterWithManga'
+   *                required:
+   *                  - data
+   *        400:
+   *          $ref: '#/components/responses/validationError'
+   */
+  app.get(`${BASE_URL}/latest`, [
+    query('limit').optional()
+      .isInt({ max: 50, min: 0 })
+      .default(25)
+      .withMessage('Limit must be between 0 and 50'),
+    query('offset').optional().isInt({ min: 0, max: 500 }),
+    handleValidationErrors,
+  ], (req, res) => {
+    getLatestChapters(req.query.limit, req.query.offset)
+      .then(rows => res.status(200).json({ data: rows }))
       .catch(err => handleError(err, res));
   });
 };

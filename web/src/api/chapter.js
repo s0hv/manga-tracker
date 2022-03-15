@@ -1,6 +1,6 @@
 import { handleResponse, handleError } from './utilities';
 import { csrfHeader } from '../utils/csrf';
-import { snakeCase } from '../../utils/utilities';
+import { snakeCase } from '../utils/utilities';
 
 /**
  * Fetches chapters for a manga
@@ -10,13 +10,26 @@ import { snakeCase } from '../../utils/utilities';
  * @param {Object[]} sortBy A list of objects containing the row name and sorting directions
  */
 export const getChapters =
-  (mangaId, limit, offset, sortBy) => {
+  (mangaId, limit, offset, sortBy = []) => {
     const orderBy = sortBy.length > 0 ?
       `&sortBy=${snakeCase(sortBy[0].id)}&sort=${sortBy[0].desc ? 'desc' : 'asc'}` : '';
     return fetch(`/api/manga/${mangaId}/chapters?limit=${limit}&offset=${offset}${orderBy}`)
       .then(handleResponse)
       .catch(handleError);
   };
+
+/**
+ * Fetches the latest chapters
+ * @param {Number|string} limit limit of the fetched chapters
+ * @param {Number|string} offset current offset
+ * @return {Promise<any>}
+ */
+export const getLatestChapters =
+  (limit, offset) => fetch(
+    `/api/chapter/latest?limit=${limit}&offset=${offset}`
+  )
+    .then(handleResponse)
+    .catch(handleError);
 
 /**
  * Updates a chapter with the given data

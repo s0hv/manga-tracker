@@ -17,6 +17,7 @@
     "coverage": "jest --coverage",
     "lint": "eslint --ext .jsx,.js,.snap ."
   },
+  "sideEffects": false,
   "dependencies": {
     "@babel/core": "^7.14.6",
     "@babel/plugin-proposal-throw-expressions": "^7.12.13",
@@ -100,6 +101,7 @@
     "@babel/eslint-parser": "^7.17.0",
     "@babel/preset-env": "^7.13.12",
     "@elastic/elasticsearch-mock": "^1.0.0",
+    "@faker-js/faker": "^6.0.0-beta.0",
     "@next/bundle-analyzer": "^12.0.8",
     "@testing-library/jest-dom": "^5.11.10",
     "@testing-library/react": "^12.0.0",
@@ -124,6 +126,8 @@
     "jest": "^27.0.1",
     "jest-extended": "^2.0.0",
     "jest-openapi": "^0.14.1",
+    "json-schema-faker": "^0.5.0-rcv.42",
+    "random-seed": "^0.3.0",
     "supertest": "^6.1.3"
   }
 }

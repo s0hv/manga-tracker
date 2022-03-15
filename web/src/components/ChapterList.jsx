@@ -38,7 +38,7 @@ function ChapterList(props) {
 
     return chs.map(chapter => {
       const newChapter = { ...chapter };
-      newChapter.releaseDate = new Date(chapter.releaseDate * 1000);
+      newChapter.releaseDate = new Date(chapter.releaseDate);
 
       const urlFormat = serviceUrlFormats && serviceUrlFormats[chapter.serviceId];
       if (urlFormat) {
