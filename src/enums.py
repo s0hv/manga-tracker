@@ -6,3 +6,7 @@ class Status(enum.IntEnum):
     COMPLETED = 1
     DROPPED = 2
     HIATUS = 3
+
+
+class NotificationType(enum.IntEnum):
+    DiscordWebhook = 1

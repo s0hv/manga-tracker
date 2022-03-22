@@ -17,3 +17,15 @@ class Chapter(BaseModel):
     chapter_identifier: str
     group: Optional[str]
     group_id: int
+
+    def full_chapter_number(self) -> str:
+        return f'{self.chapter_number}{f".{self.chapter_decimal}" if self.chapter_decimal is not None else ""}'
+
+
+class InsertedChapter(BaseModel):
+    chapter_id: int
+    manga_id: int
+    chapter_number: int
+    chapter_decimal: Optional[SmallInt]
+    release_date: datetime
+    chapter_identifier: str

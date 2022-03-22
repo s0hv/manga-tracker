@@ -2,7 +2,7 @@ import logging
 import re
 from datetime import datetime, timedelta, timezone
 from enum import Enum
-from typing import Optional, List, Union, Tuple
+from typing import Optional, List, Tuple, Set
 
 import psycopg2
 import requests
@@ -11,7 +11,8 @@ from src.db.mappers.chapter_mapper import ChapterMapper, Chapter as ChapterModel
 from src.db.models.authors import AuthorPartial
 from src.db.models.manga import MangaService
 from src.enums import Status
-from src.scrapers.base_scraper import BaseChapter, BaseScraperWhole, BaseScraper
+from src.scrapers.base_scraper import BaseChapter, BaseScraperWhole, \
+    BaseScraper, ScrapeServiceRetVal
 from src.utils.utilities import random_timedelta
 from .protobuf import mangaplus_pb2
 
@@ -315,20 +316,17 @@ class MangaPlus(BaseScraperWhole):
         return int(match.groups()[0]), None
 
     @staticmethod
-    def parse_series(title_id: str) -> Union[bool, Optional[TitleDetailViewWrapper]]:
+    def parse_series(title_id: str) -> Optional[ResponseWrapper]:
         try:
             r = requests.get(MangaPlus.API.format(title_id))
         except requests.RequestException:
             logger.exception('Failed to fetch series')
             return None
 
-        if r.status_code != 200:
+        if not r.ok:
             return None
 
-        resp = ResponseWrapper(r.content)
-        title_detail = resp.title_detail_view
-
-        return title_detail
+        return ResponseWrapper(r.content)
 
     @staticmethod
     def get_all_titles(api_url: str) -> Optional[AllTitlesViewWrapper]:
@@ -347,9 +345,11 @@ class MangaPlus(BaseScraperWhole):
         return all_titles
 
     def add_series(self, title_id: str) -> Optional[bool]:
-        series = self.parse_series(title_id)
-        if not isinstance(series, TitleDetailViewWrapper):
-            return series
+        parsed = self.parse_series(title_id)
+        if parsed is None or not isinstance(parsed.title_detail_view, TitleDetailViewWrapper):
+            return None
+
+        series = parsed.title_detail_view
 
         sql = 'SELECT service_id FROM services WHERE url=%s'
         with self.conn:
@@ -376,21 +376,22 @@ class MangaPlus(BaseScraperWhole):
 
         return None
 
-    def scrape_service(self, service_id: int, feed_url: str, last_update: Optional[datetime], title_id: Optional[str] = None):
+    def scrape_service(self, service_id: int, feed_url: str,
+                       last_update: Optional[datetime], title_id: Optional[str] = None) -> Optional[ScrapeServiceRetVal]:
         self.dbutil.update_service_whole(service_id, timedelta(days=1) + self.min_update_interval())
         all_titles = self.get_all_titles(feed_url)
         if not all_titles:
-            return all_titles
+            return None
 
         titles = all_titles.titles
         if not titles:
-            return
+            return None
 
         existing_titles = self.dbutil.get_service_manga(service_id)
         existing_title_ids = {int(t.title_id) for t in existing_titles}
         new_titles = set(titles).difference(existing_title_ids)
         if not new_titles:
-            return
+            return None
 
         logger.info(f'{len(new_titles)} new manga to be added to mangaplus')
         self.dbutil.add_new_manga_and_check_duplicate_titles([
@@ -404,15 +405,28 @@ class MangaPlus(BaseScraperWhole):
             for t in new_titles
         ])
 
+        # Does not add chapters. Only adds new manga
+        return None
+
     def scrape_series(self, title_id: str, service_id: int, manga_id: int,
-                      feed_url=None) -> Optional[bool]:
-        series = self.parse_series(title_id)
+                      feed_url=None) -> Optional[Set[int]]:
+        parsed = self.parse_series(title_id)
+        if parsed is None:
+            return None
+
+        # If manga has been removed and returns not found disabled it.
+        if parsed.error_result and parsed.error_result.english_popup.subject.lower() == 'not found':
+            logger.info(f'MANGA Plus API returned not found for {title_id}. Disabling it.')
+            self.dbutil.disable_manga_service(service_id, title_id)
+            return set()
+
+        series = parsed.title_detail_view
         if not isinstance(series, TitleDetailViewWrapper):
             return series
 
         return self.add_chapters(series, service_id, manga_id)
 
-    def add_chapters(self, series: TitleDetailViewWrapper, service_id: int, manga_id: int) -> Optional[bool]:
+    def add_chapters(self, series: TitleDetailViewWrapper, service_id: int, manga_id: int) -> Optional[Set[int]]:
         group = self.dbutil.get_or_create_group(self.GROUP)
 
         group_id = group.group_id
@@ -473,7 +487,7 @@ class MangaPlus(BaseScraperWhole):
 
         with self.conn:
             with self.conn.cursor() as cursor:
-                self.dbutil.add_chapters(new_chapters, fetch=False)
+                inserted = self.dbutil.add_chapters(new_chapters, fetch=True)
 
                 sql = 'UPDATE manga_service SET last_check=%s, next_update=%s, disabled=%s WHERE manga_id=%s AND service_id=%s'
                 cursor.execute(sql, [now, next_update, disabled, manga_id, service_id])
@@ -502,7 +516,7 @@ class MangaPlus(BaseScraperWhole):
                     cur=cursor
                 )
 
-        return True
+        return {c.chapter_id for c in inserted}
 
     def set_checked(self, service_id: int) -> None:
         """

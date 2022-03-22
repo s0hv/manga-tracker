@@ -4,7 +4,7 @@ import time
 import typing
 from calendar import timegm
 from datetime import datetime, timedelta
-from typing import Dict, Optional, List, Any
+from typing import Dict, Optional, List, Any, Set
 
 import feedparser
 from lxml import etree
@@ -115,7 +115,7 @@ class Reddit(BaseScraper):
 
         return chapters
 
-    def scrape_series(self, title_id: str, service_id: int, manga_id: int, feed_url: str) -> Optional[bool]:
+    def scrape_series(self, title_id: str, service_id: int, manga_id: int, feed_url: str) -> Optional[Set[int]]:
         feed = feedparser.parse(feed_url)
         try:
             is_valid_feed(feed)
@@ -132,10 +132,10 @@ class Reddit(BaseScraper):
         chapters = self.dbutil.get_only_latest_entries(service_id, self.parse_feed(feed.entries, group_id=group_id))
         if not chapters:
             logger.debug(f'Nothing to update in {feed_url}')
-            return False
+            return set()
 
         logger.info(f'{len(chapters)} new chapters on {feed_url}')
-        self.dbutil.add_chapters(list(chapters), manga_id, service_id, fetch=False)
+        inserted = self.dbutil.add_chapters(list(chapters), manga_id, service_id, fetch=True)
 
         chapter_rows = [{
             'chapter_decimal': c.decimal,
@@ -144,7 +144,7 @@ class Reddit(BaseScraper):
             'release_date': c.release_date
         } for c in chapters]
         self.dbutil.update_latest_chapter(tuple(c for c in get_latest_chapters(chapter_rows).values()))
-        return True
+        return {row.chapter_id for row in inserted}
 
     def scrape_service(self, service_id: int, feed_url: str, last_update: Optional[datetime], title_id: Optional[str] = None):
         return None

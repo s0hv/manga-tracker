@@ -11,6 +11,7 @@ from typing import (Optional, TYPE_CHECKING, ClassVar, Set, Dict, List,
 import psycopg2
 import pydantic
 from psycopg2.extensions import connection as Connection
+from pydantic import BaseModel
 
 from src.db.mappers.chapter_mapper import ChapterMapper
 from src.db.models.chapter import Chapter as ChapterModel
@@ -198,6 +199,11 @@ class BaseChapterSimple(BaseChapter):
 ScraperChapter = TypeVar('ScraperChapter', bound=BaseChapter)
 
 
+class ScrapeServiceRetVal(BaseModel):
+    manga_ids: Set[int]
+    chapter_ids: Set[int]
+
+
 class BaseScraper(abc.ABC):
     ID: ClassVar[int] = NotImplemented
     """Database id of this service"""
@@ -276,7 +282,7 @@ class BaseScraper(abc.ABC):
         return datetime.utcnow() + self.min_update_interval()
 
     @abc.abstractmethod
-    def scrape_series(self, title_id: str, service_id: int, manga_id: int, feed_url: str) -> Optional[bool]:
+    def scrape_series(self, title_id: str, service_id: int, manga_id: int, feed_url: str) -> Optional[Set[int]]:
         """
         Returns:
             Boolean that tells if the manga was updated (True) or not (False).
@@ -286,7 +292,7 @@ class BaseScraper(abc.ABC):
 
     @abc.abstractmethod
     def scrape_service(self, service_id: int, feed_url: str, last_update: Optional[datetime],
-                       title_id: Optional[str] = None) -> Optional[Set[int]]:
+                       title_id: Optional[str] = None) -> Optional[ScrapeServiceRetVal]:
         raise NotImplementedError
 
     def add_service(self):
@@ -424,7 +430,7 @@ class BaseScraperWhole(BaseScraper, ABC):
         except psycopg2.Error:
             logger.exception(f'Failed to update service {service_id}')
 
-    def handle_adding_chapters(self, entries: List[ScraperChapter], service_id: int) -> Optional[Set[int]]:
+    def handle_adding_chapters(self, entries: List[ScraperChapter], service_id: int) -> Optional[ScrapeServiceRetVal]:
         """
         Given a list of parsed chapters this method will filter out already added chapters,
         add new manga and check for duplicate title, add the new chapters and return the updated manga ids
@@ -461,9 +467,12 @@ class BaseScraperWhole(BaseScraper, ABC):
             titles
         )
 
-        self.dbutil.add_chapters(chapters, fetch=False)
+        inserted = self.dbutil.add_chapters(chapters, fetch=True)
 
         self.update_latest_chapter(chapters)
 
         # At this point the set has no None values
-        return cast(Set[int], manga_ids)
+        return ScrapeServiceRetVal(
+            manga_ids=cast(Set[int], manga_ids),
+            chapter_ids={row.chapter_id for row in inserted}
+        )
