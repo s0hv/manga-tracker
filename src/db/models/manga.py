@@ -19,6 +19,14 @@ class Manga(BaseModel):
     views: int = 0
 
 
+class MangaForNotifications(BaseModel):
+    manga_id: int
+    title: str
+    cover: Optional[str]
+    title_id: str
+    service_id: int
+
+
 class MangaInfo(BaseModel):
     manga_id: int
     cover: Optional[str] = None

@@ -8,7 +8,8 @@ import pytz
 import requests
 from lxml import etree
 
-from src.scrapers.base_scraper import BaseScraperWhole, BaseChapterSimple
+from src.scrapers.base_scraper import BaseScraperWhole, BaseChapterSimple, \
+    ScrapeServiceRetVal
 
 logger = logging.getLogger('debug')
 
@@ -73,7 +74,7 @@ class FoolSlideChapter(BaseChapterSimple):
 
 
 class FoolSlide(BaseScraperWhole, ABC):
-    # Required or the class wont be marked as abstract
+    # Required or the class won't be marked as abstract
     @abstractmethod
     def _(self):
         pass
@@ -108,7 +109,7 @@ class FoolSlide(BaseScraperWhole, ABC):
     def get_group_id(self) -> int:
         return self.dbutil.get_or_create_group(self.NAME).group_id
 
-    def scrape_series(self, title_id: str, service_id: int, manga_id: Optional[int], feed_url: Optional[str] = None) -> Optional[bool]:
+    def scrape_series(self, title_id: str, service_id: int, manga_id: Optional[int], feed_url: Optional[str] = None) -> Optional[Set[int]]:
         r = requests.get(self.MANGA_URL_FORMAT.format(title_id))
         if not r.ok:
             logger.error(f'Failed to fetch {type(self).__name__} {feed_url}')
@@ -131,10 +132,10 @@ class FoolSlide(BaseScraperWhole, ABC):
             )
 
         retval = self.handle_adding_chapters(chapters, service_id)
-        return retval if retval is None else bool(retval)
+        return retval if retval is None else retval.chapter_ids
 
     def scrape_service(self, service_id: int, feed_url: str, last_update: Optional[datetime],
-                       title_id: Optional[str] = None) -> Optional[Set[int]]:
+                       title_id: Optional[str] = None) -> Optional[ScrapeServiceRetVal]:
         r = requests.get(feed_url)
         if not r.ok:
             logger.error(f'Failed to fetch {type(self).__name__} {feed_url}')

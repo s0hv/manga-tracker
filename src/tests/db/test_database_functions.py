@@ -6,10 +6,9 @@ import psycopg2.errors
 import pytest
 from pydantic import BaseModel
 
-from src.constants import NO_GROUP
 from src.db.models.authors import MangaArtist, AuthorPartial, MangaAuthor
 from src.db.models.chapter import Chapter
-from src.db.models.manga import MangaService, MangaInfo
+from src.db.models.manga import MangaService, MangaInfo, MangaServiceWithId
 from src.scrapers import MangaPlus
 from src.scrapers.base_scraper import BaseScraper
 from src.tests.scrapers.testing_scraper import DummyScraper, DummyScraper2
@@ -38,11 +37,11 @@ class TestMergeManga(BaseTestClasses.DatabaseTestCase):
         rows = self.dbutil.execute('SELECT title FROM manga_alias WHERE manga_id=%s', (manga_id,))
         return [row['title'] for row in rows]
 
-    def create_manga_service(self, scraper: Type[BaseScraper] = DummyScraper) -> MangaService:
+    def create_manga_service(self, scraper: Type[BaseScraper] = DummyScraper) -> MangaServiceWithId:
         ms = self.get_manga_service(scraper)
         ms.last_check = self.utcnow()
         self.dbutil.add_manga_service(ms, add_manga=True)
-        return ms
+        return MangaServiceWithId(**ms.dict())
 
     def create_manga_info(self, ms: MangaService, status: int = 1) -> MangaInfo:
         if ms.manga_id is None:
@@ -90,14 +89,6 @@ class TestMergeManga(BaseTestClasses.DatabaseTestCase):
         return MangaInfo(
             **rows[0]
         )
-
-    def create_chapters(self, manga: MangaService, n: int) -> List[Chapter]:
-        return [Chapter(manga_id=manga.manga_id, service_id=manga.service_id,
-                        title=f'chapter_{id_}', chapter_number=1,
-                        chapter_identifier=id_,
-                        release_date=self.utcnow(),
-                        group_id=NO_GROUP)
-                for id_ in [self.get_str_id() for _ in range(n)]]
 
     def create_aliases(self, manga_id: int, n: int) -> List[str]:
         aliases = [self.get_str_id() for _ in range(n)]
@@ -162,8 +153,8 @@ class TestMergeManga(BaseTestClasses.DatabaseTestCase):
         manga1 = self.create_manga_service()
         manga2 = self.create_manga_service()
 
-        c1 = self.create_chapters(manga1, 3)
-        c2 = self.create_chapters(manga2, 3)
+        c1 = self.create_db_chapter_objects(manga1, 3)
+        c2 = self.create_db_chapter_objects(manga2, 3)
         self.dbutil.add_chapters([*c1, *c2], fetch=False)
 
         result = self.merge_manga(manga1.manga_id, manga2.manga_id)
@@ -209,9 +200,9 @@ class TestMergeManga(BaseTestClasses.DatabaseTestCase):
         m3.service_id = MangaPlus.ID
         self.dbutil.add_manga_service(m3)
 
-        c1 = self.create_chapters(m1, 3)
-        c2 = self.create_chapters(m2, 3)
-        c3 = self.create_chapters(m3, 3)
+        c1 = self.create_db_chapter_objects(m1, 3)
+        c2 = self.create_db_chapter_objects(m2, 3)
+        c3 = self.create_db_chapter_objects(m3, 3)
         self.dbutil.add_chapters([*c1, *c2, *c3], fetch=False)
 
         aliases = self.create_aliases(m2.manga_id, 5)
