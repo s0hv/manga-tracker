@@ -10,7 +10,7 @@ import feedparser
 
 from src.errors import FeedHttpError, InvalidFeedError
 from src.scrapers.base_scraper import BaseScraperWhole, \
-    BaseChapterSimple
+    BaseChapterSimple, ScrapeServiceRetVal
 from src.utils.utilities import (match_title, is_valid_feed)
 
 logger = logging.getLogger('debug')
@@ -232,7 +232,7 @@ class BaseRSS(BaseScraperWhole, ABC):
         return self.UPDATE_INTERVAL
 
     def scrape_series(self, title_id: str, service_id: int, manga_id: int,
-                      feed_url: Optional[str] = None) -> Optional[bool]:
+                      feed_url: Optional[str] = None) -> Optional[Set[int]]:
         pass
 
     def get_feed_chapters(self, feed_url):
@@ -245,7 +245,7 @@ class BaseRSS(BaseScraperWhole, ABC):
 
         return self.parse_feed(feed.entries, self.get_group_id())
 
-    def add_from_feed_url(self, service_id: int, feed_url: str) -> Optional[Set[int]]:
+    def add_from_feed_url(self, service_id: int, feed_url: str) -> Optional[ScrapeServiceRetVal]:
         entries = self.get_feed_chapters(feed_url)
         if entries is None:
             return None

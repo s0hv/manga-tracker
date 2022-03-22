@@ -1,7 +1,7 @@
 import random
 import re
 import time
-from typing import Dict, Optional
+from typing import Dict, Optional, Set
 
 import requests
 
@@ -67,12 +67,10 @@ class Comikey(BaseRSS):
         return match.group(1)
 
     def scrape_series(self, title_id: str, service_id: int, manga_id: int,
-                      feed_url: Optional[str] = None) -> Optional[bool]:
+                      feed_url: Optional[str] = None) -> Optional[Set[int]]:
         retval = self.add_from_feed_url(
             service_id,
             self.CHAPTER_FEED_URL.format(title_id.split('/')[1])
         )
-        if retval is None:
-            return None
 
-        return manga_id in retval
+        return retval if retval is None else retval.chapter_ids

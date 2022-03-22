@@ -5,9 +5,10 @@ import time
 from collections import Counter
 from contextlib import contextmanager
 from datetime import datetime, timedelta
+from itertools import groupby
 from operator import attrgetter
 from typing import Type, ContextManager, TypedDict, Optional, Collection, List, \
-    Set, cast, Union
+    Set, cast, Tuple, Dict
 
 import psycopg2
 from concurrent.futures import ThreadPoolExecutor
@@ -15,6 +16,9 @@ from psycopg2.extensions import connection as Connection
 from psycopg2.extras import DictCursor
 from psycopg2.pool import ThreadedConnectionPool
 
+from src.db.mappers.notifications_mapper import NotificationsMapper
+from src.db.models.chapter import Chapter
+from src.notifier import NOTIFIERS
 from src.scrapers import SCRAPERS, SCRAPERS_ID
 from src.scrapers.base_scraper import BaseScraper
 from src.utils.dbutils import DbUtil
@@ -92,11 +96,12 @@ class UpdateScheduler:
 
         return wrapper()
 
-    def do_scheduled_runs(self) -> List[int]:
+    def do_scheduled_runs(self) -> Tuple[List[int], List[int]]:
         with self.conn() as conn:
             dbutil = DbUtil(conn)
             delete = []
             manga_ids = []
+            chapter_ids = []
             service_counter: Counter = Counter()
 
             disabled_services = set(map(attrgetter('service_id'), filter(attrgetter('disabled'), dbutil.get_services())))
@@ -127,25 +132,29 @@ class UpdateScheduler:
                     delete.append((manga_id, service_id))
                     continue
 
-                self.force_run(service_id, manga_id)
+                retval = self.force_run(service_id, manga_id)
                 delete.append((manga_id, service_id))
                 manga_ids.append(manga_id)
+                if retval:
+                    _, chs = retval
+                    chapter_ids.extend(chs)
 
             dbutil.delete_scheduled_runs(delete)
             dbutil.update_scheduled_run_disabled(list(service_counter.keys()))
 
-            return manga_ids
+            return manga_ids, chapter_ids
 
     # noinspection PyPep8Naming
     def scrape_service(self,
                        service_id: int,
                        Scraper: Type[BaseScraper],
-                       manga_info: Collection[MangaServiceInfo]):
+                       manga_info: Collection[MangaServiceInfo]) -> Tuple[Set[int], List[int]]:
         with self.conn() as conn:
             with conn:
                 scraper = Scraper(conn, DbUtil(conn))
                 rng = random.Random()
-                manga_ids = set()
+                manga_ids: Set[int] = set()
+                chapter_ids: List[int] = []
                 errors = 0
 
                 idx = 0
@@ -156,8 +165,9 @@ class UpdateScheduler:
                     logger.info(f'Updating {title_id} on service {service_id}')
                     try:
                         if res := scraper.scrape_series(title_id, service_id,
-                                                        manga_id, feed_url) is True:
+                                                        manga_id, feed_url):
                             manga_ids.add(manga_id)
+                            chapter_ids.extend(res)
                         elif res is None:
                             errors += 1
                             logger.error(f'Failed to scrape series {title_id} {manga_id}')
@@ -181,9 +191,9 @@ class UpdateScheduler:
 
                 scraper.set_checked(service_id)
 
-                return manga_ids
+                return manga_ids, chapter_ids
 
-    def force_run(self, service_id: int, manga_id: int = None) -> Optional[Union[bool, Set[int]]]:
+    def force_run(self, service_id: int, manga_id: int = None) -> Optional[Tuple[Set[int], List[int]]]:
         if service_id not in SCRAPERS_ID:
             logger.warning(f'No service found with id {service_id}')
             return None
@@ -233,7 +243,7 @@ class UpdateScheduler:
                         logger.error(f'Failed to scrape series {row}')
                         return None
 
-                return retval
+                return {manga_id}, list(retval)
 
             else:
                 sql = """SELECT s.service_id, sw.feed_url, s.url
@@ -241,6 +251,7 @@ class UpdateScheduler:
                          WHERE s.service_id=%s"""
 
                 manga_ids: Set[int] = set()
+                chapter_ids: List[int] = []
                 with conn.cursor() as cursor:
                     cursor.execute(sql, (service_id,))
                     row = cursor.fetchone()
@@ -256,11 +267,12 @@ class UpdateScheduler:
                 scraper = Scraper(conn, DbUtil(conn))
                 logger.info(f'Updating service {row["url"]}')
                 with conn:
-                    updated_ids = scraper.scrape_service(row['service_id'], row['feed_url'], None)
-                if updated_ids:
-                    manga_ids.update(updated_ids)
+                    updated = scraper.scrape_service(row['service_id'], row['feed_url'], None)
+                if updated:
+                    manga_ids.update(updated.manga_ids)
+                    chapter_ids.extend(updated.chapter_ids)
 
-                return manga_ids
+                return manga_ids, chapter_ids
 
     def run_once(self):
         with self.conn() as conn:
@@ -276,7 +288,8 @@ class UpdateScheduler:
             with conn.cursor() as cursor:
                 cursor.execute(sql)
 
-                manga_ids = set()
+                manga_ids: Set[int] = set()
+                chapter_ids: List[int] = []
                 for row in cursor:
                     batch_size = random.randint(3, 6)
                     Scraper = SCRAPERS.get(row['url'])
@@ -322,17 +335,20 @@ class UpdateScheduler:
 
                 scraper.set_checked(service[0])
                 if retval:
-                    manga_ids.update(retval)
+                    manga_ids.update(retval.manga_ids)
+                    chapter_ids.extend(retval.chapter_ids)
 
             conn.commit()
 
-            retval = self.do_scheduled_runs()
-            manga_ids.update(retval)
+            m_ids, c_ids = self.do_scheduled_runs()
+            manga_ids.update(m_ids)
+            chapter_ids.extend(c_ids)
 
             for r in futures:
                 res = r.result()
-                if isinstance(res, set):
-                    manga_ids.update(res)
+                if isinstance(res, tuple):
+                    manga_ids.update(res[0])
+                    chapter_ids.extend(res[1])
 
             with conn:
                 if manga_ids:
@@ -342,6 +358,11 @@ class UpdateScheduler:
                         dbutil.update_latest_release(list(manga_ids), cur=cursor)
                         for manga_id in manga_ids:
                             dbutil.update_chapter_interval(manga_id, cur=cursor)
+
+            try:
+                self.send_notifications(manga_ids, chapter_ids)
+            except:
+                logger.exception('Failed to send notifications')
 
             sql = '''
             SELECT MIN(t.update) FROM (
@@ -367,3 +388,63 @@ class UpdateScheduler:
                 if not retval:
                     return datetime.utcnow() + timedelta(hours=1)
                 return retval[0]
+
+    def send_notifications(self, manga_ids: Set[int], chapter_ids: List[int]):
+        if not (manga_ids and chapter_ids):
+            return
+
+        with self.conn() as conn:
+            dbutil = DbUtil(conn)
+
+            partial_notifications = dbutil.get_notifications_by_manga_ids(list(manga_ids))
+            manga_ids = {pn.manga_id for pn in partial_notifications}
+            if not manga_ids:
+                return
+
+            def get_manga_id(chapter: Chapter) -> int:
+                return chapter.manga_id
+
+            chapters = sorted(dbutil.get_chapters_by_id(chapter_ids, list(manga_ids)), key=get_manga_id)
+            chapter_by_manga: Dict[int, List[Chapter]] = {}
+
+            for group, chapter_it in groupby(chapters, key=get_manga_id):
+                chapter_by_manga[group] = list(chapter_it)
+
+            notifications: Dict[int, List[Chapter]] = {
+                pn.notification_id: [] for pn in partial_notifications
+            }
+
+            for partial_notification in partial_notifications:
+                selected_chapters = chapter_by_manga.get(partial_notification.manga_id, [])
+                if partial_notification.service_id is not None:
+                    selected_chapters = [c for c in selected_chapters
+                                         if c.service_id == partial_notification.service_id]
+
+                notifications[partial_notification.notification_id].extend(selected_chapters)
+
+            services = {s.service_id: s for s in dbutil.get_services()}
+            mangas = dbutil.get_mangas_for_notifications(list(manga_ids))
+
+            mapped_notifications = {
+                k: NotificationsMapper.chapter_to_notification(v, services, mangas)
+                for k, v in notifications.items()
+                if v
+            }
+
+            for notification_id, chapters_notif in mapped_notifications.items():
+                notification = dbutil.get_notification_info(notification_id)
+                notifier = NOTIFIERS[notification.notification_type]()
+
+                input_fields = dbutil.get_notification_inputs(notification_id)
+
+                sent, success = notifier.send_notification(
+                    chapters_notif,
+                    notification,
+                    input_fields
+                )
+
+                dbutil.update_notification_stats(
+                    notification_id,
+                    sent,
+                    0 if success else 1
+                )

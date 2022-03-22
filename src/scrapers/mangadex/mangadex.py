@@ -7,7 +7,8 @@ from src.constants import NO_GROUP
 from src.db.models.authors import AuthorPartial, MangaAuthor, MangaArtist
 from src.db.models.groups import Group, GroupPartial
 from src.db.models.manga import MangaInfo
-from src.scrapers.base_scraper import BaseScraperWhole, BaseChapterSimple
+from src.scrapers.base_scraper import BaseScraperWhole, BaseChapterSimple, \
+    ScrapeServiceRetVal
 from src.utils.dbutils import DbUtil
 from .mangadex_api import (ChapterResult, MangadexAPI, MangaResult,
                            ChapterAttributes, ScanlationGroupResult,
@@ -301,7 +302,7 @@ class MangaDex(BaseScraperWhole):
             logger.exception(f'Failed to parse mangadex result {e}')
             return None
 
-    def do_update(self, service_id: int, feed_url: str, title_id: str = None, limit: int = 100) -> Optional[Set[int]]:
+    def do_update(self, service_id: int, feed_url: str, title_id: str = None, limit: int = 100) -> Optional[ScrapeServiceRetVal]:
         """
         Handles fetching the chapter feed and adding the results to the database
         and other required operations
@@ -344,13 +345,17 @@ class MangaDex(BaseScraperWhole):
             titles
         )
 
-        self.dbutil.add_chapters(chapters, fetch=False)
+        inserted = self.dbutil.add_chapters(chapters, fetch=True)
         self.update_latest_chapter(chapters)
 
+        chapter_ids = {c.chapter_id for c in inserted}
         # Sometimes manga cannot be fetched and this array is empty.
         # For example with content ratings
         if not manga_ids:
-            return manga_ids
+            return ScrapeServiceRetVal(
+                manga_ids=set(),
+                chapter_ids=chapter_ids
+            )
 
         # Update titles and manga infos for new chapters
         try:
@@ -368,12 +373,17 @@ class MangaDex(BaseScraperWhole):
         except:
             logger.exception('Failed to add manga infos')
 
-        return manga_ids
+        return ScrapeServiceRetVal(
+            manga_ids=manga_ids,
+            chapter_ids=chapter_ids
+        )
 
-    def scrape_series(self, title_id: str, service_id: int, manga_id: int, feed_url: str) -> Optional[bool]:
-        return bool(self.do_update(service_id, feed_url, title_id, limit=300))
+    def scrape_series(self, title_id: str, service_id: int, manga_id: int, feed_url: str) -> Optional[Set[int]]:
+        retval = self.do_update(service_id, feed_url, title_id, limit=300)
+        return retval if retval is None else retval.chapter_ids
 
-    def scrape_service(self, service_id: int, feed_url: str, last_update: Optional[datetime], title_id: Optional[str] = None):
+    def scrape_service(self, service_id: int, feed_url: str,
+                       last_update: Optional[datetime], title_id: Optional[str] = None) -> Optional[ScrapeServiceRetVal]:
         return self.do_update(service_id, feed_url)
 
     def fetch_manga_infos(self, title_ids: List[str]) -> Dict[str, MangaResult]:

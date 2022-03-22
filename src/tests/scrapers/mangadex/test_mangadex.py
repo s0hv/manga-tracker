@@ -162,7 +162,8 @@ class MangadexTests(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsser
 
         retVal = self.mangadex.scrape_service(service_id, self.mangadex.FEED_URL, None)
 
-        self.assertEqual(len(retVal), manga_count, msg='Updated manga count invalid')
+        self.assertEqual(len(retVal.manga_ids), manga_count, msg='Updated manga count invalid')
+        self.assertEqual(len(retVal.chapter_ids), len(correct_parsed_chapters), msg='Updated manga count invalid')
         self.assertFalse([r for r in self.caplog.records if r.levelno >= logging.WARNING], msg='Warnings found')
 
         # Assert correct amount of chapters
@@ -181,8 +182,8 @@ class MangadexTests(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsser
         )
 
         # Assert all covers were set
-        format_args = self.dbutil.get_format_args(retVal)
-        covers = self.dbutil.execute(f'SELECT cover FROM manga_info WHERE manga_id IN ({format_args})', retVal)
+        format_args = self.dbutil.get_format_args(retVal.manga_ids)
+        covers = self.dbutil.execute(f'SELECT cover FROM manga_info WHERE manga_id IN ({format_args})', retVal.manga_ids)
         self.assertNotIn(
             None,
             [row['cover'] for row in covers]
@@ -192,7 +193,7 @@ class MangadexTests(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsser
         self.assertEqual(
             self.dbutil.execute(
                 f'SELECT COUNT(*) FROM manga_artists WHERE manga_id IN ({format_args})',
-                retVal
+                retVal.manga_ids
             )[0][0],
             artist_count,
             msg='Not all manga artists added'
@@ -202,7 +203,7 @@ class MangadexTests(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsser
         self.assertEqual(
             self.dbutil.execute(
                 f'SELECT COUNT(*) FROM manga_authors WHERE manga_id IN ({format_args})',
-                retVal
+                retVal.manga_ids
             )[0][0],
             author_count,
             msg='Not all manga authors added'

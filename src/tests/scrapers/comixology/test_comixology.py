@@ -103,7 +103,8 @@ class TestComiXologyScraper(BaseTestClasses.DatabaseTestCase, BaseTestClasses.Mo
         self.assertEqual(responses.calls[0].request.url, self.page1_url)
         self.assertRegexpMatches(responses.calls[1].request.url, self.page_n_url)
 
-        self.assertEqual(len(updated), 6)
+        self.assertEqual(len(updated.manga_ids), 6)
+        self.assertEqual(len(updated.chapter_ids), 6)
 
         # Make sure nothing is updated afterwards
         self.assertIsNone(scraper.scrape_service(ComiXology.ID, self.page1_url, None))
@@ -124,7 +125,8 @@ class TestComiXologyScraper(BaseTestClasses.DatabaseTestCase, BaseTestClasses.Mo
         self.assertEqual(responses.calls[0].request.url, self.page1_url)
         self.assertRegexpMatches(responses.calls[1].request.url, self.page_n_url)
 
-        self.assertEqual(len(updated), 3)
+        self.assertEqual(len(updated.manga_ids), 3)
+        self.assertEqual(len(updated.chapter_ids), 3)
 
     @responses.activate
     def test_does_nothing_when_request_error(self):

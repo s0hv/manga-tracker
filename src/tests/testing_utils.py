@@ -5,7 +5,7 @@ import sys
 import typing
 import unittest
 from datetime import datetime, timedelta
-from typing import TypeVar, Optional, Union, Type, List
+from typing import TypeVar, Optional, Union, Type, List, Tuple
 from unittest import mock
 
 import feedparser
@@ -16,21 +16,22 @@ from psycopg2.extras import DictRow
 from pydantic import BaseModel
 
 from src.constants import NO_GROUP
-from src.db.models.manga import MangaService
+from src.db.models.chapter import Chapter as DbChapter
+from src.db.models.manga import MangaService, MangaServiceWithId
 from src.scheduler import LoggingDictCursor
 from src.scrapers.base_scraper import BaseChapter, BaseScraper, \
     BaseChapterSimple
 from src.tests.scrapers.testing_scraper import DummyScraper
 from src.utils.dbutils import DbUtil
 
-if typing.TYPE_CHECKING:
-    from src.db.models.chapter import Chapter as DbChapter
-
 originalParse = feedparser.parse
 
 DONT_USE_TEMP_DATABASE = bool(os.environ.get('NO_TEMP_DB', False))
 
 Postgresql: Optional[testing.postgresql.PostgresqlFactory] = None
+
+EMPTY_SCRAPE_SERVICE: Tuple[List, List] = ([], [])
+TEST_USER_ID = 3
 
 if DONT_USE_TEMP_DATABASE:
     Postgresql = None
@@ -175,11 +176,29 @@ class BaseTestClasses:
             return MangaService(service_id=scraper.ID, title_id=id_,
                                 title=f'{id_}_manga')
 
-        def create_manga_service(self, scraper: Type['BaseScraper'] = DummyScraper) -> MangaService:
+        def create_manga_service(self, scraper: Type['BaseScraper'] = DummyScraper) -> MangaServiceWithId:
             id_ = self.get_str_id()
-            ms = MangaService(service_id=scraper.ID, title_id=id_,
-                              title=f'{id_}_manga')
+            ms = MangaServiceWithId(service_id=scraper.ID, title_id=id_,
+                                    title=f'{id_}_manga', manga_id=0)
             return self.dbutil.add_manga_service(ms, add_manga=True)
+
+        def create_db_chapter_objects(self, manga: MangaService, n: int) -> List['DbChapter']:
+            return [
+                DbChapter(
+                    manga_id=manga.manga_id, service_id=manga.service_id,
+                    title=f'chapter_{id_}', chapter_number=1,
+                    chapter_identifier=id_,
+                    release_date=self.utcnow(),
+                    group_id=NO_GROUP)
+                for id_ in [self.get_str_id() for _ in range(n)]]
+
+        def create_chapters(self, manga: MangaService, n: int) -> List[DbChapter]:
+            chapters = self.create_db_chapter_objects(manga, n)
+            inserted = {c.chapter_identifier: c.chapter_id for c in self.dbutil.add_chapters(chapters)}
+            for c in chapters:
+                c.chapter_id = inserted[c.chapter_identifier]
+
+            return chapters
 
         def assertChapterEqualsRow(self, chapter: 'Chapter', row: DictRow) -> None:
             pairs = [

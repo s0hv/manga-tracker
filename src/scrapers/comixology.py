@@ -9,7 +9,8 @@ import requests
 from lxml import etree
 
 from src.db.mappers.chapter_mapper import ChapterMapper
-from src.scrapers.base_scraper import BaseScraperWhole, BaseChapterSimple
+from src.scrapers.base_scraper import BaseScraperWhole, BaseChapterSimple, \
+    ScrapeServiceRetVal
 from src.utils.dbutils import DbUtil
 from src.utils.utilities import random_timedelta, get_latest_chapters
 
@@ -210,7 +211,7 @@ class ComiXology(BaseScraperWhole):
 
         return None
 
-    def process_and_add_chapters(self, service_id: int, chapters: Collection[Chapter]) -> Set[int]:
+    def process_and_add_chapters(self, service_id: int, chapters: Collection[Chapter]) -> ScrapeServiceRetVal:
         titles = self.group_by_manga(chapters)
 
         manga_ids: Set[int] = set()
@@ -229,7 +230,7 @@ class ComiXology(BaseScraperWhole):
 
         logger.info('Adding %s chapters to ComiXology', len(data))
 
-        self.dbutil.add_chapters(data, fetch=False)
+        inserted = self.dbutil.add_chapters(data, fetch=True)
 
         chapter_rows = [{
             'chapter_decimal': c.chapter_decimal,
@@ -239,9 +240,12 @@ class ComiXology(BaseScraperWhole):
         } for c in data]
         self.dbutil.update_latest_chapter(tuple(c for c in get_latest_chapters(chapter_rows).values()))
 
-        return manga_ids
+        return ScrapeServiceRetVal(
+            manga_ids=manga_ids,
+            chapter_ids={c.chapter_id for c in inserted}
+        )
 
-    def scrape_series(self, title_id: str, service_id: int, manga_id: Optional[int], feed_url: str = None) -> Optional[bool]:
+    def scrape_series(self, title_id: str, service_id: int, manga_id: Optional[int], feed_url: str = None) -> Optional[Set[int]]:
         chapters = self.fetch_all_issues(self.MANGA_URL_FORMAT.format(title_id))
         if chapters is None:
             return None
@@ -255,7 +259,7 @@ class ComiXology(BaseScraperWhole):
         chapters = self.dbutil.get_only_latest_entries(service_id, chapters, manga_id)
         if not chapters:
             logger.info(f'No new chapters found for {title} ({title_id})')
-            return False
+            return set()
 
         logger.info(f'{len(chapters)} new chapters found for {title} ({title_id})')
 
@@ -279,10 +283,10 @@ class ComiXology(BaseScraperWhole):
             if idx != len(chapters):
                 self.wait()
 
-        ids = self.process_and_add_chapters(service_id, add_chapters)
-        return len(ids) == 1
+        retval = self.process_and_add_chapters(service_id, add_chapters)
+        return retval.chapter_ids
 
-    def scrape_service(self, service_id, feed_url, last_update, title_id=None):
+    def scrape_service(self, service_id, feed_url, last_update, title_id=None) -> Optional[ScrapeServiceRetVal]:
         chapters = self.fetch_all_issues(feed_url)
         if chapters is None:
             return None

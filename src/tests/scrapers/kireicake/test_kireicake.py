@@ -99,7 +99,8 @@ class KireiCakeTest(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsser
 
         unique_manga = len(set(map(BaseChapterSimple.title_id.fget, correct_entries.values())))  # type: ignore[attr-defined]
         self.assertIsNotNone(updated)
-        self.assertEqual(unique_manga, len(updated), 'Not all manga updated')
+        self.assertEqual(unique_manga, len(updated.manga_ids), 'Not all manga updated')
+        self.assertEqual(len(correct_entries), len(updated.chapter_ids), 'Not all chapters added')
 
         self.assertFalse(kc.scrape_service(kc.ID, KireiCake.FEED_URL, None))
         self.assertMangaWithTitleFound('Helck: Völundio ~Surreal Sword Saga~')
