@@ -12,7 +12,7 @@ const options = {
     }],
     info: {
       title: 'Manga tracker public API',
-      version: '0.3.0',
+      version: '0.4.0',
     },
   },
   failOnErrors: true,

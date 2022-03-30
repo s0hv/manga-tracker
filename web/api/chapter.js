@@ -1,6 +1,4 @@
-const { body: validateBody,
-  query
-} = require('express-validator');
+const { body: validateBody, query } = require('express-validator');
 
 const { NoColumnsError } = require('../db/errors');
 const { requiresUser } = require('../db/auth');

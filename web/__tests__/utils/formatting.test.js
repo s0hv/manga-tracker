@@ -1,6 +1,6 @@
 import {
   formatChapterTitle,
-  formatChapterUrl
+  formatChapterUrl,
 } from '../../src/utils/formatting';
 
 describe('formatChapterTitle', () => {

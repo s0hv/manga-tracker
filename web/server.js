@@ -138,11 +138,12 @@ module.exports = nextApp.prepare()
     require('./api/admin/services')(server);
     require('./api/chapter')(server);
     require('./api/services')(server);
+    require('./api/notifications')(server);
     server.use('/api/admin/manga', require('./api/admin/manga')());
 
     server.get('/login', requiresUser, (req, res) => {
       sessionLogger.debug(req.session.userId);
-      if (req.isAuthenticated()) {
+      if (!req.isAuthenticated || req.isAuthenticated()) {
         res.redirect('/');
         return;
       }

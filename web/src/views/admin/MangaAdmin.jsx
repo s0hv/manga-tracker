@@ -10,7 +10,7 @@ import {
 import { styled } from '@mui/material/styles';
 
 import {
-  SubdirectoryArrowLeft as SubdirectoryArrowLeftIcon
+  SubdirectoryArrowLeft as SubdirectoryArrowLeftIcon,
 } from '@mui/icons-material';
 import { useConfirm } from 'material-ui-confirm';
 import PropTypes from 'prop-types';

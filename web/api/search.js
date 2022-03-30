@@ -2,7 +2,7 @@ const camelcaseKeys = require('camelcase-keys');
 const { query } = require('express-validator');
 
 const { handleElasticError, extractFields } = require('../db/elasticsearch/utils');
-const { hadValidationError } = require('../utils/validators');
+const { hadValidationError, handleValidationErrors } = require('../utils/validators');
 const { handleError } = require('../db/utils');
 const { getFullManga } = require('../db/manga');
 const { mangaSearch } = require('../db/elasticsearch/manga');
@@ -19,11 +19,32 @@ const searchQueryValidation = query('query')
 module.exports = app => {
   app.get('/api/quicksearch', [
     searchQueryValidation,
+    query('withServices')
+      .isBoolean()
+      .bail()
+      .toBoolean()
+      .default(false)
+      .optional(),
+    handleValidationErrors,
   ], (req, res) => {
-    if (hadValidationError(req, res)) return;
+    let extractCustomFields;
+    if (req.query.withServices) {
+      extractCustomFields = fields => {
+        const serviceObj = { services: {}};
 
-    mangaSearch(req.query.query)
-      .then(result => extractFields(result, ['title'], 'manga'))
+        if (fields['services.service_id']) {
+          const names = fields['services.service_name'];
+
+          fields['services.service_id'].forEach((serviceId, idx) => {
+            serviceObj.services[serviceId] = names[idx];
+          });
+        }
+
+        return serviceObj;
+      };
+    }
+    mangaSearch(req.query.query, 5, req.query.withServices)
+      .then(result => extractFields(result, ['title'], 'manga', extractCustomFields))
       .then(results => res.json(camelcaseKeys(results)))
       .catch(err => handleElasticError(err, res));
   });

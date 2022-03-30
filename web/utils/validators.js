@@ -1,26 +1,28 @@
 const { pattern } = require('iso8601-duration');
 const {
-  param,
   query,
   body,
   validationResult,
 } = require('express-validator');
 const { Forbidden, StatusError, Unauthorized } = require('./errors');
 
-const databaseIdValidation = (field, fromParam, msg) => (fromParam ?
-  param(field) :
-  query(field)
-)
-  .isInt({ min: 0 })
-  .withMessage(msg);
+/**
+ * @param {import('express-validator').ValidationChain} field
+ * @returns {import('express-validator').ValidationChain}
+ */
+const databaseIdValidation = (field) => field
+  .isInt({ min: 0 });
+
 module.exports.databaseIdValidation = databaseIdValidation;
 // Technically the same behavior
 module.exports.limitValidation = databaseIdValidation;
 
-const mangaIdValidation = (fromParam) => databaseIdValidation('mangaId', fromParam, 'Manga id must be a positive integer');
+const mangaIdValidation = (field = query('mangaId')) => databaseIdValidation(field)
+  .withMessage('Manga id must be a positive integer');
 module.exports.mangaIdValidation = mangaIdValidation;
 
-const serviceIdValidation = (fromParam) => databaseIdValidation('serviceId', fromParam, 'Service id must be a positive integer');
+const serviceIdValidation = (field = query('serviceId')) => databaseIdValidation(field)
+  .withMessage('Service id must be a positive integer');
 module.exports.serviceIdValidation = serviceIdValidation;
 
 const positiveTinyInt = (field) => query(field).isInt({ min: 0, max: 127 });

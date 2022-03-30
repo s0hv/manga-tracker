@@ -5,6 +5,8 @@ import LocalizationProvider from '@mui/lab/LocalizationProvider';
 import enLocale from 'date-fns/locale/en-GB';
 import { DefaultSeo } from 'next-seo';
 import { CacheProvider } from '@emotion/react';
+import { QueryClient, QueryClientProvider } from 'react-query';
+import { ReactQueryDevtools } from 'react-query/devtools';
 
 import Head from 'next/head';
 import { SnackbarProvider } from 'notistack';
@@ -29,6 +31,13 @@ function MainApp({ Component, pageProps = {}, emotionCache = clientSideEmotionCa
   const [user, setUser] = React.useState(props.user);
   const [csrf, setCsrf] = React.useState(props._csrf);
   const [prefersDark, setPrefersDark] = useState(theme === 2);
+  const [queryClient] = useState(() => new QueryClient({
+    defaultOptions: {
+      queries: {
+        refetchOnWindowFocus: false,
+      },
+    },
+  }));
 
   useEffect(() => setUser(props.user), [props.user]);
   useEffect(() => setCsrf(props._csrf), [props._csrf]);
@@ -89,15 +98,18 @@ function MainApp({ Component, pageProps = {}, emotionCache = clientSideEmotionCa
               <CssBaseline />
               <LocalizationProvider dateAdapter={AdapterDateFns} locale={enLocale}>
                 <SnackbarProvider>
-                  <UserProvider value={user}>
-                    <CSRFProvider value={csrf}>
-                      <Root {...props}>
-                        <main>
-                          <Component {...pageProps} />
-                        </main>
-                      </Root>
-                    </CSRFProvider>
-                  </UserProvider>
+                  <QueryClientProvider client={queryClient}>
+                    <UserProvider value={user}>
+                      <CSRFProvider value={csrf}>
+                        <Root {...props}>
+                          <main>
+                            <Component {...pageProps} />
+                          </main>
+                        </Root>
+                        <ReactQueryDevtools initialIsOpen={false} />
+                      </CSRFProvider>
+                    </UserProvider>
+                  </QueryClientProvider>
                 </SnackbarProvider>
               </LocalizationProvider>
             </ThemeProvider>
