@@ -80,6 +80,7 @@ class ChapterAttributes(BaseModel):
     chapter: Optional[str]
     title: Optional[str]
     publish_at: datetime = Field(..., alias='publishAt')
+    readable_at: datetime = Field(..., alias='readableAt')
 
 
 class ScanlationGroupAttributes(BaseModel):
@@ -323,7 +324,7 @@ class MangadexAPI:
     def get_chapters(self, sort_by: SortColumns, *, languages: List[str],
                      manga_id: str = None, limit: int = MAX_LIMIT,
                      include_groups: bool = True, offset: int = None,
-                     include_future_updates=False) -> Iterable[ChapterResult]:
+                     include_future_updates=True) -> Iterable[ChapterResult]:
         params = []
         order = []
         for k, v in sort_by.items():

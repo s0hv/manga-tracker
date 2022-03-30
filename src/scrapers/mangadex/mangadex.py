@@ -100,7 +100,7 @@ class MangaDex(BaseScraperWhole):
                     attrs.chapter,
                     chapter.id,
                     chapter.manga_id,
-                    attrs.publish_at,
+                    attrs.readable_at,
                     attrs.title,
                     attrs.volume,
                     chapter.group
@@ -293,7 +293,7 @@ class MangaDex(BaseScraperWhole):
     def fetch_chapters(self, api_url: str, title_id: str = None, limit: int = 100) -> Optional[List[Chapter]]:
         self.api.base_url = api_url
         try:
-            result = self.api.get_chapters({'publishAt': 'desc'}, manga_id=title_id, languages=['en'], limit=limit)
+            result = self.api.get_chapters({'readableAt': 'desc'}, manga_id=title_id, languages=['en'], limit=limit)
             return list(self.parse_feed(result))
         except JSONDecodeError:
             logger.exception(f'Failed to parse mangadex response')
