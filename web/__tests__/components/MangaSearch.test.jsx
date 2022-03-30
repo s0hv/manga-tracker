@@ -13,9 +13,7 @@ describe('Search should render correctly', () => {
   it('without input', () => {
     render(<MangaSearch />);
 
-    expect(screen.getByRole('textbox', { name: 'manga search' })).toBeInTheDocument();
-    // Autocomplete has the role combobox
-    expect(screen.getByRole('combobox')).toBeInTheDocument();
+    expect(screen.getByRole('combobox', { name: 'manga search' })).toBeInTheDocument();
   });
 
   it('with valid input', async () => {
@@ -40,11 +38,12 @@ describe('Search should render correctly', () => {
     render(<MangaSearch />);
 
     // Find search input
-    const input = screen.getByRole('textbox');
+    const input = screen.getByRole('combobox');
 
+    const user = userEvent.setup();
     // Simulate text changes and test that the quicksearch endpoint wasn't called
     await act(async () => {
-      await userEvent.type(input, 'test search', { delay: 1 });
+      await user.type(input, 'test search', { delay: 1 });
     });
     expect(searchFn).toHaveBeenCalled();
 
@@ -65,11 +64,12 @@ describe('Search should behave correctly with user input', () => {
     render(<MangaSearch />);
 
     // Find search input
-    const input = screen.getByRole('textbox');
+    const input = screen.getByRole('combobox');
 
+    const user = userEvent.setup();
     // Simulate text changes and test that the quicksearch endpoint wasn't called
     await act(async () => {
-      await userEvent.type(input, 'a{backspace}b{backspace}c', { delay: 10 });
+      await user.type(input, 'a{backspace}b{backspace}c', { delay: 10 });
     });
 
     expect(searchFn).toHaveBeenCalledTimes(0);
@@ -84,11 +84,12 @@ describe('Search should behave correctly with user input', () => {
     render(<MangaSearch />);
 
     // Find search input
-    const input = screen.getByRole('textbox');
+    const input = screen.getByRole('combobox');
 
+    const user = userEvent.setup();
     // Simulate text changes
     await act(async () => {
-      await userEvent.type(input, 'ab', { delay: 1 });
+      await user.type(input, 'ab', { delay: 1 });
     });
     expect(searchFn).toHaveBeenCalledTimes(1);
   });
@@ -101,12 +102,13 @@ describe('Search should behave correctly with user input', () => {
     render(<MangaSearch searchThrottleTimeout={1000} />);
 
     // Find search input
-    const input = screen.getByRole('textbox');
+    const input = screen.getByRole('combobox');
+    const user = userEvent.setup();
 
     // Simulate text changes and test that the quicksearch endpoint
     // was called only once
     await act(async () => {
-      await userEvent.type(input, 'abcd', { delay: 1 });
+      await user.type(input, 'abcd', { delay: 1 });
     });
 
     expect(searchFn).toHaveBeenCalledTimes(1);

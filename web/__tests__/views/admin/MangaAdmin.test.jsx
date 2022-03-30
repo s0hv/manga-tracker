@@ -72,7 +72,8 @@ describe('Manga admin page should render correctly', () => {
       render(<MangaAdmin mangaData={fullManga} serviceConfigs={[]} />);
     });
 
-    userEvent.click(screen.getByLabelText('add scheduled run'));
+    const user = userEvent.setup();
+    await user.click(screen.getByLabelText('add scheduled run'));
     const form = within(screen.getByRole('presentation', { name: 'Create item form' }));
     expect(form.queryAllByRole('option')).toHaveLength(0);
   });
@@ -106,15 +107,15 @@ describe('Manga admin page should handle data fetching correctly', () => {
     }
   };
 
-  const submitForm = async () => {
+  const submitForm = async (user) => {
     await act(async () => {
-      userEvent.click(screen.getByRole('button', { name: 'Create row' }));
+      await user.click(screen.getByRole('button', { name: 'Create row' }));
     });
   };
 
-  const deleteRow = async () => {
+  const deleteRow = async (user) => {
     await act(async () => {
-      userEvent.click(screen.getByRole('button', { name: 'Confirm delete row' }));
+      await user.click(screen.getByRole('button', { name: 'Confirm delete row' }));
     });
   };
 
@@ -141,12 +142,13 @@ describe('Manga admin page should handle data fetching correctly', () => {
 
     expect(screen.queryByText(serviceName)).toBeNull();
 
-    userEvent.click(screen.getByLabelText('add scheduled run'));
+    const user = userEvent.setup();
+    await user.click(screen.getByLabelText('add scheduled run'));
 
     const form = within(screen.getByRole('presentation', { name: 'Create item form' }));
-    muiSelectValue(form, 'Service select', serviceName);
+    await muiSelectValue(user, form, 'Service select', serviceName);
 
-    await submitForm();
+    await submitForm(user);
 
     expect(postMock).toHaveBeenCalledTimes(1);
     expect(screen.queryByText(serviceName)).toBeTruthy();
@@ -165,9 +167,10 @@ describe('Manga admin page should handle data fetching correctly', () => {
     const rowElement = screen.getByText(serviceName).closest('tr');
     const row = within(rowElement);
 
-    userEvent.click(row.getByRole('button', { name: 'Delete row' }));
+    const user = userEvent.setup();
+    await user.click(row.getByRole('button', { name: 'Delete row' }));
 
-    await deleteRow();
+    await deleteRow(user);
 
     expect(deleteMock).toHaveBeenCalledTimes(1);
 
@@ -187,21 +190,22 @@ describe('Manga admin page should handle data fetching correctly', () => {
     const rowElement = screen.getByText(serviceName).closest('tr');
     const row = within(rowElement);
 
-    userEvent.click(row.getByRole('button', { name: 'Delete row' }));
+    const user = userEvent.setup();
+    await user.click(row.getByRole('button', { name: 'Delete row' }));
 
-    await deleteRow();
+    await deleteRow(user);
 
     // Should not delete on error
     expect(screen.queryByText(serviceName)).toBeTruthy();
     expect(enqueueSnackbarMock).toHaveBeenCalledTimes(1);
     expectErrorSnackbar();
 
-    userEvent.click(screen.getByLabelText('add scheduled run'));
+    await user.click(screen.getByLabelText('add scheduled run'));
 
     const form = within(screen.getByRole('presentation', { name: 'Create item form' }));
-    muiSelectValue(form, 'Service select', serviceName);
+    await muiSelectValue(user, form, 'Service select', serviceName);
 
-    await submitForm();
+    await submitForm(user);
     expect(enqueueSnackbarMock).toHaveBeenCalledTimes(2);
     expectErrorSnackbar();
   });

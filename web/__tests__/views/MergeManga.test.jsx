@@ -22,28 +22,28 @@ describe('Merge manga page should render correctly', () => {
   fetchMock.mock(`glob:/api/manga/${fullManga.manga.mangaId}`, { data: fullManga });
   fetchMock.mock(`glob:/api/manga/${emptyFullManga.manga.mangaId}`, { data: emptyFullManga });
 
-  const selectItem = async (item) => {
+  const selectItem = async (user, item) => {
     await waitFor(() => expect(
       screen.getByRole('option', { name: item.title })
     ).toBeInTheDocument());
 
     await act(async () => {
-      userEvent.click(screen.getByRole('option', { name: item.title }));
+      await user.click(screen.getByRole('option', { name: item.title }));
     });
   };
 
-  const triggerSearch = async (elem) => {
+  const triggerSearch = async (user, elem) => {
     await act(async () => {
-      await userEvent.type(elem, 'test', { delay: 1 });
+      await user.type(elem, 'test', { delay: 1 });
     });
   };
 
-  const selectAndAssert = async (item, base = true) => {
+  const selectAndAssert = async (user, item, base = true) => {
     const searchLabel = base ? 'search base manga' : 'search manga to merge';
     const searchBase = screen.getByLabelText(searchLabel);
-    await triggerSearch(searchBase);
+    await triggerSearch(user, searchBase);
 
-    await selectItem(item);
+    await selectItem(user, item);
     const mangaLabel = base ? 'base manga' : 'manga to merge';
     expect(screen.getByLabelText(mangaLabel)).toBeInTheDocument();
   };
@@ -55,9 +55,11 @@ describe('Merge manga page should render correctly', () => {
     expect(screen.queryByLabelText('base manga')).not.toBeInTheDocument();
     expect(screen.queryByLabelText('manga to merge')).not.toBeInTheDocument();
 
+    const user = userEvent.setup();
+
     // Search and select manga for both slots
-    await selectAndAssert(mockResult[0]);
-    await selectAndAssert(mockResult[1], false);
+    await selectAndAssert(user, mockResult[0]);
+    await selectAndAssert(user, mockResult[1], false);
 
     // Make sure the elements that are used to do the merge are visible
     // Service select
@@ -72,9 +74,11 @@ describe('Merge manga page should render correctly', () => {
   it('Should not show merge button with same manga', async () => {
     render(<MergeManga />);
 
+    const user = userEvent.setup();
+
     // Search and select manga for both slots
-    await selectAndAssert(mockResult[0]);
-    await selectAndAssert(mockResult[0], false);
+    await selectAndAssert(user, mockResult[0]);
+    await selectAndAssert(user, mockResult[0], false);
 
     // Make sure merge controls are not visible
     expect(screen.queryByRole('radiogroup', { name: 'merge services' })).not.toBeInTheDocument();
@@ -83,9 +87,10 @@ describe('Merge manga page should render correctly', () => {
 
   it('Should not show merge button with one manga', async () => {
     render(<MergeManga />);
+    const user = userEvent.setup();
 
     // Search and select manga for both slots
-    await selectAndAssert(mockResult[0]);
+    await selectAndAssert(user, mockResult[0]);
 
     // Make sure merge controls are not visible
     expect(screen.queryByRole('radiogroup', { name: 'merge services' })).not.toBeInTheDocument();
@@ -97,19 +102,20 @@ describe('Merge manga page should render correctly', () => {
     fetchMock.mock(url, { aliasCount: 1, chapterCount: 1 });
 
     render(<MergeManga />);
+    const user = userEvent.setup();
 
     // Search and select manga for both slots
-    await selectAndAssert(mockResult[0]);
-    await selectAndAssert(mockResult[1], false);
+    await selectAndAssert(user, mockResult[0]);
+    await selectAndAssert(user, mockResult[1], false);
 
-    userEvent.click(
+    await user.click(
       screen.getByRole('radio', { name: emptyFullManga.services[0].name })
     );
 
     const mergeBtn = screen.getByRole('button', { name: /merge .+? into .+?/ });
 
     await act(async () => {
-      userEvent.click(mergeBtn);
+      await user.click(mergeBtn);
     });
 
     expect(

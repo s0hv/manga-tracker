@@ -92,7 +92,7 @@ describe('DeleteNotificationButton', () => {
 
     expect(screen.getByRole('textbox', { name: /^name$/i })).toBeInTheDocument();
     expect(screen.getByRole('textbox', { name: /^Webhook url/i })).toBeInTheDocument();
-    expect(screen.getByRole('textbox', { name: /^Manga updates to notify on/i })).toBeInTheDocument();
+    expect(screen.getByRole('combobox', { name: /^Manga updates to notify on/i })).toBeInTheDocument();
     expect(screen.getByRole('checkbox', { name: /^use follows/i })).toBeInTheDocument();
     expect(screen.getByRole('textbox', { name: /^Webhook username/i })).toBeInTheDocument();
     expect(screen.getByRole('textbox', { name: /^Embed title/i })).toBeInTheDocument();
