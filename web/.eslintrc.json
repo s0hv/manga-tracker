@@ -1,13 +1,12 @@
 {
     "extends": [
+        "next",
         "airbnb",
-        "airbnb/hooks",
         "plugin:react/recommended",
         "plugin:import/errors",
         "plugin:import/warnings",
         "plugin:jsx-a11y/recommended",
-        "plugin:jest/style",
-        "next"
+        "plugin:jest/style"
     ],
     "parser": "@babel/eslint-parser",
     "parserOptions": {
@@ -17,7 +16,7 @@
             "jsx": true
         }
     },
-    "plugins": ["react", "react-hooks", "jest"],
+    "plugins": ["react", "jest"],
     "rules": {
         "semi": ["warn", "always", {"omitLastInOneLineBlock": true}],
         "quotes": ["warn", "single", {
