@@ -1,7 +1,6 @@
 import AdapterDateFns from '@mui/lab/AdapterDateFns';
 import LocalizationProvider from '@mui/lab/LocalizationProvider';
 import { fireEvent, screen, within } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import cookie from 'cookie';
 import signature from 'cookie-signature';
 import enLocale from 'date-fns/locale/en-GB';
@@ -102,8 +101,8 @@ export function getSnackbarMessage() {
   return enqueueSnackbarMock.mock.calls[enqueueSnackbarMock.mock.calls.length-1][0];
 }
 
-export function muiSelectValue(container, selectName, value) {
-  userEvent.click(container.getByLabelText(selectName));
+export async function muiSelectValue(user, container, selectName, value) {
+  await user.click(container.getByLabelText(selectName));
   const listbox = within(screen.getByRole('listbox'));
 
   fireEvent.click(listbox.getByText(value));

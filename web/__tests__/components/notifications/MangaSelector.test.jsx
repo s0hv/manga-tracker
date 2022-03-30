@@ -54,7 +54,7 @@ describe('DeleteNotificationButton', () => {
   it('Renders correctly', async () => {
     render(<Rendered />);
 
-    expect(screen.getByRole('textbox', { name: testLabel })).toBeInTheDocument();
+    expect(screen.getByRole('combobox', { name: testLabel })).toBeInTheDocument();
     expect(screen.getByRole('checkbox', { name: /use follows/i })).toBeInTheDocument();
   });
 
@@ -62,7 +62,7 @@ describe('DeleteNotificationButton', () => {
     render(<Rendered />);
 
     const useFollows = screen.getByRole('checkbox', { name: /use follows/i });
-    const autocomplete = screen.getByRole('textbox', { name: testLabel });
+    const autocomplete = screen.getByRole('combobox', { name: testLabel });
     const user = userEvent.setup();
 
     await user.click(useFollows);
@@ -100,7 +100,7 @@ describe('DeleteNotificationButton', () => {
     const user = userEvent.setup();
     expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
 
-    const autocomplete = screen.getByRole('textbox', { name: testLabel });
+    const autocomplete = screen.getByRole('combobox', { name: testLabel });
     await act(async () => {
       await user.type(autocomplete, 'test');
     });

@@ -109,7 +109,8 @@ describe('Manga source list should handle user input', () => {
     expect(createEvent).toHaveBeenCalledTimes(services.length);
     expect(followUnfollow).toHaveBeenCalledTimes(0);
 
-    userEvent.click(
+    const user = userEvent.setup();
+    await user.click(
       screen.getByRole(
         'button',
         { name: new RegExp(`follow ${services[0].name}`, 'i') }
@@ -133,13 +134,14 @@ describe('Manga source list should handle user input', () => {
 
     expect(screen.queryByRole('listitem')).not.toBeInTheDocument();
 
-    userEvent.click(
+    const user = userEvent.setup();
+    await user.click(
       screen.getByRole('button', { name: /open follows/i })
     );
 
     expect(screen.queryAllByRole('button', { name: /follow /i })).toHaveLength(services.length);
 
-    userEvent.click(
+    await user.click(
       screen.getByRole('button', { name: /close follows/i })
     );
 
