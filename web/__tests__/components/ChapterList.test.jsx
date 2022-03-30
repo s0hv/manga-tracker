@@ -61,15 +61,16 @@ describe('Chapter list should allow editing', () => {
       );
     });
 
-    userEvent.click(screen.getByRole('button', { name: /edit row/i }));
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: /edit row/i }));
 
-    await userEvent.type(
+    await user.type(
       screen.getByLabelText(/title input/i),
       addedCharacters
     );
 
     await act(async () => {
-      userEvent.click(screen.getByRole('button', { name: /save row/i }));
+      await user.click(screen.getByRole('button', { name: /save row/i }));
     });
 
     expect(postMock).toHaveBeenCalledTimes(1);
@@ -94,14 +95,15 @@ describe('Chapter list should allow editing', () => {
         serviceUrlFormats={serviceUrlFormats}
       />);
     });
-    userEvent.click(screen.getByRole('button', { name: /edit row/i }));
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: /edit row/i }));
 
     await act(async () => {
-      userEvent.click(screen.getByRole('button', { name: /delete row/i }));
+      await user.click(screen.getByRole('button', { name: /delete row/i }));
     });
 
     await act(async () => {
-      userEvent.click(screen.getByRole('button', { name: /confirm delete row/i }));
+      await user.click(screen.getByRole('button', { name: /confirm delete row/i }));
     });
 
     expect(deleteMock).toHaveBeenCalledTimes(1);

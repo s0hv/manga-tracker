@@ -219,14 +219,15 @@ describe('Should handle editing', () => {
     const row = within(screen.getAllByRole('row')[1]);
     expect(row).toBeDefined();
 
-    act(() => {
-      userEvent.click(
+    const user = userEvent.setup();
+    await act(async () => {
+      await user.click(
         row.getByRole('button', { name: /edit row/i })
       );
     });
 
-    act(() => {
-      userEvent.click(
+    await act(async () => {
+      await user.click(
         row.getByRole('button', { name: /save row/i })
       );
     });
@@ -248,14 +249,15 @@ describe('Should handle editing', () => {
     const row = within(screen.getAllByRole('row')[1]);
     expect(row).toBeDefined();
 
-    act(() => {
-      userEvent.click(
+    const user = userEvent.setup();
+    await act(async () => {
+      await user.click(
         row.getByRole('button', { name: /edit row/i })
       );
     });
 
-    act(() => {
-      userEvent.click(
+    await act(async () => {
+      await user.click(
         row.getByRole('button', { name: /cancel edit/i })
       );
     });
@@ -280,8 +282,9 @@ describe('Should handle editing', () => {
     const row = within(screen.getAllByRole('row')[1]);
     expect(row).toBeDefined();
 
-    act(() => {
-      userEvent.click(
+    const user = userEvent.setup();
+    await act(async () => {
+      await user.click(
         row.getByRole('button', { name: /edit row/i })
       );
     });
@@ -304,8 +307,9 @@ describe('Should handle editing', () => {
     const row = within(screen.getAllByRole('row')[1]);
     expect(row).toBeDefined();
 
-    act(() => {
-      userEvent.click(
+    const user = userEvent.setup();
+    await act(async () => {
+      await user.click(
         row.getByRole('button', { name: /edit row/i })
       );
     });
@@ -316,12 +320,12 @@ describe('Should handle editing', () => {
     const newVal = 'value changed';
 
     await act(async () => {
-      userEvent.clear(input);
-      await userEvent.type(input, newVal, { delay: 1 });
+      await user.clear(input);
+      await user.type(input, newVal, { delay: 1 });
     });
 
-    act(() => {
-      userEvent.click(
+    await act(async () => {
+      await user.click(
         row.getByRole('button', { name: /save row/i })
       );
     });
@@ -345,18 +349,19 @@ describe('Should handle editing', () => {
     const row = within(screen.getAllByRole('row')[1]);
     expect(row).toBeDefined();
 
-    act(() => {
-      userEvent.click(
+    const user = userEvent.setup();
+    await act(async () => {
+      await user.click(
         row.getByRole('button', { name: /edit row/i })
       );
     });
 
     // Find checkbox and click it to change it's value
     const checkbox = row.getByRole('checkbox', { checked: data[0].editableCheckbox });
-    userEvent.click(checkbox);
+    await user.click(checkbox);
 
-    act(() => {
-      userEvent.click(
+    await act(async () => {
+      await user.click(
         row.getByRole('button', { name: /save row/i })
       );
     });
