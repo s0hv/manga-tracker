@@ -5,7 +5,7 @@ import { getLatestChapters } from '../api/chapter';
 import { getServices } from '../api/services';
 import {
   ChapterGroupWithCover,
-  ChapterWithLink
+  ChapterWithLink,
 } from '../components/GroupedChapterList';
 
 const GroupedChapterList = dynamic(import('../components/GroupedChapterList'));

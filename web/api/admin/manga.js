@@ -1,5 +1,5 @@
 const express = require('express');
-const { body } = require('express-validator');
+const { body, param } = require('express-validator');
 const { QueryResultError } = require('pg-promise').errors;
 const { updateMangaTitle } = require('../../db/admin/manga');
 const { requiresUser } = require('../../db/auth');
@@ -23,7 +23,7 @@ module.exports = () => {
 
   router.use('/:mangaId(\\d+)/scheduledRuns', [
     validateAdminUser(),
-    mangaIdValidation(true),
+    mangaIdValidation(param('mangaId')),
   ]);
   router.get('/:mangaId(\\d+)/scheduledRuns', handleValidationErrors, (req, res) => {
     getScheduledRuns(req.params.mangaId)
@@ -38,8 +38,8 @@ module.exports = () => {
   const scheduleRunUrl = '/:mangaId(\\d+)/scheduledRun/:serviceId(\\d+)';
   router.use(scheduleRunUrl, [
     validateAdminUser(),
-    mangaIdValidation(true),
-    serviceIdValidation(true),
+    mangaIdValidation(param('mangaId')),
+    serviceIdValidation(param('serviceId')),
     handleValidationErrors,
   ]);
   router.route(scheduleRunUrl)
@@ -68,7 +68,7 @@ module.exports = () => {
   const updateTitleUrl = '/:mangaId(\\d+)/title';
   router.use(updateTitleUrl, [
     validateAdminUser(),
-    mangaIdValidation(true),
+    mangaIdValidation(param('mangaId')),
     body('title').isString().bail().isLength({ min: 1 }),
   ]);
   router.post(updateTitleUrl, handleValidationErrors, (req, res) => {

@@ -2,11 +2,13 @@ const {
   NUMERIC_VALUE_OUT_OF_RANGE,
   INVALID_TEXT_REPRESENTATION,
   UNIQUE_VIOLATION,
+  IN_FAILED_SQL_TRANSACTION,
 } = require('pg-error-constants');
 
 const { pgp } = require('./index');
 const { NoColumnsError } = require('./errors');
 const { dbLogger } = require('../utils/logging');
+const { StatusError } = require('../utils/errors');
 
 /**
  * Generate update statement from an object while filtering out undefined values.
@@ -26,6 +28,15 @@ module.exports.generateUpdate = (o, tableName) => {
 };
 
 function handleError(err, res, msgOverrides = {}) {
+  if (typeof err?.getErrors === 'function') {
+    err = err.getErrors().filter(e => e?.code !== IN_FAILED_SQL_TRANSACTION)[0] || err;
+  }
+
+  if (err instanceof StatusError) {
+    res.status(err.status).json({ error: err.message });
+    return;
+  }
+
   const msg = msgOverrides[err.code];
   if (err.code === INVALID_TEXT_REPRESENTATION) {
     dbLogger.debug(err.message);
@@ -36,7 +47,7 @@ function handleError(err, res, msgOverrides = {}) {
     res.status(422).json({ error: msg || 'Resource already exists' });
   } else {
     dbLogger.error(err, 'Unknown database error');
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: msg || 'Internal server error' });
   }
 }
 module.exports.handleError = handleError;

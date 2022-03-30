@@ -14,6 +14,13 @@ components:
           schema:
             $ref: '#/components/schemas/genericError'
 
+    unauthorized:
+      description: No authentication provided
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/validationError'
+
   schemas:
     validationError:
       type: object
@@ -26,7 +33,8 @@ components:
               items:
                 $ref: '#/components/schemas/expressValidatorError'
             - $ref: '#/components/schemas/expressValidatorError'
-            - $ref: '#/components/schemas/genericError'
+            - type: string
+              description: The error message
 
       required:
         - error
@@ -61,7 +69,6 @@ components:
       required:
         - msg
         - param
-        - value
         - location
 
     databaseId:
@@ -352,3 +359,93 @@ components:
       required:
         - services
         - manga
+
+    notificationManga:
+      description: Object containing information of a followed manga.
+      type: object
+      properties:
+        mangaId:
+          $ref: '#/components/schemas/databaseId'
+        serviceId:
+          allOf:
+            - $ref: '#/components/schemas/databaseId'
+            - type: integer
+              nullable: true
+        title:
+          type: string
+        serviceName:
+          type: string
+
+      required:
+        - mangaId
+        - serviceId
+        - title
+        - serviceName
+
+    notificationField:
+      description: An object describing an input field of a notification used for formatting the message.
+      type: object
+      properties:
+        value:
+          type: string
+          nullable: true
+        name:
+          type: string
+        optional:
+          type: boolean
+
+      required:
+        - name
+
+    notificationType:
+      type: integer
+      enum: [ 1 ]
+      description: >
+        Notification types:
+         * `1` - Discord webhook
+
+    userNotification:
+      description: An object containing information about a notification created by a user.
+      type: object
+      properties:
+        notificationId:
+          $ref: '#/components/schemas/databaseId'
+        useFollows:
+          type: boolean
+        notificationType:
+          $ref: '#/components/schemas/notificationType'
+        timesRun:
+          type: integeer
+        timesFailed:
+          type: integer
+        disabled:
+          type: boolean
+        groupByManga:
+          type: boolean
+        destination:
+          type: string
+        name:
+          type: string
+        manga:
+          description: Followed manga. Not required if useFollows is set to true.
+          type: array
+          items:
+            $ref: '#/components/schemas/notificationManga'
+        fields:
+          type: array
+          items:
+            $ref: '#/components/schemas/notificationField'
+
+      required:
+        - notificationType
+        - groupByManga
+        - destination
+        - disabled
+        - fields
+
+    userNotificationWithId:
+      allOf:
+        - $ref: '#/components/schemas/notificationField'
+        - type: object
+          required:
+            - notificationId

@@ -1,4 +1,4 @@
-const { query } = require('express-validator');
+const { query, param } = require('express-validator');
 
 const { db } = require('../db');
 const { handleError } = require('../db/utils');
@@ -19,9 +19,9 @@ const BASE_URL = '/api/manga';
 module.exports = app => {
   app.post('/api/manga/merge', requiresUser, [
     validateAdminUser(),
-    databaseIdValidation('base'),
-    databaseIdValidation('toMerge'),
-    databaseIdValidation('service').optional(),
+    databaseIdValidation(query('base')),
+    databaseIdValidation(query('toMerge')),
+    databaseIdValidation(query('service')).optional(),
   ], (req, res) => {
     if (hadValidationError(req, res)) return;
 
@@ -73,7 +73,7 @@ module.exports = app => {
    *         $ref: '#/components/responses/notFound'
    */
   app.get('/api/manga/:mangaId', [
-    mangaIdValidation(true),
+    mangaIdValidation(param('mangaId')),
     handleValidationErrors,
   ], (req, res) => {
     getFullManga(req.params.mangaId)
@@ -169,7 +169,7 @@ module.exports = app => {
    *          $ref: '#/components/responses/notFound'
    */
   app.get(`${BASE_URL}/:mangaId(\\d+)/chapters`, [
-    mangaIdValidation(true),
+    mangaIdValidation(param('mangaId')),
     query('limit').isInt({ min: 0, max: 200 }).optional().withMessage('Limit must be an integer between 0 and 200'),
     query('offset').isInt({ min: 0 }).optional().withMessage('Offset must be a positive integer'),
     query('sortBy')

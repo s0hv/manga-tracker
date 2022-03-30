@@ -31,7 +31,10 @@ export const postMergeManga = (csrf, baseManga, toMerge, serviceId) => {
 /**
  * Searches for a manga
  * @param {string} query The search query
+ * @param {Boolean} withServices Whether to include services in the result
  */
-export const quickSearch = (query) => fetch('/api/quicksearch?query=' + encodeURIComponent(query))
+export const quickSearch = (query, withServices = false) => fetch(
+  '/api/quicksearch?query=' + encodeURIComponent(query) + '&withServices=' + encodeURIComponent(withServices)
+)
   .then(handleResponse)
   .catch(handleError);

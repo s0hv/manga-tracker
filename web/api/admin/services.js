@@ -1,4 +1,4 @@
-const { body, matchedData } = require('express-validator');
+const { body, matchedData, param } = require('express-validator');
 
 const { requiresUser } = require('../../db/auth');
 const { handleError } = require('../../db/utils');
@@ -50,7 +50,7 @@ module.exports = app => {
 
   app.post('/api/admin/editService/:serviceId', requiresUser, [
     validateAdminUser(),
-    serviceIdValidation(true),
+    serviceIdValidation(param('serviceId')),
     ...validateService,
     handleValidationErrors,
   ], (req, res) => {

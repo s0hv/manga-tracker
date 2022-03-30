@@ -4,7 +4,7 @@ const handleElasticError = (err, res) => {
   res.status(500).json({ error });
 };
 
-const extractFields = (result, fields, idPrefix) => {
+const extractFields = (result, fields, idPrefix, customFieldFormatter) => {
   idPrefix = idPrefix ? `${idPrefix}_` : '';
   return result.body.hits.hits.map(hit => {
     const o = {
@@ -15,6 +15,11 @@ const extractFields = (result, fields, idPrefix) => {
       fields.forEach(field => {
         o[field] = (hit.fields[field] || [])[0];
       });
+
+      if (customFieldFormatter) {
+        const formatted = customFieldFormatter(hit.fields);
+        Object.keys(formatted).forEach(k => { o[k] = formatted[k] });
+      }
     }
 
     return o;

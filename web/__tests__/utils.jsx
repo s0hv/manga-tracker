@@ -8,6 +8,7 @@ import enLocale from 'date-fns/locale/en-GB';
 import jestOpenAPI from 'jest-openapi';
 import React, { isValidElement } from 'react';
 import request from 'supertest';
+import { QueryClient } from 'react-query';
 
 import { UserProvider } from '../src/utils/useUser';
 import { getOpenapiSpecification } from '../swagger';
@@ -19,6 +20,14 @@ jest.mock('notistack', () => {
     ...actual,
     useSnackbar: jest.fn().mockImplementation(actual.useSnackbar),
   };
+});
+
+export const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: false,
+    },
+  },
 });
 
 export const adminUser = {
@@ -68,7 +77,7 @@ export const testManga = {
 export const enqueueSnackbarMock = jest.fn();
 
 /**
- * Must be called before every test
+ * Must be called before every test. Import must as early as possible
  */
 export function mockNotistackHooks() {
   enqueueSnackbarMock.mockReset();

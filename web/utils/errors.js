@@ -42,3 +42,17 @@ class Unauthorized extends StatusError {
   }
 }
 module.exports.Unauthorized = Unauthorized;
+
+class NotFound extends StatusError {
+  constructor(message) {
+    super(message, 'Not Found', 404);
+  }
+}
+module.exports.NotFound = NotFound;
+
+class BadRequest extends StatusError {
+  constructor(message) {
+    super(message, 'Bad Request', 400);
+  }
+}
+module.exports.BadRequest = BadRequest;
