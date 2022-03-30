@@ -5,7 +5,7 @@ import fetchMock from 'fetch-mock';
 import { ConfirmProvider } from 'material-ui-confirm';
 
 import { Form } from 'react-final-form';
-import { queryClient, mockNotistackHooks, } from '../../utils';
+import { queryClient, mockNotistackHooks } from '../../utils';
 import MangaSelector from '../../../src/components/notifications/MangaSelector';
 
 const inputName = 'test';
