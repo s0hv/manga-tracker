@@ -39,6 +39,11 @@ const ColorPicker = ({
     form.change(name, col);
   }, [form, name]);
 
+  const onColorChange = useCallback(c => {
+    setColor(c);
+    form.change(name, c);
+  }, [form, name]);
+
   return (
     <Box sx={sx}>
       <TextField
@@ -46,7 +51,6 @@ const ColorPicker = ({
         label={label}
         onFocus={() => setOpen(true)}
         onBlur={onBlur}
-        value={color || ''}
         onChange={onInputChange}
         inputRef={anchorEl}
         InputProps={{
@@ -70,7 +74,7 @@ const ColorPicker = ({
         >
           <HexColorPicker
             color={color || '#FFFFFF'}
-            onChange={setColor}
+            onChange={onColorChange}
             {...pickerProps}
           />
         </Box>

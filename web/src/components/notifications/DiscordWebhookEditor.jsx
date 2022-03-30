@@ -288,6 +288,7 @@ const DiscordWebhookEditor = ({
                     sx={{
                       mt: 2,
                     }}
+                    defaultValue={initialValues.color}
                     name='color'
                     label='Embed color'
                   />

@@ -75,6 +75,11 @@ const defaultNotificationDataNoManga = {
       name: 'thumbnail',
       optional: true,
     },
+    {
+      value: '#FF8080',
+      name: 'color',
+      optional: true,
+    },
   ],
 };
 
@@ -143,6 +148,28 @@ describe('DeleteNotificationButton', () => {
     });
 
     expect(mockRoute).toHaveBeenCalledOnce();
+
+    const sort = (a, b) => ((a.name < b.name) ? 1 : -1);
+    const response = JSON.parse(fetchMock.lastCall('/api/notifications')[1].body);
+    response.fields.sort(sort);
+
+    const data = { ...defaultNotificationDataNoManga };
+    delete data.timesFailed;
+    delete data.timesRun;
+    delete data.manga;
+
+    expect(response).toEqual(
+      expect.objectContaining(
+        {
+          ...data,
+          fields: data.fields
+            .filter(f => f.value?.length > 0)
+            .sort(sort)
+            .map(f => ({ name: f.name, value: f.value })),
+        }
+      )
+    );
+
     expectSuccessSnackbar();
   });
 
