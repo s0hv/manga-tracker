@@ -79,6 +79,10 @@ class DiscordEmbedWebhookNotifier(NotifierBase):
             else:
                 username = None
 
+            message = None
+            if embed_inputs.message:
+                message = self.format_title(embed_inputs.message, group)
+
             def get_webhook() -> DiscordWebhook:
                 return DiscordWebhook(
                     url=options.destination,
@@ -91,6 +95,7 @@ class DiscordEmbedWebhookNotifier(NotifierBase):
                 chunk = embeds[i:i+WebhookLimits.EMBEDS]
                 webhook = get_webhook()
                 webhook.embeds = chunk
+                webhook.content = message
                 try:
                     times_executed += 1
                     response = webhook.execute()
