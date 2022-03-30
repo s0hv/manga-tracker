@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import {
   GroupedChapterList,
   ChapterGroupWithCover,
-  ChapterWithLink
+  ChapterWithLink,
 } from '../../src/components/GroupedChapterList';
 import { testChapterUrlFormat } from '../constants';
 import {

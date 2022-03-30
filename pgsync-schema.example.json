@@ -70,6 +70,20 @@
                             }
                         }
                     }
+                },
+                {
+                    "table": "services",
+                    "columns": [
+                        "service_name",
+                        "service_id"
+                    ],
+                    "relationship": {
+                        "variant": "object",
+                        "type": "one_to_many",
+                        "through_tables": [
+                            "manga_service"
+                        ]
+                    }
                 }
             ]
         }

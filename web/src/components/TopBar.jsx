@@ -8,6 +8,7 @@ import {
   Person as PersonIcon,
   ViewList as ViewListIcon,
   WbSunny as SunIcon,
+  Notifications as NotificationsIcon,
 } from '@mui/icons-material';
 import {
   AppBar,
@@ -194,6 +195,9 @@ function TopBar(props) {
               </MenuItem>
               <LinkComponent Component={MenuItem} href='/follows' prefetch={false} onClick={handleClose} passHref>
                 <BookmarksIcon className={classes.menuItemIcon} /> Follows
+              </LinkComponent>
+              <LinkComponent Component={MenuItem} href='/notifications' prefetch={false} onClick={handleClose} passHref>
+                <NotificationsIcon className={classes.menuItemIcon} /> Notifications
               </LinkComponent>
               {user.admin && (
                 <LinkComponent Component={MenuItem} href='/admin/services' prefetch={false} onClick={handleClose} passHref>

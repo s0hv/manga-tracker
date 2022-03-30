@@ -31,7 +31,7 @@ export const getResponseData = async (json) => {
     error = error[0];
   }
 
-  throw new APIException(error);
+  throw new APIException(error.msg || error);
 };
 
 /**

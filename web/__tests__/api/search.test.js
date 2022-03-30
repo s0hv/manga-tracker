@@ -40,6 +40,22 @@ describe('GET /api/quicksearch', () => {
       .get(`/api/quicksearch?query=test`)
       .expect(200);
   });
+
+  it('Returns 400 with valid query with invalid withServices value', async () => {
+    await request(httpServer)
+      .get(`/api/quicksearch?query=test&withServices=test`)
+      .expect(400);
+
+    await request(httpServer)
+      .get(`/api/quicksearch?query=test&withServices=yes`)
+      .expect(400);
+  });
+
+  it('Returns 200 with valid query and with services', async () => {
+    await request(httpServer)
+      .get(`/api/quicksearch?query=test&withServices=true`)
+      .expect(200);
+  });
 });
 
 
