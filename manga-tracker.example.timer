@@ -1,0 +1,11 @@
+[Unit]
+Description=Run manga tracker around every minute
+
+[Timer]
+OnBootSec=1min
+OnUnitInactiveSec=1min
+# Optional. Randomize run times a bit
+RandomizedDelaySec=20s
+
+[Install]
+WantedBy=timers.target
