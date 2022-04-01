@@ -1,0 +1,19 @@
+[Unit]
+Description=Runs manga tracker
+
+# Require internet access to run
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+EnvironmentFile=path to env
+# Delay start when updating from git
+ExecStartPre=bash -c "while [ -f path/to/project/.updating ]; do sleep 1; done"
+ExecStart=path to app
+# Force stop after 10 minutes
+TimeoutStartSec=10min
+
+
+[Install]
+WantedBy=multi-user.target

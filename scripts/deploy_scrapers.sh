@@ -18,7 +18,6 @@ fi
 
 mkdir -p logs
 filename=$(date '+logs/buildLog_%Y-%m-%d_%H-%M.log')
-process_name=scraper-pm2.json
 unbuffer=unbuffer
 type $unbuffer >/dev/null 2>&1 || {
   echo -e >&2 "${YELLOW}Unbuffer not installed. Colored output not supported.
@@ -27,9 +26,8 @@ type $unbuffer >/dev/null 2>&1 || {
   unbuffer='';
 }
 
-echo "Stopping process" |& tee -a $filename
-$unbuffer pm2 stop $process_name |& tee -a $filename
-$unbuffer pm2 delete $process_name |& tee -a $filename
+echo "Creating .updating file to delay service start" |& tee -a $filename
+touch .updating
 
 echo "Running git pull" |& tee -a $filename
 $unbuffer git pull |& tee -a $filename
@@ -55,7 +53,7 @@ source .env
 set +a
 
 
-echo "Starting application" |& tee -a $filename
-$unbuffer pm2 start $process_name |& tee -a $filename
-deactivate
+echo "Removing .updating file" |& tee -a $filename
+rm .updating
+
 echo "Deployment successful. Logs can be found in" $filename |& tee -a $filename
