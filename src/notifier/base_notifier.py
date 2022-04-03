@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from datetime import datetime
+from itertools import groupby
 from string import Template
 from typing import Optional, List, TypeVar, Tuple
 
@@ -8,6 +9,13 @@ from pydantic import BaseModel
 from src.db.models.notifications import NotificationOptions, InputField
 
 T = TypeVar('T', str, Optional[str])
+
+
+class BaseEmbedInputs(BaseModel):
+    @classmethod
+    def from_input_list(cls, input_fields: List[InputField]):
+        d = {i.name: i.value for i in input_fields}
+        return cls(**d)
 
 
 class NotificationMangaService(BaseModel):
@@ -78,6 +86,19 @@ class NotifierBase(ABC):
                           input_fields: List[InputField]
                           ) -> Tuple[int, bool]:
         raise NotImplementedError
+
+    @staticmethod
+    def get_chapters_grouped(chapters: List[NotificationChapter], options: NotificationOptions) -> List[List[NotificationChapter]]:
+        groups: List[List[NotificationChapter]]
+
+        if options.group_by_manga:
+            groups = []
+            for _, group_it in groupby(sorted(chapters, key=get_manga_id), key=get_manga_id):
+                groups.append(list(group_it))
+        else:
+            groups = [chapters]
+
+        return groups
 
     def format_string(self, msg_template: T, chapter: NotificationChapter) -> T:
         if not msg_template:

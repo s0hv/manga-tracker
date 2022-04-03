@@ -437,11 +437,15 @@ class UpdateScheduler:
 
                 input_fields = dbutil.get_notification_inputs(notification_id)
 
-                sent, success = notifier.send_notification(
-                    chapters_notif,
-                    notification,
-                    input_fields
-                )
+                try:
+                    sent, success = notifier.send_notification(
+                        chapters_notif,
+                        notification,
+                        input_fields
+                    )
+                except:
+                    sent = 0
+                    success = False
 
                 dbutil.update_notification_stats(
                     notification_id,

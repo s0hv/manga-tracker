@@ -10,3 +10,4 @@ class Status(enum.IntEnum):
 
 class NotificationType(enum.IntEnum):
     DiscordWebhook = 1
+    Webhook = 2
