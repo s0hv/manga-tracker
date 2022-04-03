@@ -45,15 +45,6 @@ describe('WebhookEditor', () => {
     </Root>
   );
 
-  beforeEach(() => {
-    // https://stackoverflow.com/a/60616862/6046713
-    global.document.createRange = () => ({
-      setStart: () => {},
-      setEnd: () => {},
-      getClientRects: () => [],
-    });
-  });
-
   it('Renders correctly', async () => {
     render(<Rendered notificationData={defaultNotificationDataNoManga} />);
 
