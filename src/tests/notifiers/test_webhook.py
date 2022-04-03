@@ -118,7 +118,7 @@ class TestWebhook(unittest.TestCase):
                 "ch": c.chapter_number
             }
         }
-        notifier.format_dict(d, c)
+        d = notifier.format_dict(d, c)
 
         self.assertDictEqual(d, expected)
 

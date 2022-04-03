@@ -38,7 +38,7 @@ class WebhookNotifier(NotifierBase):
             if isinstance(value, str):
                 d[key] = self.format_string(value, chapter)
             elif isinstance(value, dict):
-                self.format_dict(value, chapter, depth=depth+1)
+                d[key] = self.format_dict(value, chapter, depth=depth+1)
 
         return d
 
