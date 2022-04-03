@@ -32,7 +32,7 @@ beforeEach(() => {
   fetchMock.reset();
 });
 
-describe('DeleteNotificationButton', () => {
+describe('MangaSelector', () => {
   const testLabel = 'Search for manga';
 
   const Rendered = ({ selectedManga }) => (

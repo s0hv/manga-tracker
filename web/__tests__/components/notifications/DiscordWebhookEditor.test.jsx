@@ -83,17 +83,20 @@ const defaultNotificationDataNoManga = {
   ],
 };
 
-describe('DeleteNotificationButton', () => {
-  const Rendered = ({ notificationData }) => (
+describe('DiscordWebhookEditor', () => {
+  const Rendered = ({ notificationData, defaultExpanded = true }) => (
     <Root>
       <DiscordWebhookEditor
         notificationData={notificationData}
+        defaultExpanded={defaultExpanded}
       />
     </Root>
   );
 
   it('Renders correctly', async () => {
     render(<Rendered notificationData={defaultNotificationDataNoManga} />);
+
+    expect(screen.getByRole('heading', { name: /^discord webhook/i })).toBeInTheDocument();
 
     expect(screen.getByRole('textbox', { name: /^name$/i })).toBeInTheDocument();
     expect(screen.getByRole('textbox', { name: /^Webhook url/i })).toBeInTheDocument();
@@ -127,6 +130,34 @@ describe('DeleteNotificationButton', () => {
         [f.name]: f.value,
       }), {}),
     });
+  });
+
+  it('Renders correctly when collapsed', async () => {
+    render(<Rendered notificationData={defaultNotificationDataNoManga} defaultExpanded={false} />);
+
+    expect(screen.getByRole('heading', { name: /^discord webhook/i })).toBeInTheDocument();
+
+    expect(screen.getByRole('textbox', { name: /^name$/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^delete notification/i })).toBeInTheDocument();
+
+    expect(screen.queryByRole('textbox', { name: /^Webhook url/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('combobox', { name: /^Manga updates to notify on/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('checkbox', { name: /^use follows/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('textbox', { name: /^Webhook username/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('textbox', { name: /^Embed title/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('textbox', { name: /^Message$/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('textbox', { name: /^Embed url/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('textbox', { name: /^Webhook user avatar url/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('textbox', { name: /^Embed content/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('textbox', { name: /^Footer content/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('textbox', { name: /^Embed thumbnail/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('textbox', { name: /^Embed color/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^Save/i })).not.toBeInTheDocument();
+
+    expect(screen.queryByRole('checkbox', { name: /^Disabled$/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('checkbox', { name: /^Group by manga/i })).not.toBeInTheDocument();
+
+    expect(screen.queryByRole(/^formatting help/i)).not.toBeInTheDocument();
   });
 
   it('Does post request on save', async () => {
