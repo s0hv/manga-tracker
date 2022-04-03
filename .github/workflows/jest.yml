@@ -44,7 +44,7 @@ jobs:
           --health-retries 5
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     # Force https use since ssh does not work
     - run: 'git config --global url."https://github.com/".insteadOf ssh://git@github.com/'
     - run: 'git config --global url."https://".insteadOf ssh://'
