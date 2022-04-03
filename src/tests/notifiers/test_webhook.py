@@ -1,17 +1,29 @@
-
+import json
 import unittest
 from datetime import datetime
 from typing import List
 
+import pytest
 import responses
+from responses import matchers
 
 from src.db.models.notifications import InputField, NotificationOptions
-from src.notifier.base_notifier import NotificationChapter, \
-    NotificationMangaService, NotificationManga
-from src.notifier.webhook import DiscordEmbedWebhookNotifier, EmbedInputs
+from src.notifier.base_notifier import (
+    NotificationChapter, NotificationMangaService, NotificationManga
+)
+from src.notifier.webhook import WebhookNotifier, JsonFields
 
 
-class TestUtilities(unittest.TestCase):
+class TestWebhook(unittest.TestCase):
+    test_json: str = """{
+        "$CHAPTER_ARRAY": "chapters",
+        "$CHAPTER_FORMAT": {
+            "title": "$TITLE",
+            "manga": "$MANGA_TITLE",
+            "chapterNumber": "$CHAPTER_NUMBER"
+        }
+    }"""
+
     @staticmethod
     def get_notification_chapter(manga_id: int = 1) -> NotificationChapter:
         service = NotificationMangaService(
@@ -27,106 +39,118 @@ class TestUtilities(unittest.TestCase):
         )
 
     @staticmethod
-    def get_embed_inputs() -> EmbedInputs:
-        return EmbedInputs(
-            message='new chapter',
-            embed_title='$MANGA_TITLE',
-            username='test',
-            avatar_url='avatar',
-            embed_content='$TITLE - $CHAPTER_NUMBER',
-            url='$URL',
-            footer='$GROUP',
-            thumbnail='$MANGA_COVER',
-            color=155
-        )
-
-    @staticmethod
     def get_input_fields() -> List[InputField]:
         return [
-            InputField(name='message', value='new chapter', optional=True),
-            InputField(name='embed_title', value='$MANGA_TITLE', optional=False),
-            InputField(name='username', value='test', optional=True),
-            InputField(name='avatar_url', value='avatar', optional=True),
-            InputField(name='embed_content', value='$TITLE - $CHAPTER_NUMBER', optional=False),
-            InputField(name='url', value='$URL', optional=True),
-            InputField(name='footer', value='$GROUP', optional=True),
-            InputField(name='thumbnail', value='$MANGA_COVER', optional=True),
-            InputField(name='color', value='155', optional=True)
+            InputField(name='json', value=TestWebhook.test_json, optional=False)
         ]
 
-    def test_embed_fields_create_with_all_fields(self):
-        fields = self.get_input_fields()
-        embed_inputs = EmbedInputs.from_input_list(fields)
+    def create_matcher(self, chapters: List[NotificationChapter], chapters_key: str = 'chapters'):
+        return matchers.json_params_matcher({
+            chapters_key: list(map(lambda c: WebhookNotifier().format_dict(
+                    WebhookNotifier.validate_json(self.test_json)[JsonFields.CHAPTER_FORMAT],
+                    c
+                ), chapters))
 
-        # Make sure all fields were set
-        self.assertEqual(
-            len(embed_inputs.dict(exclude_defaults=True, exclude_unset=True)),
-            len(fields)
-        )
+          })
 
-    def test_embed_fields_create_with_required_fields(self):
-        fields = [
-            InputField(name='embed_title', value='embed_title', optional=False),
-            InputField(name='embed_content', value='embed_content', optional=False),
-        ]
-        embed_inputs = EmbedInputs.from_input_list(fields)
+    def test_validate_json(self):
+        notifier = WebhookNotifier()
 
-        # Make sure all fields were set
-        self.assertEqual(
-            len(embed_inputs.dict(exclude_defaults=True, exclude_unset=True)),
-            len(fields)
-        )
+        js = """{
+          "$CHAPTER_ARRAY": "test",
+          "$CHAPTER_FORMAT": {},
+          "customData": 10
+        }"""
 
-    def test_get_chapter_embed(self):
-        notifier = DiscordEmbedWebhookNotifier()
+        data = notifier.validate_json(js)
 
-        chapter = self.get_notification_chapter()
-        embed_inputs = self.get_embed_inputs()
+        self.assertDictEqual(json.loads(js), data)
 
-        embed = notifier.get_chapter_embed(chapter, embed_inputs)
+    def test_validate_json_without_array(self):
+        notifier = WebhookNotifier()
 
-        snapshot = {
-            'title': 'manga',
-            'description': 'title - 10.1',
-            'url': 'test',
-            'timestamp': '2022-03-21T19:34:42.042674',
-            'color': 155,
-            'hex_color': '33ccff',
-            'footer': {
-                'text': 'group name',
-                'icon_url': None,
-                'proxy_icon_url': None
-            },
-            'image': None,
-            'thumbnail': {
-                'url': 'cover',
-                'proxy_url': None,
-                'height': None,
-                'width': None
-            },
-            'video': None,
-            'provider': None,
-            'author': None,
-            'fields': []
+        with pytest.raises(ValueError):
+            notifier.validate_json("""{
+              "$CHAPTER_FORMAT": {}
+            }""")
+
+        with pytest.raises(ValueError):
+            notifier.validate_json("""{
+              "$CHAPTER_ARRAY": 1,
+              "$CHAPTER_FORMAT": {}
+            }""")
+
+    def test_validate_json_without_format(self):
+        notifier = WebhookNotifier()
+
+        with pytest.raises(ValueError):
+            notifier.validate_json("""{
+              "$CHAPTER_ARRAY": "a"
+            }""")
+
+        with pytest.raises(ValueError):
+            notifier.validate_json("""{
+              "$CHAPTER_ARRAY": "a",
+              "$CHAPTER_FORMAT": "test"
+            }""")
+
+    def test_validate_json_with_invalid_json(self):
+        notifier = WebhookNotifier()
+
+        with pytest.raises(json.JSONDecodeError):
+            notifier.validate_json("""{
+              "$CHAPTER_ARRAY": "a"
+            """)
+
+    def test_format_dict(self):
+        notifier = WebhookNotifier()
+
+        c = self.get_notification_chapter()
+        d = {
+            "title": "$TITLE",
+            "inner": {
+                "ch": "$CHAPTER_NUMBER"
+            }
         }
+        expected = {
+            "title": c.title,
+            "inner": {
+                "ch": c.chapter_number
+            }
+        }
+        notifier.format_dict(d, c)
 
-        # The webhook lib uses __dict__ internally to serialize embed objects
-        self.assertDictEqual(embed.__dict__, snapshot)
+        self.assertDictEqual(d, expected)
+
+    def test_format_dict_max_recursion_throws(self):
+        notifier = WebhookNotifier()
+
+        c = self.get_notification_chapter()
+        d = {"test": "a"}
+        d["recursion"] = d
+
+        with pytest.raises(ValueError, match='Dict recursion exceeded max depth'):
+            notifier.format_dict(d, c)
 
     @responses.activate
     def test_webhook_called(self):
-        test_url = 'https://discord.com/webhook'
-        responses.add(responses.POST, test_url,
-                      body='OK')
-
-        notifier = DiscordEmbedWebhookNotifier()
-
+        notifier = WebhookNotifier()
         chapter = self.get_notification_chapter()
+        chapter2 = self.get_notification_chapter(2)
+
+        chapters = [chapter, chapter2]
+
+        test_url = 'https://localhost:3000'
+        responses.add(responses.POST, test_url,
+                      body='OK',
+                      match=[self.create_matcher(chapters)]
+                      )
+
         options = NotificationOptions(destination=test_url, group_by_manga=False)
         input_fields = self.get_input_fields()
 
         expected_calls = 1
-        sent, success = notifier.send_notification([chapter], options=options, input_fields=input_fields)
+        sent, success = notifier.send_notification(chapters, options=options, input_fields=input_fields)
 
         self.assertEqual(len(responses.calls), expected_calls)
         self.assertEqual(sent, expected_calls)
@@ -134,11 +158,11 @@ class TestUtilities(unittest.TestCase):
 
     @responses.activate
     def test_webhook_called_group_by_manga(self):
-        test_url = 'https://discord.com/webhook'
+        test_url = 'https://localhost:3000'
         responses.add(responses.POST, test_url,
                       body='OK')
 
-        notifier = DiscordEmbedWebhookNotifier()
+        notifier = WebhookNotifier()
 
         chapters = [
             self.get_notification_chapter(),
@@ -158,11 +182,11 @@ class TestUtilities(unittest.TestCase):
 
     @responses.activate
     def test_webhook_called_with_error(self):
-        test_url = 'https://discord.com/webhook'
+        test_url = 'https://localhost:3000'
         responses.add(responses.POST, test_url,
                       status=400)
 
-        notifier = DiscordEmbedWebhookNotifier()
+        notifier = WebhookNotifier()
 
         chapters = [
             self.get_notification_chapter(),
