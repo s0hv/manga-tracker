@@ -91,7 +91,7 @@ module.exports = app => {
   app.post('/api/notifications', requiresUser, [
     validateUser(),
     databaseIdValidation(body('notificationId')).optional({ nullable: true }),
-    body('notificationType').isInt({ min: 1, max: 1 }),
+    body('notificationType').isInt({ min: 1, max: 2 }),
     body('useFollows').isBoolean({ strict: true }).default(false),
 
     body('groupByManga').isBoolean({ strict: true }),

@@ -399,10 +399,11 @@ components:
 
     notificationType:
       type: integer
-      enum: [ 1 ]
+      enum: [ 1, 2 ]
       description: >
         Notification types:
          * `1` - Discord webhook
+         * `2` - Generic json webhook
 
     userNotification:
       description: An object containing information about a notification created by a user.

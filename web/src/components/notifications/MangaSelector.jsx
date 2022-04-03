@@ -24,7 +24,7 @@ const MangaSelector = ({
   useFollowsName,
   ...autocompleteProps
 }) => {
-  const [query, setQuery] = useState(' ');
+  const [query, setQuery] = useState('');
   const { input: mangaInput } = useField(name);
   const [values, setValues] = useState(mangaInput.value || []);
 
@@ -70,6 +70,15 @@ const MangaSelector = ({
 
   const { input } = useField(useFollowsName);
 
+  const hasError = useCallback(
+    (value, { [useFollowsName]: useFollows }) => {
+      if (useFollows ? false : !(value?.length > 0)) {
+        return 'Must select at least one manga or use follows';
+      }
+    },
+    [useFollowsName]
+  );
+
   return (
     <Box sx={{
       display: 'flex',
@@ -90,6 +99,9 @@ const MangaSelector = ({
         getOptionValue={getOptionValue}
         getOptionLabel={getOptionLabel}
         isOptionEqualToValue={optionEquals}
+        fieldProps={{
+          validate: hasError,
+        }}
         disableCloseOnSelect
         multiple
         freeSolo

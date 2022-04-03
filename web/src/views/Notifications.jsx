@@ -8,22 +8,20 @@ import {
   InputLabel,
   FormControl,
 } from '@mui/material';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import { useSnackbar } from 'notistack';
-import { defaultData } from '../components/notifications/DiscordWebhookEditor';
 import { getNotifications } from '../api/notifications';
 import { NotificationTypes, QueryKeys } from '../utils/constants';
+import { defaultDataForType } from '../components/notifications/defaultDatas';
 
 
 const DiscordWebhookEditor = dynamic(() => import('../components/notifications/DiscordWebhookEditor'));
+const WebhookEditor = dynamic(() => import('../components/notifications/WebhookEditor'));
 
 const NotificationComponents = {
   [NotificationTypes.DiscordWebhook]: DiscordWebhookEditor,
-};
-
-const defaultDataForType = {
-  [NotificationTypes.DiscordWebhook]: defaultData,
+  [NotificationTypes.Webhook]: WebhookEditor,
 };
 
 const queryKey = QueryKeys.NotificationsList;
@@ -45,6 +43,8 @@ const Notifications = () => {
     queryClient.setQueryData(queryKey, [defaultDataForType[notifType], ...notificationData]);
   }, [notifType, notificationData, queryClient]);
 
+  const defaultExpanded = useMemo(() => notificationData?.length < 3, [notificationData?.length]);
+
   return (
     <Container>
       <Box sx={{
@@ -59,11 +59,12 @@ const Notifications = () => {
           <Select
             labelId='selectLabelId'
             value={notifType}
-            onChange={(e, value) => setNotifType(value)}
+            onChange={e => setNotifType(e.target.value)}
             label='Notification type to create'
             sx={{ m: 1 }}
           >
             <MenuItem value={NotificationTypes.DiscordWebhook}>Discord webhook</MenuItem>
+            <MenuItem value={NotificationTypes.Webhook}>Generic webhook</MenuItem>
           </Select>
         </FormControl>
 
@@ -80,7 +81,11 @@ const Notifications = () => {
         const Component = NotificationComponents[notif.notificationType];
         if (!Component) return <span>Invalid notification type {notif.notificationType}</span>;
         return (
-          <Component notificationData={notif} key={notif.notificationId || 'temp'} />
+          <Component
+            notificationData={notif}
+            defaultExpanded={!notif.notificationId || defaultExpanded}
+            key={notif.notificationId || 'temp'}
+          />
         );
       })}
     </Container>

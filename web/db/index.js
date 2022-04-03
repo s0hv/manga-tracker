@@ -37,7 +37,6 @@ const pgp = require('pg-promise')({
 
   // Error logging
   error(err, e) {
-    queryLogger.info(e, 'Timeout debug');
     queryLogger.error(err, e.query);
   },
 });

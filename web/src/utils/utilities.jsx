@@ -245,3 +245,42 @@ export const groupBy = (arr, getKey, { keepOrder = true } = {}) => {
  * @param {String} s
  */
 export const snakeCase = (s) => s.replace(/[A-Z]/g, letter => `_${letter[0].toLowerCase()}`);
+
+export const buildNotificationData = (values) => ({
+  notificationId: values.notificationId,
+  useFollows: values.useFollows,
+
+  groupByManga: values.groupByManga,
+  destination: values.destination,
+  name: values.name,
+
+  disabled: values.disabled,
+
+  manga: values.useFollows ?
+    undefined :
+    values.manga.map(m => ({ mangaId: m.mangaId, serviceId: m.serviceId })),
+});
+
+
+/**
+ * Field
+ * @typedef {Object} Field
+ * @property {string} name Name of the field
+ * @property {string} value Value of the field
+ * @property {boolean} optional Indicates whether the field is optional
+ */
+
+/**
+ *
+ * @param fields {Array<Field>} List of fields
+ * @param property {string} Which property of the field to map
+ * @returns {Object}
+ */
+export const mapNotificationFields = (fields, property = 'value') => {
+  if (!Array.isArray(fields)) return {};
+
+  return fields.reduce((prev, curr) => ({
+    ...prev,
+    [curr.name]: curr[property],
+  }), {});
+};
