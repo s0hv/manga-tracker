@@ -17,6 +17,9 @@ const Root = styled('div')({
 
 const FooterContainer = styled('div')(({ theme }) => ({
   paddingTop: theme.spacing(10),
+  position: 'sticky',
+  left: 0,
+  overflow: 'auto',
 }));
 
 const FooterStyled = styled('footer')({

@@ -8,6 +8,7 @@ import {
   InputLabel,
   FormControl,
 } from '@mui/material';
+import { styled } from '@mui/styles';
 import { useState, useCallback, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import { useSnackbar } from 'notistack';
@@ -15,6 +16,18 @@ import { getNotifications } from '../api/notifications';
 import { NotificationTypes, QueryKeys } from '../utils/constants';
 import { defaultDataForType } from '../components/notifications/defaultDatas';
 
+const ResponsiveBox = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  paddingTop: theme.spacing(3),
+  [theme.breakpoints.down('sm')]: {
+    width: '100vw',
+    position: 'sticky',
+    left: 0,
+    overflow: 'auto',
+  },
+}));
 
 const DiscordWebhookEditor = dynamic(() => import('../components/notifications/DiscordWebhookEditor'));
 const WebhookEditor = dynamic(() => import('../components/notifications/WebhookEditor'));
@@ -46,14 +59,11 @@ const Notifications = () => {
   const defaultExpanded = useMemo(() => notificationData?.length < 3, [notificationData?.length]);
 
   return (
-    <Container>
-      <Box sx={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        mt: 2,
-      }}
-      >
+    <Container sx={{
+      width: 'min-content',
+    }}
+    >
+      <ResponsiveBox>
         <FormControl>
           <InputLabel id='selectLabelId'>Notification type to create</InputLabel>
           <Select
@@ -76,7 +86,7 @@ const Notifications = () => {
         >
           Create new notification
         </Button>
-      </Box>
+      </ResponsiveBox>
       {!isLoading && Array.isArray(notificationData) && notificationData.map(notif => {
         const Component = NotificationComponents[notif.notificationType];
         if (!Component) return <span>Invalid notification type {notif.notificationType}</span>;
