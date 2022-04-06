@@ -38,7 +38,8 @@ const classes = {
 
 const Root = styled('div')(({ theme }) => ({
   flexGrow: 1,
-  position: 'static',
+  position: 'sticky',
+  overflow: 'auto',
   width: '100%',
   minWidth: '300px',
   left: 0,
@@ -133,7 +134,7 @@ function TopBar(props) {
 
   return (
     <Root>
-      <AppBar position='static'>
+      <AppBar position='sticky'>
         <Toolbar>
           {/* eslint-disable-next-line @next/next/link-passhref */}
           <NextLink href='/' prefetch={false}>

@@ -9,28 +9,28 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
-
 import { styled } from '@mui/material/styles';
-
 import {
   Edit as EditIcon,
   Settings as SettingsIcon,
 } from '@mui/icons-material';
-
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+
 import { useCSRF } from '../utils/csrf';
 import { useUser } from '../utils/useUser';
 import { followUnfollow } from '../utils/utilities';
 import ChapterList from './ChapterList';
 import MangaAliases from './MangaAliases';
 import MangaInfo from './MangaInfo';
-
 import MangaSourceList from './MangaSourceList';
-import ReleaseHeatmap from './ReleaseHeatmap';
 import { TabPanelCustom } from './utils/TabPanelCustom';
 import { getMangaReleases } from '../api/chapter';
 import { MangaCover } from './MangaCover';
+
+const ReleaseHeatmap = dynamic(() => import('./ReleaseHeatmap'));
+
 
 const verticalBreakpoint = 910;
 
