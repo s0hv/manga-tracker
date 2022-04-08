@@ -24,7 +24,7 @@ beforeEach(() => {
   fetchMock.reset();
 });
 
-describe('DeleteNotificationButton', () => {
+describe('Notifications view', () => {
   const Rendered = () => (
     <Root>
       <Notifications />
