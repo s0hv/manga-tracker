@@ -8,7 +8,7 @@ import {
   InputLabel,
   FormControl,
 } from '@mui/material';
-import { styled } from '@mui/styles';
+import { styled } from '@mui/material/styles';
 import { useState, useCallback, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import { useSnackbar } from 'notistack';
