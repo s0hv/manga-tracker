@@ -2,13 +2,16 @@ import json
 import os
 import unittest
 
+import pytest
+
 from src.utils.utilities import (universal_chapter_regex, match_title,
-                                 parse_chapter_number, round_seconds)
+                                 parse_chapter_number, round_seconds,
+                                 remove_chapter_prefix)
 
 
 class TestUtilities(unittest.TestCase):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def setUp(self) -> None:
+        super().setUp()
         with open(os.path.join(os.path.dirname(__file__), 'utilities.json'), encoding='utf-8') as f:
             self.test_cases = json.load(f)
 
@@ -38,29 +41,42 @@ class TestUtilities(unittest.TestCase):
             self.assertDictEqual(match, correct,
                                  f"Failed to parse {case['string']} correctly")
 
-    def test_parse_chapter_number(self):
-        data = [
-            ('1', ('1', None)),
-            ('abc', (None, None)),
-            ('1.5', ('1', '5')),
-        ]
 
-        for chapter_number, correct in data:
-            self.assertTupleEqual(parse_chapter_number(chapter_number), correct)
+@pytest.mark.parametrize('chapter_number, correct', [
+    ('1', ('1', None)),
+    ('abc', (None, None)),
+    ('1.5', ('1', '5')),
+])
+def test_parse_chapter_number(chapter_number, correct):
+    assert parse_chapter_number(chapter_number) == correct
 
-    def test_round_seconds(self):
-        data = [
-            ((0, 1), 0),
-            ((50, 100), 0),
-            ((51, 100), 100),
-            ((150, 100), 100),
-            ((151, 100), 200),
-        ]
 
-        for args, correct in data:
-            self.assertEqual(round_seconds(*args), correct,
-                             msg=f'round_seconds({", ".join(map(str, args))}) did not equal {correct}')
+@pytest.mark.parametrize('args, correct', [
+    ((0, 1), 0),
+    ((50, 100), 0),
+    ((51, 100), 100),
+    ((150, 100), 100),
+    ((151, 100), 200),
+])
+def test_round_seconds(args, correct):
+    assert round_seconds(*args) == correct, f'round_seconds({", ".join(map(str, args))}) did not equal {correct}'
+
+
+@pytest.mark.parametrize('title, correct', [
+    ('chapter 1 Test', 'Test'),
+    ('chapter 1     Test', 'Test'),
+    ('CHAPTER 10.1', ''),
+    ('test chapter 1', 'test chapter 1'),
+    ('Chapter 1.', 'Chapter 1.'),
+    ('Chapter 1', ''),
+    ('test', 'test'),
+    ('Chapter 1: Chapter title', 'Chapter title'),
+    ('Chapter 1 - Chapter title', 'Chapter title'),
+    ('Chapter 1- Chapter title', 'Chapter title'),
+])
+def test_remove_chapter_prefix(title, correct):
+    assert remove_chapter_prefix(title) == correct
 
 
 if __name__ == '__main__':
-    unittest.main()
+    pytest.main()
