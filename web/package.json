@@ -83,7 +83,7 @@
     "snakecase-keys": "^5.1.0",
     "styled-components": "^5.3.5",
     "supports-color": "^9.2.2",
-    "swagger-jsdoc": "^6.1.0",
+    "swagger-jsdoc": "^6.2.0",
     "yaml": "^1.10.2",
     "yup": "^0.32.9"
   },
