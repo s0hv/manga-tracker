@@ -274,7 +274,7 @@ class ChapterWrapper(BaseChapter):
 
     @property
     def title(self) -> str:
-        return self.chapter_title or f'Chapter {self.chapter_number}'
+        return self.chapter_title or ''
 
     def to_dict(self) -> dict:
         return {
@@ -451,7 +451,7 @@ class MangaPlus(BaseScraperWhole):
         new_chapters: List[ChapterModel] = []
         for chapter in entries:
             new_chapters.append(
-                ChapterMapper.base_chapter_to_db(chapter, manga_id, service_id)
+                ChapterMapper.base_chapter_to_db(chapter, manga_id, service_id, strip_chapter_prefix=True)
             )
 
         now = datetime.utcnow()

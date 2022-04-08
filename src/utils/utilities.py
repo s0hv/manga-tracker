@@ -128,3 +128,7 @@ def inject_service_values(dbutil: 'DbUtil'):
         Service = SCRAPERS_ID.get(config.service_id)
         if Service is not None:
             Service.CONFIG = config
+
+
+def remove_chapter_prefix(title: str):
+    return re.sub(r'^chapter \d+(\.\d+)?( *[:-]? +|$)', '', title, flags=re.I)

@@ -1,3 +1,4 @@
+import inspect
 import time
 
 import pytest
@@ -18,7 +19,7 @@ def setup_tests(request):
 
     # Initiate database only if it is required for the tests we are running
     for item in request.node.items:
-        if issubclass(item.cls, BaseTestClasses.DatabaseTestCase):
+        if inspect.isclass(item.cls) and issubclass(item.cls, BaseTestClasses.DatabaseTestCase):
             requires_database = True
             break
 
