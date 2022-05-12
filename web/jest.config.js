@@ -29,7 +29,7 @@ const baseConfig = {
     '^.+\\.(js|jsx|ts|tsx)$': '<rootDir>/node_modules/babel-jest',
   },
   transformIgnorePatterns: [
-    '/node_modules/(?!(react-frappe-charts|frappe-charts|swagger-jsdoc)/)',
+    '/node_modules/(?!(react-frappe-charts|frappe-charts|swagger-jsdoc|jsonpath-plus|react-colorful)/)',
     '^.+\\.module\\.(css|sass|scss)$',
   ],
   moduleNameMapper: {
@@ -119,7 +119,7 @@ const baseConfig = {
   // preset: undefined,
 
   // Use this configuration option to add custom reporters to Jest
-  // reporters: undefined,
+  reporters: ['default', 'github-actions'],
 
   // Automatically reset mock state between every test
   // resetMocks: false,
