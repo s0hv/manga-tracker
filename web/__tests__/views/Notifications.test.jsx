@@ -74,7 +74,11 @@ describe('Notifications view', () => {
 
     const user = userEvent.setup();
 
-    await user.click(screen.getByRole('button', { name: /create new notification/i }));
+
+    await act(async () => {
+      await user.click(screen.getByRole('button', { name: /create new notification/i }));
+    });
+
     expect(screen.getByRole('textbox', { name: /webhook url/i })).toBeInTheDocument();
   });
 });
