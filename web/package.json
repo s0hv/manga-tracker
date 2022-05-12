@@ -19,7 +19,7 @@
   },
   "sideEffects": false,
   "dependencies": {
-    "@babel/core": "^7.17.8",
+    "@babel/core": "^7.17.10",
     "@babel/plugin-proposal-throw-expressions": "^7.12.13",
     "@codemirror/basic-setup": "^0.19.3",
     "@codemirror/lang-json": "^0.19.2",
