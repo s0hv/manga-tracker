@@ -5,6 +5,8 @@ import * as matchers from 'jest-extended';
 import request from 'supertest';
 import { csrfToken } from './__tests__/constants';
 
+// Still produces warnings for some reason
+globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 
 expect.extend(matchers);
 require('dotenv').config({ path: '../.env' });
