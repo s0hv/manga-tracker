@@ -1060,11 +1060,11 @@ class DbUtil:
         sql = '''
             SELECT un.notification_id, manga_id, service_id FROM user_notifications un
             INNER JOIN notification_manga nm ON un.notification_id = nm.notification_id
-            WHERE NOT use_follows AND manga_id=ANY(%(manga_ids)s)
+            WHERE NOT un.disabled AND NOT use_follows AND manga_id=ANY(%(manga_ids)s)
             UNION 
             SELECT notification_id, uf.manga_id, uf.service_id FROM user_notifications un
             INNER JOIN user_follows uf ON un.user_id = uf.user_id
-            WHERE un.use_follows AND manga_id=ANY(%(manga_ids)s)
+            WHERE NOT un.disabled AND un.use_follows AND manga_id=ANY(%(manga_ids)s)
         '''
 
         cur.execute(sql, {'manga_ids': manga_ids})
