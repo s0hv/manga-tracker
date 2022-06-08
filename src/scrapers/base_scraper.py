@@ -285,7 +285,7 @@ class BaseScraper(abc.ABC):
     def scrape_series(self, title_id: str, service_id: int, manga_id: int, feed_url: str) -> Optional[Set[int]]:
         """
         Returns:
-            Boolean that tells if the manga was updated (True) or not (False).
+            Set of new chapter ids.
             Returns None if updating failed
         """
         raise NotImplementedError
