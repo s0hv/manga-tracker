@@ -313,7 +313,10 @@ class MangaDex(BaseScraperWhole):
 
         entries = self.get_new_entries(service_id, parsed)
         if not entries:
-            return None
+            return ScrapeServiceRetVal(
+                manga_ids=set(),
+                chapter_ids=set()
+            )
 
         # Add group ids to chapters
         entries = self.map_and_add_group_ids(list(entries))
