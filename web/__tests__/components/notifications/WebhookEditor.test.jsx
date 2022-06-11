@@ -12,7 +12,7 @@ import {
 import WebhookEditor from '../../../src/components/notifications/WebhookEditor';
 import { NotificationTypes } from '../../../src/utils/constants';
 import {
-  defaultDataForType
+  defaultDataForType,
 } from '../../../src/components/notifications/defaultDatas';
 
 
