@@ -28,7 +28,7 @@ class NotificationsMapper:
                 title=chapter.title,
                 chapter_number=chapter.full_chapter_number(),
                 release_date=chapter.release_date,
-                url=found_manga.service.chapter_url_format.format(chapter.chapter_identifier),
+                url=found_manga.service.chapter_url_format.format(chapter.chapter_identifier, title_id=found_manga.title_id),
                 group=chapter.group or found_manga.service.name
             ))
 
@@ -56,5 +56,6 @@ class NotificationsMapper:
             service=service,
             url=service.manga_url_format.format(manga.title_id),
             manga_id=manga.manga_id,
-            cover=manga.cover
+            cover=manga.cover,
+            title_id=manga.title_id
         )

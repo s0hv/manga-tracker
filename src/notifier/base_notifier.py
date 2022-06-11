@@ -37,6 +37,7 @@ class NotificationManga(BaseModel):
     cover: Optional[str]
     url: str
     manga_id: int
+    title_id: str
 
     def to_dict(self, prefix: str = 'MANGA_'):
         return {

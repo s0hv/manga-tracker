@@ -41,13 +41,14 @@ describe('formatChapterTitle', () => {
 
 describe('formatChapterUrl', () => {
   it('Should return undefined if chapterUrlFormat is falsy', () => {
-    expect(formatChapterUrl('', 'abc')).toBeUndefined();
-    expect(formatChapterUrl(undefined, 'abc')).toBeUndefined();
-    expect(formatChapterUrl(null, 'abc')).toBeUndefined();
+    expect(formatChapterUrl('', 'abc', 'id')).toBeUndefined();
+    expect(formatChapterUrl(undefined, 'abc', 'id')).toBeUndefined();
+    expect(formatChapterUrl(null, 'abc', 'id')).toBeUndefined();
   });
 
   it('Should replace {} with second argument', () => {
-    expect(formatChapterUrl('{}', 'abc')).toBe('abc');
-    expect(formatChapterUrl('abc/{}/x', 'defg')).toMatchInlineSnapshot(`"abc/defg/x"`);
+    expect(formatChapterUrl('{}', 'abc', 'testId')).toBe('abc');
+    expect(formatChapterUrl('abc/{}/x', 'defg', 'testId')).toMatchInlineSnapshot(`"abc/defg/x"`);
+    expect(formatChapterUrl('{title_id}/{}/x', 'defg', 'testId')).toMatchInlineSnapshot(`"testId/defg/x"`);
   });
 });

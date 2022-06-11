@@ -18,7 +18,7 @@ function createFeed(rows) {
     feed.item({
       title: row.title,
       guid: row.chapterId,
-      url: row.chapterUrlFormat.replace('{}', row.chapterIdentifier),
+      url: row.chapterUrlFormat.replace('{}', row.chapterIdentifier).replace('{title_id}', row.titleId),
       description: `${row.mangaTitle} - Chapter ${row.chapterNumber}${row.chapterDecimal ? '.' + row.chapterDecimal : ''}`,
       author: row.group,
       pubDate: row.releaseDate,

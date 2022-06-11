@@ -18,14 +18,16 @@ module.exports.getLatestChapters = (limit, offset) => {
                     chapter_decimal,
                     release_date,
                     g.name as "group",
-                    service_id,
+                    chapters.service_id,
                     chapter_identifier,
                     m.title as manga,
                     m.manga_id,
+                    ms.title_id,
                     mi.cover
                 FROM chapters
                 INNER JOIN groups g ON g.group_id = chapters.group_id
                 INNER JOIN manga m ON chapters.manga_id = m.manga_id
+                INNER JOIN manga_service ms ON chapters.manga_id = ms.manga_id AND chapters.service_id=ms.service_id
                 LEFT JOIN manga_info mi ON m.manga_id = mi.manga_id
                 ORDER BY release_date DESC
                 LIMIT $1 ${offset ? 'OFFSET $2' : ''}`;

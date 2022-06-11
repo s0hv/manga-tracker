@@ -109,9 +109,9 @@ function Manga(props) {
   const [editing, setEditing] = useState(false);
   const startEditing = useCallback(() => setEditing(!editing), [editing]);
 
-  const serviceUrlFormats = useMemo(() => {
+  const serviceMangaData = useMemo(() => {
     const serviceMap = {};
-    services.forEach(service => { serviceMap[service.serviceId] = service.urlFormat });
+    services.forEach(service => { serviceMap[service.serviceId] = { urlFormat: service.urlFormat, titleId: service.titleId } });
     return serviceMap;
   }, [services]);
 
@@ -184,7 +184,7 @@ function Manga(props) {
         <TabPanelCustom value={activeTab} index={0} noRerenderOnChange>
           <ChapterList
             editable={editing}
-            serviceUrlFormats={serviceUrlFormats}
+            serviceMangaData={serviceMangaData}
             mangaId={manga.mangaId}
           />
         </TabPanelCustom>

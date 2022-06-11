@@ -7,7 +7,14 @@ export const formatChapterTitle = ({ title, chapterNumber, chapterDecimal }) => 
   return `${prefix} – ${title}`;
 };
 
-export const formatChapterUrl = (chapterUrlFormat, chapterIdentifier) => (chapterUrlFormat ?
-  chapterUrlFormat.replace('{}', chapterIdentifier) :
+/**
+ * Format chapter url
+ * @param {string?} chapterUrlFormat
+ * @param {string} chapterIdentifier
+ * @param {string} titleId
+ * @returns {*|undefined}
+ */
+export const formatChapterUrl = (chapterUrlFormat, chapterIdentifier, titleId='') => (chapterUrlFormat ?
+  chapterUrlFormat.replace('{}', chapterIdentifier).replace('{title_id}', titleId) :
   undefined
 );

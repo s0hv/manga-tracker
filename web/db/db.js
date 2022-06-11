@@ -37,6 +37,7 @@ function getLatestReleases(serviceId, mangaId, userUUID) {
                c.chapter_id,
                m.title as manga_title,
                m.manga_id,
+               ms.title_id,
                m.release_interval,
                c.title,
                c.chapter_number,
@@ -50,6 +51,7 @@ function getLatestReleases(serviceId, mangaId, userUUID) {
                mi.cover
         FROM chapters_filtered c 
             INNER JOIN manga m on c.manga_id = m.manga_id
+            INNER JOIN manga_service ms on c.manga_id = ms.manga_id AND ms.service_id = c.service_id
             INNER JOIN services s on c.service_id = s.service_id
             LEFT JOIN manga_info mi ON m.manga_id = mi.manga_id
         WHERE c.release_date > NOW() - INTERVAL '1 hour'
@@ -58,6 +60,7 @@ function getLatestReleases(serviceId, mangaId, userUUID) {
                       c.chapter_id,
                       m.title as manga_title,
                       m.manga_id,
+                      ms.title_id,
                       m.release_interval,
                       c.title,
                       c.chapter_number,
@@ -71,6 +74,7 @@ function getLatestReleases(serviceId, mangaId, userUUID) {
                       mi.cover
               FROM chapters_filtered c
                   INNER JOIN manga m on c.manga_id = m.manga_id
+                  INNER JOIN manga_service ms on c.manga_id = ms.manga_id AND ms.service_id = c.service_id
                   INNER JOIN services s on c.service_id = s.service_id
                   LEFT JOIN manga_info mi ON m.manga_id = mi.manga_id
               ORDER BY release_date DESC, chapter_number DESC
