@@ -4,12 +4,11 @@
   "private": true,
   "license": "MIT",
   "engines": {
-    "node": "^14"
+    "node": "^16"
   },
   "dependencies": {
     "db-migrate": "^0.11.13",
-    "db-migrate-pg": "^1.2.2",
-    "nodemon": "^2.0.15"
+    "db-migrate-pg": "^1.2.2"
   },
   "scripts": {
     "postinstall": "cd web && npm install",

@@ -10,6 +10,7 @@ from typing import (Optional, TYPE_CHECKING, ClassVar, Set, Dict, List,
 
 import psycopg2
 import pydantic
+import requests
 from psycopg2.extensions import connection as Connection
 from pydantic import BaseModel
 
@@ -405,6 +406,19 @@ class BaseScraper(abc.ABC):
 
         return entries
 
+    def fetch_url(self, url: str, headers: Dict[str, str] = None) -> Optional[requests.Response]:
+        try:
+            r = requests.get(url, headers=headers)
+        except requests.RequestException:
+            logger.exception(f'Failed to fetch {self.__class__.__name__} url {url}')
+            return None
+
+        if not r.ok:
+            logger.error(f'Failed to fetch {self.__class__.__name__} url {url}. HTTP {r.status_code}')
+            return None
+
+        return r
+
 
 class BaseScraperWhole(BaseScraper, ABC):
     def add_service(self) -> Optional[int]:
@@ -430,7 +444,7 @@ class BaseScraperWhole(BaseScraper, ABC):
         except psycopg2.Error:
             logger.exception(f'Failed to update service {service_id}')
 
-    def handle_adding_chapters(self, entries: List[ScraperChapter], service_id: int) -> Optional[ScrapeServiceRetVal]:
+    def handle_adding_chapters(self, entries: Collection[ScraperChapter], service_id: int) -> Optional[ScrapeServiceRetVal]:
         """
         Given a list of parsed chapters this method will filter out already added chapters,
         add new manga and check for duplicate title, add the new chapters and return the updated manga ids
