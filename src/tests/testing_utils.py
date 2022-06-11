@@ -200,6 +200,10 @@ class BaseTestClasses:
 
             return chapters
 
+        def delete_chapters(self, service_id: int):
+            self.dbutil.execute('DELETE FROM chapters WHERE service_id=%s',
+                                (service_id,))
+
         def assertChapterEqualsRow(self, chapter: 'Chapter', row: DictRow) -> None:
             pairs = [
                 ('chapter_title', 'title'),
@@ -300,19 +304,30 @@ class BaseTestClasses:
                 self.assertDbChaptersEqual(chapter, expect, include_id=include_id)
 
     class ModelAssertions(unittest.TestCase):
-        def assertChaptersEqual(self, a: Union[BaseChapter, 'ChapterTestModel'],
+        def assertChaptersEqual(self, a: Union[BaseChapter, 'ChapterTestModel', DbChapter],
                                 b: Union[BaseChapter, 'ChapterTestModel'], ignore_date: bool = False):
-            self.assertEqual(a.chapter_title, b.chapter_title, msg=f'Chapter titles not equal for {a.chapter_identifier}')
-            self.assertEqual(a.chapter_number, b.chapter_number, msg=f'Chapter numbers not equal for {a.chapter_identifier}')
-            self.assertEqual(a.volume, b.volume, msg=f'Chapter volumes not equal for {a.chapter_identifier}')
-            self.assertEqual(a.decimal, b.decimal, msg=f'Chapter decimal numbers not equal for {a.chapter_identifier}')
-            if not ignore_date:
-                self.assertEqual(a.release_date, b.release_date, msg=f'Chapter release dates not equal for {a.chapter_identifier}')
+
+            if isinstance(a, DbChapter):
+                self.assertEqual(a.chapter_number, b.chapter_number, msg=f'Chapter numbers not equal for {a.chapter_identifier}')
+                self.assertEqual(a.chapter_decimal, b.decimal, msg=f'Chapter decimal numbers not equal for {a.chapter_identifier}')
+
+                if not ignore_date:
+                    self.assertEqual(date_fix(a.release_date), b.release_date, msg=f'Chapter release dates not equal for {a.chapter_identifier}')
+
+            else:
+                self.assertEqual(a.chapter_title, b.chapter_title, msg=f'Chapter titles not equal for {a.chapter_identifier}')
+                self.assertEqual(a.volume, b.volume, msg=f'Chapter volumes not equal for {a.chapter_identifier}')
+                self.assertEqual(a.decimal, b.decimal, msg=f'Chapter decimal numbers not equal for {a.chapter_identifier}')
+                self.assertEqual(a.title_id, b.title_id, msg=f'Manga title ids not equal for {a.chapter_identifier}')
+                self.assertEqual(a.manga_title, b.manga_title, msg=f'Manga titles not equal for {a.chapter_identifier}')
+                self.assertEqual(a.manga_url, b.manga_url, msg=f'Manga urls not equal for {a.chapter_identifier}')
+                self.assertEqual(a.group, b.group, msg=f'Chapter groups not equal for {a.chapter_identifier}')
+
+                if not ignore_date:
+                    self.assertEqual(a.release_date, b.release_date, msg=f'Chapter release dates not equal for {a.chapter_identifier}')
+
             self.assertEqual(a.chapter_identifier, b.chapter_identifier, msg=f'Chapter identifiers not equal for {a.chapter_identifier}')
-            self.assertEqual(a.title_id, b.title_id, msg=f'Manga title ids not equal for {a.chapter_identifier}')
-            self.assertEqual(a.manga_title, b.manga_title, msg=f'Manga titles not equal for {a.chapter_identifier}')
-            self.assertEqual(a.manga_url, b.manga_url, msg=f'Manga urls not equal for {a.chapter_identifier}')
-            self.assertEqual(a.group, b.group, msg=f'Chapter groups not equal for {a.chapter_identifier}')
+
             self.assertEqual(a.title, b.title, msg=f'Chapter titles not equal for {a.chapter_identifier}')
             self.assertEqual(a.group_id, b.group_id, msg=f'Group ids are not equal for {a.chapter_identifier}')
 

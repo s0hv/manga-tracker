@@ -141,9 +141,6 @@ class ComikeyTest(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsserti
         'test-title': 'test-title/1'
     }
 
-    def delete_chapters(self):
-        self.dbutil.execute('DELETE FROM chapters WHERE service_id=%s', (self.comikey.ID,))
-
     @classmethod
     def setUpClass(cls) -> None:
         super(ComikeyTest, cls).setUpClass()
@@ -196,7 +193,7 @@ class ComikeyTest(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsserti
     @responses.activate
     @patch('feedparser.parse', wraps=mock_feedparse(test_manga_feed))
     def test_scrape_series(self, parse: MagicMock):
-        self.delete_chapters()
+        self.delete_chapters(Comikey.ID)
         feed_url = 'https://comikey.com/sapi/comics/1/feed.rss'
         title_id = 'test-title/1'
         responses.add_callback(responses.HEAD, self.manga_url, self.redirect)

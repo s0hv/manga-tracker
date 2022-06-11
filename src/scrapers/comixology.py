@@ -3,7 +3,7 @@ import random
 import re
 import time
 from datetime import timedelta, datetime
-from typing import Optional, List, Set, Dict, Collection, cast
+from typing import Optional, List, Set, Collection, cast
 
 import requests
 from lxml import etree
@@ -132,23 +132,9 @@ class ComiXology(BaseScraperWhole):
     def min_update_interval(self) -> timedelta:
         return random_timedelta(timedelta(hours=1), timedelta(hours=2))
 
-    @staticmethod
-    def fetch_url(url: str, headers: Dict[str, str] = None) -> Optional[requests.Response]:
-        try:
-            r = requests.get(url, headers=headers)
-        except requests.RequestException:
-            logger.exception(f'Failed to fetch ComiXology url {url}')
-            return None
-
-        if not r.ok:
-            logger.error(f'Failed to fetch ComiXology url {url}. HTTP {r.status_code}')
-            return None
-
-        return r
-
     def fetch_all_issues(self, url: str) -> Optional[List[Chapter]]:
         group_id = self.dbutil.get_or_create_group(self.NAME).group_id
-        r = ComiXology.fetch_url(url)
+        r = self.fetch_url(url)
         if r is None:
             return None
 
@@ -185,7 +171,7 @@ class ComiXology(BaseScraperWhole):
             # Sleep for 1-3 seconds
             time.sleep(random.randint(100, 300)/100)
             url = ComiXology.PAGE_URL.format(id=internal_id, page=page)
-            r = ComiXology.fetch_url(url, headers)
+            r = self.fetch_url(url, headers)
             if r is None:
                 break
 

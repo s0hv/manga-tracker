@@ -11,7 +11,7 @@ mypy-protobuf==3.2.0
 sentry-sdk==1.5.8
 git+https://github.com/tk0miya/testing.postgresql.git#egg=testing.postgresql
 pytest~=6.2.4
-responses==0.18.0
+responses==0.21.0
 pytest-cov~=3.0.0
 pydantic~=1.9.1
 ratelimit~=2.2.1
