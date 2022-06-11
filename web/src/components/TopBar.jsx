@@ -83,15 +83,15 @@ const ProfileIconContainer = styled('div')(({ theme }) => ({
   float: 'right',
 }));
 
-const LinkComponent = React.forwardRef(({ href, prefetch, as, Component, children, passHref=false, ...props }, ref) => (
+const LinkComponent = ({ href, prefetch, as, Component, children, passHref=false, ...props }) => (
   <NextLink href={href} prefetch={prefetch} as={as} passHref={passHref}>
     <a style={{ textDecoration: 'none', color: 'inherit' }}>
-      <Component {...props} ref={ref}>
+      <Component {...props}>
         {children}
       </Component>
     </a>
   </NextLink>
-));
+);
 
 function TopBar(props) {
   const {
