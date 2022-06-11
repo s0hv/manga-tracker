@@ -45,7 +45,7 @@ export const ChapterWithLink = (services) => ({ chapter }) => {
       <div>
         {formatChapterTitle(chapter)}
         <a
-          href={formatChapterUrl(service.chapterUrlFormat, chapter.chapterIdentifier)}
+          href={formatChapterUrl(service.chapterUrlFormat, chapter.chapterIdentifier, chapter.titleId)}
           target='_blank'
           rel='noopener noreferrer'
         >

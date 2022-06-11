@@ -6,6 +6,7 @@ import { useCSRF } from '../utils/csrf';
 import { MaterialTable } from './MaterialTable';
 import { defaultDateFormat } from '../utils/utilities';
 import { getChapters, updateChapter, deleteChapter } from '../api/chapter';
+import { formatChapterUrl } from '../utils/formatting';
 
 
 const TitleCell = ({ row }) => (
@@ -21,7 +22,7 @@ function ChapterList(props) {
   const {
     chapters: initialChapters,
     editable = false,
-    serviceUrlFormats,
+    serviceMangaData,
     mangaId,
   } = props;
 
@@ -40,14 +41,16 @@ function ChapterList(props) {
       const newChapter = { ...chapter };
       newChapter.releaseDate = new Date(chapter.releaseDate);
 
-      const urlFormat = serviceUrlFormats && serviceUrlFormats[chapter.serviceId];
-      if (urlFormat) {
-        newChapter.url = urlFormat.replace('{}', chapter.chapterIdentifier);
+      if (!serviceMangaData) return newChapter;
+
+      const mangaData = serviceMangaData[chapter.serviceId];
+      if (mangaData) {
+        newChapter.url = formatChapterUrl(mangaData.urlFormat, chapter.chapterIdentifier, mangaData.titleId);
       }
 
       return newChapter;
     });
-  }, [serviceUrlFormats]);
+  }, [serviceMangaData]);
 
   const handleResponse = useCallback((json) => {
     enqueueSnackbar(json.message, { variant: 'success' });

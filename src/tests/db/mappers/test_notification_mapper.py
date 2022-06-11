@@ -58,6 +58,7 @@ class TestUtilities(unittest.TestCase):
         service_id = 1
         manga_id = 2
         chapter_id = 3
+        title_id = 'title_id'
 
         mock_services.return_value = {service_id: service}
         mock_manga.return_value = NotificationManga(
@@ -65,7 +66,8 @@ class TestUtilities(unittest.TestCase):
             service=service,
             cover='cover',
             url='url',
-            manga_id=manga_id
+            manga_id=manga_id,
+            title_id=title_id
         )
 
         chapter = Chapter(
@@ -91,7 +93,7 @@ class TestUtilities(unittest.TestCase):
         self.assertEqual(mock_services.call_count, 1)
 
         mapped = mapped_chapters[0]
-        self.assertEqual(mapped.url, service.chapter_url_format.format(chapter.chapter_identifier))
+        self.assertEqual(mapped.url, service.chapter_url_format.format(chapter.chapter_identifier, title_id=title_id))
         self.assertEqual(mapped.manga, mock_manga.return_value)
         self.assertEqual(mapped.title, chapter.title)
         self.assertEqual(mapped.group, chapter.group)

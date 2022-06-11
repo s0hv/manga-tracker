@@ -20,8 +20,8 @@ describe('Chapter list should allow editing', () => {
     chapterUrl: 'https://mangaplus.shueisha.co.jp/titles/1007322',
   };
 
-  const serviceUrlFormats = {
-    [testChapter.serviceId]: '{}',
+  const serviceMangaData = {
+    [testChapter.serviceId]: { urlFormat: '{}', titleId: 'test' },
   };
 
   const mangaId = 1;
@@ -92,7 +92,7 @@ describe('Chapter list should allow editing', () => {
         chapters={chapters}
         editable
         mangaId={mangaId}
-        serviceUrlFormats={serviceUrlFormats}
+        serviceMangaData={serviceMangaData}
       />);
     });
     const user = userEvent.setup();
@@ -118,7 +118,7 @@ describe('Chapter list should allow editing', () => {
         <ChapterList
           chapters={[]}
           mangaId={mangaId}
-          serviceUrlFormats={serviceUrlFormats}
+          serviceMangaData={serviceMangaData}
         />
       );
       rerender = retVal.rerender;
@@ -129,7 +129,7 @@ describe('Chapter list should allow editing', () => {
       <ChapterList
         chapters={[testChapter]}
         mangaId={mangaId}
-        serviceUrlFormats={serviceUrlFormats}
+        serviceMangaData={serviceMangaData}
       />
     );
 
@@ -145,7 +145,7 @@ describe('Chapter list should allow editing', () => {
         <ChapterList
           chapters={[]}
           mangaId={mangaId}
-          serviceUrlFormats={serviceUrlFormats}
+          serviceMangaData={serviceMangaData}
         />
       );
     });

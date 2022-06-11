@@ -30,7 +30,7 @@ class TestWebhook(unittest.TestCase):
             name='service', url='service url', manga_url_format='', chapter_url_format=''
         )
         manga = NotificationManga(
-            name='manga', service=service, cover='cover', url='manga url', manga_id=manga_id
+            name='manga', service=service, cover='cover', url='manga url', manga_id=manga_id, title_id='title id'
         )
 
         return NotificationChapter(
