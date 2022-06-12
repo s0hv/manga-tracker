@@ -4,7 +4,8 @@
   "private": true,
   "license": "MIT",
   "engines": {
-    "node": "^16"
+    "node": "^16",
+    "npm": "^8.12"
   },
   "dependencies": {
     "db-migrate": "^0.11.13",
