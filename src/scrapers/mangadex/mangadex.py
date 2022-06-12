@@ -308,15 +308,15 @@ class MangaDex(BaseScraperWhole):
         and other required operations
         """
         parsed = self.fetch_chapters(feed_url, title_id=title_id, limit=limit)
-        if not parsed:
+        if parsed is None:
             return None
+
+        if not parsed:
+            return ScrapeServiceRetVal()
 
         entries = self.get_new_entries(service_id, parsed)
         if not entries:
-            return ScrapeServiceRetVal(
-                manga_ids=set(),
-                chapter_ids=set()
-            )
+            return ScrapeServiceRetVal()
 
         # Add group ids to chapters
         entries = self.map_and_add_group_ids(list(entries))
@@ -356,7 +356,6 @@ class MangaDex(BaseScraperWhole):
         # For example with content ratings
         if not manga_ids:
             return ScrapeServiceRetVal(
-                manga_ids=set(),
                 chapter_ids=chapter_ids
             )
 
