@@ -52,7 +52,7 @@ jobs:
     - name: Install deps
       run: |
         npm ci
-        cd .. && sudo npm ci
+        cd .. && npm ci
 
     - name: Initialize database
       run: cd .. && npm run migrate:up && npm run migrate:test
