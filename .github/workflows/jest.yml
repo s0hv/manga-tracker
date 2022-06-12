@@ -52,7 +52,7 @@ jobs:
     - name: Install deps
       run: |
         npm ci
-        cd .. && npm ci
+        cd .. && sudo npm ci
 
     - name: Initialize database
       run: cd .. && npm run migrate:up && npm run migrate:test
@@ -80,3 +80,4 @@ jobs:
       DEBUG: debug,session-*,auth-info
       TZ: UTC
       LEVEL: silent
+      SKIP_POSTINSTALL: true

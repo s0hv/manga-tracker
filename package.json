@@ -12,7 +12,7 @@
     "db-migrate-pg": "^1.2.2"
   },
   "scripts": {
-    "postinstall": "cd web && npm ci",
+    "postinstall": "node process.env.SKIP_POSTINSTALL && cd web && npm ci",
     "heroku-postbuild": "npm run migrate:up && cd web && npm run build",
     "deploy": "cd web && npm run deploy",
     "server-dev": "cd web && npm run server-dev",
