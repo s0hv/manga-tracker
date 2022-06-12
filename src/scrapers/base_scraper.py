@@ -12,7 +12,7 @@ import psycopg2
 import pydantic
 import requests
 from psycopg2.extensions import connection as Connection
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from src.db.mappers.chapter_mapper import ChapterMapper
 from src.db.models.chapter import Chapter as ChapterModel
@@ -201,8 +201,8 @@ ScraperChapter = TypeVar('ScraperChapter', bound=BaseChapter)
 
 
 class ScrapeServiceRetVal(BaseModel):
-    manga_ids: Set[int]
-    chapter_ids: Set[int]
+    manga_ids: Set[int] = Field(default_factory=set)
+    chapter_ids: Set[int] = Field(default_factory=set)
 
 
 class BaseScraper(abc.ABC):
