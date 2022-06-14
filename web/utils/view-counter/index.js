@@ -1,3 +1,1 @@
-module.exports = {
-  ...require('./manga-view-counter'),
-};
+export * from './manga-view-counter.js';

@@ -1,11 +1,17 @@
-const camelcaseKeys = require('camelcase-keys');
-const { query } = require('express-validator');
+import camelcaseKeys from 'camelcase-keys';
+import { query } from 'express-validator';
 
-const { handleElasticError, extractFields } = require('../db/elasticsearch/utils');
-const { hadValidationError, handleValidationErrors } = require('../utils/validators');
-const { handleError } = require('../db/utils');
-const { getFullManga } = require('../db/manga');
-const { mangaSearch } = require('../db/elasticsearch/manga');
+import {
+  handleElasticError,
+  extractFields
+} from '../db/elasticsearch/utils.js';
+import {
+  hadValidationError,
+  handleValidationErrors
+} from '../utils/validators.js';
+import { handleError } from '../db/utils.js';
+import { getFullManga } from '../db/manga.js';
+import { mangaSearch } from '../db/elasticsearch/manga.js';
 
 
 const searchQueryValidation = query('query')
@@ -16,7 +22,7 @@ const searchQueryValidation = query('query')
   .withMessage('Query must be between 2 and 500 characters');
 
 
-module.exports = app => {
+export default app => {
   app.get('/api/quicksearch', [
     searchQueryValidation,
     query('withServices')

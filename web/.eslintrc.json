@@ -80,7 +80,8 @@
         "react/display-name": "off",
         "max-classes-per-file": "off",
         "react/forbid-prop-types": "off",
-        "no-promise-executor-return": "off"
+        "no-promise-executor-return": "off",
+        "import/extensions": "off"
     },
     "env": {
         "browser": true,

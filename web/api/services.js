@@ -1,8 +1,8 @@
-const { handleError } = require('../db/utils');
-const { getServicesForApi } = require('../db/services/serviceInfo');
+import { handleError } from '../db/utils.js';
+import { getServicesForApi } from '../db/services/serviceInfo.js';
 
 
-module.exports = app => {
+export default app => {
   /**
    *  @openapi
    *  /services:

@@ -1,18 +1,15 @@
-const snakecaseKeys = require('snakecase-keys');
+import snakecaseKeys from 'snakecase-keys';
+import { db } from '../index.js';
+import { generateUpdate } from '../utils.js';
 
-const { generateUpdate } = require('../utils');
-const { db } = require('..');
 
-const getService = (serviceId) => db.oneOrNone('SELECT * FROM services WHERE service_id=$1', [serviceId]);
-module.exports.getService = getService;
+export const getService = (serviceId) => db.oneOrNone('SELECT * FROM services WHERE service_id=$1', [serviceId]);
 
-const getServiceWhole = (serviceId) => db.oneOrNone('SELECT * FROM service_whole WHERE service_id=$1', [serviceId]);
-module.exports.getServiceWhole = getServiceWhole;
+export const getServiceWhole = (serviceId) => db.oneOrNone('SELECT * FROM service_whole WHERE service_id=$1', [serviceId]);
 
-const getServiceConfig = (serviceId) => db.oneOrNone('SELECT * FROM service_config WHERE service_id=$1', [serviceId]);
-module.exports.getServiceConfig = getServiceConfig;
+export const getServiceConfig = (serviceId) => db.oneOrNone('SELECT * FROM service_config WHERE service_id=$1', [serviceId]);
 
-module.exports.getServiceFull = (serviceId) => {
+export const getServiceFull = (serviceId) => {
   const retVal = {};
 
   return Promise.all([
@@ -27,7 +24,7 @@ module.exports.getServiceFull = (serviceId) => {
  * Update service row
  * @returns {Promise<pgPromise.IResultExt>}
  */
-module.exports.updateService = ({
+export const updateService = ({
   serviceId,
   serviceName,
   url,
@@ -53,7 +50,7 @@ module.exports.updateService = ({
  * Update service_whole row
  * @returns {Promise<pgPromise.IResultExt>}
  */
-module.exports.updateServiceWhole = ({
+export const updateServiceWhole = ({
   serviceId,
   feedUrl,
   nextUpdate,
@@ -73,7 +70,7 @@ module.exports.updateServiceWhole = ({
  * Update service_config row
  * @returns {Promise<pgPromise.IResultExt>}
  */
-module.exports.updateServiceConfig = ({
+export const updateServiceConfig = ({
   serviceId,
   checkInterval,
   scheduledRunInterval,
@@ -94,7 +91,7 @@ module.exports.updateServiceConfig = ({
  * Get all service configs
  * @returns {Promise<any[]>}
  */
-module.exports.getServiceConfigs = () => {
+export const getServiceConfigs = () => {
   const sql = 'SELECT * FROM service_config';
   return db.many(sql);
 };

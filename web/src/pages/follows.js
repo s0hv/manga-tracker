@@ -5,6 +5,8 @@ import withError from '../utils/withError';
 import Follows from '../views/Follows';
 import { jsonSerializable } from '../utils/utilities';
 
+import { getFollows } from '../../db/manga';
+
 const MangaPage = function MangaPage(props) {
   const {
     follows,
@@ -29,7 +31,6 @@ const MangaPage = function MangaPage(props) {
 
 
 export async function getServerSideProps({ req }) {
-  const { getFollows } = require('../../db/manga');
   let error;
   let follows;
   try {

@@ -1,6 +1,6 @@
-const { db } = require('..');
+import { db } from '../index.js';
 
-function getServices() {
+export function getServices() {
   const sql = `SELECT s.service_id id, service_name, disabled, url, s.last_check, 
                     CASE WHEN sw.service_id IS NULL 
                         THEN (SELECT MIN(ms.next_update) FROM manga_service ms WHERE ms.service_id=s.service_id)
@@ -10,9 +10,8 @@ function getServices() {
 
   return db.many(sql);
 }
-module.exports.getServices = getServices;
 
-function getServicesForApi() {
+export function getServicesForApi() {
   const sql = `
     SELECT s.service_id, 
            service_name as name, 
@@ -23,5 +22,4 @@ function getServicesForApi() {
     FROM services s`;
   return db.many(sql);
 }
-module.exports.getServicesForApi = getServicesForApi;
 

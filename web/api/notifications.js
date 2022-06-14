@@ -1,26 +1,22 @@
-const {
-  body,
-  matchedData,
-  param,
-} = require('express-validator');
-const { requiresUser } = require('../db/auth');
-const {
+import { body, matchedData, param, } from 'express-validator';
+import { requiresUser } from '../db/auth.js';
+import {
   getUserNotifications,
   updateUserNotification,
   createUserNotification,
   deleteUserNotification,
-} = require('../db/notifications');
-const { handleError } = require('../db/utils');
-const {
+} from '../db/notifications.js';
+import { handleError } from '../db/utils.js';
+import {
   handleValidationErrors,
   mangaIdValidation,
   serviceIdValidation,
   databaseIdValidation,
   validateUser,
-} = require('../utils/validators');
+} from '../utils/validators.js';
 
 
-module.exports = app => {
+export default app => {
   /**
    *  @openapi
    *  /notifications:

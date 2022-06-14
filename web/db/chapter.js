@@ -1,8 +1,8 @@
-const { NO_GROUP } = require('../utils/constants');
-const { generateUpdate } = require('./utils');
-const { db, pgp } = require('.');
+import { NO_GROUP } from '../utils/constants.js';
+import { generateUpdate } from './utils.js';
+import { db, pgp } from './index.js';
 
-module.exports.getChapterReleases = (mangaId) => {
+export const getChapterReleases = (mangaId) => {
   const sql = `SELECT extract(EPOCH FROM date_trunc('day', release_date)) as "timestamp", CAST(count(release_date) as int) count 
                FROM chapters 
                WHERE manga_id=$1 GROUP BY 1 ORDER BY 1`;
@@ -10,7 +10,7 @@ module.exports.getChapterReleases = (mangaId) => {
   return db.query(sql, [mangaId]);
 };
 
-module.exports.getLatestChapters = (limit, offset) => {
+export const getLatestChapters = (limit, offset) => {
   const sql = `SELECT
                     chapter_id,
                     chapters.title,
@@ -40,7 +40,7 @@ module.exports.getLatestChapters = (limit, offset) => {
   return db.query(sql, args);
 };
 
-module.exports.addChapter = ({
+export const addChapter = ({
   mangaId,
   serviceId,
   title,
@@ -58,7 +58,7 @@ module.exports.addChapter = ({
     .then(row => row?.chapterId);
 };
 
-const defaultSort = [
+export const defaultSort = [
   {
     col: 'chapter_number',
     desc: true,
@@ -69,8 +69,8 @@ const defaultSort = [
     nullsLast: true,
   },
 ];
-module.exports.defaultSort = defaultSort;
-module.exports.getChapters = (mangaId, limit, offset, sortBy = defaultSort) => {
+
+export const getChapters = (mangaId, limit, offset, sortBy = defaultSort) => {
   sortBy = sortBy.length > 0 ? sortBy : defaultSort;
   const sorting = sortBy.map(sort => `${pgp.as.name(sort.col)}${sort.desc ? ' DESC' : ''}${sort.nullsLast ? ' NULLS LAST' : ''}`).join(',');
   const sql = `
@@ -119,7 +119,7 @@ module.exports.getChapters = (mangaId, limit, offset, sortBy = defaultSort) => {
  * Updates an existing chapter row
  * @param {Object} chapter
  */
-module.exports.editChapter = async ({
+export const editChapter = async ({
   chapterId,
   title,
   chapterNumber,
@@ -146,7 +146,7 @@ module.exports.editChapter = async ({
  * Deletes a chapter
  * @param {Number} chapterId
  */
-module.exports.deleteChapter = async (chapterId) => {
+export const deleteChapter = async (chapterId) => {
   const sql = 'DELETE FROM chapters WHERE chapter_id=$1 RETURNING *';
   return db.oneOrNone(sql, [chapterId]);
 };

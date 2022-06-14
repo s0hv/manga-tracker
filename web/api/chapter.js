@@ -1,21 +1,24 @@
-const { body: validateBody, query } = require('express-validator');
+import { body as validateBody, query } from 'express-validator';
 
-const { NoColumnsError } = require('../db/errors');
-const { requiresUser } = require('../db/auth');
-const {
+import { NoColumnsError } from '../db/errors.js';
+import { requiresUser } from '../db/auth.js';
+import {
   editChapter,
   deleteChapter,
-  getLatestChapters,
-} = require('../db/chapter');
-const { validateAdminUser, handleValidationErrors } = require('../utils/validators');
-const { getChapterReleases } = require('../db/chapter');
-const { handleError } = require('../db/utils');
-const { dbLogger } = require('../utils/logging');
+  getChapterReleases,
+  getLatestChapters
+} from '../db/chapter.js';
+import {
+  validateAdminUser,
+  handleValidationErrors
+} from '../utils/validators.js';
+import { handleError } from '../db/utils.js';
+import { dbLogger } from '../utils/logging.js';
 
 
 const BASE_URL = '/api/chapter';
 
-module.exports = app => {
+export default app => {
   app.post(`${BASE_URL}/:chapterId(\\d+)`, requiresUser, [
     validateAdminUser(),
     validateBody('title').isString().optional(),

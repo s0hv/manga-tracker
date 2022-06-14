@@ -1,23 +1,25 @@
-const express = require('express');
-const { body, param } = require('express-validator');
-const { QueryResultError } = require('pg-promise').errors;
-const { updateMangaTitle } = require('../../db/admin/manga');
-const { requiresUser } = require('../../db/auth');
-const { handleError } = require('../../db/utils');
-const {
+import express from 'express';
+import { body, param } from 'express-validator';
+import pgPromise from 'pg-promise';
+import { updateMangaTitle } from '../../db/admin/manga.js';
+import { requiresUser } from '../../db/auth.js';
+import { handleError } from '../../db/utils.js';
+import {
   scheduleMangaRun,
   getScheduledRuns,
   deleteScheduledRun,
-} = require('../../db/admin/management');
-const {
+} from '../../db/admin/management.js';
+import {
   validateAdminUser,
   mangaIdValidation,
   serviceIdValidation,
   handleValidationErrors,
-} = require('../../utils/validators');
+} from '../../utils/validators.js';
 
+const { QueryResultError } = pgPromise.errors;
 
-module.exports = () => {
+export default () => {
+  /** @type import('express').Router */
   const router = express.Router();
   router.use(requiresUser);
 

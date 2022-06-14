@@ -1,6 +1,6 @@
-const pino = require('pino');
+import pino from 'pino';
 
-const { isDev } = require('./constants');
+import { isDev } from './constants.js';
 
 const level = process.env.LEVEL;
 
@@ -10,7 +10,7 @@ const pretty = process.env.PRETTY ?
   /^(y|yes|true|on)$/i.test(process.env.PRETTY) :
   isDev;
 
-const logger = pino(
+export const logger = pino(
   {
     level: level || 'debug',
     transport: pretty ? {
@@ -26,13 +26,10 @@ const logger = pino(
   }
 );
 
-module.exports = {
-  logger,
-  mangadexLogger: logger.child({ name: 'mangadex' }, { level: level || 'debug' }),
-  expressLogger: logger.child({ name: 'express' }, { level: level || 'info' }),
-  sessionLogger: logger.child({ name: 'session' }, { level: level || 'debug' }),
-  userLogger: logger.child({ name: 'user' }, { level: level || 'debug' }),
-  queryLogger: logger.child({ name: 'dbQuery' }, { level: level || 'debug' }),
-  dbLogger: logger.child({ name: 'db' }, { level: level || 'debug' }),
-  authLogger: logger.child({ name: 'auth' }, { level: level || 'debug' }),
-};
+export const mangadexLogger = logger.child({ name: 'mangadex' }, { level: level || 'debug' });
+export const expressLogger = logger.child({ name: 'express' }, { level: level || 'info' });
+export const sessionLogger = logger.child({ name: 'session' }, { level: level || 'debug' });
+export const userLogger = logger.child({ name: 'user' }, { level: level || 'debug' });
+export const queryLogger = logger.child({ name: 'dbQuery' }, { level: level || 'debug' });
+export const dbLogger = logger.child({ name: 'db' }, { level: level || 'debug' });
+export const authLogger = logger.child({ name: 'auth' }, { level: level || 'debug' });

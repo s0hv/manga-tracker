@@ -1,6 +1,6 @@
-const { db } = require('.');
+import { db } from './index.js';
 
-function getLatestReleases(serviceId, mangaId, userUUID) {
+export function getLatestReleases(serviceId, mangaId, userUUID) {
   const joins = [];
   const where = [];
   const args = [];
@@ -84,9 +84,7 @@ function getLatestReleases(serviceId, mangaId, userUUID) {
   return db.any(sql, args);
 }
 
-function getUserFollows(userId, mangaId) {
+export function getUserFollows(userId, mangaId) {
   const sql = 'SELECT service_id FROM user_follows WHERE user_id=$1 AND manga_id=$2';
   return db.query(sql, [userId, mangaId]);
 }
-
-module.exports = { getLatestReleases, getUserFollows };

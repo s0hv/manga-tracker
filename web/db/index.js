@@ -1,12 +1,13 @@
-const camelcaseKeys = require('camelcase-keys');
-const { performance } = require('perf_hooks');
+import camelcaseKeys from 'camelcase-keys';
+import { performance } from 'perf_hooks';
+import pgPromise from 'pg-promise';
 
-const { queryLogger } = require('../utils/logging');
+import { queryLogger } from '../utils/logging.js';
 
 const isTest = process.env.NODE_ENV === 'test';
 
 // eslint-disable-next-line import/order
-const pgp = require('pg-promise')({
+export const pgp = pgPromise({
   noLocking: isTest, // Locking must not be set on during test so mocks can be made.
   capSQL: true,
   pgFormatting: true, // When this is false parameters would be always logged since they're embedded in the query
@@ -67,20 +68,13 @@ const createSingletonDb = () => {
  * Database object
  * @type {pgPromise.IDatabase}
  */
-const db = createSingletonDb();
+export const db = createSingletonDb();
 
 
-function query(sql, args) {
+export function query(sql, args) {
   return db.query(sql, args);
 }
 
-async function end() {
+export async function end() {
   await pgp.end();
 }
-
-module.exports = {
-  query,
-  db,
-  pgp,
-  end,
-};

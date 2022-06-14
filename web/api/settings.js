@@ -1,10 +1,10 @@
-const { requiresUser, modifyCacheUser } = require('../db/auth');
-const { positiveTinyInt, hadValidationError } = require('../utils/validators');
-const db = require('../db');
-const { handleError } = require('../db/utils');
+import { requiresUser, modifyCacheUser } from '../db/auth.js';
+import { positiveTinyInt, hadValidationError } from '../utils/validators.js';
+import { query } from '../db/index.js';
+import { handleError } from '../db/utils.js';
 
 
-module.exports = app => {
+export default app => {
   app.post('/api/settings/theme', requiresUser, [
     positiveTinyInt('value'),
   ], (req, res) => {
@@ -14,7 +14,7 @@ module.exports = app => {
 
     if (req.user) {
       const sql = `UPDATE users SET theme=$1 WHERE user_id=$2`;
-      db.query(sql, [val, req.user.userId])
+      query(sql, [val, req.user.userId])
         .then(() => {
           modifyCacheUser(parseInt(req.user.userId), { theme: val });
           res.status(200).end();

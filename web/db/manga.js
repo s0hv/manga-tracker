@@ -1,9 +1,9 @@
-const camelcaseKeys = require('camelcase-keys');
+import camelcaseKeys from 'camelcase-keys';
 
-const { db } = require('.');
-const { fetchExtraInfo, MANGADEX_ID } = require('./mangadex');
-const { HttpError } = require('../utils/errors');
-const { mangadexLogger } = require('../utils/logging');
+import { db } from './index.js';
+import { fetchExtraInfo, MANGADEX_ID } from './mangadex.js';
+import { HttpError } from '../utils/errors.js';
+import { mangadexLogger } from '../utils/logging.js';
 
 const links = {
   al: 'https://anilist.co/manga/',
@@ -15,7 +15,7 @@ const links = {
   mal: 'https://myanimelist.net/manga/',
 };
 
-function formatLinks(row) {
+export function formatLinks(row) {
   if (typeof row !== 'object') return;
 
   Object.keys(row).forEach(key => {
@@ -25,7 +25,6 @@ function formatLinks(row) {
     row[key] = link + row[key];
   });
 }
-module.exports.formatLinks = formatLinks;
 
 function formatFullManga(obj) {
   const out = {};
@@ -49,7 +48,7 @@ function formatFullManga(obj) {
   return out;
 }
 
-function getFullManga(mangaId) {
+export function getFullManga(mangaId) {
   const args = [mangaId];
 
   const sql = `SELECT manga.manga_id, title, release_interval, latest_release, estimated_release, manga.latest_chapter,
@@ -82,9 +81,8 @@ function getFullManga(mangaId) {
       return formatFullManga(row);
     });
 }
-module.exports.getFullManga = getFullManga;
 
-async function getFollows(userId) {
+export async function getFollows(userId) {
   if (!userId) {
     throw HttpError(404);
   }
@@ -112,17 +110,13 @@ async function getFollows(userId) {
     });
 }
 
-module.exports.getFollows = getFollows;
-
-const getAliases = (mangaId) => {
+export const getAliases = (mangaId) => {
   const sql = 'SELECT title FROM manga_alias WHERE manga_id=$1';
   return db.query(sql, [mangaId]);
 };
-module.exports.getAliases = getAliases;
 
 // Actually just gets a single row from the manga table
-const getMangaPartial = (mangaId) => {
+export const getMangaPartial = (mangaId) => {
   const sql = 'SELECT * FROM manga WHERE manga_id=$1';
   return db.one(sql, [mangaId]);
 };
-module.exports.getMangaPartial = getMangaPartial;

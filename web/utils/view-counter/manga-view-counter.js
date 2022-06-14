@@ -1,6 +1,6 @@
-const db = require('../../db');
+import { query } from '../../db/index.js';
 
-const mangaView = (session, params) => {
+export const mangaView = (session, params) => {
   if (!session) {
     return;
   }
@@ -22,7 +22,7 @@ const mangaView = (session, params) => {
  * Reads manga views from session and adds them to the database
  * @returns {Promise}
  */
-const onSessionExpire = (session) => {
+export const onSessionExpire = (session) => {
   if (!session || !session.mangaViews || Object.keys(session.mangaViews).length === 0) {
     return Promise.resolve();
   }
@@ -35,10 +35,6 @@ const onSessionExpire = (session) => {
 
   // Increment views for each manga that was found by one
   const sql = `UPDATE manga SET views=views+1 WHERE manga_id IN (${args.join(',')})`;
-  return db.query(sql, Object.keys(session.mangaViews));
+  return query(sql, Object.keys(session.mangaViews));
 };
 
-module.exports = {
-  mangaView,
-  onSessionExpire,
-};

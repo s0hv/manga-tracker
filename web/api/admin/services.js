@@ -1,16 +1,20 @@
-const { body, matchedData, param } = require('express-validator');
+import { body, matchedData, param } from 'express-validator';
 
-const { requiresUser } = require('../../db/auth');
-const { handleError } = require('../../db/utils');
-const { updateService, updateServiceWhole, updateServiceConfig } = require('../../db/services');
-const {
+import { requiresUser } from '../../db/auth.js';
+import { handleError } from '../../db/utils.js';
+import {
+  updateService,
+  updateServiceWhole,
+  updateServiceConfig,
+} from '../../db/services/index.js';
+import {
   validateAdminUser,
   handleValidationErrors,
   serviceIdValidation,
   isISO8601Duration,
-} = require('../../utils/validators');
+} from '../../utils/validators.js';
 
-module.exports = app => {
+export default app => {
   const validateService = [
     body('service')
       .isObject()

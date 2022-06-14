@@ -1,6 +1,12 @@
-const withTM = require('next-transpile-modules')(['frappe-charts', 'react-frappe-charts', 'swagger-jsdoc']);
+import withTmInitializer from 'next-transpile-modules';
 
-module.exports = (phase, { defaultConfig }) => {
+const withTM = withTmInitializer(([
+  'frappe-charts',
+  'react-frappe-charts',
+  'swagger-jsdoc',
+]));
+
+export default (phase, { defaultConfig }) => {
   const conf = withTM({
     ...defaultConfig,
     webpack(config) {
