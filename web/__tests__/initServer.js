@@ -1,9 +1,10 @@
-export default async function initServer() {
-  jest.mock('./../db/auth', () => ({
-    ...jest.requireActual('./../db/auth'),
-    requiresUser: jest.fn().mockImplementation(jest.requireActual('./../db/auth').requiresUser),
-  }));
+jest.mock('./../db/auth', () => ({
+  __esModule: true,
+  ...jest.requireActual('./../db/auth'),
+  requiresUser: jest.fn().mockImplementation(jest.requireActual('./../db/auth').requiresUser),
+}));
 
+export default async function initServer() {
   jest.mock('./../db/elasticsearch', () => {
     const { Client } = require('@elastic/elasticsearch');
     const Mock = require('@elastic/elasticsearch-mock');
@@ -32,7 +33,7 @@ export default async function initServer() {
     });
   });
 
-  const serverPromise = require('../server');
+  const serverPromise = require('../server').default;
   process.env.PORT = '0';
   const httpServer = await serverPromise;
   expect(httpServer).toBeDefined();

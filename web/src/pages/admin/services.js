@@ -3,12 +3,13 @@ import { NextSeo } from 'next-seo';
 import withError from '../../utils/withError';
 import Services from '../../views/admin/Services';
 
+import { getServices } from '../../../db/services/serviceInfo';
+
 export async function getServerSideProps({ req }) {
   if (!(req.user && req.user.admin)) {
     return { props: { error: 404 }};
   }
 
-  const { getServices } = require('../../../db/services/serviceInfo');
   let rows;
 
   try {

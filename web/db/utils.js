@@ -1,14 +1,14 @@
-const {
+import {
   NUMERIC_VALUE_OUT_OF_RANGE,
   INVALID_TEXT_REPRESENTATION,
   UNIQUE_VIOLATION,
   IN_FAILED_SQL_TRANSACTION,
-} = require('pg-error-constants');
+} from 'pg-error-constants';
 
-const { pgp } = require('./index');
-const { NoColumnsError } = require('./errors');
-const { dbLogger } = require('../utils/logging');
-const { StatusError } = require('../utils/errors');
+import { pgp } from './index.js';
+import { NoColumnsError } from './errors.js';
+import { dbLogger } from '../utils/logging.js';
+import { StatusError } from '../utils/errors.js';
 
 /**
  * Generate update statement from an object while filtering out undefined values.
@@ -17,7 +17,7 @@ const { StatusError } = require('../utils/errors');
  * @param {String} tableName Name of the table to be updated
  * @returns {String} The update statement without a whereclause
  */
-module.exports.generateUpdate = (o, tableName) => {
+export const generateUpdate = (o, tableName) => {
   const obj = { ...o };
   Object.keys(obj).forEach(key => obj[key] === undefined && delete obj[key]);
   try {
@@ -27,7 +27,7 @@ module.exports.generateUpdate = (o, tableName) => {
   }
 };
 
-function handleError(err, res, msgOverrides = {}) {
+export function handleError(err, res, msgOverrides = {}) {
   if (typeof err?.getErrors === 'function') {
     err = err.getErrors().filter(e => e?.code !== IN_FAILED_SQL_TRANSACTION)[0] || err;
   }
@@ -50,4 +50,3 @@ function handleError(err, res, msgOverrides = {}) {
     res.status(500).json({ error: msg || 'Internal server error' });
   }
 }
-module.exports.handleError = handleError;

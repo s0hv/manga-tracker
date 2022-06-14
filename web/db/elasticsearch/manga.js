@@ -1,8 +1,8 @@
-const client = require('.');
+import client from './index.js';
 
-const index = 'manga';
+export const index = 'manga';
 
-const mangaSearch = (query, count, withServices = false) => {
+export const mangaSearch = (query, count, withServices = false) => {
   const fields = ['manga_id', 'title'];
   if (withServices) {
     fields.push('services.service_name');
@@ -55,7 +55,3 @@ const mangaSearch = (query, count, withServices = false) => {
   });
 };
 
-module.exports = {
-  mangaSearch,
-  index,
-};

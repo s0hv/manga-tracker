@@ -5,6 +5,9 @@ import withError from '../../../utils/withError';
 import Manga from '../../../views/admin/MangaAdmin';
 import { jsonSerializable } from '../../../utils/utilities';
 
+import { getFullManga } from '../../../../db/manga';
+import { getServiceConfigs } from '../../../../db/services';
+
 function MangaPage(props) {
   const {
     manga,
@@ -29,9 +32,6 @@ export async function getServerSideProps({ req, params }) {
   if (!(req.user && req.user.admin)) {
     return { props: { error: 404 }};
   }
-
-  const { getFullManga } = require('../../../../db/manga');
-  const { getServiceConfigs } = require('../../../../db/services');
 
   let manga;
   try {

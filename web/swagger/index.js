@@ -1,7 +1,7 @@
-const fs = require('fs');
-const util = require('util');
-const swaggerJsdoc = require('swagger-jsdoc');
-const YAML = require('yaml');
+import fs from 'fs';
+import util from 'util';
+import swaggerJsdoc from 'swagger-jsdoc';
+import YAML from 'yaml';
 
 const readFile = util.promisify(fs.readFile);
 const options = {
@@ -19,7 +19,7 @@ const options = {
   apis: ['./api/**/*.js'], // Path relative to application root
 };
 
-module.exports.getOpenapiSpecification = async () => {
+export const getOpenapiSpecification = async () => {
   // Read component definitions
   options.definition.components = YAML.parse(
     (await readFile('./swagger/components.yaml')).toString('utf-8')

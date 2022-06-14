@@ -1,22 +1,22 @@
-const { query, param } = require('express-validator');
+import { query, param } from 'express-validator';
 
-const { db } = require('../db');
-const { handleError } = require('../db/utils');
-const { getChapters } = require('../db/chapter');
-const { getOptionalNumberParam } = require('../utils/utilities');
-const {
+import { db } from '../db/index.js';
+import { handleError } from '../db/utils.js';
+import { getChapters } from '../db/chapter.js';
+import { getOptionalNumberParam } from '../utils/utilities.js';
+import {
   mangaIdValidation,
   hadValidationError,
   validateAdminUser,
   databaseIdValidation,
   handleValidationErrors,
-} = require('../utils/validators');
-const { requiresUser } = require('../db/auth');
-const { getFullManga } = require('../db/manga');
+} from '../utils/validators.js';
+import { requiresUser } from '../db/auth.js';
+import { getFullManga } from '../db/manga.js';
 
 const BASE_URL = '/api/manga';
 
-module.exports = app => {
+export default app => {
   app.post('/api/manga/merge', requiresUser, [
     validateAdminUser(),
     databaseIdValidation(query('base')),

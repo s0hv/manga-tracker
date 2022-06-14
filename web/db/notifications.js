@@ -1,9 +1,9 @@
-const { NOT_NULL_VIOLATION } = require('pg-error-constants');
-const { db, pgp } = require('.');
-const { NotFound, BadRequest } = require('../utils/errors');
+import { NOT_NULL_VIOLATION } from 'pg-error-constants';
+import { db, pgp } from './index.js';
+import { NotFound, BadRequest } from '../utils/errors.js';
 
 
-module.exports.getUserNotifications = (userId) => {
+export const getUserNotifications = (userId) => {
   // Not the cleanest sql but the easiest to implement
   const sql = `
     SELECT
@@ -55,7 +55,7 @@ const updateUserNotificationFields = (t, fields, notificationId, notificationTyp
 };
 
 
-module.exports.createUserNotification = ({
+export const createUserNotification = ({
   notificationType,
   userId,
   useFollows,
@@ -98,7 +98,7 @@ module.exports.createUserNotification = ({
     .then(() => notificationId);
 });
 
-module.exports.updateUserNotification = ({
+export const updateUserNotification = ({
   notificationId,
   userId,
   notificationType,
@@ -148,7 +148,7 @@ module.exports.updateUserNotification = ({
   return t.batch(batch);
 });
 
-module.exports.deleteUserNotification = ({
+export const deleteUserNotification = ({
   notificationId,
   userId,
 }) => db.tx(async t => {

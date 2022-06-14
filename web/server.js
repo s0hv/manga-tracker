@@ -1,27 +1,35 @@
-// eslint-disable-next-line import/order
-const { isDev, isTest } = require('./utils/constants');
+import express from 'express';
+import next_ from 'next';
+import csrf from 'csurf';
+import session from 'express-session';
+import passport from 'passport';
+import JsonStrategy from 'passport-json';
+import helmet from 'helmet';
+import pinoHttp from 'pino-http';
+import bodyParser from 'body-parser';
+import cookieParser from 'cookie-parser';
 
-// Read .env if in isDevelopment
-if (isDev) {
-  // eslint-disable-next-line import/no-extraneous-dependencies
-  require('dotenv').config({ path: '../.env' });
-}
+import { isDev, isTest, csrfMissing } from './utils/constants.js';
+import { db } from './db/index.js';
+import PostgresStoreGen from './db/session-store.js';
+import { checkAuth, authenticate, requiresUser } from './db/auth.js';
+import { bruteforce, rateLimiter } from './utils/ratelimits.js';
+import { logger, expressLogger, sessionLogger } from './utils/logging.js';
 
-const express = require('express');
-const next_ = require('next');
-const csrf = require('csurf');
-const session = require('express-session');
-const passport = require('passport');
-const JsonStrategy = require('passport-json');
-const helmet = require('helmet');
+import {
+  chapterApi,
+  mangaApi,
+  notificationsApi,
+  rssApi,
+  searchApi,
+  servicesApi,
+  settingsApi,
+  userApi,
+  adminMangaApi,
+  adminServicesApi
+} from './api/index.js';
 
-const { db } = require('./db');
-const { csrfMissing } = require('./utils/constants');
-const PostgresStore = require('./db/session-store')(session);
-const { checkAuth, authenticate, requiresUser } = require('./db/auth');
-const { bruteforce, rateLimiter } = require('./utils/ratelimits');
-const { logger, expressLogger, sessionLogger } = require('./utils/logging');
-
+const PostgresStore = PostgresStoreGen(session);
 passport.use(
   new JsonStrategy(
     {
@@ -45,11 +53,12 @@ passport.deserializeUser((user, done) => {
 const reverseProxy = !isDev;
 if (!isDev && !process.env.SESSION_SECRET) throw new Error('No session secret given');
 
-const nextApp = next_({ dev: isDev, dir: __dirname });
+const nextApp = next_({ dev: isDev });
 const handle = nextApp.getRequestHandler();
 
-module.exports = nextApp.prepare()
+export default nextApp.prepare()
   .then(() => {
+    /** @type import('express').Express */
     const server = express();
 
     const directives = {
@@ -78,12 +87,12 @@ module.exports = nextApp.prepare()
     });
     server.sessionStore = store;
 
-    server.use(require('pino-http')({ logger: expressLogger, useLevel: 'debug' }));
+    server.use(pinoHttp({ logger: expressLogger, useLevel: 'debug' }));
 
-    server.use(require('body-parser').json());
-    server.use(require('body-parser').urlencoded({ extended: false }));
+    server.use(bodyParser.json());
+    server.use(bodyParser.urlencoded({ extended: false }));
 
-    server.use(require('cookie-parser')(null));
+    server.use(cookieParser(null));
     server.use(session({
       name: 'sess',
       cookie: {
@@ -130,16 +139,16 @@ module.exports = nextApp.prepare()
         res.redirect('/');
       });
 
-    require('./api/rss')(server);
-    require('./api/manga')(server);
-    require('./api/user')(server);
-    require('./api/settings')(server);
-    require('./api/search')(server);
-    require('./api/admin/services')(server);
-    require('./api/chapter')(server);
-    require('./api/services')(server);
-    require('./api/notifications')(server);
-    server.use('/api/admin/manga', require('./api/admin/manga')());
+    rssApi(server);
+    mangaApi(server);
+    userApi(server);
+    settingsApi(server);
+    searchApi(server);
+    adminServicesApi(server);
+    chapterApi(server);
+    servicesApi(server);
+    notificationsApi(server);
+    server.use('/api/admin/manga', adminMangaApi());
 
     server.get('/login', requiresUser, (req, res) => {
       sessionLogger.debug(req.session.userId);

@@ -5,6 +5,10 @@ import Manga from '../../components/Manga';
 import withError from '../../utils/withError';
 import { isInteger } from '../../utils/utilities';
 
+import { getFullManga } from '../../../db/manga';
+import { getUserFollows } from '../../../db/db';
+import { mangaView } from '../../../utils/view-counter';
+
 function MangaPage(props) {
   const {
     manga,
@@ -33,11 +37,8 @@ export async function getServerSideProps({ req, params }) {
     return { props: { error: 404 }};
   }
 
-  const { getFullManga } = require('../../../db/manga');
-  const { getUserFollows } = require('../../../db/db');
-
   // Log a page view
-  require('../../../utils/view-counter/manga-view-counter').mangaView(req.session, params);
+  mangaView(req.session, params);
 
   let manga;
   let userFollows;

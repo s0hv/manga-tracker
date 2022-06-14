@@ -198,7 +198,7 @@ const baseConfig = {
 };
 
 
-module.exports = {
+export default {
   projects: [
     {
       ...baseConfig,

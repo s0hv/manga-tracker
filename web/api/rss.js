@@ -1,5 +1,5 @@
-const RSS = require('rss');
-const { getLatestReleases } = require('../db/db');
+import RSS from 'rss';
+import { getLatestReleases } from '../db/db.js';
 
 function createFeed(rows) {
   const feed = new RSS({
@@ -35,7 +35,7 @@ function createFeed(rows) {
   return feed.xml({ indent: true });
 }
 
-module.exports = app => {
+export default app => {
   app.get('/rss/:user?', (req, res) => {
     const uuid = req.params.user;
     if (uuid && uuid.length !== 32) {

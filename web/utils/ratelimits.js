@@ -1,8 +1,9 @@
-const Redis = require('ioredis');
-const { RateLimiterRedis, RateLimiterMemory } = require('rate-limiter-flexible');
-const ExpressBruteFlexible = require('rate-limiter-flexible/lib/ExpressBruteFlexible');
+import Redis from 'ioredis';
+import { RateLimiterRedis, RateLimiterMemory } from 'rate-limiter-flexible';
+import ExpressBruteFlexible
+  from 'rate-limiter-flexible/lib/ExpressBruteFlexible.js';
 
-const redis = new Redis(process.env.REDIS_URL, {
+export const redis = new Redis(process.env.REDIS_URL, {
   enableOfflineQueue: process.env.NODE_ENV !== 'production',
   showFriendlyErrorStack: process.env.NODE_ENV !== 'production',
   retryStrategy: (times) => {
@@ -43,21 +44,19 @@ const bruteOpts = {
   keyPrefix: 'brtfrc',
 };
 
-const mangadexLimiter = new RateLimiterMemory({
+export const mangadexLimiter = new RateLimiterMemory({
   points: 4,
   duration: 1,
 });
 
-module.exports.mangadexLimiter = mangadexLimiter;
-
-const bruteforce = new ExpressBruteFlexible(
+export const bruteforce = new ExpressBruteFlexible(
   ExpressBruteFlexible.LIMITER_TYPES.REDIS,
   bruteOpts
 );
 
 const rateLimiterRedis = new RateLimiterRedis(rateLimitOpts);
 
-const rateLimiter = (req, res, next) => {
+export const rateLimiter = (req, res, next) => {
   const key = req.session ? req.session.userId : req.ip;
   const pointsToConsume = req.session.userId ? 1 : 3;
   rateLimiterRedis.consume(key, pointsToConsume)
@@ -66,7 +65,3 @@ const rateLimiter = (req, res, next) => {
       res.status(429).send('Too Many Requests');
     });
 };
-
-module.exports.bruteforce = bruteforce;
-module.exports.rateLimiter = rateLimiter;
-module.exports.redis = redis;

@@ -1,2 +1,1 @@
-class NoColumnsError extends Error {}
-module.exports.NoColumnsError = NoColumnsError;
+export class NoColumnsError extends Error {}

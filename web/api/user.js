@@ -1,34 +1,34 @@
-const { body } = require('express-validator');
-const { UNIQUE_VIOLATION } = require('pg-error-constants');
+import { body } from 'express-validator';
+import { UNIQUE_VIOLATION } from 'pg-error-constants';
 
-const { sessionLogger, userLogger } = require('../utils/logging');
+import { sessionLogger, userLogger } from '../utils/logging.js';
 
 
-const { insertFollow, deleteFollow } = require('../db/follows');
-const { handleError } = require('../db/utils');
-const {
+import { insertFollow, deleteFollow } from '../db/follows.js';
+import { handleError } from '../db/utils.js';
+import {
   mangaIdValidation,
   serviceIdValidation,
   hadValidationError,
   validateUser,
   newPassword,
   passwordRequired,
-} = require('../utils/validators');
-const {
+} from '../utils/validators.js';
+import {
   requiresUser,
   clearUserAuthTokens,
   generateAuthToken,
   clearUserAuthToken,
-} = require('../db/auth');
-const { db } = require('../db');
-const { regenerateSession } = require('../utils/utilities');
+} from '../db/auth.js';
+import { db } from '../db/index.js';
+import { regenerateSession } from '../utils/utilities.js';
 
 const dev = process.env.NODE_ENV !== 'production';
 
 
 const MAX_USERNAME_LENGTH = 100;
 
-module.exports = app => {
+export default app => {
   app.post('/api/profile', requiresUser, [
     validateUser(),
     newPassword('newPassword', 'repeatPassword'),

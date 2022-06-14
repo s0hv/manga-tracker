@@ -1,41 +1,32 @@
-const { pattern } = require('iso8601-duration');
-const {
-  query,
-  body,
-  validationResult,
-} = require('express-validator');
-const { Forbidden, StatusError, Unauthorized } = require('./errors');
+import { pattern } from 'iso8601-duration';
+import { query, body, validationResult } from 'express-validator';
+import { Forbidden, StatusError, Unauthorized } from './errors.js';
 
 /**
  * @param {import('express-validator').ValidationChain} field
  * @returns {import('express-validator').ValidationChain}
  */
-const databaseIdValidation = (field) => field
+export const databaseIdValidation = (field) => field
   .isInt({ min: 0 });
 
-module.exports.databaseIdValidation = databaseIdValidation;
 // Technically the same behavior
-module.exports.limitValidation = databaseIdValidation;
+export const limitValidation = databaseIdValidation;
 
-const mangaIdValidation = (field = query('mangaId')) => databaseIdValidation(field)
+export const mangaIdValidation = (field = query('mangaId')) => databaseIdValidation(field)
   .withMessage('Manga id must be a positive integer');
-module.exports.mangaIdValidation = mangaIdValidation;
 
-const serviceIdValidation = (field = query('serviceId')) => databaseIdValidation(field)
+export const serviceIdValidation = (field = query('serviceId')) => databaseIdValidation(field)
   .withMessage('Service id must be a positive integer');
-module.exports.serviceIdValidation = serviceIdValidation;
 
-const positiveTinyInt = (field) => query(field).isInt({ min: 0, max: 127 });
-module.exports.positiveTinyInt = positiveTinyInt;
+export const positiveTinyInt = (field) => query(field).isInt({ min: 0, max: 127 });
 
-const passwordRequired = (value, { req, path }) => {
+export const passwordRequired = (value, { req, path }) => {
   if (value === undefined) return true;
   if (!req.body?.password) throw new Unauthorized(`Password required for modifying ${path}`);
   return true;
 };
-module.exports.passwordRequired = passwordRequired;
 
-const newPassword = (newPass, repeatPass) => body(newPass)
+export const newPassword = (newPass, repeatPass) => body(newPass)
   .if(body(newPass).exists())
   .custom(passwordRequired)
   .bail()
@@ -53,18 +44,16 @@ const newPassword = (newPass, repeatPass) => body(newPass)
 
     return true;
   });
-module.exports.newPassword = newPassword;
 
-const validateUser = () => body('')
+export const validateUser = () => body('')
   .custom((value, { req }) => {
     if (!req.user) {
       throw new Unauthorized('User not authenticated');
     }
     return true;
   });
-module.exports.validateUser = validateUser;
 
-const validateAdminUser = () => validateUser()
+export const validateAdminUser = () => validateUser()
   .bail()
   .custom((value, { req }) => {
     if (!req.user.admin) {
@@ -72,12 +61,11 @@ const validateAdminUser = () => validateUser()
     }
     return true;
   });
-module.exports.validateAdminUser = validateAdminUser;
 
 /**
  * @returns {boolean} true if validation errors occurred. false otherwise
  */
-const hadValidationError = (req, res, sendAllErrors=true) => {
+export const hadValidationError = (req, res, sendAllErrors=true) => {
   let errors = validationResult(req);
   if (!errors.isEmpty()) {
     errors = errors.array();
@@ -97,17 +85,15 @@ const hadValidationError = (req, res, sendAllErrors=true) => {
 
   return false;
 };
-module.exports.hadValidationError = hadValidationError;
 
-const handleValidationErrors = (req, res, next) => {
+export const handleValidationErrors = (req, res, next) => {
   if (hadValidationError(req, res)) return;
   next();
 };
-module.exports.handleValidationErrors = handleValidationErrors;
 
 /**
  * @param {import('express-validator').ValidationChain} chain
  * @return {import('express-validator').ValidationChain}
  */
-module.exports.isISO8601Duration = (chain) => chain.custom((value) => pattern.test(value))
+export const isISO8601Duration = (chain) => chain.custom((value) => pattern.test(value))
   .withMessage('Value must be a valid ISO 8601 duration');

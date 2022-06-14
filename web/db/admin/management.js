@@ -1,22 +1,16 @@
-const { db } = require('..');
+import { db } from '../index.js';
 
-const scheduleMangaRun = (mangaId, serviceId, userId) => {
+export const scheduleMangaRun = (mangaId, serviceId, userId) => {
   const sql = 'INSERT INTO scheduled_runs (manga_id, service_id, created_by) VALUES ($1, $2, $3) RETURNING *';
   return db.one(sql, [mangaId, serviceId, userId]);
 };
 
-const getScheduledRuns = (mangaId) => {
+export const getScheduledRuns = (mangaId) => {
   const sql = 'SELECT * FROM scheduled_runs WHERE manga_id=$1';
   return db.query(sql, [mangaId]);
 };
 
-const deleteScheduledRun = (mangaId, serviceId) => {
+export const deleteScheduledRun = (mangaId, serviceId) => {
   const sql = 'DELETE FROM scheduled_runs WHERE manga_id=$1 AND service_id=$2';
   return db.result(sql, [mangaId, serviceId]);
-};
-
-module.exports = {
-  scheduleMangaRun,
-  getScheduledRuns,
-  deleteScheduledRun,
 };

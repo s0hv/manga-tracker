@@ -1,4 +1,4 @@
-const getOptionalNumberValue = (value, defaultValue, paramName='Value') => {
+export const getOptionalNumberParam = (value, defaultValue, paramName='Value') => {
   if (value === undefined) {
     return defaultValue;
   }
@@ -8,9 +8,8 @@ const getOptionalNumberValue = (value, defaultValue, paramName='Value') => {
   }
   return val;
 };
-module.exports.getOptionalNumberParam = getOptionalNumberValue;
 
-const regenerateSession = async (req) => {
+export const regenerateSession = async (req) => {
   const tempSess = req.session;
   return new Promise((resolve, reject) => {
     req.session.regenerate((err) => {
@@ -24,7 +23,6 @@ const regenerateSession = async (req) => {
     });
   });
 };
-module.exports.regenerateSession = regenerateSession;
 
 /**
  * Filter out keys from an object

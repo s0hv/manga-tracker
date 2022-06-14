@@ -1,7 +1,7 @@
-const LRU = require('lru-cache');
+import LRU from 'lru-cache';
 
-const mangaViews = require('../utils/view-counter/manga-view-counter');
-const { sessionLogger } = require('../utils/logging');
+import { onSessionExpire } from '../utils/view-counter/index.js';
+import { sessionLogger } from '../utils/logging.js';
 
 const mergeSessionViews = (sess, row) => {
   const a = sess.mangaViews || {};
@@ -17,7 +17,7 @@ const mergeSessionViews = (sess, row) => {
 };
 
 
-module.exports = (expressSession) => {
+export default (expressSession) => {
   // eslint-disable-next-line prefer-destructuring
   const Store = expressSession.Store;
 
@@ -55,7 +55,7 @@ module.exports = (expressSession) => {
       return this.conn.query(sql)
         .then(rows => {
           const sess = rows.reduce(mergeSessionViews, {});
-          return mangaViews.onSessionExpire(sess);
+          return onSessionExpire(sess);
         });
     }
 
@@ -105,7 +105,7 @@ module.exports = (expressSession) => {
       this.cache.delete(sid);
       const sql = 'DELETE FROM sessions WHERE session_id=$1';
 
-      mangaViews.onSessionExpire(session)
+      onSessionExpire(session)
         .finally(() => this.conn.query(sql, [sid])
           .then(() => cb(null))
           .catch(err => {

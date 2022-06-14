@@ -1,4 +1,4 @@
-const { Client } = require('@elastic/elasticsearch');
+import { Client } from '@elastic/elasticsearch';
 
 const client = new Client({
   node: process.env.ELASTIC_NODE,
@@ -8,4 +8,4 @@ const client = new Client({
   },
 });
 
-module.exports = client;
+export default client;

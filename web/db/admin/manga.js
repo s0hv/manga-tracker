@@ -1,6 +1,6 @@
-const { db } = require('..');
+import { db } from '../index.js';
 
-const updateMangaTitle = (mangaId, newTitle) => {
+export const updateMangaTitle = (mangaId, newTitle) => {
   const sql = `UPDATE manga
                SET title=$1
                WHERE manga_id=$2
@@ -13,8 +13,4 @@ const updateMangaTitle = (mangaId, newTitle) => {
 
   return db.one(sql, [newTitle, mangaId])
     .then(row => db.oneOrNone(aliasSql, [row.title, mangaId, newTitle]));
-};
-
-module.exports = {
-  updateMangaTitle,
 };
