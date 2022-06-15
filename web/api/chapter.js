@@ -6,11 +6,11 @@ import {
   editChapter,
   deleteChapter,
   getChapterReleases,
-  getLatestChapters
+  getLatestChapters,
 } from '../db/chapter.js';
 import {
   validateAdminUser,
-  handleValidationErrors
+  handleValidationErrors,
 } from '../utils/validators.js';
 import { handleError } from '../db/utils.js';
 import { dbLogger } from '../utils/logging.js';

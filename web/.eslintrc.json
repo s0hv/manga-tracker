@@ -8,7 +8,6 @@
         "plugin:jsx-a11y/recommended",
         "plugin:jest/style"
     ],
-    "parser": "@babel/eslint-parser",
     "parserOptions": {
         "ecmaVersion": 2018,
         "sourceType": "module",

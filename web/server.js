@@ -26,7 +26,7 @@ import {
   settingsApi,
   userApi,
   adminMangaApi,
-  adminServicesApi
+  adminServicesApi,
 } from './api/index.js';
 
 const PostgresStore = PostgresStoreGen(session);

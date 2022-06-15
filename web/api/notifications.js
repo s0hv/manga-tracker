@@ -1,4 +1,4 @@
-import { body, matchedData, param, } from 'express-validator';
+import { body, matchedData, param } from 'express-validator';
 import { requiresUser } from '../db/auth.js';
 import {
   getUserNotifications,
