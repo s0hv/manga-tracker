@@ -6,7 +6,7 @@ const withTM = withTmInitializer(([
   'swagger-jsdoc',
 ]));
 
-export default (phase, { defaultConfig }) => {
+export default async (phase, { defaultConfig }) => {
   const conf = withTM({
     ...defaultConfig,
     webpack(config) {
@@ -34,11 +34,23 @@ export default (phase, { defaultConfig }) => {
       // ESLint not in production dependencies
       ignoreDuringBuilds: true,
     },
+    experimental: {
+      emotion: true,
+      modularizeImports: {
+        '@mui/material': {
+          transform: '@mui/material/{{member}}',
+        },
+        '@mui/icons-material': {
+          transform: '@mui/icons-material/{{member}}',
+        },
+      },
+    },
+    swcMinify: true,
   });
 
   if (process.env.ANALYZE) {
     // eslint-disable-next-line import/no-extraneous-dependencies
-    const withBundleAnalyzer = require('@next/bundle-analyzer')({
+    const withBundleAnalyzer = (await import('@next/bundle-analyzer')).default({
       enabled: process.env.ANALYZE === 'true',
     });
 

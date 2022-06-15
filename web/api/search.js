@@ -3,11 +3,11 @@ import { query } from 'express-validator';
 
 import {
   handleElasticError,
-  extractFields
+  extractFields,
 } from '../db/elasticsearch/utils.js';
 import {
   hadValidationError,
-  handleValidationErrors
+  handleValidationErrors,
 } from '../utils/validators.js';
 import { handleError } from '../db/utils.js';
 import { getFullManga } from '../db/manga.js';

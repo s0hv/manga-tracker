@@ -45,7 +45,7 @@ describe('mangadex API works correctly', () => {
   it('Silently ignores mangadex errors', async () => {
     const err = new Error('test');
     const spy = jest.spyOn(Manga, 'get')
-      .mockImplementation(async () => throw err);
+      .mockImplementation(async () => { throw err });
     const dbSpy = spyOnDb();
 
     await fetchExtraInfo(1, 2);

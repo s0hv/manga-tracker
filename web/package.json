@@ -21,12 +21,9 @@
   },
   "sideEffects": false,
   "dependencies": {
-    "@babel/core": "^7.18.2",
-    "@babel/plugin-proposal-throw-expressions": "^7.12.13",
     "@codemirror/basic-setup": "^0.19.3",
     "@codemirror/lang-json": "^0.19.2",
     "@elastic/elasticsearch": "~7.13.0",
-    "@emotion/babel-plugin": "^11.9.2",
     "@emotion/cache": "^11.9.3",
     "@emotion/react": "^11.9.3",
     "@emotion/server": "^11.4.0",
@@ -36,7 +33,6 @@
     "@mui/material": "^5.8.4",
     "@mui/styles": "^5.8.4",
     "@uiw/react-codemirror": "^4.5.3",
-    "babel-plugin-import": "^1.13.5",
     "body-parser": "^1.20.0",
     "camelcase-keys": "^7.0.0",
     "cookie-parser": "^1.4.5",
@@ -106,8 +102,6 @@
     ]
   },
   "devDependencies": {
-    "@babel/eslint-parser": "^7.18.2",
-    "@babel/preset-env": "^7.18.2",
     "@elastic/elasticsearch-mock": "^1.0.0",
     "@faker-js/faker": "^6.3.1",
     "@next/bundle-analyzer": "^12.1.6",
@@ -115,7 +109,6 @@
     "@testing-library/react": "^12.1.5",
     "@testing-library/user-event": "^14.2.0",
     "@types/react-table": "^7.7.12",
-    "babel-jest": "^28.1.1",
     "cookie": "^0.4.1",
     "cookie-signature": "^1.1.0",
     "cross-env": "^7.0.3",

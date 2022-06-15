@@ -84,7 +84,7 @@ describe('sessionStore', () => {
 
     it('Returns error on database errors', async () => {
       const error = new Error('test');
-      const spy = spyOnDb().mockImplementation(async () => throw error);
+      const spy = spyOnDb().mockImplementation(async () => { throw error });
       const store = new Store({ conn: db });
       const sid = 'sid_get_error';
 
@@ -118,7 +118,7 @@ describe('sessionStore', () => {
 
     it('Returns error on database errors while still setting cache', async () => {
       const error = new Error('test');
-      const spy = spyOnDb().mockImplementation(async () => throw error);
+      const spy = spyOnDb().mockImplementation(async () => { throw error });
       const store = new Store({ conn: db });
       const sid = 'sid_set_error';
 
