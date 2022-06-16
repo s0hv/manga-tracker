@@ -63,7 +63,7 @@
     "pg-error-constants": "^1.0.0",
     "pg-format": "^1.0.4",
     "pg-promise": "^10.10.1",
-    "pino": "^7.9.2",
+    "pino": "^8.0.0",
     "pino-http": "^6.6.0",
     "pino-pretty": "^7.6.0",
     "prop-types": "^15.7.2",
