@@ -34,7 +34,7 @@
     "@mui/styles": "^5.8.4",
     "@uiw/react-codemirror": "^4.5.3",
     "body-parser": "^1.20.0",
-    "camelcase-keys": "^7.0.0",
+    "camelcase-keys": "^8.0.0",
     "cookie-parser": "^1.4.5",
     "core-js": "^3.23.1",
     "csurf": "^1.11.0",
