@@ -1,7 +1,10 @@
 export default async function stopServer(httpServer) {
   console.log('Closing server');
   const { pgp } = require('../db');
-  const elasticsearch = require('../db/elasticsearch').default;
+  let elasticsearch = require('../db/elasticsearch');
+  if (elasticsearch.default) {
+    elasticsearch = elasticsearch.default;
+  }
   await new Promise(resolve => httpServer.close(resolve));
   const { redis } = require('../utils/ratelimits');
   redis.disconnect();
