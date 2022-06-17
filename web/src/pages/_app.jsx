@@ -1,7 +1,7 @@
 import { CssBaseline } from '@mui/material';
 import { ThemeProvider, StyledEngineProvider } from '@mui/material/styles';
-import AdapterDateFns from '@mui/lab/AdapterDateFns';
-import LocalizationProvider from '@mui/lab/LocalizationProvider';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import enLocale from 'date-fns/locale/en-GB';
 import { DefaultSeo } from 'next-seo';
 import { CacheProvider } from '@emotion/react';
@@ -96,7 +96,7 @@ function MainApp({ Component, pageProps = {}, emotionCache = clientSideEmotionCa
             <ThemeProvider theme={activeTheme}>
               <ProgressBar />
               <CssBaseline />
-              <LocalizationProvider dateAdapter={AdapterDateFns} locale={enLocale}>
+              <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={enLocale}>
                 <SnackbarProvider>
                   <QueryClientProvider client={queryClient}>
                     <UserProvider value={user}>
