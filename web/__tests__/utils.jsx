@@ -1,5 +1,5 @@
-import AdapterDateFns from '@mui/lab/AdapterDateFns';
-import LocalizationProvider from '@mui/lab/LocalizationProvider';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { fireEvent, screen, within } from '@testing-library/react';
 import cookie from 'cookie';
 import signature from 'cookie-signature';
@@ -250,7 +250,7 @@ export function encodeAuthToken(lookup, token, uuid) {
 
 export function withRoot(Component) {
   return (
-    <LocalizationProvider dateAdapter={AdapterDateFns} locale={enLocale}>
+    <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={enLocale}>
       {Component}
     </LocalizationProvider>
   );

@@ -1,5 +1,5 @@
 import React from 'react';
-import DateTimePicker from '@mui/lab/DateTimePicker';
+import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import { TextField } from '@mui/material';
 
 import { processCellEdit } from './useEditable';
