@@ -1,4 +1,4 @@
-import faker from '@faker-js/faker';
+import { faker } from '@faker-js/faker';
 import jsf from 'json-schema-faker';
 import Random from 'random-seed';
 

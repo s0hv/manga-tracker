@@ -80,7 +80,8 @@
         "max-classes-per-file": "off",
         "react/forbid-prop-types": "off",
         "no-promise-executor-return": "off",
-        "import/extensions": "off"
+        "import/extensions": "off",
+        "arrow-body-style": "off"
     },
     "env": {
         "browser": true,

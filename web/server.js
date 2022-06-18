@@ -6,13 +6,18 @@ import passport from 'passport';
 import JsonStrategy from 'passport-json';
 import helmet from 'helmet';
 import pinoHttp from 'pino-http';
-import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 
 import { isDev, isTest, csrfMissing } from './utils/constants.js';
 import { db } from './db/index.js';
 import PostgresStoreGen from './db/session-store.js';
-import { checkAuth, authenticate, requiresUser } from './db/auth.js';
+import {
+  checkAuth,
+  authenticate,
+  requiresUser,
+  setUserOnLogin,
+  createRememberMeToken,
+} from './db/auth.js';
 import { bruteforce, rateLimiter } from './utils/ratelimits.js';
 import { logger, expressLogger, sessionLogger } from './utils/logging.js';
 
@@ -42,10 +47,12 @@ passport.use(
 );
 
 passport.serializeUser((user, done) => {
-  done(null, user);
+  logger.debug('serializeUser %o', user);
+  done(null, user?.userId);
 });
 
 passport.deserializeUser((user, done) => {
+  logger.debug('deserialize %o', user);
   done(null, user);
 });
 
@@ -76,6 +83,7 @@ export default nextApp.prepare()
       },
       crossOriginResourcePolicy: false,
       crossOriginEmbedderPolicy: false,
+      hsts: isDev ? false : undefined,
     }));
     if (reverseProxy) server.enable('trust-proxy');
 
@@ -89,8 +97,8 @@ export default nextApp.prepare()
 
     server.use(pinoHttp({ logger: expressLogger, useLevel: 'debug' }));
 
-    server.use(bodyParser.json());
-    server.use(bodyParser.urlencoded({ extended: false }));
+    server.use(express.json());
+    server.use(express.urlencoded({ extended: false }));
 
     server.use(cookieParser(null));
     server.use(session({
@@ -115,11 +123,12 @@ export default nextApp.prepare()
       server.use(rateLimiter);
     }
     server.use(passport.initialize());
+    server.use(passport.session());
     server.use(checkAuth(server));
 
     server.use((req, res, next) => {
       logger.debug('Auth cookie: %s', req.cookies.auth);
-      logger.debug(req.originalUrl);
+      logger.debug('%s %s', req.method, req.originalUrl);
       // if (!req.originalUrl.startsWith('/_next/static')) debug(req.originalUrl);
       next();
     });
@@ -129,14 +138,24 @@ export default nextApp.prepare()
       passport.authenticate('json'),
       (req, res) => {
         if (req.body.rememberme === true) {
-          res.cookie('auth', req.user, {
-            maxAge: 2592000000, // 30d in ms
-            httpOnly: true,
-            secure: !isDev,
-            sameSite: 'lax',
-          });
+          createRememberMeToken(req, req.user)
+            .then(token => {
+              res.cookie('auth', token, {
+                maxAge: 2592000000, // 30d in ms
+                httpOnly: true,
+                secure: !isDev,
+                sameSite: 'lax',
+              });
+              res.redirect('/');
+            })
+            .catch(err => {
+              expressLogger.error(err);
+              res.sendStatus(500);
+            });
+        } else {
+          setUserOnLogin(req, req.user);
+          res.redirect('/');
         }
-        res.redirect('/');
       });
 
     rssApi(server);

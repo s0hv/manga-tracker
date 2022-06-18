@@ -62,40 +62,40 @@ export const authenticate = (req, email, password, cb) => {
         return cb(null, false);
       }
 
-      function setUser(currentRow, token) {
-        // Try to regen session
-        req.session.regenerate((err) => {
-          if (err) {
-            console.error(err);
-            req.session.userId = undefined;
-            return cb(err, false);
-          }
-          req.session.userId = currentRow.userId;
-          userCache.set(currentRow.userId, {
-            userId: currentRow.userId,
-            username: currentRow.username,
-            uuid: currentRow.userUuid,
-            theme: currentRow.theme,
-            admin: currentRow.admin,
-          });
-          return cb(null, token);
-        });
-      }
-
-      if (req.body.rememberme !== true) {
-        return setUser(row, true);
-      }
-
-      generateAuthToken(row.userId, row.userUuid)
-        .then(token => setUser(row, token))
-        .catch(err => {
-          console.error(err);
-          cb(err, false);
-        });
+      cb(null, row);
     })
     .catch(err => {
       console.error(err);
       cb(err, false);
+    });
+};
+
+export const setUserOnLogin = (req, user) => {
+  req.session.userId = user.userId;
+  userCache.set(user.userId, {
+    userId: user.userId,
+    username: user.username,
+    uuid: user.userUuid,
+    theme: user.theme,
+    admin: user.admin,
+  });
+};
+
+export const createRememberMeToken = (req, user) => {
+  return generateAuthToken(user.userId, user.userUuid)
+    .then(token => {
+      // Try to regen session
+      return new Promise((resolve, reject) => req.session.regenerate((err) => {
+        if (err) {
+          console.error(err);
+          req.session.userId = undefined;
+          return reject(err);
+        }
+
+        setUserOnLogin(req, user);
+
+        resolve(token);
+      }));
     });
 };
 
