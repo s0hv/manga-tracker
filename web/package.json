@@ -9,7 +9,7 @@
     "npm": ">=8.11"
   },
   "scripts": {
-    "start": "node server.js --experimental-specifier-resolution=node",
+    "start": "node -r dotenv/config --inspect server.js",
     "build": "next build",
     "server-dev": "nodemon --exec \"node -r dotenv/config --experimental-specifier-resolution=node\" --watch api/* --watch db/* --watch server.js server.js dotenv_config_path=../.env",
     "deploy": "npm run start",
@@ -33,7 +33,6 @@
     "@mui/styles": "^5.8.4",
     "@mui/x-date-pickers": "^5.0.0-alpha.6",
     "@uiw/react-codemirror": "^4.8.1",
-    "body-parser": "^1.20.0",
     "camelcase-keys": "^8.0.0",
     "cookie-parser": "^1.4.5",
     "core-js": "^3.23.1",
@@ -58,7 +57,7 @@
     "next-transpile-modules": "^9.0.0",
     "notistack": "^2.0.5",
     "nprogress": "^0.2.0",
-    "passport": "^0.6.0",
+    "passport": "^0.5.3",
     "passport-json": "^1.2.0",
     "pg-error-constants": "^1.0.0",
     "pg-format": "^1.0.4",

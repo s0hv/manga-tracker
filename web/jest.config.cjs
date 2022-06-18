@@ -10,7 +10,7 @@ const baseConfig = {
     '^.+\\.(js|jsx|ts|tsx)$': '<rootDir>/node_modules/babel-jest',
   },
   transformIgnorePatterns: [
-    '/node_modules/(?!(react-frappe-charts|frappe-charts|swagger-jsdoc|jsonpath-plus|react-colorful)/)',
+    '/node_modules/(?!(react-frappe-charts|frappe-charts|swagger-jsdoc|jsonpath-plus|react-colorful|yaml|camelcase-keys|camelcase|quick-lru)/)',
     '^.+\\.module\\.(css|sass|scss)$',
   ],
   moduleNameMapper: {
