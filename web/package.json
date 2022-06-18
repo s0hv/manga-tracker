@@ -9,7 +9,7 @@
     "npm": ">=8.11"
   },
   "scripts": {
-    "start": "node -r dotenv/config --inspect server.js",
+    "start": "node server.js",
     "build": "next build",
     "server-dev": "nodemon --exec \"node -r dotenv/config --experimental-specifier-resolution=node\" --watch api/* --watch db/* --watch server.js server.js dotenv_config_path=../.env",
     "deploy": "npm run start",
