@@ -87,7 +87,8 @@
     "swagger-jsdoc": "^6.2.1",
     "webpack": "^5.73.0",
     "yaml": "^2.1.1",
-    "yup": "^0.32.9"
+    "yup": "^0.32.9",
+    "typescript": "^4.7.4"
   },
   "cacheDirectories": [
     ".next/cache/"
@@ -138,7 +139,6 @@
     "nodemon": "^2.0.16",
     "random-seed": "^0.3.0",
     "supertest": "^6.2.3",
-    "ts-node": "^10.8.1",
-    "typescript": "^4.7.4"
+    "ts-node": "^10.8.1"
   }
 }
