@@ -3,7 +3,7 @@ import { mangaView, onSessionExpire } from '../../../utils/view-counter';
 
 
 afterAll(async () => {
-  const { pgp } = require('../../../db/index.js');
+  const { pgp } = require('../../../db');
   await pgp.end();
 });
 
