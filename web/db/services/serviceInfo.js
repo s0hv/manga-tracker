@@ -1,4 +1,4 @@
-import { db } from '../index.js';
+import { db } from '..';
 
 export function getServices() {
   const sql = `SELECT s.service_id id, service_name, disabled, url, s.last_check, 

@@ -1,4 +1,4 @@
-import { db } from '../index.js';
+import { db } from '..';
 
 export const updateMangaTitle = (mangaId, newTitle) => {
   const sql = `UPDATE manga

@@ -1,19 +1,20 @@
 import camelcaseKeys from 'camelcase-keys';
 import { performance } from 'perf_hooks';
-import pgPromise from 'pg-promise';
+import pgPromise, { IDatabase, QueryParam } from 'pg-promise';
 
 import { queryLogger } from '../utils/logging.js';
 
 const isTest = process.env.NODE_ENV === 'test';
 
-// eslint-disable-next-line import/order
 export const pgp = pgPromise({
   noLocking: isTest, // Locking must not be set on during test so mocks can be made.
   capSQL: true,
-  pgFormatting: true, // When this is false parameters would be always logged since they're embedded in the query
+  pgFormatting: true, // When this is false parameters would always be logged since they're embedded in the query
 
   // Log duration and query
   receive(data, result, e) {
+    if (!result) return;
+
     const { duration } = result;
 
     // This should result in minimal performance impact except on the first query,
@@ -43,7 +44,7 @@ export const pgp = pgPromise({
 });
 
 // https://stackoverflow.com/a/34427278/6046713
-const createSingletonDb = () => {
+const createSingletonDb = (): IDatabase<any> => {
   const s = Symbol.for('database');
   let scope = global[s];
   if (!global[s]) {
@@ -53,7 +54,7 @@ const createSingletonDb = () => {
       database: isTest ?
         process.env.DB_NAME_TEST || process.env.DB_NAME :
         process.env.DB_NAME,
-      port: process.env.DB_PORT,
+      port: Number(process.env.DB_PORT),
       password: process.env.PGPASSWORD,
       max: 5,
       idleTimeoutMillis: 30000,
@@ -64,14 +65,10 @@ const createSingletonDb = () => {
   return scope;
 };
 
-/**
- * Database object
- * @type {pgPromise.IDatabase}
- */
 export const db = createSingletonDb();
 
 
-export function query(sql, args) {
+export function query(sql: QueryParam, args?: any) {
   return db.query(sql, args);
 }
 

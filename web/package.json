@@ -9,15 +9,16 @@
     "npm": ">=8.11"
   },
   "scripts": {
-    "start": "node server.js",
-    "build": "next build",
-    "server-dev": "nodemon --exec \"node -r dotenv/config --experimental-specifier-resolution=node\" --watch api/* --watch db/* --watch server.js server.js dotenv_config_path=../.env",
+    "start": "node --enable-source-maps --experimental-specifier-resolution=node dist/server.js",
+    "start-dev": "ts-node-esm --project tsconfig.server.json --files --experimental-specifier-resolution=node -r dotenv/config server.ts",
+    "build": "tsc --project tsconfig.server.json && next build",
+    "server-dev": "nodemon --exec \"ts-node-esm --files -r dotenv/config --project tsconfig.server.json --experimental-specifier-resolution=node\" --watch api/* --watch db/* --watch server.ts server.ts",
     "deploy": "npm run start",
     "analyze": "cross-env ANALYZE=true next build",
     "test": "jest",
     "test:ci": "jest --ci --coverage",
     "coverage": "jest --coverage",
-    "lint": "eslint --ext .jsx,.js,.snap ."
+    "lint": "eslint --ext .jsx,.js,.snap,.ts,.tsx ."
   },
   "sideEffects": false,
   "dependencies": {
@@ -32,6 +33,9 @@
     "@mui/material": "^5.8.4",
     "@mui/styles": "^5.8.4",
     "@mui/x-date-pickers": "^5.0.0-alpha.6",
+    "@types/express": "^4.17.13",
+    "@types/express-session": "^1.17.4",
+    "@types/passport": "^1.0.9",
     "@uiw/react-codemirror": "^4.8.1",
     "camelcase-keys": "^8.0.0",
     "cookie-parser": "^1.4.5",
@@ -107,7 +111,10 @@
     "@testing-library/jest-dom": "^5.16.4",
     "@testing-library/react": "^12.1.5",
     "@testing-library/user-event": "^14.2.0",
+    "@types/node": "^18.0.0",
     "@types/react-table": "^7.7.12",
+    "@typescript-eslint/eslint-plugin": "^5.28.0",
+    "@typescript-eslint/parser": "^5.28.0",
     "cookie": "^0.5.0",
     "cookie-signature": "^1.1.0",
     "cross-env": "^7.0.3",
@@ -131,6 +138,7 @@
     "nodemon": "^2.0.16",
     "random-seed": "^0.3.0",
     "supertest": "^6.2.3",
-    "typescript": "^4.7.3"
+    "ts-node": "^10.8.1",
+    "typescript": "^4.7.4"
   }
 }

@@ -1,4 +1,4 @@
-import sessionStore from '../../db/session-store';
+import Store from '../../db/session-store';
 import { db, pgp } from '../../db';
 import { spyOnDb } from '../dbutils';
 
@@ -14,7 +14,6 @@ describe('sessionStore', () => {
     jest.useRealTimers();
   });
 
-  const Store = sessionStore(require('express-session'));
   it('Throws error when connection not given to constructor', () => {
     expect(() => new Store()).toThrow(/no postgres connection given/i);
   });
@@ -100,7 +99,7 @@ describe('sessionStore', () => {
     const session = {
       test: 1,
       data: 'data',
-      cookie: { _expires: new Date(Date.now() + 60*60*60),
+      cookie: { expires: new Date(Date.now() + 60*60*60),
       }};
 
     it('Saves new session to database and cache', async () => {

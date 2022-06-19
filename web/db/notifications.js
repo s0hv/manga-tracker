@@ -1,5 +1,5 @@
 import { NOT_NULL_VIOLATION } from 'pg-error-constants';
-import { db, pgp } from './index.js';
+import { db, pgp } from '.';
 import { NotFound, BadRequest } from '../utils/errors.js';
 
 

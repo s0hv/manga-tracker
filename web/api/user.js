@@ -20,7 +20,7 @@ import {
   generateAuthToken,
   clearUserAuthToken,
 } from '../db/auth.js';
-import { db } from '../db/index.js';
+import { db } from '../db';
 import { regenerateSession } from '../utils/utilities.js';
 
 const dev = process.env.NODE_ENV !== 'production';
