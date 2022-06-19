@@ -1,4 +1,4 @@
-import { query } from '../../db/index.js';
+import { query } from '../../db';
 
 export const mangaView = (session, params) => {
   if (!session) {

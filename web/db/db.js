@@ -1,4 +1,4 @@
-import { db } from './index.js';
+import { db } from '.';
 
 export function getLatestReleases(serviceId, mangaId, userUUID) {
   const joins = [];

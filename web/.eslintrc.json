@@ -81,7 +81,8 @@
         "react/forbid-prop-types": "off",
         "no-promise-executor-return": "off",
         "import/extensions": "off",
-        "arrow-body-style": "off"
+        "arrow-body-style": "off",
+        "lines-between-class-members": "off"
     },
     "env": {
         "browser": true,
@@ -97,5 +98,29 @@
     "globals": {
         "React": "writable"
     },
-    "ignorePatterns": [".*", "public/*", "__mocks__/*"]
+    "ignorePatterns": [".*", "public/*", "__mocks__/*", "dist/*"],
+    "overrides": [
+        {
+            "files": ["**/*.ts", "**/*.tsx"],
+            "plugins": [
+                "react",
+                "jest",
+                "@typescript-eslint"
+            ],
+            "parser": "@typescript-eslint/parser",
+            "globals": {
+                 "NodeJS": true
+            },
+            "extends": [
+                "eslint:recommended",
+                "plugin:@typescript-eslint/recommended"
+            ],
+            "rules": {
+                "@typescript-eslint/no-explicit-any": "off",
+                "@typescript-eslint/no-empty-function": "off",
+                "no-shadow": "off",
+                "@typescript-eslint/no-shadow": "error"
+            }
+        }
+    ]
 }

@@ -2,7 +2,7 @@ import LRU from 'lru-cache';
 import crypto from 'crypto';
 
 import { bruteforce } from '../utils/ratelimits.js';
-import { db } from './index.js';
+import { db } from '.';
 import { sessionLogger, authLogger } from '../utils/logging.js';
 
 

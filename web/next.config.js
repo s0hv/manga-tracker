@@ -45,7 +45,7 @@ export default async (phase, { defaultConfig }) => {
         },
       },
     },
-    swcMinify: true,
+    swcMinify: false,
   });
 
   if (process.env.ANALYZE) {

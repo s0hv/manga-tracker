@@ -1,5 +1,5 @@
 import snakecaseKeys from 'snakecase-keys';
-import { db } from '../index.js';
+import { db } from '..';
 import { generateUpdate } from '../utils.js';
 
 

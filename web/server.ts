@@ -8,20 +8,22 @@ import helmet from 'helmet';
 import pinoHttp from 'pino-http';
 import cookieParser from 'cookie-parser';
 
-import { isDev, isTest, csrfMissing } from './utils/constants.js';
-import { db } from './db/index.js';
-import PostgresStoreGen from './db/session-store.js';
+import { csrfMissing, isDev, isTest } from './utils/constants.js';
+import { db } from './db';
+import PostgresStore from './db/session-store';
 import {
-  checkAuth,
   authenticate,
+  checkAuth,
+  createRememberMeToken,
   requiresUser,
   setUserOnLogin,
-  createRememberMeToken,
 } from './db/auth.js';
 import { bruteforce, rateLimiter } from './utils/ratelimits.js';
-import { logger, expressLogger, sessionLogger } from './utils/logging.js';
+import { expressLogger, logger, sessionLogger } from './utils/logging.js';
 
 import {
+  adminMangaApi,
+  adminServicesApi,
   chapterApi,
   mangaApi,
   notificationsApi,
@@ -30,11 +32,8 @@ import {
   servicesApi,
   settingsApi,
   userApi,
-  adminMangaApi,
-  adminServicesApi,
 } from './api/index.js';
 
-const PostgresStore = PostgresStoreGen(session);
 passport.use(
   new JsonStrategy(
     {
@@ -46,7 +45,7 @@ passport.use(
   )
 );
 
-passport.serializeUser((user, done) => {
+passport.serializeUser((user: any, done) => {
   logger.debug('serializeUser %o', user);
   done(null, user?.userId);
 });
@@ -65,10 +64,9 @@ const handle = nextApp.getRequestHandler();
 
 export default nextApp.prepare()
   .then(() => {
-    /** @type import('express').Express */
     const server = express();
 
-    const directives = {
+    const directives: any = {
       imgSrc: "'self' https://uploads.mangadex.org data:", // data: used by redoc
       workerSrc: "'self' blob:", // blob: used by redoc
     };
@@ -83,7 +81,7 @@ export default nextApp.prepare()
       },
       crossOriginResourcePolicy: false,
       crossOriginEmbedderPolicy: false,
-      hsts: isDev ? false : undefined,
+      hsts: !isDev,
     }));
     if (reverseProxy) server.enable('trust-proxy');
 

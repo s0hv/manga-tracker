@@ -5,7 +5,7 @@ import {
   IN_FAILED_SQL_TRANSACTION,
 } from 'pg-error-constants';
 
-import { pgp } from './index.js';
+import { pgp } from '.';
 import { NoColumnsError } from './errors.js';
 import { dbLogger } from '../utils/logging.js';
 import { StatusError } from '../utils/errors.js';

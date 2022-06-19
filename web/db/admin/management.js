@@ -1,4 +1,4 @@
-import { db } from '../index.js';
+import { db } from '..';
 
 export const scheduleMangaRun = (mangaId, serviceId, userId) => {
   const sql = 'INSERT INTO scheduled_runs (manga_id, service_id, created_by) VALUES ($1, $2, $3) RETURNING *';

@@ -1,6 +1,6 @@
 import { NO_GROUP } from '../utils/constants.js';
 import { generateUpdate } from './utils.js';
-import { db, pgp } from './index.js';
+import { db, pgp } from '.';
 
 export const getChapterReleases = (mangaId) => {
   const sql = `SELECT extract(EPOCH FROM date_trunc('day', release_date)) as "timestamp", CAST(count(release_date) as int) count 

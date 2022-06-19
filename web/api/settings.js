@@ -1,6 +1,6 @@
 import { requiresUser, modifyCacheUser } from '../db/auth.js';
 import { positiveTinyInt, hadValidationError } from '../utils/validators.js';
-import { query } from '../db/index.js';
+import { query } from '../db';
 import { handleError } from '../db/utils.js';
 
 

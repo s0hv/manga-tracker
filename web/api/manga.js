@@ -1,6 +1,6 @@
 import { query, param } from 'express-validator';
 
-import { db } from '../db/index.js';
+import { db } from '../db';
 import { handleError } from '../db/utils.js';
 import { getChapters } from '../db/chapter.js';
 import { getOptionalNumberParam } from '../utils/utilities.js';

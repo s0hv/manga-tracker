@@ -1,6 +1,6 @@
 import camelcaseKeys from 'camelcase-keys';
 
-import { db } from './index.js';
+import { db } from '.';
 import { fetchExtraInfo, MANGADEX_ID } from './mangadex.js';
 import { HttpError } from '../utils/errors.js';
 import { mangadexLogger } from '../utils/logging.js';

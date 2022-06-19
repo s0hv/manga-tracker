@@ -1,4 +1,4 @@
-import { db } from './index.js';
+import { db } from '.';
 
 export const insertFollow = (userId, mangaId, serviceId) => {
   const sql = 'INSERT INTO user_follows (manga_id, service_id, user_id) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING';
