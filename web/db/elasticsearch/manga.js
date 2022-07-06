@@ -36,8 +36,8 @@ export const mangaSearch = (query, count, withServices = false) => {
                     query,
                     type: 'most_fields',
                     fields: [
-                      'manga_alias.title^3',
-                      'manga_alias.title.ngram',
+                      'aliases.title^3',
+                      'aliases.title.ngram',
                     ],
                   },
                 },

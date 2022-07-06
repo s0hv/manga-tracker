@@ -13,7 +13,6 @@ from src.scrapers import MangaPlus
 from src.scrapers.base_scraper import BaseScraper
 from src.tests.scrapers.testing_scraper import DummyScraper, DummyScraper2
 from src.tests.testing_utils import BaseTestClasses
-from src.utils.dbutils import DbUtil
 
 
 class MergeResult(BaseModel):
@@ -22,11 +21,9 @@ class MergeResult(BaseModel):
 
 
 class TestMergeManga(BaseTestClasses.DatabaseTestCase):
-    @classmethod
-    def setUpClass(cls) -> None:
-        super(TestMergeManga, cls).setUpClass()
-
-        MangaPlus(cls._conn, DbUtil(cls._conn)).add_service()
+    @pytest.fixture(autouse=True, scope='class')
+    def _set_up_merge_manga(self, class_dbutil, conn) -> None:
+        MangaPlus(conn, class_dbutil).add_service()
 
     def merge_manga(self, base: int, to_merge: int, service_id: Optional[int] = None) -> MergeResult:
         return MergeResult(

@@ -12,12 +12,15 @@ from typing import Type, ContextManager, TypedDict, Optional, Collection, List, 
 
 import psycopg2
 from concurrent.futures import ThreadPoolExecutor
+from elasticsearch import Elasticsearch
 from psycopg2.extensions import connection as Connection
 from psycopg2.extras import DictCursor
 from psycopg2.pool import ThreadedConnectionPool
 
 from src.db.mappers.notifications_mapper import NotificationsMapper
 from src.db.models.chapter import Chapter
+from src.elasticsearch.configuration import get_client
+from src.elasticsearch.methods import ElasticMethods
 from src.notifier import NOTIFIERS
 from src.scrapers import SCRAPERS, SCRAPERS_ID
 from src.scrapers.base_scraper import BaseScraper
@@ -70,9 +73,18 @@ class UpdateScheduler:
             cursor_factory=LoggingDictCursor
         )
         self.thread_pool = ThreadPoolExecutor(max_workers=self.MAX_POOLS-1)
+        self._es: Elasticsearch = get_client()
 
         with self.conn() as conn:
-            inject_service_values(DbUtil(conn))
+            inject_service_values(DbUtil(conn, self.es_methods))
+
+    @property
+    def es(self) -> Elasticsearch:
+        return self._es
+
+    @property
+    def es_methods(self) -> ElasticMethods:
+        return ElasticMethods(self._es)
 
     # Workaround described in https://youtrack.jetbrains.com/issue/PY-36444
     # Required for mypy pass and PyCharm autocompletion
@@ -98,7 +110,7 @@ class UpdateScheduler:
 
     def do_scheduled_runs(self) -> Tuple[List[int], List[int]]:
         with self.conn() as conn:
-            dbutil = DbUtil(conn)
+            dbutil = DbUtil(conn, self.es_methods)
             delete = []
             manga_ids = []
             chapter_ids = []
@@ -151,7 +163,7 @@ class UpdateScheduler:
                        manga_info: Collection[MangaServiceInfo]) -> Tuple[Set[int], List[int]]:
         with self.conn() as conn:
             with conn:
-                scraper = Scraper(conn, DbUtil(conn))
+                scraper = Scraper(conn, DbUtil(conn, self.es_methods))
                 rng = random.Random()
                 manga_ids: Set[int] = set()
                 chapter_ids: List[int] = []
@@ -220,7 +232,7 @@ class UpdateScheduler:
                     logger.error(f'Failed to find scraper for {row}')
                     return None
 
-                scraper = Scraper(conn)
+                scraper = Scraper(conn, DbUtil(conn, self.es_methods))
 
                 title_id: str = row['title_id']
                 manga_id = cast(int, row['manga_id'])
@@ -264,7 +276,7 @@ class UpdateScheduler:
                     logger.error(f'Failed to find scraper for {row}')
                     return None
 
-                scraper = Scraper(conn, DbUtil(conn))
+                scraper = Scraper(conn, DbUtil(conn, self.es_methods))
                 logger.info(f'Updating service {row["url"]}')
                 with conn:
                     updated = scraper.scrape_service(row['service_id'], row['feed_url'], None)
@@ -318,7 +330,7 @@ class UpdateScheduler:
                     logger.error(f'Failed to find scraper for {service}')
                     continue
 
-                scraper = Scraper(conn, DbUtil(conn))
+                scraper = Scraper(conn, DbUtil(conn, self.es_methods))
                 logger.info(f'Updating service {service[2]}')
 
                 with conn:
@@ -353,7 +365,7 @@ class UpdateScheduler:
             with conn:
                 if manga_ids:
                     logger.debug(f"Updating interval of {len(manga_ids)} manga")
-                    dbutil = DbUtil(conn)
+                    dbutil = DbUtil(conn, self.es_methods)
                     with conn.cursor() as cursor:
                         dbutil.update_latest_release(list(manga_ids), cur=cursor)
                         for manga_id in manga_ids:
@@ -394,7 +406,7 @@ class UpdateScheduler:
             return
 
         with self.conn() as conn:
-            dbutil = DbUtil(conn)
+            dbutil = DbUtil(conn, self.es_methods)
 
             partial_notifications = dbutil.get_notifications_by_manga_ids(list(manga_ids))
             manga_ids = {pn.manga_id for pn in partial_notifications}

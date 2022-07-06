@@ -15,7 +15,6 @@ from src.db.models.chapter import Chapter
 from src.db.models.manga import MangaService
 from src.scrapers.mangadex import MangaDex, ChapterResult
 from src.tests.testing_utils import BaseTestClasses, ChapterTestModel
-from src.utils.dbutils import DbUtil
 
 logger = setup_logging.setup()
 
@@ -92,11 +91,9 @@ class MangadexTests(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsser
     def _caplog(self, caplog):
         self.caplog = caplog
 
-    @classmethod
-    def setUpClass(cls) -> None:
-        super(MangadexTests, cls).setUpClass()
-
-        dbutil = DbUtil(cls._conn)
+    @pytest.fixture(autouse=True, scope='class')
+    def _setup_mangadex(self, class_dbutil) -> None:
+        dbutil = class_dbutil
         dbutil.add_authors([
             AuthorPartial(name='Im Dal-Young', mangadex_id='d21a9418-817a-43e5-a4d2-bf1e7391d7ec')
         ])
@@ -106,20 +103,22 @@ class MangadexTests(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsser
             title="I Was Born as the Demon Lord's Daughter"
         ), add_manga=True)
 
+    @pytest.fixture(autouse=True)
+    def load_data(self):
         api_path = os.path.join(os.path.dirname(__file__), 'api_data')
 
-        with open(os.path.join(api_path, 'chapters.json'), 'r', encoding='utf-8') as f:
-            cls.chapters_data = json.load(f)
+        with open(os.path.join(api_path, 'chapters.json'), 'r',encoding='utf-8') as f:
+            self.chapters_data = json.load(f)
 
         with open(os.path.join(api_path, 'manga.json'), 'r', encoding='utf-8') as f:
-            cls.manga_data = json.load(f)
+            self.manga_data = json.load(f)
 
     def setUp(self) -> None:
         super().setUp()
-        self.mangadex = MangaDex(self._conn, self.dbutil)
+        self.mangadex = MangaDex(self.conn, self.dbutil)
 
-    def delete_chapters(self):
-        self.dbutil.execute('DELETE FROM chapters WHERE service_id=%s', (self.mangadex.ID,))
+    def delete_chapters(self, service_id: int = MangaDex.ID):
+        super().delete_chapters(service_id)
 
     def set_up_api(self):
         responses.add(responses.GET, f'{self.API_URL}/chapter',
