@@ -34,7 +34,7 @@ class TestRedditScraper(BaseTestClasses.ModelAssertions, BaseTestClasses.Databas
 
     @patch('feedparser.parse', wraps=mock_feedparse(test_feed))
     def test_parse_feed(self, parse: MagicMock):
-        reddit = Reddit(self._conn, self.dbutil)
+        reddit = Reddit(self.conn, self.dbutil)
         feed_url = 'https://www.reddit.com/r/Test/search.rss?sort=new'
         manga_id = self.dbutil.add_manga_service(
             MangaService(service_id=Reddit.ID, title_id='RedditTest',

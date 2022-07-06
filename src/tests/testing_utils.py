@@ -10,6 +10,7 @@ from unittest import mock
 
 import feedparser
 import psycopg2
+import pytest
 import testing.postgresql  # type: ignore[import]
 from psycopg2.extensions import connection as Connection
 from psycopg2.extras import DictRow
@@ -22,7 +23,6 @@ from src.scheduler import LoggingDictCursor
 from src.scrapers.base_scraper import BaseChapter, BaseScraper, \
     BaseChapterSimple
 from src.tests.scrapers.testing_scraper import DummyScraper
-from src.utils.dbutils import DbUtil
 
 originalParse = feedparser.parse
 
@@ -127,6 +127,8 @@ def set_db_environ():
     """
     Sets environment variables to match the created temporary database.
     """
+    os.environ['ELASTIC_NODE'] = f"{os.getenv('ELASTIC_TEST_HOST', 'localhost')}:{os.getenv('ELASTIC_TEST_PORT', 9200)}"
+
     if DONT_USE_TEMP_DATABASE:
         return
     conf = Postgresql.cache.dsn()
@@ -150,23 +152,29 @@ class BaseTestClasses:
         _conn: Connection = NotImplemented
         _generator: 'BaseTestClasses.TitleIdGenerator' = NotImplemented
 
-        @classmethod
-        def setUpClass(cls) -> None:
-            cls._conn = get_conn()
+        @pytest.fixture(autouse=True, scope='class')
+        def _setup_class(self, request: pytest.FixtureRequest, conn) -> None:
+            request.cls._conn = conn
             # Integers are retained during tests but they reset to the default value
             # for some reason. Circumvent this by using a class.
-            cls._generator = BaseTestClasses.TitleIdGenerator()
+            request.cls._generator = BaseTestClasses.TitleIdGenerator()
+
+            request.addfinalizer(self._teardown_class)
 
         @property
         def conn(self) -> Connection:
             return self._conn
 
-        def setUp(self) -> None:
-            self.dbutil = DbUtil(self._conn)
+        @pytest.fixture(autouse=True)
+        def _get_elasticsearch(self, es):
+            self.elasticsearch = es
 
-        @classmethod
-        def tearDownClass(cls) -> None:
-            cls._conn.close()
+        @pytest.fixture(autouse=True)
+        def _set_up_dbutil(self, dbutil):
+            self.dbutil = dbutil
+
+        def _teardown_class(self) -> None:
+            self._conn.close()
 
         def get_str_id(self) -> str:
             return self._generator.generate(type(self).__name__)

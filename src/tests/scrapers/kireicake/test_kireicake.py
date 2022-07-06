@@ -2,6 +2,7 @@ import os
 import unittest
 from datetime import datetime, timedelta
 
+import pytest
 import responses
 
 from src.scrapers.base_scraper import BaseChapterSimple
@@ -65,15 +66,14 @@ class KireiCakeTest(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsser
     test_data: str = NotImplemented
     group_id: int = NotImplemented
 
-    @classmethod
-    def setUpClass(cls) -> None:
-        super(KireiCakeTest, cls).setUpClass()
+    @pytest.fixture(autouse=True, scope='class')
+    def _set_up_kireicake(self, request: pytest.FixtureRequest, class_dbutil: DbUtil) -> None:
         with open(test_feed, 'r', encoding='utf-8') as f:
-            cls.test_data = f.read()
+            request.cls.test_data = f.read()
 
-        cls.group_id = DbUtil(cls._conn).get_or_create_group(KireiCake.NAME).group_id
+        request.cls.group_id = class_dbutil.get_or_create_group(KireiCake.NAME).group_id
         for c in correct_entries.values():
-            c.group_id = cls.group_id
+            c.group_id = request.cls.group_id
 
     def get_scraper(self) -> KireiCake:
         return KireiCake(self.conn, self.dbutil)

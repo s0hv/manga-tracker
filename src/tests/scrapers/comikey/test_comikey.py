@@ -4,6 +4,7 @@ from datetime import datetime
 from typing import cast
 from unittest.mock import patch, MagicMock
 
+import pytest
 import responses
 from requests import PreparedRequest
 
@@ -141,19 +142,17 @@ class ComikeyTest(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsserti
         'test-title': 'test-title/1'
     }
 
-    @classmethod
-    def setUpClass(cls) -> None:
-        super(ComikeyTest, cls).setUpClass()
-
-        dbutil = DbUtil(cls._conn)
-        cls.manga_id = cast(int, dbutil.add_manga_service(MangaService(
+    @pytest.fixture(autouse=True, scope='class')
+    def _set_up_comikey(self, class_dbutil: DbUtil, request: pytest.FixtureRequest) -> None:
+        dbutil = class_dbutil
+        request.cls.manga_id = cast(int, dbutil.add_manga_service(MangaService(
             service_id=Comikey.ID,
             title_id='test-title/1',
             title="Test manga"
         ), add_manga=True).manga_id)
 
         for c in correct_chapters_manga_feed:
-            c.manga_id = cls.manga_id
+            c.manga_id = request.cls.manga_id
 
     def setUp(self) -> None:
         super().setUp()

@@ -71,6 +71,10 @@ class MangaServicePartial(BaseModel):
         return scraper.scrape_series(self.title_id, self.service_id, self.manga_id, self.feed_url)
 
 
+class MangaServicePartialWithId(MangaServicePartial):
+    manga_id: int
+
+
 class MangaService(Manga, MangaServicePartial):
     pass
 

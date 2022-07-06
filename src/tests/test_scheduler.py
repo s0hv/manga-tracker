@@ -3,6 +3,8 @@ from typing import Optional, cast
 from unittest import mock
 from unittest.mock import patch, MagicMock
 
+import pytest
+
 from src.db.models.notifications import UserNotification, \
     PartialNotificationInfo
 from src.db.models.scheduled_run import ScheduledRun, ScheduledRunResult
@@ -18,11 +20,10 @@ from src.tests.testing_utils import (
 class SchedulerRunTest(BaseTestClasses.DatabaseTestCase):
     scheduler: UpdateScheduler = NotImplemented
 
-    @classmethod
-    def setUpClass(cls) -> None:
-        super(SchedulerRunTest, cls).setUpClass()
+    @pytest.fixture(autouse=True, scope='class')
+    def _set_up_scheduler(self, request: pytest.FixtureRequest) -> None:
         set_db_environ()
-        cls.scheduler = UpdateScheduler()
+        request.cls.scheduler = UpdateScheduler()
 
     def setUp(self) -> None:
         super().setUp()

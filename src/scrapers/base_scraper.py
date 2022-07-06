@@ -248,7 +248,7 @@ class BaseScraper(abc.ABC):
         self._conn = conn
         if dbutil is None:
             from src.utils.dbutils import DbUtil
-            self._dbutil = DbUtil(conn)
+            self._dbutil = DbUtil(conn, None)
         else:
             self._dbutil = dbutil
 

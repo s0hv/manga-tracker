@@ -1,10 +1,11 @@
 import logging
 import statistics
 from datetime import datetime, timedelta
+from itertools import groupby
 from typing import (
     Union, Any, Optional, List, Dict, Generator, Tuple, Collection,
     Iterable, TypeVar, Callable, TYPE_CHECKING, cast, Set, Sequence,
-    overload
+    overload, Iterator
 )
 
 from psycopg2.extensions import connection as Connection, cursor as Cursor
@@ -16,11 +17,13 @@ from src.db.models.chapter import Chapter, InsertedChapter
 from src.db.models.groups import Group, GroupPartial
 from src.db.models.manga import (MangaService, Manga, MangaServicePartial,
                                  MangaServiceWithId, MangaInfo,
-                                 MangaForNotifications)
+                                 MangaForNotifications,
+                                 MangaServicePartialWithId)
 from src.db.models.notifications import PartialNotificationInfo, \
     UserNotification, InputField
 from src.db.models.scheduled_run import ScheduledRun, ScheduledRunResult
 from src.db.models.services import Service, ServiceWhole, ServiceConfig
+from src.elasticsearch.methods import ElasticMethods
 from src.utils.utilities import round_seconds
 
 if TYPE_CHECKING:
@@ -72,12 +75,19 @@ def optional_transaction(f: F) -> F:
 
 
 class DbUtil:
-    def __init__(self, conn: Connection):
+    def __init__(self, conn: Connection, es: Optional[ElasticMethods]):
         self._conn = conn
+        self._es = es
 
     @property
     def conn(self) -> Connection:
         return self._conn
+
+    @property
+    def es(self) -> ElasticMethods:
+        if self._es is None:
+            raise ValueError('ElasticMethods instance not given')
+        return self._es
 
     @staticmethod
     def get_format_args(val: Union[Collection, int]) -> str:
@@ -491,12 +501,27 @@ class DbUtil:
         rows = execute_values(cur, sql, args, page_size=len(args),
                               fetch=True)
 
-        for row, manga in zip(rows, mangas):
-            if row['title'] != manga.title:
-                logger.warning(f'Inserted manga mismatch with {manga}')
-                continue
+        try:
+            elastic_data = []
+            for row, manga in zip(rows, mangas):
+                if row['title'] != manga.title:
+                    logger.warning(f'Inserted manga mismatch with {manga}')
+                    continue
 
-            manga.manga_id = row['manga_id']
+                manga.manga_id = row['manga_id']
+                elastic_data.append({
+                    '_id': row['manga_id'],
+                    'manga_id': row['manga_id'],
+                    'title': row['title'],
+                    'views': 0,
+                    'aliases': [],
+                    'services': [],
+                })
+
+            logger.debug('Inserting new manga to elasticsearch. %s', elastic_data)
+            self.es.bulk_upsert(elastic_data, 'create')
+        except:
+            logger.exception('Failed to add new manga to elasticsearch')
 
         return list(mangas)
 
@@ -548,6 +573,28 @@ class DbUtil:
 
             manga.manga_id = row['manga_id']
 
+        try:
+            manga_ids = list({r['manga_id'] for r in rows})
+
+            manga_services = self.get_manga_services(manga_ids)
+            elastic_data = []
+            m_it: Iterator[MangaServicePartialWithId]
+            services: Dict[int, Service] = {s.service_id: s for s in self.get_services()}
+
+            for manga_id, m_it in groupby(sorted(manga_services, key=lambda r: r.manga_id), key=lambda r: r.manga_id):
+                elastic_data.append({
+                    '_id': manga_id,
+                    'services': [{
+                        'service_id': service.service_id,
+                        'service_name': services[service.service_id].service_name
+                    } for service in m_it]
+                })
+
+            logger.debug('Inserting new manga services to elasticsearch. %s', elastic_data)
+            self.es.bulk_upsert(elastic_data)
+        except:
+            logger.exception('Failed to add manga services to elasticsearch')
+
         return list(mangas)
 
     @optional_transaction
@@ -556,7 +603,7 @@ class DbUtil:
         cur.execute(sql, [service_id])
         row = cur.fetchone()
 
-        return ServiceWhole(**row) if row else None
+        return ServiceWhole.parse_obj(row) if row else None
 
     @optional_transaction
     def get_service_configs(self, *, cur: Cursor = NotImplemented) -> List[ServiceConfig]:
@@ -607,7 +654,17 @@ class DbUtil:
 
         cur.execute(sql, (service_id, title_id))
         row = cur.fetchone()
-        return MangaService(**row) if row else None
+        return MangaService.parse_obj(row) if row else None
+
+    @optional_transaction
+    def get_manga_services(self, manga_ids: Sequence[int], *, cur: Cursor = NotImplemented) -> List[MangaServicePartialWithId]:
+        if not manga_ids:
+            return []
+
+        sql = f'SELECT * FROM manga_service ms WHERE manga_id IN ({self.get_format_args(manga_ids)})'
+
+        cur.execute(sql, manga_ids)
+        return [MangaServicePartialWithId.parse_obj(row) for row in cur]
 
     @optional_transaction
     def get_manga(self, manga_id: int, *, cur: Cursor = NotImplemented) -> Optional[Manga]:
@@ -1047,6 +1104,26 @@ class DbUtil:
         '''
 
         execute_values(cur, sql, titles)
+
+        try:
+            manga_ids = list({v[0] for v in titles})
+
+            sql = f'''
+                SELECT m.manga_id as _id, m.manga_id, m.title, array_remove(array_agg(ma.title), NULL) as aliases
+                FROM manga m
+                LEFT JOIN manga_alias ma ON m.manga_id = ma.manga_id
+                WHERE m.manga_id IN ({self.get_format_args(manga_ids)})
+                GROUP BY m.manga_id
+            '''
+
+            cur.execute(sql, manga_ids)
+            rows = cur.fetchall()
+
+            logger.debug('Updating elasticsearch titles for %s', manga_ids)
+
+            self.es.bulk_upsert({**row} for row in self.es.format_aliases(rows))
+        except:
+            logger.exception('Failed to update elasticsearch aliases')
 
     @optional_transaction
     def find_manga_by_title(self, title: str, *, cur: Cursor = NotImplemented) -> Optional[Manga]:
