@@ -26,8 +26,17 @@ export function formatLinks(row) {
   });
 }
 
-function formatFullManga(obj) {
-  const out = {};
+export type FullManga = {
+  services?: object[],
+  chapters?: object[],
+  aliases?: string[]
+  manga: object
+}
+
+function formatFullManga(obj): FullManga {
+  const out: FullManga = {
+    manga: {},
+  };
 
   if (obj.services) {
     out.services = obj.services;
@@ -48,7 +57,7 @@ function formatFullManga(obj) {
   return out;
 }
 
-export function getFullManga(mangaId) {
+export function getFullManga(mangaId): Promise<FullManga> {
   const args = [mangaId];
 
   const sql = `SELECT manga.manga_id, title, release_interval, latest_release, estimated_release, manga.latest_chapter,
@@ -119,4 +128,32 @@ export const getAliases = (mangaId) => {
 export const getMangaPartial = (mangaId) => {
   const sql = 'SELECT * FROM manga WHERE manga_id=$1';
   return db.one(sql, [mangaId]);
+};
+
+export type MangaForElastic = {
+  mangaId: number,
+  title: string,
+  views: number,
+  aliases: { title: string }[],
+  services: { serviceId: number, serviceName: string }[]
+}
+
+export const getMangaForElastic = (mangaId): Promise<MangaForElastic> => {
+  const sql = `SELECT
+      m.manga_id,
+      m.title,
+      m.views,
+      (SELECT array_remove(array_agg(ma.title), NULL) FROM manga_alias ma WHERE ma.manga_id=m.manga_id) as aliases,
+      array_agg(json_build_object('service_id', s.service_id, 'service_name', s.service_name)) as services
+  FROM manga m
+  INNER JOIN manga_service ms ON m.manga_id = ms.manga_id
+  INNER JOIN services s ON s.service_id = ms.service_id
+  WHERE m.manga_id=$1
+  GROUP BY m.manga_id, ms.manga_id`;
+
+  return db.one(sql, [mangaId])
+    .then(manga => {
+      manga.aliases = manga.aliases?.map(title => ({ title })) || [];
+      return manga;
+    });
 };

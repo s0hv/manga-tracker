@@ -1,6 +1,9 @@
-import client from './index.js';
+import snakecaseKeys from 'snakecase-keys';
 
-export const index = 'manga';
+import client from './index.js';
+import { MangaForElastic } from '../manga';
+
+export const index = process.env.ES_INDEX || 'manga';
 
 export const mangaSearch = (query, count, withServices = false) => {
   const fields = ['manga_id', 'title'];
@@ -55,3 +58,19 @@ export const mangaSearch = (query, count, withServices = false) => {
   });
 };
 
+export const updateManga = (id: number|string, data: MangaForElastic) => {
+  return client.update({
+    index,
+    id: id.toString(),
+    body: {
+      doc: snakecaseKeys(data),
+    },
+  });
+};
+
+export const deleteManga = (id: number|string) => {
+  return client.delete({
+    index,
+    id: id.toString(),
+  });
+};

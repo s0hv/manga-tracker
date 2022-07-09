@@ -12,7 +12,9 @@ import {
   handleValidationErrors,
 } from '../utils/validators.js';
 import { requiresUser } from '../db/auth.js';
-import { getFullManga } from '../db/manga.js';
+import { getFullManga, getMangaForElastic } from '../db/manga';
+import { updateManga, deleteManga } from '../db/elasticsearch/manga';
+import { dbLogger } from '../utils/logging.js';
 
 const BASE_URL = '/api/manga';
 
@@ -36,7 +38,21 @@ export default app => {
         if (!row) {
           return res.status(500).json({ error: 'No modifications done' });
         }
-        res.status(200).json(row);
+
+        // Delete old manga only if full merge
+        if (!req.query.service) {
+          deleteManga(req.query.toMerge)
+            .then(() => dbLogger.info('Deleted manga %s from elasticsearch', req.query.toMerge))
+            .catch(err => dbLogger.error(err, 'Failed to delete manga from elasticsearch'));
+        } else {
+          getMangaForElastic(req.query.toMerge)
+            .then(manga => updateManga(manga.mangaId, manga))
+            .catch(err => dbLogger.error(err, 'Failed to update merged manga to elasticsearch'));
+        }
+
+        return getMangaForElastic(req.query.base)
+          .then(manga => updateManga(manga.mangaId, manga))
+          .finally(() => res.status(200).json(row));
       })
       .catch(err => handleError(err, res));
   });

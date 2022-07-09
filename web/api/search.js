@@ -10,8 +10,8 @@ import {
   handleValidationErrors,
 } from '../utils/validators.js';
 import { handleError } from '../db/utils.js';
-import { getFullManga } from '../db/manga.js';
-import { mangaSearch } from '../db/elasticsearch/manga.js';
+import { getFullManga } from '../db/manga';
+import { mangaSearch } from '../db/elasticsearch/manga';
 
 
 const searchQueryValidation = query('query')

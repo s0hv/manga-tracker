@@ -27,6 +27,11 @@ export default async function initServer() {
       tagline: 'You Know, for Search',
     }));
 
+    mock.add({
+      method: ['POST', 'DELETE'],
+      path: ['/:index/_update/:id', '/:index/_doc/:id'],
+    }, () => ({ status: 'OK' }));
+
     return new Client({
       node: 'http://localhost:9200',
       Connection: mock.getConnection(),

@@ -120,6 +120,11 @@
                 "@typescript-eslint/no-empty-function": "off",
                 "no-shadow": "off",
                 "@typescript-eslint/no-shadow": "error"
+            },
+            "settings": {
+                "import/parsers": {
+                    "@typescript-eslint/parser": [".ts", ".tsx"]
+                }
             }
         }
     ]

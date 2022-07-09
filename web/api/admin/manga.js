@@ -15,6 +15,8 @@ import {
   serviceIdValidation,
   handleValidationErrors,
 } from '../../utils/validators.js';
+import { getMangaForElastic } from '../../db/manga';
+import { updateManga } from '../../db/elasticsearch/manga';
 
 const { QueryResultError } = pgPromise.errors;
 
@@ -76,10 +78,14 @@ export default () => {
   router.post(updateTitleUrl, handleValidationErrors, (req, res) => {
     updateMangaTitle(req.params.mangaId, req.body.title)
       .then(row => {
-        const msg = row ?
-          `Replaced old alias with current title "${row.title}"` :
-          `Alias not found. Scrapping old title`;
-        res.json({ message: msg });
+        getMangaForElastic(req.params.mangaId)
+          .then(manga => updateManga(manga.mangaId, manga))
+          .finally(() => {
+            const msg = row ?
+              `Replaced old alias with current title "${row.title}"` :
+              `Alias not found. Scrapping old title`;
+            res.json({ message: msg });
+          });
       })
       .catch(err => {
         if (err instanceof QueryResultError) {
