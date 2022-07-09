@@ -83,7 +83,7 @@ INDEX_BODY = {
 
 
 def get_client() -> Elasticsearch:
-    auth = None if 'ELASTIC_USER' not in os.environ else (os.getenv('ELASTIC_USERNAME'), os.getenv('ELASTIC_PASSWORD'))
+    auth = None if 'ELASTIC_USERNAME' not in os.environ else (os.getenv('ELASTIC_USERNAME'), os.getenv('ELASTIC_PASSWORD'))
     client = Elasticsearch([os.getenv('ELASTIC_NODE')], http_auth=auth)
 
     if os.getenv('PING_ELASTIC', None):
