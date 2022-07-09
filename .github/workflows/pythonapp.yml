@@ -45,7 +45,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-    - uses: actions/setup-node@v2.5.1
+    - uses: actions/setup-node@v3.3.0
       with:
         node-version: '16'
     - name: Install dependencies
@@ -72,7 +72,7 @@ jobs:
       run: pip uninstall -y coverage
 
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v2.1.0
+      uses: codecov/codecov-action@v3.1.0
       with:
         flags: scraper
         name: Scraper coverage
