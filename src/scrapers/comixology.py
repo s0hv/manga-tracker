@@ -1,8 +1,10 @@
+# type: ignore
+# Deprecated module because ComiXology moved to amazon.com
 import logging
 import random
 import re
 import time
-from datetime import timedelta, datetime
+from datetime import timedelta, datetime, timezone
 from typing import Optional, List, Set, Collection, cast
 
 import requests
@@ -12,7 +14,7 @@ from src.db.mappers.chapter_mapper import ChapterMapper
 from src.scrapers.base_scraper import BaseScraperWhole, BaseChapterSimple, \
     ScrapeServiceRetVal
 from src.utils.dbutils import DbUtil
-from src.utils.utilities import random_timedelta, get_latest_chapters
+from src.utils.utilities import random_timedelta, get_latest_chapters, utcnow
 
 logger = logging.getLogger('debug')
 title_regex = re.compile(r'https:\\/\\/www\.comixology\.com\\/cart\\/add\\/(?:subscription|comic)\\/(\d+)\\/0\?actionType=comic&actionId=\d+')
@@ -79,7 +81,7 @@ class Chapter(BaseChapterSimple):
 
         title_id = found[0]
         self.release_date_maybe: Optional[datetime] = None
-        self._created_at = datetime.utcnow()
+        self._created_at = utcnow()
 
         super().__init__(
             chapter_title=title,
@@ -332,7 +334,7 @@ class ComiXology(BaseScraperWhole):
 
             d = children[idx + 1]
             try:
-                return datetime.strptime(d.text, '%B %d %Y')
+                return datetime.strptime(d.text, '%B %d %Y').replace(tzinfo=timezone.utc)
             except ValueError:
                 logger.exception(f'Failed to convert release date to datetime, "{d.text}"')
                 continue
@@ -344,7 +346,7 @@ class ComiXology(BaseScraperWhole):
     def add_service(self):
         if self.dbutil.get_service(self.ID) is not None and self.dbutil.get_service_whole(self.ID) is None:
             service_id = self.ID
-            with self.conn:
+            with self.conn.transaction():
                 with self.conn.cursor() as cur:
                     sql = 'INSERT INTO service_whole (service_id, feed_url, last_check, next_update, last_id) VALUES ' \
                           '(%s, %s, NULL, NULL, NULL)'

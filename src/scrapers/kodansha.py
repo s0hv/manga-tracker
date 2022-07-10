@@ -12,6 +12,7 @@ from lxml import etree
 from psycopg2.extras import execute_values
 
 from src.scrapers.base_scraper import BaseScraper, BaseChapter
+from src.utils.utilities import utcnow
 
 logger = logging.getLogger('debug')
 
@@ -58,7 +59,7 @@ class Manga:
         title_id = manga_element.cssselect('.card__link')[0].attrib['href'].strip('/').split('/')[-1]
         self.sources = [Source(elem, self) for elem in manga_element.cssselect('.simulpub-card__partners li a')]
 
-        self.release_date = datetime.utcnow()
+        self.release_date = utcnow()
 
     def has_new_chapter(self, row):
         return row['latest_chapter'] != self.latest_chapter or (
@@ -208,7 +209,7 @@ class KodanshaComics(BaseScraper):
                 manga.manga_id = old_manga[manga.title_id]['manga_id']
 
         if new_series:
-            with self.conn:
+            with self.conn.transaction():
                 with self.conn.cursor() as cur:
                     new_manga = {manga.title_id: [Chapter(manga)] for manga in new_series.values()}
                     """for manga_id, chapters in self.dbutil.add_new_series(cur, new_manga, service_id, disable_single_update=True):
@@ -263,7 +264,7 @@ class KodanshaComics(BaseScraper):
 
         if updated_manga:
             logger.info('%s manga actually updated on kodansha', len(updated_manga))
-            with self.conn:
+            with self.conn.transaction():
                 with self.conn.cursor() as cur:
                     self.dbutil.update_latest_chapter([(m.manga_id, m.latest_chapter, m.release_date) for m in updated_manga], cur=cur)
                     sql = 'UPDATE manga_service ms SET last_check=CURRENT_TIMESTAMP, latest_chapter=c.latest_chapter, latest_decimal=c.latest_decimal::int ' \

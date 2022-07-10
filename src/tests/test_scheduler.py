@@ -4,6 +4,7 @@ from unittest import mock
 from unittest.mock import patch, MagicMock
 
 import pytest
+from psycopg.rows import class_row
 
 from src.db.models.notifications import UserNotification, \
     PartialNotificationInfo
@@ -35,21 +36,21 @@ class SchedulerRunTest(BaseTestClasses.DatabaseTestCase):
 
     def create_notification(self, user_id: int = TEST_USER_ID, use_follows: bool = False, dest: str = None) -> UserNotification:
         sql = 'INSERT INTO user_notifications (notification_type, user_id, use_follows) VALUES (1, %s, %s) RETURNING *'
-        with self.conn:
+        with self.conn.transaction():
             with self.conn.cursor() as cur:
                 cur.execute(sql, (user_id, use_follows))
-                d = cur.fetchone()
+                d = self.dbutil.fetchone_or_throw(cur)
                 sql = 'INSERT INTO notification_options (notification_id, destination) VALUES (%s, %s) RETURNING destination, group_by_manga'
                 cur.execute(sql, (d['notification_id'], dest or self.get_str_id()))
-                return UserNotification(**d, **cur.fetchone())
+                return UserNotification(**d, **self.dbutil.fetchone_or_throw(cur))
 
     def create_notification_manga(self, notification_id: int, manga_id: int, service_id: Optional[int] = None) -> PartialNotificationInfo:
         sql = 'INSERT INTO notification_manga (notification_id, manga_id, service_id) ' \
               'VALUES (%s, %s, %s) RETURNING *'
-        with self.conn:
-            with self.conn.cursor() as cur:
+        with self.conn.transaction():
+            with self.conn.cursor(row_factory=class_row(PartialNotificationInfo)) as cur:
                 cur.execute(sql, (notification_id, manga_id, service_id))
-                return PartialNotificationInfo(**cur.fetchone())
+                return self.dbutil.fetchone_or_throw(cur)
 
     def test_scheduled_runs_without_data(self):
         self.assertFalse(self.dbutil.get_scheduled_runs())

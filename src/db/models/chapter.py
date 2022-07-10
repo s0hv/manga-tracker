@@ -4,6 +4,7 @@ from typing import Optional
 from pydantic import BaseModel, Field
 
 from src.db.types import SmallInt
+from src.utils.utilities import utcnow
 
 
 class Chapter(BaseModel):
@@ -13,7 +14,7 @@ class Chapter(BaseModel):
     title: str
     chapter_number: int
     chapter_decimal: Optional[SmallInt]
-    release_date: datetime = Field(default_factory=datetime.utcnow)
+    release_date: datetime = Field(default_factory=utcnow)
     chapter_identifier: str
     group: Optional[str]
     group_id: int

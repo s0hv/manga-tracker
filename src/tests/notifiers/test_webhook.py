@@ -1,6 +1,6 @@
 import json
 import unittest
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List
 
 import pytest
@@ -35,7 +35,7 @@ class TestWebhook(unittest.TestCase):
 
         return NotificationChapter(
             manga=manga, title='title', chapter_number='10.1',
-            release_date=datetime.fromisoformat('2022-03-21T19:34:42.042674'), url='test', group='group name'
+            release_date=datetime.fromisoformat('2022-03-21T19:34:42.042674').replace(tzinfo=timezone.utc), url='test', group='group name'
         )
 
     @staticmethod

@@ -11,7 +11,8 @@ from lxml import etree
 
 from src.errors import FeedHttpError, InvalidFeedError
 from src.scrapers.base_scraper import BaseScraper, BaseChapterSimple
-from src.utils.utilities import match_title, is_valid_feed, get_latest_chapters
+from src.utils.utilities import match_title, is_valid_feed, get_latest_chapters, \
+    utcnow, utcfromtimestamp
 
 logger = logging.getLogger('debug')
 
@@ -30,7 +31,7 @@ class Chapter(BaseChapterSimple):
             chapter_identifier=chapter_identifier,
             title_id=title_id,
             volume=int(volume) if volume is not None else None,
-            release_date=datetime.utcfromtimestamp(timegm(release_date)) if release_date else datetime.utcnow(),
+            release_date=utcfromtimestamp(timegm(release_date)) if release_date else utcnow(),
             group=group,
             manga_url=manga_url,
             group_id=group_id
@@ -123,7 +124,7 @@ class Reddit(BaseScraper):
             logger.exception(f'Failed to fetch feed {feed_url}')
             return None
 
-        self.dbutil.set_manga_last_checked(service_id, manga_id, datetime.utcnow())
+        self.dbutil.set_manga_last_checked(service_id, manga_id, utcnow())
         self.dbutil.update_manga_next_update(service_id, manga_id, self.next_update())
 
         group_name = '/'.join(feed_url.split('reddit.com/')[1].split('/')[:2])

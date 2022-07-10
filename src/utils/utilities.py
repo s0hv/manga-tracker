@@ -1,11 +1,11 @@
 import logging
 import random
 import re
-from datetime import timedelta, datetime
+from datetime import timedelta, datetime, timezone, time
 from typing import (Optional, Tuple, Union, Iterable, Dict, TYPE_CHECKING,
                     NoReturn)
 
-from psycopg2.extras import DictRow
+from psycopg.rows import DictRow
 
 from src.errors import FeedHttpError, InvalidFeedError
 
@@ -132,3 +132,15 @@ def inject_service_values(dbutil: 'DbUtil'):
 
 def remove_chapter_prefix(title: str):
     return re.sub(r'^chapter \d+(\.\d+)?( *[:-]? +|$)', '', title, flags=re.I)
+
+
+def utcnow() -> datetime:
+    return datetime.now(timezone.utc)
+
+
+def utcfromtimestamp(t: int | float) -> datetime:
+    return datetime.utcfromtimestamp(t).replace(tzinfo=timezone.utc)
+
+
+def utctoday() -> datetime:
+    return datetime.combine(utcnow(), time(), timezone.utc)

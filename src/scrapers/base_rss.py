@@ -11,7 +11,8 @@ import feedparser
 from src.errors import FeedHttpError, InvalidFeedError
 from src.scrapers.base_scraper import BaseScraperWhole, \
     BaseChapterSimple, ScrapeServiceRetVal
-from src.utils.utilities import (match_title, is_valid_feed)
+from src.utils.utilities import (match_title, is_valid_feed, utcnow,
+                                 utcfromtimestamp)
 
 logger = logging.getLogger('debug')
 
@@ -47,9 +48,9 @@ class RSSChapter(BaseChapterSimple):
         )
 
         if isinstance(release_date, time.struct_time):
-            self._release_date = datetime.utcfromtimestamp(timegm(release_date))
+            self._release_date = utcfromtimestamp(timegm(release_date))
         else:
-            self._release_date = release_date if release_date else datetime.utcnow()
+            self._release_date = release_date if release_date else utcnow()
 
     @property
     def chapter_title(self) -> Optional[str]:

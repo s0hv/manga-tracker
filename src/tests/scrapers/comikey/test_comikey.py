@@ -15,12 +15,13 @@ from src.scrapers.comikey import Comikey
 from src.tests.testing_utils import ChapterTestModel, BaseTestClasses, \
     mock_feedparse
 from src.utils.dbutils import DbUtil
+from src.utils.utilities import utcfromtimestamp
 
 base_path = os.path.dirname(__file__)
 
 
 def get_date(s: str) -> datetime:
-    return datetime.utcfromtimestamp(datetime.strptime(s, '%a, %d %b %Y %H:%M:%S %z').timestamp())
+    return utcfromtimestamp(datetime.strptime(s, '%a, %d %b %Y %H:%M:%S %z').timestamp())
 
 
 correct_chapters = [

@@ -16,4 +16,4 @@ scheduler = UpdateScheduler()
 scheduler.force_run(args.service, args.manga)
 
 scheduler.es.close()
-scheduler.pool.closeall()
+scheduler.pool.close()

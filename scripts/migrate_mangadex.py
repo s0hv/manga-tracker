@@ -3,8 +3,8 @@ from operator import itemgetter
 from time import sleep
 
 import requests
-from psycopg2.extras import execute_values
 
+from src.db.utilities import execute_values
 from src.scheduler import UpdateScheduler
 
 

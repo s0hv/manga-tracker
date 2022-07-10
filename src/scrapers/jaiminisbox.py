@@ -13,7 +13,8 @@ from psycopg2.extras import execute_values
 
 from src.errors import FeedHttpError, InvalidFeedError
 from src.scrapers.base_scraper import BaseScraper, BaseChapter
-from src.utils.utilities import match_title, is_valid_feed, get_latest_chapters
+from src.utils.utilities import match_title, is_valid_feed, get_latest_chapters, \
+    utcnow, utcfromtimestamp
 
 logger = logging.getLogger('debug')
 
@@ -29,7 +30,7 @@ class Chapter(BaseChapter):
         self._chapter_decimal = chapter_decimal
         self._chapter_title = chapter_title
         self._manga_title = manga_title
-        self._release_date = datetime.utcfromtimestamp(timegm(release_date)) if release_date else datetime.utcnow()
+        self._release_date = utcfromtimestamp(timegm(release_date)) if release_date else utcnow()
 
         m = self.URL_REGEX.match(url)
         m = m.groupdict()
@@ -117,7 +118,7 @@ class JaiminisBox(BaseScraper):
                 logger.exception(f'Failed to fetch feed {feed_url}')
             return
 
-        with self.conn as conn:
+        with self.conn.transaction() as conn:
             with conn.cursor() as cur:
                 sql = 'SELECT last_id FROM service_whole WHERE service_id=%s'
                 cur.execute(sql, (service_id,))
@@ -170,7 +171,7 @@ class JaiminisBox(BaseScraper):
 
         data = []
         manga_ids = set()
-        with self.conn:
+        with self.conn.transaction():
             with self.conn.cursor() as cur:
                 for row in self.dbutil.find_added_titles(cur, tuple(titles.keys())):
                     manga_id = row['manga_id']
@@ -193,7 +194,7 @@ class JaiminisBox(BaseScraper):
         sql = 'INSERT INTO chapters (manga_id, service_id, title, chapter_number, chapter_decimal, chapter_identifier, release_date, "group") VALUES ' \
               '%s ON CONFLICT DO NOTHING RETURNING manga_id, chapter_number, chapter_decimal, release_date'
 
-        with self.conn:
+        with self.conn.transaction():
             with self.conn.cursor() as cur:
                 rows = execute_values(cur, sql, data, page_size=len(data), fetch=True)
                 manga_ids = {r['manga_id'] for r in rows}

@@ -4,7 +4,6 @@ from unittest.mock import patch, MagicMock
 
 import feedparser
 
-import setup_logging
 from src.constants import NO_GROUP
 from src.db.models.manga import MangaService
 from src.scrapers import Reddit
@@ -12,7 +11,6 @@ from src.tests.testing_utils import (BaseTestClasses, mock_feedparse,
                                      load_chapters_snapshot)
 
 test_feed = os.path.join(os.path.dirname(__file__), 'test_data.xml')
-logger = setup_logging.setup()
 
 
 class TestRedditScraper(BaseTestClasses.ModelAssertions, BaseTestClasses.DatabaseTestCase):
@@ -47,7 +45,7 @@ class TestRedditScraper(BaseTestClasses.ModelAssertions, BaseTestClasses.Databas
             self.assertIsNotNone(manga_id)
             return
 
-        with self._conn:
+        with self._conn.transaction():
             did_update = reddit.scrape_series('RedditTest', Reddit.ID, manga_id, feed_url)
 
         parse.assert_called_once()
@@ -55,7 +53,7 @@ class TestRedditScraper(BaseTestClasses.ModelAssertions, BaseTestClasses.Databas
         self.assertIsNotNone(did_update)
         self.assertTrue(did_update)
 
-        with self._conn:
+        with self._conn.transaction():
             # Parse feed again to make sure it works with duplicate inputs
             did_update = reddit.scrape_series('TestTitleId', Reddit.ID, manga_id, feed_url)
         self.assertEqual(parse.call_count, 2)

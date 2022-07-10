@@ -27,7 +27,7 @@ if args.production:
 
 scheduler = UpdateScheduler()
 with scheduler.conn() as conn:
-    dbutil = DbUtil(conn)
+    dbutil = DbUtil(conn, None)
     try:
         with conn.cursor() as cur:
             if args.update_interval:

@@ -4,7 +4,7 @@ from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Optional, List, Tuple, Set
 
-import psycopg2
+import psycopg
 import requests
 
 from src.db.mappers.chapter_mapper import ChapterMapper, Chapter as ChapterModel
@@ -13,7 +13,7 @@ from src.db.models.manga import MangaService
 from src.enums import Status
 from src.scrapers.base_scraper import BaseChapter, BaseScraperWhole, \
     BaseScraper, ScrapeServiceRetVal
-from src.utils.utilities import random_timedelta
+from src.utils.utilities import random_timedelta, utcnow, utcfromtimestamp
 from .protobuf import mangaplus_pb2
 
 logger = logging.getLogger('debug')
@@ -105,7 +105,7 @@ class TitleDetailViewWrapper:
     @property
     def next_timestamp(self) -> Optional[datetime]:
         if self._title_detail.next_timestamp:
-            return datetime.utcfromtimestamp(self._title_detail.next_timestamp)
+            return utcfromtimestamp(self._title_detail.next_timestamp)
         else:
             return None
 
@@ -238,9 +238,9 @@ class ChapterWrapper(BaseChapter):
     @property
     def release_date(self) -> datetime:
         if self._chapter.start_timestamp:
-            return datetime.utcfromtimestamp(self._chapter.start_timestamp)
+            return utcfromtimestamp(self._chapter.start_timestamp)
 
-        return datetime.utcnow()
+        return utcnow()
 
     @property
     def chapter_identifier(self) -> str:
@@ -352,7 +352,7 @@ class MangaPlus(BaseScraperWhole):
         series = parsed.title_detail_view
 
         sql = 'SELECT service_id FROM services WHERE url=%s'
-        with self.conn:
+        with self.conn.transaction():
             with self.conn.cursor() as cur:
                 cur.execute(sql, (self.URL,))
                 service_id = cur.fetchone()
@@ -365,7 +365,7 @@ class MangaPlus(BaseScraperWhole):
                 manga = self.dbutil.add_new_manga_and_check_duplicate_titles([
                     MangaService(service_id=service_id, disabled=False,
                                  title_id=title_id,
-                                 last_check=datetime.utcnow(),
+                                 last_check=utcnow(),
                                  title=series.title.name)
                 ])
                 if not manga or not manga[0].manga_id:
@@ -454,7 +454,7 @@ class MangaPlus(BaseScraperWhole):
                 ChapterMapper.base_chapter_to_db(chapter, manga_id, service_id, strip_chapter_prefix=True)
             )
 
-        now = datetime.utcnow()
+        now = utcnow()
         next_update: Optional[datetime] = now + timedelta(hours=4)
         disabled = False
         completed = False
@@ -485,7 +485,7 @@ class MangaPlus(BaseScraperWhole):
             if c.chapter_number > newest_chapter.chapter_number:
                 newest_chapter = c
 
-        with self.conn:
+        with self.conn.transaction():
             with self.conn.cursor() as cursor:
                 inserted = self.dbutil.add_chapters(new_chapters, fetch=True)
 
@@ -525,5 +525,5 @@ class MangaPlus(BaseScraperWhole):
         try:
             BaseScraper.set_checked(self, service_id)
             self.dbutil.update_service_whole(service_id, self.CONFIG.check_interval)
-        except psycopg2.Error:
+        except psycopg.Error:
             logger.exception(f'Failed to update service disabled time for {self.NAME} {service_id}')
