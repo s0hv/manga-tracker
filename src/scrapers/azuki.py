@@ -2,13 +2,14 @@ import abc
 import logging
 import re
 from abc import ABC
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional, Set, cast, List, Type, TypeVar, Dict, Tuple
 
 from lxml import etree
 
 from src.scrapers.base_scraper import BaseChapterSimple, ScrapeServiceRetVal, \
     BaseScraperWhole
+from src.utils.utilities import utctoday
 
 logger = logging.getLogger('debug')
 
@@ -70,7 +71,7 @@ class MangaChapter(ParsedChapter):
 
         title_el = chapter_element.cssselect('a.a-card-link')[0]
 
-        title_id = title_el.attrib['href'].split('/')[2]
+        title_id = title_el.attrib['href'].split('/')[-3]
         if not title_id:
             logger.error(f'Title id not parsed correctly from {title_el.attrib["href"]}')
             self.invalid = True
@@ -80,10 +81,10 @@ class MangaChapter(ParsedChapter):
 
         time_elements = chapter_element.cssselect('time')
         if not time_elements:
-            release_date = datetime.today()
+            release_date = utctoday()
         else:
             time_el = time_elements[0]
-            release_date = datetime.fromisoformat(time_el.attrib['datetime'].replace('Z', '+00:00')).replace(tzinfo=None)
+            release_date = datetime.fromisoformat(time_el.attrib['datetime'].replace('Z', '+00:00'))
 
         title_full = title_el.cssselect('span span')[0].text.strip()
         result = self.parse_title(title_full)
@@ -135,7 +136,7 @@ class ReleaseChapter(ParsedChapter):
         chapter_title, chapter_number, chapter_decimal = result
 
         try:
-            release_date = datetime.strptime(date_el.text.strip(), '%b %d, %Y')
+            release_date = datetime.strptime(date_el.text.strip(), '%b %d, %Y').replace(tzinfo=timezone.utc)
         except ValueError:
             logger.exception('Failed to parse time')
             self.invalid = True
@@ -168,7 +169,7 @@ class Azuki(BaseScraperWhole):
     @staticmethod
     def parse_chapters(rows: List[etree.ElementBase], chapter_cls: Type[TChapter], group_id: int) -> List[TChapter]:
         chapters = []
-        now = datetime.today()
+        now = utctoday()
         for row in rows:
             c: TChapter = chapter_cls(row, group_id=group_id)
             if c.invalid or c.release_date > now:

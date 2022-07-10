@@ -2,7 +2,6 @@ from typing import TYPE_CHECKING, Dict, Type
 
 from src.scrapers.azuki import Azuki
 from src.scrapers.comikey import Comikey
-from src.scrapers.comixology import ComiXology
 from src.scrapers.kireicake import KireiCake
 from src.scrapers.mangadex import MangaDex
 from src.scrapers.mangaplus import MangaPlus
@@ -14,7 +13,6 @@ if TYPE_CHECKING:
 SCRAPERS: Dict[str, Type['BaseScraper']] = {
     MangaDex.URL: MangaDex,
     MangaPlus.URL: MangaPlus,
-    ComiXology.URL: ComiXology,
     Reddit.URL: Reddit,
     KireiCake.URL: KireiCake,
     Comikey.URL: Comikey,

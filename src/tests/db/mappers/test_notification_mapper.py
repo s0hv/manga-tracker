@@ -1,6 +1,5 @@
 
 import unittest
-from datetime import datetime
 from unittest.mock import MagicMock, patch
 
 from src.db.mappers.notifications_mapper import NotificationsMapper
@@ -9,6 +8,7 @@ from src.db.models.manga import MangaForNotifications
 from src.db.models.services import Service
 from src.notifier.base_notifier import NotificationMangaService, \
     NotificationManga
+from src.utils.utilities import utcnow
 
 
 class TestUtilities(unittest.TestCase):
@@ -77,7 +77,7 @@ class TestUtilities(unittest.TestCase):
             title='title',
             chapter_number=1,
             chapter_decimal=5,
-            release_date=datetime.utcnow(),
+            release_date=utcnow(),
             chapter_identifier='ch_id',
             group='group',
             group_id=1)

@@ -3,19 +3,20 @@ import os
 import random
 import time
 from collections import Counter
+from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
-from datetime import datetime, timedelta
+from datetime import timedelta
 from itertools import groupby
 from operator import attrgetter
 from typing import Type, ContextManager, TypedDict, Optional, Collection, List, \
     Set, cast, Tuple, Dict
 
-import psycopg2
-from concurrent.futures import ThreadPoolExecutor
+import psycopg
+import psycopg.rows
 from elasticsearch import Elasticsearch
-from psycopg2.extensions import connection as Connection
-from psycopg2.extras import DictCursor
-from psycopg2.pool import ThreadedConnectionPool
+from psycopg import Connection
+from psycopg.cursor import Cursor
+from psycopg_pool import ConnectionPool
 
 from src.db.mappers.notifications_mapper import NotificationsMapper
 from src.db.models.chapter import Chapter
@@ -25,7 +26,7 @@ from src.notifier import NOTIFIERS
 from src.scrapers import SCRAPERS, SCRAPERS_ID
 from src.scrapers.base_scraper import BaseScraper
 from src.utils.dbutils import DbUtil
-from src.utils.utilities import inject_service_values
+from src.utils.utilities import inject_service_values, utcnow
 
 logger = logging.getLogger('debug')
 db_logger = logging.getLogger('database')
@@ -38,16 +39,16 @@ class MangaServiceInfo(TypedDict):
     feed_url: str
 
 
-class LoggingDictCursor(DictCursor):
-    # noinspection PyShadowingBuiltins
-    def execute(self, query, vars=None):
+class LoggingCursor(Cursor):
+    def execute(self, query, params=None, *, prepare: Optional[bool] = None, binary: Optional[bool] = None):
         try:
-            return super(LoggingDictCursor, self).execute(query, vars)
+            return super(LoggingCursor, self).execute(query, params, prepare=prepare, binary=binary)
         finally:
-            if isinstance(self.query, bytes):
-                db_logger.debug(self.query.decode('utf-8'))
+            param_string = '' if not params else f', {params}'
+            if isinstance(query, bytes):
+                db_logger.debug(f"{query.decode('utf-8')}{param_string}")
             else:
-                db_logger.debug(self.query)
+                db_logger.debug(f"{query}{param_string}")
 
 
 class UpdateScheduler:
@@ -55,22 +56,18 @@ class UpdateScheduler:
 
     def __init__(self):
         config = {
-            'db_host': os.environ['DB_HOST'],
-            'db': os.environ['DB_NAME'],
-            'db_user': os.environ['DB_USER'],
-            'db_pass': os.environ['DB_PASSWORD'],
-            'db_port': os.environ['DB_PORT']
+            'host': os.environ['DB_HOST'],
+            'dbname': os.environ['DB_NAME'],
+            'user': os.environ['DB_USER'],
+            'password': os.environ['DB_PASSWORD'],
+            'port': os.environ['DB_PORT'],
+            'row_factory': psycopg.rows.dict_row
         }
 
-        self.pool = ThreadedConnectionPool(
-            1,
-            self.MAX_POOLS,
-            host=config['db_host'],
-            port=config['db_port'],
-            user=config['db_user'],
-            password=config['db_pass'],
-            dbname=config['db'],
-            cursor_factory=LoggingDictCursor
+        self.pool: ConnectionPool = ConnectionPool(
+            min_size=1,
+            max_size=self.MAX_POOLS,
+            kwargs=config
         )
         self.thread_pool = ThreadPoolExecutor(max_workers=self.MAX_POOLS-1)
         self._es: Elasticsearch = get_client()
@@ -91,12 +88,9 @@ class UpdateScheduler:
     def conn(self) -> ContextManager[Connection]:
         @contextmanager
         def wrapper():
-            conn: Connection = self.pool.getconn()
+            conn = self.pool.getconn()
             try:
-                conn.set_client_encoding('UTF8')
-                if conn.get_parameter_status('timezone') != 'UTC':
-                    with conn.cursor() as cur:
-                        cur.execute("SET TIMEZONE TO 'UTC'")
+                conn.cursor_factory = LoggingCursor
                 yield conn
             except Exception:
                 conn.rollback()
@@ -162,20 +156,20 @@ class UpdateScheduler:
                        Scraper: Type[BaseScraper],
                        manga_info: Collection[MangaServiceInfo]) -> Tuple[Set[int], List[int]]:
         with self.conn() as conn:
-            with conn:
-                scraper = Scraper(conn, DbUtil(conn, self.es_methods))
-                rng = random.Random()
-                manga_ids: Set[int] = set()
-                chapter_ids: List[int] = []
-                errors = 0
+            scraper = Scraper(conn, DbUtil(conn, self.es_methods))
+            rng = random.Random()
+            manga_ids: Set[int] = set()
+            chapter_ids: List[int] = []
+            errors = 0
 
-                idx = 0
-                for info in manga_info:
-                    title_id = info['title_id']
-                    manga_id = info['manga_id']
-                    feed_url = info['feed_url']
-                    logger.info(f'Updating {title_id} on service {service_id}')
-                    try:
+            idx = 0
+            for info in manga_info:
+                title_id = info['title_id']
+                manga_id = info['manga_id']
+                feed_url = info['feed_url']
+                logger.info(f'Updating {title_id} on service {service_id}')
+                try:
+                    with conn.transaction():
                         if res := scraper.scrape_series(title_id, service_id,
                                                         manga_id, feed_url):
                             manga_ids.add(manga_id)
@@ -183,27 +177,25 @@ class UpdateScheduler:
                         elif res is None:
                             errors += 1
                             logger.error(f'Failed to scrape series {title_id} {manga_id}')
-                    except psycopg2.Error:
-                        conn.rollback()
-                        logger.exception(f'Database error while updating manga {title_id} on service {service_id}')
-                        scraper.dbutil.update_manga_next_update(service_id, manga_id, scraper.next_update())
-                        errors += 1
-                    except:
-                        conn.rollback()
-                        logger.exception(f'Unknown error while updating manga {title_id} on service {service_id}')
-                        scraper.dbutil.update_manga_next_update(service_id, manga_id, scraper.next_update())
-                        errors += 1
+                except psycopg.Error:
+                    logger.exception(f'Database error while updating manga {title_id} on service {service_id}')
+                    scraper.dbutil.update_manga_next_update(service_id, manga_id, scraper.next_update())
+                    errors += 1
+                except:
+                    logger.exception(f'Unknown error while updating manga {title_id} on service {service_id}')
+                    scraper.dbutil.update_manga_next_update(service_id, manga_id, scraper.next_update())
+                    errors += 1
 
-                    if errors > 1:
-                        break
+                if errors > 1:
+                    break
 
-                    idx += 1
-                    if idx != len(manga_info):
-                        time.sleep(rng.randint(200, 1000)/100)
+                idx += 1
+                if idx != len(manga_info):
+                    time.sleep(rng.randint(200, 1000)/100)
 
-                scraper.set_checked(service_id)
+            scraper.set_checked(service_id)
 
-                return manga_ids, chapter_ids
+            return manga_ids, chapter_ids
 
     def force_run(self, service_id: int, manga_id: int = None) -> Optional[Tuple[Set[int], List[int]]]:
         if service_id not in SCRAPERS_ID:
@@ -241,10 +233,10 @@ class UpdateScheduler:
                 feed_url: str = row['feed_url'] or row['service_feed_url']
 
                 logger.info(f'Force updating {title_id} on service {service_id}')
-                with conn:
+                with conn.transaction():
                     try:
                         retval = scraper.scrape_series(title_id, service_id, manga_id, feed_url=feed_url)
-                    except psycopg2.Error:
+                    except psycopg.Error:
                         logger.exception(f'Database error while scraping {service_id} {scraper.NAME}: {title_id}')
                         return None
                     except:
@@ -278,7 +270,7 @@ class UpdateScheduler:
 
                 scraper = Scraper(conn, DbUtil(conn, self.es_methods))
                 logger.info(f'Updating service {row["url"]}')
-                with conn:
+                with conn.transaction():
                     updated = scraper.scrape_service(row['service_id'], row['feed_url'], None)
                 if updated:
                     manga_ids.update(updated.manga_ids)
@@ -325,27 +317,31 @@ class UpdateScheduler:
                     services.append(row)
 
             for service in services:
-                Scraper = SCRAPERS.get(service['url'])
+                service_id = service['service_id']
+                feed_url = service['feed_url']
+                url = service['url']
+
+                Scraper = SCRAPERS.get(url)
                 if not Scraper:
                     logger.error(f'Failed to find scraper for {service}')
                     continue
 
                 scraper = Scraper(conn, DbUtil(conn, self.es_methods))
-                logger.info(f'Updating service {service[2]}')
+                logger.info(f'Updating service {url}')
 
-                with conn:
+                with conn.transaction():
                     try:
-                        retval = scraper.scrape_service(service[0], service[1], None)
-                    except psycopg2.Error:
-                        logger.exception(f'Database error while scraping {service[1]}')
-                        scraper.set_checked(service[0])
+                        retval = scraper.scrape_service(service_id, feed_url, None)
+                    except psycopg.Error:
+                        logger.exception(f'Database error while scraping {feed_url}')
+                        scraper.set_checked(service_id)
                         continue
                     except:
-                        logger.exception(f'Failed to scrape service {service[1]}')
-                        scraper.set_checked(service[0])
+                        logger.exception(f'Failed to scrape service {feed_url}')
+                        scraper.set_checked(service_id)
                         continue
 
-                scraper.set_checked(service[0])
+                scraper.set_checked(service_id)
                 if retval:
                     manga_ids.update(retval.manga_ids)
                     chapter_ids.extend(retval.chapter_ids)
@@ -362,7 +358,7 @@ class UpdateScheduler:
                     manga_ids.update(res[0])
                     chapter_ids.extend(res[1])
 
-            with conn:
+            with conn.transaction():
                 if manga_ids:
                     logger.debug(f"Updating interval of {len(manga_ids)} manga")
                     dbutil = DbUtil(conn, self.es_methods)
@@ -377,7 +373,7 @@ class UpdateScheduler:
                 logger.exception('Failed to send notifications')
 
             sql = '''
-            SELECT MIN(t.update) FROM (
+            SELECT MIN(t.update) as update FROM (
                 SELECT
                    LEAST(
                        GREATEST(MIN(ms.next_update), s.disabled_until),
@@ -398,8 +394,8 @@ class UpdateScheduler:
                 cursor.execute(sql)
                 retval = cursor.fetchone()
                 if not retval:
-                    return datetime.utcnow() + timedelta(hours=1)
-                return retval[0]
+                    return utcnow() + timedelta(hours=1)
+                return retval['update']
 
     def send_notifications(self, manga_ids: Set[int], chapter_ids: List[int]):
         if not (manga_ids and chapter_ids):

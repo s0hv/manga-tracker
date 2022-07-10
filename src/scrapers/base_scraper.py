@@ -1,24 +1,24 @@
 import abc
 import logging
 from abc import ABC
-from datetime import timedelta, datetime
+from datetime import timedelta, datetime, timezone
 from inspect import isabstract
 from itertools import groupby
 from operator import attrgetter
 from typing import (Optional, TYPE_CHECKING, ClassVar, Set, Dict, List,
                     Sequence, Iterable, TypeVar, Mapping, cast, Collection)
 
-import psycopg2
+import psycopg
 import pydantic
 import requests
-from psycopg2.extensions import connection as Connection
+from psycopg import Connection
 from pydantic import BaseModel, Field
 
 from src.db.mappers.chapter_mapper import ChapterMapper
 from src.db.models.chapter import Chapter as ChapterModel
 from src.db.models.manga import MangaService
 from src.db.models.services import ServiceConfig
-from src.utils.utilities import get_latest_chapters
+from src.utils.utilities import get_latest_chapters, utcnow
 
 if TYPE_CHECKING:
     from src.utils.dbutils import DbUtil
@@ -138,7 +138,10 @@ class BaseChapterSimple(BaseChapter):
         self._manga_title = manga_title
         self._manga_url = manga_url
         self._group = group
-        self._release_date = release_date or datetime.utcnow()
+        self._release_date = release_date or utcnow()
+        if self._release_date.tzinfo is None:
+            self._release_date = self._release_date.replace(tzinfo=timezone.utc)
+
         self._group_id = group_id
 
     @property
@@ -195,6 +198,9 @@ class BaseChapterSimple(BaseChapter):
     @property
     def title(self) -> str:
         return self.chapter_title or f'{"Volume " + str(self.volume) + ", " if self.volume is not None else ""}Chapter {self.chapter_number}{"" if not self.decimal else "." + str(self.decimal)}'
+
+    def __repr__(self):
+        return f'{self._chapter_title} {self._chapter_identifier} - {self._title_id}'
 
 
 ScraperChapter = TypeVar('ScraperChapter', bound=BaseChapter)
@@ -262,16 +268,14 @@ class BaseScraper(abc.ABC):
 
     def set_checked(self, service_id: int) -> None:
         with self.conn.cursor() as cursor:
-            now = datetime.utcnow()
+            now = utcnow()
             disabled_until = now + self.min_update_interval()
-            sql = "UPDATE services SET last_check=%s, disabled_until=%s WHERE service_id=%s"
+            sql = "UPDATE services SET last_check = %s, disabled_until = %s WHERE service_id=%s"
             try:
-                cursor.execute(sql, (datetime.utcnow(), disabled_until, service_id))
-            except psycopg2.Error:
+                cursor.execute(sql, (utcnow(), disabled_until, service_id))
+            except psycopg.Error:
                 logger.exception(f'Failed to update last check of {service_id}')
                 return
-
-        self.conn.commit()
 
     def min_update_interval(self) -> timedelta:
         """
@@ -280,7 +284,7 @@ class BaseScraper(abc.ABC):
         return self.CONFIG.check_interval
 
     def next_update(self) -> datetime:
-        return datetime.utcnow() + self.min_update_interval()
+        return utcnow() + self.min_update_interval()
 
     @abc.abstractmethod
     def scrape_series(self, title_id: str, service_id: int, manga_id: int, feed_url: str) -> Optional[Set[int]]:
@@ -307,10 +311,10 @@ class BaseScraper(abc.ABC):
         logger.info(f'Adding service {self.NAME} {self.URL}')
         sql = 'INSERT INTO services (service_id, service_name, url, disabled, last_check, chapter_url_format, manga_url_format, disabled_until) VALUES ' \
               '(%s, %s, %s, FALSE, NULL, %s, %s, NULL) RETURNING service_id'
-        with self.conn:
+        with self.conn.transaction():
             with self.conn.cursor() as cur:
                 cur.execute(sql, (self.ID, self.NAME, self.URL, self.CHAPTER_URL_FORMAT, self.MANGA_URL_FORMAT))
-                return cur.fetchone()[0]
+                return cur.fetchone()['service_id']
 
     @staticmethod
     def titles_dict_to_manga_service(
@@ -425,7 +429,7 @@ class BaseScraperWhole(BaseScraper, ABC):
         service_id = super().add_service()
         if not service_id:
             return None
-        with self.conn:
+        with self.conn.transaction():
             with self.conn.cursor() as cur:
                 sql = 'INSERT INTO service_whole (service_id, feed_url, last_check, next_update, last_id) VALUES ' \
                       '(%s, %s, NULL, NULL, NULL)'
@@ -441,7 +445,7 @@ class BaseScraperWhole(BaseScraper, ABC):
         try:
             super().set_checked(service_id)
             self.dbutil.update_service_whole(service_id, self.min_update_interval())
-        except psycopg2.Error:
+        except psycopg.Error:
             logger.exception(f'Failed to update service {service_id}')
 
     def handle_adding_chapters(self, entries: Collection[ScraperChapter], service_id: int) -> Optional[ScrapeServiceRetVal]:

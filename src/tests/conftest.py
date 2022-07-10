@@ -3,11 +3,6 @@ import time
 
 import pytest
 from elasticsearch import Elasticsearch
-import os
-import time
-
-import pytest
-from elasticsearch import Elasticsearch
 
 ELASTIC_INDEX = 'manga_test'
 os.environ['ES_INDEX'] = ELASTIC_INDEX
@@ -18,6 +13,7 @@ from src.tests.testing_utils import (create_db, Postgresql, teardown_db,
                                      start_db, get_conn)
 from src.utils.dbutils import DbUtil
 from src.utils.utilities import inject_service_values
+from setup_logging import setup
 
 
 @pytest.fixture(scope='session')
@@ -29,6 +25,7 @@ def es():
     yield client
     print(f'Dropping index {ELASTIC_INDEX}')
     client.indices.delete(index=ELASTIC_INDEX)
+    client.close()
 
 
 @pytest.fixture
@@ -68,6 +65,7 @@ def database(request: pytest.FixtureRequest, es):
     SCRAPERS_ID[DummyScraper.ID] = DummyScraper
     SCRAPERS_ID[DummyScraper2.ID] = DummyScraper2
 
+    conn.commit()
     conn.close()
 
     def fin():
@@ -86,3 +84,5 @@ def conn(database):
 def setup_tests():
     # No need to sleep in tests
     time.sleep = lambda *_: None
+
+    setup()

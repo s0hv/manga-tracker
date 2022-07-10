@@ -1,6 +1,6 @@
 import os
 import unittest
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 import pytest
 import responses
@@ -9,12 +9,13 @@ from src.scrapers.base_scraper import BaseChapterSimple
 from src.scrapers.kireicake import KireiCake
 from src.tests.utils.test_dbutil import BaseTestClasses
 from src.utils.dbutils import DbUtil
+from src.utils.utilities import utctoday
 
 test_feed = os.path.join(os.path.dirname(__file__), 'feed.html')
 
 
 def get_date(s: str):
-    return datetime.strptime(s, '%Y.%m.%d')
+    return datetime.strptime(s, '%Y.%m.%d').replace(tzinfo=timezone.utc)
 
 
 # Entries that should be in feed.xml
@@ -24,7 +25,7 @@ correct_entries = {
         chapter_number=24,
         decimal=None,
         manga_title='My Death Flags Show No Sign of Ending',
-        release_date=datetime.combine(datetime.now(), datetime.min.time()),
+        release_date=utctoday(),
         title_id='my_death_flags_show_no_sign_of_ending',
         chapter_title='Chapter 24',
         group=KireiCake.NAME,
@@ -34,7 +35,7 @@ correct_entries = {
         chapter_number=239,
         decimal=None,
         manga_title='Sweet Dreams in the Demon Castle',
-        release_date=datetime.combine(datetime.now() - timedelta(hours=24), datetime.min.time()),
+        release_date=utctoday() - timedelta(days=1),
         title_id='sweet_dreams_in_the_demon_castle',
         chapter_title='The 239th Night',
         group=KireiCake.NAME,

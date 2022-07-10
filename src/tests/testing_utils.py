@@ -5,24 +5,25 @@ import sys
 import typing
 import unittest
 from datetime import datetime, timedelta
-from typing import TypeVar, Optional, Union, Type, List, Tuple
+from typing import TypeVar, Optional, Union, Type, List, Tuple, Any
 from unittest import mock
 
 import feedparser
-import psycopg2
+import psycopg
 import pytest
 import testing.postgresql  # type: ignore[import]
-from psycopg2.extensions import connection as Connection
-from psycopg2.extras import DictRow
+from psycopg import Connection
+from psycopg.rows import DictRow, dict_row
 from pydantic import BaseModel
 
 from src.constants import NO_GROUP
 from src.db.models.chapter import Chapter as DbChapter
 from src.db.models.manga import MangaService, MangaServiceWithId
-from src.scheduler import LoggingDictCursor
+from src.scheduler import LoggingCursor
 from src.scrapers.base_scraper import BaseChapter, BaseScraper, \
     BaseChapterSimple
 from src.tests.scrapers.testing_scraper import DummyScraper
+from src.utils.utilities import utcnow
 
 originalParse = feedparser.parse
 
@@ -66,19 +67,20 @@ def create_db(postgres: Optional[testing.postgresql.Postgresql]) -> Connection:
 
 
 def create_conn(postgres: Optional[testing.postgresql.Postgresql]) -> Connection:
+    conn: Connection
     if DONT_USE_TEMP_DATABASE or not postgres:
-        conn = psycopg2.connect(
+        conn = psycopg.connect(
             host=os.environ['DB_HOST'],
             port=os.environ['DB_PORT'],
             dbname=os.environ['DB_NAME'],
             user=os.environ['DB_USER'],
             password=os.environ['PGPASSWORD'],
-            cursor_factory=LoggingDictCursor
+            row_factory=dict_row
         )
     else:
-        conn = psycopg2.connect(**postgres.dsn(),
-                                cursor_factory=LoggingDictCursor)
-    conn.set_client_encoding('UTF8')
+        conn = psycopg.connect(postgres.url(), row_factory=dict_row)
+
+    conn.cursor_factory = LoggingCursor
     return conn
 
 
@@ -89,9 +91,6 @@ def start_db() -> None:
 
 def get_conn() -> Connection:
     conn = create_conn(None if not Postgresql else Postgresql.cache)
-    if conn.get_parameter_status('timezone') != 'UTC':
-        with conn.cursor() as cur:
-            cur.execute("SET TIMEZONE TO 'UTC'")
     return conn
 
 
@@ -115,12 +114,6 @@ def mock_feedparse(feed, *args, **kwargs):
 # Actually returns a literal union between the input and MagicMock
 def spy_on(instance: T) -> Union[T, mock.MagicMock]:
     return mock.MagicMock(spec_set=instance, wraps=instance)
-
-
-def date_fix(d: datetime):
-    if d.tzinfo and d.utcoffset().total_seconds() == 0:  # type: ignore[union-attr]
-        return d.replace(tzinfo=None)
-    return d
 
 
 def set_db_environ():
@@ -162,7 +155,7 @@ class BaseTestClasses:
             request.addfinalizer(self._teardown_class)
 
         @property
-        def conn(self) -> Connection:
+        def conn(self) -> Connection[DictRow]:
             return self._conn
 
         @pytest.fixture(autouse=True)
@@ -213,21 +206,24 @@ class BaseTestClasses:
                                 (service_id,))
 
         def assertChapterEqualsRow(self, chapter: 'Chapter', row: DictRow) -> None:
-            pairs = [
+            pairs: list[tuple[str, str] | tuple[str, str, Any]] = [
                 ('chapter_title', 'title'),
                 ('chapter_number', 'chapter_number'),
                 ('decimal', 'chapter_decimal'),
                 ('release_date', 'release_date',
-                 lambda: (getattr(chapter, 'release_date'), date_fix(row['release_date']))
+                 lambda: (getattr(chapter, 'release_date'), row['release_date'])
                  ),
                 ('chapter_identifier', 'chapter_identifier'),
                 ('group', 'group')
             ]
 
             for val in pairs:
+                chapter_attr: str
+                row_attr: str
                 chapter_attr, row_attr = val[:2]
                 if len(val) == 3:
-                    get_vals = val[2]
+                    # Mypy thinks index is out of range even with len check
+                    get_vals = val[2]  # type: ignore[misc]
                 else:
                     def get_vals():
                         return getattr(chapter, chapter_attr), row[row_attr]
@@ -241,26 +237,26 @@ class BaseTestClasses:
                     )
 
         def assertDatesEqual(self, date1: datetime, date2: datetime):
-            if date_fix(date1) != date_fix(date2):
+            if date1 != date2:
                 self.fail(f'Date {date1} does not match date {date2}')
 
         def assertDatesNotEqual(self, date1: datetime, date2: datetime):
-            if date_fix(date1) == date_fix(date2):
+            if date1 == date2:
                 self.fail(f'Date {date1} equals date {date2}')
 
         def assertDateGreater(self, date1: datetime, date2: datetime):
-            if date_fix(date1) <= date_fix(date2):
+            if date1 <= date2:
                 self.fail(f'Date {date1} is earlier or equal to {date2}')
 
         def assertDateLess(self, date1: datetime, date2: datetime):
-            if date_fix(date1) >= date_fix(date2):
+            if date1 >= date2:
                 self.fail(f'Date {date1} is later or equal to {date2}')
 
         def assertDatesAlmostEqual(self, date1: datetime, date2: datetime,
                                    delta: timedelta = timedelta(seconds=1),
                                    msg: str = None):
-            date1 = date_fix(date1)
-            date2 = date_fix(date2)
+            date1 = date1
+            date2 = date2
 
             self.assertAlmostEqual(date1, date2, delta=delta, msg=msg)
 
@@ -281,9 +277,9 @@ class BaseTestClasses:
         @staticmethod
         def utcnow() -> datetime:
             """
-            Return utc time with psycopg2 timezone
+            Return utc time
             """
-            return datetime.utcnow().replace(tzinfo=psycopg2.tz.FixedOffsetTimezone(offset=0, name=None))
+            return utcnow()
 
         @staticmethod
         def dbChapterSortKey(chapter: 'DbChapter'):
@@ -320,7 +316,7 @@ class BaseTestClasses:
                 self.assertEqual(a.chapter_decimal, b.decimal, msg=f'Chapter decimal numbers not equal for {a.chapter_identifier}')
 
                 if not ignore_date:
-                    self.assertEqual(date_fix(a.release_date), b.release_date, msg=f'Chapter release dates not equal for {a.chapter_identifier}')
+                    self.assertEqual(a.release_date, b.release_date, msg=f'Chapter release dates not equal for {a.chapter_identifier}')
 
             else:
                 self.assertEqual(a.chapter_title, b.chapter_title, msg=f'Chapter titles not equal for {a.chapter_identifier}')

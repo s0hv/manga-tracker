@@ -1,17 +1,22 @@
+# type: ignore
 import os
 import re
 import unittest
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Pattern
 
+import pytest
 import requests
 import responses
 from lxml import etree
 
-import setup_logging
 from src.constants import NO_GROUP
 from src.scrapers.comixology import ComiXology
 from src.tests.testing_utils import BaseTestClasses, load_chapters_snapshot
+from src.utils.utilities import utcnow
+
+pytest.skip('ComiXology not in use anymore as it moved to amazon.', allow_module_level=True)
+
 
 base_path = os.path.dirname(__file__)
 test_chapter_site = os.path.join(base_path, 'test_chapter.html')
@@ -20,9 +25,6 @@ page1_path = os.path.join(base_path, 'page1.html')
 page2_path = os.path.join(base_path, 'page2.html')
 manga_path = os.path.join(base_path, 'manga_page1.html')
 manga_page_path = os.path.join(base_path, 'manga_page2.html')
-
-
-logger = setup_logging.setup()
 
 
 class TestComiXologyScraper(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAssertions):
@@ -85,7 +87,7 @@ class TestComiXologyScraper(BaseTestClasses.DatabaseTestCase, BaseTestClasses.Mo
         """
         Deletes all chapters from ComiXology
         """
-        with self.conn:
+        with self.conn.transaction():
             with self.conn.cursor() as cur:
                 cur.execute('DELETE FROM chapters WHERE service_id=%s', (ComiXology.ID,))
 
@@ -187,7 +189,7 @@ class TestComiXologyScraper(BaseTestClasses.DatabaseTestCase, BaseTestClasses.Mo
         self.assertIsNotNone(retval)
         self.assertEqual(len(responses.calls), 1)
         self.assertEqual(responses.calls[0].request.url, url)
-        self.assertEqual(retval, datetime(2020, 12, 8))
+        self.assertEqual(retval, datetime(2020, 12, 8, tzinfo=timezone.utc))
 
     def test_parse_chapters(self):
         root = etree.HTML(self.page1)
@@ -197,7 +199,7 @@ class TestComiXologyScraper(BaseTestClasses.DatabaseTestCase, BaseTestClasses.Mo
         )
 
         self.assertGreater(len(chapter_elements), 0)
-        now = datetime.utcnow()
+        now = utcnow()
         parsed = ComiXology.parse_chapters(chapter_elements, NO_GROUP)
 
         loaded = load_chapters_snapshot(os.path.join(base_path, 'chapters.json'))

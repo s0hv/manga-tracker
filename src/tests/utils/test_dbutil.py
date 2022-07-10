@@ -1,9 +1,9 @@
 import statistics
 import unittest
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import TYPE_CHECKING, Optional, List
 
-import psycopg2
+import psycopg
 
 from src.constants import NO_GROUP
 from src.db.models.chapter import Chapter as ChapterModel
@@ -11,6 +11,7 @@ from src.db.models.manga import MangaService, Manga, MangaServicePartial
 from src.db.models.services import Service
 from src.tests.scrapers.testing_scraper import DummyScraper, DummyScraper2
 from src.tests.testing_utils import Chapter, BaseTestClasses, spy_on
+from src.utils.utilities import utcnow
 
 if TYPE_CHECKING:
     # noinspection PyUnresolvedReferences
@@ -23,7 +24,7 @@ testing_series = {
             chapter_title='test 1',
             chapter_number=1,
             volume=1,
-            release_date=datetime.utcnow(),
+            release_date=utcnow(),
             chapter_identifier='test_id_1_1',
             title_id='test_manga_1',
             manga_title='test manga 1'
@@ -33,7 +34,7 @@ testing_series = {
             chapter_number=2,
             decimal=5,
             volume=1,
-            release_date=datetime.utcnow(),
+            release_date=utcnow(),
             chapter_identifier='test_id_1_2.5',
             title_id='test_manga_1',
             manga_title='test manga 1',
@@ -41,7 +42,7 @@ testing_series = {
         Chapter(
             chapter_title='test 1 no vol',
             chapter_number=1,
-            release_date=datetime.utcnow(),
+            release_date=utcnow(),
             chapter_identifier='test_id_1_1_alt',
             title_id='test_manga_1',
             manga_title='test manga 1'
@@ -52,7 +53,7 @@ testing_series = {
             chapter_title='abc 1',
             chapter_number=1,
             volume=1,
-            release_date=datetime.utcnow(),
+            release_date=utcnow(),
             chapter_identifier='test_id_2_1',
             title_id='test_manga_2',
             manga_title='test manga 2'
@@ -62,7 +63,7 @@ testing_series = {
             chapter_number=2,
             decimal=2,
             volume=1,
-            release_date=datetime.utcnow(),
+            release_date=utcnow(),
             chapter_identifier='test_id_2_2.5',
             title_id='test_manga_2',
             manga_title='test manga 2'
@@ -71,7 +72,7 @@ testing_series = {
             chapter_title='abc 1 no vol',
             chapter_number=1,
             volume=0,
-            release_date=datetime.utcnow(),
+            release_date=utcnow(),
             chapter_identifier='test_id_2_1_alt',
             title_id='test_manga_2',
             manga_title='test manga 2',
@@ -94,7 +95,7 @@ class TestSplitExistingManga(BaseDbutilTest):
         """
         Test that nothing is done with an empty list
         """
-        with self.conn:
+        with self.conn.transaction():
             with self.conn.cursor() as cur:
                 cur = spy_on(cur)
                 retval = self.dbutil.split_existing_manga(DummyScraper.ID, [], cur=cur)
@@ -195,7 +196,7 @@ class TestGetAndAddManga(BaseDbutilTest):
 
         dbutil = spy_on(self.dbutil)
 
-        self.assertRaises(psycopg2.IntegrityError, dbutil.add_manga_service, manga)
+        self.assertRaises(psycopg.IntegrityError, dbutil.add_manga_service, manga)
         dbutil.add_new_manga.assert_not_called()
         self.assertIsNone(self.dbutil.get_manga_service(manga.service_id, manga.title_id))
 
@@ -306,7 +307,7 @@ class TestAddNewMangaWithDuplicates(BaseDbutilTest):
             self.assertFalse(manga['disabled'])
 
     def test_add_new_series_empty(self):
-        with self._conn:
+        with self._conn.transaction():
             with self._conn.cursor() as cur:
                 cur = spy_on(cur)
                 retval = self.dbutil.add_new_manga_and_check_duplicate_titles([])
@@ -324,7 +325,7 @@ class TestAddNewMangaWithDuplicates(BaseDbutilTest):
                          manga_id=None, title='test 1'),
         ]
 
-        with self.conn:
+        with self.conn.transaction():
             with self.conn.cursor() as cur:
                 cur = spy_on(cur)
                 self.assertFalse(self.dbutil.add_new_manga_and_check_duplicate_titles(mangas, cur=cur))
@@ -349,7 +350,7 @@ class TestAddNewMangaWithDuplicates(BaseDbutilTest):
                          manga_id=None, title=title)
         ]
 
-        with self.conn:
+        with self.conn.transaction():
             with self.conn.cursor() as cur:
                 retval = self.dbutil.add_new_manga_and_check_duplicate_titles(mangas, cur=cur)
                 self.assertListEqual(retval, mangas)
@@ -369,7 +370,7 @@ class TestAddNewMangaWithDuplicates(BaseDbutilTest):
                          manga_id=None, title=title),
         ]
 
-        with self.conn:
+        with self.conn.transaction():
             with self.conn.cursor() as cur:
                 cur = spy_on(cur)
 
@@ -391,7 +392,7 @@ class TestAddNewMangaWithDuplicates(BaseDbutilTest):
                          manga_id=None, title=title.lower())
         ]
 
-        with self.conn:
+        with self.conn.transaction():
             with self.conn.cursor() as cur:
                 self.assertIsNone(mangas[0].manga_id)
                 added = self.dbutil.add_new_manga_and_check_duplicate_titles(mangas, cur=cur)
@@ -418,7 +419,7 @@ class TestAddNewMangaWithDuplicates(BaseDbutilTest):
                          manga_id=None, title=self.get_str_id()),
         ]
 
-        with self.conn:
+        with self.conn.transaction():
             with self.conn.cursor() as cur:
                 retval = self.dbutil.add_new_manga_and_check_duplicate_titles(mangas, cur=cur)
 
@@ -445,6 +446,9 @@ class TestAddNewMangaWithDuplicates(BaseDbutilTest):
 
 class TestDbUtil(BaseDbutilTest):
     def test_update_latest_chapter(self):
+        # Must be run in utc, or otherwise daylight savings might affect the results
+        # in some regions
+        self.conn.execute("SET TIME ZONE 'UTC'")
         with self._conn.cursor() as cur:
             cur = spy_on(cur)
             self.dbutil.update_latest_chapter([], cur=cur)
@@ -452,16 +456,16 @@ class TestDbUtil(BaseDbutilTest):
 
         # Changing these will affect the test
         manga_ids = [
-            (1, 5, datetime.fromisoformat('2020-08-02 16:00:00.000000')),
-            (2, 2, datetime.fromisoformat('2020-08-02 16:00:00.000000')),
-            (3, 52, datetime.fromisoformat('2020-01-02 16:00:00.000000'))
+            (1, 5, datetime.fromisoformat('2020-08-02 16:00:00.000000').replace(tzinfo=timezone.utc)),
+            (2, 2, datetime.fromisoformat('2020-08-02 16:00:00.000000').replace(tzinfo=timezone.utc)),
+            (3, 52, datetime.fromisoformat('2020-01-02 16:00:00.000000').replace(tzinfo=timezone.utc))
         ]
 
         with self._conn.cursor() as cur:
             cur.execute('SELECT estimated_release FROM manga WHERE manga_id=%s', (manga_ids[0][0],))
             original_no_update = cur.fetchone()
 
-        with self._conn:
+        with self._conn.transaction():
             with self._conn.cursor() as cur:
                 self.dbutil.update_latest_chapter(manga_ids, cur=cur)
 
@@ -484,14 +488,14 @@ class TestDbUtil(BaseDbutilTest):
         self.assertDatesEqual(update_multiple['estimated_release'], manga_ids[2][2] + update_multiple['release_interval'])
 
     def test_update_estimated_release(self):
-        with self._conn:
+        with self._conn.transaction():
             with self._conn.cursor() as cur:
                 self.assertIsNone(self.dbutil.update_estimated_release(None, cur=cur))
                 self.assertLogs('maintenance', 'WARNING')
                 self.assertEqual(cur.rowcount, 0)
 
                 manga_id = 1
-                release = datetime.utcnow()
+                release = utcnow()
 
                 sql = 'INSERT INTO chapters ' \
                       '(manga_id, service_id, title, chapter_number, chapter_decimal, chapter_identifier, release_date, group_id) ' \
@@ -507,9 +511,9 @@ class TestDbUtil(BaseDbutilTest):
                 self.assertDateGreater(row['estimated_release'], release)
 
     def test_set_service_disabled_until(self):
-        with self.conn:
+        with self.conn.transaction():
             with self.conn.cursor() as cur:
-                disabled_until = datetime.utcnow() + timedelta(hours=12)
+                disabled_until = utcnow() + timedelta(hours=12)
                 service_id = 1
                 self.dbutil.set_service_disabled_until(service_id,
                                                        disabled_until,
@@ -520,11 +524,11 @@ class TestDbUtil(BaseDbutilTest):
                 self.assertDatesEqual(disabled_until, service.disabled_until)
 
     def test_update_service_whole(self):
-        with self.conn:
+        with self.conn.transaction():
             with self.conn.cursor() as cur:
                 service_id = 2
                 update_interval = timedelta(hours=2)
-                now = datetime.utcnow()
+                now = utcnow()
 
                 self.dbutil.update_service_whole(service_id, update_interval, cur=cur)
 
@@ -578,7 +582,7 @@ class TestUpdateInterval(BaseDbutilTest):
             title=f'{id_}_chapter',
             chapter_identifier=id_,
             chapter_number=chapter_number,
-            release_date=release_date or datetime.utcnow(),
+            release_date=release_date or utcnow(),
             group_id=NO_GROUP
         )
 
@@ -673,7 +677,7 @@ class TestUpdateInterval(BaseDbutilTest):
 
         chapter_number = 0
         interval = timedelta(days=7)
-        t = datetime.utcnow()
+        t = utcnow()
 
         def get_chapter() -> ChapterModel:
             nonlocal chapter_number, t
@@ -695,7 +699,7 @@ class TestUpdateInterval(BaseDbutilTest):
 
         chapter_number = 0
         interval = timedelta(days=7)
-        t = datetime.utcnow()
+        t = utcnow()
 
         def get_chapter(add_interval: bool = True) -> ChapterModel:
             nonlocal chapter_number, t
@@ -729,7 +733,7 @@ class TestUpdateInterval(BaseDbutilTest):
 
         chapter_number = 0
         interval = timedelta(days=7)
-        t = datetime.utcnow()
+        t = utcnow()
         intervals = []
 
         def get_chapter() -> ChapterModel:
@@ -759,7 +763,7 @@ class TestUpdateInterval(BaseDbutilTest):
         chapter_number = 0
         decimal: Optional[int] = None
         interval = timedelta(days=7)
-        t = datetime.utcnow()
+        t = utcnow()
 
         def get_chapter() -> ChapterModel:
             nonlocal chapter_number, t, interval, decimal
@@ -790,7 +794,7 @@ class TestUpdateInterval(BaseDbutilTest):
         chapter_number = 0
         duplicate = False
         interval = timedelta(days=7)
-        t = datetime.utcnow()
+        t = utcnow()
 
         def get_chapter() -> ChapterModel:
             nonlocal chapter_number, t, interval, duplicate

@@ -9,14 +9,12 @@ import responses
 
 pytest.skip('Kodansha not in use anymore.', allow_module_level=True)
 
-import setup_logging
 from src.scrapers import ComiXology, SCRAPERS
 from src.scrapers.kodansha import Manga, KodanshaComics
 from src.tests.testing_utils import BaseTestClasses, spy_on
 from src.tests.scrapers.testing_scraper import DummyScraper
 
 test_site = os.path.join(os.path.dirname(__file__), 'test_data.html')
-logger = setup_logging.setup()
 
 
 class DummyScraperForKodansha(DummyScraper):

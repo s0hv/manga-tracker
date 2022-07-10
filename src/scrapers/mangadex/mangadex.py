@@ -201,7 +201,7 @@ class MangaDex(BaseScraperWhole):
             return {}
 
         format_args = self.dbutil.get_format_args(group_ids)
-        sql = f'SELECT mangadex_id, group_id FROM groups WHERE mangadex_id IN ({format_args})'
+        sql = f'SELECT mangadex_id::text, group_id FROM groups WHERE mangadex_id IN ({format_args})'
         result: Dict[str, int] = {}
         for row in self.dbutil.execute(sql, group_ids, fetch=True):
             result[row['mangadex_id']] = row['group_id']

@@ -1,15 +1,15 @@
 import logging
 import re
 from abc import ABC, abstractmethod
-from datetime import datetime, date, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional, Set, List, Pattern
 
-import pytz
 import requests
 from lxml import etree
 
 from src.scrapers.base_scraper import BaseScraperWhole, BaseChapterSimple, \
     ScrapeServiceRetVal
+from src.utils.utilities import utctoday
 
 logger = logging.getLogger('debug')
 
@@ -47,13 +47,11 @@ class FoolSlideChapter(BaseChapterSimple):
 
         release_text = chapter_element.cssselect('.meta_r a')[0].tail.strip(', \n').lower()
         if release_text == 'today':
-            release_date = datetime.combine(date.today(), datetime.min.time())
+            release_date = utctoday()
         elif release_text == 'yesterday':
-            release_date = datetime.combine(date.today() - timedelta(hours=24), datetime.min.time())
+            release_date = utctoday() - timedelta(days=1)
         else:
-            release_date = datetime.strptime(release_text, '%Y.%m.%d')
-
-        release_date.replace(tzinfo=pytz.utc)
+            release_date = datetime.strptime(release_text, '%Y.%m.%d').replace(tzinfo=timezone.utc)
 
         super().__init__(
             chapter_title=chapter_title,

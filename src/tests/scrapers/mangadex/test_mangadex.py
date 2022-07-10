@@ -3,20 +3,23 @@ import logging
 import os
 import unittest
 from typing import Dict, List
+from unittest.mock import patch, Mock
 
 import pytest
 import responses
+from psycopg.rows import class_row
 from pydantic import parse_obj_as
 
-import setup_logging
+import src.scrapers.mangadex.mangadex
 from src.constants import NO_GROUP
 from src.db.models.authors import AuthorPartial
 from src.db.models.chapter import Chapter
+from src.db.models.groups import Group, GroupPartial
 from src.db.models.manga import MangaService
-from src.scrapers.mangadex import MangaDex, ChapterResult
+from src.scrapers.mangadex import MangaDex, ChapterResult, \
+    Chapter as MangaDexChapter
 from src.tests.testing_utils import BaseTestClasses, ChapterTestModel
-
-logger = setup_logging.setup()
+from src.utils.utilities import utcnow
 
 correct_parsed_chapters = list(sorted([
     ChapterTestModel(
@@ -107,7 +110,7 @@ class MangadexTests(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsser
     def load_data(self):
         api_path = os.path.join(os.path.dirname(__file__), 'api_data')
 
-        with open(os.path.join(api_path, 'chapters.json'), 'r',encoding='utf-8') as f:
+        with open(os.path.join(api_path, 'chapters.json'), 'r', encoding='utf-8') as f:
             self.chapters_data = json.load(f)
 
         with open(os.path.join(api_path, 'manga.json'), 'r', encoding='utf-8') as f:
@@ -120,6 +123,9 @@ class MangadexTests(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsser
     def delete_chapters(self, service_id: int = MangaDex.ID):
         super().delete_chapters(service_id)
 
+    def delete_groups(self):
+        self.conn.execute('DELETE FROM groups WHERE group_id != %s', (NO_GROUP,))
+
     def set_up_api(self):
         responses.add(responses.GET, f'{self.API_URL}/chapter',
                       json=self.chapters_data)
@@ -128,9 +134,15 @@ class MangadexTests(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsser
                       json=self.manga_data)
 
     @responses.activate
+    @patch.object(src.scrapers.mangadex.mangadex, 'logger', Mock())
     def test_invalid_chapters_result(self):
         responses.add(responses.GET, f'{self.API_URL}/chapter',
                       status=500)
+
+        logger = logging.getLogger('mangadex_test')
+        logger.setLevel(logging.ERROR)
+        src.scrapers.mangadex.mangadex.logger = logger
+
         retVal = self.mangadex.scrape_service(self.mangadex.ID, self.mangadex.FEED_URL, None)
         self.assertIsNone(retVal)
         self.assertLogs(logger, logging.ERROR)
@@ -191,9 +203,9 @@ class MangadexTests(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsser
         # Assert correct amount of artists added
         self.assertEqual(
             self.dbutil.execute(
-                f'SELECT COUNT(*) FROM manga_artists WHERE manga_id IN ({format_args})',
+                f'SELECT COUNT(*) as count FROM manga_artists WHERE manga_id IN ({format_args})',
                 retVal.manga_ids
-            )[0][0],
+            )[0]['count'],
             artist_count,
             msg='Not all manga artists added'
         )
@@ -201,14 +213,97 @@ class MangadexTests(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsser
         # Assert correct amount of authors added
         self.assertEqual(
             self.dbutil.execute(
-                f'SELECT COUNT(*) FROM manga_authors WHERE manga_id IN ({format_args})',
+                f'SELECT COUNT(*) as count FROM manga_authors WHERE manga_id IN ({format_args})',
                 retVal.manga_ids
-            )[0][0],
+            )[0]['count'],
             author_count,
             msg='Not all manga authors added'
         )
 
         self.assertMangaWithTitleFound("Circle Zero's Otherworldly Hero Business: Reboot")
+
+        retval = self.mangadex.scrape_service(service_id, self.mangadex.FEED_URL, None)
+        self.assertEqual(len(retval.chapter_ids), 0)
+        self.assertEqual(len(retval.manga_ids), 0)
+
+    @responses.activate
+    def test_duplicate_group(self):
+        self.delete_chapters()
+        self.set_up_api()
+        service_id = self.mangadex.ID
+
+        retval = self.mangadex.scrape_service(service_id, self.mangadex.FEED_URL, None)
+
+        self.assertGreater(len(retval.manga_ids), 0, msg='Nothing updated')
+        self.assertGreater(len(retval.chapter_ids), 0, msg='Nothing updated')
+        self.assertFalse([r for r in self.caplog.records if r.levelno >= logging.WARNING], msg='Warnings found')
+
+        groups_before = self.conn.execute('SELECT COUNT(*) as count FROM groups').fetchone()
+        # Only delete chapters, leaves groups as is
+        self.delete_chapters()
+        groups_after = self.conn.execute('SELECT COUNT(*) as count FROM groups').fetchone()
+
+        self.assertEqual(groups_before, groups_after)
+
+        retval = self.mangadex.scrape_service(service_id, self.mangadex.FEED_URL, None)
+
+        self.assertGreater(len(retval.manga_ids), 0, msg='Nothing updated')
+        self.assertGreater(len(retval.chapter_ids), 0, msg='Nothing updated')
+        self.assertFalse([r for r in self.caplog.records if r.levelno >= logging.WARNING], msg='Warnings found')
+
+    @responses.activate
+    def test_existing_group(self):
+        self.delete_chapters()
+        self.delete_groups()
+        self.set_up_api()
+        service_id = self.mangadex.ID
+
+        groups = [GroupPartial(name=c) for c in {c.group for c in correct_parsed_chapters if c.group is not None}]
+        self.assertGreater(len(groups), 2)
+        groups = list(groups)[:2]
+        exist_groups = list(self.dbutil.add_new_groups(groups))
+
+        retval = self.mangadex.scrape_service(service_id, self.mangadex.FEED_URL, None)
+
+        self.assertGreater(len(retval.manga_ids), 0, msg='Nothing updated')
+        self.assertGreater(len(retval.chapter_ids), 0, msg='Nothing updated')
+        self.assertFalse([r for r in self.caplog.records if r.levelno >= logging.WARNING], msg='Warnings found')
+
+        with self.conn.cursor(row_factory=class_row(Group)) as cur:
+            cur.execute('SELECT * FROM groups WHERE group_id != %s', (NO_GROUP,))
+            all_groups: list[Group] = cur.fetchall()
+            all_groups_dict: dict[str, Group] = {g.name: g for g in all_groups}
+
+            self.assertEqual(len(all_groups), len(all_groups_dict), msg='Not all existing groups processed properly')
+
+        for group in exist_groups:
+            self.assertIsNotNone(all_groups_dict[group.name].mangadex_id)
+
+        self.assertGreater(len(all_groups), len(exist_groups))
+
+
+@patch.object(src.scrapers.mangadex.mangadex, 'logger', Mock())
+def test_special_chapter_parsing_valid_string(caplog):
+    logger = logging.getLogger('mangadex_test_chapter_valid')
+    logger.setLevel(logging.WARNING)
+    src.scrapers.mangadex.mangadex.logger = logger
+
+    chapter = MangaDexChapter('Special', '', '', utcnow(), '', '')
+    assert chapter.chapter_number == 0
+    assert chapter.decimal is None
+    assert not [r for r in caplog.records if r.levelno >= logging.WARNING]
+
+
+@patch.object(src.scrapers.mangadex.mangadex, 'logger', Mock())
+def test_special_chapter_parsing_invalid_string(caplog):
+    logger = logging.getLogger('mangadex_test_chapter_invalid')
+    logger.setLevel(logging.WARNING)
+    src.scrapers.mangadex.mangadex.logger = logger
+
+    chapter = MangaDexChapter('idk how to parse', '', '', utcnow(), '', '')
+    assert chapter.chapter_number == 0
+    assert chapter.decimal is None
+    assert [r for r in caplog.records if r.levelno == logging.WARNING]
 
 
 if __name__ == '__main__':

@@ -1,0 +1,14 @@
+ALTER TABLE manga_info
+    ALTER COLUMN last_updated TYPE TIMESTAMP WITH TIME ZONE USING last_updated AT TIME ZONE 'UTC';
+
+ALTER TABLE scheduled_runs
+    ALTER COLUMN created_at TYPE TIMESTAMP WITH TIME ZONE USING created_at AT TIME ZONE 'UTC';
+
+ALTER TABLE services
+    ALTER COLUMN scheduled_runs_disabled_until TYPE TIMESTAMP WITH TIME ZONE USING scheduled_runs_disabled_until AT TIME ZONE 'UTC';
+
+ALTER TABLE user_notifications
+    ALTER COLUMN created TYPE TIMESTAMP WITH TIME ZONE USING created AT TIME ZONE 'UTC';
+
+ALTER TABLE users
+    ALTER COLUMN joined_at TYPE TIMESTAMP WITH TIME ZONE USING joined_at AT TIME ZONE 'UTC';

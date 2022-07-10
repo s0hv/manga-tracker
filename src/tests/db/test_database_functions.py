@@ -1,8 +1,7 @@
 import unittest
-from datetime import datetime
 from typing import Type, Optional, List, Collection
 
-import psycopg2.errors
+import psycopg.errors
 import pytest
 from pydantic import BaseModel
 
@@ -13,6 +12,7 @@ from src.scrapers import MangaPlus
 from src.scrapers.base_scraper import BaseScraper
 from src.tests.scrapers.testing_scraper import DummyScraper, DummyScraper2
 from src.tests.testing_utils import BaseTestClasses
+from src.utils.utilities import utcnow
 
 
 class MergeResult(BaseModel):
@@ -53,7 +53,7 @@ class TestMergeManga(BaseTestClasses.DatabaseTestCase):
             ebj=self.get_str_id(), engtl=self.get_str_id(),
             raw=self.get_str_id(), nu=self.get_str_id(),
             kt=self.get_str_id(), ap=self.get_str_id(),
-            al=self.get_str_id(), last_updated=datetime.utcnow()  # I don't understand but tzinfo is not required here
+            al=self.get_str_id(), last_updated=utcnow()
         )
 
         sql = 'INSERT INTO manga_info (manga_id, cover, status, bw, mu, mal, amz, ebj, engtl, raw, nu, kt, ap, al, last_updated) ' \
@@ -104,20 +104,20 @@ class TestMergeManga(BaseTestClasses.DatabaseTestCase):
         self.assertCountEqual(actual, expected)
 
     def test_crashes_without_parameters(self):
-        with pytest.raises(psycopg2.errors.UndefinedFunction):
+        with pytest.raises(psycopg.errors.UndefinedFunction):
             self.dbutil.execute('SELECT * FROM merge_manga()')
 
     def test_crashes_with_invalid_parameters(self):
-        with pytest.raises(psycopg2.errors.InvalidTextRepresentation):
+        with pytest.raises(psycopg.errors.InvalidTextRepresentation):
             self.dbutil.execute('SELECT * FROM merge_manga(%s, %s)', ('a', None))
 
-        with pytest.raises(psycopg2.errors.RaiseException):
+        with pytest.raises(psycopg.errors.RaiseException):
             self.dbutil.execute('SELECT * FROM merge_manga(%s, %s)', (None, None))
 
-        with pytest.raises(psycopg2.errors.RaiseException):
+        with pytest.raises(psycopg.errors.RaiseException):
             self.dbutil.execute('SELECT * FROM merge_manga(%s, %s)', (1, None))
 
-        with pytest.raises(psycopg2.errors.RaiseException):
+        with pytest.raises(psycopg.errors.RaiseException):
             self.dbutil.execute('SELECT * FROM merge_manga(%s, %s)', (None, 1))
 
     def test_merges_manga_successfully(self):

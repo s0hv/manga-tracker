@@ -1,6 +1,6 @@
 
 import unittest
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List
 
 import responses
@@ -24,7 +24,7 @@ class TestDiscordWebhook(unittest.TestCase):
 
         return NotificationChapter(
             manga=manga, title='title', chapter_number='10.1',
-            release_date=datetime.fromisoformat('2022-03-21T19:34:42.042674'), url='test', group='group name'
+            release_date=datetime.fromisoformat('2022-03-21T19:34:42.042674').replace(tzinfo=timezone.utc), url='test', group='group name'
         )
 
     @staticmethod
@@ -90,9 +90,8 @@ class TestDiscordWebhook(unittest.TestCase):
             'title': 'manga',
             'description': 'title - 10.1',
             'url': 'test',
-            'timestamp': '2022-03-21T19:34:42.042674',
+            'timestamp': '2022-03-21T19:34:42.042674+00:00',
             'color': 155,
-            'hex_color': '33ccff',
             'footer': {
                 'text': 'group name',
                 'icon_url': None,

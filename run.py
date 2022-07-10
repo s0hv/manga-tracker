@@ -1,10 +1,10 @@
 import os
-from datetime import datetime, timezone
 
 import sentry_sdk
 
 import setup_logging
 from src.scheduler import UpdateScheduler
+from src.utils.utilities import utcnow
 
 logger = setup_logging.setup()
 
@@ -17,8 +17,11 @@ else:
     logger.info('Skipping sentry initialization')
 
 scheduler = UpdateScheduler()
-logger.debug("Next update in %s", scheduler.run_once()-datetime.utcnow().replace(tzinfo=timezone.utc).astimezone(tz=timezone.utc))
+try:
+    logger.debug("Next update in %s", scheduler.run_once()-utcnow())
+except:
+    logger.exception('Failed to run once')
 
 scheduler.es.close()
-scheduler.pool.closeall()
+scheduler.pool.close()
 sentry_sdk.flush()

@@ -1,8 +1,10 @@
 from datetime import timedelta, datetime
 from typing import Optional, Type, TYPE_CHECKING
 
-from psycopg2.extensions import connection as Connection
+from psycopg import Connection
 from pydantic import BaseModel, Field
+
+from src.utils.utilities import utcnow
 
 if TYPE_CHECKING:
     from src.scrapers.base_scraper import BaseScraper
@@ -44,7 +46,7 @@ class MangaInfo(BaseModel):
     kt: Optional[str] = None
     ap: Optional[str] = None
     al: Optional[str] = None
-    last_updated: datetime = Field(default_factory=datetime.utcnow)
+    last_updated: datetime = Field(default_factory=utcnow)
 
 
 class MangaServicePartial(BaseModel):
@@ -52,7 +54,7 @@ class MangaServicePartial(BaseModel):
     service_id: int
     disabled: bool = False
     title_id: str
-    last_check: Optional[datetime] = Field(default_factory=datetime.utcnow)
+    last_check: Optional[datetime] = Field(default_factory=utcnow)
     next_update: Optional[datetime] = None
     feed_url: Optional[str] = None
     latest_decimal: Optional[int] = None

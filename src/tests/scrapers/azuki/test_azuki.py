@@ -1,6 +1,6 @@
 import os
 import re
-from datetime import datetime
+from datetime import datetime, timezone
 from unittest.mock import patch, Mock
 
 import pytest
@@ -10,6 +10,7 @@ import src.scrapers.azuki
 from src.constants import NO_GROUP
 from src.scrapers.azuki import Azuki, ParsedChapter
 from src.tests.testing_utils import ChapterTestModel, BaseTestClasses
+from src.utils.utilities import utctoday
 
 
 class TempChapter(ParsedChapter):
@@ -23,7 +24,7 @@ correct_chapters = [
         chapter_number=76,
         volume=None,
         decimal=None,
-        release_date=datetime.fromisoformat('2022-06-06T00:00:00.000'),
+        release_date=datetime.fromisoformat('2022-06-06T00:00:00.000').replace(tzinfo=timezone.utc),
         chapter_identifier='ba35fe70-bb3d-4540-b1d2-2dd5d256f246',
         title_id='grand-blue-dreaming',
         group='Azuki',
@@ -36,7 +37,7 @@ correct_chapters = [
         chapter_number=75,
         volume=None,
         decimal=None,
-        release_date=datetime.fromisoformat('2022-02-06T00:00:00.000'),
+        release_date=datetime.fromisoformat('2022-02-06T00:00:00.000').replace(tzinfo=timezone.utc),
         chapter_identifier='d918e3ec-2659-4f17-8372-b01ce480a822',
         title_id='grand-blue-dreaming',
         group='Azuki',
@@ -49,7 +50,7 @@ correct_chapters = [
         chapter_number=74,
         volume=None,
         decimal=5,
-        release_date=datetime.fromisoformat('2022-01-06T00:00:00.000'),
+        release_date=datetime.fromisoformat('2022-01-06T00:00:00.000').replace(tzinfo=timezone.utc),
         chapter_identifier='82cdddf2-85c5-4d09-b5ff-0bc6633402e0',
         title_id='grand-blue-dreaming',
         group='Azuki',
@@ -62,7 +63,7 @@ correct_chapters = [
         chapter_number=58,
         volume=None,
         decimal=None,
-        release_date=datetime.today(),
+        release_date=utctoday(),
         chapter_identifier='f6c8065d-3a4f-4f3c-85cf-9202f552dae5',
         title_id='grand-blue-dreaming',
         group='Azuki',
@@ -73,7 +74,7 @@ correct_chapters = [
 
 
 def get_date(s: str):
-    return datetime.strptime(s, '%b %d, %Y')
+    return datetime.strptime(s, '%b %d, %Y').replace(tzinfo=timezone.utc)
 
 
 correct_chapters_releases = [
@@ -151,9 +152,9 @@ class AzukiTest(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAssertion
             self.assertChaptersEqual(parsed, correct)
 
     @responses.activate
-    @patch.object(src.scrapers.azuki, 'datetime', Mock(wraps=datetime))
+    @patch.object(src.scrapers.azuki, 'utctoday', Mock())
     def test_parse_releases_page(self):
-        src.scrapers.azuki.datetime.today.return_value = get_date('Jun 1, 2022')
+        src.scrapers.azuki.utctoday.return_value = get_date('Jun 1, 2022').replace(tzinfo=timezone.utc)
 
         with open(releases_page_path, 'r', encoding='utf-8') as f:
             data = f.read()

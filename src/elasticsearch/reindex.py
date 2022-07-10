@@ -1,6 +1,6 @@
 from elasticsearch import Elasticsearch
 from elasticsearch.helpers import bulk
-from psycopg2.extensions import cursor as Cursor
+from psycopg import Cursor
 
 from src.elasticsearch.configuration import INDEX_NAME, INDEX_BODY
 from src.elasticsearch.methods import ElasticMethods
@@ -54,4 +54,4 @@ if __name__ == '__main__':
             reindex(es, cur)
 
     es.close()
-    scheduler.pool.closeall()
+    scheduler.pool.close()
