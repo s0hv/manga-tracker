@@ -124,7 +124,11 @@ class MangadexTests(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsser
         super().delete_chapters(service_id)
 
     def delete_groups(self):
-        self.conn.execute('DELETE FROM groups WHERE group_id != %s', (NO_GROUP,))
+        self.conn.execute('''
+            DELETE FROM groups
+            USING chapters
+            WHERE chapters.group_id=groups.group_id AND chapters.service_id=%s
+        ''', (MangaDex.ID,))
 
     def set_up_api(self):
         responses.add(responses.GET, f'{self.API_URL}/chapter',
@@ -270,7 +274,7 @@ class MangadexTests(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsser
         self.assertFalse([r for r in self.caplog.records if r.levelno >= logging.WARNING], msg='Warnings found')
 
         with self.conn.cursor(row_factory=class_row(Group)) as cur:
-            cur.execute('SELECT * FROM groups WHERE group_id != %s', (NO_GROUP,))
+            cur.execute('SELECT g.* FROM groups g INNER JOIN chapters c ON g.group_id = c.group_id WHERE g.group_id != %s AND c.service_id=%s GROUP BY g.group_id', (NO_GROUP, MangaDex.ID))
             all_groups: list[Group] = cur.fetchall()
             all_groups_dict: dict[str, Group] = {g.name: g for g in all_groups}
 
