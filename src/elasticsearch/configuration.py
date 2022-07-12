@@ -46,7 +46,8 @@ INDEX_BODY = {
                 }
             },
             "views": {
-                "type": "integer"
+                "type": "integer",
+                "null_value": 0
             },
             "aliases": {
                 "properties": {
