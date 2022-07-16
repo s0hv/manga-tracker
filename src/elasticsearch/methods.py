@@ -35,7 +35,8 @@ class ElasticMethods:
                 '_index': INDEX_NAME,
                 '_op_type': operation,
                 '_id': doc.pop('_id'),
-                'doc': doc
+                # bulk update needs to be wrapped inside doc for some reason
+                '_source': doc if operation != 'update' else {'doc': doc}
             } for doc in documents),
             index=INDEX_NAME))
 
