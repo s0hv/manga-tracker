@@ -18,7 +18,7 @@ import PropTypes from 'prop-types';
 import { Select } from 'mui-rff';
 import Link from 'next/link';
 import { useSnackbar } from 'notistack';
-import React, { useCallback, useMemo, useState, } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import MangaAliases from '../../components/MangaAliases';
 import MangaInfo from '../../components/EditableMangaInfo';
 
