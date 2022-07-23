@@ -70,7 +70,7 @@ describe('EditableMangaInfo should render correctly', () => {
     ).toBeInTheDocument();
 
     expect(screen.getByRole('row', { name: /latest chapter: \d+/i })).toBeInTheDocument();
-    expect(screen.getByRole('row', { name: /publication status: \w+/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /publication status \w+/i })).toBeInTheDocument();
   });
 
   it('Should render correctly with null data', () => {
@@ -89,7 +89,7 @@ describe('EditableMangaInfo should render correctly', () => {
     ).toBeInTheDocument();
 
     expect(screen.getByRole('row', { name: /latest chapter: unknown/i })).toBeInTheDocument();
-    expect(screen.getByRole('row', { name: /publication status: \w+/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /publication status \w+/i })).toBeInTheDocument();
   });
 
   it('Should throw TypeError when mangaData not given', () => {
