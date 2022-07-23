@@ -16,6 +16,7 @@ import {
   defaultDateDistanceFormat,
   defaultDateFormatRegex,
 } from '../constants';
+import { statusToString } from '../../src/utils/utilities';
 
 const Root: FunctionComponent = ({ children }) => (
   <SnackbarProvider>
@@ -115,14 +116,14 @@ describe('EditableMangaInfo should allow editing', () => {
     expectSuccessSnackbar();
   });
 
-  it('Shows success snackbar when edit is successful', async () => {
+  it('Shows success snackbar when edit is successful with new value', async () => {
     fetchMock.post(`/api/admin/manga/${mangaId}/info`, 200);
 
     render(<Root><EditableMangaInfo mangaData={mangaData} /></Root>);
 
     const user = userEvent.setup();
 
-    await muiSelectValue(user, screen, 'Publication status', mangaData.status + 1);
+    await muiSelectValue(user, screen, /^publication status$/i, statusToString(mangaData.status + 1));
 
     await act(async () => {
       await user.click(screen.getByText('Save changes'));
@@ -131,7 +132,7 @@ describe('EditableMangaInfo should allow editing', () => {
     expectSuccessSnackbar();
 
     const response = JSON.parse(fetchMock.lastCall(`/api/admin/manga/${mangaId}/info`)[1].body.toString());
-    expect(response).toBe({ status: mangaData.status + 1 });
+    expect(response).toEqual({ status: mangaData.status + 1 });
   });
 
   it('Shows error snackbar when edit is not successful', async () => {

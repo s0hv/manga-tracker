@@ -110,13 +110,12 @@ const EditableMangaInfo: FunctionComponent<MangaInfoProps> = ({ mangaData }) => 
             </tr>
             <tr>
               <th scope='row'>
-                <label htmlFor='status'>
-                  <Typography>Publication status:</Typography>
-                </label>
-                </th>
+                <Typography><label id='status-label'>Publication status</label>:</Typography>
+              </th>
               <td>
                 <Select
                   name='status'
+                  labelId='status-label'
                   variant='standard'
                   fieldProps={{
                     initialValue: mangaData.status,
