@@ -34,8 +34,10 @@ export default async (phase, { defaultConfig }) => {
       // ESLint not in production dependencies
       ignoreDuringBuilds: true,
     },
-    experimental: {
+    compiler: {
       emotion: true,
+    },
+    experimental: {
       modularizeImports: {
         '@mui/material': {
           transform: '@mui/material/{{member}}',
