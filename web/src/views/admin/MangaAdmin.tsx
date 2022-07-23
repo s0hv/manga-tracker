@@ -18,9 +18,9 @@ import PropTypes from 'prop-types';
 import { Select } from 'mui-rff';
 import Link from 'next/link';
 import { useSnackbar } from 'notistack';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState, } from 'react';
 import MangaAliases from '../../components/MangaAliases';
-import MangaInfo from '../../components/MangaInfo';
+import MangaInfo from '../../components/EditableMangaInfo';
 
 
 import {
@@ -31,11 +31,13 @@ import {
 import { useCSRF } from '../../utils/csrf';
 import { getManga } from '../../api/manga';
 import {
-  getScheduledRuns,
   createScheduledRun,
   deleteScheduledRun,
+  getScheduledRuns,
 } from '../../api/admin/manga';
 import { MangaCover } from '../../components/MangaCover';
+import { FullMangaData } from '../../../types/api/manga';
+import { ServiceConfig } from '../../../types/api/services';
 
 const formStyles = {
   minWidth: '150px',
@@ -65,7 +67,12 @@ const DetailsContainer = styled('div')(({ theme }) => ({
   },
 }));
 
-function MangaAdmin(props) {
+export type MangaAdminProps = {
+  mangaData: FullMangaData,
+  serviceConfigs: ServiceConfig[]
+}
+
+function MangaAdmin(props: MangaAdminProps) {
   const {
     mangaData: {
       manga,

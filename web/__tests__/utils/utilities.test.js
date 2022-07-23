@@ -67,7 +67,7 @@ describe('groupBy', () => {
     let idx = 0;
     grouped.forEach((group) => {
       const [groupKey, count] = groupCounts[idx];
-      expect([...group]).toEqual(groupedData.slice(start, start + count));
+      expect([...group.arr]).toEqual(groupedData.slice(start, start + count));
       expect(group).toHaveProperty('group', groupKey);
 
       start += count;

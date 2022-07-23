@@ -1,19 +1,16 @@
 import { Typography } from '@mui/material';
 import { styled } from '@mui/material/styles';
-import React from 'react';
-import PropTypes from 'prop-types';
+import React, { FunctionComponent } from 'react';
 
 import {
   defaultDateDistanceToNow,
   defaultDateFormat,
   statusToString,
 } from '../utils/utilities';
+import { MangaStatus, PostgresInterval } from '../../types/dbTypes';
 
 const DetailText = styled(Typography)(({ theme }) => ({
-  marginLeft: '5px',
-  [theme.breakpoints.down('md')]: {
-    marginLeft: '3px',
-  },
+  marginLeft: theme.spacing(0.5),
 }));
 
 const InfoTable = styled('table')(({ theme }) => ({
@@ -32,8 +29,20 @@ const InfoTable = styled('table')(({ theme }) => ({
   },
 }));
 
+export type MangaInfoProps = {
+  mangaData: {
+    mangaId: number,
+    latestRelease?: string
+    estimatedRelease?: string
+    releaseInterval?: PostgresInterval
+    latestChapter?: number
+    status: MangaStatus
+  },
+  showId?: boolean,
+}
 
-const MangaInfo = ({ mangaData, showId = false }) => {
+
+const MangaInfo: FunctionComponent<MangaInfoProps> = ({ mangaData, showId = false }) => {
   const latestRelease = mangaData.latestRelease ?
     new Date(mangaData.latestRelease) :
     null;
@@ -95,17 +104,6 @@ const MangaInfo = ({ mangaData, showId = false }) => {
       </tbody>
     </InfoTable>
   );
-};
-
-MangaInfo.propTypes = {
-  mangaData: PropTypes.shape({
-    latestRelease: PropTypes.string,
-    estimatedRelease: PropTypes.string,
-    releaseInterval: PropTypes.object,
-    latestChapter: PropTypes.number,
-    status: PropTypes.number,
-  }).isRequired,
-  showId: PropTypes.bool,
 };
 
 export default MangaInfo;

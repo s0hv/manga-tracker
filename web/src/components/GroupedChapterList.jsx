@@ -80,13 +80,13 @@ export const GroupedChapterList = ({
     <Container maxWidth='lg' disableGutters>
       {groupedChapters.map((group, idx) => (
         <GroupComponent
-          groupString={groupToString(group.group, group)}
+          groupString={groupToString(group.group, group.arr)}
           group={group.group}
           /* eslint-disable-next-line react/no-array-index-key */
           key={`${idx}`}
         >
           <ol style={{ listStyleType: 'none' }}>
-            {group.map((chapter) => (
+            {group.arr.map((chapter) => (
               <ChapterComponent key={chapter.chapterId} chapter={chapter} />
             ))}
           </ol>

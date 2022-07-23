@@ -4,7 +4,6 @@ import {
   scheduleMangaRun,
 } from '../../../db/admin/management';
 import { getMangaPartial, getAliases } from '../../../db/manga';
-import { csrfMissing } from '../../../utils/constants';
 
 import { userForbidden, userUnauthorized } from '../../constants';
 import initServer from '../../initServer';
@@ -16,11 +15,16 @@ import {
   expectErrorMessage,
 } from '../../utils';
 import { createMangaService } from '../../dbutils';
+import { apiRequiresAdminUserTests } from '../utilities';
 
 let httpServer;
+const serverReference = {
+  httpServer,
+};
 
 beforeAll(async () => {
   ({ httpServer } = await initServer());
+  serverReference.httpServer = httpServer;
 });
 
 afterAll(async () => stopServer(httpServer));
@@ -30,30 +34,7 @@ describe('POST /api/admin/manga/:mangaId/scheduledRun/:serviceId', () => {
   const mangaId = 1;
   const url = `/api/admin/manga/${mangaId}/scheduledRun/${serviceId}`;
 
-  it('Returns 403 without CSRF token', async () => {
-    await request(httpServer)
-      .post(url)
-      .expect(403)
-      .expect(expectErrorMessage(csrfMissing));
-  });
-
-  it('returns unauthorized without user', async () => {
-    await request(httpServer)
-      .post(url)
-      .csrf()
-      .expect(401)
-      .expect(expectErrorMessage(userUnauthorized));
-  });
-
-  it('returns forbidden for non admin', async () => {
-    await withUser(normalUser, async () => {
-      await request(httpServer)
-        .post(url)
-        .csrf()
-        .expect(403)
-        .expect(expectErrorMessage(userForbidden));
-    });
-  });
+  apiRequiresAdminUserTests(serverReference, url);
 
   it('Returns 404 with invalid params', async () => {
     await withUser(adminUser, async () => {
@@ -118,30 +99,7 @@ describe('DELETE /api/admin/manga/:mangaId/scheduledRun/:serviceId', () => {
   const mangaId = 1;
   const url = `/api/admin/manga/${mangaId}/scheduledRun/${serviceId}`;
 
-  it('Returns 403 without CSRF token', async () => {
-    await request(httpServer)
-      .delete(url)
-      .expect(403)
-      .expect(expectErrorMessage(csrfMissing));
-  });
-
-  it('returns unauthorized without user', async () => {
-    await request(httpServer)
-      .delete(url)
-      .csrf()
-      .expect(401)
-      .expect(expectErrorMessage(userUnauthorized));
-  });
-
-  it('returns forbidden for non admin', async () => {
-    await withUser(normalUser, async () => {
-      await request(httpServer)
-        .delete(url)
-        .csrf()
-        .expect(403)
-        .expect(expectErrorMessage(userForbidden));
-    });
-  });
+  apiRequiresAdminUserTests(serverReference, url);
 
   it('Returns 404 with invalid params', async () => {
     await withUser(adminUser, async () => {
@@ -254,30 +212,7 @@ describe('POST /api/admin/manga/:mangaId/title', () => {
   const mangaId = 1;
   const url = `/api/admin/manga/${mangaId}/title`;
 
-  it('Returns 403 without CSRF token', async () => {
-    await request(httpServer)
-      .post(url)
-      .expect(403)
-      .expect(expectErrorMessage(csrfMissing));
-  });
-
-  it('returns unauthorized without user', async () => {
-    await request(httpServer)
-      .post(url)
-      .csrf()
-      .expect(401)
-      .expect(expectErrorMessage(userUnauthorized));
-  });
-
-  it('returns forbidden for non admin', async () => {
-    await withUser(normalUser, async () => {
-      await request(httpServer)
-        .post(url)
-        .csrf()
-        .expect(403)
-        .expect(expectErrorMessage(userForbidden));
-    });
-  });
+  apiRequiresAdminUserTests(serverReference, url);
 
   it('returns bad request when body missing', async () => {
     await withUser(adminUser, async () => {
@@ -341,5 +276,78 @@ describe('POST /api/admin/manga/:mangaId/title', () => {
 
     expect((await getMangaPartial(mangaId)).title).toStrictEqual(newTitle);
     expect((await getAliases(mangaId)).map(a => a.title)).not.toContain(oldTitle);
+  });
+});
+
+describe('POST /api/admin/manga/:mangaId/info', () => {
+  const mangaId = 1;
+  const url = `/api/admin/manga/${mangaId}/info`;
+
+  apiRequiresAdminUserTests(serverReference, url);
+
+  it('returns bad request when body missing', async () => {
+    await withUser(adminUser, async () => {
+      await request(httpServer)
+        .post(url)
+        .csrf()
+        .expect(400)
+        .expect(expectErrorMessage(undefined, 'status'));
+
+      await request(httpServer)
+        .post(url)
+        .csrf()
+        .send({ status: null })
+        .expect(400)
+        .expect(expectErrorMessage(null, 'status'));
+    });
+  });
+
+  it('returns bad request when status empty', async () => {
+    await withUser(adminUser, async () => {
+      await request(httpServer)
+        .post(url)
+        .csrf()
+        .send({ status: '' })
+        .expect(400)
+        .expect(expectErrorMessage('', 'status'));
+    });
+  });
+
+  it('returns bad request when status invalid', async () => {
+    await withUser(adminUser, async () => {
+      await request(httpServer)
+        .post(url)
+        .csrf()
+        .send({ status: -1 })
+        .expect(400)
+        .expect(expectErrorMessage(-1, 'status'));
+
+      await request(httpServer)
+        .post(url)
+        .csrf()
+        .send({ status: 4 })
+        .expect(400)
+        .expect(expectErrorMessage(4, 'status'));
+    });
+  });
+
+  it('returns 404 when manga not found', async () => {
+    await withUser(adminUser, async () => {
+      await request(httpServer)
+        .post(`/api/admin/manga/${999999}/info`)
+        .csrf()
+        .send({ status: 1 })
+        .expect(404);
+    });
+  });
+
+  it('returns 200 when manga found', async () => {
+    await withUser(adminUser, async () => {
+      await request(httpServer)
+        .post(url)
+        .csrf()
+        .send({ status: 1 })
+        .expect(200);
+    });
   });
 });

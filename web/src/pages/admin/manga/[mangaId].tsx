@@ -7,6 +7,7 @@ import { jsonSerializable } from '../../../utils/utilities';
 
 import { getFullManga } from '../../../../db/manga';
 import { getServiceConfigs } from '../../../../db/services';
+import { GetServerSidePropsExpress } from '../../../../types/nextjs';
 
 function MangaPage(props) {
   const {
@@ -28,7 +29,7 @@ function MangaPage(props) {
   );
 }
 
-export async function getServerSideProps({ req, params }) {
+export const getServerSideProps: GetServerSidePropsExpress = async ({ req, params }) => {
   if (!(req.user && req.user.admin)) {
     return { props: { error: 404 }};
   }
@@ -55,5 +56,5 @@ export async function getServerSideProps({ req, params }) {
       serviceConfigs,
     },
   };
-}
+};
 export default withError(MangaPage);

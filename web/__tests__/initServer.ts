@@ -1,10 +1,14 @@
+import { Server } from 'http';
+import { AddressInfo } from 'net';
+
+/* eslint-disable @typescript-eslint/no-var-requires */
 jest.mock('./../db/auth', () => ({
   __esModule: true,
   ...jest.requireActual('./../db/auth'),
   requiresUser: jest.fn().mockImplementation(jest.requireActual('./../db/auth').requiresUser),
 }));
 
-export default async function initServer() {
+export default async function initServer(): Promise<{ httpServer: Server, addr: string }> {
   jest.mock('./../db/elasticsearch', () => {
     const { Client } = require('@elastic/elasticsearch');
     const Mock = require('@elastic/elasticsearch-mock');
@@ -38,12 +42,11 @@ export default async function initServer() {
     });
   });
 
-  const serverPromise = require('../server').default;
   process.env.PORT = '0';
-  const httpServer = await serverPromise;
+  const httpServer = await import('../server').then(m => m.default) as Server;
   expect(httpServer).toBeDefined();
 
-  const addr = `http://localhost:${httpServer.address().port}`;
+  const addr = `http://localhost:${(httpServer.address() as AddressInfo).port}`;
   console.log(`Testing address ${addr}`);
 
   return {
