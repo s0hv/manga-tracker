@@ -19,3 +19,10 @@ declare module 'express-serve-static-core' {
   }
 }
 
+declare module 'supertest' {
+  interface Test extends superagent.SuperAgentRequest {
+    csrf(): Test
+    satisfiesApiSpec(): Test
+  }
+}
+

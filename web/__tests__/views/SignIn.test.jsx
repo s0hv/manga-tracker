@@ -61,7 +61,7 @@ describe('Sign in page functionality', () => {
     });
 
     expectErrorSnackbar();
-    expect(getSnackbarMessage()).toMatchInlineSnapshot(`"Server returned status undefined Bad Request"`);
+    expect(getSnackbarMessage()).toMatchInlineSnapshot(`"Server returned status 400 Bad Request"`);
     expect(fetchMock.calls('/api/login')).toHaveLength(1);
     expect(replaceMock).toHaveBeenCalledTimes(0);
   });

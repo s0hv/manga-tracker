@@ -1,4 +1,5 @@
 import { db } from '..';
+import { MangaInfoUpdate } from '../../types/dbTypes';
 
 export const updateMangaTitle = (mangaId, newTitle) => {
   const sql = `UPDATE manga
@@ -13,4 +14,9 @@ export const updateMangaTitle = (mangaId, newTitle) => {
 
   return db.one(sql, [newTitle, mangaId])
     .then(row => db.oneOrNone(aliasSql, [row.title, mangaId, newTitle]));
+};
+
+export const updateMangaInfo = (mangaInfo: MangaInfoUpdate) => {
+  const sql = 'UPDATE manga_info SET status=$1 WHERE manga_id=$2';
+  return db.result(sql, [mangaInfo.status, mangaInfo.mangaId]);
 };

@@ -1,11 +1,12 @@
 export class APIException extends Error {}
 
 export class HTTPException extends Error {
+  private response: Response;
   /**
    * @param {string} msg
    * @param {Response} res
    */
-  constructor(msg, res) {
+  constructor(msg: string, res: Response) {
     super(msg);
     this.response = res;
   }
@@ -17,14 +18,14 @@ export class HTTPException extends Error {
  * @return {Promise<any>}
  * @throws {APIException} Thrown when errors found
  */
-export const getResponseData = async (json) => {
+export const getResponseData = async <T = any>(json): Promise<T> => {
   let error = json.error;
   if (!error) {
     return json.data || json;
   }
 
   if (error instanceof String) {
-    throw new APIException(error);
+    throw new APIException(error as string);
   }
 
   if (error instanceof Array) {
@@ -41,12 +42,12 @@ export const getResponseData = async (json) => {
  * @throws {APIException} exception thrown if non-ok status code
  *
  */
-export const handleResponse = async (res) => {
+export const handleResponse = async <T = any>(res: Response): Promise<T> => {
   const contentType = res.headers.get('content-type');
   const isJson = /application\/json/i.test(contentType);
 
   if (!res.ok && !isJson) {
-    throw new HTTPException(`Server returned status ${res.statusCode} ${res.statusText}`, res);
+    throw new HTTPException(`Server returned status ${res.status} ${res.statusText}`, res);
   }
 
   if (res.ok && !isJson) {
@@ -54,7 +55,7 @@ export const handleResponse = async (res) => {
   }
 
   return res.json()
-    .then(getResponseData);
+    .then(getResponseData<T>);
 };
 
 export const handleError = async (err) => {
