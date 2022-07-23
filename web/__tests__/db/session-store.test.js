@@ -3,6 +3,12 @@ import { db, pgp } from '../../db';
 import { spyOnDb } from '../dbutils';
 
 
+jest.mock('../../utils/view-counter/manga-view-counter', () => ({
+  __esModule: true,
+  ...jest.requireActual('../../utils/view-counter/manga-view-counter'),
+}));
+
+
 afterAll(async () => {
   await pgp.end();
 });

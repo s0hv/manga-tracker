@@ -13,7 +13,7 @@ require('dotenv').config({ path: '../.env' });
 
 // Don't want API calls to 3rd party services during tests
 jest.mock('./db/mangadex', () => ({
-  ...jest.requireActual('./db/manga'),
+  ...jest.requireActual('./db/mangadex'),
   fetchExtraInfo: jest.fn().mockImplementation(async () => {}),
 }));
 
