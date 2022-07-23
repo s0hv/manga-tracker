@@ -8,4 +8,4 @@ export { default as settingsApi } from './settings.js';
 export { default as userApi } from './user.js';
 
 export { default as adminServicesApi } from './admin/services.js';
-export { default as adminMangaApi } from './admin/manga.js';
+export { default as adminMangaApi } from './admin/manga';
