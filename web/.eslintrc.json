@@ -82,7 +82,8 @@
         "no-promise-executor-return": "off",
         "import/extensions": "off",
         "arrow-body-style": "off",
-        "lines-between-class-members": "off"
+        "lines-between-class-members": "off",
+        "jsx-a11y/label-has-associated-control": "off"
     },
     "env": {
         "browser": true,
