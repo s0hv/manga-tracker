@@ -15,7 +15,11 @@ import {
   expectErrorMessage,
 } from '../../utils';
 import { createMangaService } from '../../dbutils';
-import { apiRequiresAdminUserTests } from '../utilities';
+import {
+  apiRequiresAdminUserPostTests,
+  apiRequiresAdminUserGetTests,
+} from '../utilities';
+import { getMangaServices } from '../../../db/admin/manga';
 
 let httpServer;
 const serverReference = {
@@ -34,7 +38,7 @@ describe('POST /api/admin/manga/:mangaId/scheduledRun/:serviceId', () => {
   const mangaId = 1;
   const url = `/api/admin/manga/${mangaId}/scheduledRun/${serviceId}`;
 
-  apiRequiresAdminUserTests(serverReference, url);
+  apiRequiresAdminUserPostTests(serverReference, url);
 
   it('Returns 404 with invalid params', async () => {
     await withUser(adminUser, async () => {
@@ -99,7 +103,7 @@ describe('DELETE /api/admin/manga/:mangaId/scheduledRun/:serviceId', () => {
   const mangaId = 1;
   const url = `/api/admin/manga/${mangaId}/scheduledRun/${serviceId}`;
 
-  apiRequiresAdminUserTests(serverReference, url);
+  apiRequiresAdminUserPostTests(serverReference, url);
 
   it('Returns 404 with invalid params', async () => {
     await withUser(adminUser, async () => {
@@ -212,7 +216,7 @@ describe('POST /api/admin/manga/:mangaId/title', () => {
   const mangaId = 1;
   const url = `/api/admin/manga/${mangaId}/title`;
 
-  apiRequiresAdminUserTests(serverReference, url);
+  apiRequiresAdminUserPostTests(serverReference, url);
 
   it('returns bad request when body missing', async () => {
     await withUser(adminUser, async () => {
@@ -283,7 +287,7 @@ describe('POST /api/admin/manga/:mangaId/info', () => {
   const mangaId = 1;
   const url = `/api/admin/manga/${mangaId}/info`;
 
-  apiRequiresAdminUserTests(serverReference, url);
+  apiRequiresAdminUserPostTests(serverReference, url);
 
   it('returns bad request when body missing', async () => {
     await withUser(adminUser, async () => {
@@ -349,5 +353,167 @@ describe('POST /api/admin/manga/:mangaId/info', () => {
         .send({ status: 1 })
         .expect(200);
     });
+  });
+});
+
+describe('GET /api/admin/manga/:mangaId/services', () => {
+  const mangaId = 1;
+  const url = `/api/admin/manga/${mangaId}/services`;
+
+  apiRequiresAdminUserGetTests(serverReference, url);
+
+  it('Returns 404 with invalid params', async () => {
+    await withUser(adminUser, async () => {
+      await request(httpServer)
+        .get('/api/admin/manga/aaa/services')
+        .expect(404);
+
+      await request(httpServer)
+        .get('/api/admin/manga/1e/services')
+        .expect(404);
+    });
+  });
+
+  it('returns ok with valid params', async () => {
+    await withUser(adminUser, async () => {
+      await request(httpServer)
+        .get(url)
+        .expect(200)
+        .expect('content-type', /application\/json/)
+        .expect(res => {
+          expect(res.body).toBeArray();
+
+          const data = res.body[0];
+          expect(data).toBeObject();
+          expect(data.mangaId).toStrictEqual(mangaId);
+        });
+    });
+  });
+});
+
+describe('POST /api/admin/manga/:mangaId/services/:serviceId', () => {
+  const serviceId = 1;
+  const getUrl = (mangaId) => `/api/admin/manga/${mangaId}/services/${serviceId}`;
+  const url = getUrl(1);
+
+  const getMangaService = (mangaId) => getMangaServices(mangaId)
+    .then(ms => ms.filter(m => m.serviceId === serviceId)[0]);
+
+
+  apiRequiresAdminUserPostTests(serverReference, url);
+
+  it('Returns 404 with invalid params', async () => {
+    await withUser(adminUser, async () => {
+      await request(httpServer)
+        .post('/api/admin/manga/aaa/services/aaa')
+        .csrf()
+        .expect(404);
+
+      await request(httpServer)
+        .post('/api/admin/manga/1e/services/1e')
+        .csrf()
+        .expect(404);
+
+      await request(httpServer)
+        .post('/api/admin/manga/1/services/1e')
+        .csrf()
+        .expect(404);
+
+      await request(httpServer)
+        .post('/api/admin/manga/1/services/aaa')
+        .csrf()
+        .expect(404);
+    });
+  });
+
+  it('Returns 400 with invalid body', async () => {
+    await withUser(adminUser, async () => {
+      const values = [
+        [],
+        null,
+        'aaa',
+        { mangaService: null },
+        { mangaService: []},
+        { mangaService: 'a' },
+      ];
+
+      await Promise.all(values.map(v => request(httpServer)
+        .post(url)
+        .send(v)
+        .csrf()
+        .expect(expectErrorMessage(v?.mangaService))));
+    });
+  });
+
+  it('Returns 400 with empty body', async () => {
+    await withUser(adminUser, async () => {
+      await request(httpServer)
+        .post(url)
+        .send({ mangaService: {}})
+        .csrf()
+        .expect(expectErrorMessage('No valid columns given to update', 'mangaService'));
+    });
+  });
+
+  it('Returns 400 with invalid keys', async () => {
+    await withUser(adminUser, async () => {
+      await request(httpServer)
+        .post(url)
+        .send({ mangaService: {
+          mangaId: 1,
+          serviceId: 1,
+          lastCheck: new Date(),
+          titleId: 'aaa',
+          latestChapter: 1,
+          latestDecimal: 1,
+          feedUrl: 'aaa',
+        }})
+        .csrf()
+        .expect(expectErrorMessage('No valid columns given to update', 'mangaService'));
+    });
+  });
+
+  it('Returns 404 with non existent manga', async () => {
+    await withUser(adminUser, async () => {
+      await request(httpServer)
+        .post(getUrl(1212121212))
+        .send({ mangaService: { disabled: true }})
+        .csrf()
+        .expect(404);
+    });
+  });
+
+  it('Returns 200 with valid data', async () => {
+    const mangaId = await createMangaService(serviceId);
+    const mangaService = await getMangaService(mangaId);
+
+    const nextUpdate = new Date(Date.now());
+    const updateData = {
+      disabled: !mangaService.disabled,
+      nextUpdate,
+    };
+
+    await withUser(adminUser, async () => {
+      await request(httpServer)
+        .post(getUrl(mangaId))
+        .send({ mangaService: {
+          mangaId: 1,
+          serviceId: 1,
+          lastCheck: new Date(),
+          titleId: 'aaa',
+          latestChapter: 1,
+          latestDecimal: 1,
+          feedUrl: 'aaa',
+          ...updateData,
+        }})
+        .csrf()
+        .expect(200);
+    });
+
+    const mangaServiceNew = await getMangaService(mangaId);
+    expect({
+      ...mangaService,
+      ...updateData,
+    }).toEqual(mangaServiceNew);
   });
 });

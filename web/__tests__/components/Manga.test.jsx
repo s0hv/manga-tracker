@@ -15,7 +15,7 @@ import { emptyFullManga as emptyManga, fullManga as manga } from '../constants';
 describe('Manga page should render correctly', () => {
   mockUTCDates();
   mockNotistackHooks();
-  fetchMock.get('express:/api/manga/:mangaId/chapters', []);
+  fetchMock.get('express:/api/manga/:mangaId/chapters', { chapters: []});
   fetchMock.get('express:/api/chapter/releases/:mangaId', []);
 
   const follows = [1];

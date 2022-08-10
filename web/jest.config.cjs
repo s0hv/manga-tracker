@@ -17,6 +17,14 @@ const baseConfig = {
     '^.+\\.module\\.(css|sass|scss)$': 'identity-obj-proxy',
     '<rootDir>/node_modules/react-frappe-charts': 'react-frappe-charts',
     '<rootDir>/node_modules/swagger-jsdoc': 'swagger-jsdoc',
+
+    // Module aliases
+    '^@/components/(.*)$': '<rootDir>/src/components/$1',
+    '^@/views/(.*)$': '<rootDir>/src/views/$1',
+    '^@/webUtils/(.*)$': '<rootDir>/src/utils/$1',
+    '^@/serverUtils/(.*)$': '<rootDir>/utils/$1',
+    '^@/db/(.*)$': '<rootDir>/db/$1',
+    '^@/types/(.*)$': '<rootDir>/types/$1',
   },
 
   // The directory where Jest should output its coverage files

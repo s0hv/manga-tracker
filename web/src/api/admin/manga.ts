@@ -1,20 +1,25 @@
 import { handleError, handleResponse } from '../utilities';
-import { csrfHeader } from '../../utils/csrf';
-import { MangaId, MangaStatus } from '../../../types/dbTypes';
+import { csrfHeader } from '@/webUtils/csrf';
+import type { DatabaseId, MangaId, MangaStatus } from '@/types/dbTypes';
+import type {
+  MangaService,
+  MangaServiceUpdateData,
+  ScheduledRun,
+} from '@/types/api/manga';
 
-export const getScheduledRuns = (mangaId) => fetch(`/api/admin/manga/${mangaId}/scheduledRuns`)
-  .then(handleResponse)
+export const getScheduledRuns = (mangaId: MangaId) => fetch(`/api/admin/manga/${mangaId}/scheduledRuns`)
+  .then(handleResponse<ScheduledRun[]>)
   .catch(handleError);
 
-export const createScheduledRun = (csrf, mangaId, serviceId) => fetch(`/api/admin/manga/${mangaId}/scheduledRun/${serviceId}`,
+export const createScheduledRun = (csrf: string, mangaId: MangaId, serviceId: DatabaseId) => fetch(`/api/admin/manga/${mangaId}/scheduledRun/${serviceId}`,
   {
     method: 'POST',
     headers: csrfHeader(csrf),
   })
-  .then(handleResponse)
+  .then(handleResponse<{ inserted: ScheduledRun }>)
   .catch(handleError);
 
-export const deleteScheduledRun = (csrf, mangaId, serviceId) => fetch(`/api/admin/manga/${mangaId}/scheduledRun/${serviceId}`,
+export const deleteScheduledRun = (csrf: string, mangaId: MangaId, serviceId: DatabaseId) => fetch(`/api/admin/manga/${mangaId}/scheduledRun/${serviceId}`,
   {
     method: 'DELETE',
     headers: csrfHeader(csrf),
@@ -59,3 +64,29 @@ export const updateMangaInfo = (csrf: string, mangaId: MangaId, info: MangaInfo)
   .then(handleResponse)
   .catch(handleError);
 
+
+export const getMangaServices = (mangaId: MangaId) => fetch(`/api/admin/manga/${mangaId}/services`,
+  {
+    method: 'GET',
+  })
+  .then(handleResponse<MangaService[]>)
+  .then(data => data.map(ms => {
+    ms.lastCheck = ms.lastCheck ? new Date(ms.lastCheck) : null;
+    ms.nextUpdate = ms.nextUpdate ? new Date(ms.nextUpdate) : null;
+    return ms;
+  }))
+  .catch(handleError);
+
+export const updateMangaService = (
+  csrf: string, mangaId: MangaId, serviceId: DatabaseId, data: MangaServiceUpdateData
+) => fetch(`/api/admin/manga/${mangaId}/services/${serviceId}`,
+  {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...csrfHeader(csrf),
+    },
+    body: JSON.stringify({ mangaService: data }),
+  })
+  .then(handleResponse)
+  .catch(handleError);

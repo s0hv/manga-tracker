@@ -2,14 +2,21 @@ import { ConfirmProvider } from 'material-ui-confirm';
 import { NextSeo } from 'next-seo';
 import React from 'react';
 import withError from '../../../utils/withError';
-import Manga from '../../../views/admin/MangaAdmin';
-import { jsonSerializable } from '../../../utils/utilities';
+import Manga from '@/views/admin/MangaAdmin';
+import { jsonSerializable } from '@/webUtils/utilities';
 
-import { getFullManga } from '../../../../db/manga';
+import { getFullManga } from '@/db/manga';
 import { getServiceConfigs } from '../../../../db/services';
-import { GetServerSidePropsExpress } from '../../../../types/nextjs';
+import type { GetServerSidePropsExpress } from '@/types/nextjs';
+import type { ServiceConfig } from '@/types/api/services';
+import type { FullMangaData } from '@/types/api/manga';
 
-function MangaPage(props) {
+type MangaPageProps = {
+  manga: FullMangaData & { title: string }
+  serviceConfigs: ServiceConfig[]
+}
+
+function MangaPage(props: MangaPageProps) {
   const {
     manga,
     serviceConfigs,
@@ -36,11 +43,11 @@ export const getServerSideProps: GetServerSidePropsExpress = async ({ req, param
 
   let manga;
   try {
-    manga = await getFullManga(params.mangaId);
+    manga = await getFullManga(params!.mangaId as string);
     if (!manga) {
       return { props: { error: 404 }};
     }
-  } catch (e) {
+  } catch (e: any) {
     return { props: { error: e?.status || 404 }};
   }
 

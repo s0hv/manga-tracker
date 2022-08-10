@@ -4,6 +4,7 @@ import { db } from '.';
 import { fetchExtraInfo, MANGADEX_ID } from './mangadex.js';
 import { HttpError } from '../utils/errors.js';
 import { mangadexLogger } from '../utils/logging.js';
+import { DatabaseId, MangaId } from '../types/dbTypes';
 
 const links = {
   al: 'https://anilist.co/manga/',
@@ -13,13 +14,13 @@ const links = {
   nu: 'https://www.novelupdates.com/series/',
   kt: 'https://kitsu.io/manga/',
   mal: 'https://myanimelist.net/manga/',
-};
+} as const;
 
-export function formatLinks(row) {
+export function formatLinks(row: Record<string, string>) {
   if (typeof row !== 'object') return;
 
   Object.keys(row).forEach(key => {
-    const link = links[key];
+    const link = links[key as keyof typeof links];
     if (!link || !row[key]) return;
 
     row[key] = link + row[key];
@@ -33,7 +34,14 @@ export type FullManga = {
   manga: object
 }
 
-function formatFullManga(obj): FullManga {
+type FullMangaUnformatted = {
+  services: any[],
+  chapters?: any[],
+  aliases: string[],
+  [key: string]: any
+}
+
+function formatFullManga(obj: Partial<FullMangaUnformatted>): FullManga {
   const out: FullManga = {
     manga: {},
   };
@@ -57,7 +65,7 @@ function formatFullManga(obj): FullManga {
   return out;
 }
 
-export function getFullManga(mangaId): Promise<FullManga> {
+export function getFullManga(mangaId: MangaId): Promise<FullManga | null> {
   const args = [mangaId];
 
   const sql = `SELECT manga.manga_id, title, release_interval, latest_release, estimated_release, manga.latest_chapter,
@@ -71,7 +79,7 @@ export function getFullManga(mangaId): Promise<FullManga> {
                WHERE manga.manga_id=$1
                GROUP BY manga.manga_id, mi.manga_id`;
 
-  return db.oneOrNone(sql, args)
+  return db.oneOrNone<FullMangaUnformatted>(sql, args)
     .then(row => {
       if (!row) {
         return null;
@@ -91,7 +99,7 @@ export function getFullManga(mangaId): Promise<FullManga> {
     });
 }
 
-export async function getFollows(userId) {
+export async function getFollows(userId: DatabaseId) {
   if (!userId) {
     throw HttpError(404);
   }
@@ -119,13 +127,13 @@ export async function getFollows(userId) {
     });
 }
 
-export const getAliases = (mangaId) => {
+export const getAliases = (mangaId: MangaId) => {
   const sql = 'SELECT title FROM manga_alias WHERE manga_id=$1';
   return db.query(sql, [mangaId]);
 };
 
 // Actually just gets a single row from the manga table
-export const getMangaPartial = (mangaId) => {
+export const getMangaPartial = (mangaId: MangaId) => {
   const sql = 'SELECT * FROM manga WHERE manga_id=$1';
   return db.one(sql, [mangaId]);
 };
@@ -138,7 +146,7 @@ export type MangaForElastic = {
   services: { serviceId: number, serviceName: string }[]
 }
 
-export const getMangaForElastic = (mangaId): Promise<MangaForElastic> => {
+export const getMangaForElastic = (mangaId: MangaId): Promise<MangaForElastic> => {
   const sql = `SELECT
       m.manga_id,
       m.title,
@@ -153,7 +161,7 @@ export const getMangaForElastic = (mangaId): Promise<MangaForElastic> => {
 
   return db.one(sql, [mangaId])
     .then(manga => {
-      manga.aliases = manga.aliases?.map(title => ({ title })) || [];
+      manga.aliases = manga.aliases?.map((title: string) => ({ title })) || [];
       return manga;
     });
 };

@@ -15,7 +15,7 @@
             "jsx": true
         }
     },
-    "plugins": ["react", "jest"],
+    "plugins": ["react", "jest", "import-newlines"],
     "rules": {
         "semi": ["warn", "always", {"omitLastInOneLineBlock": true}],
         "quotes": ["warn", "single", {
@@ -50,6 +50,17 @@
         "react/function-component-definition": "off",
         "function-paren-newline": ["error", "consistent"],
         "react/no-unstable-nested-components": ["error", { "allowAsProps":  true }],
+        "import-newlines/enforce": ["error", { "items": 3, "max-len": 80 }],
+        "import/order": [
+            "error",
+            {
+                "groups": [
+                    ["builtin", "external"],
+                    ["internal", "unknown", "parent", "sibling", "index"]
+                ],
+                "alphabetize": { "order": "ignore", "caseInsensitive": true }
+            }
+        ],
 
         "prefer-template": "off",
         "arrow-parens": "off",
@@ -83,7 +94,8 @@
         "import/extensions": "off",
         "arrow-body-style": "off",
         "lines-between-class-members": "off",
-        "jsx-a11y/label-has-associated-control": "off"
+        "jsx-a11y/label-has-associated-control": "off",
+        "react/destructuring-assignment": "off"
     },
     "env": {
         "browser": true,
@@ -123,7 +135,8 @@
                 "@typescript-eslint/no-shadow": "error",
                 "@typescript-eslint/ban-ts-comment": ["error", {
                     "ts-expect-error": false
-                }]
+                }],
+                "@typescript-eslint/no-non-null-assertion": "off"
             },
             "settings": {
                 "import/parsers": {

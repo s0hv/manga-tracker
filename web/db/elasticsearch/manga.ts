@@ -5,7 +5,7 @@ import { MangaForElastic } from '../manga';
 
 export const index = process.env.ES_INDEX || 'manga';
 
-export const mangaSearch = (query, count, withServices = false) => {
+export const mangaSearch = (query: string, count: number, withServices = false) => {
   const fields = ['manga_id', 'title'];
   if (withServices) {
     fields.push('services.service_name');

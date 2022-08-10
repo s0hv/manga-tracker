@@ -6,10 +6,16 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  Box,
 } from '@mui/material';
 import { Form } from 'react-final-form';
 
 /** @jsxImportSource @emotion/react */
+
+
+export const defaultSx = {
+  '& .MuiFormControl-root': { mt: 2 },
+};
 
 export const AddRowFormTemplate = (props) => {
   const {
@@ -19,6 +25,7 @@ export const AddRowFormTemplate = (props) => {
     onClose,
     title,
     formStyles,
+    sx = defaultSx,
     closeOnSubmit = true,
     ...formProps
   } = props;
@@ -36,14 +43,16 @@ export const AddRowFormTemplate = (props) => {
       <DialogContent>
         <Form onSubmit={onSubmitInner} {...formProps}>
           {({ handleSubmit }) => (
-            <form
+            <Box
+              component='form'
               onSubmit={handleSubmit}
               noValidate={!!formProps.validate}
               id='create-row-form'
               css={formStyles}
+              sx={sx}
             >
               {fields}
-            </form>
+            </Box>
           )}
         </Form>
       </DialogContent>
@@ -76,4 +85,5 @@ AddRowFormTemplate.propTypes = {
   open: PropTypes.bool.isRequired,
   title: PropTypes.string,
   formStyles: PropTypes.object,
+  sx: PropTypes.object,
 };

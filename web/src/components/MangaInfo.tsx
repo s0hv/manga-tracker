@@ -46,7 +46,9 @@ const MangaInfo: FunctionComponent<MangaInfoProps> = ({ mangaData, showId = fals
   const latestRelease = mangaData.latestRelease ?
     new Date(mangaData.latestRelease) :
     null;
-  const estimatedRelease = new Date(mangaData.estimatedRelease);
+  const estimatedRelease = mangaData.estimatedRelease ?
+    new Date(mangaData.estimatedRelease) :
+    null;
 
   return (
     <InfoTable aria-label='manga information'>

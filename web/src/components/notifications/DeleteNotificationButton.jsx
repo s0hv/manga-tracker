@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from 'react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useField } from 'react-final-form';
 import { IconButton } from '@mui/material';
 import { Delete as DeleteIcon } from '@mui/icons-material';

@@ -1,10 +1,29 @@
-import React, { useCallback, useState } from 'react';
+import React, {
+  ComponentType,
+  FunctionComponent,
+  useCallback,
+  useState,
+} from 'react';
 
 import PropTypes from 'prop-types';
-import { Tooltip, Typography, Toolbar, IconButton } from '@mui/material';
+import { IconButton, Toolbar, Tooltip, Typography } from '@mui/material';
 import { Add as AddIcon } from '@mui/icons-material';
 
-export const TableToolbar = props => {
+
+export type DialogComponentProps = {
+  open: boolean
+  onClose: () => void
+}
+
+export type TableToolbarProps = {
+  title?: string
+  DialogComponent?: ComponentType<DialogComponentProps>
+  creatable?: boolean
+  addButtonLabel?: string
+}
+
+
+export const TableToolbar: FunctionComponent<TableToolbarProps> = props => {
   const {
     title,
     DialogComponent,
@@ -12,7 +31,7 @@ export const TableToolbar = props => {
     addButtonLabel = 'add item',
   } = props;
 
-  const [createOpen, setCreateOpen] = useState(false);
+  const [createOpen, setCreateOpen] = useState<boolean>(false);
   const handleClose = useCallback(() => setCreateOpen(false), []);
   const handleOpen = useCallback(() => setCreateOpen(true), []);
 
@@ -28,7 +47,7 @@ export const TableToolbar = props => {
       <Typography variant='h6' sx={{ flex: '1 1 100%' }}>
         {title}
       </Typography>
-      {creatable && <DialogComponent open={createOpen} onClose={handleClose} />}
+      {creatable && DialogComponent && <DialogComponent open={createOpen} onClose={handleClose} />}
     </Toolbar>
   );
 };

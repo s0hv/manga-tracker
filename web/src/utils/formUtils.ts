@@ -1,4 +1,6 @@
-export const showErrorAlways = ({
+import type { ShowErrorFunc } from 'mui-rff';
+
+export const showErrorAlways: ShowErrorFunc = ({
   meta: { submitError, dirtySinceLastSubmit, error },
 }) => !!(((submitError && !dirtySinceLastSubmit) || error));
 
