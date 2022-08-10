@@ -34,6 +34,7 @@ export enum MangaStatus {
 }
 
 export type MangaId = number | string;
+export type DatabaseId = number | string;
 
 export interface MangaInfoUpdate {
   mangaId: MangaId

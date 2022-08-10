@@ -1,23 +1,29 @@
 import express from 'express';
 import { body, param } from 'express-validator';
 import pgPromise from 'pg-promise';
-import { updateMangaInfo, updateMangaTitle } from '../../db/admin/manga';
-import { requiresUser } from '../../db/auth.js';
-import { handleError } from '../../db/utils.js';
+import {
+  getMangaServices,
+  updateMangaInfo,
+  updateMangaService,
+  updateMangaTitle,
+} from '@/db/admin/manga';
+import { requiresUser } from '@/db/auth';
+import { handleError } from '@/db/utils';
 import {
   deleteScheduledRun,
   getScheduledRuns,
   scheduleMangaRun,
-} from '../../db/admin/management.js';
+} from '@/db/admin/management';
 import {
+  databaseIdValidation,
   handleValidationErrors,
   mangaIdValidation,
   serviceIdValidation,
   validateAdminUser,
 } from '../../utils/validators.js';
-import { getMangaForElastic } from '../../db/manga';
-import { updateManga } from '../../db/elasticsearch/manga';
-import { MangaStatus } from '../../types/dbTypes';
+import { getMangaForElastic } from '@/db/manga';
+import { updateManga } from '@/db/elasticsearch/manga';
+import { MangaStatus } from '@/types/dbTypes';
 
 const { QueryResultError } = pgPromise.errors;
 
@@ -101,8 +107,44 @@ export default () => {
   ], (req, res) => {
     updateMangaInfo({
       status: req.body.status,
-      mangaId: req.params.mangaId,
+      mangaId: req.params!.mangaId,
     })
+      .then(r => {
+        if (r.rowCount === 0) return res.sendStatus(404);
+
+        res.sendStatus(200);
+      })
+      .catch(err => handleError(err, res));
+  });
+
+  router.get('/:mangaId(\\d+)/services', ...[
+    mangaIdValidation(param('mangaId')),
+    handleValidationErrors,
+  ], (req, res) => {
+    getMangaServices(req.params!.mangaId)
+      .then(r => {
+        if (r.length === 0) return res.sendStatus(404);
+
+        res.json(r);
+      })
+      .catch(err => handleError(err, res));
+  });
+
+  router.post('/:mangaId(\\d+)/services/:serviceId(\\d+)', ...[
+    mangaIdValidation(param('mangaId')),
+    databaseIdValidation(param('serviceId')),
+    body('mangaService')
+      .isObject({ strict: true }),
+    body('mangaService.disabled')
+      .optional()
+      .isBoolean({ strict: true }),
+    body('mangaService.nextUpdate')
+      .optional({ nullable: true })
+      .isISO8601({ strict: true })
+      .toDate(),
+    handleValidationErrors,
+  ], (req, res) => {
+    updateMangaService(req.params!.mangaId, req.params!.serviceId, req.body.mangaService)
       .then(r => {
         if (r.rowCount === 0) return res.sendStatus(404);
 

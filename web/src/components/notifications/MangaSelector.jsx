@@ -1,5 +1,5 @@
 import { Autocomplete, Checkboxes } from 'mui-rff';
-import { useQuery } from 'react-query';
+import { useQuery } from '@tanstack/react-query';
 import { useState, useCallback } from 'react';
 import { Box } from '@mui/material';
 import { useField } from 'react-final-form';

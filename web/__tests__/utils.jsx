@@ -7,7 +7,7 @@ import enLocale from 'date-fns/locale/en-GB';
 import jestOpenAPI from 'jest-openapi';
 import React, { isValidElement } from 'react';
 import request from 'supertest';
-import { QueryClient } from 'react-query';
+import { QueryClient } from '@tanstack/react-query';
 
 import { UserProvider } from '../src/utils/useUser';
 import { getOpenapiSpecification } from '../swagger';
@@ -95,6 +95,10 @@ export function expectErrorSnackbar(msg) {
     msg || expect.anything(),
     expect.objectContaining({ variant: 'error' })
   );
+}
+
+export function expectNoSnackbar() {
+  expect(enqueueSnackbarMock).not.toHaveBeenCalled();
 }
 
 export function getSnackbarMessage() {
@@ -307,4 +311,17 @@ export const getIncrementalStringGenerator = (name) => {
   }
 
   return () => `${name}_${counters[name]++}`;
+};
+
+/**
+ *
+ * @param {import('fetch-mock').MockCall | undefined} req
+ * @param expectedBody
+ */
+export const expectRequestCalledWithBody = (req, expectedBody) => {
+  expect(req).toBeDefined();
+
+  const body = JSON.parse(req[1].body.toString());
+
+  expect(body).toEqual(expectedBody);
 };

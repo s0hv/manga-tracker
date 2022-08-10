@@ -1,6 +1,6 @@
 import { render, screen, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { QueryClientProvider } from 'react-query';
+import { QueryClientProvider } from '@tanstack/react-query';
 import fetchMock from 'fetch-mock';
 import { ConfirmProvider } from 'material-ui-confirm';
 
@@ -30,6 +30,7 @@ const manga = [
 beforeEach(() => {
   mockNotistackHooks();
   fetchMock.reset();
+  queryClient.clear();
 });
 
 describe('MangaSelector', () => {

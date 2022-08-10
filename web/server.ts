@@ -1,4 +1,5 @@
-import express from 'express';
+import express, { NextFunction } from 'express';
+import type { Express } from 'express-serve-static-core';
 import next_ from 'next';
 import csrf from 'csurf';
 import session from 'express-session';
@@ -52,7 +53,7 @@ passport.serializeUser((user: any, done) => {
 
 passport.deserializeUser((user, done) => {
   logger.debug('deserialize %o', user);
-  done(null, user);
+  done(null, user as Express.User);
 });
 
 // Turn off when not using this app with a reverse proxy like heroku
@@ -98,7 +99,7 @@ export default nextApp.prepare()
     server.use(express.json());
     server.use(express.urlencoded({ extended: false }));
 
-    server.use(cookieParser(null));
+    server.use(cookieParser(undefined));
     server.use(session({
       name: 'sess',
       cookie: {
@@ -108,7 +109,7 @@ export default nextApp.prepare()
         secure: !isDev,
       },
       proxy: reverseProxy,
-      secret: isDev ? 'secret' : process.env.SESSION_SECRET,
+      secret: isDev ? 'secret' : process.env.SESSION_SECRET!,
       resave: false,
       saveUninitialized: false,
 
@@ -200,7 +201,7 @@ export default nextApp.prepare()
 
 
     // Error handlers
-    server.use((err, req, res, next) => {
+    server.use((err: any, req: express.Request, res: express.Response, next: NextFunction) => {
       // Handle CSRF errors
       if (err.code === 'EBADCSRFTOKEN') {
         res.status(403).json({

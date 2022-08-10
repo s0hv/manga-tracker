@@ -56,7 +56,9 @@ const EditableMangaInfo: FunctionComponent<MangaInfoProps> = ({ mangaData }) => 
   const latestRelease = mangaData.latestRelease ?
     new Date(mangaData.latestRelease) :
     null;
-  const estimatedRelease = new Date(mangaData.estimatedRelease);
+  const estimatedRelease = mangaData.estimatedRelease ?
+    new Date(mangaData.estimatedRelease) :
+    null;
   const csrf = useCSRF();
   const { enqueueSnackbar } = useSnackbar();
 

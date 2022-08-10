@@ -8,7 +8,7 @@
     ],
     "allowJs": true,
     "skipLibCheck": true,
-    "strict": false,
+    "strict": true,
     "forceConsistentCasingInFileNames": true,
     "noEmit": true,
     "incremental": true,
@@ -18,6 +18,15 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "moduleResolution":"node",
+    "baseUrl": ".",
+    "paths": {
+      "@/components*": ["src/components*"],
+      "@/views*": ["src/views*"],
+      "@/webUtils*": ["src/utils*"],
+      "@/serverUtils*": ["utils*"],
+      "@/db*": ["db*"],
+      "@/types*": ["types*"]
+    }
   },
   "include": [
     "next-env.d.ts",

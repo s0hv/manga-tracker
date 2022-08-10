@@ -6,6 +6,7 @@ declare module 'express-session' {
     user: SessionUser;
     userId?: number,
     theme: Theme
+    mangaViews: Record<string, number>
   }
 }
 

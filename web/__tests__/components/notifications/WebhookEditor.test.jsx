@@ -1,6 +1,6 @@
 import { render, screen, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { QueryClientProvider } from 'react-query';
+import { QueryClientProvider } from '@tanstack/react-query';
 import fetchMock from 'fetch-mock';
 
 import {
@@ -25,6 +25,7 @@ const Root = ({ children }) => (
 beforeEach(() => {
   mockNotistackHooks();
   fetchMock.reset();
+  queryClient.clear();
 });
 
 const defaultWebhookData = defaultDataForType[NotificationTypes.Webhook];

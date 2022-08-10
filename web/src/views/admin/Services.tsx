@@ -1,5 +1,5 @@
 import { useSnackbar } from 'notistack';
-import React, { useCallback } from 'react';
+import React, { ReactElement, useCallback } from 'react';
 import { Checkbox, Container, Paper, TableContainer } from '@mui/material';
 import { format, formatDistanceToNowStrict } from 'date-fns';
 import enLocale from 'date-fns/locale/en-GB';
@@ -9,10 +9,22 @@ import {
   EditableDateTimePicker,
   MaterialTable,
 } from '../../components/MaterialTable';
-import { useCSRF } from '../../utils/csrf';
+import { useCSRF } from '@/webUtils/csrf';
 import { editService } from '../../api/admin/service';
+import type {
+  MaterialCellContext,
+  MaterialColumnDef,
+} from '@/components/MaterialTable/types';
+import type { ServiceForAdmin } from '@/types/api/services';
+import { createColumnHelper } from '@/components/MaterialTable/utilities';
 
-function Services(props) {
+const columnHelper = createColumnHelper<ServiceForAdmin>();
+
+export type ServicesProps = {
+  services?: ServiceForAdmin[]
+}
+
+function Services(props: ServicesProps): ReactElement {
   const {
     services = [],
   } = props;
@@ -21,7 +33,7 @@ function Services(props) {
   const csrf = useCSRF();
 
   // Format date strings back to dates for sorting
-  const data = React.useMemo(() => {
+  const data = React.useMemo((): ServiceForAdmin[] => {
     services.forEach(service => {
       service.lastCheck = service.lastCheck ? new Date(service.lastCheck) : undefined;
       service.nextUpdate = service.nextUpdate ? new Date(service.nextUpdate) : undefined;
@@ -30,52 +42,50 @@ function Services(props) {
   },
   [services]);
 
-  const columns = React.useMemo(() => [
-    { Header: 'Id', accessor: 'id', canEdit: false },
-    { Header: 'Name', accessor: 'serviceName' },
-    {
-      Header: 'Last checked',
-      accessor: 'lastCheck',
-      canEdit: false,
-      sortType: 'datetime',
-      Cell: ({ row }) => (row.values.lastCheck ?
-        `${format(row.values.lastCheck, 'MMM do, HH:mm', { locale: enLocale })} - ${formatDistanceToNowStrict(row.values.lastCheck, { addSuffix: true })}` :
+  const columns = React.useMemo((): MaterialColumnDef<ServiceForAdmin, any>[] => [
+    columnHelper.accessor('id', {
+      header: 'Id',
+      enableEditing: false,
+    }),
+    columnHelper.accessor('serviceName', {
+      header: 'Name',
+      enableEditing: false,
+    }),
+    columnHelper.accessor('lastCheck', {
+      header: 'Last checked',
+      enableEditing: false,
+      sortingFn: 'datetime',
+      cell: ({ row }) => (row.original.lastCheck ?
+        `${format(row.original.lastCheck, 'MMM do, HH:mm', { locale: enLocale })} - ${formatDistanceToNowStrict(row.original.lastCheck, { addSuffix: true })}` :
         'Never'),
-    },
-    {
-      Header: 'Next update',
-      accessor: 'nextUpdate',
-      sortType: 'basic',
-      Cell: ({ row }) => (row.values.nextUpdate ?
-        `${format(row.values.nextUpdate, 'MMM do, HH:mm', { locale: enLocale })} - ${formatDistanceToNowStrict(row.values.nextUpdate, { addSuffix: true })}` :
+    }),
+    columnHelper.accessor('nextUpdate', {
+      header: 'Next update',
+      sortingFn: 'datetime',
+      cell: ({ row }) => (row.original.nextUpdate ?
+        `${format(row.original.nextUpdate, 'MMM do, HH:mm', { locale: enLocale })} - ${formatDistanceToNowStrict(row.original.nextUpdate, { addSuffix: true })}` :
         'ASAP'),
-      EditCell: ({ row, state, cell }) => (
+      EditCell: (ctx) => (
         <EditableDateTimePicker
-          variant='inline'
           ampm={false}
-          value={row.values.nextUpdate}
+          value={ctx.row.original.nextUpdate}
           onError={console.log}
-          row={row}
-          state={state}
-          cell={cell}
+          ctx={ctx}
         />
       ),
-    },
-    {
-      Header: 'Disabled',
-      accessor: 'disabled',
-      widthSuggestion: '1%',
-      sortType: 'basic',
-      Cell: ({ row }) => <Checkbox checked={row.values.disabled} disabled />,
-      EditCell: ({ row, state, cell }) => (
+    }),
+    columnHelper.accessor('disabled', {
+      header: 'Disabled',
+      width: '1%',
+      sortingFn: 'basic',
+      cell: ({ row }) => <Checkbox checked={row.original.disabled} disabled />,
+      EditCell: (ctx) => (
         <EditableCheckbox
-          checked={row.values.disabled}
-          row={row}
-          state={state}
-          cell={cell}
+          checked={ctx.row.original.disabled}
+          ctx={ctx as MaterialCellContext<any, boolean>}
         />
       ),
-    },
+    }),
   ],
   []);
 

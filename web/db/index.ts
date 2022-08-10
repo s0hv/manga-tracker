@@ -45,9 +45,9 @@ export const pgp = pgPromise({
 
 // https://stackoverflow.com/a/34427278/6046713
 const createSingletonDb = (): IDatabase<any> => {
-  const s = Symbol.for('database');
-  let scope = global[s];
-  if (!global[s]) {
+  const s: unique symbol = Symbol.for('database');
+  let scope: IDatabase<any> | undefined = (global as unknown as any)[s] as IDatabase<any> | undefined;
+  if (!scope) {
     scope = pgp({
       host: process.env.DB_HOST,
       user: process.env.DB_USER,
@@ -60,9 +60,9 @@ const createSingletonDb = (): IDatabase<any> => {
       idleTimeoutMillis: 30000,
       connectionTimeoutMillis: 5000,
     });
-    global[s] = scope;
+    (global as unknown as any)[s] = scope;
   }
-  return scope;
+  return scope!;
 };
 
 export const db = createSingletonDb();

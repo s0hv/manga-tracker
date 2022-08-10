@@ -1,14 +1,16 @@
 import { format, formatDistanceToNowStrict } from 'date-fns';
 import enLocale from 'date-fns/locale/en-GB';
 import throttle from 'lodash.throttle';
+import type { ChangeEvent } from 'react';
 import { csrfHeader } from './csrf';
+import type { DatabaseId, MangaId } from '@/types/dbTypes';
 
-export const followUnfollow = (csrf, mangaId, serviceId) => {
+export const followUnfollow = (csrf: string, mangaId: MangaId, serviceId: DatabaseId) => {
   const url = serviceId ? `/api/user/follows?mangaId=${mangaId}&serviceId=${serviceId}` :
     `/api/user/follows?mangaId=${mangaId}`;
-  return throttle((event) => {
+  return throttle((event: ChangeEvent<HTMLInputElement>) => {
     const target = event.target;
-    switch (target.textContent.toLowerCase()) {
+    switch (target?.textContent?.toLowerCase()) {
       case 'follow':
         fetch(url,
           {
@@ -41,25 +43,25 @@ export const followUnfollow = (csrf, mangaId, serviceId) => {
 };
 
 // This seems to be faster than a custom recursive function according to my measurements
-export const jsonSerializable = (value) => JSON.parse(JSON.stringify(value));
+export const jsonSerializable = (value: any) => JSON.parse(JSON.stringify(value));
 
-function dateIsInvalid(date?: Date) {
+function dateIsInvalid(date?: Date | null): boolean {
   return !date || Number.isNaN(date.getTime()) || date.getTime() === 0;
 }
 
-export const defaultDateFormat = (date?: Date, ifUndefined='Unknown') => {
+export const defaultDateFormat = (date?: Date | null, ifUndefined='Unknown'): string => {
   if (dateIsInvalid(date)) return ifUndefined;
 
-  return format(date, 'MMM do yyyy, HH:mm', { locale: enLocale });
+  return format(date!, 'MMM do yyyy, HH:mm', { locale: enLocale });
 };
 
-export const defaultDateDistanceToNow = (date?: Date, ifUndefined='Unknown') => {
+export const defaultDateDistanceToNow = (date?: Date, ifUndefined='Unknown'): string => {
   if (dateIsInvalid(date)) return ifUndefined;
 
-  return formatDistanceToNowStrict(date, { addSuffix: true });
+  return formatDistanceToNowStrict(date!, { addSuffix: true });
 };
 
-export type Noop = (..._) => void;
+export type Noop = (..._: any) => void;
 export const noop: Noop = () => {};
 
 /**
@@ -115,8 +117,8 @@ export type GroupedYears = {
  */
 export const groupByYear = (data: GroupedYearData[]): GroupedYears => {
   if (data === undefined) return {};
-  let minYear;
-  let maxYear;
+  let minYear: number | undefined;
+  let maxYear: number | undefined;
 
   const grouped: GroupedYears = data.reduce((o, r) => {
     const d = new Date(r.timestamp * 1000);
@@ -145,7 +147,7 @@ export const groupByYear = (data: GroupedYearData[]): GroupedYears => {
     }
 
     return o;
-  }, {});
+  }, {} as Record<number, GroupedYear>);
 
   minYear = minYear || 0;
   maxYear = maxYear || minYear || 0;
@@ -231,7 +233,7 @@ export const groupBy: GroupBy = <T, >(
   let getKey: GetKey<T>;
   if (typeof getKeyOrKey === 'string') {
     const _key = getKeyOrKey;
-    getKey = (o) => o[_key];
+    getKey = (o) => (o as any)[_key];
   } else {
     getKey = getKeyOrKey;
   }
@@ -262,7 +264,7 @@ export const groupBy: GroupBy = <T, >(
     });
 
     if (currentGroup.arr.length > 0) {
-      currentGroup.group = currentGroupKey;
+      currentGroup.group = currentGroupKey!;
       groups.push(currentGroup);
     }
 
@@ -271,7 +273,7 @@ export const groupBy: GroupBy = <T, >(
 
   // Set is iterated in insertion order https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set#description
   const order: Set<string> = new Set();
-  const group = {};
+  const group: Record<string, T[]> = {};
 
   arr.forEach((o) => {
     const key = getKey(o);
@@ -296,7 +298,7 @@ export const groupBy: GroupBy = <T, >(
  */
 export const snakeCase = (s: string) => s.replace(/[A-Z]/g, letter => `_${letter[0].toLowerCase()}`);
 
-export const buildNotificationData = (values) => ({
+export const buildNotificationData = (values: any) => ({
   notificationId: values.notificationId,
   useFollows: values.useFollows,
 
@@ -308,7 +310,7 @@ export const buildNotificationData = (values) => ({
 
   manga: values.useFollows ?
     undefined :
-    values.manga.map(m => ({ mangaId: m.mangaId, serviceId: m.serviceId })),
+    values.manga.map((m: any) => ({ mangaId: m.mangaId, serviceId: m.serviceId })),
 });
 
 

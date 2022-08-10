@@ -18,10 +18,10 @@ export class HTTPException extends Error {
  * @return {Promise<any>}
  * @throws {APIException} Thrown when errors found
  */
-export const getResponseData = async <T = any>(json): Promise<T> => {
+export const getResponseData = async <T = any>(json: any): Promise<T> => {
   let error = json.error;
   if (!error) {
-    return json.data || json;
+    return json.data ?? json;
   }
 
   if (error instanceof String) {
@@ -35,15 +35,19 @@ export const getResponseData = async <T = any>(json): Promise<T> => {
   throw new APIException(error.msg || error);
 };
 
+type HandleResponse = {
+  <T = any>(res: Response): Promise<T>
+  (res: Response): Promise<void>
+}
+
 /**
  * Handles checking if request was successful and if it was returns the json body
  * @param {Response} res
  * @returns {Promise<any>} json body of the request
  * @throws {APIException} exception thrown if non-ok status code
- *
  */
-export const handleResponse = async <T = any>(res: Response): Promise<T> => {
-  const contentType = res.headers.get('content-type');
+export const handleResponse: HandleResponse = async <T = any>(res: Response): Promise<T | void> => {
+  const contentType = res.headers.get('content-type') || '';
   const isJson = /application\/json/i.test(contentType);
 
   if (!res.ok && !isJson) {
@@ -58,7 +62,7 @@ export const handleResponse = async <T = any>(res: Response): Promise<T> => {
     .then(getResponseData<T>);
 };
 
-export const handleError = async (err) => {
+export const handleError = async (err: any) => {
   if (!(err instanceof APIException) && !(err instanceof HTTPException)) {
     console.error('Unhandled error', err);
     throw new Error('Unexpected error occurred');

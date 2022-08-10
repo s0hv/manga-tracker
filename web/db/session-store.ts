@@ -5,10 +5,10 @@ import { IDatabase } from 'pg-promise';
 import { onSessionExpire } from '../utils/view-counter';
 import { sessionLogger } from '../utils/logging.js';
 
-const mergeSessionViews = (sess, row) => {
+const mergeSessionViews = (sess: SessionData, row: { data: SessionData }) => {
   const a = sess.mangaViews || {};
   const b = row.data.mangaViews || {};
-  Object.keys(b).forEach(k => {
+  Object.keys(b).forEach((k: string) => {
     a[k] = (a[k] || 0) + b[k];
   });
 
@@ -22,7 +22,7 @@ const noop = () => {};
 type Callback = (err?: any) => void;
 
 export interface StoreOptions {
-  clearInterval?: number;
+  clearInterval?: number | null;
   maxAge?: number;
   cacheSize?: number;
   conn?: IDatabase<any>
@@ -56,7 +56,7 @@ export default class PostgresStore extends Store {
     if (!Number.isFinite(options.clearInterval)) {
       this.clearInterval = null;
     } else {
-      this.clearInterval = setInterval(() => this.clearOldSessions(), options.clearInterval);
+      this.clearInterval = setInterval(() => this.clearOldSessions(), options.clearInterval!);
     }
   }
 
@@ -69,7 +69,7 @@ export default class PostgresStore extends Store {
       });
   }
 
-  get(sid, cb: (err: any, session?: SessionData | null) => void = noop) {
+  get(sid: string, cb: (err: any, session?: SessionData | null) => void = noop) {
     const sess = this.cache.get(sid);
     if (sess) {
       return cb(null, sess);
@@ -96,7 +96,7 @@ export default class PostgresStore extends Store {
       });
   }
 
-  set(sid, session: SessionData, cb: Callback = noop) {
+  set(sid: string, session: SessionData, cb: Callback = noop) {
     sessionLogger.debug('Edit session %s', sid);
     this.cache.set(sid, session);
     const sql = `INSERT INTO sessions (user_id, session_id, data, expires_at) VALUES ($1, $2, $3, $4)
@@ -109,7 +109,7 @@ export default class PostgresStore extends Store {
       });
   }
 
-  destroy(sid, cb: Callback = noop) {
+  destroy(sid: string, cb: Callback = noop) {
     const session = this.cache.peek(sid);
     sessionLogger.debug('Delete session %s %o', sid, session);
     this.cache.delete(sid);
@@ -124,7 +124,7 @@ export default class PostgresStore extends Store {
         }));
   }
 
-  touch(sid, session: SessionData, cb: Callback = noop) {
+  touch(sid: string, session: SessionData, cb: Callback = noop) {
     // No need to touch multiple times per request.
     // If touch was recently called skip this call.
     if (this.touchCache.get(sid) !== undefined) {
@@ -142,7 +142,7 @@ export default class PostgresStore extends Store {
       .catch(err => cb(err));
   }
 
-  clearUserSessions(uid, cb: Callback = noop) {
+  clearUserSessions(uid: number, cb: Callback = noop) {
     sessionLogger.info('Clearing all user sessions from user %s', uid);
     const sql = 'DELETE FROM sessions WHERE user_id=$1';
     this.cache.forEach((sess, key) => { if (sess.userId === uid) this.cache.delete(key); });

@@ -22,22 +22,30 @@ import React, { useCallback, useMemo, useState } from 'react';
 import MangaAliases from '../../components/MangaAliases';
 import MangaInfo from '../../components/EditableMangaInfo';
 
-
 import {
   AddRowFormTemplate,
   EditableSelect,
   MaterialTable,
 } from '../../components/MaterialTable';
-import { useCSRF } from '../../utils/csrf';
+import { useCSRF } from '@/webUtils/csrf';
 import { getManga } from '../../api/manga';
 import {
   createScheduledRun,
   deleteScheduledRun,
   getScheduledRuns,
 } from '../../api/admin/manga';
-import { MangaCover } from '../../components/MangaCover';
-import { FullMangaData } from '../../../types/api/manga';
-import { ServiceConfig } from '../../../types/api/services';
+import { MangaCover } from '@/components/MangaCover';
+import type { FullMangaData, ScheduledRun } from '@/types/api/manga';
+import type { ServiceConfig } from '@/types/api/services';
+import { MangaServiceTable } from '@/components/manga/MangaServiceTable';
+import type {
+  MaterialCellContext,
+  MaterialColumnDef,
+} from '@/components/MaterialTable/types';
+import { createColumnHelper } from '@/components/MaterialTable/utilities';
+import type {
+  DialogComponentProps,
+} from '@/components/MaterialTable/TableToolbar';
 
 const formStyles = {
   minWidth: '150px',
@@ -67,6 +75,8 @@ const DetailsContainer = styled('div')(({ theme }) => ({
   },
 }));
 
+const columnHelper = createColumnHelper<ScheduledRun>();
+
 export type MangaAdminProps = {
   mangaData: FullMangaData,
   serviceConfigs: ServiceConfig[]
@@ -91,11 +101,11 @@ function MangaAdmin(props: MangaAdminProps) {
   const confirm = useConfirm();
 
   const [loading, setLoading] = useState(false);
-  const [scheduledUpdates, setScheduledUpdates] = useState([]);
+  const [scheduledUpdates, setScheduledUpdates] = useState<ScheduledRun[]>([]);
   const [aliases, setAliases] = useState(aliasesProp);
   const [mangaTitle, setMangaTitle] = useState(manga.title);
 
-  const formatScheduledRuns = useCallback((runs) => runs.map(run => {
+  const formatScheduledRuns = useCallback<(runs: ScheduledRun[]) => ScheduledRun[]>((runs) => runs.map(run => {
     const found = services.find(s => s.serviceId === run.serviceId);
     if (!found) {
       return run;
@@ -137,15 +147,15 @@ function MangaAdmin(props: MangaAdminProps) {
       .catch(err => enqueueSnackbar(err.message, { variant: 'error' }));
   }, [mangaId, formatScheduledRuns, scheduledUpdates, enqueueSnackbar, csrf]);
 
-  const onDeleteRow = useCallback((row) => {
-    const serviceId = row.values.serviceId;
+  const onDeleteRow = useCallback((ctx: MaterialCellContext<ScheduledRun, any>) => {
+    const serviceId = ctx.row.original.serviceId;
     deleteScheduledRun(csrf, mangaId, serviceId)
       .then(() => {
         setScheduledUpdates(
           formatScheduledRuns(scheduledUpdates.filter(r => r.serviceId !== serviceId))
         );
         enqueueSnackbar(
-          `Successfully deleted service ${row.values.name} from scheduled runs`,
+          `Successfully deleted service ${ctx.row.original.name} from scheduled runs`,
           { variant: 'success' }
         );
       })
@@ -175,7 +185,7 @@ function MangaAdmin(props: MangaAdminProps) {
 
   // The component is memoized with useMemo. I don't see a problem
   // eslint-disable-next-line react/no-unstable-nested-components
-  const CreateDialog = useMemo(() => ({ open, onClose }) => (
+  const CreateDialog = useMemo(() => ({ open, onClose }: DialogComponentProps) => (
     <AddRowFormTemplate
       fields={fields}
       onSubmit={onCreateRow}
@@ -185,24 +195,24 @@ function MangaAdmin(props: MangaAdminProps) {
     />
   ), [fields, onCreateRow]);
 
-  const columns = useMemo(() => [
-    {
-      Header: 'Service name',
-      accessor: 'name',
-      EditCell: ({ row, cell, state }) => (
+  const columns = useMemo((): MaterialColumnDef<ScheduledRun, any>[] => [
+    columnHelper.accessor('name', {
+      header: 'Service name',
+      EditCell: (ctx) => (
         <EditableSelect
-          value={row.values.serviceId}
+          value={ctx.row.original.serviceId}
           items={services.map(s => ({ value: s.serviceId, text: s.name }))}
-          cell={cell}
-          row={row}
-          state={state}
+          ctx={ctx}
           onChange={(serviceId) => {
-            state.rowEditStates[row.id].serviceId = serviceId;
+            ctx.table.getState().rowEditState[ctx.row.id]!.serviceId = serviceId;
           }}
         />
       ),
-    },
-    { Header: 'Service id', accessor: 'serviceId', canEdit: false },
+    }),
+    columnHelper.accessor('serviceId', {
+      header: 'Service id',
+      enableEditing: false,
+    }),
   ], [services]);
 
   return (
@@ -241,10 +251,11 @@ function MangaAdmin(props: MangaAdminProps) {
             />
           </Grid>
         </DetailsContainer>
+        <MangaServiceTable mangaId={mangaId} sx={{ mb: 4 }} />
         <MaterialTable
           data={scheduledUpdates}
           columns={columns}
-          editable
+          rowCount={2}
           deletable
           creatable
           CreateDialog={CreateDialog}

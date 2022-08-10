@@ -39,3 +39,26 @@ export type FullMangaData = {
   aliases: string[],
   services: MangaServiceData[]
 }
+
+export type MangaService = {
+  mangaId: number,
+  serviceId: number,
+  disabled: boolean,
+  lastCheck?: Date | null,
+  titleId: string,
+  nextUpdate?: Date | null,
+  latestChapter?: number | null,
+  latestDecimal?: number | null,
+  feedUrl?: string | null
+}
+
+export type ScheduledRun = {
+  serviceId: number
+  name: string
+}
+
+export type MangaServiceUpdateData = Partial<Pick<
+  MangaService,
+  | 'disabled'
+  | 'nextUpdate'
+>>;

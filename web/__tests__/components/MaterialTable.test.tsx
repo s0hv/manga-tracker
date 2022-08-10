@@ -1,6 +1,6 @@
 import React from 'react';
 import fetchMock from 'fetch-mock';
-import { render, screen, act, within } from '@testing-library/react';
+import { act, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Checkbox } from '@mui/material';
 import {
@@ -11,47 +11,58 @@ import {
 } from '../../src/components/MaterialTable';
 import { mockUTCDates, withRoot } from '../utils';
 import { defaultDateFormatRegex } from '../constants';
-import { defaultDateFormat } from '../../src/utils/utilities';
+import { defaultDateFormat } from '@/webUtils/utilities';
+import { MaterialColumnDef } from '@/components/MaterialTable/types';
+import { createColumnHelper } from '@/components/MaterialTable/utilities';
+import type {
+  MaterialTableProps,
+} from '@/components/MaterialTable/MaterialTable';
 
 fetchMock.config.overwriteRoutes = true;
 
-const columns = [
-  { Header: 'ID', accessor: 'id', canEdit: false },
-  { Header: 'Editable string', accessor: 'editableString' },
-  {
-    Header: 'Editable time',
-    accessor: 'editableTime',
-    sortType: 'datetime',
-    Cell: ({ row }) => defaultDateFormat(row.values.editableTime),
-    EditCell: ({ row, state, cell }) => (
+type TestData = {
+  id: string
+  editableString: string
+  editableTime: Date
+  editableCheckbox: boolean
+}
+
+const columnHelper = createColumnHelper<TestData>();
+
+const columns: MaterialColumnDef<TestData, any>[] = [
+  columnHelper.accessor('id', {
+    header: 'ID',
+    enableEditing: false,
+  }),
+  columnHelper.accessor('editableString', {
+    header: 'Editable string',
+  }),
+  columnHelper.accessor('editableTime', {
+    header: 'Editable time',
+    sortingFn: 'datetime',
+    cell: ({ row }) => defaultDateFormat(row.original.editableTime),
+    EditCell: (ctx) => (
       <EditableDateTimePicker
-        clearable
-        variant='inline'
         ampm={false}
-        value={row.values.editableTime}
-        row={row}
-        state={state}
-        cell={cell}
+        value={ctx.row.original.editableTime}
+        ctx={ctx}
       />
     ),
-  },
-  {
-    Header: 'Editable checkbox',
-    accessor: 'editableCheckbox',
-    sortType: 'basic',
-    Cell: ({ row }) => <Checkbox checked={row.values.editableCheckbox} disabled />,
-    EditCell: ({ row, state, cell }) => (
+  }),
+  columnHelper.accessor('editableCheckbox', {
+    header: 'Editable checkbox',
+    sortingFn: 'basic',
+    cell: ({ row }) => <Checkbox checked={row.original.editableCheckbox} disabled />,
+    EditCell: (ctx) => (
       <EditableCheckbox
-        checked={row.values.editableCheckbox}
-        row={row}
-        state={state}
-        cell={cell}
+        checked={ctx.row.original.editableCheckbox}
+        ctx={ctx}
       />
     ),
-  },
+  }),
 ];
 
-function createRow(id, editableString, editableTime, editableCheckbox) {
+function createRow(id: string, editableString: string, editableTime: Date, editableCheckbox: boolean): TestData {
   return {
     id,
     editableString,
@@ -66,7 +77,7 @@ const data = [
   createRow('unique_id3', 'test string 3', new Date('2020-09-15T15:51:17.885Z'), false),
 ];
 
-function createWrapper(props) {
+function createWrapper<T>(props: MaterialTableProps<T>) {
   render(
     withRoot(
       <MaterialTable {...props} />
@@ -94,7 +105,7 @@ describe('It should render correctly', () => {
 
   const expectHeadersExist = (headers = columns) => {
     headers.forEach(col => {
-      expect(screen.getByRole('columnheader', { name: col.Header })).toBeInTheDocument();
+      expect(screen.getByRole('columnheader', { name: col.header as string })).toBeInTheDocument();
     });
   };
 
@@ -120,6 +131,7 @@ describe('It should render correctly', () => {
     expect(() => render(
       <MaterialTable
         columns={columns}
+        // @ts-expect-error
         data={null}
       />
     )).toThrow(TypeError);
@@ -141,7 +153,7 @@ describe('It should render correctly', () => {
 
     // Make sure sort buttons exist
     columns.forEach(col => {
-      expect(screen.getByRole('button', { name: col.Header }));
+      expect(screen.getByRole('button', { name: col.header as string }));
     });
 
     // Data rows + header row
@@ -277,7 +289,7 @@ describe('Should handle editing', () => {
       editable: true,
     });
 
-    expect(columns[0].canEdit).toBeFalse();
+    expect(columns[0].enableEditing).toBeFalse();
 
     const row = within(screen.getAllByRole('row')[1]);
     expect(row).toBeDefined();
@@ -289,7 +301,9 @@ describe('Should handle editing', () => {
       );
     });
 
-    const cell = within(row.getByText(data[0].id).closest('td'));
+    const _temp = row.getByText(data[0].id).closest('td');
+    expect(_temp).toBeInTheDocument();
+    const cell = within(_temp!);
     // Make sure that no input is present
     expect(cell.queryByRole('textbox')).not.toBeInTheDocument();
   });
@@ -321,7 +335,7 @@ describe('Should handle editing', () => {
 
     await act(async () => {
       await user.clear(input);
-      await user.type(input, newVal, { delay: 1 });
+      await user.type(input, newVal);
     });
 
     await act(async () => {
@@ -331,7 +345,7 @@ describe('Should handle editing', () => {
     });
 
     expect(onSave).toHaveBeenCalledTimes(1);
-    expect(onSave).toHaveBeenCalledWith(expect.anything(), { editableString: newVal }, expect.anything());
+    expect(onSave).toHaveBeenCalledWith({ editableString: newVal }, expect.anything());
 
     expect(row.getByText(newVal)).toBeInTheDocument();
   });
@@ -346,6 +360,8 @@ describe('Should handle editing', () => {
       editable: true,
     });
 
+    const dataOriginal = { ...data[0] };
+
     const row = within(screen.getAllByRole('row')[1]);
     expect(row).toBeDefined();
 
@@ -357,7 +373,7 @@ describe('Should handle editing', () => {
     });
 
     // Find checkbox and click it to change it's value
-    const checkbox = row.getByRole('checkbox', { checked: data[0].editableCheckbox });
+    const checkbox = row.getByRole('checkbox', { checked: dataOriginal.editableCheckbox });
     await user.click(checkbox);
 
     await act(async () => {
@@ -367,6 +383,6 @@ describe('Should handle editing', () => {
     });
 
     expect(onSave).toHaveBeenCalledTimes(1);
-    expect(onSave).toHaveBeenCalledWith(expect.anything(), { editableCheckbox: !data[0].editableCheckbox }, expect.anything());
+    expect(onSave).toHaveBeenCalledWith({ editableCheckbox: !dataOriginal.editableCheckbox }, expect.anything());
   });
 });
