@@ -104,15 +104,14 @@ export default function SignIn() {
                 Sign In
               </Button>
               <Grid container>
-                <Grid item xs>
+                {/*                <Grid item xs>
                   <Link href='#' variant='body2'>
                     Forgot password?
                   </Link>
-                </Grid>
+                </Grid> */}
                 <Grid item>
                   <Link href='#' variant='body2'>
-                    {/* eslint-disable-next-line react/jsx-curly-brace-presence */}
-                    {"Don't have an account? Sign Up"}
+                    Sign ups are currently closed. If you know me you can just ask for an account.
                   </Link>
                 </Grid>
               </Grid>
