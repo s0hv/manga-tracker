@@ -1,9 +1,9 @@
-import React, { FunctionComponent, useCallback, useMemo } from 'react';
+import React, { type FunctionComponent, useCallback, useMemo } from 'react';
 import { Checkbox, Paper, SxProps, TableContainer } from '@mui/material';
 import { useSnackbar } from 'notistack';
-import { QueryFunctionContext, useQuery } from '@tanstack/react-query';
+import { type QueryFunctionContext, useQuery } from '@tanstack/react-query';
 
-import { Select, SelectData, TextField } from 'mui-rff';
+import { Select, type SelectData, TextField } from 'mui-rff';
 import { useCSRF } from '@/webUtils/csrf';
 import {
   AddRowFormTemplate,
@@ -13,9 +13,13 @@ import {
   MaterialTable,
 } from '../MaterialTable';
 import { defaultDateFormat } from '@/webUtils/utilities';
-import { getMangaServices, updateMangaService } from '../../api/admin/manga';
+import {
+  createMangaService,
+  getMangaServices,
+  updateMangaService,
+} from '../../api/admin/manga';
 import { QueryKeys } from '@/webUtils/constants';
-import { MangaId } from '@/types/dbTypes';
+import type { MangaId } from '@/types/dbTypes';
 import { getServices } from '../../api/services';
 import type { MangaService } from '@/types/api/manga';
 import type {
@@ -25,7 +29,7 @@ import type {
 } from '../MaterialTable/types';
 import { createColumnHelper } from '../MaterialTable/utilities';
 import type { ServiceForApi } from '@/types/api/services';
-import { DialogComponentProps } from '../MaterialTable/TableToolbar';
+import type { DialogComponentProps } from '../MaterialTable/TableToolbar';
 
 export type MangaServiceTableProps = {
   mangaId: MangaId
@@ -46,7 +50,7 @@ export const MangaServiceTable: FunctionComponent<MangaServiceTableProps> = (pro
     sx,
   } = props;
 
-  const { data: mangaServices, isFetching: mangaLoading } = useQuery([QueryKeys.MangaServices, mangaId],
+  const { data: mangaServices, isFetching: mangaLoading, refetch } = useQuery([QueryKeys.MangaServices, mangaId],
     { queryFn: (ctx: QueryFunctionContext<[string, MangaId]>) => getMangaServices(ctx.queryKey[1]), initialData: []});
   const { data: services, isFetching: servicesLoading } = useQuery<ServiceForApi[], unknown, Record<number, ServiceForApi>>(QueryKeys.Services,
     {
@@ -147,16 +151,28 @@ export const MangaServiceTable: FunctionComponent<MangaServiceTableProps> = (pro
     ];
   }, [services, mangaServices]);
 
+  const onCreateRow = useCallback((form: any) => {
+    return createMangaService(csrf, mangaId, form.serviceId, form)
+      .then(() => refetch())
+      .then(() => {
+        enqueueSnackbar(
+          'Successfully create a new manga service',
+          { variant: 'success' }
+        );
+      })
+      .catch(err => enqueueSnackbar(err.message, { variant: 'error' }));
+  }, [csrf, mangaId, refetch, enqueueSnackbar]);
+
   // The component is memoized with useMemo. I don't see a problem
   // eslint-disable-next-line react/no-unstable-nested-components
   const CreateDialog = useMemo(() => ({ open, onClose }: DialogComponentProps) => (
     <AddRowFormTemplate
       fields={fields}
-      onSubmit={() => {}}
+      onSubmit={onCreateRow}
       onClose={onClose}
       open={open}
     />
-  ), [fields]);
+  ), [fields, onCreateRow]);
 
   return (
     <TableContainer component={Paper} sx={sx}>

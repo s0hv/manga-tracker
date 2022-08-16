@@ -1,10 +1,12 @@
 import snakecaseKeys from 'snakecase-keys';
 import { db } from '..';
 import type { DatabaseId, MangaId, MangaInfoUpdate } from '@/types/dbTypes';
-import type { MangaService, MangaServiceUpdateData } from '@/types/api/manga';
+import type {
+  MangaService,
+  MangaServiceCreateData,
+  MangaServiceUpdateData,
+} from '@/types/api/manga';
 import { generateUpdate } from '../utils';
-import { NoColumnsError } from '../errors';
-import { BadRequest } from '../../utils/errors';
 
 export const updateMangaTitle = (mangaId: MangaId, newTitle: string) => {
   const sql = `UPDATE manga
@@ -37,17 +39,17 @@ export const updateMangaService = async (
   mangaId: MangaId, serviceId: DatabaseId,
   { disabled, nextUpdate }: MangaServiceUpdateData
 ) => {
-  let update: string;
-  try {
-    update = generateUpdate(snakecaseKeys({ disabled, nextUpdate }), 'manga_service');
-  } catch (e) {
-    if (e instanceof NoColumnsError) {
-      throw new BadRequest('No valid columns given to update');
-    }
-
-    throw e;
-  }
+  const update = generateUpdate(snakecaseKeys({ disabled, nextUpdate }), 'manga_service');
   const sql = `${update} WHERE manga_id=$1 AND service_id=$2`;
 
   return db.result(sql, [mangaId, serviceId]);
+};
+
+export const createMangaService = (
+  mangaId: MangaId, serviceId: DatabaseId,
+  { titleId, feedUrl }: MangaServiceCreateData
+) => {
+  const sql = `INSERT INTO manga_service (manga_id, service_id, title_id, feed_url) VALUES ($1, $2, $3, $4)`;
+
+  return db.result(sql, [mangaId, serviceId, titleId, feedUrl]);
 };

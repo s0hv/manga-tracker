@@ -3,6 +3,7 @@ import { csrfHeader } from '@/webUtils/csrf';
 import type { DatabaseId, MangaId, MangaStatus } from '@/types/dbTypes';
 import type {
   MangaService,
+  MangaServiceCreateData,
   MangaServiceUpdateData,
   ScheduledRun,
 } from '@/types/api/manga';
@@ -90,3 +91,18 @@ export const updateMangaService = (
   })
   .then(handleResponse)
   .catch(handleError);
+
+export const createMangaService = (
+  csrf: string, mangaId: MangaId, serviceId: DatabaseId, data: MangaServiceCreateData
+) => fetch(`/api/admin/manga/${mangaId}/services/${serviceId}/create`,
+  {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...csrfHeader(csrf),
+    },
+    body: JSON.stringify({ mangaService: data }),
+  })
+  .then(handleResponse)
+  .catch(handleError);
+
