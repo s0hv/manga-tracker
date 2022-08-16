@@ -14,7 +14,7 @@ import {
   withUser,
   expectErrorMessage,
 } from '../../utils';
-import { createMangaService } from '../../dbutils';
+import { createMangaService, createManga } from '../../dbutils';
 import {
   apiRequiresAdminUserPostTests,
   apiRequiresAdminUserGetTests,
@@ -451,7 +451,7 @@ describe('POST /api/admin/manga/:mangaId/services/:serviceId', () => {
         .post(url)
         .send({ mangaService: {}})
         .csrf()
-        .expect(expectErrorMessage('No valid columns given to update', 'mangaService'));
+        .expect(expectErrorMessage('No valid columns given', 'mangaService'));
     });
   });
 
@@ -469,7 +469,7 @@ describe('POST /api/admin/manga/:mangaId/services/:serviceId', () => {
           feedUrl: 'aaa',
         }})
         .csrf()
-        .expect(expectErrorMessage('No valid columns given to update', 'mangaService'));
+        .expect(expectErrorMessage('No valid columns given', 'mangaService'));
     });
   });
 
@@ -517,3 +517,143 @@ describe('POST /api/admin/manga/:mangaId/services/:serviceId', () => {
     }).toEqual(mangaServiceNew);
   });
 });
+
+describe('POST /api/admin/manga/:mangaId/services/:serviceId/create', () => {
+  const serviceId = 1;
+  const getUrl = (mangaId) => `/api/admin/manga/${mangaId}/services/${serviceId}/create`;
+  const url = getUrl(1);
+
+  const getMangaService = (mangaId) => getMangaServices(mangaId)
+    .then(ms => ms.filter(m => m.serviceId === serviceId)[0]);
+
+  apiRequiresAdminUserPostTests(serverReference, url);
+
+  it('Returns 404 with invalid params', async () => {
+    await withUser(adminUser, async () => {
+      await request(httpServer)
+        .post('/api/admin/manga/aaa/services/aaa/create')
+        .csrf()
+        .expect(404);
+
+      await request(httpServer)
+        .post('/api/admin/manga/1e/services/1e/create')
+        .csrf()
+        .expect(404);
+
+      await request(httpServer)
+        .post('/api/admin/manga/1/services/1e/create')
+        .csrf()
+        .expect(404);
+
+      await request(httpServer)
+        .post('/api/admin/manga/1/services/aaa/create')
+        .csrf()
+        .expect(404);
+    });
+  });
+
+  it('Returns 400 with invalid body', async () => {
+    await withUser(adminUser, async () => {
+      const values = [
+        [],
+        null,
+        'aaa',
+        { mangaService: null },
+        { mangaService: []},
+        { mangaService: 'a' },
+      ];
+
+      await Promise.all(values.map(v => request(httpServer)
+        .post(url)
+        .send(v)
+        .csrf()
+        .expect(400)
+        .expect(expectErrorMessage(v?.mangaService, 'mangaService'))));
+    });
+  });
+
+  it('Returns 400 with empty body', async () => {
+    await withUser(adminUser, async () => {
+      await request(httpServer)
+        .post(url)
+        .send({ mangaService: {}})
+        .csrf()
+        .expect(400)
+        .expect(expectErrorMessage());
+    });
+  });
+
+  it('Returns 400 with invalid keys', async () => {
+    await withUser(adminUser, async () => {
+      await request(httpServer)
+        .post(url)
+        .send({ mangaService: {
+          mangaId: 1,
+          serviceId: 1,
+          lastCheck: new Date(),
+          disabled: 'aaa',
+          latestChapter: 1,
+          latestDecimal: 1,
+          nextUpdate: 'aaa',
+        }})
+        .csrf()
+        .expect(400)
+        .expect(expectErrorMessage());
+    });
+  });
+
+  it('Returns 404 with non existent manga', async () => {
+    await withUser(adminUser, async () => {
+      await request(httpServer)
+        .post(getUrl(1212121212))
+        .send({ mangaService: { titleId: 'aaa' }})
+        .csrf()
+        .expect(404);
+    });
+  });
+
+  it('Returns 404 with non existent service', async () => {
+    await withUser(adminUser, async () => {
+      await request(httpServer)
+        .post('/api/admin/manga/1/services/128/create')
+        .send({ mangaService: { titleId: 'aaa' }})
+        .csrf()
+        .expect(404)
+        .expect(expectErrorMessage('Foreign key violation'));
+    });
+  });
+
+  it('Returns 200 with valid data', async () => {
+    const mangaId = await createManga();
+
+    const createData = {
+      titleId: Date.now().toString(),
+      feedUrl: 'test url',
+    };
+
+    await withUser(adminUser, async () => {
+      await request(httpServer)
+        .post(getUrl(mangaId))
+        .send({ mangaService: {
+          mangaId: 1,
+          serviceId: 10,
+          lastCheck: new Date(),
+          disabled: true,
+          latestChapter: 1,
+          latestDecimal: 1,
+          nextUpdate: new Date(),
+          ...createData,
+        }})
+        .csrf()
+        .expect(200);
+    });
+
+    const mangaServiceNew = await getMangaService(mangaId);
+    expect(mangaServiceNew).toEqual(expect.objectContaining({
+      ...createData,
+      mangaId,
+      serviceId,
+    }));
+  });
+});
+

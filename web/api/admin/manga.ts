@@ -2,6 +2,7 @@ import express from 'express';
 import { body, param } from 'express-validator';
 import pgPromise from 'pg-promise';
 import {
+  createMangaService,
   getMangaServices,
   updateMangaInfo,
   updateMangaService,
@@ -145,6 +146,27 @@ export default () => {
     handleValidationErrors,
   ], (req, res) => {
     updateMangaService(req.params!.mangaId, req.params!.serviceId, req.body.mangaService)
+      .then(r => {
+        if (r.rowCount === 0) return res.sendStatus(404);
+
+        res.sendStatus(200);
+      })
+      .catch(err => handleError(err, res));
+  });
+
+  router.post('/:mangaId(\\d+)/services/:serviceId(\\d+)/create', ...[
+    mangaIdValidation(param('mangaId')),
+    databaseIdValidation(param('serviceId')),
+    body('mangaService')
+      .isObject({ strict: true }),
+    body('mangaService.titleId')
+      .isString(),
+    body('mangaService.feedUrl')
+      .optional({ nullable: true })
+      .isString(),
+    handleValidationErrors,
+  ], (req, res) => {
+    createMangaService(req.params!.mangaId, req.params!.serviceId, req.body.mangaService)
       .then(r => {
         if (r.rowCount === 0) return res.sendStatus(404);
 

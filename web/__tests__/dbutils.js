@@ -62,10 +62,15 @@ export const userSessionCount = async (uuid) => {
   return Number(row.count);
 };
 
+export const createManga = async () => {
+  return db.one('INSERT INTO manga (title, release_interval, latest_release, estimated_release, latest_chapter) VALUES ($1, NULL, NULL, NULL, NULL) RETURNING manga_id', ['test'])
+    .then(row => row.mangaId);
+};
+
 export const createMangaService = async (serviceId) => {
   const id = Date.now().toString();
-  return db.one('INSERT INTO manga (title, release_interval, latest_release, estimated_release, latest_chapter) VALUES ($1, NULL, NULL, NULL, NULL) RETURNING manga_id', ['test'])
-    .then(row => db.one(`INSERT INTO manga_service (manga_id, service_id, last_check, title_id, next_update, latest_chapter, latest_decimal, feed_url) VALUES 
-                                                           ($1, $2, NULL, $3, NULL, NULL, NULL, $3) RETURNING manga_id`, [row.mangaId, serviceId, id]))
+  return createManga()
+    .then(mangaId => db.one(`INSERT INTO manga_service (manga_id, service_id, last_check, title_id, next_update, latest_chapter, latest_decimal, feed_url) VALUES 
+                                                           ($1, $2, NULL, $3, NULL, NULL, NULL, $3) RETURNING manga_id`, [mangaId, serviceId, id]))
     .then(row => row.mangaId);
 };

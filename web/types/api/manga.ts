@@ -62,3 +62,9 @@ export type MangaServiceUpdateData = Partial<Pick<
   | 'disabled'
   | 'nextUpdate'
 >>;
+
+export type MangaServiceCreateData = Partial<Pick<
+  MangaService,
+  | 'titleId'
+  | 'feedUrl'
+>>;

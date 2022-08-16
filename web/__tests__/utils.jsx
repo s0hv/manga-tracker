@@ -269,6 +269,7 @@ export function getErrorMessage(res) {
 
 export function expectErrorMessage(value, param, message='Invalid value') {
   return (res) => {
+    expect(res.ok).toBeFalse();
     expect(res.body).toBeObject();
     let errors = res.body.error;
     expect(errors).toBeDefined();

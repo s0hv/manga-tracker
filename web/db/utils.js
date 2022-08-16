@@ -3,6 +3,8 @@ import {
   INVALID_TEXT_REPRESENTATION,
   UNIQUE_VIOLATION,
   IN_FAILED_SQL_TRANSACTION,
+  FOREIGN_KEY_VIOLATION,
+  NOT_NULL_VIOLATION,
 } from 'pg-error-constants';
 
 import { pgp } from '.';
@@ -37,6 +39,11 @@ export function handleError(err, res, msgOverrides = {}) {
     return;
   }
 
+  if (err instanceof NoColumnsError) {
+    res.status(400).json({ error: err.message || 'No valid columns given' });
+    return;
+  }
+
   const msg = msgOverrides[err.code];
   if (err.code === INVALID_TEXT_REPRESENTATION) {
     dbLogger.debug(err.message);
@@ -45,6 +52,10 @@ export function handleError(err, res, msgOverrides = {}) {
     res.status(400).json({ error: msg || 'Number value out of range' });
   } else if (err.code === UNIQUE_VIOLATION) {
     res.status(422).json({ error: msg || 'Resource already exists' });
+  } else if (err.code === FOREIGN_KEY_VIOLATION) {
+    res.status(404).json({ error: msg || 'Foreign key violation' });
+  } else if (err.code === NOT_NULL_VIOLATION) {
+    res.status(400).json({ error: msg || 'Not null value was null' });
   } else {
     dbLogger.error(err, 'Unknown database error');
     res.status(500).json({ error: msg || 'Internal server error' });
