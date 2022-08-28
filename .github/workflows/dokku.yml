@@ -6,10 +6,6 @@ on:
     branches: [ master ]
     types:
       - completed
-  push:
-    branches: [ master ]
-    paths-ignore:
-      - 'scripts/**'
 
 jobs:
   check-dokku:
@@ -30,7 +26,7 @@ jobs:
           fi
   publish:
     needs: [check-dokku]
-    if: github.event.workflow_run.conclusion == 'success' && needs.check-dokku.outputs.use_dokku == 'true' 
+    if: github.event.workflow_run.conclusion == 'success' && needs.check-dokku.outputs.use_dokku == 'true'
     name: Deploy
     runs-on: ubuntu-latest
 
@@ -42,6 +38,7 @@ jobs:
         name: Deploy to dokku
         uses: idoberko2/dokku-deploy-github-action@v1
         with:
+          git-push-flags: --force
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
           dokku-host: ${{ secrets.DOKKU_HOST }}
           app-name: ${{ secrets.DOKKU_APP }}

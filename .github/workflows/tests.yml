@@ -5,6 +5,7 @@ on:
     branches: [ master, development ]
     paths-ignore:
       - 'scripts/**'
+      - '.github/workflows/dokku.yml'
   pull_request:
 
 jobs:
