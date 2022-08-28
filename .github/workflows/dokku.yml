@@ -12,8 +12,25 @@ on:
       - 'scripts/**'
 
 jobs:
+  check-dokku:
+    name: Check if dokku secrets exist
+    runs-on: ubuntu-latest
+    outputs:
+      use_dokku: ${{ steps.setvar.outputs.use_dokku }}
+    steps:
+      - id: setvar
+        run: |
+          if [[ "${{ secrets.DOKKU_HOST }}" != "" ]]; \
+          then
+            echo "Dokku host defined."
+            echo "::set-output name=use_dokku::true"
+          else
+            echo "Dokku host not defined"
+            echo "::set-output name=use_dokku::false"
+          fi
   publish:
-    if: ${{ github.event.workflow_run.conclusion == 'success' && secrets.DOKKU_HOST != '' }}
+    needs: [check-dokku]
+    if: github.event.workflow_run.conclusion == 'success' && needs.check-dokku.outputs.use_dokku == 'true' 
     name: Deploy
     runs-on: ubuntu-latest
 
