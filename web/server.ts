@@ -57,7 +57,7 @@ passport.deserializeUser((user, done) => {
 });
 
 // Turn off when not using this app with a reverse proxy like heroku
-const reverseProxy = !isDev;
+const reverseProxy = !!process.env.TRUST_PROXY;
 if (!isDev && !process.env.SESSION_SECRET) throw new Error('No session secret given');
 
 const nextApp = next_({ dev: isDev });
@@ -84,7 +84,7 @@ export default nextApp.prepare()
       crossOriginEmbedderPolicy: false,
       hsts: !isDev,
     }));
-    if (reverseProxy) server.enable('trust-proxy');
+    if (reverseProxy) server.set('trust proxy', process.env.TRUST_PROXY);
 
     const store = new PostgresStore({
       conn: db,
@@ -127,7 +127,16 @@ export default nextApp.prepare()
 
     server.use((req, res, next) => {
       logger.debug('Auth cookie: %s', req.cookies.auth);
-      logger.debug('%s %s', req.method, req.originalUrl);
+
+      res.on('finish', () => {
+        expressLogger.info('%s %s %s %s  User Agent: %s',
+          res.statusCode,
+          req.method,
+          req.ip,
+          req.originalUrl,
+          req.headers['user-agent']);
+      });
+
       // if (!req.originalUrl.startsWith('/_next/static')) debug(req.originalUrl);
       next();
     });
@@ -198,7 +207,6 @@ export default nextApp.prepare()
     });
 
     server.get('*', (req, res) => handle(req, res));
-
 
     // Error handlers
     server.use((err: any, req: express.Request, res: express.Response, next: NextFunction) => {
