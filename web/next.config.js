@@ -8,7 +8,6 @@ const withTM = withTmInitializer(([
 
 export default async (phase, { defaultConfig }) => {
   const conf = withTM({
-    ...defaultConfig,
     webpack(config) {
       if (config.resolve.fallback) {
         config.resolve.fallback.fs = false;
