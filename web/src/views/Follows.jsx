@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Container, IconButton, Paper, Typography, } from '@mui/material';
+import { Container, IconButton, Paper, Typography } from '@mui/material';
 import { lighten, styled } from '@mui/material/styles';
 import { RssFeed as RssFeedIcon } from '@mui/icons-material';
 import PropTypes from 'prop-types';

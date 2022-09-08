@@ -1,5 +1,5 @@
 import React from 'react';
-import { Divider, Link, Typography, IconButton, } from '@mui/material';
+import { Divider, Link, Typography, IconButton } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import GitHubIcon from '@mui/icons-material/GitHub';
 import PropTypes from 'prop-types';
