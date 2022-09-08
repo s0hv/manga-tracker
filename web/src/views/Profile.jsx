@@ -1,6 +1,6 @@
 import { useSnackbar } from 'notistack';
 import React, { useCallback, useMemo } from 'react';
-import { Button, Container, LinearProgress, Paper, } from '@mui/material';
+import { Button, Container, LinearProgress, Paper } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { Form } from 'react-final-form';
 import { TextField, makeValidateSync, makeRequired } from 'mui-rff';

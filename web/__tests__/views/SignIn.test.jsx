@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, act, fireEvent, } from '@testing-library/react';
+import { render, screen, act, fireEvent } from '@testing-library/react';
 import fetchMock from 'fetch-mock';
 
 import {

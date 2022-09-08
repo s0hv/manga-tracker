@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState, } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { IconButton, InputBase, Popper } from '@mui/material';
 import { alpha, styled } from '@mui/material/styles';
 import Autocomplete from '@mui/material/Autocomplete';

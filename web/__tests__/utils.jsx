@@ -351,7 +351,9 @@ export const getRowByColumnValue = (table, header, valueCheck) => {
 
   if (headerIndex < 0) throw new Error(`Header index not found for "${header}"`);
 
-  for (const row of table.querySelectorAll('tbody tr')) {
+  const rows = table.querySelectorAll('tbody tr');
+  for (let idx = 0; idx < rows.length; idx++) {
+    const row = rows[idx];
     if (valueCheck(row.cells[headerIndex])) return row;
   }
 };

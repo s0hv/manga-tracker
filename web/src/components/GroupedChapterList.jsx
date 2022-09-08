@@ -1,6 +1,6 @@
 import propTypes from 'prop-types';
 import React, { useEffect, useState } from 'react';
-import { Paper, Container, Typography, IconButton, } from '@mui/material';
+import { Paper, Container, Typography, IconButton } from '@mui/material';
 
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import { groupBy } from '../utils/utilities';

@@ -16,7 +16,7 @@ import {
 } from '@mui/icons-material';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
-import React, { useCallback, useEffect, useMemo, useState, } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { useCSRF } from '../utils/csrf';
 import { useUser } from '../utils/useUser';
