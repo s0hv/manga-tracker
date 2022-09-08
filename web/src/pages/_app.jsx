@@ -126,7 +126,7 @@ MainApp.getInitialProps = async function getInitialProps({ ctx: { req, res }}) {
     return { props: { statusCode: 200 }};
   }
   sessionLogger.debug('Initial props %o', req.user);
-  sessionLogger.info(csrfProps({ req }));
+  sessionLogger.debug(csrfProps({ req }));
 
   return {
     props: {
