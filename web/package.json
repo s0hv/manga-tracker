@@ -10,7 +10,7 @@
   },
   "scripts": {
     "start": "node --enable-source-maps --experimental-specifier-resolution=node dist/server.js",
-    "start-dev": "ts-node-esm --project tsconfig.server.json --files --experimental-specifier-resolution=node -r dotenv/config server.ts",
+    "start-dev": "node --enable-source-maps --experimental-specifier-resolution=node -r dotenv/config dist/server.js",
     "build": "tsc --project tsconfig.server.json && tsc-alias --project tsconfig.server.json && next build",
     "server-dev": "nodemon -r dotenv/config --experimental-specifier-resolution=node --loader ./loader.js --watch api/* --watch db/* --watch server.ts server.ts",
     "deploy": "npm run start",
