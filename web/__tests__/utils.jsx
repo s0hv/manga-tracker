@@ -326,3 +326,32 @@ export const expectRequestCalledWithBody = (req, expectedBody) => {
 
   expect(body).toEqual(expectedBody);
 };
+
+/**
+ *
+ * @param {HTMLTableElement} table
+ * @param {string | RegExp} header
+ * @param {(HTMLTableCellElement) => boolean} valueCheck
+ *
+ * @returns {HTMLTableRowElement}
+ */
+export const getRowByColumnValue = (table, header, valueCheck) => {
+  /**
+   * @type {HTMLTableRowElement}
+   */
+  const headerRow = table.querySelector('thead tr');
+
+  if (!headerRow) throw new Error('Header row not found');
+
+  const headerComp = typeof header === 'string' ?
+    (v) => v.textContent === header :
+    (v) => header.test(v.textContent);
+
+  const headerIndex = Array.from(headerRow.cells).findIndex(headerComp);
+
+  if (headerIndex < 0) throw new Error(`Header index not found for "${header}"`);
+
+  for (const row of table.querySelectorAll('tbody tr')) {
+    if (valueCheck(row.cells[headerIndex])) return row;
+  }
+};

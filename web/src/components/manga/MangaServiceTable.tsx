@@ -63,7 +63,7 @@ export const MangaServiceTable: FunctionComponent<MangaServiceTableProps> = (pro
   const { enqueueSnackbar } = useSnackbar();
   const csrf = useCSRF();
 
-  const onSaveRow = useCallback((state, ctx: MaterialCellContext<MangaService, unknown>) => {
+  const onSaveRow = useCallback((state: Partial<MangaService>, ctx: MaterialCellContext<MangaService, unknown>) => {
     const keys = Object.keys(state);
     if (keys.length === 0) return;
 

@@ -5,6 +5,7 @@ import { format, formatDistanceToNowStrict } from 'date-fns';
 import enLocale from 'date-fns/locale/en-GB';
 
 import {
+  defaultOnSaveRow,
   EditableCheckbox,
   EditableDateTimePicker,
   MaterialTable,
@@ -15,13 +16,16 @@ import type {
   MaterialCellContext,
   MaterialColumnDef,
 } from '@/components/MaterialTable/types';
-import type { ServiceForAdmin } from '@/types/api/services';
+import type {
+  ServiceForAdmin,
+  ServiceForAdminSerialized,
+} from '@/types/api/services';
 import { createColumnHelper } from '@/components/MaterialTable/utilities';
 
 const columnHelper = createColumnHelper<ServiceForAdmin>();
 
 export type ServicesProps = {
-  services?: ServiceForAdmin[]
+  services?: ServiceForAdmin[] | ServiceForAdminSerialized[]
 }
 
 function Services(props: ServicesProps): ReactElement {
@@ -38,7 +42,7 @@ function Services(props: ServicesProps): ReactElement {
       service.lastCheck = service.lastCheck ? new Date(service.lastCheck) : undefined;
       service.nextUpdate = service.nextUpdate ? new Date(service.nextUpdate) : undefined;
     });
-    return services;
+    return services as ServiceForAdmin[];
   },
   [services]);
 
@@ -82,6 +86,7 @@ function Services(props: ServicesProps): ReactElement {
       EditCell: (ctx) => (
         <EditableCheckbox
           checked={ctx.row.original.disabled}
+          aria-label='disabled'
           ctx={ctx as MaterialCellContext<any, boolean>}
         />
       ),
@@ -89,13 +94,12 @@ function Services(props: ServicesProps): ReactElement {
   ],
   []);
 
-  const onSaveRow = useCallback((row, state) => {
+  const onSaveRow = useCallback((state: Partial<ServiceForAdmin>, ctx: MaterialCellContext<ServiceForAdmin, unknown>) => {
     const keys = Object.keys(state);
     if (keys.length === 0) return;
 
-    keys.forEach(key => {
-      row.values[key] = state[key];
-    });
+    const { row } = ctx;
+    defaultOnSaveRow(state, ctx);
 
     const body = {
       service: {
