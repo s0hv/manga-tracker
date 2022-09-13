@@ -1,6 +1,6 @@
 export default async function stopServer(httpServer) {
   console.log('Closing server');
-  const { pgp } = require('../db');
+  const { db } = require('../db');
   let elasticsearch = require('../db/elasticsearch');
   if (elasticsearch.default) {
     elasticsearch = elasticsearch.default;
@@ -9,7 +9,7 @@ export default async function stopServer(httpServer) {
   const { redis } = require('../utils/ratelimits');
   redis.disconnect();
 
-  await pgp.end();
+  await db.end({ timeout: 5 });
   await elasticsearch.close();
   jest.clearAllTimers();
 }

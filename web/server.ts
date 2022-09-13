@@ -10,7 +10,7 @@ import pinoHttp from 'pino-http';
 import cookieParser from 'cookie-parser';
 
 import { csrfMissing, isDev, isTest } from './utils/constants.js';
-import { db } from './db';
+import { db } from './db/helpers';
 import PostgresStore from './db/session-store';
 import {
   authenticate,
@@ -18,7 +18,7 @@ import {
   createRememberMeToken,
   requiresUser,
   setUserOnLogin,
-} from './db/auth.js';
+} from './db/auth';
 import { bruteforce, rateLimiter } from './utils/ratelimits.js';
 import { expressLogger, logger, sessionLogger } from './utils/logging.js';
 
@@ -34,6 +34,7 @@ import {
   settingsApi,
   userApi,
 } from './api/index.js';
+import type { User } from '@/types/db/user';
 
 passport.use(
   new JsonStrategy(
@@ -146,7 +147,8 @@ export default nextApp.prepare()
       passport.authenticate('json'),
       (req, res) => {
         if (req.body.rememberme === true) {
-          createRememberMeToken(req, req.user)
+          // The user field is set by passport instead of express session here
+          createRememberMeToken(req, req.user as any as User)
             .then(token => {
               res.cookie('auth', token, {
                 maxAge: 2592000000, // 30d in ms
@@ -161,7 +163,7 @@ export default nextApp.prepare()
               res.sendStatus(500);
             });
         } else {
-          setUserOnLogin(req, req.user);
+          setUserOnLogin(req, req.user as any as User);
           res.redirect('/');
         }
       });

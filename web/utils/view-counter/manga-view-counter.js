@@ -1,4 +1,4 @@
-import { query } from '../../db';
+import { db } from '../../db/helpers';
 
 export const mangaView = (session, params) => {
   if (!session) {
@@ -27,14 +27,7 @@ export const onSessionExpire = (session) => {
     return Promise.resolve();
   }
 
-  // List of args [$1, $2, $3, ...]
-  const args = [];
-  for (let i=1; i <= Object.keys(session.mangaViews).length; i++) {
-    args.push(`$${i}`);
-  }
-
   // Increment views for each manga that was found by one
-  const sql = `UPDATE manga SET views=views+1 WHERE manga_id IN (${args.join(',')})`;
-  return query(sql, Object.keys(session.mangaViews));
+  return db.sql`UPDATE manga SET views=views+1 WHERE manga_id IN ${db.sql(Object.keys(session.mangaViews))}`.execute();
 };
 

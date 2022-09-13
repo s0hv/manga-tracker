@@ -200,6 +200,24 @@ describe('GET /api/admin/manga/:mangaId/scheduledRuns', () => {
     });
   });
 
+  it('returns ok when no rows', async () => {
+    mangaId = await createMangaService(serviceId);
+    url = `/api/admin/manga/${mangaId}/scheduledRuns`;
+    await withUser(adminUser, async () => {
+      await request(httpServer)
+        .get(url)
+        .expect(200)
+        .expect('content-type', /application\/json/)
+        .expect(res => {
+          expect(res.body).toBeObject();
+
+          const data = res.body.data;
+          expect(data).toBeArray();
+          expect(data).toHaveLength(0);
+        });
+    });
+  });
+
   /** Does not do this at the moment
   it('Returns 404 when resource does not exist', async () => {
     await withUser(adminUser, async () => {

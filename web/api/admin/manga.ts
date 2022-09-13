@@ -1,6 +1,5 @@
 import express from 'express';
 import { body, param } from 'express-validator';
-import pgPromise from 'pg-promise';
 import {
   createMangaService,
   getMangaServices,
@@ -25,8 +24,7 @@ import {
 import { getMangaForElastic } from '@/db/manga';
 import { updateManga } from '@/db/elasticsearch/manga';
 import { MangaStatus } from '@/types/dbTypes';
-
-const { QueryResultError } = pgPromise.errors;
+import { NoResultsError } from '@/db/errors';
 
 export default () => {
   const router = express.Router();
@@ -53,7 +51,7 @@ export default () => {
   ]);
   router.route(scheduleRunUrl)
     .post((req, res) => {
-      scheduleMangaRun(req.params.mangaId, req.params.serviceId, req.user.userId)
+      scheduleMangaRun(req.params.mangaId, req.params.serviceId, req.user!.userId)
         .then(row => {
           res.status(200).json({
             inserted: row,
@@ -65,7 +63,7 @@ export default () => {
     .delete((req, res) => {
       deleteScheduledRun(req.params.mangaId, req.params.serviceId)
         .then(rows => {
-          if (rows.rowCount > 0) {
+          if (rows.count > 0) {
             res.status(200).end();
           } else {
             res.status(404).end();
@@ -92,7 +90,7 @@ export default () => {
           });
       })
       .catch(err => {
-        if (err instanceof QueryResultError) {
+        if (err instanceof NoResultsError) {
           res.status(404).json({ error: 'Manga not found' });
           return;
         }
@@ -111,7 +109,7 @@ export default () => {
       mangaId: req.params!.mangaId,
     })
       .then(r => {
-        if (r.rowCount === 0) return res.sendStatus(404);
+        if (r.count === 0) return res.sendStatus(404);
 
         res.sendStatus(200);
       })
@@ -147,7 +145,7 @@ export default () => {
   ], (req, res) => {
     updateMangaService(req.params!.mangaId, req.params!.serviceId, req.body.mangaService)
       .then(r => {
-        if (r.rowCount === 0) return res.sendStatus(404);
+        if (r.count === 0) return res.sendStatus(404);
 
         res.sendStatus(200);
       })
@@ -168,7 +166,7 @@ export default () => {
   ], (req, res) => {
     createMangaService(req.params!.mangaId, req.params!.serviceId, req.body.mangaService)
       .then(r => {
-        if (r.rowCount === 0) return res.sendStatus(404);
+        if (r.count === 0) return res.sendStatus(404);
 
         res.sendStatus(200);
       })

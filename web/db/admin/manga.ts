@@ -1,5 +1,4 @@
-import snakecaseKeys from 'snakecase-keys';
-import { db } from '..';
+import { db } from '../helpers';
 import type { DatabaseId, MangaId, MangaInfoUpdate } from '@/types/dbTypes';
 import type {
   MangaService,
@@ -9,29 +8,24 @@ import type {
 import { generateUpdate } from '../utils';
 
 export const updateMangaTitle = (mangaId: MangaId, newTitle: string) => {
-  const sql = `UPDATE manga
-               SET title=$1
-               WHERE manga_id=$2
-               RETURNING (SELECT title FROM manga WHERE manga_id=$2)`;
+  const sql = db.one`UPDATE manga
+               SET title=${newTitle}
+               WHERE manga_id=${mangaId}
+               RETURNING (SELECT title FROM manga WHERE manga_id=${mangaId})`;
 
-  const aliasSql = `UPDATE manga_alias
-                    SET title=$1
-                    WHERE manga_id=$2 AND title=$3 AND NOT EXISTS(SELECT 1 FROM manga_alias WHERE manga_id=$2 AND title=$1)
-                    RETURNING title`;
-
-  return db.one(sql, [newTitle, mangaId])
-    .then(row => db.oneOrNone(aliasSql, [row.title, mangaId, newTitle]));
+  return sql.then(row => db.oneOrNone`
+    UPDATE manga_alias
+    SET title=${row.title}
+    WHERE manga_id=${mangaId} AND title=${newTitle} AND NOT EXISTS(SELECT 1 FROM manga_alias WHERE manga_id=${mangaId} AND title=${row.title})
+    RETURNING title`);
 };
 
 export const updateMangaInfo = (mangaInfo: MangaInfoUpdate) => {
-  const sql = 'UPDATE manga_info SET status=$1 WHERE manga_id=$2';
-  return db.result(sql, [mangaInfo.status, mangaInfo.mangaId]);
+  return db.sql`UPDATE manga_info SET status=${mangaInfo.status} WHERE manga_id=${mangaInfo.mangaId}`.execute();
 };
 
 export const getMangaServices = (mangaId: MangaId): Promise<MangaService[]> => {
-  const sql = `SELECT * FROM manga_service WHERE manga_id=$1`;
-
-  return db.manyOrNone<MangaService>(sql, [mangaId]);
+  return db.manyOrNone<MangaService>`SELECT * FROM manga_service WHERE manga_id=${mangaId}`;
 };
 
 
@@ -39,17 +33,14 @@ export const updateMangaService = async (
   mangaId: MangaId, serviceId: DatabaseId,
   { disabled, nextUpdate }: MangaServiceUpdateData
 ) => {
-  const update = generateUpdate(snakecaseKeys({ disabled, nextUpdate }), 'manga_service');
-  const sql = `${update} WHERE manga_id=$1 AND service_id=$2`;
-
-  return db.result(sql, [mangaId, serviceId]);
+  return db.sql`UPDATE manga_service SET ${generateUpdate({ disabled, nextUpdate }, db.sql)} WHERE manga_id=${mangaId} AND service_id=${serviceId}`.execute();
 };
 
 export const createMangaService = (
   mangaId: MangaId, serviceId: DatabaseId,
   { titleId, feedUrl }: MangaServiceCreateData
 ) => {
-  const sql = `INSERT INTO manga_service (manga_id, service_id, title_id, feed_url) VALUES ($1, $2, $3, $4)`;
-
-  return db.result(sql, [mangaId, serviceId, titleId, feedUrl]);
+  return db.sql`INSERT INTO manga_service (manga_id, service_id, title_id, feed_url) 
+                VALUES (${mangaId}, ${serviceId}, ${titleId}, ${feedUrl})`
+    .execute();
 };

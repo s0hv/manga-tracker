@@ -1,37 +1,30 @@
-import { db } from '.';
+import { db } from './helpers';
+import type { DatabaseId, MangaId } from '@/types/dbTypes';
 
-export function getLatestReleases(serviceId, mangaId, userUUID) {
+export function getLatestReleases(serviceId?: DatabaseId, mangaId?: MangaId, userUUID?: string) {
   const joins = [];
   const where = [];
-  const args = [];
-  let paramNumber = 1;
   if (userUUID) {
-    joins.push(`INNER JOIN user_follows uf ON c.manga_id = uf.manga_id AND (uf.service_id IS NULL OR c.service_id=uf.service_id) 
+    joins.push(db.sql`INNER JOIN user_follows uf ON c.manga_id = uf.manga_id AND (uf.service_id IS NULL OR c.service_id=uf.service_id) 
                     INNER JOIN users u ON u.user_id=uf.user_id`);
-    where.push(`u.user_uuid=$${paramNumber}::uuid`);
-    args.push(userUUID);
-    paramNumber++;
+    where.push(db.sql`u.user_uuid=${userUUID}::uuid`);
   }
 
   if (mangaId) {
-    where.push(`c.manga_id=$${paramNumber}`);
-    args.push(mangaId);
-    paramNumber++;
+    where.push(db.sql`c.manga_id=${mangaId}`);
   }
 
   if (serviceId) {
-    where.push(`c.service_id=$${paramNumber}`);
-    args.push(serviceId);
-    paramNumber++;
+    where.push(db.sql`c.service_id=${serviceId}`);
   }
 
-  const sql = `
+  return db.any`
         WITH chapters_filtered AS (
             SELECT chapter_id, title, chapter_number, chapter_decimal, release_date, chapter_identifier, c.service_id, c.manga_id, g.name as "group"
             FROM chapters as c
             INNER JOIN groups g ON g.group_id = c.group_id 
-            ${joins.join(' ')}
-            ${where.length > 0 ? 'WHERE ' + where.join(' AND ') : ''}
+            ${joins.reduce((acc, join) => db.sql`${acc} ${join}`, db.sql``)}
+            ${where.length > 0 ? db.sql`WHERE ${where.reduce((acc, condition) => db.sql`${acc} AND ${condition}`)}` : db.sql``}
         )
         SELECT 
                c.chapter_id,
@@ -80,11 +73,8 @@ export function getLatestReleases(serviceId, mangaId, userUUID) {
               ORDER BY release_date DESC, chapter_number DESC
               LIMIT 30)
         ORDER BY release_date DESC, chapter_number DESC`;
-
-  return db.any(sql, args);
 }
 
-export function getUserFollows(userId, mangaId) {
-  const sql = 'SELECT service_id FROM user_follows WHERE user_id=$1 AND manga_id=$2';
-  return db.query(sql, [userId, mangaId]);
+export function getUserFollows(userId: DatabaseId, mangaId: MangaId) {
+  return db.any<{ serviceId: number }>`SELECT service_id FROM user_follows WHERE user_id=${userId} AND manga_id=${mangaId}`;
 }

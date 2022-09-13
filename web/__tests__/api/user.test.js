@@ -291,6 +291,7 @@ describe('POST /api/user/profile', () => {
         .expect(400)
         .expect(expectErrorMessage('🤠@🤠.com', 'email'));
 
+      expect(spy).toHaveBeenCalled();
       expectOnlySessionInsert(spy);
     });
   });
@@ -323,6 +324,7 @@ describe('POST /api/user/profile', () => {
         .expect(400)
         .expect(expectErrorMessage(tooShort, 'newPassword', 'Password must be between 8 and 72 characters long'));
 
+      expect(spy).toHaveBeenCalled();
       expectOnlySessionInsert(spy);
     });
   });
@@ -344,6 +346,7 @@ describe('POST /api/user/profile', () => {
         .expect(400)
         .expect(expectErrorMessage(newPassword, 'newPassword', /did not match/));
 
+      expect(spy).toHaveBeenCalled();
       expectOnlySessionInsert(spy);
     });
   });
@@ -366,6 +369,7 @@ describe('POST /api/user/profile', () => {
         .expect(401)
         .expect(expectErrorMessage('Password required for modifying newPassword'));
 
+      expect(spy).toHaveBeenCalled();
       expectOnlySessionInsert(spy);
     });
   });
@@ -386,6 +390,7 @@ describe('POST /api/user/profile', () => {
         .expect(401)
         .expect(expectErrorMessage(/Password required for modifying/));
 
+      expect(spy).toHaveBeenCalled();
       expectOnlySessionInsert(spy);
     });
   });

@@ -5,14 +5,14 @@ declare module 'express-session' {
   interface SessionData {
     user: SessionUser;
     userId?: number,
-    theme: Theme
+    theme: Theme | null
     mangaViews: Record<string, number>
   }
 }
 
 declare module 'express-serve-static-core' {
   interface Request {
-    user: SessionUser;
+    user: SessionUser | null;
   }
 
   interface Express {

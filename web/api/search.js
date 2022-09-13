@@ -1,17 +1,14 @@
 import camelcaseKeys from 'camelcase-keys';
 import { query } from 'express-validator';
 
-import {
-  handleElasticError,
-  extractFields,
-} from '../db/elasticsearch/utils.js';
+import { handleElasticError, extractFields } from '@/db/elasticsearch/utils';
 import {
   hadValidationError,
   handleValidationErrors,
 } from '../utils/validators.js';
-import { handleError } from '../db/utils.js';
-import { getFullManga } from '../db/manga';
-import { mangaSearch } from '../db/elasticsearch/manga';
+import { handleError } from '@/db/utils';
+import { getFullManga } from '@/db/manga';
+import { mangaSearch } from '@/db/elasticsearch/manga';
 
 
 const searchQueryValidation = query('query')

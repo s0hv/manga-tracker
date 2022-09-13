@@ -1,8 +1,8 @@
 import { query, param } from 'express-validator';
 
-import { db } from '../db';
-import { handleError } from '../db/utils.js';
-import { getChapters } from '../db/chapter.js';
+import { db } from '@/db/helpers';
+import { handleError } from '@/db/utils';
+import { getChapters } from '@/db/chapter';
 import { getOptionalNumberParam } from '../utils/utilities.js';
 import {
   mangaIdValidation,
@@ -11,9 +11,9 @@ import {
   databaseIdValidation,
   handleValidationErrors,
 } from '../utils/validators.js';
-import { requiresUser } from '../db/auth.js';
-import { getFullManga, getMangaForElastic } from '../db/manga';
-import { updateManga, deleteManga } from '../db/elasticsearch/manga';
+import { requiresUser } from '@/db/auth';
+import { getFullManga, getMangaForElastic } from '@/db/manga';
+import { updateManga, deleteManga } from '@/db/elasticsearch/manga';
 import { dbLogger } from '../utils/logging.js';
 
 const BASE_URL = '/api/manga';
@@ -32,8 +32,7 @@ export default app => {
       return;
     }
 
-    const sql = 'SELECT * FROM merge_manga($1, $2, $3)';
-    db.oneOrNone(sql, [req.query.base, req.query.toMerge, req.query.service || null])
+    return db.oneOrNone`SELECT * FROM merge_manga(${req.query.base}, ${req.query.toMerge}, ${req.query.service || null})`
       .then(row => {
         if (!row) {
           return res.status(500).json({ error: 'No modifications done' });

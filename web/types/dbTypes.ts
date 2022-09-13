@@ -8,7 +8,7 @@ export interface SessionUser {
     username: string,
     uuid: string,
     userId: number,
-    theme: Theme,
+    theme: Theme | null,
     admin: boolean,
 }
 
@@ -31,6 +31,11 @@ export enum MangaStatus {
     COMPLETED = 1,
     DROPPED = 2,
     HIATUS = 3,
+}
+
+export enum NotificationType {
+  DiscordWebhook = 1,
+  GenericWebhook = 2,
 }
 
 export type MangaId = number | string;

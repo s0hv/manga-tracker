@@ -1,77 +1,67 @@
-import camelcaseKeys from 'camelcase-keys';
-import { performance } from 'perf_hooks';
-import pgPromise, { IDatabase, QueryParam } from 'pg-promise';
-
+import postgres, { type PostgresType } from 'postgres';
+import parseInterval, { type IPostgresInterval } from 'postgres-interval';
 import { queryLogger } from '../utils/logging.js';
 
 const isTest = process.env.NODE_ENV === 'test';
 
-export const pgp = pgPromise({
-  noLocking: isTest, // Locking must not be set on during test so mocks can be made.
-  capSQL: true,
-  pgFormatting: true, // When this is false parameters would always be logged since they're embedded in the query
-
-  // Log duration and query
-  receive(data, result, e) {
-    if (!result) return;
-
-    const { duration } = result;
-
-    // This should result in minimal performance impact except on the first query,
-    // as the object keys are not yet cached at that point
-    const t0 = performance.now();
-    result.rows = camelcaseKeys(data, { deep: true });
-    const camelCaseDuration = performance.now() - t0;
-
-    if (queryLogger.level === 'debug') {
-      queryLogger.debug({
-        params: e.params,
-        duration: `${duration}ms`,
-        camelCaseDuration,
-      }, e.query);
-    } else {
-      queryLogger.info({
-        duration: `${duration}ms`,
-        camelCaseDuration,
-      }, e.query);
-    }
+const intervalType: PostgresType<IPostgresInterval> = {
+  to: 1186,
+  from: [1186],
+  serialize: (value: any | IPostgresInterval) => {
+    // Can also be a string input
+    if (typeof value?.toPostgres === 'function') return value.toPostgres();
+    return value;
   },
+  parse: (raw) => parseInterval(raw),
+};
 
-  // Error logging
-  error(err, e) {
-    queryLogger.error(err, e.query);
-  },
-});
+type CustomTypes = {
+  undefined: PostgresType<undefined>,
+  interval: typeof intervalType,
+}
+
+export type Db = ReturnType<typeof postgres<CustomTypes>>;
 
 // https://stackoverflow.com/a/34427278/6046713
-const createSingletonDb = (): IDatabase<any> => {
+const createSingletonDb = (): Db => {
   const s: unique symbol = Symbol.for('database');
-  let scope: IDatabase<any> | undefined = (global as unknown as any)[s] as IDatabase<any> | undefined;
+  let scope: Db | undefined = (global as unknown as any)[s] as Db | undefined;
   if (!scope) {
-    scope = pgp({
+    scope = postgres<CustomTypes>({
       host: process.env.DB_HOST,
-      user: process.env.DB_USER,
+      username: process.env.DB_USER,
       database: isTest ?
         process.env.DB_NAME_TEST || process.env.DB_NAME :
         process.env.DB_NAME,
       port: Number(process.env.DB_PORT),
       password: process.env.PGPASSWORD,
-      max: 5,
-      idleTimeoutMillis: 30000,
-      connectionTimeoutMillis: 5000,
+      max: 10,
+      idle_timeout: 30000,
+      connect_timeout: 5000,
+      transform: {
+        undefined: null,
+        column: { to: postgres.fromCamel, from: postgres.toCamel },
+      },
+      types: {
+        interval: intervalType,
+        // Will be ignored. It's here just to satisfy typescript
+        undefined: {} as PostgresType<undefined>,
+      },
+      debug: (connection, query, parameters) => {
+        queryLogger.level === 'debug' ?
+          queryLogger.debug({ parameters }, query) :
+          queryLogger.info({}, query);
+      },
     });
     (global as unknown as any)[s] = scope;
   }
   return scope!;
 };
 
-export const db = createSingletonDb();
+export const db: Db = createSingletonDb();
+export const sql: Db = db;
 
-
-export function query(sql: QueryParam, args?: any) {
-  return db.query(sql, args);
-}
 
 export async function end() {
-  await pgp.end();
+  await db.end({ timeout: 15 });
 }

@@ -1,12 +1,5 @@
-import { PostgresInterval } from '../dbTypes';
+export type { ServiceConfig } from '@/types/db/services';
 
-export type ServiceConfig = {
-  serviceId: number
-  checkInterval: PostgresInterval
-  scheduledRunLimit: number
-  scheduledRunsEnabled: boolean
-  scheduledRunInterval: PostgresInterval
-}
 
 export type ServiceForApi = {
   serviceId: number
@@ -18,7 +11,7 @@ export type ServiceForApi = {
 }
 
 type ServiceForAdminCommon = {
-  id: number,
+  id: number
   serviceName: string
   disabled: boolean
   url: string

@@ -1,12 +1,12 @@
 import { body, matchedData, param } from 'express-validator';
 
-import { requiresUser } from '../../db/auth.js';
-import { handleError } from '../../db/utils.js';
+import { requiresUser } from '@/db/auth';
+import { handleError } from '@/db/utils';
 import {
   updateService,
   updateServiceWhole,
   updateServiceConfig,
-} from '../../db/services/index.js';
+} from '@/db/services';
 import {
   validateAdminUser,
   handleValidationErrors,

@@ -1,13 +1,13 @@
 import RSS from 'rss';
-import { getLatestReleases } from '../db/db.js';
+import { getLatestReleases } from '@/db/db';
 
 function createFeed(rows) {
   const feed = new RSS({
     title: 'Manga releases',
     description: 'Latest manga releases',
     id: 'manga-tracker-rss',
-    link: 'https://manga-tracker-rss.herokuapp.com',
-    feed_url: 'https://manga-tracker-rss.herokuapp.com/rss',
+    link: process.env.BASE_URL,
+    feed_url: `${process.env.BASE_URL}/rss`,
     custom_namespaces: {
       manga: 'test',
     },

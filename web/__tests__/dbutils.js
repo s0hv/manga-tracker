@@ -1,6 +1,6 @@
 import { unsignCookie } from './utils';
 
-import { db } from '../db';
+import { db } from '../db/helpers';
 
 export const sessionExists = async (sessionId, encrypted=true) => {
   if (encrypted) {
@@ -8,8 +8,7 @@ export const sessionExists = async (sessionId, encrypted=true) => {
   }
   expect(sessionId).not.toBeFalse();
 
-  const sql = 'SELECT 1 FROM sessions WHERE session_id=$1';
-  const row = await db.oneOrNone(sql, [sessionId]);
+  const row = await db.oneOrNone`SELECT 1 FROM sessions WHERE session_id=${sessionId}`;
   return !!row;
 };
 
@@ -17,19 +16,29 @@ export const authTokenExists = async (tokenValue) => {
   tokenValue = decodeURIComponent(tokenValue);
   const [lookup, token, uuidBase64] = tokenValue.split(';', 3);
   const uuid = Buffer.from(uuidBase64, 'base64').toString('ascii');
-  const sql = `SELECT 1
+  const row = await db.oneOrNone`SELECT 1
                FROM auth_tokens INNER JOIN users u ON auth_tokens.user_id = u.user_id 
-               WHERE user_uuid=$1 AND lookup=$2 AND hashed_token=encode(digest($3, 'sha256'), 'hex')`;
+               WHERE user_uuid=${uuid} AND lookup=${lookup} AND hashed_token=encode(digest(${token}, 'sha256'), 'hex')`;
 
-  const row = await db.oneOrNone(sql, [uuid, lookup, token]);
   return !!row;
 };
 
-export const spyOnDb = () => jest.spyOn(db, 'query');
+export const spyOnDb = (method = 'sql') => {
+  const sql = db.sql;
+  const spy = jest.spyOn(db, method);
+
+  const ignore = new Set(['caller', 'callee', 'arguments']);
+  Object.getOwnPropertyNames(sql).forEach(prop => {
+    if (Object.hasOwn(db.sql, prop) || ignore.has(prop)) return;
+    db.sql[prop] = sql[prop];
+  });
+
+  return spy;
+};
 
 export const expectOnlySessionInsert = (spy) => {
   spy.mock.calls.forEach(call => {
-    expect(call[0]).toMatch(/INSERT INTO sessions .+/i);
+    expect(call[0].join(' ')).toMatch(/^\w*INSERT INTO sessions .+/i);
   });
 };
 
@@ -39,38 +48,35 @@ export const sessionAssociatedWithUser = async (sessionId, encrypted=true) => {
   }
   expect(sessionId).not.toBeFalse();
 
-  const sql = 'SELECT user_id FROM sessions WHERE session_id=$1';
-  const row = await db.oneOrNone(sql, [sessionId]);
+  const row = await db.oneOrNone`SELECT user_id FROM sessions WHERE session_id=${sessionId}`;
   return row !== null && row.userId !== null;
 };
 
 export const authTokenCount = async (uuid) => {
-  const sql = `SELECT COUNT(*)
+  const row = await db.one`SELECT COUNT(*)
                FROM auth_tokens INNER JOIN users u ON auth_tokens.user_id = u.user_id
-               WHERE user_uuid=$1`;
+               WHERE user_uuid=${uuid}`;
 
-  const row = await db.one(sql, [uuid]);
   return Number(row.count);
 };
 
 export const userSessionCount = async (uuid) => {
-  const sql = `SELECT COUNT(*)
+  const row = await db.one`SELECT COUNT(*)
                FROM sessions INNER JOIN users u ON sessions.user_id = u.user_id
-               WHERE user_uuid=$1`;
+               WHERE user_uuid=${uuid}`;
 
-  const row = await db.one(sql, [uuid]);
   return Number(row.count);
 };
 
 export const createManga = async () => {
-  return db.one('INSERT INTO manga (title, release_interval, latest_release, estimated_release, latest_chapter) VALUES ($1, NULL, NULL, NULL, NULL) RETURNING manga_id', ['test'])
+  return db.one`INSERT INTO manga (title, release_interval, latest_release, estimated_release, latest_chapter) VALUES (${'test'}, NULL, NULL, NULL, NULL) RETURNING manga_id`
     .then(row => row.mangaId);
 };
 
 export const createMangaService = async (serviceId) => {
   const id = Date.now().toString();
   return createManga()
-    .then(mangaId => db.one(`INSERT INTO manga_service (manga_id, service_id, last_check, title_id, next_update, latest_chapter, latest_decimal, feed_url) VALUES 
-                                                           ($1, $2, NULL, $3, NULL, NULL, NULL, $3) RETURNING manga_id`, [mangaId, serviceId, id]))
+    .then(mangaId => db.one`INSERT INTO manga_service (manga_id, service_id, last_check, title_id, next_update, latest_chapter, latest_decimal, feed_url) VALUES 
+                                                           (${mangaId}, ${serviceId}, NULL, ${id}, NULL, NULL, NULL, ${id}) RETURNING manga_id`)
     .then(row => row.mangaId);
 };
