@@ -10,7 +10,7 @@ import {
   withUser,
   configureJestOpenAPI,
 } from '../utils';
-import { db } from '../../db';
+import { db } from '../../db/helpers';
 import {
   createUserNotification,
   getUserNotifications,
@@ -31,7 +31,7 @@ afterAll(async () => {
 const notFoundMessage = /No notification found for user with notification id/i;
 
 const truncateNotifications = async () => {
-  await db.none('TRUNCATE user_notifications CASCADE');
+  await db.none`TRUNCATE user_notifications CASCADE`;
 };
 
 const createNotifications = async (n = 1, userId = normalUser.userId) => Promise.all(

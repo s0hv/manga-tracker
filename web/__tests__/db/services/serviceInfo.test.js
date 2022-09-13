@@ -1,8 +1,8 @@
 import { getServices } from '../../../db/services/serviceInfo';
 
 afterAll(async () => {
-  const { pgp } = require('../../../db');
-  await pgp.end();
+  const { end } = require('../../../db');
+  await end();
 });
 
 describe('getServices()', () => {

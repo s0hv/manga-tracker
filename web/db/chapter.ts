@@ -1,17 +1,20 @@
+import camelcaseKeys from 'camelcase-keys';
 import { NO_GROUP } from '../utils/constants.js';
-import { generateUpdate } from './utils.js';
-import { db, pgp } from '.';
+import { generateUpdate } from './utils';
+import { db } from './helpers';
+import type { DatabaseId, MangaId } from '@/types/dbTypes';
+import type { Chapter } from '@/types/db/chapter';
+import type { MangaChapter } from '@/types/api/chapter';
+import type { PartialExcept } from '@/types/utility';
 
-export const getChapterReleases = (mangaId) => {
-  const sql = `SELECT extract(EPOCH FROM date_trunc('day', release_date)) as "timestamp", CAST(count(release_date) as int) count 
+export const getChapterReleases = (mangaId: MangaId) => {
+  return db.manyOrNone`SELECT extract(EPOCH FROM date_trunc('day', release_date)) as "timestamp", CAST(count(release_date) as int) count 
                FROM chapters 
-               WHERE manga_id=$1 GROUP BY 1 ORDER BY 1`;
-
-  return db.query(sql, [mangaId]);
+               WHERE manga_id=${mangaId} GROUP BY 1 ORDER BY 1`;
 };
 
-export const getLatestChapters = (limit, offset) => {
-  const sql = `SELECT
+export const getLatestChapters = (limit: number, offset: number) => {
+  return db.manyOrNone`SELECT
                     chapter_id,
                     chapters.title,
                     chapter_number,
@@ -30,14 +33,7 @@ export const getLatestChapters = (limit, offset) => {
                 INNER JOIN manga_service ms ON chapters.manga_id = ms.manga_id AND chapters.service_id=ms.service_id
                 LEFT JOIN manga_info mi ON m.manga_id = mi.manga_id
                 ORDER BY release_date DESC
-                LIMIT $1 ${offset ? 'OFFSET $2' : ''}`;
-
-  const args = [limit];
-  if (offset) {
-    args.push(offset);
-  }
-
-  return db.query(sql, args);
+                LIMIT ${limit} ${offset ? db.sql`OFFSET ${offset}` : db.sql``}`;
 };
 
 export const addChapter = ({
@@ -49,12 +45,12 @@ export const addChapter = ({
   releaseDate,
   chapterIdentifier,
   group = NO_GROUP,
-}) => {
-  const sql = `INSERT INTO chapters (manga_id, service_id, title, chapter_number, chapter_decimal, release_date, chapter_identifier, group_id) 
-               VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-               RETURNING chapter_id`;
+}: Chapter): Promise<number | undefined> => {
   releaseDate = releaseDate || new Date(Date.now());
-  return db.oneOrNone(sql, [mangaId, serviceId, title, chapterNumber, chapterDecimal, releaseDate, chapterIdentifier, group])
+
+  return db.oneOrNone<{chapterId: number}>`INSERT INTO chapters (manga_id, service_id, title, chapter_number, chapter_decimal, release_date, chapter_identifier, group_id) 
+               VALUES (${mangaId}, ${serviceId}, ${title}, ${chapterNumber}, ${chapterDecimal}, ${releaseDate}, ${chapterIdentifier}, ${group})
+               RETURNING chapter_id`
     .then(row => row?.chapterId);
 };
 
@@ -70,10 +66,13 @@ export const defaultSort = [
   },
 ];
 
-export const getChapters = (mangaId, limit, offset, sortBy = defaultSort) => {
+export const getChapters = (mangaId: MangaId, limit: number, offset: number, sortBy = defaultSort) => {
   sortBy = sortBy.length > 0 ? sortBy : defaultSort;
-  const sorting = sortBy.map(sort => `${pgp.as.name(sort.col)}${sort.desc ? ' DESC' : ''}${sort.nullsLast ? ' NULLS LAST' : ''}`).join(',');
-  const sql = `
+  const sorting: ReturnType<typeof db.sql> = sortBy
+    .map((sort) => db.sql`${db.sql(sort.col)}${sort.desc ? db.sql` DESC` : db.sql``}${sort.nullsLast ? db.sql` NULLS LAST` : db.sql``}`)
+    .reduce((acc, sort) => db.sql`${acc}, ${sort}`);
+
+  return db.oneOrNone<{count: number, chapters: MangaChapter[], exists: boolean}>`
     SELECT
         COUNT(*)::INT as count,
         (
@@ -90,27 +89,22 @@ export const getChapters = (mangaId, limit, offset, sortBy = defaultSort) => {
                     chapter_identifier
                 FROM chapters
                 INNER JOIN groups g ON g.group_id = chapters.group_id
-                WHERE manga_id=$1
+                WHERE manga_id=${mangaId}
                 ORDER BY ${sorting}
-                LIMIT $2 ${offset ? 'OFFSET $3' : ''}
+                LIMIT ${limit} ${offset ? db.sql`OFFSET ${offset}` : db.sql``}
             ) as ch
         ) as chapters,
-       (exists(SELECT 1 FROM manga WHERE manga_id=$1)) as "exists"
+       (exists(SELECT 1 FROM manga WHERE manga_id=${mangaId})) as "exists"
     FROM chapters
     INNER JOIN manga m ON m.manga_id = chapters.manga_id
-    WHERE m.manga_id=$1
-  `;
-
-  const args = [mangaId, limit];
-  if (offset) args.push(offset);
-
-  return db.oneOrNone(sql, args)
+    WHERE m.manga_id=${mangaId}
+  `
     .then(row => {
       if (!row || !row.exists) return Promise.resolve(null);
 
       return Promise.resolve({
         count: row.count,
-        chapters: row.chapters,
+        chapters: camelcaseKeys(row.chapters),
       });
     });
 };
@@ -127,26 +121,23 @@ export const editChapter = async ({
   releaseDate,
   chapterIdentifier,
   // group,
-}) => {
+}: PartialExcept<Chapter, 'chapterId'>) => {
   const chapter = {
     title,
-    chapter_number: chapterNumber,
-    chapter_decimal: chapterDecimal,
-    release_date: releaseDate,
-    chapter_identifier: chapterIdentifier,
+    chapterNumber,
+    chapterDecimal,
+    releaseDate,
+    chapterIdentifier,
     // group,
   };
 
 
-  const sql = `${generateUpdate(chapter, 'chapters')} WHERE chapter_id=$1`;
-  return db.result(sql, [chapterId]);
+  return db.sql`UPDATE chapters SET ${generateUpdate(chapter, db.sql)} WHERE chapter_id=${chapterId}`;
 };
 
 /**
  * Deletes a chapter
- * @param {Number} chapterId
  */
-export const deleteChapter = async (chapterId) => {
-  const sql = 'DELETE FROM chapters WHERE chapter_id=$1 RETURNING *';
-  return db.oneOrNone(sql, [chapterId]);
+export const deleteChapter = async (chapterId: DatabaseId) => {
+  return db.oneOrNone<Chapter>`DELETE FROM chapters WHERE chapter_id=${chapterId} RETURNING *`;
 };

@@ -1,7 +1,7 @@
-import { requiresUser, modifyCacheUser } from '../db/auth.js';
+import { requiresUser, modifyCacheUser } from '@/db/auth';
 import { positiveTinyInt, hadValidationError } from '../utils/validators.js';
-import { query } from '../db';
-import { handleError } from '../db/utils.js';
+import { db } from '@/db/helpers';
+import { handleError } from '@/db/utils';
 
 
 export default app => {
@@ -13,8 +13,8 @@ export default app => {
     const val = Number(req.query.value);
 
     if (req.user) {
-      const sql = `UPDATE users SET theme=$1 WHERE user_id=$2`;
-      query(sql, [val, req.user.userId])
+      db.sql`UPDATE users SET theme=${val} WHERE user_id=${req.user.userId}`
+        .execute()
         .then(() => {
           modifyCacheUser(parseInt(req.user.userId), { theme: val });
           res.status(200).end();

@@ -1,12 +1,12 @@
 import { body, matchedData, param } from 'express-validator';
-import { requiresUser } from '../db/auth.js';
+import { requiresUser } from '@/db/auth';
 import {
   getUserNotifications,
   updateUserNotification,
   createUserNotification,
   deleteUserNotification,
-} from '../db/notifications.js';
-import { handleError } from '../db/utils.js';
+} from '@/db/notifications';
+import { handleError } from '@/db/utils';
 import {
   handleValidationErrors,
   mangaIdValidation,

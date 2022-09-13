@@ -1,10 +1,11 @@
 import camelcaseKeys from 'camelcase-keys';
 
-import { db } from '.';
+import { db } from './helpers';
 import { fetchExtraInfo, MANGADEX_ID } from './mangadex.js';
 import { HttpError } from '../utils/errors.js';
 import { mangadexLogger } from '../utils/logging.js';
-import { DatabaseId, MangaId } from '../types/dbTypes';
+import type { DatabaseId, MangaId } from '@/types/dbTypes';
+import type { Manga } from '@/types/db/manga';
 
 const links = {
   al: 'https://anilist.co/manga/',
@@ -66,20 +67,16 @@ function formatFullManga(obj: Partial<FullMangaUnformatted>): FullManga {
 }
 
 export function getFullManga(mangaId: MangaId): Promise<FullManga | null> {
-  const args = [mangaId];
-
-  const sql = `SELECT manga.manga_id, title, release_interval, latest_release, estimated_release, manga.latest_chapter,
+  return db.oneOrNone<FullMangaUnformatted>`SELECT manga.manga_id, title, release_interval, latest_release, estimated_release, manga.latest_chapter,
                         array_agg(json_build_object('title_id', ms.title_id, 'service_id', ms.service_id, 'name', s.service_name, 'url_format', chapter_url_format, 'url', s.manga_url_format)) as services,
                         mi.cover, mi.status, mi.last_updated,
                         mi.bw, mi.mu, mi.mal, mi.amz, mi.ebj, mi.engtl, mi.raw, mi.nu, mi.kt, mi.ap, mi.al,
-                        (SELECT array_agg(title) FROM manga_alias ma WHERE ma.manga_id=$1) as aliases
+                        (SELECT array_agg(title) FROM manga_alias ma WHERE ma.manga_id=${mangaId}) as aliases
                FROM manga LEFT JOIN manga_info mi ON manga.manga_id = mi.manga_id
                    INNER JOIN manga_service ms ON manga.manga_id = ms.manga_id
                    INNER JOIN services s ON ms.service_id = s.service_id
-               WHERE manga.manga_id=$1
-               GROUP BY manga.manga_id, mi.manga_id`;
-
-  return db.oneOrNone<FullMangaUnformatted>(sql, args)
+               WHERE manga.manga_id=${mangaId}
+               GROUP BY manga.manga_id, mi.manga_id`
     .then(row => {
       if (!row) {
         return null;
@@ -104,7 +101,7 @@ export async function getFollows(userId: DatabaseId) {
     throw HttpError(404);
   }
 
-  const sql = `SELECT m.title, mi.cover, m.manga_id, m.latest_release, m.latest_chapter,
+  return db.any`SELECT m.title, mi.cover, m.manga_id, m.latest_release, m.latest_chapter,
                     (SELECT json_agg(s) FROM (
                        SELECT ms.service_id, service_name, ms.title_id, manga_url_format as url
                        FROM services INNER JOIN manga_service ms ON services.service_id = ms.service_id
@@ -113,10 +110,9 @@ export async function getFollows(userId: DatabaseId) {
                FROM user_follows uf
                    INNER JOIN manga m ON uf.manga_id = m.manga_id
                    LEFT JOIN manga_info mi ON m.manga_id = mi.manga_id
-               WHERE user_id=$1
-               GROUP BY uf.manga_id, m.manga_id, mi.manga_id`;
-
-  return db.query(sql, [userId])
+               WHERE user_id=${userId}
+               GROUP BY uf.manga_id, m.manga_id, mi.manga_id`
+    .then(rows => camelcaseKeys(rows, { deep: true }))
     .catch(err => {
       // integer overflow
       if (err.code === '22003' || err.code === '22P02') {
@@ -128,14 +124,12 @@ export async function getFollows(userId: DatabaseId) {
 }
 
 export const getAliases = (mangaId: MangaId) => {
-  const sql = 'SELECT title FROM manga_alias WHERE manga_id=$1';
-  return db.query(sql, [mangaId]);
+  return db.any<{ title: string }>`SELECT title FROM manga_alias WHERE manga_id=${mangaId}`;
 };
 
 // Actually just gets a single row from the manga table
 export const getMangaPartial = (mangaId: MangaId) => {
-  const sql = 'SELECT * FROM manga WHERE manga_id=$1';
-  return db.one(sql, [mangaId]);
+  return db.one<Manga>`SELECT * FROM manga WHERE manga_id=${mangaId}`;
 };
 
 export type MangaForElastic = {
@@ -147,7 +141,7 @@ export type MangaForElastic = {
 }
 
 export const getMangaForElastic = (mangaId: MangaId): Promise<MangaForElastic> => {
-  const sql = `SELECT
+  return db.one<any>`SELECT
       m.manga_id,
       m.title,
       m.views,
@@ -156,10 +150,8 @@ export const getMangaForElastic = (mangaId: MangaId): Promise<MangaForElastic> =
   FROM manga m
   INNER JOIN manga_service ms ON m.manga_id = ms.manga_id
   INNER JOIN services s ON s.service_id = ms.service_id
-  WHERE m.manga_id=$1
-  GROUP BY m.manga_id, ms.manga_id`;
-
-  return db.one(sql, [mangaId])
+  WHERE m.manga_id=${mangaId}
+  GROUP BY m.manga_id, ms.manga_id`
     .then(manga => {
       manga.aliases = manga.aliases?.map((title: string) => ({ title })) || [];
       return manga;

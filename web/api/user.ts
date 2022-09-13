@@ -1,34 +1,36 @@
 import { body } from 'express-validator';
 import { UNIQUE_VIOLATION } from 'pg-error-constants';
+import type { Express, Request, Response } from 'express-serve-static-core';
 
 import { sessionLogger, userLogger } from '../utils/logging.js';
 
 
-import { insertFollow, deleteFollow } from '../db/follows.js';
-import { handleError } from '../db/utils.js';
+import { deleteFollow, insertFollow } from '@/db/follows';
+import { handleError } from '@/db/utils';
 import {
-  mangaIdValidation,
-  serviceIdValidation,
   hadValidationError,
-  validateUser,
+  mangaIdValidation,
   newPassword,
   passwordRequired,
+  serviceIdValidation,
+  validateUser,
 } from '../utils/validators.js';
 import {
-  requiresUser,
+  clearUserAuthToken,
   clearUserAuthTokens,
   generateAuthToken,
-  clearUserAuthToken,
-} from '../db/auth.js';
-import { db } from '../db';
+  requiresUser,
+} from '@/db/auth';
+import { db } from '@/db/helpers';
 import { regenerateSession } from '../utils/utilities.js';
+import type { DatabaseId, MangaId } from '@/types/dbTypes';
 
 const dev = process.env.NODE_ENV !== 'production';
 
 
 const MAX_USERNAME_LENGTH = 100;
 
-export default app => {
+export default (app: Express) => {
   app.post('/api/profile', requiresUser, [
     validateUser(),
     newPassword('newPassword', 'repeatPassword'),
@@ -43,10 +45,9 @@ export default app => {
       .isLength({ max: MAX_USERNAME_LENGTH })
       .withMessage(`Max username length is ${MAX_USERNAME_LENGTH}`)
       .optional(),
-  ], (req, res) => {
+  ], (req: Request, res: Response) => {
     if (hadValidationError(req, res)) return;
 
-    const args = [req.user.userId];
     const cols = [];
     const {
       newPassword: newPass,
@@ -56,26 +57,18 @@ export default app => {
     } = req.body;
     let pw = false;
 
-    // Use this only after pushing to args
-    function getIndex() {
-      return args.length;
-    }
-
     if (newPass) {
       pw = true;
-      args.push(newPass);
-      cols.push(`pwhash=crypt($${getIndex()}, gen_salt('bf'))`);
+      cols.push(db.sql`pwhash=crypt(${newPass}, gen_salt('bf'))`);
     }
 
     if (email) {
-      args.push(email);
-      cols.push(`email=$${getIndex()}`);
+      cols.push(db.sql`email=${email}`);
       pw = true;
     }
 
     if (username) {
-      args.push(username);
-      cols.push(`username=$${getIndex()}`);
+      cols.push(db.sql`username=${username}`);
     }
 
     if (cols.length === 0) {
@@ -83,28 +76,23 @@ export default app => {
       return;
     }
 
-    if (pw) {
-      args.push(password);
-    }
-    const pwCheck = ` AND pwhash=crypt($${getIndex()}, pwhash)`;
-    const sql = `UPDATE users
-                 SET ${cols.join(',')}
-                 WHERE user_id=$1 ${pw ? pwCheck : ''}`;
-
-    db.result(sql, args)
+    const pwCheck = db.sql` AND pwhash=crypt(${password}, pwhash)`;
+    db.sql`UPDATE users
+                 SET ${cols.reduce((acc, col) => db.sql`${acc}, ${col}`)}
+                 WHERE user_id=${req.user!.userId} ${pw ? pwCheck : db.sql``}`
       .then(rows => {
-        if (rows.rowCount === 0) {
+        if (rows.count === 0) {
           res.status(401).json({ error: 'Invalid password' });
           return;
         }
 
         if (pw) {
-          app.sessionStore.clearUserSessions(req.user.userId, (err) => {
+          app.sessionStore.clearUserSessions(req.user!.userId, (err) => {
             if (err) {
               return res.status(500).json({ error: 'Internal server error' });
             }
 
-            clearUserAuthTokens(req.user.userId)
+            clearUserAuthTokens(req.user!.userId)
               .then(() => {
                 if (!req.cookies.auth) {
                   regenerateSession(req)
@@ -113,7 +101,7 @@ export default app => {
                   return;
                 }
 
-                generateAuthToken(req.user.userId, req.user.uuid)
+                generateAuthToken(req.user!.userId, req.user!.uuid)
                   .then(token => {
                     res.cookie('auth', token, {
                       maxAge: 2592000000, // 30d in ms
@@ -146,7 +134,7 @@ export default app => {
       ));
   });
 
-  app.post('/api/logout', requiresUser, (req, res) => {
+  app.post('/api/logout', requiresUser, (req: Request, res: Response) => {
     if (!req.user?.userId) return res.redirect('/');
 
     userLogger.debug('Logging out user %s', req.user.userId);
@@ -155,7 +143,7 @@ export default app => {
       if (err) console.error(err);
       res.clearCookie('sess');
       if (req.cookies.auth) {
-        clearUserAuthToken(req.user.userId, req.cookies.auth, () => {
+        clearUserAuthToken(req.user!.userId, req.cookies.auth, () => {
           res.clearCookie('auth');
           res.redirect('/');
         });
@@ -170,10 +158,10 @@ export default app => {
     mangaIdValidation(),
     serviceIdValidation().optional(),
     validateUser(),
-  ], (req, res) => {
+  ], (req: Request, res: Response) => {
     if (hadValidationError(req, res)) return;
 
-    insertFollow(req.user.userId, req.query.mangaId, req.query.serviceId)
+    insertFollow(req.user!.userId, req.query.mangaId as MangaId, req.query.serviceId as DatabaseId)
       .then(() => res.status(200).end())
       .catch(err => handleError(err, res));
   });
@@ -182,12 +170,12 @@ export default app => {
     mangaIdValidation(),
     serviceIdValidation().optional(),
     validateUser(),
-  ], (req, res) => {
+  ], (req: Request, res: Response) => {
     if (hadValidationError(req, res)) return;
 
-    deleteFollow(req.user.userId, req.query.mangaId, req.query.serviceId)
+    deleteFollow(req.user!.userId, req.query.mangaId as MangaId, req.query.serviceId as DatabaseId)
       .then(rows => {
-        if (rows.rowCount === 0) return res.status(404).end();
+        if (rows.count === 0) return res.status(404).end();
         res.status(200).end();
       })
       .catch(err => handleError(err, res));

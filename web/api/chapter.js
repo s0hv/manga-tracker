@@ -1,18 +1,18 @@
 import { body as validateBody, query } from 'express-validator';
 
-import { NoColumnsError } from '../db/errors.js';
-import { requiresUser } from '../db/auth.js';
+import { NoColumnsError } from '@/db/errors';
+import { requiresUser } from '@/db/auth';
 import {
   editChapter,
   deleteChapter,
   getChapterReleases,
   getLatestChapters,
-} from '../db/chapter.js';
+} from '@/db/chapter';
 import {
   validateAdminUser,
   handleValidationErrors,
 } from '../utils/validators.js';
-import { handleError } from '../db/utils.js';
+import { handleError } from '@/db/utils';
 import { dbLogger } from '../utils/logging.js';
 
 
@@ -47,7 +47,7 @@ export default app => {
 
     editChapter(chapter)
       .then(r => {
-        if (r.rowCount > 0) {
+        if (r.count > 0) {
           res.status(200).json({ message: `Successfully updated chapter ${chapterId}` });
         } else {
           res.status(404).json({ error: `Chapter with id ${chapterId} not found` });

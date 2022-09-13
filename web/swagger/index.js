@@ -8,7 +8,7 @@ const options = {
   definition: {
     openapi: '3.0.0',
     servers: [{
-      url: process.env.BASE_URL || '/api',
+      url: process.env.BASE_URL ? `${process.env.BASE_URL}/api` : '/api',
     }],
     info: {
       title: 'Manga tracker public API',

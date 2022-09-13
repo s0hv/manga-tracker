@@ -1,37 +1,36 @@
 import {
-  NUMERIC_VALUE_OUT_OF_RANGE,
-  INVALID_TEXT_REPRESENTATION,
-  UNIQUE_VIOLATION,
-  IN_FAILED_SQL_TRANSACTION,
   FOREIGN_KEY_VIOLATION,
+  IN_FAILED_SQL_TRANSACTION,
+  INVALID_TEXT_REPRESENTATION,
   NOT_NULL_VIOLATION,
+  NUMERIC_VALUE_OUT_OF_RANGE,
+  UNIQUE_VIOLATION,
 } from 'pg-error-constants';
+import type { Response } from 'express-serve-static-core';
 
-import { pgp } from '.';
-import { NoColumnsError } from './errors.js';
+import { NoColumnsError } from './errors';
 import { dbLogger } from '../utils/logging.js';
 import { StatusError } from '../utils/errors.js';
+import type { Db } from '.';
 
 /**
  * Generate update statement from an object while filtering out undefined values.
- * The generated update statement lacks a WHERE clause and has the values embedded in the query.
+ * Do not pass untrusted properties to this method, as it will update every column given to it
  * @param {Object} o Input object
- * @param {String} tableName Name of the table to be updated
- * @returns {String} The update statement without a whereclause
+ * @param {Db} sql Database instance
  */
-export const generateUpdate = (o, tableName) => {
+export const generateUpdate = (o: any, sql: Db) => {
   const obj = { ...o };
   Object.keys(obj).forEach(key => obj[key] === undefined && delete obj[key]);
-  try {
-    return pgp.helpers.update(obj, null, tableName);
-  } catch (e) {
-    throw new NoColumnsError('No valid columns given');
-  }
+
+  if (Object.keys(obj).length === 0) throw new NoColumnsError('No valid columns given');
+
+  return sql(obj);
 };
 
-export function handleError(err, res, msgOverrides = {}) {
+export function handleError(err: any, res: Response, msgOverrides: any = {}) {
   if (typeof err?.getErrors === 'function') {
-    err = err.getErrors().filter(e => e?.code !== IN_FAILED_SQL_TRANSACTION)[0] || err;
+    err = err.getErrors().filter((e: any) => e?.code !== IN_FAILED_SQL_TRANSACTION)[0] || err;
   }
 
   if (err instanceof StatusError) {

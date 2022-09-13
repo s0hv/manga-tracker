@@ -3,8 +3,8 @@ import { HttpError } from '../../utils/errors';
 import { normalUser, testManga } from '../utils';
 
 afterAll(async () => {
-  const { pgp } = require('../../db');
-  await pgp.end();
+  const { end } = require('../../db');
+  await end();
 });
 
 describe('getFollows(userId)', () => {

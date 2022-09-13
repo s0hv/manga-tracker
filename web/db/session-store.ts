@@ -1,9 +1,10 @@
 import LRU from 'lru-cache';
-import { SessionData, Store } from 'express-session';
-import { IDatabase } from 'pg-promise';
+import { type SessionData, Store } from 'express-session';
+import type { JSONValue } from 'postgres';
 
 import { onSessionExpire } from '../utils/view-counter';
 import { sessionLogger } from '../utils/logging.js';
+import type { DatabaseHelpers } from '@/db/helpers';
 
 const mergeSessionViews = (sess: SessionData, row: { data: SessionData }) => {
   const a = sess.mangaViews || {};
@@ -25,11 +26,11 @@ export interface StoreOptions {
   clearInterval?: number | null;
   maxAge?: number;
   cacheSize?: number;
-  conn?: IDatabase<any>
+  conn?: DatabaseHelpers
 }
 
 export default class PostgresStore extends Store {
-  private conn: IDatabase<any>;
+  private conn: DatabaseHelpers;
   private cache: LRU<string, SessionData>;
   private touchCache: LRU<unknown, unknown>;
   public clearInterval: null | NodeJS.Timer;
@@ -56,15 +57,15 @@ export default class PostgresStore extends Store {
     if (!Number.isFinite(options.clearInterval)) {
       this.clearInterval = null;
     } else {
-      this.clearInterval = setInterval(() => this.clearOldSessions(), options.clearInterval!);
+      this.clearInterval = setInterval(() => this.clearOldSessions().catch(sessionLogger.error), options.clearInterval!);
     }
   }
 
   clearOldSessions() {
-    const sql = 'DELETE FROM sessions WHERE expires_at < CURRENT_TIMESTAMP RETURNING data';
-    return this.conn.query(sql)
-      .then(rows => {
-        const sess = rows.reduce(mergeSessionViews, {});
+    const query = this.conn.many<{ data: SessionData }>`DELETE FROM sessions WHERE expires_at < CURRENT_TIMESTAMP RETURNING data`;
+    return query
+      .then((rows) => {
+        const sess = rows.reduce(mergeSessionViews, {} as SessionData);
         return onSessionExpire(sess);
       });
   }
@@ -76,20 +77,19 @@ export default class PostgresStore extends Store {
     }
     sessionLogger.debug('Get session from db %s', sid);
 
-    const sql = `SELECT user_id, data, EXTRACT(EPOCH FROM expires_at - CURRENT_TIMESTAMP)*1000 as maxage
+    const sql = this.conn.oneOrNone`SELECT user_id, data, EXTRACT(EPOCH FROM expires_at - CURRENT_TIMESTAMP)*1000 as maxage
                  FROM sessions 
-                 WHERE session_id=$1`;
+                 WHERE session_id=${sid}`;
 
-    this.conn.oneOrNone(sql, [sid])
-      .then(row => {
-        if (row) {
-          // TODO Check set behavior
-          this.cache.set(sid, { ...row.data, userId: row.userId }, { ttl: row.maxage });
-          return cb(null, { ...row.data, userId: row.userId });
-        }
+    sql.then(row => {
+      if (row) {
+        // TODO Check set behavior
+        this.cache.set(sid, { ...row.data, userId: row.userId }, { ttl: row.maxage });
+        return cb(null, { ...row.data, userId: row.userId });
+      }
 
-        return cb(null, null);
-      })
+      return cb(null, null);
+    })
       .catch(err => {
         sessionLogger.error(err, 'Failed to create session %s', sid);
         cb(err, null);
@@ -99,10 +99,16 @@ export default class PostgresStore extends Store {
   set(sid: string, session: SessionData, cb: Callback = noop) {
     sessionLogger.debug('Edit session %s', sid);
     this.cache.set(sid, session);
-    const sql = `INSERT INTO sessions (user_id, session_id, data, expires_at) VALUES ($1, $2, $3, $4)
-                 ON CONFLICT (session_id) DO UPDATE SET user_id=$1, data=$3, expires_at=$4`;
-    this.conn.query(sql, [session.userId, sid, session, session.cookie.expires])
-      .then(() => cb(null))
+    const sessionData = this.conn.sql.json(session as any as JSONValue);
+    const sql = this.conn.sql`INSERT INTO sessions (user_id, session_id, data, expires_at)
+                              VALUES (${session.userId}, ${sid},
+                                      ${sessionData},
+                                      ${session.cookie.expires})
+                              ON CONFLICT (session_id) DO UPDATE SET user_id=${session.userId},
+                                                                     data=${sessionData},
+                                                                     expires_at=${session.cookie.expires}`;
+
+    sql.then(() => cb(null))
       .catch(err => {
         sessionLogger.error(err, 'Failed to edit session');
         cb(err);
@@ -113,10 +119,9 @@ export default class PostgresStore extends Store {
     const session = this.cache.peek(sid);
     sessionLogger.debug('Delete session %s %o', sid, session);
     this.cache.delete(sid);
-    const sql = 'DELETE FROM sessions WHERE session_id=$1';
 
     onSessionExpire(session)
-      .finally(() => this.conn.query(sql, [sid])
+      .finally(() => this.conn.sql`DELETE FROM sessions WHERE session_id=${sid}`
         .then(() => cb(null))
         .catch(err => {
           sessionLogger.error(err, 'Failed to delete session');
@@ -131,10 +136,9 @@ export default class PostgresStore extends Store {
       return cb(null);
     }
 
-    const sql = `UPDATE sessions
-                 SET expires_at=CURRENT_TIMESTAMP + INTERVAL '1 ms' * $1
-                 WHERE session_id=$2`;
-    this.conn.query(sql, [session.cookie.maxAge, sid])
+    this.conn.sql`UPDATE sessions
+                 SET expires_at=CURRENT_TIMESTAMP + INTERVAL '1 ms' * ${session.cookie.maxAge}
+                 WHERE session_id=${sid}`
       .then(() => {
         this.touchCache.set(sid, true);
         cb(null);
@@ -144,9 +148,8 @@ export default class PostgresStore extends Store {
 
   clearUserSessions(uid: number, cb: Callback = noop) {
     sessionLogger.info('Clearing all user sessions from user %s', uid);
-    const sql = 'DELETE FROM sessions WHERE user_id=$1';
     this.cache.forEach((sess, key) => { if (sess.userId === uid) this.cache.delete(key); });
-    this.conn.query(sql, [uid])
+    this.conn.sql`DELETE FROM sessions WHERE user_id=${uid}`
       .then(() => cb(null))
       .catch(err => {
         sessionLogger.error(err, 'Failed to clear user sessions with id %s', uid);
