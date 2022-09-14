@@ -36,8 +36,8 @@ const createSingletonDb = (): Db => {
       port: Number(process.env.DB_PORT),
       password: process.env.PGPASSWORD,
       max: 10,
-      idle_timeout: 30000,
-      connect_timeout: 5000,
+      idle_timeout: isTest ? 1 : 300,
+      connect_timeout: 60,
       transform: {
         undefined: null,
         column: { to: postgres.fromCamel, from: postgres.toCamel },

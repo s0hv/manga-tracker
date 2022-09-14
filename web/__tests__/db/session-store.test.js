@@ -8,9 +8,8 @@ jest.mock('../../utils/view-counter/manga-view-counter', () => ({
   ...jest.requireActual('../../utils/view-counter/manga-view-counter'),
 }));
 
-
 afterAll(async () => {
-  await db.sql.end({ timeout: 10 });
+  await db.sql.end({ timeout: 4 });
 });
 
 describe('sessionStore', () => {
@@ -166,7 +165,7 @@ describe('sessionStore', () => {
 
       const mangaViews = require('../../utils/view-counter/manga-view-counter');
 
-      const dbSpy = spyOnDb('many').mockImplementation(async () => rows);
+      const dbSpy = spyOnDb('any').mockImplementation(async () => rows);
       const sessionClearInterval = 1000;
       const store = new Store({ conn: db, clearInterval: sessionClearInterval });
       const sessionSpy = jest.spyOn(store, 'clearOldSessions');
@@ -184,24 +183,28 @@ describe('sessionStore', () => {
             done(err);
           }
           jest.runAllTimers();
+          jest.useRealTimers();
         });
 
-      jest.advanceTimersByTime(sessionClearInterval+1);
+      jest.advanceTimersByTime(sessionClearInterval+10);
     });
 
     it('Calls clearOldSessions automatically', async () => {
       jest.useFakeTimers();
 
-      const spy = spyOnDb('many');
+      const spy = spyOnDb('any');
       const sessionClearInterval = 1000;
       const store = new Store({ conn: db, clearInterval: sessionClearInterval });
       const sessionSpy = jest.spyOn(store, 'clearOldSessions');
 
-      jest.advanceTimersByTime(sessionClearInterval+1);
+      jest.advanceTimersByTime(sessionClearInterval+10);
       clearInterval(store.clearInterval);
+      jest.runAllTimers();
+      // postgres.js does not like fake timers
+      jest.useRealTimers();
+
       expect(spy).toHaveBeenCalled();
       expect(sessionSpy).toHaveBeenCalledTimes(1);
-      jest.runAllTimers();
     });
   });
 });
