@@ -122,6 +122,7 @@ function MergeManga() {
     <li {...renderProps}>
       <div
         {...props}
+        // eslint-disable-next-line react/no-unknown-property
         css={{ width: '100%' }}
       >
         {title}
