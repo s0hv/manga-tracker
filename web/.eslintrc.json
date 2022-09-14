@@ -50,7 +50,7 @@
         "react/function-component-definition": "off",
         "function-paren-newline": ["error", "consistent"],
         "react/no-unstable-nested-components": ["error", { "allowAsProps":  true }],
-        "import-newlines/enforce": ["error", { "items": 4, "max-len": 80 }],
+        "import-newlines/enforce": ["error", { "items": 5, "max-len": 80 }],
         "import/order": [
             "error",
             {

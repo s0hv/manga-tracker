@@ -275,7 +275,7 @@ export function encodeAuthToken(lookup: string, token: string, uuid: string): st
   return encodeURIComponent(`${lookup};${token};${uuidB64}`);
 }
 
-export function withRoot(Component: React.ComponentType): React.ReactElement {
+export function withRoot(Component: React.ReactElement): React.ReactElement {
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={enLocale}>
       {Component}
