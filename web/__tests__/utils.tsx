@@ -6,11 +6,21 @@ import signature from 'cookie-signature';
 import enLocale from 'date-fns/locale/en-GB';
 import jestOpenAPI from 'jest-openapi';
 import React, { isValidElement } from 'react';
+import type { Response } from 'supertest';
 import request from 'supertest';
 import { QueryClient } from '@tanstack/react-query';
+import type { MockCall } from 'fetch-mock';
+import type {
+  NextFunction,
+  Request as ExpressRequest,
+} from 'express-serve-static-core';
+import userEvent from '@testing-library/user-event';
+import type { Screen } from '@testing-library/react/types';
 
-import { UserProvider } from '../src/utils/useUser';
+import { UserProvider } from '@/webUtils/useUser';
 import { getOpenapiSpecification } from '../swagger';
+import type { User } from '@/types/db/user';
+import type { SessionUser } from '@/types/dbTypes';
 
 // Must be mocked here
 jest.mock('notistack', () => {
@@ -29,9 +39,16 @@ export const queryClient = new QueryClient({
   },
 });
 
-export const adminUser = {
+export type TestUser = User & SessionUser & {
+  joinedAt: Date
+  password: string
+  email: string
+}
+
+export const adminUser: TestUser = {
   userId: 1,
   userUuid: '22fc15c9-37b9-4869-af86-b334333dedd8',
+  uuid: '22fc15c9-37b9-4869-af86-b334333dedd8',
   username: 'test ci admin',
   joinedAt: new Date(Date.now()),
   theme: 2,
@@ -40,8 +57,9 @@ export const adminUser = {
   email: 'test-admin@test.com',
 };
 
-export const normalUser = {
+export const normalUser: TestUser = {
   userId: 3,
+  userUuid: 'cf5eddfd-e0fe-4e6e-b339-70be6f33794d',
   uuid: 'cf5eddfd-e0fe-4e6e-b339-70be6f33794d',
   username: 'test ci',
   joinedAt: new Date(Date.now()),
@@ -51,8 +69,9 @@ export const normalUser = {
   email: 'test@test.com',
 };
 
-export const authTestUser = {
+export const authTestUser: TestUser = {
   userId: 3,
+  userUuid: 'db598f65-c558-4205-937f-b0f149dda1fa',
   uuid: 'db598f65-c558-4205-937f-b0f149dda1fa',
   username: 'test ci auth',
   joinedAt: new Date(Date.now()),
@@ -80,6 +99,7 @@ export const enqueueSnackbarMock = jest.fn();
  */
 export function mockNotistackHooks() {
   enqueueSnackbarMock.mockReset();
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
   require('notistack').useSnackbar.mockReturnValue({ enqueueSnackbar: enqueueSnackbarMock });
 }
 
@@ -90,7 +110,7 @@ export function expectSuccessSnackbar() {
   );
 }
 
-export function expectErrorSnackbar(msg) {
+export function expectErrorSnackbar(msg?: string | RegExp) {
   expect(enqueueSnackbarMock).toHaveBeenLastCalledWith(
     msg || expect.anything(),
     expect.objectContaining({ variant: 'error' })
@@ -105,7 +125,7 @@ export function getSnackbarMessage() {
   return enqueueSnackbarMock.mock.calls[enqueueSnackbarMock.mock.calls.length-1][0];
 }
 
-export async function muiSelectValue(user, container, selectName, value) {
+export async function muiSelectValue(user: ReturnType<typeof userEvent.setup>, container: Screen, selectName: string | RegExp, value: string | RegExp) {
   await user.click(container.getByLabelText(selectName));
   const listbox = within(screen.getByRole('listbox'));
 
@@ -114,42 +134,42 @@ export async function muiSelectValue(user, container, selectName, value) {
 
 export function mockUTCDates() {
   jest.spyOn(Date.prototype, 'getDate')
-    .mockImplementation(jest.fn(function getDate() {
+    .mockImplementation(jest.fn(function getDate(this: Date) {
       return this.getUTCDate();
     }));
 
   jest.spyOn(Date.prototype, 'getDay')
-    .mockImplementation(jest.fn(function getDay() {
+    .mockImplementation(jest.fn(function getDay(this: Date) {
       return this.getUTCDay();
     }));
 
   jest.spyOn(Date.prototype, 'getFullYear')
-    .mockImplementation(jest.fn(function getFullYear() {
+    .mockImplementation(jest.fn(function getFullYear(this: Date) {
       return this.getUTCFullYear();
     }));
 
   jest.spyOn(Date.prototype, 'getHours')
-    .mockImplementation(jest.fn(function getHours() {
+    .mockImplementation(jest.fn(function getHours(this: Date) {
       return this.getUTCHours();
     }));
 
   jest.spyOn(Date.prototype, 'getMilliseconds')
-    .mockImplementation(jest.fn(function getMilliseconds() {
+    .mockImplementation(jest.fn(function getMilliseconds(this: Date) {
       return this.getUTCMilliseconds();
     }));
 
   jest.spyOn(Date.prototype, 'getMinutes')
-    .mockImplementation(jest.fn(function getMinutes() {
+    .mockImplementation(jest.fn(function getMinutes(this: Date) {
       return this.getUTCMinutes();
     }));
 
   jest.spyOn(Date.prototype, 'getMonth')
-    .mockImplementation(jest.fn(function getMonth() {
+    .mockImplementation(jest.fn(function getMonth(this: Date) {
       return this.getUTCMonth();
     }));
 
   jest.spyOn(Date.prototype, 'getSeconds')
-    .mockImplementation(jest.fn(function getSeconds() {
+    .mockImplementation(jest.fn(function getSeconds(this: Date) {
       return this.getUTCSeconds();
     }));
 
@@ -157,7 +177,7 @@ export function mockUTCDates() {
     .mockImplementation(jest.fn(() => 0));
 }
 
-export async function withUser(userObject, cb) {
+export async function withUser(userObject: TestUser, cb: React.FC | (() => Promise<any>)) {
   if (isValidElement(cb)) {
     return (
       <UserProvider value={userObject}>
@@ -165,32 +185,35 @@ export async function withUser(userObject, cb) {
       </UserProvider>
     );
   }
+
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
   const { requiresUser } = require('../db/auth');
 
-  requiresUser.mockImplementation((req, res, next) => {
+  requiresUser.mockImplementation((req: ExpressRequest, res: any, next: NextFunction) => {
     req.user = userObject;
     next();
   });
 
   try {
-    await cb();
+    await (cb as () => Promise<any>)();
   } finally {
     // Restore the original function
     requiresUser.mockImplementation(jest.requireActual('./../db/auth').requiresUser);
   }
 }
 
-export function getCookie(agent, name) {
-  return agent.jar.getCookie(name, { path: '/' });
+export function getCookie(agent: request.SuperAgentTest, name: string) {
+  return agent.jar.getCookie(name, { path: '/' } as any);
 }
 
-export function deleteCookie(agent, name) {
+export function deleteCookie(agent: request.SuperAgentTest, name: string) {
   const c = getCookie(agent, name);
-  c.expiration_date = 0;
-  agent.jar.setCookie(c);
+  expect(cookie).toBeDefined();
+  c!.expiration_date = 0;
+  agent.jar.setCookie(c!);
 }
 
-export async function login(app, user, rememberMe=false) {
+export async function login(app: any, user: TestUser, rememberMe=false) {
   const agent = request.agent(app);
   await agent
     .post('/api/login')
@@ -214,24 +237,24 @@ export async function login(app, user, rememberMe=false) {
 }
 
 export const headerNotPresent =
-  (header) => (res) => expect(res.header[header]).toBeUndefined();
+  (header: string) => (res: Response) => expect(res.header[header]).toBeUndefined();
 
-export function unsignCookie(value) {
+export function unsignCookie(value: string) {
   if (!value.startsWith('s:')) {
     value = decodeURIComponent(value);
   }
   return signature.unsign(value.slice(2), 'secret');
 }
 
-export function getCookieFromRes(res, cookieName) {
+export function getCookieFromRes(res: Response, cookieName: string) {
   if (!res.headers['set-cookie']) return;
   return res.headers['set-cookie']
-    .map(c => cookie.parse(c))
-    .find(c => c[cookieName] !== undefined);
+    .map((c: string) => cookie.parse(c))
+    .find((c: Record<string, string>) => c[cookieName] !== undefined);
 }
 
-export function expectCookieDeleted(cookieName) {
-  return (res) => {
+export function expectCookieDeleted(cookieName: string) {
+  return (res: Response) => {
     expect(res.headers['set-cookie']).toBeArray();
     const found = getCookieFromRes(res, cookieName);
 
@@ -240,19 +263,19 @@ export function expectCookieDeleted(cookieName) {
   };
 }
 
-export function decodeAuthToken(tokenValue) {
+export function decodeAuthToken(tokenValue: string): [string, string, string] {
   tokenValue = decodeURIComponent(tokenValue);
   const [lookup, token, uuidBase64] = tokenValue.split(';', 3);
   const uuid = Buffer.from(uuidBase64, 'base64').toString('ascii');
   return [lookup, token, uuid];
 }
 
-export function encodeAuthToken(lookup, token, uuid) {
+export function encodeAuthToken(lookup: string, token: string, uuid: string): string {
   const uuidB64 = Buffer.from(uuid, 'ascii').toString('base64');
   return encodeURIComponent(`${lookup};${token};${uuidB64}`);
 }
 
-export function withRoot(Component) {
+export function withRoot(Component: React.ComponentType): React.ReactElement {
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={enLocale}>
       {Component}
@@ -260,15 +283,20 @@ export function withRoot(Component) {
   );
 }
 
-export function getErrorMessage(res) {
+export function getErrorMessage(res: Response) {
   expect(res.body).toBeObject();
   const errors = res.body.error;
   expect(errors).toBeDefined();
   return errors;
 }
 
-export function expectErrorMessage(value, param, message='Invalid value') {
-  return (res) => {
+type ExpectErrorMessageReturn = (res: Response) => void;
+type ExpectErrorMessage = {
+  (value: string, param?: string, message?: string | RegExp): ExpectErrorMessageReturn
+}
+
+export const expectErrorMessage: ExpectErrorMessage = (value, param, message='Invalid value') => {
+  return (res: Response) => {
     expect(res.ok).toBeFalse();
     expect(res.body).toBeObject();
     let errors = res.body.error;
@@ -299,14 +327,14 @@ export function expectErrorMessage(value, param, message='Invalid value') {
 
     expect(error.value).toEqual(value);
   };
-}
+};
 
 export async function configureJestOpenAPI() {
   jestOpenAPI(await getOpenapiSpecification());
 }
 
-const counters = {};
-export const getIncrementalStringGenerator = (name) => {
+const counters: Record<string, number> = {};
+export const getIncrementalStringGenerator = (name: string) => {
   if (counters[name] === undefined) {
     counters[name] = 0;
   }
@@ -314,44 +342,36 @@ export const getIncrementalStringGenerator = (name) => {
   return () => `${name}_${counters[name]++}`;
 };
 
-/**
- *
- * @param {import('fetch-mock').MockCall | undefined} req
- * @param expectedBody
- */
-export const expectRequestCalledWithBody = (req, expectedBody) => {
+export const expectRequestCalledWithBody = (req: MockCall | undefined, expectedBody: any) => {
   expect(req).toBeDefined();
+  expect(req![1]?.body).toBeDefined();
 
-  const body = JSON.parse(req[1].body.toString());
+  const body = JSON.parse(req![1]!.body!.toString());
 
   expect(body).toEqual(expectedBody);
 };
 
-/**
- *
- * @param {HTMLTableElement} table
- * @param {string | RegExp} header
- * @param {(HTMLTableCellElement) => boolean} valueCheck
- *
- * @returns {HTMLTableRowElement}
- */
-export const getRowByColumnValue = (table, header, valueCheck) => {
+export const getRowByColumnValue = (
+  table: HTMLTableElement,
+  header: string | RegExp,
+  valueCheck: (elem: HTMLTableCellElement) => boolean
+): HTMLTableRowElement | undefined => {
   /**
    * @type {HTMLTableRowElement}
    */
-  const headerRow = table.querySelector('thead tr');
+  const headerRow = table.querySelector('thead tr') as HTMLTableRowElement;
 
   if (!headerRow) throw new Error('Header row not found');
 
   const headerComp = typeof header === 'string' ?
-    (v) => v.textContent === header :
-    (v) => header.test(v.textContent);
+    (v: Element) => v.textContent === header :
+    (v: Element) => header.test(v.textContent || '');
 
   const headerIndex = Array.from(headerRow.cells).findIndex(headerComp);
 
   if (headerIndex < 0) throw new Error(`Header index not found for "${header}"`);
 
-  const rows = table.querySelectorAll('tbody tr');
+  const rows = table.querySelectorAll('tbody tr') as NodeListOf<HTMLTableRowElement>;
   for (let idx = 0; idx < rows.length; idx++) {
     const row = rows[idx];
     if (valueCheck(row.cells[headerIndex])) return row;

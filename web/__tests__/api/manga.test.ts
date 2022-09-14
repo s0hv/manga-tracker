@@ -8,15 +8,34 @@ import {
   adminUser,
   configureJestOpenAPI,
   expectErrorMessage,
+  getErrorMessage,
   normalUser,
   withUser,
-  getErrorMessage,
 } from '../utils';
+import { apiRequiresAdminUserPostTests } from './utilities';
+import type { DatabaseId, MangaId } from '@/types/dbTypes';
+import { createMangaService } from '../dbutils';
+import { deleteManga, updateManga } from '@/db/elasticsearch/manga';
+import { getMangaPartial } from '@/db/manga';
+import { NoResultsError } from '@/db/errors';
 
-let httpServer;
+let httpServer: any;
+const serverReference = {
+  httpServer,
+};
+
+jest.mock('../../db/elasticsearch/manga', () => {
+  const original = jest.requireActual('../../db/elasticsearch/manga'); // Step 2.
+  return {
+    ...jest.requireActual('../../db/elasticsearch/manga'),
+    updateManga: jest.fn().mockImplementation(original.updateManga),
+    deleteManga: jest.fn().mockImplementation(original.deleteManga),
+  };
+});
 
 beforeAll(async () => {
   ({ httpServer } = await initServer());
+  serverReference.httpServer = httpServer;
   await configureJestOpenAPI();
 });
 
@@ -153,7 +172,7 @@ describe('GET /api/manga/:mangaId', () => {
   });
 });
 
-const getChapterCount = (body) => (body && body?.data?.chapters?.length) || 0;
+const getChapterCount = (body: any) => (body && body?.data?.chapters?.length) || 0;
 
 describe('GET /api/manga/:mangaId/chapters', () => {
   const validUrl = '/api/manga/1/chapters';
@@ -276,5 +295,140 @@ describe('GET /api/manga/:mangaId/chapters', () => {
         .expect('Content-Type', /json/)
         .expect(200),
     ]);
+  });
+});
+
+describe('POST /api/manga/merge', () => {
+  const getUrl = (base: MangaId, toMerge: MangaId, service?: DatabaseId) => {
+    return `/api/manga/merge?base=${base}&toMerge=${toMerge}${service ? `&service=${service}` : ''}`;
+  };
+
+  apiRequiresAdminUserPostTests(serverReference, getUrl(1, 2));
+
+  const esDeleteMock = jest.fn();
+  const esUpdateMock = jest.fn();
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    esDeleteMock.mockResolvedValue(undefined);
+    esUpdateMock.mockResolvedValue(undefined);
+    (deleteManga as jest.Mock).mockImplementation(esDeleteMock);
+    (updateManga as jest.Mock).mockImplementation(esUpdateMock);
+  });
+
+  it('Returns 400 with invalid params', async () => {
+    await withUser(adminUser, async () => {
+      await request(httpServer)
+        .post(getUrl('a', 1))
+        .csrf()
+        .expect(400)
+        .expect(expectErrorMessage('a', 'base'));
+
+      await request(httpServer)
+        .post(getUrl(1, 'x'))
+        .csrf()
+        .expect(400)
+        .expect(expectErrorMessage('x', 'toMerge'));
+
+      await request(httpServer)
+        .post(getUrl(1, 1, 'not int'))
+        .csrf()
+        .expect(400)
+        .expect(expectErrorMessage('not int', 'service'));
+
+      await request(httpServer)
+        .post(getUrl(1.1, 2))
+        .csrf()
+        .expect(400)
+        .expect(expectErrorMessage('1.1', 'base'));
+    });
+  });
+
+  it('Returns 400 with same manga ids', async () => {
+    await withUser(adminUser, async () => {
+      await request(httpServer)
+        .post(getUrl(10, 10))
+        .csrf()
+        .expect(400)
+        .expect(expectErrorMessage('Given ids are equal'));
+    });
+  });
+
+  it('Returns 400 when manga is missing', async () => {
+    await withUser(adminUser, async () => {
+      await request(httpServer)
+        .post(getUrl(9999, 99999))
+        .csrf()
+        .expect(400)
+        .expect(expectErrorMessage('Not null value was null'));
+    });
+  });
+
+  it('Returns 200 when manga is found', async () => {
+    const m1 = await createMangaService(1);
+    const m2 = await createMangaService(2);
+
+    await withUser(adminUser, async () => {
+      await request(httpServer)
+        .post(getUrl(m1, m2))
+        .csrf()
+        .expect(200)
+        .expect(res => expect(res.body).toEqual({ aliasCount: 0, chapterCount: 0 }));
+    });
+
+    expect(esUpdateMock).toHaveBeenCalledOnce();
+    expect(esUpdateMock).toHaveBeenLastCalledWith(m1, expect.objectContaining({
+      mangaId: m1,
+    }));
+
+    expect(esDeleteMock).toHaveBeenCalledOnce();
+    expect(esDeleteMock).toHaveBeenLastCalledWith(m2.toString());
+
+    // Make sure the other manga is gone from the db
+    await expect(getMangaPartial(m2))
+      .rejects
+      .toThrow(NoResultsError);
+  });
+
+  it('Returns 200 when manga is found with specific service', async () => {
+    const m1 = await createMangaService(1);
+    const serviceId = 2;
+    const m2 = await createMangaService(serviceId);
+    await createMangaService(3, m2);
+
+    await withUser(adminUser, async () => {
+      await request(httpServer)
+        .post(getUrl(m1, m2, serviceId))
+        .csrf()
+        .expect(200)
+        .expect(res => expect(res.body).toEqual({ aliasCount: 0, chapterCount: 0 }));
+    });
+
+    expect(esDeleteMock).not.toHaveBeenCalled();
+
+    let loops = 0;
+    const waitForUpdates = async (): Promise<void> => {
+      if (esUpdateMock.mock.calls.length >= 2) return;
+
+      loops++;
+      // Shouldn't take too long so just quit early and save a few seconds
+      if (loops > 4) return;
+
+      await new Promise(resolve => setTimeout(resolve, 50));
+      return waitForUpdates();
+    };
+
+    await waitForUpdates();
+
+    expect(esUpdateMock).toHaveBeenCalledTimes(2);
+    expect(esUpdateMock).toHaveBeenCalledWith(m2, expect.objectContaining({
+      mangaId: m2,
+    }));
+    expect(esUpdateMock).toHaveBeenCalledWith(m1, expect.objectContaining({
+      mangaId: m1,
+    }));
+
+    // Make sure the other manga stays in the manga
+    expect(await getMangaPartial(m2)).toBeDefined();
   });
 });
