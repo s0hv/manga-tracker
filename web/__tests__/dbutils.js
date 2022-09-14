@@ -73,9 +73,9 @@ export const createManga = async () => {
     .then(row => row.mangaId);
 };
 
-export const createMangaService = async (serviceId) => {
+export const createMangaService = async (serviceId, customMangaId) => {
   const id = Date.now().toString();
-  return createManga()
+  return (customMangaId ? Promise.resolve(customMangaId) : createManga())
     .then(mangaId => db.one`INSERT INTO manga_service (manga_id, service_id, last_check, title_id, next_update, latest_chapter, latest_decimal, feed_url) VALUES 
                                                            (${mangaId}, ${serviceId}, NULL, ${id}, NULL, NULL, NULL, ${id}) RETURNING manga_id`)
     .then(row => row.mangaId);

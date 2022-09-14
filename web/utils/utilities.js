@@ -23,23 +23,3 @@ export const regenerateSession = async (req) => {
     });
   });
 };
-
-/**
- * Filter out keys from an object
- *
- * @param {Object} o Object
- * @param {String[]} keys Key that the object is allowed to have
- * @param {Boolean} filterUndefined Whether to filter out undefined values or not
- * @returns {Object} Output object with filtered properties
-
-module.exports.filterProperties = (o, keys, filterUndefined = true) => {
-  const keySet = new Set(keys);
-
-  return Object.keys(o)
-    .filter(k => keySet.has(k) && (!filterUndefined || o[k] !== undefined))
-    .reduce((out, k) => {
-      out[k] = o[k];
-      return out;
-    }, {});
-};
-*/

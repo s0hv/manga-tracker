@@ -17,11 +17,11 @@ describe('getLatestReleases()', () => {
   };
 
   it('Works without crashing with all arguments', async () => {
-    expectValidOutput(await getLatestReleases(serviceId, mangaId, normalUser.uuid));
+    expectValidOutput(await getLatestReleases(serviceId, mangaId, normalUser.userUuid));
   });
 
   it('Works without crashing with only user uuid', async () => {
-    expectValidOutput(await getLatestReleases(undefined, undefined, normalUser.uuid));
+    expectValidOutput(await getLatestReleases(undefined, undefined, normalUser.userUuid));
   });
 
   it('Works without crashing with only user service id', async () => {

@@ -10,7 +10,7 @@ describe('Follows contains required components', () => {
 
     const rssIcon = screen.getByLabelText(/follows rss feed/i);
     expect(rssIcon).toBeTruthy();
-    const uuid = normalUser.uuid.replace(/-/g, '');
+    const uuid = normalUser.userUuid.replace(/-/g, '');
     expect(rssIcon.href).toMatch(new RegExp(uuid));
   });
 });

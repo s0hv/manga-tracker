@@ -77,7 +77,7 @@ describe('GET /rss', () => {
   it('Returns 200 for request with user', async () => {
     await expectSuccessfulRss(
       request(httpServer)
-        .get(`/rss/${normalUser.uuid.replace(/-/g, '')}`)
+        .get(`/rss/${normalUser.userUuid.replace(/-/g, '')}`)
     );
   });
 });

@@ -50,7 +50,8 @@ export default app => {
         }
 
         return getMangaForElastic(req.query.base)
-          .then(manga => updateManga(manga.mangaId, manga))
+          .then(manga => updateManga(manga.mangaId, manga)
+            .catch(err => dbLogger.error(err, 'Failed to update elasticsearch')))
           .finally(() => res.status(200).json(row));
       })
       .catch(err => handleError(err, res));
