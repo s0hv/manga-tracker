@@ -39,14 +39,14 @@ export default app => {
   app.get('/rss/:user?', (req, res) => {
     const uuid = req.params.user;
     if (uuid && uuid.length !== 32) {
-      res.status(404).send('404');
+      res.sendStatus(404);
       return;
     }
 
     getLatestReleases(req.query.serviceId, req.query.mangaId, uuid)
       .then(rows => {
         if (rows.length === 0) {
-          res.status(404).send('404');
+          res.sendStatus(404);
           return;
         }
 
