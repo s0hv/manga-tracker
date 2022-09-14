@@ -11,6 +11,7 @@ jobs:
   check-dokku:
     name: Check if dokku secrets exist
     runs-on: ubuntu-latest
+    environment: manga-tracker
     outputs:
       use_dokku: ${{ steps.setvar.outputs.use_dokku }}
     steps:
