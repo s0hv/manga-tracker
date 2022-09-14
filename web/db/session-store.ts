@@ -57,14 +57,16 @@ export default class PostgresStore extends Store {
     if (!Number.isFinite(options.clearInterval)) {
       this.clearInterval = null;
     } else {
-      this.clearInterval = setInterval(() => this.clearOldSessions().catch(sessionLogger.error), options.clearInterval!);
+      this.clearInterval = setInterval(() => this.clearOldSessions().catch(err => sessionLogger.error(err, 'Failed to clear old sessions')), options.clearInterval!);
     }
   }
 
   clearOldSessions() {
-    const query = this.conn.many<{ data: SessionData }>`DELETE FROM sessions WHERE expires_at < CURRENT_TIMESTAMP RETURNING data`;
+    const query = this.conn.any<{ data: SessionData }>`DELETE FROM sessions WHERE expires_at < CURRENT_TIMESTAMP RETURNING data`;
     return query
       .then((rows) => {
+        if (rows.length === 0) return;
+
         const sess = rows.reduce(mergeSessionViews, {} as SessionData);
         return onSessionExpire(sess);
       });
