@@ -28,9 +28,9 @@ export const createHelpers = (sql_: Db) => {
     const result = await customSql<T>(...args);
 
     if (result.length < 1) {
-      throw new NoResultsError('Over one row found', result);
+      throw new NoResultsError('No rows found', result);
     } else if (result.length > 1) {
-      throw new TooManyResultsError('No rows found', result);
+      throw new TooManyResultsError('Over one row found', result);
     }
 
     return result[0] as any as T;
@@ -40,7 +40,7 @@ export const createHelpers = (sql_: Db) => {
     const result = await customSql<T>(...args);
 
     if (result.length < 1) {
-      throw new NoResultsError('Not rows found', result);
+      throw new NoResultsError('No rows found', result);
     }
 
     return result;

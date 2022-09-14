@@ -264,6 +264,17 @@ describe('POST /api/admin/manga/:mangaId/title', () => {
     });
   });
 
+  it('returns 404 when manga not found', async () => {
+    await withUser(adminUser, async () => {
+      await request(httpServer)
+        .post(`/api/admin/manga/999999/title`)
+        .csrf()
+        .send({ title: 'aaa' })
+        .expect(404)
+        .expect(expectErrorMessage('Manga not found'));
+    });
+  });
+
   it('Swaps title with alias when alias given as new title', async () => {
     const oldTitle = (await getMangaPartial(mangaId)).title;
     const newTitle = (await getAliases(mangaId))[0].title;
