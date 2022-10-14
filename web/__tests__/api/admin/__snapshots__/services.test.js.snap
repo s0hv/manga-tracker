@@ -1,14 +1,14 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`POST /api/admin/editService/:serviceId Returns 400 with invalid service config data 1`] = `
-Array [
-  Object {
+[
+  {
     "location": "body",
     "msg": "Value must be a valid ISO 8601 duration",
     "param": "serviceConfig.checkInterval",
     "value": "3Y6M4DT12H30M5S",
   },
-  Object {
+  {
     "location": "body",
     "msg": "Value must be a valid ISO 8601 duration",
     "param": "serviceConfig.scheduledRunInterval",
@@ -18,14 +18,14 @@ Array [
 `;
 
 exports[`POST /api/admin/editService/:serviceId Returns 400 with invalid service config data 2`] = `
-Array [
-  Object {
+[
+  {
     "location": "body",
     "msg": "Value must be a valid ISO 8601 duration",
     "param": "serviceConfig.checkInterval",
     "value": "T12H30M5S",
   },
-  Object {
+  {
     "location": "body",
     "msg": "Value must be a valid ISO 8601 duration",
     "param": "serviceConfig.scheduledRunInterval",
@@ -35,8 +35,8 @@ Array [
 `;
 
 exports[`POST /api/admin/editService/:serviceId Returns 400 with invalid service config data 3`] = `
-Array [
-  Object {
+[
+  {
     "location": "body",
     "msg": "scheduledRunLimit must be between 1 and 100",
     "param": "serviceConfig.scheduledRunLimit",
@@ -46,8 +46,8 @@ Array [
 `;
 
 exports[`POST /api/admin/editService/:serviceId Returns 400 with invalid service config data 4`] = `
-Array [
-  Object {
+[
+  {
     "location": "body",
     "msg": "scheduledRunLimit must be between 1 and 100",
     "param": "serviceConfig.scheduledRunLimit",
@@ -57,8 +57,8 @@ Array [
 `;
 
 exports[`POST /api/admin/editService/:serviceId Returns 400 with invalid service config data 5`] = `
-Array [
-  Object {
+[
+  {
     "location": "body",
     "msg": "scheduledRunLimit must be between 1 and 100",
     "param": "serviceConfig.scheduledRunLimit",
