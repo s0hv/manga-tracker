@@ -27,14 +27,12 @@ describe('Merge manga page should render correctly', () => {
       screen.getByRole('option', { name: item.title })
     ).toBeInTheDocument());
 
-    await act(async () => {
-      await user.click(screen.getByRole('option', { name: item.title }));
-    });
+    await user.click(screen.getByRole('option', { name: item.title }));
   };
 
   const triggerSearch = async (user, elem) => {
-    await act(async () => {
-      await user.type(elem, 'test', { delay: 1 });
+    await act(() => {
+      user.type(elem, 'test', { delay: 1 });
     });
   };
 
@@ -45,7 +43,8 @@ describe('Merge manga page should render correctly', () => {
 
     await selectItem(user, item);
     const mangaLabel = base ? 'base manga' : 'manga to merge';
-    expect(screen.getByLabelText(mangaLabel)).toBeInTheDocument();
+
+    await waitFor(() => expect(screen.getByLabelText(mangaLabel)).toBeInTheDocument());
   };
 
   it('should render correctly with different manga', async () => {
@@ -114,9 +113,7 @@ describe('Merge manga page should render correctly', () => {
 
     const mergeBtn = screen.getByRole('button', { name: /merge .+? into .+?/ });
 
-    await act(async () => {
-      await user.click(mergeBtn);
-    });
+    await user.click(mergeBtn);
 
     expect(
       fetchMock.called(url, { query: {
@@ -127,10 +124,11 @@ describe('Merge manga page should render correctly', () => {
       method: 'post' })
     ).toBeTrue();
 
-    expect(
+    await waitFor(() => expect(
       within(screen.getByLabelText('merge result'))
         .getByText(/moved \d+ alias\(es\) and \d+ chapter\(s\)/i)
-    ).toBeInTheDocument();
+    ).toBeInTheDocument());
+
     expect(screen.queryByLabelText('manga to merge')).not.toBeInTheDocument();
   });
 });

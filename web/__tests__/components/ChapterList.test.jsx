@@ -69,9 +69,7 @@ describe('Chapter list should allow editing', () => {
       addedCharacters
     );
 
-    await act(async () => {
-      await user.click(screen.getByRole('button', { name: /save row/i }));
-    });
+    await user.click(screen.getByRole('button', { name: /save row/i }));
 
     expect(postMock).toHaveBeenCalledTimes(1);
     // Make sure body contains all edited values
@@ -98,13 +96,9 @@ describe('Chapter list should allow editing', () => {
     const user = userEvent.setup();
     await user.click(screen.getByRole('button', { name: /edit row/i }));
 
-    await act(async () => {
-      await user.click(screen.getByRole('button', { name: /delete row/i }));
-    });
+    await user.click(screen.getByRole('button', { name: /delete row/i }));
 
-    await act(async () => {
-      await user.click(screen.getByRole('button', { name: /confirm delete row/i }));
-    });
+    await user.click(screen.getByRole('button', { name: /confirm delete row/i }));
 
     expect(deleteMock).toHaveBeenCalledTimes(1);
   });
