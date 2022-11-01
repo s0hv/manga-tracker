@@ -109,7 +109,7 @@ function MergeManga() {
     if (!isValid) return;
 
     const service = radio === 'all' ? undefined : radio;
-    postMergeManga(csrf, manga1.manga.mangaId, manga2.manga.mangaId, service)
+    return postMergeManga(csrf, manga1.manga.mangaId, manga2.manga.mangaId, service)
       .then(json => {
         setResult({ message: `Moved ${json.aliasCount} alias(es) and ${json.chapterCount} chapter(s)` });
         setManga2({});

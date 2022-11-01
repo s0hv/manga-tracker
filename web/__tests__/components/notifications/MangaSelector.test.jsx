@@ -1,4 +1,4 @@
-import { render, screen, act } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryClientProvider } from '@tanstack/react-query';
 import fetchMock from 'fetch-mock';
@@ -102,9 +102,8 @@ describe('MangaSelector', () => {
     expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
 
     const autocomplete = screen.getByRole('combobox', { name: testLabel });
-    await act(async () => {
-      await user.type(autocomplete, 'test');
-    });
+    await user.type(autocomplete, 'test');
+
 
     expect(screen.getByRole('option', { name: formatMangaName(manga[0]) })).toBeInTheDocument();
     expect(screen.getByRole('option', { name: formatMangaName(manga[1]) })).toBeInTheDocument();
@@ -116,10 +115,8 @@ describe('MangaSelector', () => {
     await user.click(screen.getByRole('option', { name: formatMangaName(manga[0]) }));
     expect(screen.getByRole('listbox')).toBeInTheDocument();
 
-    await act(async () => {
-      await user.click(autocomplete);
-      await user.keyboard('{Escape}');
-    });
+    await user.click(autocomplete);
+    await user.keyboard('{Escape}');
 
     expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
 

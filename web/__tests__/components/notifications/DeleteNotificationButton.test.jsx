@@ -1,4 +1,4 @@
-import { render, screen, act } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryClientProvider } from '@tanstack/react-query';
 import fetchMock from 'fetch-mock';
@@ -73,9 +73,7 @@ describe('DeleteNotificationButton', () => {
 
     expect(screen.getByText(/Are you sure you want to delete this notification/i)).toBeInTheDocument();
 
-    await act(async () => {
-      await user.click(screen.getByRole('button', { name: /yes/i }));
-    });
+    await user.click(screen.getByRole('button', { name: /yes/i }));
 
     expect(mockRoute).toHaveBeenCalledOnce();
     expectSuccessSnackbar();
@@ -96,9 +94,7 @@ describe('DeleteNotificationButton', () => {
 
     expect(screen.getByText(/Are you sure you want to delete this notification/i)).toBeInTheDocument();
 
-    await act(async () => {
-      await user.click(screen.getByRole('button', { name: /yes/i }));
-    });
+    await user.click(screen.getByRole('button', { name: /yes/i }));
 
     expectErrorSnackbar();
   });
@@ -120,9 +116,7 @@ describe('DeleteNotificationButton', () => {
 
     expect(screen.getByText(/Are you sure you want to delete this notification/i)).toBeInTheDocument();
 
-    await act(async () => {
-      await user.click(screen.getByRole('button', { name: /no/i }));
-    });
+    await user.click(screen.getByRole('button', { name: /no/i }));
 
     expect(mockRoute).not.toHaveBeenCalled();
   });

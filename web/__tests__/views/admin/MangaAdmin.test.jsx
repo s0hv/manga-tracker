@@ -128,15 +128,11 @@ describe('Manga admin page should handle data fetching correctly', () => {
   };
 
   const submitForm = async (user) => {
-    await act(async () => {
-      await user.click(screen.getByRole('button', { name: 'Create row' }));
-    });
+    await user.click(screen.getByRole('button', { name: 'Create row' }));
   };
 
   const deleteRow = async (user) => {
-    await act(async () => {
-      await user.click(screen.getByRole('button', { name: 'Confirm delete row' }));
-    });
+    await user.click(screen.getByRole('button', { name: 'Confirm delete row' }));
   };
 
   it('Should fetch services on render', async () => {

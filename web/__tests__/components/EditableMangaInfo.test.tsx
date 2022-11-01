@@ -1,5 +1,5 @@
 import React, { FunctionComponent } from 'react';
-import { act, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { SnackbarProvider } from 'notistack';
 import fetchMock from 'fetch-mock';
 import userEvent from '@testing-library/user-event';
@@ -109,9 +109,7 @@ describe('EditableMangaInfo should allow editing', () => {
 
     render(<Root><EditableMangaInfo mangaData={mangaData} /></Root>);
 
-    await act(async () => {
-      await userEvent.click(screen.getByText('Save changes'));
-    });
+    await userEvent.click(screen.getByText('Save changes'));
 
     expectSuccessSnackbar();
   });
@@ -125,9 +123,7 @@ describe('EditableMangaInfo should allow editing', () => {
 
     await muiSelectValue(user, screen, /^publication status$/i, statusToString(mangaData.status + 1));
 
-    await act(async () => {
-      await user.click(screen.getByText('Save changes'));
-    });
+    await user.click(screen.getByText('Save changes'));
 
     expectSuccessSnackbar();
 
@@ -141,10 +137,7 @@ describe('EditableMangaInfo should allow editing', () => {
     render(<Root><EditableMangaInfo mangaData={mangaData} /></Root>);
 
     const user = userEvent.setup();
-
-    await act(async () => {
-      await user.click(screen.getByText('Save changes'));
-    });
+    await user.click(screen.getByText('Save changes'));
 
     expectErrorSnackbar();
   });
