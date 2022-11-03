@@ -30,7 +30,7 @@ const MangaSelector = ({
 
   const doSearch = useCallback(async ({ queryKey }) => {
     const searchQuery = queryKey[1]?.trim();
-    if (searchQuery?.length < 2) return;
+    if (searchQuery?.length < 2) return [];
 
     return quickSearch(searchQuery, true)
       .then(rows => {
