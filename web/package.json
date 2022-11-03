@@ -75,7 +75,6 @@
     "passport": "^0.6.0",
     "passport-json": "^1.2.0",
     "pg-error-constants": "^1.0.0",
-    "pg-format": "^1.0.4",
     "pino": "^8.0.0",
     "pino-http": "^8.0.1",
     "pino-pretty": "^9.1.0",
