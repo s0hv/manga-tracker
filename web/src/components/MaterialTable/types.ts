@@ -44,8 +44,10 @@ export type MaterialColumn<TData extends RowData, TValue> = Omit<
 export type MaterialCell<TData extends RowData, TValue> = Omit<
   Cell<TData, TValue>,
   | 'column'
+  | 'getContext'
 > & {
   column: MaterialColumn<TData, TValue>
+  getContext: () => MaterialCellContext<TData, TValue>
 }
 
 export type MaterialRow<TData extends RowData> = Omit<

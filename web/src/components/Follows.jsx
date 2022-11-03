@@ -31,6 +31,8 @@ const FollowDetails = styled('div')(({ theme }) => ({
 
 const Thumbnail = styled('div')(({ theme }) => ({
   width: '100%',
+  position: 'relative',
+  height: '256px',
   maxWidth: '256px',
   [theme.breakpoints.down('sm')]: {
     maxWidth: '192px',
@@ -64,16 +66,14 @@ function Follows(props) {
         </Typography>
         <FollowContent>
           <Thumbnail>
-            <NextLink href='/manga/[id]' as={`/manga/${follow.mangaId}`} passHref>
-              <a target='_blank'>
-                <Image
-                  src={`${follow.cover}.256.jpg`}
-                  alt={follow.title}
-                  layout='fill'
-                  objectFit='contain'
-                  sizes='(max-width: 600px) 192px, 256px'
-                />
-              </a>
+            <NextLink href='/manga/[id]' as={`/manga/${follow.mangaId}`} target='_blank'>
+              <Image
+                src={`${follow.cover}.256.jpg`}
+                alt={follow.title}
+                fill
+                style={{ objectFit: 'contain' }}
+                sizes='(max-width: 600px) 192px, 256px'
+              />
             </NextLink>
           </Thumbnail>
           <FollowDetails>

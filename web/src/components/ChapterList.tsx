@@ -90,7 +90,7 @@ function ChapterList(props: ChapterListProps): ReactElement {
     });
   }, [serviceMangaData]);
 
-  const handleResponse = useCallback((json) => {
+  const handleResponse = useCallback((json: { message: string }) => {
     enqueueSnackbar(json.message, { variant: 'success' });
   }, [enqueueSnackbar]);
 

@@ -62,7 +62,7 @@ export const updateChapter = (csrf: string, chapterId: number | string, data: ob
     },
     body: JSON.stringify(data),
   })
-  .then(handleResponse)
+  .then(handleResponse<{message: string}>)
   .catch(handleError);
 
 /**
@@ -75,7 +75,7 @@ export const deleteChapter = (csrf: string, chapterId: number | string) => fetch
     method: 'delete',
     headers: csrfHeader(csrf),
   })
-  .then(handleResponse)
+  .then(handleResponse<{message: string}>)
   .catch(handleError);
 
 /**

@@ -135,7 +135,7 @@ function MangaAdmin(props: MangaAdminProps) {
       .finally(() => setLoading(false));
   }, [formatScheduledRuns, mangaId]);
 
-  const onCreateRow = useCallback((form) => {
+  const onCreateRow = useCallback((form: any) => {
     createScheduledRun(csrf, mangaId, form.serviceId)
       .then(json => {
         setScheduledUpdates(formatScheduledRuns([...scheduledUpdates, json.inserted]));
