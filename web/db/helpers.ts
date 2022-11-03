@@ -1,14 +1,13 @@
-import type { AsRowList, Row, RowList } from 'postgres';
+import type { PendingQuery, Row, RowList } from 'postgres';
 import { type Db, sql } from '@/db/index';
 import { NoResultsError, TooManyResultsError } from '@/db/errors';
 
 
 export type RowType = readonly (object | undefined)[];
 type TemplateArgs<T extends RowType = Row[]> = Parameters<typeof sql<T>>;
-type ResultType<T extends RowType = Row[]> = Promise<RowList<AsRowList<T>>>;
 
 export const createHelpers = (sql_: Db) => {
-  const customSql = <T extends Row>(...args: TemplateArgs<T[]>): ResultType<T[]> => {
+  const customSql = <T extends Row>(...args: TemplateArgs<T[]>): PendingQuery<T[]> => {
     const [template, ...rest] = args;
     return sql_<T[]>(template, ...rest);
   };
@@ -36,7 +35,7 @@ export const createHelpers = (sql_: Db) => {
     return result[0] as any as T;
   };
 
-  const many = async <T extends Row>(...args: TemplateArgs<T[]>): ResultType<T[]> => {
+  const many = async <T extends Row>(...args: TemplateArgs<T[]>): Promise<RowList<T[]>> => {
     const result = await customSql<T>(...args);
 
     if (result.length < 1) {
@@ -46,7 +45,7 @@ export const createHelpers = (sql_: Db) => {
     return result;
   };
 
-  const manyOrNone = <T extends Row>(...args: TemplateArgs<T[]>): ResultType<T[]> => {
+  const manyOrNone = <T extends Row>(...args: TemplateArgs<T[]>): PendingQuery<T[]> => {
     return customSql<T>(...args);
   };
 

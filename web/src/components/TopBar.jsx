@@ -84,12 +84,10 @@ const ProfileIconContainer = styled('div')(({ theme }) => ({
 }));
 
 const LinkComponent = ({ href, prefetch, as, Component, children, passHref=false, ...props }) => (
-  <NextLink href={href} prefetch={prefetch} as={as} passHref={passHref}>
-    <a style={{ textDecoration: 'none', color: 'inherit' }}>
-      <Component {...props}>
-        {children}
-      </Component>
-    </a>
+  <NextLink href={href} prefetch={prefetch} as={as} passHref={passHref} style={{ textDecoration: 'none', color: 'inherit' }}>
+    <Component {...props}>
+      {children}
+    </Component>
   </NextLink>
 );
 
@@ -136,7 +134,7 @@ function TopBar(props) {
     <Root>
       <AppBar position='sticky'>
         <Toolbar>
-          <NextLink href='/' prefetch={false}>
+          <NextLink href='/' prefetch={false} style={{ textDecoration: 'none', color: 'inherit' }}>
             <SiteTitle variant='h6' noWrap>
               Manga tracker
             </SiteTitle>
@@ -186,21 +184,21 @@ function TopBar(props) {
               open={open}
               onClose={handleClose}
             >
-              <LinkComponent Component={MenuItem} href='/profile' prefetch={false} onClick={handleClose} passHref>
+              <LinkComponent Component={MenuItem} href='/profile' prefetch={false} onClick={handleClose}>
                 <PersonIcon className={classes.menuItemIcon} /> Profile
               </LinkComponent>
               <MenuItem onClick={handleThemeChange}>
                 { activeTheme === 2 ? <SunIcon className={classes.menuItemIcon} /> : <MoonIcon className={classes.menuItemIcon} />}
                 Switch to {activeTheme === 2 ? 'light' : 'dark'} theme
               </MenuItem>
-              <LinkComponent Component={MenuItem} href='/follows' prefetch={false} onClick={handleClose} passHref>
+              <LinkComponent Component={MenuItem} href='/follows' prefetch={false} onClick={handleClose}>
                 <BookmarksIcon className={classes.menuItemIcon} /> Follows
               </LinkComponent>
-              <LinkComponent Component={MenuItem} href='/notifications' prefetch={false} onClick={handleClose} passHref>
+              <LinkComponent Component={MenuItem} href='/notifications' prefetch={false} onClick={handleClose}>
                 <NotificationsIcon className={classes.menuItemIcon} /> Notifications
               </LinkComponent>
               {user.admin && (
-                <LinkComponent Component={MenuItem} href='/admin/services' prefetch={false} onClick={handleClose} passHref>
+                <LinkComponent Component={MenuItem} href='/admin/services' prefetch={false} onClick={handleClose}>
                   <ViewListIcon className={classes.menuItemIcon} /> Services
                 </LinkComponent>
               )}

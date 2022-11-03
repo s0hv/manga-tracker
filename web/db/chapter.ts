@@ -1,4 +1,5 @@
 import camelcaseKeys from 'camelcase-keys';
+import type { PendingQuery } from 'postgres';
 import { NO_GROUP } from '../utils/constants.js';
 import { generateUpdate } from './utils';
 import { db } from './helpers';
@@ -68,7 +69,7 @@ export const defaultSort = [
 
 export const getChapters = (mangaId: MangaId, limit: number, offset: number, sortBy = defaultSort) => {
   sortBy = sortBy.length > 0 ? sortBy : defaultSort;
-  const sorting: ReturnType<typeof db.sql> = sortBy
+  const sorting: PendingQuery<any> = sortBy
     .map((sort) => db.sql`${db.sql(sort.col)}${sort.desc ? db.sql` DESC` : db.sql``}${sort.nullsLast ? db.sql` NULLS LAST` : db.sql``}`)
     .reduce((acc, sort) => db.sql`${acc}, ${sort}`);
 

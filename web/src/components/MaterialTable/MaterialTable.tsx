@@ -193,12 +193,12 @@ const MaterialTable = <TData, >(props: MaterialTableProps<TData>): ReactElement 
     return skeletonCount;
   }, [rowCount]);
 
-  const onChangePage = useCallback((e, page) => {
+  const onChangePage = useCallback((_: any, page: number) => {
     table.setPageIndex(page);
   }, [table]);
-  const onChangePageSize = useCallback((e) => table.setPageSize(e.target.value), [table]);
+  const onChangePageSize: React.ChangeEventHandler<HTMLTextAreaElement | HTMLInputElement> = useCallback((e) => table.setPageSize(Number(e.target.value)), [table]);
   const labelDisplayedRows = useCallback(
-    ({ page }) => `Page ${page+1} of ${Math.ceil(rowCount/pageSize)}`, [pageSize, rowCount]
+    ({ page }: { page: number }) => `Page ${page+1} of ${Math.ceil(rowCount/pageSize)}`, [pageSize, rowCount]
   );
 
   return (
