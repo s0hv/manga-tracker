@@ -152,6 +152,7 @@
     "jest-extended": "^3.0.1",
     "jest-openapi": "^0.14.1",
     "json-schema-faker": "^0.5.0-rcv.44",
+    "node-fetch": "^2.6.7",
     "nodemon": "^2.0.18",
     "random-seed": "^0.3.0",
     "supertest": "^6.2.4",
