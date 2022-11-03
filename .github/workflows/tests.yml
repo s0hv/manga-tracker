@@ -51,7 +51,7 @@ jobs:
 
     - name: Install deps
       run: |
-        npm ci --legacy-peer-deps
+        npm ci
         cd .. && npm ci
 
     - name: Initialize database
