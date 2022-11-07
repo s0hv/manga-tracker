@@ -137,7 +137,7 @@
     "dotenv": "^16.0.1",
     "eslint": "8.22.0",
     "eslint-config-airbnb": "^19.0.4",
-    "eslint-config-next": "^12.2.3",
+    "eslint-config-next": "^13.0.2",
     "eslint-plugin-import": "^2.26.0",
     "eslint-plugin-import-newlines": "^1.2.3",
     "eslint-plugin-jest": "^27.1.1",
