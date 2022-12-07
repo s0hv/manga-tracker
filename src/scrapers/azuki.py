@@ -13,7 +13,7 @@ from src.utils.utilities import utctoday
 
 logger = logging.getLogger('debug')
 
-chapter_regex = re.compile(r'^Chapter (?P<chapter_number>\d+)((-\d+)| ?(?P<special_chapter>ex\d*|\w|extra *\d*))?(\.(?P<chapter_decimal>\d+))?( – (?P<chapter_title>.+?))?$', re.I)
+chapter_regex = re.compile(r'^Chapter (?P<chapter_number>\d+)((-\d+)| ?(?P<special_chapter>ex\d*|\.?[A-z]|extra *\d*))?(\.(?P<chapter_decimal>\d+))?( – (?P<chapter_title>.+?))?$', re.I)
 
 
 class ParsedChapter(BaseChapterSimple, ABC):
@@ -47,6 +47,9 @@ class ParsedChapter(BaseChapterSimple, ABC):
         chapter_decimal: Optional[int] = None
         if d['chapter_decimal']:
             chapter_decimal = int(d['chapter_decimal'])
+
+        if special_chapter:
+            special_chapter = special_chapter.strip('.')
 
         if special_chapter and chapter_decimal is not None:
             logger.warning(f'Special chapter and chapter decimal specified for azuki chapter {title}')
