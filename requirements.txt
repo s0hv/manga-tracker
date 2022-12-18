@@ -4,7 +4,7 @@ requests~=2.27.1
 lxml==4.9.1
 cssselect~=1.1.0
 psycopg[c,pool]~=3.0.15
-protobuf==3.19.4
+protobuf==3.19.5
 mypy==0.961
 mypy-protobuf==3.2.0
 sentry-sdk==1.5.8
