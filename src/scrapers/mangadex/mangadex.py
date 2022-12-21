@@ -1,4 +1,5 @@
 import logging
+import re
 from datetime import datetime, timedelta
 from json.decoder import JSONDecodeError
 from typing import Dict, Optional, List, Tuple, Iterable, Set, cast, Sequence
@@ -28,8 +29,15 @@ class Chapter(BaseChapterSimple):
         if not chapter_number:
             _chapter_number = 0
             _decimal = None
+
+        elif match := re.match(r'(\d+)([A-z])', chapter_number):
+            _chapter_number = int(match.group(1))
+            _decimal = ord(match.group(2).lower()) - ord('a') + 1
+            if not chapter_title:
+                chapter_title = f'Chapter {chapter_number}'
         else:
             try:
+
                 # Split chapter number to decimal part and integer part
                 n = list(map(int, chapter_number.split('.')))
             except ValueError:
