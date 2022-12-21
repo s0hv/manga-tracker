@@ -149,7 +149,27 @@
           "type": "manga"
         }
       ]
-    }
+    },
+    {
+      "id": "05d90d16-6530-46c9-8593-80664caf4871",
+      "type": "chapter",
+      "attributes": {
+        "volume": null,
+        "chapter": "5b",
+        "title": "",
+        "translatedLanguage": "en",
+        "publishAt": "2021-03-25T02:58:34+00:00",
+        "readableAt": "2021-03-25T02:58:34+00:00",
+        "createdAt": "2021-03-25T02:58:34+00:00",
+        "updatedAt": "2021-03-25T02:58:34+00:00"
+      },
+      "relationships": [
+        {
+          "id": "4280a53c-817d-4d5c-8276-55dfbd9e4a51",
+          "type": "manga"
+        }
+      ]
+  }
   ],
   "limit": 100,
   "offset": 0,

@@ -80,6 +80,18 @@ correct_parsed_chapters = list(sorted([
         title_id='4280a53c-817d-4d5c-8276-55dfbd9e4a51',
         group=None,
         title='Chapter 193',
+        group_id=NO_GROUP),
+
+    ChapterTestModel(
+        chapter_title='Chapter 5b',
+        chapter_number=5,
+        volume=None,
+        decimal=2,
+        release_date='2021-03-25T02:58:34+00:00',
+        chapter_identifier='05d90d16-6530-46c9-8593-80664caf4871',
+        title_id='4280a53c-817d-4d5c-8276-55dfbd9e4a51',
+        group=None,
+        title='Chapter 5b',
         group_id=NO_GROUP)
 ], key=lambda c: c.chapter_identifier))
 
@@ -169,7 +181,7 @@ class MangadexTests(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsser
         self.delete_chapters()
         self.set_up_api()
         service_id = self.mangadex.ID
-        chapter_count = 5
+        chapter_count = 6
         manga_count = 4
         group_count = 4
         author_count = 4
