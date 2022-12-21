@@ -3,7 +3,7 @@ import { parse, toSeconds } from 'iso8601-duration';
 
 import { csrfMissing } from '../../../utils/constants';
 
-import { userForbidden, userUnauthorized } from '../../constants';
+import { userForbidden, userUnauthorized, isCI } from '../../constants';
 import initServer from '../../initServer';
 import stopServer from '../../stopServer';
 import {
@@ -16,6 +16,7 @@ import {
   mockUTCDates,
 } from '../../utils';
 import { getServiceFull } from '../../../db/services';
+import { copyService } from '../../dbutils';
 
 let httpServer;
 
@@ -248,7 +249,9 @@ describe('POST /api/admin/editService/:serviceId', () => {
       // Sleep for a bit here to make sure changes get flushed to database
       await new Promise(r => setTimeout(r, 20));
 
-      const originalService = await getServiceFull(serviceId);
+      const newServiceId = isCI ? await copyService(serviceId) : serviceId;
+
+      const originalService = await getServiceFull(newServiceId);
       originalService.serviceConfig.checkInterval = toSeconds(originalService.serviceConfig.checkInterval);
       originalService.serviceConfig.scheduledRunInterval = toSeconds(originalService.serviceConfig.scheduledRunInterval);
 

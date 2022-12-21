@@ -9,6 +9,8 @@ export const defaultDateDistanceFormat = '\\d+ \\w+';
 
 export const testChapterUrlFormat = 'https://test-url.com/chapter/{}';
 
+export const isCI = /^(y|yes|true)$/i.test(process.env.IS_CI);
+
 export const fullManga = {
   manga: {
     mangaId: 1,

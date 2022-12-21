@@ -81,6 +81,7 @@ jobs:
       TZ: UTC
       LEVEL: silent
       SKIP_POSTINSTALL: true
+      IS_CI: true
 
   python-tests:
     name: Scraper tests
