@@ -177,7 +177,7 @@ class MangadexTests(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsser
             self.assertChaptersEqual(actual, expected)
 
     @responses.activate
-    def test_scrape_service(self):
+    def test_scrape_service(self) -> None:
         self.delete_chapters()
         self.set_up_api()
         service_id = self.mangadex.ID
@@ -188,6 +188,7 @@ class MangadexTests(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsser
         artist_count = 4
 
         retVal = self.mangadex.scrape_service(service_id, self.mangadex.FEED_URL, None)
+        assert retVal is not None
 
         self.assertEqual(len(retVal.manga_ids), manga_count, msg='Updated manga count invalid')
         self.assertEqual(len(retVal.chapter_ids), len(correct_parsed_chapters), msg='Updated manga count invalid')
@@ -239,6 +240,7 @@ class MangadexTests(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsser
         self.assertMangaWithTitleFound("Circle Zero's Otherworldly Hero Business: Reboot")
 
         retval = self.mangadex.scrape_service(service_id, self.mangadex.FEED_URL, None)
+        assert retval is not None
         self.assertEqual(len(retval.chapter_ids), 0)
         self.assertEqual(len(retval.manga_ids), 0)
 
@@ -249,6 +251,7 @@ class MangadexTests(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsser
         service_id = self.mangadex.ID
 
         retval = self.mangadex.scrape_service(service_id, self.mangadex.FEED_URL, None)
+        assert retval is not None
 
         self.assertGreater(len(retval.manga_ids), 0, msg='Nothing updated')
         self.assertGreater(len(retval.chapter_ids), 0, msg='Nothing updated')
@@ -262,6 +265,7 @@ class MangadexTests(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsser
         self.assertEqual(groups_before, groups_after)
 
         retval = self.mangadex.scrape_service(service_id, self.mangadex.FEED_URL, None)
+        assert retval is not None
 
         self.assertGreater(len(retval.manga_ids), 0, msg='Nothing updated')
         self.assertGreater(len(retval.chapter_ids), 0, msg='Nothing updated')
@@ -280,6 +284,8 @@ class MangadexTests(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsser
         exist_groups = list(self.dbutil.add_new_groups(groups))
 
         retval = self.mangadex.scrape_service(service_id, self.mangadex.FEED_URL, None)
+
+        assert retval is not None
 
         self.assertGreater(len(retval.manga_ids), 0, msg='Nothing updated')
         self.assertGreater(len(retval.chapter_ids), 0, msg='Nothing updated')

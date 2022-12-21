@@ -22,6 +22,7 @@ class TestUtilities(unittest.TestCase):
 
             match = universal_chapter_regex.match(case['string'])
             self.assertTrue(match is not None, f"Failed to match {case['string']}")
+            assert match is not None
 
             self.assertTrue(match.groupdict() == case['correct'], f"Failed to parse {case['string']} correctly")
 
@@ -33,6 +34,7 @@ class TestUtilities(unittest.TestCase):
             match = match_title(case['string'])
             self.assertTrue(match is not None,
                             f"Failed to match {case['string']}")
+            assert match is not None
 
             correct = case['correct'].copy()
             correct['chapter'] = correct['chapter'] or correct.pop('chapter_number2')

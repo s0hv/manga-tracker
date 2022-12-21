@@ -5,7 +5,7 @@ import time
 from collections import Counter
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
-from datetime import timedelta
+from datetime import timedelta, datetime
 from itertools import groupby
 from operator import attrgetter
 from typing import Type, ContextManager, TypedDict, Optional, Collection, List, \
@@ -54,7 +54,7 @@ class LoggingCursor(Cursor):
 class UpdateScheduler:
     MAX_POOLS = 5
 
-    def __init__(self):
+    def __init__(self) -> None:
         config = {
             'host': os.environ['DB_HOST'],
             'dbname': os.environ['DB_NAME'],
@@ -197,7 +197,7 @@ class UpdateScheduler:
 
             return manga_ids, chapter_ids
 
-    def force_run(self, service_id: int, manga_id: int = None) -> Optional[Tuple[Set[int], List[int]]]:
+    def force_run(self, service_id: int, manga_id: Optional[int] = None) -> Optional[Tuple[Set[int], List[int]]]:
         if service_id not in SCRAPERS_ID:
             logger.warning(f'No service found with id {service_id}')
             return None
@@ -278,7 +278,7 @@ class UpdateScheduler:
 
                 return manga_ids, chapter_ids
 
-    def run_once(self):
+    def run_once(self) -> datetime:
         with self.conn() as conn:
             futures = []
             sql = '''

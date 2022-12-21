@@ -5,12 +5,12 @@ lxml==4.9.1
 cssselect~=1.1.0
 psycopg[c,pool]~=3.0.15
 protobuf==4.21.12
-mypy==0.961
-mypy-protobuf==3.2.0
+mypy==0.991
+mypy-protobuf==3.4.0
 sentry-sdk==1.5.8
 git+https://github.com/tk0miya/testing.postgresql.git#egg=testing.postgresql
 pytest~=7.1.2
-responses==0.21.0
+responses==0.22.0
 pytest-cov~=3.0.0
 pydantic~=1.9.1
 ratelimit~=2.2.1

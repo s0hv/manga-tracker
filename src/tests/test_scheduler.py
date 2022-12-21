@@ -34,7 +34,7 @@ class SchedulerRunTest(BaseTestClasses.DatabaseTestCase):
         SCRAPERS[MangaPlus.URL] = lambda *_, **__: self.scraper1  # type: ignore[assignment]
         SCRAPERS[MangaDex.URL] = lambda *_, **__: self.scraper2  # type: ignore[assignment]
 
-    def create_notification(self, user_id: int = TEST_USER_ID, use_follows: bool = False, dest: str = None) -> UserNotification:
+    def create_notification(self, user_id: int = TEST_USER_ID, use_follows: bool = False, dest: Optional[str] = None) -> UserNotification:
         sql = 'INSERT INTO user_notifications (notification_type, user_id, use_follows) VALUES (1, %s, %s) RETURNING *'
         with self.conn.transaction():
             with self.conn.cursor() as cur:
@@ -64,8 +64,8 @@ class SchedulerRunTest(BaseTestClasses.DatabaseTestCase):
             ScheduledRun(manga_id=manga_id, service_id=MangaDex.ID)]
         )
         self.assertTrue(self.scheduler.do_scheduled_runs())
-        self.scraper1.scrape_series.assert_called_with(mock.ANY, MangaPlus.ID, manga_id, feed_url=MangaPlus.FEED_URL)
-        self.scraper2.scrape_series.assert_called_with(mock.ANY, MangaDex.ID, manga_id, feed_url=MangaDex.FEED_URL)
+        self.scraper1.scrape_series.assert_called_with(mock.ANY, MangaPlus.ID, manga_id, feed_url=MangaPlus.FEED_URL)  # type: ignore[union-attr]
+        self.scraper2.scrape_series.assert_called_with(mock.ANY, MangaDex.ID, manga_id, feed_url=MangaDex.FEED_URL)# type: ignore[union-attr]
 
         self.assertFalse(self.dbutil.get_scheduled_runs())
 

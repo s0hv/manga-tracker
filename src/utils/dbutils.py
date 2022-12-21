@@ -63,7 +63,7 @@ def optional_generator_transaction(f: F) -> F:
     return cast(F, wrapper)
 
 
-def optional_transaction(row_factory: RowFactory[T] = None):
+def optional_transaction(row_factory: Optional[RowFactory[T]] = None):
     def _transaction(f: F) -> F:
         """
         Decorator that makes the cursor parameter optional
@@ -122,8 +122,8 @@ class DbUtil:
         return row
 
     @optional_transaction()
-    def execute(self, sql: str, args: Sequence[Any] = None,
-                *, fetch: bool = None, cur: Cursor[T] = NotImplemented) -> list[T]:
+    def execute(self, sql: str, args: Optional[Sequence[Any]] = None,
+                *, fetch: Optional[bool] = None, cur: Cursor[T] = NotImplemented) -> list[T]:
         """
         Easy way for tests to call sql functions. Should not be used outside of tests.
         """
@@ -146,7 +146,7 @@ class DbUtil:
         cur.execute(sql, (next_update, manga_id, service_id))
 
     @optional_transaction()
-    def get_service_manga(self, service_id: int, include_only: Collection[int] = None,
+    def get_service_manga(self, service_id: int, include_only: Optional[Collection[int]] = None,
                           *, cur: Cursor = NotImplemented) -> List[MangaServicePartial]:
         if include_only:
             raise NotImplementedError()
@@ -337,7 +337,7 @@ class DbUtil:
     def get_chapters(self, manga_id: Optional[None], service_id: int, *, limit: int = 100, cur: Cursor = NotImplemented) -> List[Chapter]: ...
 
     @optional_transaction()
-    def get_chapters(self, manga_id: Optional[int], service_id: int = None, *, limit: int = 100, cur: Cursor = NotImplemented) -> List[Chapter]:
+    def get_chapters(self, manga_id: Optional[int], service_id: Optional[int] = None, *, limit: int = 100, cur: Cursor = NotImplemented) -> List[Chapter]:
         args: Tuple
         if service_id is None:
             sql = 'SELECT * FROM chapters WHERE manga_id=%s LIMIT %s'
@@ -354,7 +354,7 @@ class DbUtil:
         return list(map(Chapter.parse_obj, cur.fetchall()))
 
     @optional_transaction()
-    def manga_id_from_title(self, manga_title: str, service_id: int = None,
+    def manga_id_from_title(self, manga_title: str, service_id: Optional[int] = None,
                                    *, cur: Cursor = NotImplemented) -> Optional[int]:
         """
         Tries to find a manga id by the title.
@@ -733,7 +733,8 @@ class DbUtil:
 
     @optional_transaction()
     def add_chapters(self, chapters: Union[Sequence[Chapter], Sequence[BaseChapter]],
-                     manga_id: int = None, service_id: int = None, *, fetch: bool = True, cur: Cursor = NotImplemented) -> List[InsertedChapter]:
+                     manga_id: Optional[int] = None, service_id: Optional[int] = None, *,
+                     fetch: bool = True, cur: Cursor = NotImplemented) -> List[InsertedChapter]:
         if not chapters:
             return []
 
@@ -841,7 +842,7 @@ class DbUtil:
     def get_only_latest_entries(self,
                                 service_id: int,
                                 entries: Collection[BaseChapter],
-                                manga_id: int = None,
+                                manga_id: Optional[int] = None,
                                 limit: int = 400,
                                 *, cur: Cursor = NotImplemented) -> Collection[BaseChapter]:
         if not entries:

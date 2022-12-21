@@ -21,6 +21,10 @@ class Manga(BaseModel):
     views: int = 0
 
 
+class MangaWithId(Manga):
+    manga_id: int
+
+
 class MangaForNotifications(BaseModel):
     manga_id: int
     title: str

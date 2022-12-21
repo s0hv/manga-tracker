@@ -7,7 +7,8 @@ import psycopg
 
 from src.constants import NO_GROUP
 from src.db.models.chapter import Chapter as ChapterModel
-from src.db.models.manga import MangaService, Manga, MangaServicePartial
+from src.db.models.manga import MangaService, Manga, MangaServicePartial, \
+    MangaWithId
 from src.db.models.services import Service
 from src.tests.scrapers.testing_scraper import DummyScraper, DummyScraper2
 from src.tests.testing_utils import Chapter, BaseTestClasses, spy_on
@@ -100,7 +101,7 @@ class TestSplitExistingManga(BaseDbutilTest):
                 cur = spy_on(cur)
                 retval = self.dbutil.split_existing_manga(DummyScraper.ID, [], cur=cur)
                 self.assertTupleEqual(retval, ([], []))
-                cur.execute.assert_not_called()
+                cur.execute.assert_not_called()  # type: ignore[union-attr]
 
     def test_with_no_existing(self):
         prefix = self.get_str_id()
@@ -252,7 +253,7 @@ class TestGetAndAddManga(BaseDbutilTest):
 
 
 class TestAddNewMangaWithDuplicates(BaseDbutilTest):
-    def test_add_new_series_and_chapters(self):
+    def test_add_new_series_and_chapters(self) -> None:
         """
         Tests that new manga and chapters are added correctly
         """
@@ -312,7 +313,7 @@ class TestAddNewMangaWithDuplicates(BaseDbutilTest):
                 cur = spy_on(cur)
                 retval = self.dbutil.add_new_manga_and_check_duplicate_titles([])
                 self.assertEqual(len(retval), 0, msg='Manga added when empty list passed')
-                cur.execute.assert_not_called()
+                cur.execute.assert_not_called()  # type: ignore[union-attr]
 
     def test_add_new_manga_with_only_duplicates(self):
         service_id = 1
@@ -329,7 +330,7 @@ class TestAddNewMangaWithDuplicates(BaseDbutilTest):
             with self.conn.cursor() as cur:
                 cur = spy_on(cur)
                 self.assertFalse(self.dbutil.add_new_manga_and_check_duplicate_titles(mangas, cur=cur))
-                cur.execute.assert_not_called()
+                cur.execute.assert_not_called()  # type: ignore[union-attr]
 
     def test_add_new_manga_with_multiple_same_matches(self):
         service_id = DummyScraper.ID
@@ -375,7 +376,7 @@ class TestAddNewMangaWithDuplicates(BaseDbutilTest):
                 cur = spy_on(cur)
 
                 self.assertFalse(self.dbutil.add_new_manga_and_check_duplicate_titles(mangas, cur=cur))
-                cur.execute.assert_not_called()
+                cur.execute.assert_not_called()  # type: ignore[union-attr]
 
     def test_add_new_manga_with_existing_title(self):
         service_id = DummyScraper.ID
@@ -452,7 +453,7 @@ class TestDbUtil(BaseDbutilTest):
         with self._conn.cursor() as cur:
             cur = spy_on(cur)
             self.dbutil.update_latest_chapter([], cur=cur)
-            cur.execute.assert_not_called()
+            cur.execute.assert_not_called()  # type: ignore[union-attr]
 
         # Changing these will affect the test
         manga_ids = [
@@ -464,6 +465,7 @@ class TestDbUtil(BaseDbutilTest):
         with self._conn.cursor() as cur:
             cur.execute('SELECT estimated_release FROM manga WHERE manga_id=%s', (manga_ids[0][0],))
             original_no_update = cur.fetchone()
+            assert original_no_update is not None
 
         with self._conn.transaction():
             with self._conn.cursor() as cur:
@@ -476,6 +478,7 @@ class TestDbUtil(BaseDbutilTest):
             rows = cur.fetchall()
 
         no_update = next(filter(lambda r: r['manga_id'] == manga_ids[0][0], rows))
+        assert no_update is not None
         self.assertNotEqual(no_update['latest_chapter'], manga_ids[0][1])
         self.assertDatesEqual(no_update['estimated_release'], original_no_update['estimated_release'])
 
@@ -573,7 +576,7 @@ class TestUpdateInterval(BaseDbutilTest):
 
         return m
 
-    def get_chapter(self, m: MangaService, chapter_number: int, release_date: datetime = None) -> ChapterModel:
+    def get_chapter(self, m: MangaService, chapter_number: int, release_date: Optional[datetime] = None) -> ChapterModel:
         id_ = self.get_str_id()
 
         return ChapterModel(
@@ -633,7 +636,7 @@ class TestUpdateInterval(BaseDbutilTest):
 
         chapter_number = 1
 
-        def get_chapter(decimal: int = None) -> ChapterModel:
+        def get_chapter(decimal: Optional[int] = None) -> ChapterModel:
             chapter = self.get_chapter(m, chapter_number)
             chapter.chapter_decimal = decimal  # type: ignore[assignment]
 
@@ -757,7 +760,7 @@ class TestUpdateInterval(BaseDbutilTest):
             timedelta(seconds=statistics.median(intervals))
         )
 
-    def test_decimals_ignored(self):
+    def test_decimals_ignored(self) -> None:
         m = self.setup_manga()
 
         chapter_number = 0
@@ -824,7 +827,7 @@ class TestUpdateMangaTitle(BaseDbutilTest):
     def gen_title(self) -> str:
         return f'{self.get_str_id()}_manga'
 
-    def create_manga(self, title: str = None) -> Manga:
+    def create_manga(self, title: Optional[str] = None) -> MangaWithId:
         ms = Manga(title=title or self.gen_title())
         return self.dbutil.add_new_manga(ms)
 

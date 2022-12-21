@@ -88,6 +88,7 @@ class KireiCakeTest(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsser
         for entry in entries:
             correct = correct_entries.get(entry.chapter_identifier)
             self.assertIsNotNone(correct, f'Chapter id not parsed correctly for {entry.chapter_identifier}')
+            assert correct is not None
 
             self.assertChaptersEqual(entry, correct)
 
@@ -100,6 +101,7 @@ class KireiCakeTest(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsser
 
         unique_manga = len(set(map(BaseChapterSimple.title_id.fget, correct_entries.values())))  # type: ignore[attr-defined]
         self.assertIsNotNone(updated)
+        assert updated is not None
         self.assertEqual(unique_manga, len(updated.manga_ids), 'Not all manga updated')
         self.assertEqual(len(correct_entries), len(updated.chapter_ids), 'Not all chapters added')
 

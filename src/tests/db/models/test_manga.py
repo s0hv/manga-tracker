@@ -25,7 +25,7 @@ class MyTestCase(unittest.TestCase):
     def test_manga_service_scrape_series(self):
         with self.mock_scrapers:
             m = MangaService(service_id=1, disabled=False, title_id='', manga_id=1, title='', feed_url='test')
-            m.scrape_series(None, None)
+            m.scrape_series(None, None)  # type: ignore[arg-type]
 
             self.mock_scraper().scrape_series.assert_called()
 

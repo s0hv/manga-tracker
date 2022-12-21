@@ -5,7 +5,7 @@ import sys
 from src.utils.formatter import LoggingFormatter
 
 
-def setup(name='debug'):
+def setup(name='debug') -> logging.Logger:
     logger = logging.getLogger(name)
     logger.setLevel(logging.DEBUG)
     handler = logging.StreamHandler(sys.stdout)
@@ -15,8 +15,8 @@ def setup(name='debug'):
     logger.addHandler(handler)
 
     db_logger = logging.getLogger('database')
-    if os.environ.get('LEVEL'):
-        db_logger.setLevel(os.environ.get('LEVEL'))
+    if level := os.environ.get('LEVEL'):
+        db_logger.setLevel(level)
     else:
         db_logger.setLevel(logging.WARNING)
 
@@ -27,8 +27,8 @@ def setup(name='debug'):
     db_logger.addHandler(handler)
 
     discord_webhook_logging = logging.getLogger('webhook')
-    if os.environ.get('LEVEL'):
-        discord_webhook_logging.setLevel(os.environ.get('LEVEL'))
+    if level:
+        discord_webhook_logging.setLevel(level)
     else:
         discord_webhook_logging.setLevel(logging.WARNING)
 
