@@ -124,9 +124,9 @@ class BaseChapterSimple(BaseChapter):
                  volume: Optional[int] = None,
                  decimal: Optional[int] = None,
                  release_date: Optional[datetime] = None,
-                 manga_title: str = None,
-                 manga_url: str = None,
-                 group: str = None,
+                 manga_title: Optional[str] = None,
+                 manga_url: Optional[str] = None,
+                 group: Optional[str] = None,
                  group_id: Optional[int] = None
                  ):
         self._chapter_title = chapter_title
@@ -314,12 +314,15 @@ class BaseScraper(abc.ABC):
         with self.conn.transaction():
             with self.conn.cursor() as cur:
                 cur.execute(sql, (self.ID, self.NAME, self.URL, self.CHAPTER_URL_FORMAT, self.MANGA_URL_FORMAT))
-                return cur.fetchone()['service_id']
+                row = cur.fetchone()
+                if not row:
+                    raise ValueError('Row is None after service insert')
+                return row['service_id']
 
     @staticmethod
     def titles_dict_to_manga_service(
             titles: Mapping[str, Sequence[BaseChapter]],
-            service_id: int, disabled: bool = False, manga_title: str = None) -> List[MangaService]:
+            service_id: int, disabled: bool = False, manga_title: Optional[str] = None) -> List[MangaService]:
         """
         Turns a dict Dict[title_id, chapters] into a list of MangaService objects.
         """
@@ -410,7 +413,7 @@ class BaseScraper(abc.ABC):
 
         return entries
 
-    def fetch_url(self, url: str, headers: Dict[str, str] = None) -> Optional[requests.Response]:
+    def fetch_url(self, url: str, headers: Optional[Dict[str, str]] = None) -> Optional[requests.Response]:
         try:
             r = requests.get(url, headers=headers)
         except requests.RequestException:

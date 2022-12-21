@@ -209,7 +209,7 @@ class ResponseWrapper:
 
 
 class ChapterWrapper(BaseChapter):
-    def __init__(self, chapter: mangaplus_pb2.Chapter, manga_title: str, group_id: int = None):
+    def __init__(self, chapter: mangaplus_pb2.Chapter, manga_title: str, group_id: Optional[int] = None):
         self._chapter = chapter
         self._chapter_number, self._chapter_decimal = MangaPlus.parse_chapter(chapter.name)
         self._manga_title = manga_title

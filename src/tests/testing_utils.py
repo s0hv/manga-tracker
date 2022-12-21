@@ -124,6 +124,8 @@ def set_db_environ():
 
     if DONT_USE_TEMP_DATABASE:
         return
+
+    assert Postgresql is not None
     conf = Postgresql.cache.dsn()
     os.environ['DB_HOST'] = conf['host']
     os.environ['DB_NAME'] = conf.get('database', conf.get('dbname'))
@@ -254,7 +256,7 @@ class BaseTestClasses:
 
         def assertDatesAlmostEqual(self, date1: datetime, date2: datetime,
                                    delta: timedelta = timedelta(seconds=1),
-                                   msg: str = None):
+                                   msg: Optional[str] = None):
             date1 = date1
             date2 = date2
 
@@ -353,11 +355,11 @@ class BaseTestClasses:
 
 
 class Chapter(BaseChapterSimple):
-    def __init__(self, chapter_title: str = None, chapter_number: int = 0,
-                 volume: int = None, decimal: int = None,
-                 release_date: datetime = None, chapter_identifier: str = '',
-                 title_id: str = '', manga_title: str = None,
-                 manga_url: str = None, group: str = None,
+    def __init__(self, chapter_title: Optional[str] = None, chapter_number: int = 0,
+                 volume: Optional[int] = None, decimal: Optional[int] = None,
+                 release_date: Optional[datetime] = None, chapter_identifier: str = '',
+                 title_id: str = '', manga_title: Optional[str] = None,
+                 manga_url: Optional[str] = None, group: Optional[str] = None,
                  group_id: int = NO_GROUP):
         super().__init__(
             chapter_title=chapter_title,

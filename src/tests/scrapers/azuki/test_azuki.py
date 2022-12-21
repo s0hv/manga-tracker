@@ -154,13 +154,12 @@ class AzukiTest(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAssertion
     @responses.activate
     @patch.object(src.scrapers.azuki, 'utctoday', Mock())
     def test_parse_releases_page(self):
-        src.scrapers.azuki.utctoday.return_value = get_date('Jun 1, 2022').replace(tzinfo=timezone.utc)
+        src.scrapers.azuki.utctoday.return_value = get_date('Jun 1, 2022').replace(tzinfo=timezone.utc)  # type: ignore[attr-defined]
 
         with open(releases_page_path, 'r', encoding='utf-8') as f:
             data = f.read()
         responses.get(Azuki.FEED_URL, body=data)
         resp = responses.get(re.compile(Azuki.MANGA_URL_FORMAT.format('.+')), status=500)
-        resp.aaaa = 2
 
         azuki = self.get_scraper()
 
@@ -172,6 +171,7 @@ class AzukiTest(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAssertion
         retval = azuki.scrape_service(Azuki.ID, Azuki.FEED_URL, None)
 
         self.assertTrue(retval)
+        assert retval is not None
         self.assertEqual(len(retval.manga_ids), 3)
         self.assertEqual(len(retval.chapter_ids), 3)
 

@@ -298,7 +298,7 @@ class MangaDex(BaseScraperWhole):
 
         return valid_chapters
 
-    def fetch_chapters(self, api_url: str, title_id: str = None, limit: int = 100) -> Optional[List[Chapter]]:
+    def fetch_chapters(self, api_url: str, title_id: Optional[str] = None, limit: int = 100) -> Optional[List[Chapter]]:
         self.api.base_url = api_url
         try:
             result = self.api.get_chapters({'readableAt': 'desc'}, manga_id=title_id, languages=['en'], limit=limit)
@@ -310,7 +310,7 @@ class MangaDex(BaseScraperWhole):
             logger.exception(f'Failed to parse mangadex result {e}')
             return None
 
-    def do_update(self, service_id: int, feed_url: str, title_id: str = None, limit: int = 100) -> Optional[ScrapeServiceRetVal]:
+    def do_update(self, service_id: int, feed_url: str, title_id: Optional[str] = None, limit: int = 100) -> Optional[ScrapeServiceRetVal]:
         """
         Handles fetching the chapter feed and adding the results to the database
         and other required operations

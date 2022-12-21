@@ -3,27 +3,33 @@
 isort:skip_file
 """
 import builtins
-import typing
-
+import collections.abc
 import google.protobuf.descriptor
 import google.protobuf.internal.containers
 import google.protobuf.internal.enum_type_wrapper
 import google.protobuf.message
-import typing_extensions
+import sys
+import typing
+
+if sys.version_info >= (3, 10):
+    import typing as typing_extensions
+else:
+    import typing_extensions
 
 DESCRIPTOR: google.protobuf.descriptor.FileDescriptor
 
 class _Action:
-    ValueType = typing.NewType('ValueType', builtins.int)
+    ValueType = typing.NewType("ValueType", builtins.int)
     V: typing_extensions.TypeAlias = ValueType
+
 class _ActionEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[_Action.ValueType], builtins.type):
     DESCRIPTOR: google.protobuf.descriptor.EnumDescriptor
     DEFAULT: _Action.ValueType  # 0
     UNAUTHORIZED: _Action.ValueType  # 1
     MAINTENANCE: _Action.ValueType  # 2
     GEOIP_BLOCKING: _Action.ValueType  # 3
-class Action(_Action, metaclass=_ActionEnumTypeWrapper):
-    pass
+
+class Action(_Action, metaclass=_ActionEnumTypeWrapper): ...
 
 DEFAULT: Action.ValueType  # 0
 UNAUTHORIZED: Action.ValueType  # 1
@@ -31,9 +37,10 @@ MAINTENANCE: Action.ValueType  # 2
 GEOIP_BLOCKING: Action.ValueType  # 3
 global___Action = Action
 
-
+@typing_extensions.final
 class UpdatedTitle(google.protobuf.message.Message):
     DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
     TITLE_FIELD_NUMBER: builtins.int
     CHAPTER_ID_FIELD_NUMBER: builtins.int
     CHAPTER_NAME_FIELD_NUMBER: builtins.int
@@ -42,71 +49,87 @@ class UpdatedTitle(google.protobuf.message.Message):
     @property
     def title(self) -> global___Title: ...
     chapter_id: builtins.int
-    chapter_name: typing.Text
-    chapter_sub_title: typing.Text
+    chapter_name: builtins.str
+    chapter_sub_title: builtins.str
     is_latest: builtins.bool
-    def __init__(self,
+    def __init__(
+        self,
         *,
-        title: typing.Optional[global___Title] = ...,
+        title: global___Title | None = ...,
         chapter_id: builtins.int = ...,
-        chapter_name: typing.Text = ...,
-        chapter_sub_title: typing.Text = ...,
+        chapter_name: builtins.str = ...,
+        chapter_sub_title: builtins.str = ...,
         is_latest: builtins.bool = ...,
-        ) -> None: ...
-    def HasField(self, field_name: typing_extensions.Literal["title",b"title"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing_extensions.Literal["chapter_id",b"chapter_id","chapter_name",b"chapter_name","chapter_sub_title",b"chapter_sub_title","is_latest",b"is_latest","title",b"title"]) -> None: ...
+    ) -> None: ...
+    def HasField(self, field_name: typing_extensions.Literal["title", b"title"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing_extensions.Literal["chapter_id", b"chapter_id", "chapter_name", b"chapter_name", "chapter_sub_title", b"chapter_sub_title", "is_latest", b"is_latest", "title", b"title"]) -> None: ...
+
 global___UpdatedTitle = UpdatedTitle
 
+@typing_extensions.final
 class UpdatedTitleGroup(google.protobuf.message.Message):
     DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
     TITLES_FIELD_NUMBER: builtins.int
     @property
     def titles(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___UpdatedTitle]: ...
-    def __init__(self,
+    def __init__(
+        self,
         *,
-        titles: typing.Optional[typing.Iterable[global___UpdatedTitle]] = ...,
-        ) -> None: ...
-    def ClearField(self, field_name: typing_extensions.Literal["titles",b"titles"]) -> None: ...
+        titles: collections.abc.Iterable[global___UpdatedTitle] | None = ...,
+    ) -> None: ...
+    def ClearField(self, field_name: typing_extensions.Literal["titles", b"titles"]) -> None: ...
+
 global___UpdatedTitleGroup = UpdatedTitleGroup
 
+@typing_extensions.final
 class WebHomeView(google.protobuf.message.Message):
     DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
     GROUPS_FIELD_NUMBER: builtins.int
     @property
     def groups(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___UpdatedTitleGroup]: ...
-    def __init__(self,
+    def __init__(
+        self,
         *,
-        groups: typing.Optional[typing.Iterable[global___UpdatedTitleGroup]] = ...,
-        ) -> None: ...
-    def ClearField(self, field_name: typing_extensions.Literal["groups",b"groups"]) -> None: ...
+        groups: collections.abc.Iterable[global___UpdatedTitleGroup] | None = ...,
+    ) -> None: ...
+    def ClearField(self, field_name: typing_extensions.Literal["groups", b"groups"]) -> None: ...
+
 global___WebHomeView = WebHomeView
 
+@typing_extensions.final
 class Popup(google.protobuf.message.Message):
     DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
     SUBJECT_FIELD_NUMBER: builtins.int
     BODY_FIELD_NUMBER: builtins.int
-    subject: typing.Text
-    body: typing.Text
-    def __init__(self,
+    subject: builtins.str
+    body: builtins.str
+    def __init__(
+        self,
         *,
-        subject: typing.Text = ...,
-        body: typing.Text = ...,
-        ) -> None: ...
-    def ClearField(self, field_name: typing_extensions.Literal["body",b"body","subject",b"subject"]) -> None: ...
+        subject: builtins.str = ...,
+        body: builtins.str = ...,
+    ) -> None: ...
+    def ClearField(self, field_name: typing_extensions.Literal["body", b"body", "subject", b"subject"]) -> None: ...
+
 global___Popup = Popup
 
+@typing_extensions.final
 class Title(google.protobuf.message.Message):
     DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
     class _Language:
-        ValueType = typing.NewType('ValueType', builtins.int)
+        ValueType = typing.NewType("ValueType", builtins.int)
         V: typing_extensions.TypeAlias = ValueType
-    class _LanguageEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[Title._Language.ValueType], builtins.type):
+
+    class _LanguageEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[Title._Language.ValueType], builtins.type):  # noqa: F821
         DESCRIPTOR: google.protobuf.descriptor.EnumDescriptor
         ENGLISH: Title._Language.ValueType  # 0
         SPANISH: Title._Language.ValueType  # 1
-    class Language(_Language, metaclass=_LanguageEnumTypeWrapper):
-        pass
 
+    class Language(_Language, metaclass=_LanguageEnumTypeWrapper): ...
     ENGLISH: Title.Language.ValueType  # 0
     SPANISH: Title.Language.ValueType  # 1
 
@@ -118,27 +141,31 @@ class Title(google.protobuf.message.Message):
     VIEW_COUNT_FIELD_NUMBER: builtins.int
     LANGUAGE_FIELD_NUMBER: builtins.int
     title_id: builtins.int
-    name: typing.Text
-    author: typing.Text
-    portrait_image_url: typing.Text
-    landscape_image_url: typing.Text
+    name: builtins.str
+    author: builtins.str
+    portrait_image_url: builtins.str
+    landscape_image_url: builtins.str
     view_count: builtins.int
     language: global___Title.Language.ValueType
-    def __init__(self,
+    def __init__(
+        self,
         *,
         title_id: builtins.int = ...,
-        name: typing.Text = ...,
-        author: typing.Text = ...,
-        portrait_image_url: typing.Text = ...,
-        landscape_image_url: typing.Text = ...,
+        name: builtins.str = ...,
+        author: builtins.str = ...,
+        portrait_image_url: builtins.str = ...,
+        landscape_image_url: builtins.str = ...,
         view_count: builtins.int = ...,
         language: global___Title.Language.ValueType = ...,
-        ) -> None: ...
-    def ClearField(self, field_name: typing_extensions.Literal["author",b"author","landscape_image_url",b"landscape_image_url","language",b"language","name",b"name","portrait_image_url",b"portrait_image_url","title_id",b"title_id","view_count",b"view_count"]) -> None: ...
+    ) -> None: ...
+    def ClearField(self, field_name: typing_extensions.Literal["author", b"author", "landscape_image_url", b"landscape_image_url", "language", b"language", "name", b"name", "portrait_image_url", b"portrait_image_url", "title_id", b"title_id", "view_count", b"view_count"]) -> None: ...
+
 global___Title = Title
 
+@typing_extensions.final
 class Chapter(google.protobuf.message.Message):
     DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
     TITLE_ID_FIELD_NUMBER: builtins.int
     CHAPTER_ID_FIELD_NUMBER: builtins.int
     NAME_FIELD_NUMBER: builtins.int
@@ -148,30 +175,35 @@ class Chapter(google.protobuf.message.Message):
     END_TIMESTAMP_FIELD_NUMBER: builtins.int
     title_id: builtins.int
     chapter_id: builtins.int
-    name: typing.Text
-    sub_title: typing.Text
-    thumbnail_url: typing.Text
+    name: builtins.str
+    sub_title: builtins.str
+    thumbnail_url: builtins.str
     start_timestamp: builtins.int
     end_timestamp: builtins.int
-    def __init__(self,
+    def __init__(
+        self,
         *,
         title_id: builtins.int = ...,
         chapter_id: builtins.int = ...,
-        name: typing.Text = ...,
-        sub_title: typing.Text = ...,
-        thumbnail_url: typing.Text = ...,
+        name: builtins.str = ...,
+        sub_title: builtins.str = ...,
+        thumbnail_url: builtins.str = ...,
         start_timestamp: builtins.int = ...,
         end_timestamp: builtins.int = ...,
-        ) -> None: ...
-    def ClearField(self, field_name: typing_extensions.Literal["chapter_id",b"chapter_id","end_timestamp",b"end_timestamp","name",b"name","start_timestamp",b"start_timestamp","sub_title",b"sub_title","thumbnail_url",b"thumbnail_url","title_id",b"title_id"]) -> None: ...
+    ) -> None: ...
+    def ClearField(self, field_name: typing_extensions.Literal["chapter_id", b"chapter_id", "end_timestamp", b"end_timestamp", "name", b"name", "start_timestamp", b"start_timestamp", "sub_title", b"sub_title", "thumbnail_url", b"thumbnail_url", "title_id", b"title_id"]) -> None: ...
+
 global___Chapter = Chapter
 
+@typing_extensions.final
 class TitleDetailView(google.protobuf.message.Message):
     DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
     class _UpdateTiming:
-        ValueType = typing.NewType('ValueType', builtins.int)
+        ValueType = typing.NewType("ValueType", builtins.int)
         V: typing_extensions.TypeAlias = ValueType
-    class _UpdateTimingEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[TitleDetailView._UpdateTiming.ValueType], builtins.type):
+
+    class _UpdateTimingEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[TitleDetailView._UpdateTiming.ValueType], builtins.type):  # noqa: F821
         DESCRIPTOR: google.protobuf.descriptor.EnumDescriptor
         NOT_REGULARLY: TitleDetailView._UpdateTiming.ValueType  # 0
         MONDAY: TitleDetailView._UpdateTiming.ValueType  # 1
@@ -182,9 +214,8 @@ class TitleDetailView(google.protobuf.message.Message):
         SATURDAY: TitleDetailView._UpdateTiming.ValueType  # 6
         SUNDAY: TitleDetailView._UpdateTiming.ValueType  # 7
         DAY: TitleDetailView._UpdateTiming.ValueType  # 8
-    class UpdateTiming(_UpdateTiming, metaclass=_UpdateTimingEnumTypeWrapper):
-        pass
 
+    class UpdateTiming(_UpdateTiming, metaclass=_UpdateTimingEnumTypeWrapper): ...
     NOT_REGULARLY: TitleDetailView.UpdateTiming.ValueType  # 0
     MONDAY: TitleDetailView.UpdateTiming.ValueType  # 1
     TUESDAY: TitleDetailView.UpdateTiming.ValueType  # 2
@@ -210,13 +241,13 @@ class TitleDetailView(google.protobuf.message.Message):
     CHAPTERS_DESCENDING_FIELD_NUMBER: builtins.int
     @property
     def title(self) -> global___Title: ...
-    title_image_url: typing.Text
-    overview: typing.Text
-    background_image_url: typing.Text
+    title_image_url: builtins.str
+    overview: builtins.str
+    background_image_url: builtins.str
     next_timestamp: builtins.int
     update_timing: global___TitleDetailView.UpdateTiming.ValueType
-    viewing_period_description: typing.Text
-    non_appearance_info: typing.Text
+    viewing_period_description: builtins.str
+    non_appearance_info: builtins.str
     @property
     def first_chapter_list(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___Chapter]: ...
     @property
@@ -225,40 +256,48 @@ class TitleDetailView(google.protobuf.message.Message):
     def recommended_titles(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___Title]: ...
     is_simul_release: builtins.bool
     chapters_descending: builtins.bool
-    def __init__(self,
+    def __init__(
+        self,
         *,
-        title: typing.Optional[global___Title] = ...,
-        title_image_url: typing.Text = ...,
-        overview: typing.Text = ...,
-        background_image_url: typing.Text = ...,
+        title: global___Title | None = ...,
+        title_image_url: builtins.str = ...,
+        overview: builtins.str = ...,
+        background_image_url: builtins.str = ...,
         next_timestamp: builtins.int = ...,
         update_timing: global___TitleDetailView.UpdateTiming.ValueType = ...,
-        viewing_period_description: typing.Text = ...,
-        non_appearance_info: typing.Text = ...,
-        first_chapter_list: typing.Optional[typing.Iterable[global___Chapter]] = ...,
-        last_chapter_list: typing.Optional[typing.Iterable[global___Chapter]] = ...,
-        recommended_titles: typing.Optional[typing.Iterable[global___Title]] = ...,
+        viewing_period_description: builtins.str = ...,
+        non_appearance_info: builtins.str = ...,
+        first_chapter_list: collections.abc.Iterable[global___Chapter] | None = ...,
+        last_chapter_list: collections.abc.Iterable[global___Chapter] | None = ...,
+        recommended_titles: collections.abc.Iterable[global___Title] | None = ...,
         is_simul_release: builtins.bool = ...,
         chapters_descending: builtins.bool = ...,
-        ) -> None: ...
-    def HasField(self, field_name: typing_extensions.Literal["title",b"title"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing_extensions.Literal["background_image_url",b"background_image_url","chapters_descending",b"chapters_descending","first_chapter_list",b"first_chapter_list","is_simul_release",b"is_simul_release","last_chapter_list",b"last_chapter_list","next_timestamp",b"next_timestamp","non_appearance_info",b"non_appearance_info","overview",b"overview","recommended_titles",b"recommended_titles","title",b"title","title_image_url",b"title_image_url","update_timing",b"update_timing","viewing_period_description",b"viewing_period_description"]) -> None: ...
+    ) -> None: ...
+    def HasField(self, field_name: typing_extensions.Literal["title", b"title"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing_extensions.Literal["background_image_url", b"background_image_url", "chapters_descending", b"chapters_descending", "first_chapter_list", b"first_chapter_list", "is_simul_release", b"is_simul_release", "last_chapter_list", b"last_chapter_list", "next_timestamp", b"next_timestamp", "non_appearance_info", b"non_appearance_info", "overview", b"overview", "recommended_titles", b"recommended_titles", "title", b"title", "title_image_url", b"title_image_url", "update_timing", b"update_timing", "viewing_period_description", b"viewing_period_description"]) -> None: ...
+
 global___TitleDetailView = TitleDetailView
 
+@typing_extensions.final
 class AllTitlesView(google.protobuf.message.Message):
     DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
     TITLES_FIELD_NUMBER: builtins.int
     @property
     def titles(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___Title]: ...
-    def __init__(self,
+    def __init__(
+        self,
         *,
-        titles: typing.Optional[typing.Iterable[global___Title]] = ...,
-        ) -> None: ...
-    def ClearField(self, field_name: typing_extensions.Literal["titles",b"titles"]) -> None: ...
+        titles: collections.abc.Iterable[global___Title] | None = ...,
+    ) -> None: ...
+    def ClearField(self, field_name: typing_extensions.Literal["titles", b"titles"]) -> None: ...
+
 global___AllTitlesView = AllTitlesView
 
+@typing_extensions.final
 class SuccessResult(google.protobuf.message.Message):
     DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
     ALL_TITLES_FIELD_NUMBER: builtins.int
     TITLE_DETAIL_FIELD_NUMBER: builtins.int
     WEB_HOME_VIEW_FIELD_NUMBER: builtins.int
@@ -268,19 +307,23 @@ class SuccessResult(google.protobuf.message.Message):
     def title_detail(self) -> global___TitleDetailView: ...
     @property
     def web_home_view(self) -> global___WebHomeView: ...
-    def __init__(self,
+    def __init__(
+        self,
         *,
-        all_titles: typing.Optional[global___AllTitlesView] = ...,
-        title_detail: typing.Optional[global___TitleDetailView] = ...,
-        web_home_view: typing.Optional[global___WebHomeView] = ...,
-        ) -> None: ...
-    def HasField(self, field_name: typing_extensions.Literal["all_titles",b"all_titles","result",b"result","title_detail",b"title_detail","web_home_view",b"web_home_view"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing_extensions.Literal["all_titles",b"all_titles","result",b"result","title_detail",b"title_detail","web_home_view",b"web_home_view"]) -> None: ...
-    def WhichOneof(self, oneof_group: typing_extensions.Literal["result",b"result"]) -> typing.Optional[typing_extensions.Literal["all_titles","title_detail","web_home_view"]]: ...
+        all_titles: global___AllTitlesView | None = ...,
+        title_detail: global___TitleDetailView | None = ...,
+        web_home_view: global___WebHomeView | None = ...,
+    ) -> None: ...
+    def HasField(self, field_name: typing_extensions.Literal["all_titles", b"all_titles", "result", b"result", "title_detail", b"title_detail", "web_home_view", b"web_home_view"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing_extensions.Literal["all_titles", b"all_titles", "result", b"result", "title_detail", b"title_detail", "web_home_view", b"web_home_view"]) -> None: ...
+    def WhichOneof(self, oneof_group: typing_extensions.Literal["result", b"result"]) -> typing_extensions.Literal["all_titles", "title_detail", "web_home_view"] | None: ...
+
 global___SuccessResult = SuccessResult
 
+@typing_extensions.final
 class ErrorResult(google.protobuf.message.Message):
     DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
     ACTION_FIELD_NUMBER: builtins.int
     ENGLISH_POPUP_FIELD_NUMBER: builtins.int
     SPANISH_POPUP_FIELD_NUMBER: builtins.int
@@ -290,31 +333,37 @@ class ErrorResult(google.protobuf.message.Message):
     def english_popup(self) -> global___Popup: ...
     @property
     def spanish_popup(self) -> global___Popup: ...
-    debug_info: typing.Text
-    def __init__(self,
+    debug_info: builtins.str
+    def __init__(
+        self,
         *,
         action: global___Action.ValueType = ...,
-        english_popup: typing.Optional[global___Popup] = ...,
-        spanish_popup: typing.Optional[global___Popup] = ...,
-        debug_info: typing.Text = ...,
-        ) -> None: ...
-    def HasField(self, field_name: typing_extensions.Literal["english_popup",b"english_popup","spanish_popup",b"spanish_popup"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing_extensions.Literal["action",b"action","debug_info",b"debug_info","english_popup",b"english_popup","spanish_popup",b"spanish_popup"]) -> None: ...
+        english_popup: global___Popup | None = ...,
+        spanish_popup: global___Popup | None = ...,
+        debug_info: builtins.str = ...,
+    ) -> None: ...
+    def HasField(self, field_name: typing_extensions.Literal["english_popup", b"english_popup", "spanish_popup", b"spanish_popup"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing_extensions.Literal["action", b"action", "debug_info", b"debug_info", "english_popup", b"english_popup", "spanish_popup", b"spanish_popup"]) -> None: ...
+
 global___ErrorResult = ErrorResult
 
+@typing_extensions.final
 class Response(google.protobuf.message.Message):
     DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
     SUCCESS_RESULT_FIELD_NUMBER: builtins.int
     ERROR_RESULT_FIELD_NUMBER: builtins.int
     @property
     def success_result(self) -> global___SuccessResult: ...
     @property
     def error_result(self) -> global___ErrorResult: ...
-    def __init__(self,
+    def __init__(
+        self,
         *,
-        success_result: typing.Optional[global___SuccessResult] = ...,
-        error_result: typing.Optional[global___ErrorResult] = ...,
-        ) -> None: ...
-    def HasField(self, field_name: typing_extensions.Literal["error_result",b"error_result","success_result",b"success_result"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing_extensions.Literal["error_result",b"error_result","success_result",b"success_result"]) -> None: ...
+        success_result: global___SuccessResult | None = ...,
+        error_result: global___ErrorResult | None = ...,
+    ) -> None: ...
+    def HasField(self, field_name: typing_extensions.Literal["error_result", b"error_result", "success_result", b"success_result"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing_extensions.Literal["error_result", b"error_result", "success_result", b"success_result"]) -> None: ...
+
 global___Response = Response

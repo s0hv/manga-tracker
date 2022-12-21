@@ -56,6 +56,7 @@ class TestMangaPlusParser(BaseTestClasses.DatabaseTestCase):
         for case in self.test_cases:
             correct = case['correct']
             resp = ResponseWrapper(b64decode(case['data']))
+            assert resp.title_detail_view is not None
             series_dict = resp.title_detail_view.to_dict()
             self.assertTrue(find_dict_inequality(series_dict, correct),
                             "Series objects don't exactly match each other")

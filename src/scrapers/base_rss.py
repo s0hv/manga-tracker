@@ -27,12 +27,12 @@ class RSSChapter(BaseChapterSimple):
                  chapter_identifier: str,
                  title_id: str,
                  group_id: int,
-                 volume: str = None,
-                 decimal: str = None,
+                 volume: Optional[str] = None,
+                 decimal: Optional[str] = None,
                  release_date: Optional[Union[time.struct_time, datetime]] = None,
-                 manga_title: str = None,
-                 manga_url: str = None,
-                 group: str = None
+                 manga_title: Optional[str] = None,
+                 manga_url: Optional[str] = None,
+                 group: Optional[str] = None
                  ):
         super().__init__(
             chapter_title=chapter_title,

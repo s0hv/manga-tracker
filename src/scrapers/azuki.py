@@ -203,7 +203,7 @@ class Azuki(BaseScraperWhole):
         return chapters
 
     def scrape_series(self, title_id: str, service_id: int, manga_id: Optional[int],
-                      feed_url: str = None) -> Optional[Set[int]]:
+                      feed_url: Optional[str] = None) -> Optional[Set[int]]:
         group_id = self.dbutil.get_or_create_group(self.NAME).group_id
         chapters = self.get_manga_chapters(title_id, group_id)
 

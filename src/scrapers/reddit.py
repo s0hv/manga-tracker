@@ -55,7 +55,7 @@ class Reddit(BaseScraper):
     SPECIAL_REGEX = re.compile(r'volume \d+ (bonus)? chapter .+?', re.I)
 
     @staticmethod
-    def parse_feed(entries: typing.Iterable[dict], group_id: int = None) -> List[Chapter]:
+    def parse_feed(entries: typing.Iterable[dict], group_id: Optional[int] = None) -> List[Chapter]:
         chapters = []
         for post in entries:
             title = post.get('title', '')

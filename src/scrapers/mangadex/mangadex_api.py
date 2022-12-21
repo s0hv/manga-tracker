@@ -322,8 +322,8 @@ class MangadexAPI:
     @sleep_and_retry
     @api_rate_limiter
     def get_chapters(self, sort_by: SortColumns, *, languages: List[str],
-                     manga_id: str = None, limit: int = MAX_LIMIT,
-                     include_groups: bool = True, offset: int = None,
+                     manga_id: Optional[str] = None, limit: int = MAX_LIMIT,
+                     include_groups: Optional[bool] = True, offset: Optional[int] = None,
                      include_future_updates=True) -> Iterable[ChapterResult]:
         params = []
         order = []
