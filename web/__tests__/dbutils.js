@@ -80,3 +80,20 @@ export const createMangaService = async (serviceId, customMangaId) => {
                                                            (${mangaId}, ${serviceId}, NULL, ${id}, NULL, NULL, NULL, ${id}) RETURNING manga_id`)
     .then(row => row.mangaId);
 };
+
+export const copyService = async (serviceId) => {
+  const uniqueId = Date.now().toString();
+
+  const { serviceId: newServiceId } = await db.one`INSERT INTO services (service_name, url, disabled, last_check, chapter_url_format, disabled_until, manga_url_format, scheduled_runs_disabled_until)  
+    SELECT service_name, url || ${uniqueId}::TEXT, disabled, last_check, chapter_url_format, disabled_until, manga_url_format, scheduled_runs_disabled_until 
+    FROM services WHERE service_id=${serviceId}
+    RETURNING service_id`;
+
+  await db.none`INSERT INTO service_whole (service_id, feed_url, last_check, next_update, last_id) 
+    SELECT ${newServiceId}, feed_url || ${newServiceId}::TEXT, last_check, next_update, last_id FROM service_whole WHERE service_id=${serviceId}`;
+
+  await db.none`INSERT INTO service_config (service_id, check_interval, scheduled_run_limit, scheduled_runs_enabled, scheduled_run_interval) 
+    SELECT ${newServiceId}, check_interval, scheduled_run_limit, scheduled_runs_enabled, scheduled_run_interval FROM service_config WHERE service_id=${serviceId}`;
+
+  return newServiceId;
+};
