@@ -15,6 +15,9 @@ omit =
     # comixology not in use anymore
     ./src/scrapers/comixology.py
 
+    # Auto generated code with an unused if statement block
+    ./src/scrapers/mangaplus/protobuf/*
+
 
 source = src
 
