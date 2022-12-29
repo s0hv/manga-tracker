@@ -1,13 +1,6 @@
-import withTmInitializer from 'next-transpile-modules';
-
-const withTM = withTmInitializer(([
-  'frappe-charts',
-  'react-frappe-charts',
-  'swagger-jsdoc',
-]));
-
 export default async (phase, { defaultConfig }) => {
-  const conf = withTM({
+  /** @type {import('next').NextConfig} */
+  const conf = {
     webpack(config) {
       if (config.resolve.fallback) {
         config.resolve.fallback.fs = false;
@@ -36,18 +29,21 @@ export default async (phase, { defaultConfig }) => {
     compiler: {
       emotion: true,
     },
-    experimental: {
-      modularizeImports: {
-        '@mui/material': {
-          transform: '@mui/material/{{member}}',
-        },
-        '@mui/icons-material': {
-          transform: '@mui/icons-material/{{member}}',
-        },
+    modularizeImports: {
+      '@mui/material': {
+        transform: '@mui/material/{{member}}',
+      },
+      '@mui/icons-material': {
+        transform: '@mui/icons-material/{{member}}',
       },
     },
     swcMinify: false,
-  });
+    transpilePackages: [
+      'frappe-charts',
+      'react-frappe-charts',
+      'swagger-jsdoc',
+    ],
+  };
 
   if (process.env.ANALYZE) {
     // eslint-disable-next-line import/no-extraneous-dependencies
