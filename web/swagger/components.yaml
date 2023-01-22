@@ -419,7 +419,7 @@ components:
         notificationType:
           $ref: '#/components/schemas/notificationType'
         timesRun:
-          type: integeer
+          type: integer
         timesFailed:
           type: integer
         disabled:
@@ -433,12 +433,19 @@ components:
         manga:
           description: Followed manga. Not required if useFollows is set to true.
           type: array
+          nullable: true
           items:
             $ref: '#/components/schemas/notificationManga'
         fields:
           type: array
           items:
             $ref: '#/components/schemas/notificationField'
+        overrides:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              $ref: '#/components/schemas/notificationField'
 
       required:
         - notificationType
@@ -446,10 +453,12 @@ components:
         - destination
         - disabled
         - fields
+        - name
+        - overrides
 
     userNotificationWithId:
       allOf:
-        - $ref: '#/components/schemas/notificationField'
+        - $ref: '#/components/schemas/userNotification'
         - type: object
           required:
             - notificationId

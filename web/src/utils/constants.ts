@@ -7,4 +7,5 @@ export const QueryKeys = {
   NotificationsList: ['notifications-list'],
   MangaServices: 'admin-manga-service',
   Services: ['services'],
+  NotificationFollows: ['notification-follows'],
 } as const;

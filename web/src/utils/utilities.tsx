@@ -4,6 +4,7 @@ import throttle from 'lodash.throttle';
 import type { ChangeEvent } from 'react';
 import { csrfHeader } from './csrf';
 import type { DatabaseId, MangaId } from '@/types/dbTypes';
+import type { FormValues } from '@/components/notifications/types';
 
 export const followUnfollow = (csrf: string, mangaId: MangaId, serviceId: DatabaseId) => {
   const url = serviceId ? `/api/user/follows?mangaId=${mangaId}&serviceId=${serviceId}` :
@@ -198,13 +199,15 @@ export type Group<T> = {
 }
 
 type GetKey<T> = (value: T) => string;
-interface GroupByOptions<B extends boolean = boolean> {
+interface GroupByOptions<B extends boolean = boolean, C extends boolean = boolean> {
   keepOrder: B
+  returnAsDict: C
 }
 
 type GroupBy = {
-  <T, B extends true = true>(arr: T[], getKeyOrKey: string | GetKey<T>, options?: GroupByOptions<B>): Group<T>[]
-  <T, B extends false = false>(arr: T[], getKeyOrKey: string | GetKey<T>, options?: GroupByOptions<B>): T[][]
+  <T, B extends true = true, C extends false = false>(arr: T[], getKeyOrKey: keyof T | GetKey<T>, options?: GroupByOptions<B, C>): Group<T>[]
+  <T, B extends false = false, C extends false = false>(arr: T[], getKeyOrKey: keyof T | GetKey<T>, options?: GroupByOptions<B, C>): T[][]
+  <T, B extends false = false, C extends true = true>(arr: T[], getKeyOrKey: keyof T | GetKey<T>, options?: GroupByOptions<B, C>): {[key: string]: T[]}
 }
 
 /**
@@ -214,14 +217,15 @@ type GroupBy = {
  * @param options
  * @param options.keepOrder If true the order of the array will be kept the same
  * meaning the same key can be grouped multiple times
+ * @param options.returnAsDict If true returns the grouped values as a dictionary. Ignored if keepOrder is true.
  */
 export const groupBy: GroupBy = <T, >(
   arr: T[],
-  getKeyOrKey: string | GetKey<T>,
-  { keepOrder = true } = {} as GroupByOptions<true>
+  getKeyOrKey: keyof T | GetKey<T>,
+  { keepOrder = true, returnAsDict = false } = {} as GroupByOptions<true, false>
   // By adding "| T" to the return type somehow fixes overload errors WTF???
   // GJ typescript
-): Group<T>[] | T[][] | T => {
+): Group<T>[] | T[][] | T | {[key: string]: T[]} => {
   if (!Array.isArray(arr)) {
     throw new TypeError('Input must be an array');
   }
@@ -235,7 +239,7 @@ export const groupBy: GroupBy = <T, >(
     const _key = getKeyOrKey;
     getKey = (o) => (o as any)[_key];
   } else {
-    getKey = getKeyOrKey;
+    getKey = getKeyOrKey as any;
   }
 
   if (keepOrder) {
@@ -287,6 +291,10 @@ export const groupBy: GroupBy = <T, >(
     }
   });
 
+  if (returnAsDict) {
+    return group;
+  }
+
   const retVal: T[][] = [];
   order.forEach((groupKey) => retVal.push(group[groupKey]));
   return retVal;
@@ -298,7 +306,7 @@ export const groupBy: GroupBy = <T, >(
  */
 export const snakeCase = (s: string) => s.replace(/[A-Z]/g, letter => `_${letter[0].toLowerCase()}`);
 
-export const buildNotificationData = (values: any) => ({
+export const buildNotificationData = (values: FormValues<any>) => ({
   notificationId: values.notificationId,
   useFollows: values.useFollows,
 
@@ -318,7 +326,6 @@ export interface NotificationField {
   name: string,
   value: string,
   optional: boolean,
-  test?: Date
 }
 
 type MappedNotificationField<T> = {

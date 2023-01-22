@@ -1,6 +1,6 @@
 import { Autocomplete, Checkboxes } from 'mui-rff';
 import { useQuery } from '@tanstack/react-query';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Box } from '@mui/material';
 import { useField } from 'react-final-form';
 import PropTypes from 'prop-types';
@@ -14,7 +14,6 @@ const optionEquals = (option, value) => (
   option.mangaId === value.mangaId &&
   (value.serviceId === null || option.serviceId === value.serviceId)
 );
-const getOptionValue = option => ({ mangaId: option.mangaId, serviceId: option.serviceId });
 const getOptionLabel = ({ title, serviceName }) => `${title} | ${serviceName}`;
 const groupByKey = ({ mangaId, title }) => `${mangaId} ${title}`;
 
@@ -22,11 +21,20 @@ const MangaSelector = ({
   name,
   label,
   useFollowsName,
+  disabled,
   ...autocompleteProps
 }) => {
   const [query, setQuery] = useState('');
   const { input: mangaInput } = useField(name);
+  const { input: overrideInput } = useField('overrideId');
+  const [override, setOverride] = useState(overrideInput.value);
   const [values, setValues] = useState(mangaInput.value || []);
+  useEffect(() => {
+    if (override !== overrideInput.value) {
+      setOverride(overrideInput.value);
+      setValues(mangaInput.value);
+    }
+  }, [mangaInput.value, overrideInput.value, override]);
 
   const doSearch = useCallback(async ({ queryKey }) => {
     const searchQuery = queryKey[1]?.trim();
@@ -79,6 +87,8 @@ const MangaSelector = ({
     [useFollowsName]
   );
 
+  const autocompleteDisabled = disabled || (typeof input.value === 'boolean' ? input.value : false);
+
   return (
     <Box sx={{
       display: 'flex',
@@ -96,7 +106,6 @@ const MangaSelector = ({
         onChange={onValueChange}
         filterOptions={showAll}
         groupBy={groupByKey}
-        getOptionValue={getOptionValue}
         getOptionLabel={getOptionLabel}
         isOptionEqualToValue={optionEquals}
         fieldProps={{
@@ -105,7 +114,7 @@ const MangaSelector = ({
         disableCloseOnSelect
         multiple
         freeSolo
-        disabled={typeof input.value === 'boolean' ? input.value : false}
+        disabled={autocompleteDisabled}
         {...autocompleteProps}
       />
       OR
@@ -114,6 +123,7 @@ const MangaSelector = ({
         name={useFollowsName}
         color='primary'
         data={{ label: 'Use follows' }}
+        disabled={disabled}
       />
     </Box>
   );
@@ -122,6 +132,7 @@ MangaSelector.propTypes = {
   name: PropTypes.string.isRequired,
   label: PropTypes.string.isRequired,
   useFollowsName: PropTypes.string.isRequired,
+  disabled: PropTypes.bool,
 };
 
 export default MangaSelector;
