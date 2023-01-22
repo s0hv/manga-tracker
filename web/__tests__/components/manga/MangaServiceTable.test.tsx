@@ -28,7 +28,7 @@ import { ServiceForApi } from '@/types/api/services';
 
 const mangaId = 1;
 
-const Root: FunctionComponent = ({ children }) => (
+const Root: FunctionComponent<any> = ({ children }: React.PropsWithChildren) => (
   <QueryClientProvider client={queryClient}>
     <SnackbarProvider>
       {children}

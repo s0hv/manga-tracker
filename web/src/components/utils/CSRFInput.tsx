@@ -1,5 +1,5 @@
 import { Field } from 'react-final-form';
-import { useCSRF } from '../../utils/csrf';
+import { useCSRF } from '@/webUtils/csrf';
 
 export default function CSRFInput() {
   const csrf = useCSRF();
@@ -8,6 +8,7 @@ export default function CSRFInput() {
       name='_csrf'
       component='input'
       type='hidden'
+      initialValue={csrf}
       defaultValue={csrf}
     />
   );

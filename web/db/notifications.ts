@@ -4,14 +4,32 @@ import { createHelpers, type DatabaseHelpers, db } from './helpers';
 import { BadRequest, NotFound } from '../utils/errors.js';
 import { type DatabaseId, NotificationType } from '@/types/dbTypes';
 import type {
+  NotificationData,
   NotificationField,
+  NotificationFieldData,
+  NotificationFollow,
   NotificationManga,
 } from '@/types/api/notifications';
+import { groupBy } from '@/webUtils/utilities';
 
+type DbNotificationField = NotificationField & {
+  overrideId: number | null
+}
 
-export const getUserNotifications = (userId: DatabaseId) => {
+type DbNotificationData = Omit<NotificationData, 'fields'> & {
+  fields: DbNotificationField[]
+}
+
+type GetUserNotifications = {
+  (userId: DatabaseId): Promise<DbNotificationData[]>,
+  (userId: DatabaseId, notificationId: DatabaseId): Promise<DbNotificationData>,
+}
+
+export const getUserNotifications: GetUserNotifications = (userId: DatabaseId, notificationId?: DatabaseId) => {
+  const hasNotificationId = notificationId !== undefined;
+
   // Not the cleanest sql but the easiest to implement
-  return db.manyOrNone`
+  return db.manyOrNone<DbNotificationData>`
     SELECT
            un.notification_id,
            un.use_follows,
@@ -26,23 +44,36 @@ export const getUserNotifications = (userId: DatabaseId) => {
                SELECT m.manga_id, s.service_id, m.title, COALESCE(s.service_name, 'All services') as service_name FROM notification_manga 
                INNER JOIN manga m ON m.manga_id = notification_manga.manga_id
                LEFT JOIN services s ON notification_manga.service_id = s.service_id
-               WHERE notification_id=un.notification_id) as nm
+               WHERE notification_id=un.notification_id
+               ORDER BY m.manga_id) as nm
                ) as manga,
            (SELECT json_agg(nf) FROM (
-               SELECT value, nf.name, nf.optional FROM notification_fields nf
+               SELECT value, nf.name, nf.optional, unf.override_id FROM notification_fields nf
                LEFT JOIN user_notification_fields unf  ON nf.field_id = unf.field_id
                WHERE nf.notification_type=un.notification_type AND (notification_id=un.notification_id OR notification_id IS NULL)
                ) nf) as fields
     FROM user_notifications un
     INNER JOIN notification_options no ON un.notification_id = no.notification_id
-    WHERE un.user_id=${userId}
+    WHERE un.user_id=${userId} ${hasNotificationId ? db.sql` AND un.notification_id=${notificationId}` : db.sql``}
     ORDER BY un.created DESC
   `
-    .then(rows => camelcaseKeys(rows, { deep: true }));
+    .then(rows => camelcaseKeys(rows, { deep: true }))
+    .then(rows => rows.map(row => ({
+      ...row,
+      fields: row.fields.filter(v => v.overrideId === null),
+      overrides: groupBy(row.fields.filter(v => v.overrideId !== null), 'overrideId', { keepOrder: false, returnAsDict: true }),
+    } as DbNotificationData)))
+    .then(rows => {
+      if (hasNotificationId) {
+        return rows[0];
+      }
+
+      return rows;
+    }) as any; // This shit don't work without any
 };
 
 
-const updateUserNotificationFields = (t: DatabaseHelpers, fields: NotificationField[], notificationId: DatabaseId, notificationType: NotificationType) => {
+const updateUserNotificationFields = (t: DatabaseHelpers, fields: NotificationFieldData[], notificationId: DatabaseId, notificationType: NotificationType) => {
   return t.none`
     INSERT INTO user_notification_fields (notification_id, field_id, value)
     SELECT ${notificationId}, nf.field_id, f.value FROM
@@ -68,7 +99,7 @@ export type CreateUserNotification = {
   name?: string | null
 
   manga: NotificationManga[]
-  fields: NotificationField[]
+  fields: NotificationFieldData[]
 }
 
 export const createUserNotification = ({
@@ -105,6 +136,41 @@ export const createUserNotification = ({
 
   return Promise.all(batch)
     .then(() => notificationId);
+});
+
+export type UpsertNotificationOverride = {
+  notificationId: DatabaseId,
+  userId: DatabaseId,
+  overrideId: DatabaseId,
+  fields: NotificationFieldData[],
+}
+
+export const upsertNotificationOverride = ({
+  notificationId,
+  userId,
+  overrideId,
+  fields,
+}: UpsertNotificationOverride) => db.sql.begin(async sql => {
+  const t: DatabaseHelpers = createHelpers(sql);
+
+  // Make sure user has actually created the notification
+  const { notificationType } = await t.one<{notificationType: number}>`SELECT notification_type FROM user_notifications WHERE user_id=${userId} AND notification_id=${notificationId}`
+    .catch(() => {
+      throw new NotFound(`No notification found for user with notification id ${notificationId}`);
+    });
+
+  if (!notificationType) return;
+
+  await t.none`DELETE FROM user_notification_fields WHERE notification_id=${notificationId} AND override_id=${overrideId}`;
+
+  if (fields.length === 0) return;
+
+  await t.none`
+    INSERT INTO user_notification_fields (notification_id, field_id, value, override_id)
+    SELECT ${notificationId}, nf.field_id, f.value, ${overrideId} FROM
+    notification_fields nf
+    LEFT JOIN (VALUES ${t.sql(fields.map(row => [row.value, row.name]))}) f (value, name) ON f.name = nf.name
+    WHERE nf.notification_type=${notificationType} AND f.name IS NOT NULL`;
 });
 
 export type UpdateUserNotification = CreateUserNotification & {
@@ -180,3 +246,13 @@ export const deleteUserNotification = ({
 
   return t.none`DELETE FROM user_notifications WHERE notification_id=${notificationId}`;
 });
+
+export const listNotificationFollows = (userId: DatabaseId): Promise<NotificationFollow[]> => {
+  return db.any<NotificationFollow>`
+  SELECT uf.manga_id, uf.service_id,  m.title, COALESCE(s.service_name, 'All services') as service_name
+  FROM user_follows uf
+  INNER JOIN manga m ON uf.manga_id = m.manga_id
+  LEFT JOIN services s ON s.service_id = uf.service_id
+  WHERE uf.user_id=${userId}
+  ORDER BY uf.manga_id, uf.service_id`;
+};

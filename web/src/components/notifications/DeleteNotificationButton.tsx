@@ -2,17 +2,23 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useField } from 'react-final-form';
 import { IconButton } from '@mui/material';
 import { Delete as DeleteIcon } from '@mui/icons-material';
-import { useCallback } from 'react';
+import { type FC, useCallback } from 'react';
 import { useConfirm } from 'material-ui-confirm';
 import { useSnackbar } from 'notistack';
 import PropTypes from 'prop-types';
+import type { IconButtonProps } from '@mui/material/IconButton/IconButton';
 
 import { deleteNotification } from '../../api/notifications';
-import { QueryKeys } from '../../utils/constants';
-import { useCSRF } from '../../utils/csrf';
+import { QueryKeys } from '@/webUtils/constants';
+import { useCSRF } from '@/webUtils/csrf';
 
-const DeleteNotificationButton = ({ fieldName = 'notificationId', ...buttonProps }) => {
-  const { mutateAsync } = useMutation(([csrf, notificationId]) => deleteNotification(csrf, notificationId));
+type DeleteReturn = Awaited<ReturnType<typeof deleteNotification>>
+
+export type DeleteNotificationButtonProps = {
+  fieldName?: string
+} & IconButtonProps
+const DeleteNotificationButton: FC<DeleteNotificationButtonProps> = ({ fieldName = 'notificationId', ...buttonProps }) => {
+  const { mutateAsync } = useMutation<DeleteReturn, unknown, [string, string]>(([csrf, notificationId]) => deleteNotification(csrf, notificationId));
   const queryClient = useQueryClient();
   const { input } = useField(fieldName);
   const csrf = useCSRF();

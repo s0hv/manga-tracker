@@ -1,6 +1,10 @@
-import { NotificationTypes } from '../../utils/constants';
+import { NotificationTypes } from '@/webUtils/constants';
+import { NotificationData } from '@/types/api/notifications';
 
-export const defaultDataForType = {
+type DefaultValuesType = {
+  [key: number]: Partial<NotificationData>
+}
+export const defaultDataForType: DefaultValuesType = {
   [NotificationTypes.DiscordWebhook]: {
     useFollows: false,
     notificationType: NotificationTypes.DiscordWebhook,
@@ -43,10 +47,12 @@ export const defaultDataForType = {
   [NotificationTypes.Webhook]: {
     notificationType: NotificationTypes.Webhook,
     fields: [
-      { name: 'json', value: `{
+      { name: 'json',
+        value: `{
   "$CHAPTER_ARRAY": "key",
   "$CHAPTER_FORMAT": {}
 }`,
+        optional: false,
       },
     ],
   },

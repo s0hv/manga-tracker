@@ -1,22 +1,33 @@
-import { body, matchedData, param } from 'express-validator';
+import {
+  body,
+  matchedData,
+  type Meta,
+  param,
+  type ValidationChain,
+} from 'express-validator';
+import type { Application, Request, Response } from 'express-serve-static-core';
 import { requiresUser } from '@/db/auth';
 import {
-  getUserNotifications,
-  updateUserNotification,
   createUserNotification,
   deleteUserNotification,
+  getUserNotifications,
+  listNotificationFollows,
+  type UpdateUserNotification,
+  updateUserNotification,
+  upsertNotificationOverride,
+  type UpsertNotificationOverride,
 } from '@/db/notifications';
 import { handleError } from '@/db/utils';
 import {
+  databaseIdValidation,
   handleValidationErrors,
   mangaIdValidation,
   serviceIdValidation,
-  databaseIdValidation,
   validateUser,
 } from '../utils/validators.js';
 
 
-export default app => {
+export default (app: Application) => {
   /**
    *  @openapi
    *  /notifications:
@@ -43,8 +54,8 @@ export default app => {
   app.get('/api/notifications', requiresUser, [
     validateUser(),
     handleValidationErrors,
-  ], (req, res) => {
-    getUserNotifications(req.user.userId)
+  ], (req: Request, res: Response) => {
+    getUserNotifications(req.user!.userId)
       .then(resp => res.json({ data: resp || []}))
       .catch(err => handleError(err, res));
   });
@@ -53,8 +64,8 @@ export default app => {
    * @param {import('express-validator').ValidationChain} field
    * @returns {import('express-validator').ValidationChain}
    */
-  const ifNotUseFollows = (field) => field
-    .if((_, { req }) => req.body.useFollows !== true);
+  const ifNotUseFollows = (field: ValidationChain) => field
+    .if((_: any, { req }: Meta) => req.body.useFollows !== true);
 
   /**
    *  @openapi
@@ -109,18 +120,39 @@ export default app => {
     body('fields.*.name').isString(),
 
     handleValidationErrors,
-  ], (req, res) => {
-    const data = matchedData(req, { locations: ['body']});
-    data.userId = req.user.userId;
+  ], (req: Request, res: Response) => {
+    const data = matchedData(req, { locations: ['body']}) as UpdateUserNotification;
+    data.userId = req.user!.userId;
 
     if (data.notificationId) {
       return updateUserNotification(data)
-        .then(() => res.json({ status: 'OK' }))
+        .then(() => getUserNotifications(data.userId, data.notificationId))
+        .then(notificationData => res.json({ data: notificationData }))
         .catch(err => handleError(err, res));
     }
 
     createUserNotification(data)
-      .then(notificationId => res.json({ data: { notificationId }}))
+      .then(notificationId => getUserNotifications(data.userId, notificationId))
+      .then(notificationData => res.json({ data: notificationData }))
+      .catch(err => handleError(err, res));
+  });
+
+  app.post('/api/notifications/override', requiresUser, [
+    validateUser(),
+    databaseIdValidation(body('notificationId')),
+    databaseIdValidation(body('overrideId')),
+    body('fields').isArray(),
+    body('fields.*.value').isString(),
+    body('fields.*.name').isString(),
+
+    handleValidationErrors,
+  ], (req: Request, res: Response) => {
+    const data = matchedData(req, { locations: ['body']}) as UpsertNotificationOverride;
+    data.userId = req.user!.userId;
+
+    upsertNotificationOverride(data)
+      .then(() => getUserNotifications(data.userId, data.notificationId))
+      .then(notificationData => res.json({ data: notificationData }))
       .catch(err => handleError(err, res));
   });
 
@@ -161,12 +193,21 @@ export default app => {
     validateUser(),
     databaseIdValidation(param('notificationId')),
     handleValidationErrors,
-  ], (req, res) => {
+  ], (req: Request, res: Response) => {
     deleteUserNotification({
       notificationId: req.params.notificationId,
-      userId: req.user.userId,
+      userId: req.user!.userId,
     })
       .then(() => res.json({ status: 'OK' }))
+      .catch(err => handleError(err, res));
+  });
+
+  app.get('/api/notifications/notificationFollows', requiresUser, [
+    validateUser(),
+    handleValidationErrors,
+  ], (req: Request, res: Response) => {
+    listNotificationFollows(req.user!.userId)
+      .then(rows => res.json({ data: rows }))
       .catch(err => handleError(err, res));
   });
 };
