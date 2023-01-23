@@ -26,8 +26,11 @@ const baseConfig = {
     '^@/db/(.*)$': '<rootDir>/db/$1',
     '^@/types/(.*)$': '<rootDir>/types/$1',
   },
+};
 
-  // The directory where Jest should output its coverage files
+// Config that cannot be project specific
+const globalConfig = {
+    // The directory where Jest should output its coverage files
   coverageDirectory: 'coverage',
 
   collectCoverageFrom: [
@@ -43,13 +46,14 @@ const baseConfig = {
     '!**/{setupTests,next.config,babel.config}.{js,ts,cjs}', // test setup and app configs
   ],
   reporters: ['default', 'github-actions'],
-};
+}
 
 const createJestConfig = nextJest();
 
 module.exports = async () => {
   const config = await createJestConfig(baseConfig)();
   return {
+    ...globalConfig,
     projects: [
       {
         ...config,

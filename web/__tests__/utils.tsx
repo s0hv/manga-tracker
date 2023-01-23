@@ -292,7 +292,7 @@ export function getErrorMessage(res: Response) {
 
 type ExpectErrorMessageReturn = (res: Response) => void;
 type ExpectErrorMessage = {
-  (value: string, param?: string, message?: string | RegExp): ExpectErrorMessageReturn
+  (value: any, param?: string, message?: string | RegExp): ExpectErrorMessageReturn
 }
 
 export const expectErrorMessage: ExpectErrorMessage = (value, param, message='Invalid value') => {

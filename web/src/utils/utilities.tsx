@@ -231,7 +231,7 @@ export const groupBy: GroupBy = <T, >(
   }
 
   if (arr.length === 0) {
-    return [];
+    return returnAsDict ? {} : [];
   }
 
   let getKey: GetKey<T>;
