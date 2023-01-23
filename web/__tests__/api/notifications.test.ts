@@ -4,23 +4,32 @@ import { csrfMissing } from '../../utils/constants';
 import initServer from '../initServer';
 import stopServer from '../stopServer';
 import {
+  adminUser,
+  configureJestOpenAPI,
   expectErrorMessage,
   normalUser,
-  adminUser,
   withUser,
-  configureJestOpenAPI,
 } from '../utils';
-import { db } from '../../db/helpers';
+import { db } from '@/db/helpers';
 import {
   createUserNotification,
+  type DbNotificationData,
   getUserNotifications,
-} from '../../db/notifications';
-import { NotificationTypes } from '../../src/utils/constants';
+  type UpsertNotificationOverride,
+  upsertNotificationOverride,
+} from '@/db/notifications';
+import { NotificationTypes } from '@/webUtils/constants';
+import { apiRequiresUserGetTests, apiRequiresUserPostTests } from './utilities';
+import { invalidValue } from '../constants';
 
-let httpServer;
+let httpServer: any;
+const serverReference = {
+  httpServer,
+};
 
 beforeAll(async () => {
   ({ httpServer } = await initServer());
+  serverReference.httpServer = httpServer;
   await configureJestOpenAPI();
 });
 
@@ -34,7 +43,7 @@ const truncateNotifications = async () => {
   await db.none`TRUNCATE user_notifications CASCADE`;
 };
 
-const createNotifications = async (n = 1, userId = normalUser.userId) => Promise.all(
+const createNotifications = async (n = 1, userId = normalUser.userId): Promise<number[]> => Promise.all(
   new Array(n).fill(1).map(() => createUserNotification({
     notificationType: 1,
     userId,
@@ -51,11 +60,18 @@ const createNotifications = async (n = 1, userId = normalUser.userId) => Promise
   }))
 );
 
-const getNotification = (userId, notificationId) => getUserNotifications(userId)
-  .then(notifs => notifs.filter(notif => notif.notificationId === notificationId)[0]);
+const createOverride = (notificationId: number, mangaId: number, userId = normalUser.userId) => upsertNotificationOverride({
+  notificationId,
+  userId,
+  overrideId: mangaId,
+  fields: [
+    { name: 'embed_title', value: 'overridden' },
+    { name: 'url', value: 'new value' },
+  ],
+});
 
-const mapDbManga = (inserted) => inserted.manga.map(row => ({ mangaId: row.mangaId, serviceId: row.serviceId }));
-const mapDbFields = (inserted) => inserted.fields.map(row => ({ name: row.name, value: row.value }));
+const mapDbManga = (inserted: DbNotificationData) => inserted?.manga?.map(row => ({ mangaId: row.mangaId, serviceId: row.serviceId }));
+const mapDbFields = (inserted: DbNotificationData) => inserted.fields.map(row => ({ name: row.name, value: row.value }));
 
 const defaultNotificationBody = {
   notificationType: NotificationTypes.DiscordWebhook,
@@ -78,12 +94,7 @@ const defaultNotificationBody = {
 describe('GET /api/notifications', () => {
   const url = '/api/notifications';
 
-  it('Returns 401 without authentication', async () => {
-    await request(httpServer)
-      .get(url)
-      .expect(401)
-      .satisfiesApiSpec();
-  });
+  apiRequiresUserGetTests(serverReference, url, true);
 
   it('Returns 200 with authentication', async () => {
     await withUser(normalUser, async () => {
@@ -100,7 +111,8 @@ describe('GET /api/notifications', () => {
   it('Returns the list of users notifications', async () => {
     await truncateNotifications();
     const n = 3;
-    await createNotifications(n, normalUser.userId);
+    const notificationIds = await createNotifications(n, normalUser.userId);
+    await createOverride(notificationIds[0], 1);
 
     await withUser(normalUser, async () => {
       await request(httpServer)
@@ -117,20 +129,7 @@ describe('GET /api/notifications', () => {
 describe('POST /api/notifications', () => {
   const url = '/api/notifications';
 
-  it('Returns 401 without authentication', async () => {
-    await request(httpServer)
-      .post(url)
-      .csrf()
-      .expect(401)
-      .satisfiesApiSpec();
-  });
-
-  it('Returns 403 without csrf token', async () => {
-    await request(httpServer)
-      .post(url)
-      .expect(403)
-      .expect(expectErrorMessage(csrfMissing));
-  });
+  apiRequiresUserPostTests(serverReference, url, true);
 
   it('Returns 400 without body', async () => {
     await withUser(normalUser, async () => {
@@ -200,7 +199,7 @@ describe('POST /api/notifications', () => {
     const notificationId = (await createNotifications(1, adminUser.userId))[0];
     expect(notificationId).toBeInteger();
 
-    const original = await getNotification(adminUser.userId, notificationId);
+    const original = await getUserNotifications(adminUser.userId, notificationId);
     expect(original).toBeObject();
 
     const body = {
@@ -220,7 +219,7 @@ describe('POST /api/notifications', () => {
         .expect(expectErrorMessage(notFoundMessage));
     });
 
-    expect(original).toStrictEqual(await getNotification(adminUser.userId, notificationId));
+    expect(original).toStrictEqual(await getUserNotifications(adminUser.userId, notificationId));
   });
 
   it('Returns 200 when creating new valid notification with manga', async () => {
@@ -228,7 +227,7 @@ describe('POST /api/notifications', () => {
       ...defaultNotificationBody,
     };
 
-    let notificationId;
+    let inserted: DbNotificationData;
 
     await withUser(normalUser, async () => {
       await request(httpServer)
@@ -238,17 +237,19 @@ describe('POST /api/notifications', () => {
         .expect(200)
         .satisfiesApiSpec()
         .expect(res => {
-          notificationId = res.body.data.notificationId;
+          inserted = res.body.data;
         });
     });
 
-    expect(notificationId).toBeDefined();
-    const inserted = await getNotification(normalUser.userId, notificationId);
+    inserted = inserted!;
+    expect(inserted).toBeDefined();
+    const insertedFromDb = await getUserNotifications(normalUser.userId, inserted.notificationId);
     expect(inserted).toEqual(expect.objectContaining({
       ...body,
       manga: expect.any(Array),
       fields: expect.any(Array),
     }));
+    expect(inserted).toEqual(insertedFromDb);
 
     expect(mapDbManga(inserted)).toIncludeSameMembers(body.manga);
     expect(mapDbFields(inserted)).toIncludeAllMembers(body.fields);
@@ -261,7 +262,7 @@ describe('POST /api/notifications', () => {
       useFollows: true,
     };
 
-    let notificationId;
+    let notificationId: number;
 
     await withUser(normalUser, async () => {
       await request(httpServer)
@@ -275,8 +276,8 @@ describe('POST /api/notifications', () => {
         });
     });
 
-    expect(notificationId).toBeDefined();
-    const inserted = await getNotification(normalUser.userId, notificationId);
+    expect(notificationId!).toBeDefined();
+    const inserted = await getUserNotifications(normalUser.userId, notificationId!);
     expect(inserted).toEqual(expect.objectContaining({
       ...body,
       fields: expect.any(Array),
@@ -330,7 +331,7 @@ describe('DELETE /api/notifications', () => {
         .expect(expectErrorMessage(notFoundMessage));
     });
 
-    expect(await getNotification(adminUser.userId, notificationId)).toBeObject();
+    expect(await getUserNotifications(adminUser.userId, notificationId)).toBeObject();
   });
 
   it('Returns 200 when successfully deleted own notification', async () => {
@@ -345,6 +346,178 @@ describe('DELETE /api/notifications', () => {
         .satisfiesApiSpec();
     });
 
-    expect(await getNotification(normalUser.userId, notificationId)).toBeUndefined();
+    expect(await getUserNotifications(normalUser.userId, notificationId)).toBeUndefined();
+  });
+});
+
+describe('POST /api/notifications/override', () => {
+  const url = '/api/notifications/override';
+  const defaultBody: Omit<UpsertNotificationOverride, 'userId'> = {
+    notificationId: 1,
+    overrideId: 1,
+    fields: [
+      { value: 'test', name: 'url' },
+    ],
+  };
+
+  apiRequiresUserPostTests(serverReference, url, true);
+
+  it('Returns 404 when notification not found', async () => {
+    await truncateNotifications();
+    await withUser(normalUser, async () => {
+      await request(httpServer)
+        .post(url)
+        .csrf()
+        .send(defaultBody)
+        .expect(404)
+        .satisfiesApiSpec()
+        .expect(expectErrorMessage(notFoundMessage));
+    });
+  });
+
+  it('Returns 404 when trying to update notification of another user', async () => {
+    const notificationId = (await createNotifications(1, adminUser.userId))[0];
+    expect(notificationId).toBeInteger();
+
+    await withUser(normalUser, async () => {
+      await request(httpServer)
+        .post(url)
+        .csrf()
+        .send({
+          ...defaultBody,
+          notificationId,
+        })
+        .expect(404)
+        .satisfiesApiSpec()
+        .expect(expectErrorMessage(notFoundMessage));
+    });
+
+    expect((await getUserNotifications(adminUser.userId, notificationId)).overrides).toBeEmptyObject();
+  });
+
+  it('Returns 400 with invalid body', async () => {
+    await withUser(normalUser, async () => {
+      await request(httpServer)
+        .post(url)
+        .csrf()
+        .expect(400)
+        .satisfiesApiSpec()
+        .expect(expectErrorMessage(undefined, 'notificationId', invalidValue))
+        .expect(expectErrorMessage(undefined, 'overrideId', invalidValue))
+        .expect(expectErrorMessage(undefined, 'fields', invalidValue));
+
+      await request(httpServer)
+        .post(url)
+        .csrf()
+        .send({
+          notificationId: null,
+          overrideId: null,
+          fields: null,
+        })
+        .expect(400)
+        .satisfiesApiSpec()
+        .expect(expectErrorMessage(null, 'notificationId', invalidValue))
+        .expect(expectErrorMessage(null, 'overrideId', invalidValue))
+        .expect(expectErrorMessage(null, 'fields', invalidValue));
+
+      await request(httpServer)
+        .post(url)
+        .csrf()
+        .send({
+          notificationId: '1e10',
+          overrideId: '1e10',
+          fields: [],
+        })
+        .expect(400)
+        .satisfiesApiSpec()
+        .expect(expectErrorMessage('1e10', 'notificationId', invalidValue))
+        .expect(expectErrorMessage('1e10', 'overrideId', invalidValue));
+
+      await request(httpServer)
+        .post(url)
+        .csrf()
+        .send({
+          notificationId: '1',
+          overrideId: 1,
+          fields: [{}],
+        })
+        .expect(400)
+        .satisfiesApiSpec()
+        .expect(expectErrorMessage(undefined, 'fields[0].value', invalidValue))
+        .expect(expectErrorMessage(undefined, 'fields[0].name', invalidValue));
+
+      await request(httpServer)
+        .post(url)
+        .csrf()
+        .send({
+          notificationId: '1',
+          overrideId: 1,
+          fields: [{ name: null, value: '' }],
+        })
+        .expect(400)
+        .satisfiesApiSpec()
+        .expect(expectErrorMessage(null, 'fields[0].name', invalidValue));
+    });
+  });
+
+  it('Returns 200 when successfully created a new override', async () => {
+    const notificationId = (await createNotifications(1, normalUser.userId))[0];
+    expect(notificationId).toBeInteger();
+
+    await withUser(normalUser, async () => {
+      await request(httpServer)
+        .post(url)
+        .csrf()
+        .send({
+          ...defaultBody,
+          notificationId,
+        })
+        .expect(200)
+        .satisfiesApiSpec();
+    });
+
+    const notif = await getUserNotifications(normalUser.userId, notificationId);
+    expect(notif.overrides).toHaveProperty(defaultBody.overrideId.toString());
+    expect(notif.overrides[defaultBody.overrideId]).toBeArrayOfSize(1);
+    expect(notif.overrides[defaultBody.overrideId][0]).toEqual(expect.objectContaining(defaultBody.fields[0]));
+  });
+
+  it('Deletes override when fields are empty', async () => {
+    const notificationId = (await createNotifications(1, normalUser.userId))[0];
+    expect(notificationId).toBeInteger();
+    const overrideId = 1;
+    await createOverride(notificationId, overrideId, normalUser.userId);
+
+    await withUser(normalUser, async () => {
+      await request(httpServer)
+        .post(url)
+        .csrf()
+        .send({
+          notificationId,
+          overrideId,
+          fields: [],
+        })
+        .expect(200)
+        .satisfiesApiSpec();
+    });
+
+    const notif = await getUserNotifications(normalUser.userId, notificationId);
+    expect(notif.overrides).toBeEmptyObject();
+  });
+});
+
+describe('GET /api/notifications/notificationFollows', () => {
+  const url = '/api/notifications/notificationFollows';
+
+  apiRequiresUserGetTests(serverReference, url, true);
+
+  it('Returns 200 when authenticated', async () => {
+    await withUser(normalUser, async () => {
+      await request(httpServer)
+        .get(url)
+        .expect(200)
+        .satisfiesApiSpec()
+        .expect(res => expect(res.body.data).not.toBeEmpty());
+    });
   });
 });

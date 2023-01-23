@@ -21,6 +21,13 @@ components:
           schema:
             $ref: '#/components/schemas/validationError'
 
+    forbidden:
+      description: Authentication invalid
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/genericError'
+
   schemas:
     validationError:
       type: object
@@ -257,6 +264,7 @@ components:
 
     chapter:
       type: object
+      additionalProperties: false
       properties:
         chapterId:
           $ref: '#/components/schemas/databaseId'
@@ -297,6 +305,7 @@ components:
       allOf:
         - $ref: '#/components/schemas/chapter'
         - type: object
+          additionalProperties: false
           properties:
             mangaId:
               $ref: '#/components/schemas/databaseId'
@@ -317,6 +326,7 @@ components:
     manga:
       description: Contains simple information on a single manga
       type: object
+      additionalProperties: false
       properties:
         mangaId:
           $ref: '#/components/schemas/databaseId'
@@ -347,6 +357,7 @@ components:
     fullManga:
       description: Contains extended information of a single manga
       type: object
+      additionalProperties: false
       properties:
         manga:
           allOf:
@@ -366,14 +377,14 @@ components:
     notificationManga:
       description: Object containing information of a followed manga.
       type: object
+      additionalProperties: false
       properties:
         mangaId:
           $ref: '#/components/schemas/databaseId'
         serviceId:
-          allOf:
-            - $ref: '#/components/schemas/databaseId'
-            - type: integer
-              nullable: true
+          type: integer
+          minimum: 0
+          nullable: true
         title:
           type: string
         serviceName:
@@ -388,6 +399,7 @@ components:
     notificationField:
       description: An object describing an input field of a notification used for formatting the message.
       type: object
+      additionalProperties: false
       properties:
         value:
           type: string
@@ -396,6 +408,9 @@ components:
           type: string
         optional:
           type: boolean
+        overrideId:
+          type: number
+          nullable: true
 
       required:
         - name
@@ -411,6 +426,7 @@ components:
     userNotification:
       description: An object containing information about a notification created by a user.
       type: object
+      additionalProperties: false
       properties:
         notificationId:
           $ref: '#/components/schemas/databaseId'
@@ -462,3 +478,26 @@ components:
         - type: object
           required:
             - notificationId
+
+    notificationFollow:
+      description: List follows of user
+      type: object
+      additionalProperties: false
+      properties:
+        mangaId:
+          $ref: '#/components/schemas/databaseId'
+        serviceId:
+          type: integer
+          minimum: 0
+          nullable: true
+        title:
+          type: string
+        serviceName:
+          type: string
+          nullable: true
+
+      required:
+        - mangaId
+        - serviceId
+        - title
+        - serviceName

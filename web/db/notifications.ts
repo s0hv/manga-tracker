@@ -16,7 +16,7 @@ type DbNotificationField = NotificationField & {
   overrideId: number | null
 }
 
-type DbNotificationData = Omit<NotificationData, 'fields'> & {
+export type DbNotificationData = Omit<NotificationData, 'fields'> & {
   fields: DbNotificationField[]
 }
 
@@ -88,21 +88,21 @@ const updateUserNotificationFields = (t: DatabaseHelpers, fields: NotificationFi
     });
 };
 
-export type CreateUserNotification = {
+export type CreateUserNotification<T extends boolean> = {
   notificationType: NotificationType
   userId: DatabaseId
-  useFollows: boolean
+  useFollows: T
   disabled: boolean
 
   groupByManga: boolean
   destination: string
   name?: string | null
 
-  manga: NotificationManga[]
+  manga: T extends true ? null : NotificationManga[]
   fields: NotificationFieldData[]
 }
 
-export const createUserNotification = ({
+export const createUserNotification = <T extends boolean>({
   notificationType,
   userId,
   useFollows,
@@ -114,29 +114,29 @@ export const createUserNotification = ({
 
   manga,
   fields,
-}: CreateUserNotification) => db.sql.begin(async sql => {
-  const t: DatabaseHelpers = createHelpers(sql);
-  const { notificationId } = await t.one<{ notificationId: number }>`INSERT INTO user_notifications (notification_type, user_id, use_follows, disabled)
+}: CreateUserNotification<T>) => db.sql.begin(async sql => {
+    const t: DatabaseHelpers = createHelpers(sql);
+    const { notificationId } = await t.one<{ notificationId: number }>`INSERT INTO user_notifications (notification_type, user_id, use_follows, disabled)
     VALUES (${notificationType}, ${userId}, ${useFollows}, ${disabled}) RETURNING notification_id`;
 
-  const batch = [];
-  batch.push(updateUserNotificationFields(t, fields, notificationId, notificationType));
+    const batch = [];
+    batch.push(updateUserNotificationFields(t, fields, notificationId, notificationType));
 
-  batch.push(t.none`INSERT INTO notification_options ${t.sql({ notificationId, groupByManga, destination, name })}`);
+    batch.push(t.none`INSERT INTO notification_options ${t.sql({ notificationId, groupByManga, destination, name })}`);
 
-  if (!useFollows) {
-    const mangaValues = manga.map(row => ({
-      manga_id: row.mangaId,
-      service_id: row.serviceId,
-      notification_id: notificationId,
-    }));
+    if (!useFollows) {
+      const mangaValues = manga!.map(row => ({
+        manga_id: row.mangaId,
+        service_id: row.serviceId,
+        notification_id: notificationId,
+      }));
 
-    batch.push(t.none`INSERT INTO notification_manga ${t.sql(mangaValues)}`);
-  }
+      batch.push(t.none`INSERT INTO notification_manga ${t.sql(mangaValues)}`);
+    }
 
-  return Promise.all(batch)
-    .then(() => notificationId);
-});
+    return Promise.all(batch)
+      .then(() => notificationId);
+  });
 
 export type UpsertNotificationOverride = {
   notificationId: DatabaseId,
@@ -150,7 +150,7 @@ export const upsertNotificationOverride = ({
   userId,
   overrideId,
   fields,
-}: UpsertNotificationOverride) => db.sql.begin(async sql => {
+}: UpsertNotificationOverride): Promise<void> => db.sql.begin(async sql => {
   const t: DatabaseHelpers = createHelpers(sql);
 
   // Make sure user has actually created the notification
@@ -173,11 +173,11 @@ export const upsertNotificationOverride = ({
     WHERE nf.notification_type=${notificationType} AND f.name IS NOT NULL`;
 });
 
-export type UpdateUserNotification = CreateUserNotification & {
+export type UpdateUserNotification<T extends boolean> = CreateUserNotification<T> & {
   notificationId: DatabaseId
 }
 
-export const updateUserNotification = ({
+export const updateUserNotification = <T extends boolean>({
   notificationId,
   userId,
   notificationType,
@@ -190,36 +190,36 @@ export const updateUserNotification = ({
 
   manga,
   fields,
-}: UpdateUserNotification) => db.sql.begin(async sql => {
-  const t = createHelpers(sql);
-  const batch = [];
-  const { count } = await t.sql`UPDATE user_notifications SET use_follows=${useFollows}, disabled=${disabled} WHERE notification_id=${notificationId} AND user_id=${userId}`;
+}: UpdateUserNotification<T>) => db.sql.begin(async sql => {
+    const t = createHelpers(sql);
+    const batch = [];
+    const { count } = await t.sql`UPDATE user_notifications SET use_follows=${useFollows}, disabled=${disabled} WHERE notification_id=${notificationId} AND user_id=${userId}`;
 
-  if (count !== 1) {
-    throw new NotFound(`No notification found for user with notification id ${notificationId}`);
-  }
+    if (count !== 1) {
+      throw new NotFound(`No notification found for user with notification id ${notificationId}`);
+    }
 
-  batch.push(t.none`UPDATE notification_options SET group_by_manga=${groupByManga}, destination=${destination}, name=${name} WHERE notification_id=${notificationId}`);
+    batch.push(t.none`UPDATE notification_options SET group_by_manga=${groupByManga}, destination=${destination}, name=${name} WHERE notification_id=${notificationId}`);
 
-  await Promise.all([
-    t.none`DELETE FROM notification_manga WHERE notification_id=${notificationId}`,
-    t.none`DELETE FROM user_notification_fields WHERE notification_id=${notificationId}`,
-  ]);
+    await Promise.all([
+      t.none`DELETE FROM notification_manga WHERE notification_id=${notificationId}`,
+      t.none`DELETE FROM user_notification_fields WHERE notification_id=${notificationId}`,
+    ]);
 
-  if (!useFollows) {
-    const mangaValues = manga.map(row => ({
-      manga_id: row.mangaId,
-      service_id: row.serviceId,
-      notification_id: notificationId,
-    }));
+    if (!useFollows) {
+      const mangaValues = manga!.map(row => ({
+        manga_id: row.mangaId,
+        service_id: row.serviceId,
+        notification_id: notificationId,
+      }));
 
-    batch.push(t.none`INSERT INTO notification_manga ${t.sql(mangaValues)}`);
-  }
+      batch.push(t.none`INSERT INTO notification_manga ${t.sql(mangaValues)}`);
+    }
 
-  batch.push(updateUserNotificationFields(t, fields, notificationId, notificationType));
+    batch.push(updateUserNotificationFields(t, fields, notificationId, notificationType));
 
-  return Promise.all(batch);
-});
+    return Promise.all(batch);
+  });
 
 export type DeleteUserNotification = {
   notificationId: DatabaseId

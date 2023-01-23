@@ -1,4 +1,4 @@
-import request from 'supertest';
+import request, { type Test } from 'supertest';
 import { csrfMissing } from '../../utils/constants';
 import { userForbidden, userUnauthorized } from '../constants';
 import { expectErrorMessage, normalUser, withUser } from '../utils';
@@ -7,7 +7,15 @@ export interface HttpServerReference {
   httpServer: any
 }
 
-export const apiRequiresUserPostTests = (ref: HttpServerReference, url: string) => {
+const optionalApiSpecTest = (req: Test, apiSpec = false): Test => {
+  if (apiSpec) {
+    req = req.satisfiesApiSpec();
+  }
+
+  return req;
+};
+
+export const apiRequiresUserPostTests = (ref: HttpServerReference, url: string, apiSpec = false) => {
   it('Returns 403 without CSRF token', async () => {
     await request(ref.httpServer)
       .post(url)
@@ -15,12 +23,12 @@ export const apiRequiresUserPostTests = (ref: HttpServerReference, url: string) 
       .expect(expectErrorMessage(csrfMissing));
   });
 
-  it('returns unauthorized without user', async () => {
-    await request(ref.httpServer)
+  it('returns 401 unauthorized without user', async () => {
+    await optionalApiSpecTest(request(ref.httpServer)
       .post(url)
       .csrf()
       .expect(401)
-      .expect(expectErrorMessage(userUnauthorized));
+      .expect(expectErrorMessage(userUnauthorized)), apiSpec);
   });
 };
 
@@ -38,12 +46,12 @@ export const apiRequiresAdminUserPostTests = (ref: HttpServerReference, url: str
   });
 };
 
-export const apiRequiresUserGetTests = (ref: HttpServerReference, url: string) => {
+export const apiRequiresUserGetTests = (ref: HttpServerReference, url: string, apiSpec = false) => {
   it('returns unauthorized without user', async () => {
-    await request(ref.httpServer)
+    await optionalApiSpecTest(request(ref.httpServer)
       .get(url)
       .expect(401)
-      .expect(expectErrorMessage(userUnauthorized));
+      .expect(expectErrorMessage(userUnauthorized)), apiSpec);
   });
 };
 
