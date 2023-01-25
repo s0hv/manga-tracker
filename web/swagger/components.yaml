@@ -91,6 +91,12 @@ components:
       type: object
       description: An object that represents a time interval
       properties:
+        years:
+          type: integer
+          nullable: true
+        months:
+          type: integer
+          nullable: true
         days:
           type: integer
           nullable: true
@@ -98,6 +104,9 @@ components:
           type: integer
           nullable: true
         seconds:
+          type: integer
+          nullable: true
+        milliseconds:
           type: integer
           nullable: true
 
@@ -264,7 +273,6 @@ components:
 
     chapter:
       type: object
-      additionalProperties: false
       properties:
         chapterId:
           $ref: '#/components/schemas/databaseId'
@@ -305,7 +313,6 @@ components:
       allOf:
         - $ref: '#/components/schemas/chapter'
         - type: object
-          additionalProperties: false
           properties:
             mangaId:
               $ref: '#/components/schemas/databaseId'
@@ -326,7 +333,6 @@ components:
     manga:
       description: Contains simple information on a single manga
       type: object
-      additionalProperties: false
       properties:
         mangaId:
           $ref: '#/components/schemas/databaseId'

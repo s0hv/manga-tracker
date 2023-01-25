@@ -8,17 +8,13 @@ import { useConfirm } from 'material-ui-confirm';
 import type { NotificationFollow } from '@/types/api/notifications';
 import { QueryKeys } from '@/webUtils/constants';
 import { getNotificationFollows } from '../../api/notifications';
-
-const showAll = <T, >(o: T) => o;
-const noData: any[] = [];
-
-
-const optionEquals = (option: NotificationFollow, value: NotificationFollow) => (
-  option.mangaId === value.mangaId &&
-  (value.serviceId === null || option.serviceId === value.serviceId)
-);
-const getOptionLabel = ({ title, serviceName }: NotificationFollow) => `${title} | ${serviceName}`;
-const groupByKey = ({ mangaId, title }: NotificationFollow) => `${mangaId} ${title}`;
+import {
+  getOptionLabel,
+  groupByKey,
+  noData,
+  optionEquals,
+  showAll,
+} from '@/components/notifications/utilities';
 
 type AutocompleteType = AutocompleteProps<NotificationFollow, false, false, false>;
 type MangaOverrideSelectorProps = {
@@ -63,6 +59,8 @@ const MangaOverrideSelector: FC<MangaOverrideSelectorProps> = ({
         description: 'You have unsaved changes. Do you want to discard changes?',
         confirmationText: 'Yes',
         cancellationText: 'No',
+        confirmationButtonProps: { 'aria-label': 'Discard form changes' },
+        cancellationButtonProps: { 'aria-label': 'Do not discard form changes' },
       })
         .then(() => {
           setValue(v);
@@ -82,6 +80,7 @@ const MangaOverrideSelector: FC<MangaOverrideSelectorProps> = ({
   const useFollows = typeof useFollowsInput.value === 'boolean' ? useFollowsInput.value : false;
   const renderOption = useCallback((props: object, option: NotificationFollow) => {
     return (
+      // eslint-disable-next-line jsx-a11y/role-supports-aria-props
       <li {...props} aria-selected={overrides.has(option.mangaId) ? 'true' : 'false'}>
         {getOptionLabel(option)}
       </li>
@@ -91,6 +90,7 @@ const MangaOverrideSelector: FC<MangaOverrideSelectorProps> = ({
   const { data } = useQuery(QueryKeys.NotificationFollows, getNotificationFollows, {
     placeholderData: () => [],
     keepPreviousData: true,
+    staleTime: 1000*30,
   });
 
   const options = useMemo<NotificationFollow[]>(() => (useFollows ? data : selectedManga.value),

@@ -68,3 +68,13 @@ export type MangaServiceCreateData = Partial<Pick<
   | 'titleId'
   | 'feedUrl'
 >>;
+
+export type SearchedManga = {
+  mangaId: number
+  title: string
+  serviceId: number
+}
+
+export type SearchedMangaWithService = SearchedManga & {
+  services: Record<number, string> // serviceId, serviceName
+}

@@ -72,7 +72,7 @@ describe('Manga page should render correctly', () => {
   };
 
   const expectAdminControls = (isAdmin) => {
-    conditionalInDocument(isAdmin, 'link', { name: /admin page/i });
+    conditionalInDocument(isAdmin, 'button', { name: /admin page/i });
 
     conditionalInDocument(isAdmin, 'button', { name: /edit chapters/i });
   };
