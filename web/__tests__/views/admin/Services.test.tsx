@@ -108,7 +108,7 @@ describe('Services page should allow editing', () => {
     );
 
     expect(rowElem).toBeInTheDocument();
-    return within(rowElem);
+    return within(rowElem!);
   };
 
   it('Shows nothing when no changes made', async () => {

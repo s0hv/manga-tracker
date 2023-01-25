@@ -1,12 +1,17 @@
-import { handleResponse, handleError } from './utilities';
+import { handleError, handleResponse } from './utilities';
 import { csrfHeader } from '../utils/csrf';
+import type {
+  SearchedManga,
+  SearchedMangaWithService,
+} from '@/types/api/manga';
+import type { DatabaseId } from '@/types/dbTypes';
 
 /**
  * Get a manga from the api by id
  * @param {Number|string} mangaId Id of the manga to fetch
  * @return {Promise<any>}
  */
-export const getManga = (mangaId) => fetch(`/api/manga/${mangaId}`)
+export const getManga = (mangaId: DatabaseId) => fetch(`/api/manga/${mangaId}`)
   .then(handleResponse)
   .catch(handleError);
 
@@ -18,7 +23,7 @@ export const getManga = (mangaId) => fetch(`/api/manga/${mangaId}`)
  * @param {Number|string|undefined} serviceId Optional id of the service which will be merged
  * @return {Promise<any>} Response data from the server
  */
-export const postMergeManga = (csrf, baseManga, toMerge, serviceId) => {
+export const postMergeManga = (csrf: string, baseManga: DatabaseId, toMerge: DatabaseId, serviceId: DatabaseId) => {
   const service = (serviceId === undefined) ? '' : `&service=${serviceId}`;
   return fetch(`/api/manga/merge?base=${baseManga}&toMerge=${toMerge}${service}`, {
     method: 'post',
@@ -28,13 +33,19 @@ export const postMergeManga = (csrf, baseManga, toMerge, serviceId) => {
     .catch(handleError);
 };
 
+
+type QuickSearch = {
+  (query: string, withServices: true): Promise<SearchedMangaWithService[]>,
+  (query: string, withServices: false): Promise<SearchedManga[]>,
+}
+
 /**
  * Searches for a manga
  * @param {string} query The search query
  * @param {Boolean} withServices Whether to include services in the result
  */
-export const quickSearch = (query, withServices = false) => fetch(
+export const quickSearch: QuickSearch = (query: string, withServices = false) => fetch(
   '/api/quicksearch?query=' + encodeURIComponent(query) + '&withServices=' + encodeURIComponent(withServices)
 )
-  .then(handleResponse)
+  .then(handleResponse<any>)
   .catch(handleError);

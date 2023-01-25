@@ -1,14 +1,17 @@
-import type { DatabaseId, MangaId } from '@/types/dbTypes';
-
 export type NotificationFieldData = {
   name: string
   value: string
 }
 
-export type NotificationManga = {
-  mangaId: MangaId
-  serviceId?: DatabaseId | null
+export type NotificationFollow = {
+  mangaId: number,
+  serviceId: number | null,
+  title: string,
+  serviceName: string
 }
+
+
+export type NotificationManga = NotificationFollow
 
 
 export type NotificationField = NotificationFieldData & {
@@ -30,11 +33,4 @@ export type NotificationData = {
   overrides: {
     [mangaId: number | string]: NotificationField[]
   }
-}
-
-export type NotificationFollow = {
-  mangaId: number,
-  serviceId: number | null,
-  title: string,
-  serviceName: string
 }

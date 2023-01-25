@@ -1,48 +1,68 @@
 import { Autocomplete, Checkboxes } from 'mui-rff';
 import { useQuery } from '@tanstack/react-query';
-import { useState, useCallback, useEffect } from 'react';
+import {
+  type FC,
+  type SyntheticEvent,
+  useCallback,
+  useEffect,
+  useState,
+} from 'react';
 import { Box } from '@mui/material';
 import { useField } from 'react-final-form';
-import PropTypes from 'prop-types';
+import type { AutocompleteProps } from 'mui-rff/src/Autocomplete';
+import type { FieldValidator } from 'final-form';
 import { quickSearch } from '../../api/manga';
+import type { NotificationFollow } from '@/types/api/notifications';
+import {
+  getOptionLabel,
+  groupByKey,
+  noData,
+  optionEquals,
+  showAll,
+} from '@/components/notifications/utilities';
 
-const showAll = o => o;
-const noData = [];
+type AutocompleteType = AutocompleteProps<NotificationFollow, true, false, false>;
+export type MangaSelectorProps = {
+  name: string,
+  label: string,
+  useFollowsName: string,
+  disabled?: boolean,
+  overrideName?: string,
+} & Omit<AutocompleteType,
+  | 'name'
+  | 'label'
+  | 'options'
+  | 'disabled'
+>
 
 
-const optionEquals = (option, value) => (
-  option.mangaId === value.mangaId &&
-  (value.serviceId === null || option.serviceId === value.serviceId)
-);
-const getOptionLabel = ({ title, serviceName }) => `${title} | ${serviceName}`;
-const groupByKey = ({ mangaId, title }) => `${mangaId} ${title}`;
-
-const MangaSelector = ({
+const MangaSelector: FC<MangaSelectorProps> = ({
   name,
   label,
   useFollowsName,
   disabled,
+  overrideName = 'overrideId',
   ...autocompleteProps
 }) => {
   const [query, setQuery] = useState('');
   const { input: mangaInput } = useField(name);
-  const { input: overrideInput } = useField('overrideId');
+  const { input: overrideInput } = useField(overrideName);
   const [override, setOverride] = useState(overrideInput.value);
   const [values, setValues] = useState(mangaInput.value || []);
   useEffect(() => {
     if (override !== overrideInput.value) {
       setOverride(overrideInput.value);
-      setValues(mangaInput.value);
+      setValues(mangaInput.value || []);
     }
   }, [mangaInput.value, overrideInput.value, override]);
 
-  const doSearch = useCallback(async ({ queryKey }) => {
+  const doSearch = useCallback(async ({ queryKey }: { queryKey: string[]}): Promise<NotificationFollow[]> => {
     const searchQuery = queryKey[1]?.trim();
     if (searchQuery?.length < 2) return [];
 
     return quickSearch(searchQuery, true)
       .then(rows => {
-        if (!rows) return;
+        if (!rows) return [];
         return rows.reduce((prev, row) => [
           ...prev,
           {
@@ -53,10 +73,10 @@ const MangaSelector = ({
           ...Object.entries(row.services)
             .map(([serviceId, serviceName]) => ({
               ...row,
-              serviceId,
+              serviceId: Number(serviceId),
               serviceName,
             })),
-        ], []);
+        ], [] as NotificationFollow[]);
       });
   }, []);
 
@@ -65,22 +85,23 @@ const MangaSelector = ({
     keepPreviousData: true,
   });
 
-  const onInputChange = useCallback((e) => {
-    const value = e?.target.value;
+  const onInputChange = useCallback((e: SyntheticEvent, value: string | null) => {
     if (typeof value === 'string') {
       setQuery(value);
     }
   }, []);
 
-  const onValueChange = useCallback((_, v) => {
+  const onValueChange = useCallback((_: any, v: NotificationFollow[]) => {
     setValues(v);
-  }, []);
+    setQuery(query);
+  }, [query]);
 
   const { input } = useField(useFollowsName);
 
-  const hasError = useCallback(
-    (value, { [useFollowsName]: useFollows }) => {
-      if (useFollows ? false : !(value?.length > 0)) {
+  const hasError: FieldValidator<NotificationFollow[] | null> = useCallback(
+    (value: NotificationFollow[] | null, allValues?: any) => {
+      const useFollows = allValues ? allValues![useFollowsName] : false;
+      if (useFollows ? false : !((value?.length ?? 0) > 0)) {
         return 'Must select at least one manga or use follows';
       }
     },
@@ -112,8 +133,8 @@ const MangaSelector = ({
           validate: hasError,
         }}
         disableCloseOnSelect
+        clearOnBlur={false}
         multiple
-        freeSolo
         disabled={autocompleteDisabled}
         {...autocompleteProps}
       />
@@ -122,17 +143,11 @@ const MangaSelector = ({
         sx={{ ml: 2 }}
         name={useFollowsName}
         color='primary'
-        data={{ label: 'Use follows' }}
+        data={{ label: 'Use follows', value: undefined }}
         disabled={disabled}
       />
     </Box>
   );
-};
-MangaSelector.propTypes = {
-  name: PropTypes.string.isRequired,
-  label: PropTypes.string.isRequired,
-  useFollowsName: PropTypes.string.isRequired,
-  disabled: PropTypes.bool,
 };
 
 export default MangaSelector;

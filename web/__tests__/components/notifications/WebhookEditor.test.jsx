@@ -112,6 +112,10 @@ describe('WebhookEditor', () => {
     delete data.timesFailed;
     delete data.timesRun;
     delete data.manga;
+    data.fields = data.fields.map(f => ({
+      name: f.name,
+      value: f.value,
+    }));
 
     expect(response).toEqual(
       expect.objectContaining(data)

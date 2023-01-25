@@ -3,26 +3,34 @@ import userEvent from '@testing-library/user-event';
 import { QueryClientProvider } from '@tanstack/react-query';
 import fetchMock from 'fetch-mock';
 import { ConfirmProvider } from 'material-ui-confirm';
-
 import { Form } from 'react-final-form';
-import { queryClient, mockNotistackHooks } from '../../utils';
-import MangaSelector from '../../../src/components/notifications/MangaSelector';
+import type { FC, PropsWithChildren } from 'react';
+
+import { mockNotistackHooks, queryClient } from '../../utils';
+import MangaSelector, {
+  type MangaSelectorProps,
+} from '@/components/notifications/MangaSelector';
+import type { NotificationFollow } from '@/types/api/notifications';
 
 const inputName = 'test';
+const overrideName = 'overrideId';
 
-const Root = ({ selectedManga, children }) => (
+const Root: FC<PropsWithChildren<{ selectedManga?: NotificationFollow[] }>> = ({ selectedManga, children }) => (
   <QueryClientProvider client={queryClient}>
     <ConfirmProvider>
       <Form
         onSubmit={jest.fn()}
-        initialValues={{ [inputName]: selectedManga }}
+        initialValues={{
+          [inputName]: selectedManga,
+          [overrideName]: null,
+        }}
         render={() => children}
       />
     </ConfirmProvider>
   </QueryClientProvider>
 );
 
-const manga = [
+const manga: NotificationFollow[] = [
   { mangaId: 1, serviceId: 1, title: 'Test manga 1', serviceName: 'Test service 1' },
   { mangaId: 1, serviceId: 2, title: 'Test manga 1', serviceName: 'Test service 2' },
 ];
@@ -33,20 +41,28 @@ beforeEach(() => {
   queryClient.clear();
 });
 
+type RenderProps = {
+  selectedManga?: NotificationFollow[]
+} & Omit<MangaSelectorProps,
+  | 'name'
+  | 'label'
+  | 'useFollowsName'
+>
+
 describe('MangaSelector', () => {
   const testLabel = 'Search for manga';
 
-  const Rendered = ({ selectedManga }) => (
+  const Rendered: FC<RenderProps> = ({ selectedManga, ...selectorProps }) => (
     <Root selectedManga={selectedManga}>
-      <MangaSelector name={inputName} label={testLabel} useFollowsName='useFollows' />
+      <MangaSelector name={inputName} label={testLabel} useFollowsName='useFollows' overrideName={overrideName} {...selectorProps} />
     </Root>
   );
 
-  const formatMangaName = ({ title, serviceName }) => (
+  const formatMangaName = ({ title, serviceName }: { title: string, serviceName: string | null}) => (
     `${title} | ${serviceName || 'All services'}`
   );
 
-  const expectMangaSelected = (selectedManga) => {
+  const expectMangaSelected = (selectedManga: NotificationFollow) => {
     expect(screen.getByRole(
       'button', { name: formatMangaName(selectedManga) }
     )).toBeInTheDocument();
@@ -80,6 +96,13 @@ describe('MangaSelector', () => {
     expectMangaSelected(manga[1]);
   });
 
+  it('Disabled input when disabled is true', async () => {
+    render(<Rendered selectedManga={manga} disabled />);
+
+    expect(screen.getByRole('checkbox', { name: /use follows/i })).toBeDisabled();
+    expect(screen.getByRole('combobox', { name: testLabel })).toBeDisabled();
+  });
+
   it('Renders fetched items correctly', async () => {
     const mockResponse = jest.fn();
     const data = [{
@@ -87,7 +110,7 @@ describe('MangaSelector', () => {
       mangaId: manga[1].mangaId,
       services: manga.reduce((prev, { serviceId, serviceName }) => ({
         ...prev,
-        [serviceId]: serviceName,
+        [String(serviceId)]: serviceName,
       }), {}),
     }];
     mockResponse.mockImplementation(() => ({ data }));
