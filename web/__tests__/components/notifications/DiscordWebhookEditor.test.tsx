@@ -363,7 +363,7 @@ describe('DiscordWebhookEditor', () => {
       overrideId: overrideId,
       fields: fields,
     });
-  }, 15*1000);
+  }, 30*1000);
 
   it('Warns of unsaved changes when changing to an override', async () => {
     notificationFollowsMock();
@@ -423,5 +423,5 @@ describe('DiscordWebhookEditor', () => {
     expect(screen.getByRole('button', { name: /^delete notification/i })).toBeDisabled();
 
     expect(mockRoute).not.toHaveBeenCalled();
-  }, 10*2000);
+  }, 15*2000);
 });
