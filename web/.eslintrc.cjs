@@ -1,4 +1,4 @@
-{
+module.exports = {
     "extends": [
         "next",
         "airbnb",
@@ -121,12 +121,16 @@
                 "@typescript-eslint"
             ],
             "parser": "@typescript-eslint/parser",
+            "parserOptions": {
+              "tsconfigRootDir": __dirname,
+              "project": ['./tsconfig.json'],
+            },
             "globals": {
                  "NodeJS": true
             },
             "extends": [
                 "eslint:recommended",
-                "plugin:@typescript-eslint/recommended"
+                "plugin:@typescript-eslint/recommended",
             ],
             "rules": {
                 "@typescript-eslint/no-explicit-any": "off",
