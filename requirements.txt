@@ -1,22 +1,22 @@
 ansicolors~=1.1.8
 feedparser~=6.0.10
-requests~=2.27.1
-lxml==4.9.1
-cssselect~=1.1.0
-psycopg[c,pool]~=3.0.15
+requests~=2.28.2
+lxml==4.9.2
+cssselect~=1.2.0
+psycopg[c,pool]~=3.1.8
 protobuf==4.21.12
 mypy==0.991
 mypy-protobuf==3.4.0
-sentry-sdk==1.5.8
+sentry-sdk==1.14.0
 git+https://github.com/tk0miya/testing.postgresql.git#egg=testing.postgresql
-pytest~=7.1.2
+pytest==7.2.1
 responses==0.22.0
-pytest-cov~=3.0.0
-pydantic~=1.9.1
+pytest-cov==4.0.0
+pydantic==1.10.4
 ratelimit~=2.2.1
-discord-webhook~=0.16.3
+discord-webhook==1.0.0
 elasticsearch~=7.13.4
 
 # stubs
-types-protobuf==4.21.0.2
-types-requests==2.27.11
+types-protobuf==4.21.0.3
+types-requests==2.28.11.8
