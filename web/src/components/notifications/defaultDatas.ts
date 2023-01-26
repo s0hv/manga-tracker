@@ -9,7 +9,7 @@ export const defaultDataForType: DefaultValuesType = {
     useFollows: false,
     notificationType: NotificationTypes.DiscordWebhook,
     disabled: false,
-    groupByManga: false,
+    groupByManga: true,
     manga: null,
     fields: [
       {

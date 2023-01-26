@@ -1182,7 +1182,7 @@ class DbUtil:
 
     @optional_transaction(class_row(InputField))
     def get_notification_inputs(self, notification_id: int, *, cur: Cursor[InputField] = NotImplemented) -> List[InputField]:
-        sql = 'SELECT unf.value, nf.name, nf.optional FROM user_notification_fields unf ' \
+        sql = 'SELECT unf.value, nf.name, nf.optional, unf.override_id FROM user_notification_fields unf ' \
               'INNER JOIN notification_fields nf ON nf.field_id=unf.field_id ' \
               'WHERE notification_id=%s'
         cur.execute(sql, (notification_id,))

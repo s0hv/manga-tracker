@@ -452,6 +452,7 @@ class UpdateScheduler:
                         input_fields
                     )
                 except:
+                    logger.exception('Failed to send notification')
                     sent = 0
                     success = False
 

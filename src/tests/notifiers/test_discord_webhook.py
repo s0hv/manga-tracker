@@ -1,9 +1,10 @@
-
+import json
 import unittest
 from datetime import datetime, timezone
 from typing import List
 
 import responses
+from requests.models import PreparedRequest
 
 from src.db.models.notifications import InputField, NotificationOptions
 from src.notifier.base_notifier import NotificationChapter, \
@@ -38,7 +39,7 @@ class TestDiscordWebhook(unittest.TestCase):
             url='$URL',
             footer='$GROUP',
             thumbnail='$MANGA_COVER',
-            color=155
+            color='#efefef'
         )
 
     @staticmethod
@@ -52,7 +53,7 @@ class TestDiscordWebhook(unittest.TestCase):
             InputField(name='url', value='$URL', optional=True),
             InputField(name='footer', value='$GROUP', optional=True),
             InputField(name='thumbnail', value='$MANGA_COVER', optional=True),
-            InputField(name='color', value='155', optional=True)
+            InputField(name='color', value='#efefefef', optional=True)
         ]
 
     def test_embed_fields_create_with_all_fields(self):
@@ -63,6 +64,48 @@ class TestDiscordWebhook(unittest.TestCase):
         self.assertEqual(
             len(embed_inputs.dict(exclude_defaults=True, exclude_unset=True)),
             len(fields)
+        )
+
+    def test_embed_fields_create_overrides(self):
+        override1 = 1
+        override2 = 2
+        overrideFields1 = self.get_input_fields()[:4]
+        overrideFields2 = self.get_input_fields()[3:5]
+
+        for o in overrideFields1:
+            o.override_id = override1
+            o.value = 'overridden'
+
+        for o in overrideFields2:
+            o.override_id = override2
+            o.value = 'overridden'
+
+        base_fields = self.get_input_fields()
+        fields = [*base_fields]
+        fields.extend(overrideFields1)
+        fields.extend(overrideFields2)
+
+        overrides = EmbedInputs.overrides(fields)
+
+        self.assertEqual(len(overrides.keys()), 2)
+        self.assertIsNotNone(overrides.get(override1))
+        self.assertIsNotNone(overrides.get(override2))
+
+        for o in overrideFields1:
+            self.assertEqual(overrides[override1].__getattribute__(o.name), o.value)
+
+        for o in overrideFields2:
+            self.assertEqual(overrides[override2].__getattribute__(o.name), o.value)
+
+        # Make sure all base fields were used
+        self.assertEqual(
+            len(overrides[override1].dict(exclude_defaults=True, exclude_unset=True)),
+            len(base_fields)
+        )
+
+        self.assertEqual(
+            len(overrides[override2].dict(exclude_defaults=True, exclude_unset=True)),
+            len(base_fields)
         )
 
     def test_embed_fields_create_with_required_fields(self):
@@ -84,14 +127,55 @@ class TestDiscordWebhook(unittest.TestCase):
         chapter = self.get_notification_chapter()
         embed_inputs = self.get_embed_inputs()
 
-        embed = notifier.get_chapter_embed(chapter, embed_inputs)
+        embed = notifier.get_chapter_embed(chapter, embed_inputs, {})
 
         snapshot = {
             'title': 'manga',
             'description': 'title - 10.1',
             'url': 'test',
             'timestamp': '2022-03-21T19:34:42.042674+00:00',
-            'color': 155,
+            'color': 15724527,
+            'footer': {
+                'text': 'group name',
+                'icon_url': None,
+                'proxy_icon_url': None
+            },
+            'image': None,
+            'thumbnail': {
+                'url': 'cover',
+                'proxy_url': None,
+                'height': None,
+                'width': None
+            },
+            'video': None,
+            'provider': None,
+            'author': None,
+            'fields': []
+        }
+
+        # The webhook lib uses __dict__ internally to serialize embed objects
+        self.assertDictEqual(embed.__dict__, snapshot)
+
+    def test_get_chapter_embed_with_override(self):
+        notifier = DiscordEmbedWebhookNotifier()
+
+        chapter = self.get_notification_chapter()
+        embed_inputs = self.get_embed_inputs()
+        override_inputs = self.get_embed_inputs()
+        override_inputs.embed_title = 'overridden title'
+        override_inputs.embed_content = 'overridden $MANGA_TITLE'
+        overrides = {
+            chapter.manga.manga_id: override_inputs
+        }
+
+        embed = notifier.get_chapter_embed(chapter, embed_inputs, overrides)
+
+        snapshot = {
+            'title': 'overridden title',
+            'description': 'overridden manga',
+            'url': 'test',
+            'timestamp': '2022-03-21T19:34:42.042674+00:00',
+            'color': 15724527,
             'footer': {
                 'text': 'group name',
                 'icon_url': None,
@@ -155,6 +239,63 @@ class TestDiscordWebhook(unittest.TestCase):
         self.assertEqual(len(responses.calls), expected_calls)
         self.assertEqual(sent, expected_calls)
         self.assertTrue(success)
+
+    @responses.activate
+    def test_webhook_called_with_override(self):
+        test_url = 'https://discord.com/webhook'
+
+        override_id = 1
+        chapters = [
+            self.get_notification_chapter(override_id),
+            self.get_notification_chapter(override_id),
+            self.get_notification_chapter(2),
+        ]
+        options = NotificationOptions(destination=test_url, group_by_manga=True)
+        input_fields = self.get_input_fields()
+        override_fields = [
+            InputField(name='username', value='override username', optional=True, override_id=override_id),
+            InputField(name='embed_content', value='description', optional=False, override_id=override_id),
+        ]
+
+        def match_override(req: PreparedRequest) -> tuple[bool, str]:
+            body = json.loads(req.body.decode('utf-8'))
+
+            # Validate override fields and some base fields
+            valid = (
+                body['username'] == override_fields[0].value and
+                len(body['embeds']) ==  2 and
+                body['embeds'][0]['description'] == override_fields[1].value and
+                body['embeds'][1]['description'] == override_fields[1].value and
+                body['content'] == input_fields[0].value
+            )
+
+            return valid, ''
+
+
+        respOverride = responses.add(
+            responses.POST, test_url, body='{"id": 1234}',
+            match=[match_override]
+        )
+        resp = responses.add(
+            responses.POST, test_url, body='{"id": 1234}',
+            match=[
+                responses.matchers.json_params_matcher({
+                    'username': 'test'
+                }, strict_match=False)
+            ]
+        )
+
+        notifier = DiscordEmbedWebhookNotifier()
+
+        expected_calls = 2
+        sent, success = notifier.send_notification(chapters, options=options, input_fields=[*input_fields, *override_fields])
+
+        self.assertEqual(len(responses.calls), expected_calls)
+        self.assertEqual(sent, expected_calls)
+        self.assertTrue(success)
+
+        self.assertEqual(respOverride.call_count, 1)
+        self.assertEqual(resp.call_count, 1)
 
     @responses.activate
     def test_webhook_called_with_error(self):

@@ -2,20 +2,40 @@ from abc import ABC, abstractmethod
 from datetime import datetime
 from itertools import groupby
 from string import Template
-from typing import Optional, List, TypeVar, Tuple
+from typing import Optional, List, TypeVar, Tuple, Type
 
 from pydantic import BaseModel
 
 from src.db.models.notifications import NotificationOptions, InputField
 
 T = TypeVar('T', str, Optional[str])
+TEmbedInputs = TypeVar('TEmbedInputs')
 
+Overrides = dict[int, TEmbedInputs]
 
 class BaseEmbedInputs(BaseModel):
     @classmethod
     def from_input_list(cls, input_fields: List[InputField]):
-        d = {i.name: i.value for i in input_fields}
+        d = {i.name: i.value for i in input_fields if i.override_id is None}
         return cls(**d)
+
+    @classmethod
+    def overrides(cls: Type[TEmbedInputs], input_fields: List[InputField]) -> Overrides[TEmbedInputs]:
+        manga_ids: set[int] = {i.override_id for i in input_fields if i.override_id is not None}
+
+        if not manga_ids:
+            return {}
+
+        base_d = {i.name: i.value for i in input_fields if i.override_id is None}
+        overrides: dict[int, dict[str, str]] = {}
+        for manga_id in manga_ids:
+            overrides[manga_id] = {**base_d}
+
+        for field in input_fields:
+            if field.override_id is not None:
+                overrides[field.override_id][field.name] = field.value
+
+        return {k: cls(**v) for k, v in overrides.items()}
 
 
 class NotificationMangaService(BaseModel):

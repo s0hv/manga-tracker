@@ -1,12 +1,12 @@
 import logging
 from typing import List, Optional, Tuple
 
+import pydantic.color
 from discord_webhook import DiscordWebhook, DiscordEmbed
 
 from src.db.models.notifications import InputField, NotificationOptions
-from src.db.types import ColorInt
 from src.notifier.base_notifier import (
-    NotifierBase, NotificationChapter, BaseEmbedInputs
+    NotifierBase, NotificationChapter, BaseEmbedInputs, Overrides
 )
 
 logger = logging.getLogger('debug')
@@ -21,7 +21,7 @@ class EmbedInputs(BaseEmbedInputs):
     url: Optional[str]
     footer: Optional[str]
     thumbnail: Optional[str]
-    color: Optional[ColorInt]
+    color: Optional[pydantic.color.Color]
 
 
 class WebhookLimits:
@@ -31,11 +31,17 @@ class WebhookLimits:
 
 
 class DiscordEmbedWebhookNotifier(NotifierBase):
-    def get_chapter_embed(self, chapter: NotificationChapter, embed_inputs: EmbedInputs) -> DiscordEmbed:
+    def get_chapter_embed(self, chapter: NotificationChapter, embed_inputs: EmbedInputs, overrides: Overrides[EmbedInputs]) -> DiscordEmbed:
+        embed_inputs = overrides.get(chapter.manga.manga_id, embed_inputs)
+
+        color = None
+        if embed_inputs.color is not None:
+            color = int(embed_inputs.color.as_hex().lstrip('#')[:6], 16)
+
         embed = DiscordEmbed(
             title=self.format_string(embed_inputs.embed_title, chapter)[:WebhookLimits.TITLE],
             description=self.format_string(embed_inputs.embed_content, chapter),
-            color=embed_inputs.color,
+            color=color,
             url=self.format_string(embed_inputs.url, chapter),
             timestamp=chapter.release_date.isoformat()
         )
@@ -55,13 +61,20 @@ class DiscordEmbedWebhookNotifier(NotifierBase):
     def send_notification(self, chapters: List[NotificationChapter], options: NotificationOptions, input_fields: List[InputField]) -> Tuple[int, bool]:
         groups = self.get_chapters_grouped(chapters, options)
 
-        embed_inputs = EmbedInputs.from_input_list(input_fields)
+        embed_inputs_original = EmbedInputs.from_input_list(input_fields)
+        overrides = EmbedInputs.overrides(input_fields)
         times_executed = 0
 
         for group in groups:
+            embed_inputs = embed_inputs_original
             group_sorted = self.sort_chapters(group)
 
-            embeds = list(map(lambda c: self.get_chapter_embed(c, embed_inputs), group_sorted))
+            embeds = list(map(lambda c: self.get_chapter_embed(c, embed_inputs, overrides), group_sorted))
+
+            # If group by manga is true we can use the override for the non embed properties
+            # Otherwise use defaults
+            if options.group_by_manga:
+                embed_inputs = overrides.get(group[0].manga.manga_id, embed_inputs)
 
             if embed_inputs.username:
                 username = self.format_title(embed_inputs.username, group)[:WebhookLimits.USERNAME]
