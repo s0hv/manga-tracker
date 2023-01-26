@@ -21,6 +21,7 @@ class InputField(BaseModel):
     name: str
     value: str
     optional: bool
+    override_id: Optional[int]
 
 
 class UserNotification(NotificationOptions):
