@@ -238,6 +238,7 @@ describe('DiscordWebhookEditor', () => {
   });
 
   it('Does post request on save', async () => {
+    notificationFollowsMock();
     const mockRoute = jest.fn();
     mockRoute.mockImplementation(() => Promise.resolve({
       data: defaultNotificationDataNoManga,
@@ -280,6 +281,7 @@ describe('DiscordWebhookEditor', () => {
   });
 
   it('Shows error on failed submit', async () => {
+    notificationFollowsMock();
     fetchMock.post(
       `glob:/api/notifications`,
       400
@@ -394,7 +396,7 @@ describe('DiscordWebhookEditor', () => {
     });
 
     const msgField = defaultDataWithManga.fields.filter(f => f.name === 'message')[0]!;
-    expect(await screen.findByRole('textbox', { name: /^Message$/i })).toHaveValue(msgField.value + text);
+    expect(await screen.findByRole('textbox', { name: /^Message$/i }, { timeout: 5000 })).toHaveValue(msgField.value + text);
 
     await changeOverride(defaultDataWithManga.manga![0].title, user, true);
     await act(async () => {
@@ -403,7 +405,7 @@ describe('DiscordWebhookEditor', () => {
 
     const override = defaultDataWithManga.overrides[1];
 
-    expect(await screen.findByRole('textbox', { name: /^Webhook username/i })).toHaveValue('');
+    expect(await screen.findByRole('textbox', { name: /^Webhook username/i }, { timeout: 5000 })).toHaveValue('');
     expect(screen.getByRole('textbox', { name: /^Embed title/i })).toHaveValue('');
     expect(screen.getByRole('textbox', { name: /^Message$/i })).toHaveValue(override[0].value);
     expect(screen.getByRole('textbox', { name: /^Embed url/i })).toHaveValue('');
@@ -423,5 +425,5 @@ describe('DiscordWebhookEditor', () => {
     expect(screen.getByRole('button', { name: /^delete notification/i })).toBeDisabled();
 
     expect(mockRoute).not.toHaveBeenCalled();
-  }, 15*2000);
+  }, 30*1000);
 });
