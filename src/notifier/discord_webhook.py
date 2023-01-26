@@ -40,12 +40,15 @@ class DiscordEmbedWebhookNotifier(NotifierBase):
             timestamp=chapter.release_date.isoformat()
         )
 
-        embed.set_footer(
-            text=self.format_string(embed_inputs.footer, chapter)
-        )
-        embed.set_thumbnail(
-            url=self.format_string(embed_inputs.thumbnail, chapter)
-        )
+        if embed_inputs.footer is not None:
+            embed.set_footer(
+                text=self.format_string(embed_inputs.footer, chapter)
+            )
+
+        if embed_inputs.thumbnail is not None:
+            embed.set_thumbnail(
+                url=self.format_string(embed_inputs.thumbnail, chapter)
+            )
 
         return embed
 
@@ -80,7 +83,7 @@ class DiscordEmbedWebhookNotifier(NotifierBase):
             for i in range(0, len(embeds), WebhookLimits.EMBEDS):
                 chunk = embeds[i:i+WebhookLimits.EMBEDS]
                 webhook = get_webhook()
-                webhook.embeds = chunk
+                list(map(webhook.add_embed, chunk))
                 webhook.content = message
                 try:
                     times_executed += 1
