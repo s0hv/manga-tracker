@@ -117,7 +117,7 @@ class TestDiscordWebhook(unittest.TestCase):
     def test_webhook_called(self):
         test_url = 'https://discord.com/webhook'
         responses.add(responses.POST, test_url,
-                      body='OK')
+                      body='{"id": 1234}')
 
         notifier = DiscordEmbedWebhookNotifier()
 
@@ -136,7 +136,7 @@ class TestDiscordWebhook(unittest.TestCase):
     def test_webhook_called_group_by_manga(self):
         test_url = 'https://discord.com/webhook'
         responses.add(responses.POST, test_url,
-                      body='OK')
+                      body='{"id": 1234}')
 
         notifier = DiscordEmbedWebhookNotifier()
 
