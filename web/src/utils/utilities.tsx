@@ -328,7 +328,7 @@ export interface NotificationField {
   optional: boolean,
 }
 
-type MappedNotificationField<T> = {
+export type MappedNotificationField<T> = {
   [key: string]: T
 }
 

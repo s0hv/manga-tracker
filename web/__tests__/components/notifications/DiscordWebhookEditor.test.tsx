@@ -293,7 +293,33 @@ describe('DiscordWebhookEditor', () => {
 
     await user.click(screen.getByRole('button', { name: /^save$/i }));
 
-    expectErrorSnackbar();
+    expectErrorSnackbar('Failed to create/update notification');
+  });
+
+  it('Shows error on failed override submit', async () => {
+    notificationFollowsMock([
+      {
+        mangaId: 1,
+        title: 'test',
+        serviceName: '',
+        serviceId: null,
+      },
+    ]);
+    fetchMock.post(
+      `glob:/api/notifications/override`,
+      400
+    );
+
+    await act(async () => {
+      render(<Rendered notificationData={defaultNotificationDataNoManga} />);
+    });
+
+    const user = userEvent.setup();
+    await changeOverride('test', user);
+
+    await user.click(screen.getByRole('button', { name: /^save$/i }));
+
+    expectErrorSnackbar('Failed to create/update notification override');
   });
 
   it('should reload form when changing override', async () => {
@@ -387,6 +413,8 @@ describe('DiscordWebhookEditor', () => {
     const text = 'changes';
     await user.type(screen.getByRole('textbox', { name: /^Message$/i }), text);
 
+    // This shit prints out act errors to no end even if I wrap everything inside act.
+    // Tests seem to pass tho, so it's fine for now.
     await changeOverride(defaultDataWithManga.manga![0].title, user, true);
 
     expect(await screen.findByText(/You have unsaved changes\. Do you want to discard changes\?/i)).toBeInTheDocument();

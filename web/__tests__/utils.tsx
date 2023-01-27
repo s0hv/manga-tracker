@@ -110,7 +110,7 @@ export function expectSuccessSnackbar() {
   );
 }
 
-export function expectErrorSnackbar(msg?: string | RegExp) {
+export function expectErrorSnackbar(msg?: string) {
   expect(enqueueSnackbarMock).toHaveBeenLastCalledWith(
     msg || expect.anything(),
     expect.objectContaining({ variant: 'error' })

@@ -1,6 +1,7 @@
 import { handleError, handleResponse } from './utilities';
 import { csrfHeader } from '../utils/csrf';
 import type {
+  FullMangaData,
   SearchedManga,
   SearchedMangaWithService,
 } from '@/types/api/manga';
@@ -12,7 +13,7 @@ import type { DatabaseId } from '@/types/dbTypes';
  * @return {Promise<any>}
  */
 export const getManga = (mangaId: DatabaseId) => fetch(`/api/manga/${mangaId}`)
-  .then(handleResponse)
+  .then(handleResponse<FullMangaData>)
   .catch(handleError);
 
 /**

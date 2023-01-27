@@ -1,4 +1,4 @@
-import React, { FunctionComponent } from 'react';
+import React, { FunctionComponent, PropsWithChildren } from 'react';
 import { render, screen } from '@testing-library/react';
 import { SnackbarProvider } from 'notistack';
 import fetchMock from 'fetch-mock';
@@ -16,9 +16,9 @@ import {
   defaultDateDistanceFormat,
   defaultDateFormatRegex,
 } from '../constants';
-import { statusToString } from '../../src/utils/utilities';
+import { statusToString } from '@/webUtils/utilities';
 
-const Root: FunctionComponent = ({ children }) => (
+const Root: FunctionComponent<PropsWithChildren> = ({ children }) => (
   <SnackbarProvider>
     {children}
   </SnackbarProvider>
