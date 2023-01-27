@@ -258,6 +258,9 @@ class TestDiscordWebhook(unittest.TestCase):
         ]
 
         def match_override(req: PreparedRequest) -> tuple[bool, str]:
+            if not isinstance(req.body, bytes):
+                return False, 'Body must be bytes'
+
             body = json.loads(req.body.decode('utf-8'))
 
             # Validate override fields and some base fields
