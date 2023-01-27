@@ -2,18 +2,17 @@ import { HexColorPicker } from 'react-colorful';
 import { useState, useRef, useCallback } from 'react';
 import { TextField } from 'mui-rff';
 import { Box, InputAdornment, Popper } from '@mui/material';
-import { useForm } from 'react-final-form';
+import { useForm, useField } from 'react-final-form';
 import PropTypes from 'prop-types';
 
 
 const ColorPicker = ({
-  defaultValue,
   name,
   label,
   sx,
   ...pickerProps
 }) => {
-  const [color, setColor] = useState(defaultValue);
+  const { input: color } = useField(name);
   const [open, setOpen] = useState(false);
 
   const anchorEl = useRef(null);
@@ -35,12 +34,10 @@ const ColorPicker = ({
     let col = event.target.value.replace(/([^0-9A-F]+)/gi, '').slice(0, 6);
     col = col ? '#' + col : col;
 
-    setColor(col);
     form.change(name, col);
   }, [form, name]);
 
   const onColorChange = useCallback(c => {
-    setColor(c);
     form.change(name, c);
   }, [form, name]);
 
@@ -56,7 +53,7 @@ const ColorPicker = ({
         InputProps={{
           startAdornment: (
             <InputAdornment position='start' onClick={() => setOpen(true)}>
-              <Box style={{ backgroundColor: color, width: '1em', height: '1em' }} />
+              <Box style={{ backgroundColor: color.value, width: '1em', height: '1em' }} />
             </InputAdornment>),
         }}
       />
@@ -73,7 +70,7 @@ const ColorPicker = ({
           }}
         >
           <HexColorPicker
-            color={color || '#FFFFFF'}
+            color={color.value || '#FFFFFF'}
             onChange={onColorChange}
             {...pickerProps}
           />
@@ -85,7 +82,6 @@ const ColorPicker = ({
 ColorPicker.propTypes = {
   name: PropTypes.string.isRequired,
   label: PropTypes.string.isRequired,
-  defaultValue: PropTypes.string,
   sx: PropTypes.object,
 };
 

@@ -9,4 +9,5 @@ export const optionEquals = (option: NotificationFollow, value: NotificationFoll
   (value.serviceId === null || option.serviceId === value.serviceId)
 );
 export const getOptionLabel = ({ title, serviceName }: NotificationFollow) => `${title} | ${serviceName}`;
+export const getOptionLabelNoService = ({ title }: NotificationFollow) => `${title}`;
 export const groupByKey = ({ mangaId, title }: NotificationFollow) => `${mangaId} ${title}`;

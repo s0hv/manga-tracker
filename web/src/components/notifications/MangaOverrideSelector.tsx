@@ -1,28 +1,35 @@
 import { Autocomplete } from 'mui-rff';
 import { useQuery } from '@tanstack/react-query';
-import { FC, SyntheticEvent, useCallback, useMemo, useState } from 'react';
+import {
+  type FC,
+  type SyntheticEvent,
+  useCallback,
+  useMemo,
+  useState,
+} from 'react';
 import { Box } from '@mui/material';
 import { useField, useForm, useFormState } from 'react-final-form';
 import type { AutocompleteProps } from 'mui-rff/src/Autocomplete';
 import { useConfirm } from 'material-ui-confirm';
+import type { FormApi } from 'final-form';
 import type { NotificationFollow } from '@/types/api/notifications';
 import { QueryKeys } from '@/webUtils/constants';
 import { getNotificationFollows } from '../../api/notifications';
 import {
-  getOptionLabel,
-  groupByKey,
+  getOptionLabelNoService,
   noData,
   optionEquals,
   showAll,
 } from '@/components/notifications/utilities';
 
+export type ChangeOverride = (form: FormApi, overrideId: number | null) => void;
 type AutocompleteType = AutocompleteProps<NotificationFollow, false, false, false>;
 type MangaOverrideSelectorProps = {
   name: string,
   label: string,
   useFollowsName: string,
   overrides: Set<number>
-  setOverride: (override: number | null) => void,
+  changeOverride: ChangeOverride
 } & Omit<AutocompleteType,
   | 'name'
   | 'label'
@@ -35,8 +42,8 @@ const MangaOverrideSelector: FC<MangaOverrideSelectorProps> = ({
   name,
   label,
   useFollowsName,
-  setOverride,
   overrides,
+  changeOverride,
   ...autocompleteProps
 }) => {
   const [query, setQuery] = useState('');
@@ -54,6 +61,7 @@ const MangaOverrideSelector: FC<MangaOverrideSelectorProps> = ({
 
   const onValueChange = useCallback((_: any, v: NotificationFollow | null) => {
     const dirtyCount = Object.entries(dirtyFields).filter(([field, dirty]) => (field !== name && !allowedChangeFields.has(field)) && dirty).length;
+    const overrideId = v?.mangaId ?? null;
     if (dirtyCount > 0) {
       confirm({
         description: 'You have unsaved changes. Do you want to discard changes?',
@@ -64,15 +72,16 @@ const MangaOverrideSelector: FC<MangaOverrideSelectorProps> = ({
       })
         .then(() => {
           setValue(v);
-          setOverride(v?.mangaId ?? null);
-          form.restart();
+          changeOverride(form, overrideId);
+          form.change(name, overrideId);
         })
         .catch(() => {});
     } else {
       setValue(v);
-      setOverride(v?.mangaId ?? null);
+      changeOverride(form, overrideId);
+      form.change(name, overrideId);
     }
-  }, [dirtyFields, name, confirm, setOverride, form]);
+  }, [dirtyFields, name, confirm, form, changeOverride]);
 
   const { input: useFollowsInput } = useField(useFollowsName);
   const { input: selectedManga } = useField('manga');
@@ -82,7 +91,7 @@ const MangaOverrideSelector: FC<MangaOverrideSelectorProps> = ({
     return (
       // eslint-disable-next-line jsx-a11y/role-supports-aria-props
       <li {...props} aria-selected={overrides.has(option.mangaId) ? 'true' : 'false'}>
-        {getOptionLabel(option)}
+        {getOptionLabelNoService(option)}
       </li>
     );
   }, [overrides]);
@@ -93,8 +102,21 @@ const MangaOverrideSelector: FC<MangaOverrideSelectorProps> = ({
     staleTime: 1000*30,
   });
 
-  const options = useMemo<NotificationFollow[]>(() => (useFollows ? data : selectedManga.value),
-    [useFollows, data, selectedManga.value]);
+  const options = useMemo<NotificationFollow[]>(() => {
+    const actualData: NotificationFollow[] = useFollows ? data : selectedManga.value;
+    const foundManga: Set<number> = new Set();
+    const filteredData: NotificationFollow[] = [];
+
+    for (let i=0; i < actualData.length; i++) {
+      const row = actualData[i];
+      if (!foundManga.has(row.mangaId)) {
+        filteredData.push(row);
+        foundManga.add(row.mangaId);
+      }
+    }
+
+    return filteredData;
+  }, [useFollows, data, selectedManga.value]);
 
   return (
     <Box sx={{
@@ -112,8 +134,7 @@ const MangaOverrideSelector: FC<MangaOverrideSelectorProps> = ({
         onInputChange={onInputChange}
         onChange={onValueChange}
         filterOptions={showAll}
-        groupBy={groupByKey}
-        getOptionLabel={getOptionLabel}
+        getOptionLabel={getOptionLabelNoService}
         isOptionEqualToValue={optionEquals}
         {...autocompleteProps}
       />
