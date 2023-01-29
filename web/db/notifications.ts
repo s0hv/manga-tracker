@@ -10,7 +10,7 @@ import type {
   NotificationFollow,
   NotificationManga,
 } from '@/types/api/notifications';
-import { groupBy } from '@/webUtils/utilities';
+import { groupBy } from '@/common/utilities';
 
 type DbNotificationField = NotificationField & {
   overrideId: number | null

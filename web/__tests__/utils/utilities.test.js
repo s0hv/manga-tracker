@@ -1,4 +1,5 @@
-import { statusToString, groupBy } from '../../src/utils/utilities';
+import { statusToString } from '../../src/utils/utilities';
+import { groupBy } from '../../common/utilities';
 
 describe('statusToString', () => {
   it('Returns Ongoing for 0', () => {

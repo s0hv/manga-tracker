@@ -3,7 +3,7 @@ import { query, param } from 'express-validator';
 import { db } from '@/db/helpers';
 import { handleError } from '@/db/utils';
 import { getChapters } from '@/db/chapter';
-import { getOptionalNumberParam } from '../utils/utilities.js';
+import { getOptionalNumberParam } from '../utils/utilities';
 import {
   mangaIdValidation,
   hadValidationError,

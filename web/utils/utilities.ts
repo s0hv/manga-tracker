@@ -1,4 +1,6 @@
-export const getOptionalNumberParam = (value, defaultValue, paramName='Value') => {
+import type { Request } from 'express-serve-static-core';
+
+export const getOptionalNumberParam = (value: any, defaultValue: number, paramName='Value') => {
   if (value === undefined) {
     return defaultValue;
   }
@@ -9,9 +11,9 @@ export const getOptionalNumberParam = (value, defaultValue, paramName='Value') =
   return val;
 };
 
-export const regenerateSession = async (req) => {
+export const regenerateSession = async (req: Request) => {
   const tempSess = req.session;
-  return new Promise((resolve, reject) => {
+  return new Promise<void>((resolve, reject) => {
     req.session.regenerate((err) => {
       if (err) {
         reject(err);

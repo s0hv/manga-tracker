@@ -23,6 +23,7 @@
       "@/components*": ["src/components*"],
       "@/views*": ["src/views*"],
       "@/webUtils*": ["src/utils*"],
+      "@/common*": ["common*"],
       "@/serverUtils*": ["utils*"],
       "@/db*": ["db*"],
       "@/types*": ["types*"]
