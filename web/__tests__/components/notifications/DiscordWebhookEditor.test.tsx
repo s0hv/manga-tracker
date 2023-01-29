@@ -270,7 +270,7 @@ describe('DiscordWebhookEditor', () => {
         {
           ...data,
           fields: data.fields!
-            .filter(f => f.value?.length > 0)
+            .filter(f => (f.value ?? '').length > 0)
             .sort(sortFields)
             .map(f => ({ name: f.name, value: f.value })),
         }

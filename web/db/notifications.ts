@@ -82,7 +82,7 @@ const updateUserNotificationFields = (t: DatabaseHelpers, fields: NotificationFi
     INSERT INTO user_notification_fields (notification_id, field_id, value)
     SELECT ${notificationId}, nf.field_id, f.value FROM
     notification_fields nf
-    LEFT JOIN (VALUES ${t.sql(fields.map(row => [row.value, row.name]))}) f (value, name) ON f.name = nf.name
+    LEFT JOIN (VALUES ${t.sql(fields.filter(row => row.value !== null).map(row => [row.value!, row.name]))}) f (value, name) ON f.name = nf.name
     WHERE nf.notification_type=${notificationType} AND (NOT nf.optional OR f.name IS NOT NULL)`
     .catch(err => {
       if (err?.code === NOT_NULL_VIOLATION) {
@@ -173,7 +173,7 @@ export const upsertNotificationOverride = ({
     INSERT INTO user_notification_fields (notification_id, field_id, value, override_id)
     SELECT ${notificationId}, nf.field_id, f.value, ${overrideId} FROM
     notification_fields nf
-    LEFT JOIN (VALUES ${t.sql(fields.map(row => [row.value, row.name]))}) f (value, name) ON f.name = nf.name
+    LEFT JOIN (VALUES ${t.sql(fields.filter(row => row.value !== null).map(row => [row.value!, row.name]))}) f (value, name) ON f.name = nf.name
     WHERE nf.notification_type=${notificationType} AND f.name IS NOT NULL`;
 });
 

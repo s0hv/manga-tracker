@@ -1,6 +1,6 @@
 export type NotificationFieldData = {
   name: string
-  value: string
+  value: string | null
 }
 
 export type NotificationFollow = {
