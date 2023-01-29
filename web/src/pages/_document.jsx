@@ -1,9 +1,9 @@
-// https://github.com/mui-org/material-ui/blob/434c33fa9a3a4ad36047991fb9db15fd972f44fc/examples/nextjs/pages/_document.js
+// https://github.com/mui/material-ui/blob/64e83d53d7afca1d92a9b1c4c0cc05dc0081338c/examples/nextjs/pages/_document.js
 /* eslint-disable */
-import React from 'react';
-import Document, { Head, Html, Main, NextScript } from 'next/document';
+import * as React from 'react';
+import Document, { Html, Head, Main, NextScript } from 'next/document';
 import createEmotionServer from '@emotion/server/create-instance';
-import { getTheme } from '../utils/theme';
+import { getTheme, roboto } from '../utils/theme';
 import createEmotionCache from '../utils/createEmotionCache';
 
 
@@ -13,15 +13,12 @@ const theme = getTheme();
 export default class MyDocument extends Document {
   render() {
     return (
-      <Html lang="en">
+      <Html lang="en" className={roboto.className}>
         <Head>
           {/* PWA primary color */}
           <meta name="theme-color" content={theme.palette.primary.main} />
-          <link
-            rel="stylesheet"
-            href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap"
-          />
-          {/* Inject MUI styles first to match with the prepend: true configuration. */}
+          <link rel="shortcut icon" href="/favicon.ico" />
+          <meta name="emotion-insertion-point" content="" />
           {this.props.emotionStyleTags}
         </Head>
         <body>
@@ -61,7 +58,7 @@ MyDocument.getInitialProps = async (ctx) => {
 
   const originalRenderPage = ctx.renderPage;
 
-  // You can consider sharing the same emotion cache between all the SSR requests to speed up performance.
+  // You can consider sharing the same Emotion cache between all the SSR requests to speed up performance.
   // However, be aware that it can have global side effects.
   const cache = createEmotionCache();
   const { extractCriticalToChunks } = createEmotionServer(cache);
@@ -75,8 +72,8 @@ MyDocument.getInitialProps = async (ctx) => {
     });
 
   const initialProps = await Document.getInitialProps(ctx);
-  // This is important. It prevents emotion to render invalid HTML.
-  // See https://github.com/mui-org/material-ui/issues/26561#issuecomment-855286153
+  // This is important. It prevents Emotion to render invalid HTML.
+  // See https://github.com/mui/material-ui/issues/26561#issuecomment-855286153
   const emotionStyles = extractCriticalToChunks(initialProps.html);
   const emotionStyleTags = emotionStyles.styles.map((style) => (
     <style
