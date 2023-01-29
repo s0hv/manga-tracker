@@ -25,6 +25,7 @@ const baseConfig = {
     '^@/serverUtils/(.*)$': '<rootDir>/utils/$1',
     '^@/db/(.*)$': '<rootDir>/db/$1',
     '^@/types/(.*)$': '<rootDir>/types/$1',
+    '^@/common/(.*)$': '<rootDir>/common/$1',
   },
 };
 
