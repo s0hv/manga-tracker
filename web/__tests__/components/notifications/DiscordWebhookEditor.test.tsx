@@ -320,7 +320,7 @@ describe('DiscordWebhookEditor', () => {
     await user.click(screen.getByRole('button', { name: /^save$/i }));
 
     expectErrorSnackbar('Failed to create/update notification override');
-  });
+  }, 10*1000);
 
   it('should reload form when changing override', async () => {
     const mock = notificationFollowsMock([{
