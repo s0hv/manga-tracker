@@ -13,5 +13,6 @@ export default function createEmotionCache() {
     insertionPoint = emotionInsertionPoint ?? undefined;
   }
 
-  return createCache({ key: 'mui-style', insertionPoint });
+  const fn = typeof createCache.default === 'function' ? createCache.default : createCache;
+  return fn({ key: 'mui-style', insertionPoint });
 }
