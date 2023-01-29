@@ -1,12 +1,6 @@
 import { Autocomplete } from 'mui-rff';
 import { useQuery } from '@tanstack/react-query';
-import {
-  type FC,
-  type SyntheticEvent,
-  useCallback,
-  useMemo,
-  useState,
-} from 'react';
+import { type FC, useCallback, useMemo, useState } from 'react';
 import { Box } from '@mui/material';
 import { useField, useForm, useFormState } from 'react-final-form';
 import type { AutocompleteProps } from 'mui-rff/src/Autocomplete';
@@ -19,7 +13,6 @@ import {
   getOptionLabelNoService,
   noData,
   optionEquals,
-  showAll,
 } from '@/components/notifications/utilities';
 
 export type ChangeOverride = (form: FormApi, overrideId: number | null) => void;
@@ -46,18 +39,10 @@ const MangaOverrideSelector: FC<MangaOverrideSelectorProps> = ({
   changeOverride,
   ...autocompleteProps
 }) => {
-  const [query, setQuery] = useState('');
   const [value, setValue] = useState<NotificationFollow | null>(null);
   const form = useForm();
   const confirm = useConfirm();
   const { dirtyFields } = useFormState({ subscription: { dirtyFields: true }});
-
-  const onInputChange = useCallback((e: SyntheticEvent, val: string | null) => {
-    const inputValue = val;
-    if (typeof inputValue === 'string') {
-      setQuery(inputValue);
-    }
-  }, []);
 
   const onValueChange = useCallback((_: any, v: NotificationFollow | null) => {
     const dirtyCount = Object.entries(dirtyFields).filter(([field, dirty]) => (field !== name && !allowedChangeFields.has(field)) && dirty).length;
@@ -127,13 +112,10 @@ const MangaOverrideSelector: FC<MangaOverrideSelectorProps> = ({
       <Autocomplete
         label={label}
         name={name}
-        options={options || noData}
+        options={options || noData as NotificationFollow[]}
         value={value}
         renderOption={renderOption}
-        inputValue={query}
-        onInputChange={onInputChange}
         onChange={onValueChange}
-        filterOptions={showAll}
         getOptionLabel={getOptionLabelNoService}
         isOptionEqualToValue={optionEquals}
         {...autocompleteProps}
