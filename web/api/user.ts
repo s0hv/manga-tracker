@@ -22,7 +22,7 @@ import {
   requiresUser,
 } from '@/db/auth';
 import { db } from '@/db/helpers';
-import { regenerateSession } from '../utils/utilities.js';
+import { regenerateSession } from '../utils/utilities';
 import type { DatabaseId, MangaId } from '@/types/dbTypes';
 
 const dev = process.env.NODE_ENV !== 'production';
