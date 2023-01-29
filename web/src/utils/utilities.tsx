@@ -5,6 +5,7 @@ import type { ChangeEvent } from 'react';
 import { csrfHeader } from './csrf';
 import type { DatabaseId, MangaId } from '@/types/dbTypes';
 import type { FormValues } from '@/components/notifications/types';
+import { NotificationField } from '@/types/api/notifications';
 
 export const followUnfollow = (csrf: string, mangaId: MangaId, serviceId: DatabaseId) => {
   const url = serviceId ? `/api/user/follows?mangaId=${mangaId}&serviceId=${serviceId}` :
@@ -219,12 +220,6 @@ export const buildNotificationData = (values: FormValues<any>) => ({
     values.manga.map((m: any) => ({ mangaId: m.mangaId, serviceId: m.serviceId })),
 });
 
-
-export interface NotificationField {
-  name: string,
-  value: string,
-  optional: boolean,
-}
 
 export type MappedNotificationField<T> = {
   [key: string]: T
