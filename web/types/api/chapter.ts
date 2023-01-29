@@ -9,6 +9,12 @@ export type MangaChapter = {
   chapterIdentifier: string
 }
 
+export type ChapterRelease = MangaChapter & {
+  manga: string
+  mangaId: number
+  cover: string
+}
+
 export type MangaChapterResponse = {
   count: number | string
   chapters: MangaChapter[]
