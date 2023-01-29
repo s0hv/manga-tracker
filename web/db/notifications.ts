@@ -49,8 +49,12 @@ export const getUserNotifications: GetUserNotifications = (userId: DatabaseId, n
                ) as manga,
            (SELECT json_agg(nf) FROM (
                SELECT value, nf.name, nf.optional, unf.override_id FROM notification_fields nf
-               LEFT JOIN user_notification_fields unf  ON nf.field_id = unf.field_id
-               WHERE nf.notification_type=un.notification_type AND (notification_id=un.notification_id OR notification_id IS NULL)
+               LEFT JOIN user_notification_fields unf ON nf.field_id = unf.field_id AND unf.override_id IS NULL AND unf.notification_id=un.notification_id
+               WHERE nf.notification_type=un.notification_type
+               UNION 
+               SELECT value, nf.name, nf.optional, unf.override_id FROM notification_fields nf
+               INNER JOIN user_notification_fields unf ON nf.field_id = unf.field_id AND unf.notification_id=un.notification_id
+               WHERE nf.notification_type=un.notification_type AND unf.override_id IS NOT NULL
                ) nf) as fields
     FROM user_notifications un
     INNER JOIN notification_options no ON un.notification_id = no.notification_id
