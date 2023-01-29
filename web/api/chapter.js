@@ -82,7 +82,7 @@ export default app => {
 
   app.get(`${BASE_URL}/releases/:mangaId(\\d+)`, (req, res) => {
     const mangaId = Number(req.params.mangaId);
-    if (Number.isNaN(mangaId)) {
+    if (Number.isNaN(mangaId) || !Number.isFinite(mangaId)) {
       res.status(400).json({ error: 'Invalid manga id given' });
       return;
     }

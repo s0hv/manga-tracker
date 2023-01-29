@@ -285,6 +285,27 @@ describe('POST /api/notifications', () => {
 
     expect(mapDbFields(inserted)).toIncludeAnyMembers(body.fields);
   });
+
+  it('Returns 200 when updating existing notification', async () => {
+    const notificationId = (await createNotifications(1))[0];
+
+    const body = {
+      ...defaultNotificationBody,
+      manga: null,
+      useFollows: true,
+      notificationId,
+    };
+
+    await withUser(normalUser, async () => {
+      await request(httpServer)
+        .post(url)
+        .csrf()
+        .send(body)
+        .expect(200)
+        .satisfiesApiSpec()
+        .expect(res => expect(res.body.data.notificationId).toBe(notificationId));
+    });
+  });
 });
 
 describe('DELETE /api/notifications', () => {
