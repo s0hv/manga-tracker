@@ -294,3 +294,73 @@ describe('GET /api/chapter/latest', () => {
       .satisfiesApiSpec();
   });
 });
+
+describe('GET /api/chapter/releases/:mangaId', () => {
+  const url = '/api/chapter/releases';
+
+  it('Should return 404 with invalid manga id', async () => {
+    await Promise.all([
+      await request(httpServer)
+        .get(`${url}/a`)
+        .expect(res => {
+          expect(res.body).toBeEmptyObject();
+        })
+        .expect(404),
+
+      await request(httpServer)
+        .get(`${url}/-1`)
+        .expect(res => {
+          expect(res.body).toBeEmptyObject();
+        })
+        .expect(404),
+
+      await request(httpServer)
+        .get(`${url}/1e10`)
+        .expect(res => {
+          expect(res.body).toBeEmptyObject();
+        })
+        .expect(404),
+
+      await request(httpServer)
+        .get(`${url}/NaN`)
+        .expect(res => {
+          expect(res.body).toBeEmptyObject();
+        })
+        .expect(404),
+
+      await request(httpServer)
+        .get(`${url}/`)
+        .expect(res => {
+          expect(res.body).toBeEmptyObject();
+        })
+        .expect(404),
+    ]);
+  });
+
+  it('Should return 400 with infinite manga id', async () => {
+    await request(httpServer)
+      .get(`${url}/${'1'.repeat(400)}`)
+      .expect(400)
+      .expect(expectErrorMessage('Invalid manga id given'));
+  });
+
+  it('Should return 200 with empty list when manga not found', async () => {
+    await request(httpServer)
+      .get(`${url}/0`)
+      .expect(res => expect(res.body).toBeArrayOfSize(0));
+  });
+
+  it('Should return list of release dates with valid manga', async () => {
+    await request(httpServer)
+      .get(`${url}/1`)
+      .expect(res => expect(res.body).toBeArray())
+      .expect(res => {
+        expect(res.body).not.toBeArrayOfSize(0);
+        expect(res.body[0]).toEqual(expect.objectContaining({
+          timestamp: expect.any(Number),
+          count: expect.any(Number),
+        }));
+      });
+  });
+});
+
