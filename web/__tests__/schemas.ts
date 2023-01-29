@@ -1,7 +1,7 @@
 import { faker } from '@faker-js/faker';
-import jsf, { Schema } from 'json-schema-faker';
+import { JSONSchemaFaker as jsf, type Schema } from 'json-schema-faker';
 import Random from 'random-seed';
-import { JSONSchema4 } from 'json-schema';
+import { type JSONSchema4 } from 'json-schema';
 
 
 const positiveInteger: JSONSchema4 = {
