@@ -1,5 +1,5 @@
-import { statusToString } from '../../src/utils/utilities';
-import { groupBy } from '../../common/utilities';
+import { isInteger, statusToString } from '@/webUtils/utilities';
+import { groupBy } from '@/common/utilities';
 
 describe('statusToString', () => {
   it('Returns Ongoing for 0', () => {
@@ -19,6 +19,7 @@ describe('statusToString', () => {
   });
 
   it('Returns Ongoing for other values', () => {
+    // @ts-expect-error
     expect(statusToString()).toBe('Ongoing');
     expect(statusToString(10)).toBe('Ongoing');
     expect(statusToString('a')).toBe('Ongoing');
@@ -29,7 +30,12 @@ describe('groupBy', () => {
   const errorMessage = /Input must be an array/i;
 
   const groupKeyProperty = 'group';
-  const generateData = (group, count = 1) => new Array(count).fill(0)
+  type Group<T = string> = {
+    group: T
+    value: number
+  }
+
+  const generateData = <T = string>(group: T, count = 1): Group<T>[] => new Array(count).fill(0)
     .map(() => ({
       [groupKeyProperty]: group,
       value: 123,
@@ -44,22 +50,26 @@ describe('groupBy', () => {
   });
 
   it('Should throw when input is not list', () => {
+    // @ts-expect-error
     expect(() => groupBy(undefined, 'test')).toThrowWithMessage(TypeError, errorMessage);
+    // @ts-expect-error
     expect(() => groupBy({}, 'test')).toThrowWithMessage(TypeError, errorMessage);
+    // @ts-expect-error
     expect(() => groupBy('abc', 'test')).toThrowWithMessage(TypeError, errorMessage);
+    // @ts-expect-error
     expect(() => groupBy(new Set(), 'test')).toThrowWithMessage(TypeError, errorMessage);
   });
 
   it('Should group by given string key while keeping order', () => {
-    const groupCounts = [
+    const groupCounts: [string, number][] = [
       [groupA, 3],
       [groupB, 1],
       [groupA, 2],
       [groupC, 1],
       [groupB, 2],
     ];
-    const groupedData = groupCounts
-      .reduce((prev, g) => [...prev, ...generateData(g[0], g[1])], []);
+    const groupedData: Group[] = groupCounts
+      .reduce((prev, g) => [...prev, ...generateData(g[0], g[1])], [] as Group[]);
 
     const grouped = groupBy(groupedData, groupKeyProperty);
     expect(grouped).toHaveLength(5);
@@ -77,7 +87,7 @@ describe('groupBy', () => {
   });
 
   it('Should group by given string key only partially keeping order', () => {
-    const groupCounts = [
+    const groupCounts: [string, number][] = [
       [groupA, 3],
       [groupB, 1],
       [groupA, 2],
@@ -155,5 +165,26 @@ describe('groupBy', () => {
 
     const grouped = groupBy(groupedData, (group) => group[groupKeyProperty].test, { keepOrder: false });
     expect(grouped).toHaveLength(2);
+  });
+});
+
+describe('isInteger', () => {
+  it('returns false for non integers', () => {
+    // @ts-expect-error
+    expect(isInteger()).toBeFalse();
+    expect(isInteger('1e10')).toBeFalse();
+    expect(isInteger('o')).toBeFalse();
+    expect(isInteger('-')).toBeFalse();
+    expect(isInteger({})).toBeFalse();
+    expect(isInteger('1.1')).toBeFalse();
+    expect(isInteger(0.5)).toBeFalse();
+  });
+
+  it('returns true for integers', () => {
+    expect(isInteger(1)).toBeTrue();
+    expect(isInteger('10')).toBeTrue();
+    expect(isInteger(1e10)).toBeTrue();
+    expect(isInteger(-1)).toBeTrue();
+    expect(isInteger('-1')).toBeTrue();
   });
 });

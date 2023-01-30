@@ -183,7 +183,7 @@ export const statusToString = (status: number | string) => {
 
 export const isInteger = (s: any) => (
   Number.isInteger(s) ||
-  /^\d+$/.test(s)
+  /^-?\d+$/.test(s)
 );
 
 
