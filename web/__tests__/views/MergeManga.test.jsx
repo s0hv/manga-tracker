@@ -1,10 +1,12 @@
 import React from 'react';
 import fetchMock from 'fetch-mock';
-import { render, screen, act, waitFor, within } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import MergeManga from '../../src/views/MergeManga';
 import { fullManga, emptyFullManga } from '../constants';
+
+jest.mock('lodash.throttle', () => (_) => _);
 
 describe('Merge manga page should render correctly', () => {
   const mockResult = [
@@ -23,17 +25,13 @@ describe('Merge manga page should render correctly', () => {
   fetchMock.mock(`glob:/api/manga/${emptyFullManga.manga.mangaId}`, { data: emptyFullManga });
 
   const selectItem = async (user, item) => {
-    await waitFor(() => expect(
-      screen.getByRole('option', { name: item.title })
-    ).toBeInTheDocument());
+    expect(await screen.findByRole('option', { name: item.title })).toBeInTheDocument();
 
     await user.click(screen.getByRole('option', { name: item.title }));
   };
 
   const triggerSearch = async (user, elem) => {
-    await act(() => {
-      user.type(elem, 'test', { delay: 1 });
-    });
+    await user.type(elem, 'test');
   };
 
   const selectAndAssert = async (user, item, base = true) => {
