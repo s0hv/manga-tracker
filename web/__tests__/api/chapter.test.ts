@@ -1,21 +1,28 @@
 import request from 'supertest';
-import { addChapter } from '../../db/chapter';
 import { csrfMissing } from '../../utils/constants';
 import { userForbidden, userUnauthorized } from '../constants';
 import initServer from '../initServer';
 import stopServer from '../stopServer';
 import {
   adminUser,
+  configureJestOpenAPI,
   expectErrorMessage,
   normalUser,
   withUser,
-  configureJestOpenAPI,
 } from '../utils';
+import { expectISEOnDbError } from './utilities';
+import { addChapter } from '@/db/chapter';
 
-let httpServer;
+
+let httpServer: any;
+const serverReference = {
+  httpServer,
+};
+
 
 beforeAll(async () => {
   ({ httpServer } = await initServer());
+  serverReference.httpServer = httpServer;
   await configureJestOpenAPI();
 });
 
@@ -26,6 +33,16 @@ afterAll(async () => {
 
 
 describe('POST /api/chapter/:chapterId', () => {
+  expectISEOnDbError(serverReference, '/api/chapter/1', {
+    user: adminUser,
+    method: 'post',
+    custom: (req) => req
+      .csrf()
+      .send({
+        title: 'test',
+      }),
+  });
+
   it('Returns 403 without CSRF token', async () => {
     await request(httpServer)
       .post('/api/chapter/1')
@@ -210,6 +227,12 @@ describe('POST /api/chapter/:chapterId', () => {
 });
 
 describe('DELETE /api/chapter/:chapterId', () => {
+  expectISEOnDbError(serverReference, '/api/chapter/1', {
+    user: adminUser,
+    method: 'delete',
+    custom: (req) => req.csrf(),
+  });
+
   it('Returns 403 without CSRF token', async () => {
     await request(httpServer)
       .delete('/api/chapter/1')
@@ -283,6 +306,8 @@ describe('DELETE /api/chapter/:chapterId', () => {
 });
 
 describe('GET /api/chapter/latest', () => {
+  expectISEOnDbError(serverReference, '/api/chapter/latest');
+
   it('Should match api spec', async () => {
     await request(httpServer)
       .get('/api/chapter/latest')
@@ -297,6 +322,8 @@ describe('GET /api/chapter/latest', () => {
 
 describe('GET /api/chapter/releases/:mangaId', () => {
   const url = '/api/chapter/releases';
+
+  expectISEOnDbError(serverReference, `${url}/1`);
 
   it('Should return 404 with invalid manga id', async () => {
     await Promise.all([

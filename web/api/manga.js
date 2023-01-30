@@ -209,8 +209,8 @@ export default app => {
     let offset;
 
     try {
-      limit = getOptionalNumberParam(req.query.limit, 50);
-      offset = getOptionalNumberParam(req.query.offset, 0);
+      limit = getOptionalNumberParam(req.query.limit, 50, 'limit');
+      offset = getOptionalNumberParam(req.query.offset, 0, 'offset');
     } catch (err) {
       if (err instanceof TypeError) {
         res.status(400).json({ error: err.message });

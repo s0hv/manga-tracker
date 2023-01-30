@@ -65,5 +65,9 @@ describe('Chapter list should allow editing', () => {
     const chapter = chapters[0];
 
     expect(screen.queryByRole('heading', { name: chapter.manga })).toBeInTheDocument();
+
+    const cover = screen.queryByRole('img', { name: chapter.manga });
+    expect(cover).toBeInTheDocument();
+    expect(cover).toHaveProperty('src', `${chapter.cover}.256.jpg`);
   });
 });

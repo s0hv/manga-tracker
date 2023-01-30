@@ -31,6 +31,16 @@ jest.mock('notistack', () => {
   };
 });
 
+let dbMock: any;
+jest.mock('../db/helpers', () => {
+  const db = jest.requireActual('./../db/helpers');
+  dbMock = {
+    __esModule: true,
+    ...db,
+  };
+  return dbMock;
+});
+
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -376,4 +386,21 @@ export const getRowByColumnValue = (
     const row = rows[idx];
     if (valueCheck(row.cells[headerIndex])) return row;
   }
+};
+
+export const mockDbForErrors = <T, >(fn: () => Promise<T>): Promise<T> => {
+  const originalDb = dbMock.db;
+  const sql = originalDb.sql;
+
+  dbMock.db = Object.keys(originalDb).reduce((prev, curr) => ({
+    ...prev,
+    [curr]: jest.fn().mockImplementation(async () => Promise.reject('Mocked error')),
+  }), {});
+  // Leave sql as is since it's an object
+  dbMock.db.sql = sql;
+
+  return fn()
+    .finally(() => {
+      dbMock.db = originalDb;
+    });
 };

@@ -1,7 +1,13 @@
 import request, { type Test } from 'supertest';
+import {
+  expectErrorMessage,
+  mockDbForErrors,
+  normalUser,
+  TestUser,
+  withUser,
+} from '../utils';
 import { csrfMissing } from '../../utils/constants';
-import { userForbidden, userUnauthorized } from '../constants';
-import { expectErrorMessage, normalUser, withUser } from '../utils';
+import { ISE, userForbidden, userUnauthorized } from '../constants';
 
 export interface HttpServerReference {
   httpServer: any
@@ -65,5 +71,28 @@ export const apiRequiresAdminUserGetTests = (ref: HttpServerReference, url: stri
         .expect(403)
         .expect(expectErrorMessage(userForbidden));
     });
+  });
+};
+
+export type Method = 'get' | 'post' | 'delete';
+export const expectISEOnDbError = (
+  ref: HttpServerReference,
+  url: string,
+  {
+    method = 'get',
+    user = normalUser,
+    custom = (_) => _,
+  }: {
+    method?: Method,
+    user?: TestUser,
+    custom?: (test: Test) => Test,
+  } = {}
+) => {
+  it('returns 500 when database throws an error', async () => {
+    await withUser(user, async () => mockDbForErrors(async () => {
+      await custom(request(ref.httpServer)[method](url))
+        .expect(500)
+        .expect(expectErrorMessage(ISE));
+    }));
   });
 };
