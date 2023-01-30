@@ -7,7 +7,7 @@ import {
   defaultDateFormat,
   statusToString,
 } from '../utils/utilities';
-import { MangaStatus, PostgresInterval } from '../../types/dbTypes';
+import { MangaStatus, PostgresInterval } from '@/types/dbTypes';
 
 const DetailText = styled(Typography)(({ theme }) => ({
   marginLeft: theme.spacing(0.5),
@@ -32,10 +32,10 @@ const InfoTable = styled('table')(({ theme }) => ({
 export type MangaInfoProps = {
   mangaData: {
     mangaId: number,
-    latestRelease?: string
-    estimatedRelease?: string
-    releaseInterval?: PostgresInterval
-    latestChapter?: number
+    latestRelease?: string | null
+    estimatedRelease?: string | null
+    releaseInterval?: PostgresInterval | null
+    latestChapter?: number | null
     status: MangaStatus
   },
   showId?: boolean,

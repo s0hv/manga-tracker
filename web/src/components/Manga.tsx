@@ -28,6 +28,8 @@ import MangaSourceList from './MangaSourceList';
 import { TabPanelCustom } from './utils/TabPanelCustom';
 import { getMangaReleases } from '../api/chapter';
 import { MangaCover } from './MangaCover';
+import type { FullMangaData } from '@/types/api/manga';
+import type { ChapterReleaseDates } from '@/types/api/chapter';
 
 const ReleaseHeatmap = dynamic(() => import('./ReleaseHeatmap'));
 
@@ -82,7 +84,12 @@ const DetailsContainer = styled('div')(({ theme }) => ({
 }));
 
 
-function Manga(props) {
+export type MangaProps = {
+  mangaData: FullMangaData
+  userFollows: (number|null)[]
+}
+
+function Manga(props: MangaProps): React.ReactElement {
   const {
     mangaData: {
       manga,
@@ -92,9 +99,9 @@ function Manga(props) {
     userFollows = [],
   } = props;
 
-  const [releaseData, setReleaseData] = useState([]);
-  const [activeTab, setActiveTab] = useState(0);
-  const changeTab = useCallback((e, newVal) => setActiveTab(newVal), []);
+  const [releaseData, setReleaseData] = useState<ChapterReleaseDates[]>([]);
+  const [activeTab, setActiveTab] = useState<number>(0);
+  const changeTab = useCallback((e: any, newVal: number) => setActiveTab(newVal), []);
   const csrf = useCSRF();
 
   useEffect(() => {
@@ -110,7 +117,7 @@ function Manga(props) {
   const startEditing = useCallback(() => setEditing(!editing), [editing]);
 
   const serviceMangaData = useMemo(() => {
-    const serviceMap = {};
+    const serviceMap: Record<number, { urlFormat: string, titleId: string }> = {};
     services.forEach(service => { serviceMap[service.serviceId] = { urlFormat: service.urlFormat, titleId: service.titleId } });
     return serviceMap;
   }, [services]);
@@ -138,7 +145,7 @@ function Manga(props) {
           )}
         </TitleBar>
         <DetailsContainer>
-          <a href={manga.mal} target='_blank' rel='noreferrer noopener' aria-label='myanimelist page of the manga'>
+          <a href={manga.mal || undefined} target='_blank' rel='noreferrer noopener' aria-label='myanimelist page of the manga'>
             <MangaCover
               url={manga.cover}
               alt={manga.title}
@@ -171,7 +178,7 @@ function Manga(props) {
             color='primary'
             onClick={followUnfollow(csrf, manga.mangaId, null)}
             sx={{ mt: 2, mb: 2 }}
-            aria-label='Follow all releases'
+            aria-label={`${userFollows.indexOf(null) < 0 ? 'follow' : 'unfollow'} all releases`}
           >
             {userFollows.indexOf(null) < 0 ? 'Follow' : 'Unfollow'}
           </Button>

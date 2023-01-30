@@ -2,10 +2,11 @@ import { handleError, handleResponse } from './utilities';
 import { csrfHeader } from '../utils/csrf';
 import { snakeCase } from '../utils/utilities';
 import type {
+  ChapterReleaseDates,
   MangaChapter,
   MangaChapterResponse,
-} from '../../types/api/chapter';
-import type { MangaId } from '../../types/dbTypes';
+} from '@/types/api/chapter';
+import type { MangaId } from '@/types/dbTypes';
 
 export type SortBy<T> = {
   id: keyof T,
@@ -84,5 +85,5 @@ export const deleteChapter = (csrf: string, chapterId: number | string) => fetch
  * @return {Promise<any>}
  */
 export const getMangaReleases = (mangaId: MangaId) => fetch(`/api/chapter/releases/${mangaId}`)
-  .then(handleResponse)
+  .then(handleResponse<ChapterReleaseDates[]>)
   .catch(handleError);

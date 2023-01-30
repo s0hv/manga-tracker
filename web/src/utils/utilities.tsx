@@ -1,17 +1,17 @@
 import { format, formatDistanceToNowStrict } from 'date-fns';
 import enLocale from 'date-fns/locale/en-GB';
 import throttle from 'lodash.throttle';
-import type { ChangeEvent } from 'react';
+import type { MouseEvent, MouseEventHandler } from 'react';
 import { csrfHeader } from './csrf';
 import type { DatabaseId, MangaId } from '@/types/dbTypes';
 import type { FormValues } from '@/components/notifications/types';
-import { NotificationField } from '@/types/api/notifications';
+import type { NotificationField } from '@/types/api/notifications';
 
-export const followUnfollow = (csrf: string, mangaId: MangaId, serviceId: DatabaseId) => {
+export const followUnfollow = (csrf: string, mangaId: MangaId, serviceId: DatabaseId | null): MouseEventHandler => {
   const url = serviceId ? `/api/user/follows?mangaId=${mangaId}&serviceId=${serviceId}` :
     `/api/user/follows?mangaId=${mangaId}`;
-  return throttle((event: ChangeEvent<HTMLInputElement>) => {
-    const target = event.target;
+  return throttle((event: MouseEvent) => {
+    const target = event.target as HTMLElement;
     switch (target?.textContent?.toLowerCase()) {
       case 'follow':
         fetch(url,
@@ -22,6 +22,9 @@ export const followUnfollow = (csrf: string, mangaId: MangaId, serviceId: Databa
           .then(res => {
             if (res.status === 200) {
               target.textContent = 'Unfollow';
+              if (target.ariaLabel) {
+                target.ariaLabel = target.ariaLabel.replace(/follow/i, 'unfollow');
+              }
             }
           });
         break;
@@ -34,12 +37,18 @@ export const followUnfollow = (csrf: string, mangaId: MangaId, serviceId: Databa
           .then(res => {
             if (res.status === 200) {
               target.textContent = 'Follow';
+              if (target.ariaLabel) {
+                target.ariaLabel = target.ariaLabel.replace(/unfollow/i, 'follow');
+              }
             }
           });
         break;
 
       default:
         target.textContent = 'Follow';
+        if (target.ariaLabel) {
+          target.ariaLabel = target.ariaLabel.replace(/unfollow/i, 'follow');
+        }
     }
   }, 200, { trailing: false });
 };

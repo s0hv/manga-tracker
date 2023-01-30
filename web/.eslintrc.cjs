@@ -157,6 +157,12 @@ module.exports = {
         "@typescript-eslint/ban-ts-comment": ["error", {
           "ts-expect-error": false
         }],
+        '@typescript-eslint/no-unused-vars': [
+          "warn", {
+            "argsIgnorePattern":  "^_",
+            "ignoreRestSiblings": true
+          }
+        ],
         "@typescript-eslint/no-non-null-assertion": "off"
       },
       "settings": {

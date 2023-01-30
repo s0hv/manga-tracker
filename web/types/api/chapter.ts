@@ -20,3 +20,8 @@ export type MangaChapterResponse = {
   chapters: MangaChapter[]
   exists: boolean
 }
+
+export type ChapterReleaseDates = {
+  count: number
+  timestamp: number
+}

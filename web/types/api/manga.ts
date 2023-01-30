@@ -3,27 +3,29 @@ import { MangaStatus, PostgresInterval } from '../dbTypes';
 export type MangaData = {
   mangaId: number,
   title: string,
-  releaseInterval?: PostgresInterval,
-  latestRelease?: string,
-  estimatedRelease?: string,
-  latestChapter?: number
+  releaseInterval?: PostgresInterval | null,
+  latestRelease?: string | null,
+  estimatedRelease?: string | null,
+  latestChapter?: number | null
 }
 
 export type MangaInfoData = {
-  cover?: string,
+  cover?: string | null,
   status: MangaStatus,
-  lastUpdated?: string,
-  bw?: string,
-  mu?: string,
-  mal?: string,
-  amz?: string,
-  ebj?: string,
-  engtl?: string,
-  raw?: string,
-  nu?: string,
-  kt?: string,
-  ap?: string,
-  al?: string,
+  artist?: string | null
+  author?: string | null
+  lastUpdated?: string | null,
+  bw?: string | null,
+  mu?: string | null,
+  mal?: string | null,
+  amz?: string | null,
+  ebj?: string | null,
+  engtl?: string | null,
+  raw?: string | null,
+  nu?: string | null,
+  kt?: string | null,
+  ap?: string | null,
+  al?: string | null,
 }
 
 export type MangaServiceData = {
@@ -36,7 +38,7 @@ export type MangaServiceData = {
 
 export type FullMangaData = {
   manga: MangaData & MangaInfoData
-  aliases: string[],
+  aliases?: string[],
   services: MangaServiceData[]
 }
 
