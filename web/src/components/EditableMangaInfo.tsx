@@ -39,10 +39,10 @@ const InfoTable = styled('table')(({ theme }) => ({
 export type MangaInfoProps = {
   mangaData: {
     mangaId: number,
-    latestRelease?: string
-    estimatedRelease?: string
-    releaseInterval?: PostgresInterval
-    latestChapter?: number
+    latestRelease?: string | null
+    estimatedRelease?: string | null
+    releaseInterval?: PostgresInterval | null
+    latestChapter?: number | null
     status: MangaStatus
   }
 }

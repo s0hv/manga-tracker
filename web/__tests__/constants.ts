@@ -1,3 +1,5 @@
+import type { FullMangaData } from '@/types/api/manga';
+
 export const userForbidden = 'Forbidden to perform this action';
 export const userUnauthorized = 'User not authenticated';
 export const mangaIdError = 'Manga id must be a positive integer';
@@ -11,9 +13,9 @@ export const defaultDateDistanceFormat = '\\d+ \\w+';
 
 export const testChapterUrlFormat = 'https://test-url.com/chapter/{}';
 
-export const isCI = /^(y|yes|true)$/i.test(process.env.IS_CI);
+export const isCI = /^(y|yes|true)$/i.test(process.env.IS_CI || '');
 
-export const fullManga = {
+export const fullManga: FullMangaData = {
   manga: {
     mangaId: 1,
     title: 'Dr. STONE',
@@ -58,37 +60,10 @@ export const fullManga = {
     },
   ],
 
-  chapters: [
-    {
-      title: 'Z=157: Same Time, Same Place',
-      chapterNumber: 157,
-      releaseDate: new Date(1593964800000),
-      group: 'Shueisha',
-      serviceId: 1,
-      chapterIdentifier: '1007322',
-    },
-    {
-      title: 'Z=156: Two Scientists',
-      chapterNumber: 156,
-      releaseDate: null,
-      group: 'MangaPlus',
-      serviceId: 2,
-      chapterIdentifier: '938629',
-    },
-    {
-      title: 'Z=156: Two Scientists',
-      chapterNumber: 156,
-      releaseDate: new Date(1593187200000),
-      group: 'Shueisha',
-      serviceId: 1,
-      chapterIdentifier: '1007024',
-    },
-  ],
-
   aliases: ['test alias'],
 };
 
-export const emptyFullManga = {
+export const emptyFullManga: FullMangaData = {
   manga: {
     mangaId: 2,
     title: 'Dr. STONE 2',
@@ -123,6 +98,4 @@ export const emptyFullManga = {
       url: 'https://mangaplus.shueisha.co.jp/titles/{}',
     },
   ],
-
-  chapters: [],
 };

@@ -187,13 +187,18 @@ export function mockUTCDates() {
     .mockImplementation(jest.fn(() => 0));
 }
 
-export async function withUser(userObject: TestUser, cb: React.FC | (() => Promise<any>)) {
+type WithUser = {
+  (userObject: TestUser, cb: React.ReactElement): Promise<React.ReactElement>,
+  (userObject: TestUser, cb: () => Promise<any>): Promise<void>,
+}
+
+export const withUser: WithUser = async (userObject: TestUser, cb: React.ReactElement | (() => Promise<any>)) => {
   if (isValidElement(cb)) {
     return (
       <UserProvider value={userObject}>
         {cb}
       </UserProvider>
-    );
+    ) as any;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -210,7 +215,7 @@ export async function withUser(userObject: TestUser, cb: React.FC | (() => Promi
     // Restore the original function
     requiresUser.mockImplementation(jest.requireActual('./../db/auth').requiresUser);
   }
-}
+};
 
 export function getCookie(agent: request.SuperAgentTest, name: string) {
   return agent.jar.getCookie(name, { path: '/' } as any);

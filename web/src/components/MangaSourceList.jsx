@@ -39,6 +39,7 @@ function MangaSourceList(props) {
   };
 
   function renderItem(item) {
+    const followText = userFollows.indexOf(item.serviceId) < 0 ? 'Follow' : 'Unfollow';
     return (
       <ListItem key={item.serviceId} sx={{ pl: 4, display: 'flex', justifyContent: 'space-between' }}>
         <Typography>
@@ -56,9 +57,9 @@ function MangaSourceList(props) {
             variant='contained'
             color='primary'
             onClick={followUnfollow(item.serviceId)}
-            aria-label={`Follow ${item.name}`}
+            aria-label={`${followText.toLowerCase()} ${item.name}`}
           >
-            {userFollows.indexOf(item.serviceId) < 0 ? 'Follow' : 'Unfollow'}
+            {followText}
           </Button>
         )}
       </ListItem>

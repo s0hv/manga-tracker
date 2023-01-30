@@ -229,7 +229,7 @@ function MangaAdmin(props: MangaAdminProps) {
           </Link>
         </TitleBar>
         <DetailsContainer>
-          <a href={manga.mal} target='_blank' rel='noreferrer noopener'>
+          <a href={manga.mal || ''} target='_blank' rel='noreferrer noopener'>
             <MangaCover
               url={manga.cover}
               alt={manga.title}

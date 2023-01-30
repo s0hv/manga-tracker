@@ -5,12 +5,11 @@ import { generateUpdate } from './utils';
 import { db } from './helpers';
 import type { DatabaseId, MangaId } from '@/types/dbTypes';
 import type { Chapter } from '@/types/db/chapter';
-import type { MangaChapter } from '@/types/api/chapter';
-import type { PartialExcept } from '@/types/utility';
-import { DefaultExcept } from '@/types/utility';
+import type { ChapterReleaseDates, MangaChapter } from '@/types/api/chapter';
+import type { DefaultExcept, PartialExcept } from '@/types/utility';
 
 export const getChapterReleases = (mangaId: MangaId) => {
-  return db.manyOrNone`SELECT extract(EPOCH FROM date_trunc('day', release_date)) as "timestamp", CAST(count(release_date) as int) count 
+  return db.manyOrNone<ChapterReleaseDates>`SELECT extract(EPOCH FROM date_trunc('day', release_date)) as "timestamp", CAST(count(release_date) as int) count 
                FROM chapters 
                WHERE manga_id=${mangaId} GROUP BY 1 ORDER BY 1`;
 };
