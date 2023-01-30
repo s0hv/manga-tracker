@@ -12,7 +12,7 @@ import {
   normalUser,
   withUser,
 } from '../utils';
-import { apiRequiresAdminUserPostTests } from './utilities';
+import { apiRequiresAdminUserPostTests, expectISEOnDbError } from './utilities';
 import type { DatabaseId, MangaId } from '@/types/dbTypes';
 import { createMangaService } from '../dbutils';
 import { deleteManga, updateManga } from '@/db/elasticsearch/manga';
@@ -142,6 +142,8 @@ describe('POST /api/manga/merge', () => {
 
 
 describe('GET /api/manga/:mangaId', () => {
+  expectISEOnDbError(serverReference, '/api/manga/1');
+
   it('returns 404 with non existent manga id', async () => {
     await request(httpServer)
       .get(`/api/manga/9999999`)
@@ -176,6 +178,8 @@ const getChapterCount = (body: any) => (body && body?.data?.chapters?.length) ||
 
 describe('GET /api/manga/:mangaId/chapters', () => {
   const validUrl = '/api/manga/1/chapters';
+
+  expectISEOnDbError(serverReference, validUrl);
 
   it('returns 404 with invalid manga id', async () => {
     await request(httpServer)
@@ -254,6 +258,18 @@ describe('GET /api/manga/:mangaId/chapters', () => {
         .expect('Content-Type', /json/)
         .expect(expectErrorMessage('-1', 'offset', errorMessage))
         .expect(400),
+
+      request(httpServer)
+        .get(`${validUrl}?offset=Inf`)
+        .expect('Content-Type', /json/)
+        .expect(expectErrorMessage('Inf', 'offset', errorMessage))
+        .expect(400),
+
+      request(httpServer)
+        .get(`${validUrl}?offset=${'1'.repeat(400)}`)
+        .expect('Content-Type', /json/)
+        .expect(expectErrorMessage(/offset value 1+ is not a number/i))
+        .expect(400),
     ]);
   });
 
@@ -294,6 +310,16 @@ describe('GET /api/manga/:mangaId/chapters', () => {
         .satisfiesApiSpec()
         .expect('Content-Type', /json/)
         .expect(200),
+
+      request(httpServer)
+        .get(`${validUrl}?sortBy=release_date&sort=asc`)
+        .satisfiesApiSpec()
+        .expect('Content-Type', /json/)
+        .expect(200)
+        .expect(res => {
+          const chapters = res.body.data.chapters;
+          expect(chapters).toStrictEqual([...chapters].sort((c1, c2) => (c1.releaseDate > c2.releaseDate ? -1 : 1)));
+        }),
     ]);
   });
 });

@@ -1,5 +1,5 @@
 import { Server } from 'http';
-import { AddressInfo } from 'net';
+import { type AddressInfo } from 'net';
 
 /* eslint-disable @typescript-eslint/no-var-requires */
 jest.mock('./../db/auth', () => ({

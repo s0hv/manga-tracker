@@ -7,6 +7,7 @@ import type { DatabaseId, MangaId } from '@/types/dbTypes';
 import type { Chapter } from '@/types/db/chapter';
 import type { MangaChapter } from '@/types/api/chapter';
 import type { PartialExcept } from '@/types/utility';
+import { DefaultExcept } from '@/types/utility';
 
 export const getChapterReleases = (mangaId: MangaId) => {
   return db.manyOrNone`SELECT extract(EPOCH FROM date_trunc('day', release_date)) as "timestamp", CAST(count(release_date) as int) count 
@@ -37,6 +38,12 @@ export const getLatestChapters = (limit: number, offset: number) => {
                 LIMIT ${limit} ${offset ? db.sql`OFFSET ${offset}` : db.sql``}`;
 };
 
+export type AddChapter = DefaultExcept<Omit<Chapter, 'chapterId'>,
+  | 'group'
+  | 'chapterDecimal'
+  | 'releaseDate'
+>
+
 export const addChapter = ({
   mangaId,
   serviceId,
@@ -46,7 +53,7 @@ export const addChapter = ({
   releaseDate,
   chapterIdentifier,
   group = NO_GROUP,
-}: Chapter): Promise<number | undefined> => {
+}: AddChapter): Promise<number | undefined> => {
   releaseDate = releaseDate || new Date(Date.now());
 
   return db.oneOrNone<{chapterId: number}>`INSERT INTO chapters (manga_id, service_id, title, chapter_number, chapter_decimal, release_date, chapter_identifier, group_id) 
@@ -133,7 +140,7 @@ export const editChapter = async ({
   };
 
 
-  return db.sql`UPDATE chapters SET ${generateUpdate(chapter, db.sql)} WHERE chapter_id=${chapterId}`;
+  return db.any`UPDATE chapters SET ${generateUpdate(chapter, db.sql)} WHERE chapter_id=${chapterId}`;
 };
 
 /**
