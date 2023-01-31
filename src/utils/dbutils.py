@@ -199,7 +199,7 @@ class DbUtil:
         """
         sql = 'SELECT sr.manga_id, sr.service_id, ms.title_id FROM scheduled_runs sr ' \
               'LEFT JOIN manga_service ms ON sr.manga_id = ms.manga_id AND sr.service_id = ms.service_id ' \
-              'INNER JOIN services s ON s.service_id = ms.service_id ' \
+              'INNER JOIN services s ON s.service_id = sr.service_id ' \
               'WHERE s.scheduled_runs_disabled_until IS NULL OR s.scheduled_runs_disabled_until < NOW() ' \
               'ORDER BY created_at'
 

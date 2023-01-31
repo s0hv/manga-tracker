@@ -116,7 +116,10 @@ class Reddit(BaseScraper):
 
         return chapters
 
-    def scrape_series(self, title_id: str, service_id: int, manga_id: int, feed_url: str) -> Optional[Set[int]]:
+    def scrape_series(self, title_id: str, service_id: int, manga_id: int, feed_url: Optional[str]) -> Optional[Set[int]]:
+        if feed_url is None:
+            raise ValueError('feed_url cannot be None')
+
         feed = feedparser.parse(feed_url)
         try:
             is_valid_feed(feed)

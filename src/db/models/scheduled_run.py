@@ -16,4 +16,4 @@ class ScheduledRun(BaseModel):
 class ScheduledRunResult(BaseModel):
     manga_id: int
     service_id: int
-    title_id: str
+    title_id: Optional[str]

@@ -1,21 +1,25 @@
 import unittest
+from datetime import timedelta
 from typing import Optional, cast
 from unittest import mock
 from unittest.mock import patch, MagicMock
 
+import psycopg
 import pytest
 from psycopg.rows import class_row
 
+from src.db.models.manga import MangaServiceWithId
 from src.db.models.notifications import UserNotification, \
     PartialNotificationInfo
 from src.db.models.scheduled_run import ScheduledRun, ScheduledRunResult
 from src.notifier import DiscordEmbedWebhookNotifier
-from src.scheduler import UpdateScheduler
+from src.scheduler import UpdateScheduler, MangaServiceInfo
 from src.scrapers import SCRAPERS, MangaPlus, MangaDex
-from src.tests.scrapers.testing_scraper import DummyScraper
+from src.tests.scrapers.testing_scraper import DummyScraper, DummyScraper2
 from src.tests.testing_utils import (
     BaseTestClasses, spy_on, set_db_environ, EMPTY_SCRAPE_SERVICE, TEST_USER_ID
 )
+from src.utils.utilities import utcnow
 
 
 class SchedulerRunTest(BaseTestClasses.DatabaseTestCase):
@@ -100,6 +104,51 @@ class SchedulerRunTest(BaseTestClasses.DatabaseTestCase):
             self.dbutil.get_all_scheduled_runs(),
             [ScheduledRunResult(manga_id=ms2.manga_id, service_id=ms2.service_id, title_id=ms2.title_id)]
         )
+        self.dbutil.execute('TRUNCATE TABLE scheduled_runs')
+
+    def test_scheduled_runs_when_its_disabled(self):
+        DummyScraper.CONFIG.scheduled_runs_enabled = False
+
+        ms1 = self.create_manga_service(DummyScraper)
+
+        # Add in two batches to force different timestamps
+        self.dbutil.add_scheduled_runs([
+            ScheduledRun(manga_id=ms1.manga_id, service_id=DummyScraper.ID)
+        ])
+
+        # Only the oldest one should be run
+        self.assertCountEqual(self.scheduler.do_scheduled_runs(), ([], []))
+        self.assertEqual(
+            self.dbutil.get_all_scheduled_runs(),
+            []
+        )
+        self.dbutil.execute('TRUNCATE TABLE scheduled_runs')
+
+    def test_scheduled_runs_when_manga_service_does_not_exist(self):
+        """
+        Scheduled runs should ignore manga_id, service_id pairs that do not exist,
+        and they should not contribute to the run limit.
+        """
+        limit = 1
+        DummyScraper.CONFIG.scheduled_runs_enabled = True
+        DummyScraper.CONFIG.scheduled_run_limit = limit
+
+        ms1 = self.create_manga_service(DummyScraper2)
+        ms2 = self.create_manga_service(DummyScraper)
+
+        # Add in two batches to force different timestamps
+        self.dbutil.add_scheduled_runs([
+            ScheduledRun(manga_id=ms1.manga_id, service_id=DummyScraper.ID),
+            ScheduledRun(manga_id=ms2.manga_id, service_id=DummyScraper.ID)
+        ])
+
+        # Only the oldest one should be run
+        self.assertCountEqual(self.scheduler.do_scheduled_runs(), ([ms2.manga_id], []))
+        self.assertEqual(
+            self.dbutil.get_all_scheduled_runs(),
+            []
+        )
+        self.dbutil.execute('TRUNCATE TABLE scheduled_runs')
 
     def test_force_run_with_invalid_service(self):
         self.assertIsNone(self.scheduler.force_run(-1, 1))
@@ -194,6 +243,94 @@ class SchedulerRunTest(BaseTestClasses.DatabaseTestCase):
         self.assertEqual(info.times_run, notif_times_run)
         self.assertEqual(info.failed_in_row, 1)
         self.assertEqual(info.times_failed, 1)
+
+
+class SchedulerScrapeServiceTest(BaseTestClasses.DatabaseTestCase):
+    scheduler: UpdateScheduler = NotImplemented
+
+    @pytest.fixture(autouse=True, scope='class')
+    def _set_up_scheduler(self, request: pytest.FixtureRequest) -> None:
+        set_db_environ()
+        request.cls.scheduler = UpdateScheduler()
+
+    def setUp(self) -> None:
+        super().setUp()
+        self.scraper1 = spy_on(DummyScraper(self.conn, self.dbutil))
+
+        SCRAPERS[MangaPlus.URL] = lambda *_, **__: self.scraper1  # type: ignore[assignment]
+
+    @staticmethod
+    def create_manga_info(ms: MangaServiceWithId) -> MangaServiceInfo:
+        return {
+            'manga_id': ms.manga_id,
+            'title_id': ms.title_id,
+            'service_id': ms.service_id,
+            'feed_url': ms.feed_url
+        }
+
+    def test_scrape_service_successfully(self):
+        ms1 = self.create_manga_service(DummyScraper)
+        mock_chapters = [1, 2, 3]
+        self.scraper1.scrape_series.return_value = mock_chapters  # type: ignore[union-attr]
+
+        manga_info = self.create_manga_info(ms1)
+
+        manga_ids, chapter_ids = self.scheduler.scrape_series(
+            DummyScraper.ID,
+            lambda *_, **__: self.scraper1,  # type: ignore[arg-type]
+            [manga_info]
+        )
+
+        self.assertEqual(manga_ids, {ms1.manga_id})
+        self.assertListEqual(chapter_ids, mock_chapters)
+
+        self.assertEqual(self.scraper1.scrape_series.call_count, 1)  # type: ignore[union-attr]
+        self.assertEqual(self.scraper1.set_checked.call_count, 1)  # type: ignore[union-attr]
+
+    def test_scrape_service_stops_after_2_errors(self):
+        ms1 = self.create_manga_service(DummyScraper)
+        self.assertIsNone(ms1.next_update)
+
+        self.scraper1.scrape_series.side_effect = [Exception('mock error'), psycopg.Error('mock db error')]  # type: ignore[union-attr]
+        next_update = utcnow() + timedelta(hours=1)
+        self.scraper1.next_update.return_value = next_update  # type: ignore[union-attr]
+
+        manga_info = self.create_manga_info(ms1)
+        manga_ids, chapter_ids = self.scheduler.scrape_series(
+            DummyScraper.ID,
+            lambda *_, **__: self.scraper1,  # type: ignore[arg-type]
+            [manga_info, manga_info, manga_info]
+        )
+
+        self.assertEqual(len(manga_ids), 0)
+        self.assertEqual(chapter_ids, [])
+
+        self.assertEqual(self.scraper1.scrape_series.call_count, 2)  # type: ignore[union-attr]
+        self.assertEqual(self.scraper1.set_checked.call_count, 1)  # type: ignore[union-attr]
+        self.assertEqual(self.scraper1.next_update.call_count, 2)  # type: ignore[union-attr]
+
+        self.assertDatesEqual(self.dbutil.get_manga_service(ms1.service_id, ms1.title_id).next_update, next_update)
+
+    def test_scrape_service_stops_after_none_returned_2_times(self):
+        ms1 = self.create_manga_service(DummyScraper)
+        self.scraper1.scrape_series.return_value = None  # type: ignore[union-attr]
+        self.scraper1.next_update.return_value = utcnow() + timedelta(hours=1)  # type: ignore[union-attr]
+
+        manga_info = self.create_manga_info(ms1)
+        manga_ids, chapter_ids = self.scheduler.scrape_series(
+            DummyScraper.ID,
+            lambda *_, **__: self.scraper1,  # type: ignore[arg-type]
+            [manga_info, manga_info, manga_info]
+        )
+
+        self.assertEqual(len(manga_ids), 0)
+        self.assertEqual(chapter_ids, [])
+
+        self.assertEqual(self.scraper1.scrape_series.call_count, 2)  # type: ignore[union-attr]
+        self.assertEqual(self.scraper1.set_checked.call_count, 1)  # type: ignore[union-attr]
+        self.assertEqual(self.scraper1.next_update.call_count, 0)  # type: ignore[union-attr]
+
+        self.assertIsNone(self.dbutil.get_manga_service(ms1.service_id, ms1.title_id).next_update)
 
 
 if __name__ == '__main__':

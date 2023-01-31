@@ -36,7 +36,7 @@ class MangaServiceInfo(TypedDict):
     manga_id: int
     title_id: str
     service_id: int
-    feed_url: str
+    feed_url: Optional[str]
 
 
 class LoggingCursor(Cursor):
@@ -131,12 +131,12 @@ class UpdateScheduler:
                 if service_counter.get(service_id, 0) >= Service.CONFIG.scheduled_run_limit:
                     continue
 
-                service_counter.update((service_id,))
-
                 if not title_id:
                     logger.error(f'Manga {manga_id} on service {service_id} scheduled but not found from manga service')
                     delete.append((manga_id, service_id))
                     continue
+
+                service_counter.update((service_id,))
 
                 retval = self.force_run(service_id, manga_id)
                 delete.append((manga_id, service_id))
@@ -151,10 +151,10 @@ class UpdateScheduler:
             return manga_ids, chapter_ids
 
     # noinspection PyPep8Naming
-    def scrape_service(self,
-                       service_id: int,
-                       Scraper: Type[BaseScraper],
-                       manga_info: Collection[MangaServiceInfo]) -> Tuple[Set[int], List[int]]:
+    def scrape_series(self,
+                      service_id: int,
+                      Scraper: Type[BaseScraper],
+                      manga_info: Collection[MangaServiceInfo]) -> Tuple[Set[int], List[int]]:
         with self.conn() as conn:
             scraper = Scraper(conn, DbUtil(conn, self.es_methods))
             rng = random.Random()
@@ -302,7 +302,7 @@ class UpdateScheduler:
                         continue
 
                     futures.append(self.thread_pool.submit(
-                        self.scrape_service, row['service_id'],
+                        self.scrape_series, row['service_id'],
                         Scraper, row['manga_info'][:batch_size]
                     ))
 
