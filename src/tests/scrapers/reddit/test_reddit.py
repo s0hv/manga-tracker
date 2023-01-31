@@ -3,6 +3,7 @@ import unittest
 from unittest.mock import patch, MagicMock
 
 import feedparser
+import pytest
 
 from src.constants import NO_GROUP
 from src.db.models.manga import MangaService
@@ -59,6 +60,10 @@ class TestRedditScraper(BaseTestClasses.ModelAssertions, BaseTestClasses.Databas
         self.assertEqual(parse.call_count, 2)
         self.assertIsNotNone(did_update)
         self.assertFalse(did_update)
+
+    def test_scrape_service_without_feed_url_throws(self):
+        with pytest.raises(ValueError, match='feed_url cannot be None'):
+            Reddit(self.conn, self.dbutil).scrape_series('', 1, 1, None)
 
 
 if __name__ == '__main__':

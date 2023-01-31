@@ -287,7 +287,7 @@ class BaseScraper(abc.ABC):
         return utcnow() + self.min_update_interval()
 
     @abc.abstractmethod
-    def scrape_series(self, title_id: str, service_id: int, manga_id: int, feed_url: str) -> Optional[Set[int]]:
+    def scrape_series(self, title_id: str, service_id: int, manga_id: int, feed_url: Optional[str]) -> Optional[Set[int]]:
         """
         Returns:
             Set of new chapter ids.

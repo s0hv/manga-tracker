@@ -388,7 +388,10 @@ class MangaDex(BaseScraperWhole):
             chapter_ids=chapter_ids
         )
 
-    def scrape_series(self, title_id: str, service_id: int, manga_id: int, feed_url: str) -> Optional[Set[int]]:
+    def scrape_series(self, title_id: str, service_id: int, manga_id: int, feed_url: Optional[str]) -> Optional[Set[int]]:
+        if feed_url is None:
+            raise ValueError('feed_url cannot be None')
+
         retval = self.do_update(service_id, feed_url, title_id, limit=300)
         return retval if retval is None else retval.chapter_ids
 

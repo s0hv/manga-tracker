@@ -176,6 +176,10 @@ class MangadexTests(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsser
         for actual, expected in zip(sorted(parsed, key=lambda c: c.chapter_identifier), correct_parsed_chapters):
             self.assertChaptersEqual(actual, expected)
 
+    def test_scrape_service_without_feed_url_throws(self):
+        with pytest.raises(ValueError, match='feed_url cannot be None'):
+            self.mangadex.scrape_series('', 1, 1, None)
+
     @responses.activate
     def test_scrape_service(self) -> None:
         self.delete_chapters()
