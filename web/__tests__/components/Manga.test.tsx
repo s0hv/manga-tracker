@@ -142,7 +142,7 @@ describe('Manga page should render correctly', () => {
 
   it('should render correctly with little data', async () => {
     await act(async () => {
-      render(<Manga mangaData={emptyManga} userFollows={follows} />);
+      render(<Manga mangaData={emptyManga} />);
     });
 
     expectTitleExists(emptyManga);
