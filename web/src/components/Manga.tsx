@@ -86,7 +86,7 @@ const DetailsContainer = styled('div')(({ theme }) => ({
 
 export type MangaProps = {
   mangaData: FullMangaData
-  userFollows: (number|null)[]
+  userFollows?: (number|null)[]
 }
 
 function Manga(props: MangaProps): React.ReactElement {
