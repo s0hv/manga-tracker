@@ -1,24 +1,23 @@
 import { Manga, Cover } from 'mangadex-full-api';
+import { vi } from 'vitest';
 import { mangadexLimiter, redis } from '../../utils/ratelimits';
-import { db } from '../../db';
 import { spyOnDb } from '../dbutils';
 
-const { fetchExtraInfo } = jest.requireActual('../../db/mangadex');
+const { fetchExtraInfo } = await vi.importActual('../../db/mangadex');
 
 afterAll(async () => {
-  await db.end({ timeout: 10 });
   redis.disconnect();
 });
 
 describe('mangadex API works correctly', () => {
   beforeEach(() => {
-    jest.spyOn(Manga, 'get')
+    vi.spyOn(Manga, 'get')
       .mockImplementation(async () => ({ mainCover: {}}));
-    jest.spyOn(Cover, 'get')
+    vi.spyOn(Cover, 'get')
       .mockImplementation(async () => ({ imageSource: 'test' }));
   });
   afterEach(async () => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
     await mangadexLimiter.delete('mangadex');
   });
 
@@ -44,7 +43,7 @@ describe('mangadex API works correctly', () => {
 
   it('Silently ignores mangadex errors', async () => {
     const err = new Error('test');
-    const spy = jest.spyOn(Manga, 'get')
+    const spy = vi.spyOn(Manga, 'get')
       .mockImplementation(async () => { throw err });
     const dbSpy = spyOnDb('none');
 

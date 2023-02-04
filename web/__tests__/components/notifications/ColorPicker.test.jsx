@@ -1,10 +1,11 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { vi } from 'vitest';
 
 import { Form } from 'react-final-form';
 import ColorPicker from '../../../src/components/notifications/ColorPicker';
 
-const Root = ({ children }) => <Form onSubmit={jest.fn()} render={() => children} />;
+const Root = ({ children }) => <Form onSubmit={vi.fn()} render={() => children} />;
 
 // https://github.com/omgovich/react-colorful/blob/c7e87161d71be9156b0c149d0e110fa24fd7037d/tests/components.test.js#L36
 // Mock `HTMLElement.getBoundingClientRect` to be able to read element sizes
@@ -27,12 +28,17 @@ Object.defineProperties(HTMLElement.prototype, {
 class FakeMouseEvent extends MouseEvent {
   constructor(type, values = {}) {
     super(type, { buttons: 1, bubbles: true, ...values });
-
     Object.assign(this, {
       pageX: values.pageX || 0,
       pageY: values.pageY || 0,
     });
   }
+
+  get pageX() { return this.pageX_ }
+  set pageX(x) { this.pageX_ = x }
+
+  get pageY() { return this.pageY_ }
+  set pageY(y) { this.pageY_ = y }
 }
 
 describe('ColorPicker', () => {

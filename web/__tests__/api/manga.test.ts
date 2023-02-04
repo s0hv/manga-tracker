@@ -1,4 +1,5 @@
 import request from 'supertest';
+import { type Mock, vi } from 'vitest';
 import { csrfMissing } from '../../utils/constants';
 import { userForbidden, userUnauthorized } from '../constants';
 
@@ -24,12 +25,12 @@ const serverReference = {
   httpServer,
 };
 
-jest.mock('../../db/elasticsearch/manga', () => {
-  const original = jest.requireActual('../../db/elasticsearch/manga'); // Step 2.
+vi.mock('../../db/elasticsearch/manga', async () => {
+  const original = await vi.importActual<typeof import('../../db/elasticsearch/manga')>('../../db/elasticsearch/manga'); // Step 2.
   return {
-    ...jest.requireActual('../../db/elasticsearch/manga'),
-    updateManga: jest.fn().mockImplementation(original.updateManga),
-    deleteManga: jest.fn().mockImplementation(original.deleteManga),
+    ...original,
+    updateManga: vi.fn().mockImplementation(original.updateManga),
+    deleteManga: vi.fn().mockImplementation(original.deleteManga),
   };
 });
 
@@ -331,15 +332,15 @@ describe('POST /api/manga/merge', () => {
 
   apiRequiresAdminUserPostTests(serverReference, getUrl(1, 2));
 
-  const esDeleteMock = jest.fn();
-  const esUpdateMock = jest.fn();
+  const esDeleteMock = vi.fn();
+  const esUpdateMock = vi.fn();
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     esDeleteMock.mockResolvedValue(undefined);
     esUpdateMock.mockResolvedValue(undefined);
-    (deleteManga as jest.Mock).mockImplementation(esDeleteMock);
-    (updateManga as jest.Mock).mockImplementation(esUpdateMock);
+    (deleteManga as Mock).mockImplementation(esDeleteMock);
+    (updateManga as Mock).mockImplementation(esUpdateMock);
   });
 
   it('Returns 400 with invalid params', async () => {

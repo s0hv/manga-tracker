@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, screen, within, fireEvent, act } from '@testing-library/react';
 import fetchMock from 'fetch-mock';
+import { vi } from 'vitest';
 
 import MangaAliases from '../../src/components/MangaAliases';
 import { adminUser, withUser, normalUser } from '../utils';
@@ -70,11 +71,11 @@ describe('MangaAliases should promote alias correctly', () => {
   it('Should call correct network path on alias promotion', async () => {
     const aliases = ['Test alias 1', 'Test alias 2'];
     const mangaId = 1;
-    const onTitleUpdate = jest.fn();
-    const confirm = jest.fn(() => Promise.resolve());
-    const enqueueSnackbar = jest.fn();
+    const onTitleUpdate = vi.fn();
+    const confirm = vi.fn(() => Promise.resolve());
+    const enqueueSnackbar = vi.fn();
 
-    const mockRoute = jest.fn(() => Promise.resolve({}));
+    const mockRoute = vi.fn(() => Promise.resolve({}));
     fetchMock.post(
       `path:/api/admin/manga/${mangaId}/title`,
       mockRoute,
@@ -116,9 +117,9 @@ describe('MangaAliases should promote alias correctly', () => {
   it('Should not update alias when confirm rejected', async () => {
     const aliases = ['Test alias 1', 'Test alias 2'];
     const mangaId = 1;
-    const onTitleUpdate = jest.fn();
-    const confirm = jest.fn(() => Promise.reject());
-    const enqueueSnackbar = jest.fn();
+    const onTitleUpdate = vi.fn();
+    const confirm = vi.fn(() => Promise.reject());
+    const enqueueSnackbar = vi.fn();
 
     render(
       await withUser(

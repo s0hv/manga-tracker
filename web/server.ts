@@ -9,18 +9,18 @@ import helmet from 'helmet';
 import pinoHttp from 'pino-http';
 import cookieParser from 'cookie-parser';
 
-import { csrfMissing, isDev, isTest } from './utils/constants.js';
-import { db } from './db/helpers';
-import PostgresStore from './db/session-store';
+import { csrfMissing, isDev, isTest } from '@/serverUtils/constants';
+import { db } from '@/db/helpers';
+import PostgresStore from '@/db/session-store';
 import {
   authenticate,
   checkAuth,
   createRememberMeToken,
   requiresUser,
   setUserOnLogin,
-} from './db/auth';
-import { bruteforce, rateLimiter } from './utils/ratelimits.js';
-import { expressLogger, logger, sessionLogger } from './utils/logging.js';
+} from '@/db/auth';
+import { bruteforce, rateLimiter } from '@/serverUtils/ratelimits';
+import { expressLogger, logger, sessionLogger } from '@/serverUtils/logging';
 
 import {
   adminMangaApi,

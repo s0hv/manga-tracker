@@ -1,10 +1,6 @@
 import { db } from '@/db/helpers';
 import { NoResultsError, TooManyResultsError } from '@/db/errors';
 
-afterAll(async () => {
-  await db.sql.end({ timeout: 5 });
-});
-
 describe('one`query`', () => {
   it('throws error when more than one row returned', async () => {
     await expect(db.one`SELECT id FROM (VALUES (1), (2), (3)) as temp(id)`)

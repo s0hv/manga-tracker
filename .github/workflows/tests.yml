@@ -57,7 +57,7 @@ jobs:
     - name: Initialize database
       run: cd .. && npm run migrate:up && npm run migrate:test
 
-    - name: Run jest and generate coverage
+    - name: Run vitest and generate coverage
       run: npm run test:ci
 
     - name: Upload coverage to Codecov

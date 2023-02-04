@@ -1,28 +1,28 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1
 
-exports[`GET /api/manga/:mangaId/chapters Returns 400 with invalid sort column 1`] = `
+exports[`GET /api/manga/:mangaId/chapters > Returns 400 with invalid sort column 1`] = `
 [
   {
     "location": "query",
-    "msg": "Sort column must be one of "chapter_id", "chapter_number", "release_date", "group"",
+    "msg": "Sort column must be one of \\"chapter_id\\", \\"chapter_number\\", \\"release_date\\", \\"group\\"",
     "param": "sortBy",
     "value": "test",
   },
 ]
 `;
 
-exports[`GET /api/manga/:mangaId/chapters Returns 400 with invalid sort direction 1`] = `
+exports[`GET /api/manga/:mangaId/chapters > Returns 400 with invalid sort direction 1`] = `
 [
   {
     "location": "query",
-    "msg": "Sorting direction must be one of "asc" or "desc"",
+    "msg": "Sorting direction must be one of \\"asc\\" or \\"desc\\"",
     "param": "sort",
     "value": "test",
   },
 ]
 `;
 
-exports[`POST /api/manga/merge Returns 400 with invalid service id 1`] = `
+exports[`POST /api/manga/merge > Returns 400 with invalid service id 1`] = `
 [
   {
     "location": "query",
@@ -33,7 +33,7 @@ exports[`POST /api/manga/merge Returns 400 with invalid service id 1`] = `
 ]
 `;
 
-exports[`POST /api/manga/merge Returns 400 with invalid service id 2`] = `
+exports[`POST /api/manga/merge > Returns 400 with invalid service id 2`] = `
 [
   {
     "location": "query",

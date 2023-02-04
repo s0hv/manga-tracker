@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryClientProvider } from '@tanstack/react-query';
 import fetchMock from 'fetch-mock';
+import { vi } from 'vitest';
 
 import {
   queryClient,
@@ -22,8 +23,9 @@ const Root = ({ children }) => (
   </QueryClientProvider>
 );
 
-beforeEach(() => {
-  mockNotistackHooks();
+beforeEach(async () => {
+  await mockNotistackHooks();
+  vi.mock('@uiw/react-codemirror');
   fetchMock.reset();
   queryClient.clear();
 });
@@ -87,7 +89,7 @@ describe('WebhookEditor', () => {
   });
 
   it('Does post request on save', async () => {
-    const mockRoute = jest.fn();
+    const mockRoute = vi.fn();
     mockRoute.mockImplementation(() => Promise.resolve({
       data: { notificationId: defaultNotificationDataNoManga.notificationId },
     }));

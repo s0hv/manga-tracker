@@ -5,6 +5,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import enLocale from 'date-fns/locale/en-GB';
 import { DefaultSeo } from 'next-seo';
 import { CacheProvider } from '@emotion/react';
+import NextNProgress from 'nextjs-progressbar';
 // Hydrate not used as relative fetch methods can't be used server-side
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
@@ -16,7 +17,6 @@ import { sessionLogger } from '../../utils/logging';
 
 import Root from '../components/Root';
 
-import ProgressBar from '../components/utils/ProgressBar';
 import { csrfProps, CSRFProvider } from '../utils/csrf';
 import { UserProvider } from '../utils/useUser';
 import { getTheme } from '../utils/theme';
@@ -95,7 +95,7 @@ function MainApp({ Component, pageProps = {}, emotionCache = clientSideEmotionCa
         <CacheProvider value={emotionCache}>
           <StyledEngineProvider injectFirst>
             <ThemeProvider theme={activeTheme}>
-              <ProgressBar />
+              <NextNProgress />
               <CssBaseline />
               <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={enLocale}>
                 <SnackbarProvider>

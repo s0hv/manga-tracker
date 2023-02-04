@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { QueryClientProvider } from '@tanstack/react-query';
 import fetchMock from 'fetch-mock';
 import { ConfirmProvider } from 'material-ui-confirm';
+import { vi } from 'vitest';
 
 import { Form, Field } from 'react-final-form';
 import {
@@ -18,7 +19,7 @@ const Root = ({ notificationId, children }) => (
   <QueryClientProvider client={queryClient}>
     <ConfirmProvider>
       <Form
-        onSubmit={jest.fn()}
+        onSubmit={vi.fn()}
         render={() => (
           <form>
             <Field name='notificationId' initialValue={notificationId} render={() => 'test'} />
@@ -30,8 +31,8 @@ const Root = ({ notificationId, children }) => (
   </QueryClientProvider>
 );
 
-beforeEach(() => {
-  mockNotistackHooks();
+beforeEach(async () => {
+  await mockNotistackHooks();
   fetchMock.reset();
   queryClient.clear();
 });
@@ -57,7 +58,7 @@ describe('DeleteNotificationButton', () => {
   });
 
   it('Calls correct API path when delete clicked', async () => {
-    const mockRoute = jest.fn();
+    const mockRoute = vi.fn();
     mockRoute.mockImplementation(() => Promise.resolve({}));
     fetchMock.delete(
       `glob:/api/notifications/${notificationId}`,
@@ -100,7 +101,7 @@ describe('DeleteNotificationButton', () => {
   });
 
   it('Does nothing when no clicker', async () => {
-    const mockRoute = jest.fn();
+    const mockRoute = vi.fn();
     mockRoute.mockImplementation(() => Promise.resolve({}));
     fetchMock.delete(
       `glob:/api/notifications/${notificationId}`,

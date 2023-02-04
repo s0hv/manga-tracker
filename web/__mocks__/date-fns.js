@@ -1,5 +1,6 @@
+import { vi } from 'vitest';
+
 module.exports = ({
-  __esModule: true,
-  ...jest.requireActual('date-fns'),
+  ...(await vi.importActual('date-fns')),
   formatDistanceToNowStrict: () => '1 day ago',
 });

@@ -2,6 +2,7 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import fetchMock from 'fetch-mock';
+import { vi } from 'vitest';
 
 import MangaSearch from '../../src/components/MangaSearch';
 
@@ -31,7 +32,7 @@ describe('Search should render correctly', () => {
         title: 'Test 3',
       },
     ];
-    const searchFn = jest.fn().mockImplementation(() => mockResult);
+    const searchFn = vi.fn().mockImplementation(() => mockResult);
 
     fetchMock.mock('glob:/api/quicksearch?query=*', searchFn);
 
@@ -55,7 +56,7 @@ describe('Search should render correctly', () => {
 
 describe('Search should behave correctly with user input', () => {
   it('Should not do requests of under 3 characters', async () => {
-    const searchFn = jest.fn().mockImplementation(() => []);
+    const searchFn = vi.fn().mockImplementation(() => []);
 
     fetchMock.mock('glob:/api/quicksearch?query=*', searchFn);
 
@@ -73,7 +74,7 @@ describe('Search should behave correctly with user input', () => {
   });
 
   it('Should do a request with 2 or more characters', async () => {
-    const searchFn = jest.fn().mockImplementation(() => []);
+    const searchFn = vi.fn().mockImplementation(() => []);
 
     fetchMock.mock('glob:/api/quicksearch?query=*', searchFn);
 
@@ -89,7 +90,7 @@ describe('Search should behave correctly with user input', () => {
   });
 
   it('Should throttle fast requests', async () => {
-    const searchFn = jest.fn().mockImplementation(() => []);
+    const searchFn = vi.fn().mockImplementation(() => []);
 
     fetchMock.mock('glob:/api/quicksearch?query=*', searchFn);
 

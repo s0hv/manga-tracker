@@ -78,6 +78,14 @@ module.exports = {
         message: '`with` is disallowed in strict mode because it makes code impossible to predict and optimize.',
       },
     ],
+    'import/no-extraneous-dependencies': ['error', {
+      devDependencies: [
+        '**/__tests__/**/*',
+        '**/setupTests.ts',
+        'vitest.config.ts',
+        'loader.js',
+      ]}],
+
 
     "prefer-template": "off",
     "arrow-parens": "off",

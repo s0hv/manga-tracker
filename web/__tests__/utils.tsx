@@ -16,6 +16,7 @@ import type {
 } from 'express-serve-static-core';
 import userEvent from '@testing-library/user-event';
 import type { Screen } from '@testing-library/react/types';
+import { Mock, vi } from 'vitest';
 
 import { UserProvider } from '@/webUtils/useUser';
 import { getOpenapiSpecification } from '../swagger';
@@ -23,19 +24,18 @@ import type { User } from '@/types/db/user';
 import type { SessionUser } from '@/types/dbTypes';
 
 // Must be mocked here
-jest.mock('notistack', () => {
-  const actual = jest.requireActual('notistack');
+vi.mock('notistack', async () => {
+  const actual = await vi.importActual<typeof import('notistack')>('notistack');
   return {
     ...actual,
-    useSnackbar: jest.fn().mockImplementation(actual.useSnackbar),
+    useSnackbar: vi.fn().mockImplementation(actual.useSnackbar),
   };
 });
 
 let dbMock: any;
-jest.mock('../db/helpers', () => {
-  const db = jest.requireActual('./../db/helpers');
+vi.mock('@/db/helpers', async () => {
+  const db = await vi.importActual<typeof import('@/db/helpers')>('@/db/helpers');
   dbMock = {
-    __esModule: true,
     ...db,
   };
   return dbMock;
@@ -102,15 +102,14 @@ export const testManga = {
 };
 
 
-export const enqueueSnackbarMock = jest.fn();
+export const enqueueSnackbarMock = vi.fn();
 
 /**
  * Must be called before every test. Import must as early as possible
  */
-export function mockNotistackHooks() {
+export async function mockNotistackHooks() {
   enqueueSnackbarMock.mockReset();
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  require('notistack').useSnackbar.mockReturnValue({ enqueueSnackbar: enqueueSnackbarMock });
+  ((await import('notistack')).useSnackbar as Mock).mockReturnValue({ enqueueSnackbar: enqueueSnackbarMock } as any);
 }
 
 export function expectSuccessSnackbar() {
@@ -143,48 +142,48 @@ export async function muiSelectValue(user: ReturnType<typeof userEvent.setup>, c
 }
 
 export function mockUTCDates() {
-  jest.spyOn(Date.prototype, 'getDate')
-    .mockImplementation(jest.fn(function getDate(this: Date) {
+  vi.spyOn(Date.prototype, 'getDate')
+    .mockImplementation(vi.fn(function getDate(this: Date) {
       return this.getUTCDate();
     }));
 
-  jest.spyOn(Date.prototype, 'getDay')
-    .mockImplementation(jest.fn(function getDay(this: Date) {
+  vi.spyOn(Date.prototype, 'getDay')
+    .mockImplementation(vi.fn(function getDay(this: Date) {
       return this.getUTCDay();
     }));
 
-  jest.spyOn(Date.prototype, 'getFullYear')
-    .mockImplementation(jest.fn(function getFullYear(this: Date) {
+  vi.spyOn(Date.prototype, 'getFullYear')
+    .mockImplementation(vi.fn(function getFullYear(this: Date) {
       return this.getUTCFullYear();
     }));
 
-  jest.spyOn(Date.prototype, 'getHours')
-    .mockImplementation(jest.fn(function getHours(this: Date) {
+  vi.spyOn(Date.prototype, 'getHours')
+    .mockImplementation(vi.fn(function getHours(this: Date) {
       return this.getUTCHours();
     }));
 
-  jest.spyOn(Date.prototype, 'getMilliseconds')
-    .mockImplementation(jest.fn(function getMilliseconds(this: Date) {
+  vi.spyOn(Date.prototype, 'getMilliseconds')
+    .mockImplementation(vi.fn(function getMilliseconds(this: Date) {
       return this.getUTCMilliseconds();
     }));
 
-  jest.spyOn(Date.prototype, 'getMinutes')
-    .mockImplementation(jest.fn(function getMinutes(this: Date) {
+  vi.spyOn(Date.prototype, 'getMinutes')
+    .mockImplementation(vi.fn(function getMinutes(this: Date) {
       return this.getUTCMinutes();
     }));
 
-  jest.spyOn(Date.prototype, 'getMonth')
-    .mockImplementation(jest.fn(function getMonth(this: Date) {
+  vi.spyOn(Date.prototype, 'getMonth')
+    .mockImplementation(vi.fn(function getMonth(this: Date) {
       return this.getUTCMonth();
     }));
 
-  jest.spyOn(Date.prototype, 'getSeconds')
-    .mockImplementation(jest.fn(function getSeconds(this: Date) {
+  vi.spyOn(Date.prototype, 'getSeconds')
+    .mockImplementation(vi.fn(function getSeconds(this: Date) {
       return this.getUTCSeconds();
     }));
 
-  jest.spyOn(Date.prototype, 'getTimezoneOffset')
-    .mockImplementation(jest.fn(() => 0));
+  vi.spyOn(Date.prototype, 'getTimezoneOffset')
+    .mockImplementation(vi.fn(() => 0));
 }
 
 type WithUser = {
@@ -201,8 +200,7 @@ export const withUser: WithUser = async (userObject: TestUser, cb: React.ReactEl
     ) as any;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const { requiresUser } = require('../db/auth');
+  const { requiresUser } = (await import('../db/auth')) as any as { requiresUser: Mock };
 
   requiresUser.mockImplementation((req: ExpressRequest, res: any, next: NextFunction) => {
     req.user = userObject;
@@ -213,7 +211,7 @@ export const withUser: WithUser = async (userObject: TestUser, cb: React.ReactEl
     await (cb as () => Promise<any>)();
   } finally {
     // Restore the original function
-    requiresUser.mockImplementation(jest.requireActual('./../db/auth').requiresUser);
+    requiresUser.mockImplementation((await vi.importActual<typeof import('./../db/auth')>('./../db/auth')).requiresUser);
   }
 };
 
@@ -399,7 +397,7 @@ export const mockDbForErrors = <T, >(fn: () => Promise<T>): Promise<T> => {
 
   dbMock.db = Object.keys(originalDb).reduce((prev, curr) => ({
     ...prev,
-    [curr]: jest.fn().mockImplementation(async () => Promise.reject('Mocked error')),
+    [curr]: vi.fn().mockImplementation(async () => Promise.reject('Mocked error')),
   }), {});
   // Leave sql as is since it's an object
   dbMock.db.sql = sql;

@@ -1,12 +1,6 @@
 import { getMangaPartial } from '../../../db/manga';
 import { mangaView, onSessionExpire } from '../../../utils/view-counter';
 
-
-afterAll(async () => {
-  const { end } = require('../../../db');
-  await end();
-});
-
 describe('mangaView increments manga views correctly', () => {
   it('Does nothing when session is not defined', () => {
     expect(mangaView(null)).toBeUndefined();
