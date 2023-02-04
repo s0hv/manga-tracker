@@ -13,6 +13,7 @@ import {
   mockNotistackHooks,
   mockUTCDates,
   queryClient,
+  restoreMocks,
   silenceConsole,
   withRoot,
 } from '../../utils';
@@ -119,9 +120,11 @@ describe('MangaServiceTable should render correctly', () => {
     fetchMock.get(`/api/admin/manga/${mangaId}/services`, 500);
     fetchMock.get('/api/services', 500);
 
-    await silenceConsole(act(async () => {
+    const spies = silenceConsole();
+    await act(async () => {
       render(<Root><MangaServiceTable mangaId={mangaId} /></Root>);
-    }));
+    });
+    restoreMocks(spies);
 
     expectHeadersExist();
 
