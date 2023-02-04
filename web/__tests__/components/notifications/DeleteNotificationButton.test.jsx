@@ -11,6 +11,7 @@ import {
   mockNotistackHooks,
   expectSuccessSnackbar,
   expectErrorSnackbar,
+  silenceConsole,
 } from '../../utils';
 import DeleteNotificationButton
   from '../../../src/components/notifications/DeleteNotificationButton';
@@ -95,7 +96,7 @@ describe('DeleteNotificationButton', () => {
 
     expect(screen.getByText(/Are you sure you want to delete this notification/i)).toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: /yes/i }));
+    await silenceConsole(user.click(screen.getByRole('button', { name: /yes/i })));
 
     expectErrorSnackbar();
   });

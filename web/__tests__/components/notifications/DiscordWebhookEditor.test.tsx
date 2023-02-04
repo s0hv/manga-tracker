@@ -17,6 +17,7 @@ import {
   expectSuccessSnackbar,
   mockNotistackHooks,
   queryClient,
+  silenceConsole,
 } from '../../utils';
 import DiscordWebhookEditor
   from '../../../src/components/notifications/DiscordWebhookEditor';
@@ -424,7 +425,7 @@ describe('DiscordWebhookEditor', () => {
 
     // This shit prints out act errors to no end even if I wrap everything inside act.
     // Tests seem to pass tho, so it's fine for now.
-    await changeOverride(defaultDataWithManga.manga![0].title, user, true);
+    await silenceConsole(changeOverride(defaultDataWithManga.manga![0].title, user, true));
 
     expect(await screen.findByText(/You have unsaved changes\. Do you want to discard changes\?/i)).toBeInTheDocument();
 
@@ -435,7 +436,7 @@ describe('DiscordWebhookEditor', () => {
     const msgField = defaultDataWithManga.fields.filter(f => f.name === 'message')[0]!;
     expect(await screen.findByRole('textbox', { name: /^Message$/i }, { timeout: 5000 })).toHaveValue(msgField.value + text);
 
-    await changeOverride(defaultDataWithManga.manga![0].title, user, true);
+    await silenceConsole(changeOverride(defaultDataWithManga.manga![0].title, user, true));
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: /^Discard form changes/i }));
     });

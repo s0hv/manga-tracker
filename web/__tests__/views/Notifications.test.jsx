@@ -4,7 +4,13 @@ import fetchMock from 'fetch-mock';
 import { SnackbarProvider } from 'notistack';
 import { vi } from 'vitest';
 
-import { queryClient, mockNotistackHooks, expectErrorSnackbar } from '../utils';
+import {
+  queryClient,
+  mockNotistackHooks,
+  expectErrorSnackbar,
+  silenceConsole,
+  restoreMocks,
+} from '../utils';
 import Notifications from '../../src/views/Notifications';
 
 const Root = ({ children }) => (
@@ -51,9 +57,11 @@ describe('Notifications view', () => {
       500
     );
 
+    const spies = silenceConsole();
     await act(async () => {
       render(<Rendered />);
     });
+    restoreMocks(spies);
 
     expectErrorSnackbar();
   });

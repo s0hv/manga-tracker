@@ -4,7 +4,7 @@ import { vi } from 'vitest';
 
 import userEvent from '@testing-library/user-event';
 import MangaSourceList from '../../src/components/MangaSourceList';
-import { normalUser, withUser } from '../utils';
+import { normalUser, withUser, silenceConsole, restoreMocks } from '../utils';
 
 const services = [
   {
@@ -75,12 +75,14 @@ describe('Manga source list', () => {
       serviceId: 3,
     }];
 
+    const spies = silenceConsole();
     expect(() => render(
       <MangaSourceList
         items={invalid}
         classesProp={['test-class-1', 'test-class-2']}
       />
     )).toThrow();
+    restoreMocks(spies);
   });
 });
 
