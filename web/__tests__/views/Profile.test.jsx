@@ -8,6 +8,8 @@ import {
   expectSuccessSnackbar,
   normalUser,
   getSnackbarMessage,
+  silenceConsole,
+  restoreMocks,
 } from '../utils';
 import Profile from '../../src/views/Profile';
 
@@ -99,9 +101,11 @@ describe('Requests should be handled correctly', () => {
 
     editInput(screen.getByLabelText(/^Password$/i), 'aaaaa');
 
+    const spies = silenceConsole();
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: /Update profile/i }));
     });
+    restoreMocks(spies);
 
     expect(fetchMock.calls('/api/profile')).toHaveLength(1);
     expectErrorSnackbar();

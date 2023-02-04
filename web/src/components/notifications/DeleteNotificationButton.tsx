@@ -41,8 +41,7 @@ const DeleteNotificationButton: FC<DeleteNotificationButtonProps> = ({ fieldName
             enqueueSnackbar('Notification deleted', { variant: 'success' });
             return queryClient.invalidateQueries(QueryKeys.NotificationsList);
           })
-          .catch(err => {
-            console.log(err);
+          .catch(() => {
             enqueueSnackbar('Failed to delete notification', { variant: 'error' });
           });
       })

@@ -105,6 +105,8 @@ describe('Manga admin page should handle data fetching correctly', () => {
   beforeEach(() => {
     fetchMock.reset();
     fetchMock.get(`/api/admin/manga/${mangaId}/scheduledRuns`, getMock);
+    fetchMock.get(`/api/admin/manga/${mangaId}/services`, Promise.resolve({ data: []}));
+    fetchMock.get(`/api/services`, Promise.resolve({ data: []}));
   });
 
   const renderPage = async (expectGetMock = true) => {

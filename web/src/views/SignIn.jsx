@@ -35,7 +35,6 @@ export default function SignIn() {
 
   const onSubmit = data => loginUser(csrf, data)
     .then(res => {
-      console.log(res);
       if (res.ok) {
         window.location.replace(res.url);
         return;

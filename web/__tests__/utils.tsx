@@ -16,7 +16,7 @@ import type {
 } from 'express-serve-static-core';
 import userEvent from '@testing-library/user-event';
 import type { Screen } from '@testing-library/react/types';
-import { Mock, vi } from 'vitest';
+import { Mock, SpyInstance, vi } from 'vitest';
 
 import { UserProvider } from '@/webUtils/useUser';
 import { getOpenapiSpecification } from '../swagger';
@@ -407,3 +407,31 @@ export const mockDbForErrors = <T, >(fn: () => Promise<T>): Promise<T> => {
       dbMock.db = originalDb;
     });
 };
+
+type SilenceConsole = {
+  (): SpyInstance[],
+  <T>(callback: Promise<T>): Promise<T>
+}
+export const silenceConsole: SilenceConsole = (<T, >(callback?: Promise<T>): Promise<T> | SpyInstance[] => {
+  if (process.env.KEEP_CONSOLE) {
+    return callback || [];
+  }
+  const spies = [
+    vi.spyOn(console, 'log').mockImplementation(() => {}),
+    vi.spyOn(console, 'error').mockImplementation(() => {}),
+    vi.spyOn(console, 'warn').mockImplementation(() => {}),
+    vi.spyOn(console, 'info').mockImplementation(() => {}),
+    vi.spyOn(console, 'debug').mockImplementation(() => {}),
+  ];
+
+  if (callback !== undefined) {
+    return callback
+      .finally(() => {
+        spies.forEach(spy => spy.mockRestore());
+      });
+  }
+
+  return spies;
+}) as SilenceConsole;
+
+export const restoreMocks = (spies: SpyInstance[]) => spies.forEach(spy => spy.mockRestore());

@@ -16,7 +16,6 @@ import {
   getCookie,
   login,
   normalUser,
-  unsignCookie,
   withUser,
 } from '../utils';
 import { redis } from '../../utils/ratelimits';
@@ -519,7 +518,6 @@ describe('POST /api/user/profile', () => {
       .expect('set-cookie', /sess=/);
 
     const sess = await expectSessionRegenerated(agent, oldSess);
-    console.log(unsignCookie(sess.value));
 
     await checkAndResetPassword(agent, newPassword, normalUser);
 

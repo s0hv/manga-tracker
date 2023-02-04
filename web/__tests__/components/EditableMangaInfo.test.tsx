@@ -10,6 +10,8 @@ import {
   mockNotistackHooks,
   mockUTCDates,
   muiSelectValue,
+  restoreMocks,
+  silenceConsole,
 } from '../utils';
 import EditableMangaInfo from '../../src/components/EditableMangaInfo';
 import {
@@ -93,8 +95,10 @@ describe('EditableMangaInfo should render correctly', () => {
   });
 
   it('Should throw TypeError when mangaData not given', () => {
+    const spies = silenceConsole();
     // @ts-expect-error
     expect(() => render(<Root><EditableMangaInfo /></Root>)).toThrow(TypeError);
+    restoreMocks(spies);
   });
 });
 

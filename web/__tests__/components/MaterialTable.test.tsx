@@ -11,7 +11,7 @@ import {
   EditableDateTimePicker,
   MaterialTable,
 } from '../../src/components/MaterialTable';
-import { mockUTCDates, withRoot } from '../utils';
+import { mockUTCDates, restoreMocks, silenceConsole, withRoot } from '../utils';
 import { defaultDateFormatRegex } from '../constants';
 import { defaultDateFormat } from '@/webUtils/utilities';
 import { MaterialColumnDef } from '@/components/MaterialTable/types';
@@ -130,6 +130,7 @@ describe('It should render correctly', () => {
   });
 
   test('without data (null)', () => {
+    const spies = silenceConsole();
     expect(() => render(
       <MaterialTable
         columns={columns}
@@ -137,6 +138,7 @@ describe('It should render correctly', () => {
         data={null}
       />
     )).toThrow(TypeError);
+    restoreMocks(spies);
   });
 
   test('with data', () => {
