@@ -1,5 +1,6 @@
 import { act, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { vi } from 'vitest';
 
 import fetchMock from 'fetch-mock';
 import React from 'react';
@@ -20,8 +21,8 @@ import MangaAdmin from '../../../src/views/admin/MangaAdmin';
 import { fullManga } from '../../constants';
 
 
-beforeEach(() => {
-  mockNotistackHooks();
+beforeEach(async () => {
+  await mockNotistackHooks();
   queryClient.clear();
 });
 
@@ -99,7 +100,7 @@ describe('Manga admin page should handle data fetching correctly', () => {
     serviceId: s.serviceId,
     mangaId: mangaId,
   }));
-  const getMock = jest.fn().mockReturnValue({ data: mockServices });
+  const getMock = vi.fn().mockReturnValue({ data: mockServices });
 
   beforeEach(() => {
     fetchMock.reset();
@@ -146,8 +147,8 @@ describe('Manga admin page should handle data fetching correctly', () => {
   it('Should call the correct endpoint on adding new run', async () => {
     const serviceId = fullManga.services[0].serviceId;
     const serviceName = fullManga.services[0].name;
-    const postMock = jest.fn().mockReturnValue({ inserted: { serviceId: serviceId, name: serviceName }});
-    const partialGetMock = jest.fn().mockReturnValue({ data: mockServices.slice(1, 2) });
+    const postMock = vi.fn().mockReturnValue({ inserted: { serviceId: serviceId, name: serviceName }});
+    const partialGetMock = vi.fn().mockReturnValue({ data: mockServices.slice(1, 2) });
 
     fetchMock.post(`/api/admin/manga/${mangaId}/scheduledRun/${serviceId}`, postMock);
     fetchMock.get(`/api/admin/manga/${mangaId}/scheduledRuns`, partialGetMock, { overwriteRoutes: true });
@@ -174,7 +175,7 @@ describe('Manga admin page should handle data fetching correctly', () => {
   it('Should remove row on delete', async () => {
     const serviceId = fullManga.services[0].serviceId;
     const serviceName = fullManga.services[0].name;
-    const deleteMock = jest.fn().mockReturnValue({});
+    const deleteMock = vi.fn().mockReturnValue({});
 
     fetchMock.delete(`/api/admin/manga/${mangaId}/scheduledRun/${serviceId}`, deleteMock);
 

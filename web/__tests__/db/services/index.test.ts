@@ -1,9 +1,5 @@
 import { getServiceConfigs } from '@/db/services';
 
-afterAll(async () => {
-  const { end } = await import('../../../db');
-  await end();
-});
 
 describe('getServiceConfigs()', () => {
   it('Returns service configs', async () => {

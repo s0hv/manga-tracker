@@ -1,18 +1,19 @@
+import { vi } from 'vitest';
+
 module.exports = {
-  __esModule: true,
   useRouter() {
     return ({
       route: '/',
       pathname: '',
       query: '',
       asPath: '',
-      push: jest.fn(),
+      push: vi.fn(),
       events: {
-        on: jest.fn(),
-        off: jest.fn(),
+        on: vi.fn(),
+        off: vi.fn(),
       },
-      beforePopState: jest.fn(() => null),
-      prefetch: jest.fn(() => null),
+      beforePopState: vi.fn(() => null),
+      prefetch: vi.fn(() => null),
     });
   },
 };

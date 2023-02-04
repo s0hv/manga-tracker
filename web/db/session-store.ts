@@ -2,8 +2,8 @@ import LRU from 'lru-cache';
 import { type SessionData, Store } from 'express-session';
 import type { JSONValue } from 'postgres';
 
-import { onSessionExpire } from '../utils/view-counter';
-import { sessionLogger } from '../utils/logging.js';
+import { onSessionExpire } from '@/serverUtils/view-counter';
+import { sessionLogger } from '@/serverUtils/logging';
 import type { DatabaseHelpers } from '@/db/helpers';
 
 const mergeSessionViews = (sess: SessionData, row: { data: SessionData }) => {
@@ -102,7 +102,7 @@ export default class PostgresStore extends Store {
     sessionLogger.debug('Edit session %s', sid);
     this.cache.set(sid, session);
     const sessionData = this.conn.sql.json(session as any as JSONValue);
-    const sql = this.conn.sql`INSERT INTO sessions (user_id, session_id, data, expires_at)
+    const sql = this.conn.any`INSERT INTO sessions (user_id, session_id, data, expires_at)
                               VALUES (${session.userId}, ${sid},
                                       ${sessionData},
                                       ${session.cookie.expires})

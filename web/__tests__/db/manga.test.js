@@ -2,10 +2,6 @@ import { getFollows, getAliases } from '../../db/manga';
 import { HttpError } from '../../utils/errors';
 import { normalUser, testManga } from '../utils';
 
-afterAll(async () => {
-  const { end } = require('../../db');
-  await end();
-});
 
 describe('getFollows(userId)', () => {
   it('Returns followed manga with valid user', async () => {

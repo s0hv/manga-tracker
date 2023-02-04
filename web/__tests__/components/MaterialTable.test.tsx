@@ -3,6 +3,8 @@ import fetchMock from 'fetch-mock';
 import { act, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Checkbox } from '@mui/material';
+import { vi } from 'vitest';
+
 import {
   defaultOnSaveRow,
   EditableCheckbox,
@@ -219,7 +221,7 @@ describe('It should render correctly', () => {
 
 describe('Should handle editing', () => {
   test('should call save when save clicked', async () => {
-    const onSave = jest.fn();
+    const onSave = vi.fn();
 
     createWrapper({
       columns,
@@ -249,7 +251,7 @@ describe('Should handle editing', () => {
   });
 
   it('should not call save when cancel clicked', async () => {
-    const onSave = jest.fn();
+    const onSave = vi.fn();
 
     createWrapper({
       columns,
@@ -280,7 +282,7 @@ describe('Should handle editing', () => {
   });
 
   it('should not allow editing non editable columns', async () => {
-    const onSave = jest.fn();
+    const onSave = vi.fn();
 
     createWrapper({
       columns,
@@ -309,7 +311,7 @@ describe('Should handle editing', () => {
   });
 
   it('should allow editing string columns', async () => {
-    const onSave = jest.fn().mockImplementation(defaultOnSaveRow);
+    const onSave = vi.fn().mockImplementation(defaultOnSaveRow);
 
     createWrapper({
       columns,
@@ -351,7 +353,7 @@ describe('Should handle editing', () => {
   });
 
   it('should allow editing checkbox', async () => {
-    const onSave = jest.fn().mockImplementation(defaultOnSaveRow);
+    const onSave = vi.fn().mockImplementation(defaultOnSaveRow);
 
     createWrapper({
       columns,

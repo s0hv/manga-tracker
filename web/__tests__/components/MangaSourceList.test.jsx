@@ -1,7 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-
-import 'jest-extended';
+import { vi } from 'vitest';
 
 import userEvent from '@testing-library/user-event';
 import MangaSourceList from '../../src/components/MangaSourceList';
@@ -88,8 +87,8 @@ describe('Manga source list', () => {
 
 describe('Manga source list should handle user input', () => {
   it('Should call follow function on click', async () => {
-    const followUnfollow = jest.fn();
-    const createEvent = jest.fn();
+    const followUnfollow = vi.fn();
+    const createEvent = vi.fn();
     createEvent.mockImplementation(() => followUnfollow);
 
     render(

@@ -11,6 +11,7 @@ import fetchMock, {
   type MockOptionsMethodDelete,
   type MockOptionsMethodPut,
 } from 'fetch-mock';
+import { vi } from 'vitest';
 
 import userEvent from '@testing-library/user-event';
 import {
@@ -23,11 +24,13 @@ import {
 import Manga from '@/components/Manga';
 import { emptyFullManga as emptyManga, fullManga as manga } from '../constants';
 
-jest.mock('lodash.throttle', () => (_: any) => _);
+vi.mock('lodash.throttle', () => ({
+  default: (_: any) => _,
+}));
 
-describe('Manga page should render correctly', () => {
+describe('Manga page should render correctly', async () => {
   mockUTCDates();
-  mockNotistackHooks();
+  await mockNotistackHooks();
 
   beforeEach(() => {
     fetchMock.reset();

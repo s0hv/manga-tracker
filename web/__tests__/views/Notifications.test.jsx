@@ -2,6 +2,7 @@ import { render, screen, act } from '@testing-library/react';
 import { QueryClientProvider } from '@tanstack/react-query';
 import fetchMock from 'fetch-mock';
 import { SnackbarProvider } from 'notistack';
+import { vi } from 'vitest';
 
 import { queryClient, mockNotistackHooks, expectErrorSnackbar } from '../utils';
 import Notifications from '../../src/views/Notifications';
@@ -28,7 +29,7 @@ describe('Notifications view', () => {
   );
 
   it('Renders correctly', async () => {
-    const mockResponse = jest.fn();
+    const mockResponse = vi.fn();
     mockResponse.mockImplementation(() => ({ data: []}));
     fetchMock.get('path:/api/notifications', mockResponse);
 
@@ -59,7 +60,7 @@ describe('Notifications view', () => {
 
   /* Commented out as it times out for some reason after switching to next.js swc config
   it('Creates notification when create clicked', async () => {
-    const mockResponse = jest.fn();
+    const mockResponse = vi.fn();
     mockResponse.mockImplementation(() => ({ data: []}));
     fetchMock.get('path:/api/notifications', mockResponse);
 

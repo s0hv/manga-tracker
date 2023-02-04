@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
+import { vi } from 'vitest';
 
 import ReleaseHeatmap from '../../src/components/ReleaseHeatmap';
 
@@ -8,10 +9,10 @@ describe('Release heatmap', () => {
   // mock ResizeObserver
   window.ResizeObserver =
     window.ResizeObserver ||
-    jest.fn().mockImplementation(() => ({
-      disconnect: jest.fn(),
-      observe: jest.fn(),
-      unobserve: jest.fn(),
+    vi.fn().mockImplementation(() => ({
+      disconnect: vi.fn(),
+      observe: vi.fn(),
+      unobserve: vi.fn(),
     }));
 
   const data = [

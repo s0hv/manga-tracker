@@ -1,22 +1,18 @@
+import { vi } from 'vitest';
 import Store from '../../db/session-store';
 import { db } from '../../db/helpers';
 import { spyOnDb } from '../dbutils';
 
 
-jest.mock('../../utils/view-counter/manga-view-counter', () => ({
-  __esModule: true,
-  ...jest.requireActual('../../utils/view-counter/manga-view-counter'),
+vi.mock('../../utils/view-counter/manga-view-counter', async () => ({
+  ...await vi.importActual('../../utils/view-counter/manga-view-counter'),
 }));
-
-afterAll(async () => {
-  await db.sql.end({ timeout: 4 });
-});
 
 describe('sessionStore', () => {
   afterEach(() => {
-    jest.restoreAllMocks();
-    jest.clearAllTimers();
-    jest.useRealTimers();
+    vi.restoreAllMocks();
+    vi.clearAllTimers();
+    vi.useRealTimers();
   });
 
   it('Throws error when connection not given to constructor', () => {
@@ -121,7 +117,7 @@ describe('sessionStore', () => {
 
     it('Returns error on database errors while still setting cache', async () => {
       const error = new Error('test');
-      const spy = spyOnDb().mockImplementation(async () => { throw error });
+      const spy = spyOnDb('any').mockImplementation(async () => { throw error });
       const store = new Store({ conn: db });
       const sid = 'sid_set_error';
 
@@ -135,8 +131,8 @@ describe('sessionStore', () => {
   });
 
   describe('clearOldSessions and manga views', () => {
-    it('mergeSessionViews merges sessions correctly', (done) => {
-      jest.useFakeTimers();
+    it('mergeSessionViews merges sessions correctly', async () => {
+      vi.useFakeTimers();
 
       const createData = (mangaId, views) => ({ data: { mangaViews: { [mangaId]: views }}});
       const rows = [
@@ -163,15 +159,15 @@ describe('sessionStore', () => {
         },
       };
 
-      const mangaViews = require('../../utils/view-counter/manga-view-counter');
+      const mangaViews = await import('../../utils/view-counter/manga-view-counter');
 
       const dbSpy = spyOnDb('any').mockImplementation(async () => rows);
       const sessionClearInterval = 1000;
       const store = new Store({ conn: db, clearInterval: sessionClearInterval });
-      const sessionSpy = jest.spyOn(store, 'clearOldSessions');
+      const sessionSpy = vi.spyOn(store, 'clearOldSessions');
 
       // This must be wrapped with done since otherwise the callback is not used in evaluation
-      jest.spyOn(mangaViews, 'onSessionExpire')
+      const promise = new Promise((done, reject) => vi.spyOn(mangaViews, 'onSessionExpire')
         .mockImplementation((sess) => {
           clearInterval(store.clearInterval);
           try {
@@ -180,28 +176,29 @@ describe('sessionStore', () => {
             expect(sessionSpy).toHaveBeenCalledTimes(1);
             done();
           } catch (err) {
-            done(err);
+            reject(err);
           }
-          jest.runAllTimers();
-          jest.useRealTimers();
-        });
+          vi.runAllTimers();
+          vi.useRealTimers();
+        }));
 
-      jest.advanceTimersByTime(sessionClearInterval+10);
+      vi.advanceTimersByTime(sessionClearInterval+10);
+      await promise;
     });
 
     it('Calls clearOldSessions automatically', async () => {
-      jest.useFakeTimers();
+      vi.useFakeTimers();
 
       const spy = spyOnDb('any');
       const sessionClearInterval = 1000;
       const store = new Store({ conn: db, clearInterval: sessionClearInterval });
-      const sessionSpy = jest.spyOn(store, 'clearOldSessions');
+      const sessionSpy = vi.spyOn(store, 'clearOldSessions');
 
-      jest.advanceTimersByTime(sessionClearInterval+10);
+      vi.advanceTimersByTime(sessionClearInterval+10);
       clearInterval(store.clearInterval);
-      jest.runAllTimers();
+      vi.runAllTimers();
       // postgres.js does not like fake timers
-      jest.useRealTimers();
+      vi.useRealTimers();
 
       expect(spy).toHaveBeenCalled();
       expect(sessionSpy).toHaveBeenCalledTimes(1);

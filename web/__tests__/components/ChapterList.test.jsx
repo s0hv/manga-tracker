@@ -1,5 +1,6 @@
 import React from 'react';
 import fetchMock from 'fetch-mock';
+import { vi } from 'vitest';
 
 import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -7,7 +8,7 @@ import userEvent from '@testing-library/user-event';
 import { mockNotistackHooks } from '../utils';
 import ChapterList from '../../src/components/ChapterList';
 
-mockNotistackHooks();
+await mockNotistackHooks();
 
 describe('Chapter list should allow editing', () => {
   const testChapter = {
@@ -27,7 +28,7 @@ describe('Chapter list should allow editing', () => {
   const mangaId = 1;
 
   const mockChapters = (chapters) => {
-    const chaptersMock = jest.fn();
+    const chaptersMock = vi.fn();
     chaptersMock.mockImplementation(
       () => Promise.resolve({ count: chapters?.length, chapters: chapters })
     );
@@ -40,7 +41,7 @@ describe('Chapter list should allow editing', () => {
   };
 
   it('Should post correctly', async () => {
-    const postMock = jest.fn();
+    const postMock = vi.fn();
     postMock.mockImplementation(() => Promise.resolve({}));
     fetchMock.post('path:/api/chapter/1', postMock);
     const chapters = [testChapter];
@@ -78,7 +79,7 @@ describe('Chapter list should allow editing', () => {
   });
 
   it('Should delete correctly', async () => {
-    const deleteMock = jest.fn();
+    const deleteMock = vi.fn();
     deleteMock.mockImplementation(() => Promise.resolve({}));
     fetchMock.delete(`path:/api/chapter/${testChapter.chapterId}`, deleteMock);
 

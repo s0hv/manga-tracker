@@ -1,5 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
+import { vi } from 'vitest';
+
 import {
   GroupedChapterList,
   ChapterGroupWithCover,
@@ -97,13 +99,13 @@ describe('GroupedChapterList', () => {
 
   it('should render correctly', async () => {
     const nGroups = 5;
-    const groupToString = jest.fn().mockImplementation(group => group);
+    const groupToString = vi.fn().mockImplementation(group => group);
 
     const GroupComponent = ({ children }) => <div>{children}</div>;
-    const GroupComponentMock = jest.fn().mockImplementation(GroupComponent);
+    const GroupComponentMock = vi.fn().mockImplementation(GroupComponent);
 
     const ChapterComponent = ({ title }) => <h5>{title}</h5>;
-    const ChapterComponentMock = jest.fn().mockImplementation(ChapterComponent);
+    const ChapterComponentMock = vi.fn().mockImplementation(ChapterComponent);
 
     const chaptersA1 = generateChaptersWithMangaId(groupA, 2);
     const chaptersB = generateChaptersWithMangaId(groupB, 2);

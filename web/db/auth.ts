@@ -38,7 +38,7 @@ export async function generateAuthToken(uid: DatabaseId, userUUID: string) {
       const lookup = buf.toString('base64', 33);
 
       const age = 2592e+6; // 30 days
-      const sql = db.sql`INSERT INTO auth_tokens (user_id, hashed_token, expires_at, lookup) VALUES (${uid}, encode(digest(${token}, 'sha256'), 'hex'), ${new Date(Date.now() + age)}, ${lookup})`;
+      const sql = db.any`INSERT INTO auth_tokens (user_id, hashed_token, expires_at, lookup) VALUES (${uid}, encode(digest(${token}, 'sha256'), 'hex'), ${new Date(Date.now() + age)}, ${lookup})`;
 
       resolve(sql.execute()
         .then(() => `${lookup};${token};${Buffer.from(userUUID).toString('base64')}`));
@@ -146,7 +146,7 @@ export const requiresUser = (req: Request, res: Response, next: NextFunction) =>
  * @return {Promise<any>}
  */
 export function clearUserAuthTokens(uid: number) {
-  return db.sql`DELETE FROM auth_tokens WHERE user_id=${uid}`.execute();
+  return db.any`DELETE FROM auth_tokens WHERE user_id=${uid}`.execute();
 }
 
 function getUserByToken(lookup: string, token: string, uuid: string) {
@@ -292,7 +292,7 @@ export const checkAuth = (app: Express) => {
 export function clearUserAuthToken(uid: number, auth: string, cb: (err: null | any) => any) {
   const [lookup, token] = auth.split(';', 3);
 
-  return db.sql`DELETE FROM auth_tokens WHERE user_id=${uid} AND lookup=${lookup} AND hashed_token=encode(digest(${token}, 'sha256'), 'hex')`
+  return db.any`DELETE FROM auth_tokens WHERE user_id=${uid} AND lookup=${lookup} AND hashed_token=encode(digest(${token}, 'sha256'), 'hex')`
     .execute()
     .then(() => cb(null))
     .catch(err => cb(err));

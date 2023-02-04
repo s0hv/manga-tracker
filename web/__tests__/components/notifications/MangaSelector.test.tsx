@@ -5,6 +5,7 @@ import fetchMock from 'fetch-mock';
 import { ConfirmProvider } from 'material-ui-confirm';
 import { Form } from 'react-final-form';
 import type { FC, PropsWithChildren } from 'react';
+import { vi } from 'vitest';
 
 import { mockNotistackHooks, queryClient } from '../../utils';
 import MangaSelector, {
@@ -19,7 +20,7 @@ const Root: FC<PropsWithChildren<{ selectedManga?: NotificationFollow[] }>> = ({
   <QueryClientProvider client={queryClient}>
     <ConfirmProvider>
       <Form
-        onSubmit={jest.fn()}
+        onSubmit={vi.fn()}
         initialValues={{
           [inputName]: selectedManga,
           [overrideName]: null,
@@ -35,8 +36,8 @@ const manga: NotificationFollow[] = [
   { mangaId: 1, serviceId: 2, title: 'Test manga 1', serviceName: 'Test service 2' },
 ];
 
-beforeEach(() => {
-  mockNotistackHooks();
+beforeEach(async () => {
+  await mockNotistackHooks();
   fetchMock.reset();
   queryClient.clear();
 });
@@ -104,7 +105,7 @@ describe('MangaSelector', () => {
   });
 
   it('Renders fetched items correctly', async () => {
-    const mockResponse = jest.fn();
+    const mockResponse = vi.fn();
     const data = [{
       title: manga[0].title,
       mangaId: manga[1].mangaId,

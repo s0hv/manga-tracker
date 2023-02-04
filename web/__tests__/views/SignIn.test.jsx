@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, screen, act, fireEvent } from '@testing-library/react';
 import fetchMock from 'fetch-mock';
+import { vi } from 'vitest';
 
 import {
   mockNotistackHooks,
@@ -12,7 +13,7 @@ import SignIn from '../../src/views/SignIn';
 beforeEach(() => mockNotistackHooks());
 
 describe('Sign in page functionality', () => {
-  const replaceMock = jest.fn();
+  const replaceMock = vi.fn();
 
   delete window.location;
   window.location = { replace: replaceMock };

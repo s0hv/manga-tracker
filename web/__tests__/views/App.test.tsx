@@ -1,5 +1,6 @@
 import React from 'react';
 import fetchMock from 'fetch-mock';
+import { type Mock, vi } from 'vitest';
 
 import { act, render, screen } from '@testing-library/react';
 import {
@@ -17,8 +18,8 @@ import { ChapterRelease } from '@/types/api/chapter';
 setupFaker();
 
 describe('Chapter list should allow editing', () => {
-  const mockChapters = (n = 10): [jest.Mock, jest.Mock, ChapterRelease[]] => {
-    const chaptersMock = jest.fn();
+  const mockChapters = (n = 10): [Mock, Mock, ChapterRelease[]] => {
+    const chaptersMock = vi.fn();
     const chapters = generateNSchemas<ChapterRelease>(LatestChapter, n);
     const serviceIds = new Set<number>(chapters.map(c => c.serviceId));
     const services = generateNSchemas<ServiceForApi>(Service, serviceIds.size);
@@ -37,7 +38,7 @@ describe('Chapter list should allow editing', () => {
       chaptersMock
     );
 
-    const servicesMock = jest.fn();
+    const servicesMock = vi.fn();
     servicesMock.mockImplementation(() => Promise.resolve({ data: services }));
 
     fetchMock.get(

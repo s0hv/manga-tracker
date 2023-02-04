@@ -2,11 +2,12 @@ import React from 'react';
 import fetchMock from 'fetch-mock';
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { vi } from 'vitest';
 
 import MergeManga from '../../src/views/MergeManga';
 import { fullManga, emptyFullManga } from '../constants';
 
-jest.mock('lodash.throttle', () => (_) => _);
+vi.mock('lodash.throttle', () => ({ default: (_) => _ }));
 
 describe('Merge manga page should render correctly', () => {
   const mockResult = [

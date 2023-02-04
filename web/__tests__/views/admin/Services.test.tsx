@@ -59,9 +59,9 @@ const services: ServiceForAdminSerialized[] = [
   },
 ];
 
-describe('Services page should render correctly', () => {
+describe('Services page should render correctly', async () => {
   mockUTCDates();
-  mockNotistackHooks();
+  await mockNotistackHooks();
 
   const expectHeadersExist = () => {
     const headerRow = within(screen.getAllByRole('row')[0]);
@@ -95,8 +95,8 @@ describe('Services page should render correctly', () => {
 describe('Services page should allow editing', () => {
   const service = { ...services[0] };
 
-  beforeEach(() => {
-    mockNotistackHooks();
+  beforeEach(async () => {
+    await mockNotistackHooks();
     fetchMock.reset();
   });
 

@@ -133,8 +133,8 @@ describe('MangaServiceTable should allow editing', () => {
   const length = 2;
   const mangaService = mangaServices[0];
 
-  beforeEach(() => {
-    mockNotistackHooks();
+  beforeEach(async () => {
+    await mockNotistackHooks();
     fetchMock.reset();
     fetchMock.get(`/api/admin/manga/${mangaId}/services`, [mangaService]);
     fetchMock.get('/api/services', services);

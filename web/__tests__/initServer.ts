@@ -1,17 +1,19 @@
 import { Server } from 'http';
 import { type AddressInfo } from 'net';
+import { vi } from 'vitest';
 
-/* eslint-disable @typescript-eslint/no-var-requires */
-jest.mock('./../db/auth', () => ({
-  __esModule: true,
-  ...jest.requireActual('./../db/auth'),
-  requiresUser: jest.fn().mockImplementation(jest.requireActual('./../db/auth').requiresUser),
-}));
+vi.mock('./../db/auth', async () => {
+  const auth = await vi.importActual<typeof import('./../db/auth')>('./../db/auth');
+  return {
+    ...auth,
+    requiresUser: vi.fn().mockImplementation(auth.requiresUser),
+  };
+});
 
 export default async function initServer(): Promise<{ httpServer: Server, addr: string }> {
-  jest.mock('./../db/elasticsearch', () => {
-    const { Client } = require('@elastic/elasticsearch');
-    const Mock = require('@elastic/elasticsearch-mock');
+  vi.mock('./../db/elasticsearch', async () => {
+    const { Client } = await import('@elastic/elasticsearch');
+    const { default: Mock } = await import('@elastic/elasticsearch-mock');
     const mock = new Mock();
 
     mock.add({
@@ -36,10 +38,12 @@ export default async function initServer(): Promise<{ httpServer: Server, addr: 
       path: ['/:index/_update/:id', '/:index/_doc/:id'],
     }, () => ({ status: 'OK' }));
 
-    return new Client({
-      node: 'http://localhost:9200',
-      Connection: mock.getConnection(),
-    });
+    return {
+      default: new Client({
+        node: 'http://localhost:9200',
+        Connection: mock.getConnection(),
+      }),
+    };
   });
 
   process.env.PORT = '0';

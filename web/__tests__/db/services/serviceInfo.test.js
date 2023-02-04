@@ -1,10 +1,5 @@
 import { getServices } from '../../../db/services/serviceInfo';
 
-afterAll(async () => {
-  const { end } = require('../../../db');
-  await end();
-});
-
 describe('getServices()', () => {
   it('Returns services', async () => {
     const services = await getServices();

@@ -1,12 +1,6 @@
 import { getLatestReleases, getUserFollows } from '../../db/db';
 import { normalUser } from '../utils';
 
-
-afterAll(async () => {
-  const { end } = require('../../db');
-  await end();
-});
-
 describe('getLatestReleases()', () => {
   const serviceId = 1;
   const mangaId = 1;
