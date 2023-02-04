@@ -11,7 +11,7 @@ import { csrfToken } from './__tests__/constants';
 expect.extend(matchers);
 expect.extend(extendedMatchers);
 
-config({ path: '../.env', override: true });
+config({ path: '../.env' });
 
 // Don't want API calls to 3rd party services during tests
 vi.mock('./db/mangadex', () => ({
