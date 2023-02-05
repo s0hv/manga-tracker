@@ -234,11 +234,9 @@ class TitleDetailView(google.protobuf.message.Message):
     UPDATE_TIMING_FIELD_NUMBER: builtins.int
     VIEWING_PERIOD_DESCRIPTION_FIELD_NUMBER: builtins.int
     NON_APPEARANCE_INFO_FIELD_NUMBER: builtins.int
-    FIRST_CHAPTER_LIST_FIELD_NUMBER: builtins.int
-    LAST_CHAPTER_LIST_FIELD_NUMBER: builtins.int
     RECOMMENDED_TITLES_FIELD_NUMBER: builtins.int
     IS_SIMUL_RELEASE_FIELD_NUMBER: builtins.int
-    CHAPTERS_DESCENDING_FIELD_NUMBER: builtins.int
+    CHAPTERS_FIELD_NUMBER: builtins.int
     @property
     def title(self) -> global___Title: ...
     title_image_url: builtins.str
@@ -249,13 +247,11 @@ class TitleDetailView(google.protobuf.message.Message):
     viewing_period_description: builtins.str
     non_appearance_info: builtins.str
     @property
-    def first_chapter_list(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___Chapter]: ...
-    @property
-    def last_chapter_list(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___Chapter]: ...
-    @property
     def recommended_titles(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___Title]: ...
     is_simul_release: builtins.bool
-    chapters_descending: builtins.bool
+    @property
+    def chapters(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___ChaptersView]:
+        """27 is title ids for other languages"""
     def __init__(
         self,
         *,
@@ -267,30 +263,73 @@ class TitleDetailView(google.protobuf.message.Message):
         update_timing: global___TitleDetailView.UpdateTiming.ValueType = ...,
         viewing_period_description: builtins.str = ...,
         non_appearance_info: builtins.str = ...,
-        first_chapter_list: collections.abc.Iterable[global___Chapter] | None = ...,
-        last_chapter_list: collections.abc.Iterable[global___Chapter] | None = ...,
         recommended_titles: collections.abc.Iterable[global___Title] | None = ...,
         is_simul_release: builtins.bool = ...,
-        chapters_descending: builtins.bool = ...,
+        chapters: collections.abc.Iterable[global___ChaptersView] | None = ...,
     ) -> None: ...
     def HasField(self, field_name: typing_extensions.Literal["title", b"title"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing_extensions.Literal["background_image_url", b"background_image_url", "chapters_descending", b"chapters_descending", "first_chapter_list", b"first_chapter_list", "is_simul_release", b"is_simul_release", "last_chapter_list", b"last_chapter_list", "next_timestamp", b"next_timestamp", "non_appearance_info", b"non_appearance_info", "overview", b"overview", "recommended_titles", b"recommended_titles", "title", b"title", "title_image_url", b"title_image_url", "update_timing", b"update_timing", "viewing_period_description", b"viewing_period_description"]) -> None: ...
+    def ClearField(self, field_name: typing_extensions.Literal["background_image_url", b"background_image_url", "chapters", b"chapters", "is_simul_release", b"is_simul_release", "next_timestamp", b"next_timestamp", "non_appearance_info", b"non_appearance_info", "overview", b"overview", "recommended_titles", b"recommended_titles", "title", b"title", "title_image_url", b"title_image_url", "update_timing", b"update_timing", "viewing_period_description", b"viewing_period_description"]) -> None: ...
 
 global___TitleDetailView = TitleDetailView
+
+@typing_extensions.final
+class ChaptersView(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    FIRST_CHAPTER_LIST_FIELD_NUMBER: builtins.int
+    UNAVAILABLE_CHAPTER_LIST_FIELD_NUMBER: builtins.int
+    LAST_CHAPTER_LIST_FIELD_NUMBER: builtins.int
+    @property
+    def first_chapter_list(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___Chapter]: ...
+    @property
+    def unavailable_chapter_list(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___Chapter]: ...
+    @property
+    def last_chapter_list(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___Chapter]: ...
+    def __init__(
+        self,
+        *,
+        first_chapter_list: collections.abc.Iterable[global___Chapter] | None = ...,
+        unavailable_chapter_list: collections.abc.Iterable[global___Chapter] | None = ...,
+        last_chapter_list: collections.abc.Iterable[global___Chapter] | None = ...,
+    ) -> None: ...
+    def ClearField(self, field_name: typing_extensions.Literal["first_chapter_list", b"first_chapter_list", "last_chapter_list", b"last_chapter_list", "unavailable_chapter_list", b"unavailable_chapter_list"]) -> None: ...
+
+global___ChaptersView = ChaptersView
+
+@typing_extensions.final
+class TitleVariants(google.protobuf.message.Message):
+    """Different language versions of a title"""
+
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    NAME_FIELD_NUMBER: builtins.int
+    TITLE_FIELD_NUMBER: builtins.int
+    name: builtins.str
+    @property
+    def title(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___Title]: ...
+    def __init__(
+        self,
+        *,
+        name: builtins.str = ...,
+        title: collections.abc.Iterable[global___Title] | None = ...,
+    ) -> None: ...
+    def ClearField(self, field_name: typing_extensions.Literal["name", b"name", "title", b"title"]) -> None: ...
+
+global___TitleVariants = TitleVariants
 
 @typing_extensions.final
 class AllTitlesView(google.protobuf.message.Message):
     DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
-    TITLES_FIELD_NUMBER: builtins.int
+    TITLE_VARIANTS_FIELD_NUMBER: builtins.int
     @property
-    def titles(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___Title]: ...
+    def title_variants(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___TitleVariants]: ...
     def __init__(
         self,
         *,
-        titles: collections.abc.Iterable[global___Title] | None = ...,
+        title_variants: collections.abc.Iterable[global___TitleVariants] | None = ...,
     ) -> None: ...
-    def ClearField(self, field_name: typing_extensions.Literal["titles", b"titles"]) -> None: ...
+    def ClearField(self, field_name: typing_extensions.Literal["title_variants", b"title_variants"]) -> None: ...
 
 global___AllTitlesView = AllTitlesView
 
@@ -298,25 +337,25 @@ global___AllTitlesView = AllTitlesView
 class SuccessResult(google.protobuf.message.Message):
     DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
-    ALL_TITLES_FIELD_NUMBER: builtins.int
     TITLE_DETAIL_FIELD_NUMBER: builtins.int
     WEB_HOME_VIEW_FIELD_NUMBER: builtins.int
-    @property
-    def all_titles(self) -> global___AllTitlesView: ...
+    ALL_TITLES_FIELD_NUMBER: builtins.int
     @property
     def title_detail(self) -> global___TitleDetailView: ...
     @property
     def web_home_view(self) -> global___WebHomeView: ...
+    @property
+    def all_titles(self) -> global___AllTitlesView: ...
     def __init__(
         self,
         *,
-        all_titles: global___AllTitlesView | None = ...,
         title_detail: global___TitleDetailView | None = ...,
         web_home_view: global___WebHomeView | None = ...,
+        all_titles: global___AllTitlesView | None = ...,
     ) -> None: ...
     def HasField(self, field_name: typing_extensions.Literal["all_titles", b"all_titles", "result", b"result", "title_detail", b"title_detail", "web_home_view", b"web_home_view"]) -> builtins.bool: ...
     def ClearField(self, field_name: typing_extensions.Literal["all_titles", b"all_titles", "result", b"result", "title_detail", b"title_detail", "web_home_view", b"web_home_view"]) -> None: ...
-    def WhichOneof(self, oneof_group: typing_extensions.Literal["result", b"result"]) -> typing_extensions.Literal["all_titles", "title_detail", "web_home_view"] | None: ...
+    def WhichOneof(self, oneof_group: typing_extensions.Literal["result", b"result"]) -> typing_extensions.Literal["title_detail", "web_home_view", "all_titles"] | None: ...
 
 global___SuccessResult = SuccessResult
 

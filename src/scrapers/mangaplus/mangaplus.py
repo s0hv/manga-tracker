@@ -1,6 +1,6 @@
 import logging
 import re
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 from enum import Enum
 from typing import Optional, List, Tuple, Set
 
@@ -54,17 +54,6 @@ class TitleWrapper:
     @property
     def language(self) -> str:
         return mangaplus_pb2.Title.Language.Name(self._title.language)
-
-    def to_dict(self) -> dict:
-        return {
-            'title_id': self.title_id,
-            'name': self.name,
-            'author': self.author,
-            'portrait_image_url': self.portrait_image_url,
-            'landscape_image_url': self.landscape_image_url,
-            'view_count': self.view_count,
-            'language': self._title.language
-        }
 
     def __str__(self):
         return f'{self.name} / {self.title_id}'
@@ -122,16 +111,17 @@ class TitleDetailViewWrapper:
         return self._title_detail.non_appearance_info
 
     @property
-    def first_chapter_list(self) -> List['ChapterWrapper']:
+    def chapters(self) -> List['ChapterWrapper']:
         title_name = self.title.name
-        return [ChapterWrapper(c, title_name) for c in
-                self._title_detail.first_chapter_list]
 
-    @property
-    def last_chapter_list(self) -> List['ChapterWrapper']:
-        title_name = self.title.name
-        return [ChapterWrapper(c, title_name) for c in
-                self._title_detail.last_chapter_list]
+        def flatten(chapters_view: mangaplus_pb2.ChaptersView):
+            yield from chapters_view.first_chapter_list
+            yield from chapters_view.unavailable_chapter_list
+            yield from chapters_view.last_chapter_list
+
+        return [ChapterWrapper(c, title_name)
+                for ch_cont in self._title_detail.chapters
+                for c in flatten(ch_cont)]
 
     @property
     def recommended_titles(self) -> List[TitleWrapper]:
@@ -141,26 +131,6 @@ class TitleDetailViewWrapper:
     def is_simul_release(self) -> Optional[bool]:
         return self._title_detail.is_simul_release
 
-    @property
-    def chapters_descending(self) -> Optional[bool]:
-        return self._title_detail.chapters_descending
-
-    def to_dict(self) -> dict:
-        return {
-            'title': self.title.to_dict(),
-            'title_image_url': self.title_image_url,
-            'overview': self.overview,
-            'background_image_url': self.background_image_url,
-            'next_timestamp': self.next_timestamp and int(self.next_timestamp.replace(tzinfo=timezone.utc).timestamp()),  # timestamp returns in local timezone
-            'update_timing': self._title_detail.update_timing,
-            'viewing_period_description': self.viewing_period_description,
-            'non_appearance_info': self.non_appearance_info,
-            'first_chapter_list': [c.to_dict() for c in self.first_chapter_list],
-            'last_chapter_list': [c.to_dict() for c in self.last_chapter_list],
-            'recommended_title_list': [t.to_dict() for t in self.recommended_titles],
-            'is_simul_released': self.is_simul_release
-        }
-
 
 class AllTitlesViewWrapper:
     def __init__(self, all_titles: mangaplus_pb2.AllTitlesView):
@@ -168,7 +138,9 @@ class AllTitlesViewWrapper:
 
     @property
     def titles(self) -> List[TitleWrapper]:
-        return [TitleWrapper(title) for title in self._all_titles.titles
+        return [TitleWrapper(title)
+                for variant in self._all_titles.title_variants
+                for title in variant.title
                 if title.language == mangaplus_pb2.Title.Language.ENGLISH]
 
 
@@ -276,27 +248,17 @@ class ChapterWrapper(BaseChapter):
     def title(self) -> str:
         return self.chapter_title or ''
 
-    def to_dict(self) -> dict:
-        return {
-            'title_id': self.title_id,
-            'chapter_id': self.chapter_identifier,
-            'name': self._chapter.name,
-            'sub_title': self.chapter_title,
-            'thumbnail_url': self._chapter.thumbnail_url,
-            'start_timestamp': int(self.release_date.replace(tzinfo=timezone.utc).timestamp()),  # timestamp returns in local timezone
-            'end_timestamp': self._chapter.end_timestamp
-        }
-
 
 class MangaPlus(BaseScraperWhole):
     ID = 1
     NAME = 'MANGA Plus'
-    API = 'https://jumpg-webapi.tokyo-cdn.com/api/title_detail?title_id={}'
-    FEED_URL = 'https://jumpg-webapi.tokyo-cdn.com/api/title_list/all'
+    API = 'https://jumpg-webapi.tokyo-cdn.com/api/title_detailV2?title_id={}'
+    FEED_URL = 'https://jumpg-webapi.tokyo-cdn.com/api/title_list/allV2'
     URL = 'https://mangaplus.shueisha.co.jp'
     MANGA_URL = 'https://mangaplus.shueisha.co.jp/titles/{}'
     CHAPTER_REGEX = re.compile(r'#(\d+)')
-    SPECIAL_CHAPTER_REGEX = re.compile(r'\s*(#?ex|one[- ]?shot)s*', re.I)
+    SPECIAL_CHAPTER_REGEX = re.compile(r'\s*(#?ex)s*', re.I)
+    ONESHOT_REGEX = re.compile(r'\s*(one[- ]?shot)s*', re.I)
     CHAPTER_URL_FORMAT = 'https://mangaplus.shueisha.co.jp/viewer/{}'
     MANGA_URL_FORMAT = 'https://mangaplus.shueisha.co.jp/titles/{}'
     GROUP = 'Shueisha'
@@ -311,6 +273,11 @@ class MangaPlus(BaseScraperWhole):
             match = MangaPlus.SPECIAL_CHAPTER_REGEX.match(chapter_number)
             if match:
                 return 0, 5
+
+            match = MangaPlus.ONESHOT_REGEX.match(chapter_number)
+            if match:
+                return 1, None
+
             raise ValueError(f'Invalid chapter number given {chapter_number}')
 
         return int(match.groups()[0]), None
@@ -430,7 +397,7 @@ class MangaPlus(BaseScraperWhole):
         group = self.dbutil.get_or_create_group(self.GROUP)
 
         group_id = group.group_id
-        chapters: List[ChapterWrapper] = [*series.first_chapter_list, *series.last_chapter_list]
+        chapters: List[ChapterWrapper] = series.chapters
 
         # Update chapter number for special chapters
         prev_chapter = None
@@ -477,7 +444,7 @@ class MangaPlus(BaseScraperWhole):
                 completed = True
 
         newest_chapter = None
-        for c in series.last_chapter_list:
+        for c in series.chapters:
             if not newest_chapter:
                 newest_chapter = c
                 continue
@@ -518,12 +485,13 @@ class MangaPlus(BaseScraperWhole):
 
         return {c.chapter_id for c in inserted}
 
-    def set_checked(self, service_id: int) -> None:
+    def set_checked(self, service_id: int, is_manga: bool = False) -> None:
         """
         Mangaplus new series checks should only be done seldom
         """
         try:
             BaseScraper.set_checked(self, service_id)
-            self.dbutil.update_service_whole(service_id, self.CONFIG.check_interval)
+            if not is_manga:
+                self.dbutil.update_service_whole(service_id, self.CONFIG.check_interval)
         except psycopg.Error:
             logger.exception(f'Failed to update service disabled time for {self.NAME} {service_id}')

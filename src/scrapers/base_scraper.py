@@ -266,7 +266,7 @@ class BaseScraper(abc.ABC):
     def dbutil(self) -> 'DbUtil':
         return self._dbutil
 
-    def set_checked(self, service_id: int) -> None:
+    def set_checked(self, service_id: int, is_manga: bool = False) -> None:
         with self.conn.cursor() as cursor:
             now = utcnow()
             disabled_until = now + self.min_update_interval()
@@ -440,7 +440,7 @@ class BaseScraperWhole(BaseScraper, ABC):
 
         return service_id
 
-    def set_checked(self, service_id: int) -> None:
+    def set_checked(self, service_id: int, is_manga: bool = False) -> None:
         """
         Sets the service and service_whole as checked based on the min_update_interval
         defined by the service

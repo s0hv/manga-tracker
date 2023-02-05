@@ -193,7 +193,7 @@ class UpdateScheduler:
                 if idx != len(manga_info):
                     time.sleep(rng.randint(200, 1000)/100)
 
-            scraper.set_checked(service_id)
+            scraper.set_checked(service_id, True)
 
             return manga_ids, chapter_ids
 
