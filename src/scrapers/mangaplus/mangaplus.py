@@ -40,14 +40,6 @@ class TitleWrapper:
         return self._title.author
 
     @property
-    def portrait_image_url(self) -> Optional[str]:
-        return self._title.portrait_image_url
-
-    @property
-    def landscape_image_url(self) -> Optional[str]:
-        return self._title.landscape_image_url
-
-    @property
     def view_count(self) -> Optional[int]:
         return self._title.view_count
 
@@ -80,16 +72,8 @@ class TitleDetailViewWrapper:
         return TitleWrapper(self._title_detail.title)
 
     @property
-    def title_image_url(self) -> Optional[str]:
-        return self._title_detail.title_image_url
-
-    @property
     def overview(self) -> Optional[str]:
         return self._title_detail.overview
-
-    @property
-    def background_image_url(self) -> Optional[str]:
-        return self._title_detail.background_image_url
 
     @property
     def next_timestamp(self) -> Optional[datetime]:
@@ -122,10 +106,6 @@ class TitleDetailViewWrapper:
         return [ChapterWrapper(c, title_name)
                 for ch_cont in self._title_detail.chapters
                 for c in flatten(ch_cont)]
-
-    @property
-    def recommended_titles(self) -> List[TitleWrapper]:
-        return [TitleWrapper(t) for t in self._title_detail.recommended_titles]
 
     @property
     def is_simul_release(self) -> Optional[bool]:
@@ -310,38 +290,6 @@ class MangaPlus(BaseScraperWhole):
         all_titles = resp.all_titles_view
 
         return all_titles
-
-    def add_series(self, title_id: str) -> Optional[bool]:
-        parsed = self.parse_series(title_id)
-        if parsed is None or not isinstance(parsed.title_detail_view, TitleDetailViewWrapper):
-            return None
-
-        series = parsed.title_detail_view
-
-        sql = 'SELECT service_id FROM services WHERE url=%s'
-        with self.conn.transaction():
-            with self.conn.cursor() as cur:
-                cur.execute(sql, (self.URL,))
-                service_id = cur.fetchone()
-                if not service_id:
-                    logger.error('Could not find service id for Manga Plus')
-                    return None
-
-                service_id = service_id[0]
-
-                manga = self.dbutil.add_new_manga_and_check_duplicate_titles([
-                    MangaService(service_id=service_id, disabled=False,
-                                 title_id=title_id,
-                                 last_check=utcnow(),
-                                 title=series.title.name)
-                ])
-                if not manga or not manga[0].manga_id:
-                    logger.warning('Manga not returned even it should have')
-                    return None
-
-                self.add_chapters(series, service_id, manga[0].manga_id)
-
-        return None
 
     def scrape_service(self, service_id: int, feed_url: str,
                        last_update: Optional[datetime], title_id: Optional[str] = None) -> Optional[ScrapeServiceRetVal]:
