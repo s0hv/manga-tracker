@@ -75,6 +75,7 @@ def test_round_seconds(args, correct):
     ('Chapter 1: Chapter title', 'Chapter title'),
     ('Chapter 1 - Chapter title', 'Chapter title'),
     ('Chapter 1- Chapter title', 'Chapter title'),
+    ('Chapter 1; Chapter title', 'Chapter title'),
 ])
 def test_remove_chapter_prefix(title, correct):
     assert remove_chapter_prefix(title) == correct

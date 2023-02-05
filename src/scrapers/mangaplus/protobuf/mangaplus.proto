@@ -72,22 +72,33 @@ message TitleDetailView {
 	UpdateTiming update_timing = 6;
 	string viewing_period_description = 7;
 	string non_appearance_info = 8;
-	repeated Chapter first_chapter_list = 9;
-	repeated Chapter last_chapter_list = 10;
 	repeated Title recommended_titles = 12;
 	bool is_simul_release = 14;
-	bool chapters_descending = 17;
+	// 27 is title ids for other languages
+	repeated ChaptersView chapters = 28;
+}
+
+message ChaptersView {
+	repeated Chapter first_chapter_list = 2;
+	repeated Chapter unavailable_chapter_list = 3;
+	repeated Chapter last_chapter_list = 4;
+}
+
+// Different language versions of a title
+message TitleVariants {
+	string name = 1;
+	repeated Title title = 2;
 }
 
 message AllTitlesView {
-	repeated Title titles = 1;
+	repeated TitleVariants title_variants = 1;
 }
 
 message SuccessResult {
 	oneof result {
-		AllTitlesView all_titles = 5;
 		TitleDetailView title_detail = 8;
 		WebHomeView web_home_view = 11;
+		AllTitlesView all_titles = 25;
 	}
 }
 

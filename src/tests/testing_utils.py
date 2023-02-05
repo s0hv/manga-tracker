@@ -309,6 +309,17 @@ class BaseTestClasses:
                     sorted(expected, key=self.dbChapterSortKey)):
                 self.assertDbChaptersEqual(chapter, expect, include_id=include_id)
 
+        def _get_manga_service(self, service_id: int, title_id: str) -> MangaService:
+            ms = self.dbutil.get_manga_service(service_id, title_id)
+            self.assertIsNotNone(ms)
+            return ms
+
+        def assertMangaServiceEnabled(self, service_id: int, title_id: str):
+            self.assertFalse(self._get_manga_service(service_id, title_id).disabled)
+
+        def assertMangaServiceDisabled(self, service_id: int, title_id: str):
+            self.assertTrue(self._get_manga_service(service_id, title_id).disabled)
+
     class ModelAssertions(unittest.TestCase):
         def assertChaptersEqual(self, a: Union[BaseChapter, 'ChapterTestModel', DbChapter],
                                 b: Union[BaseChapter, 'ChapterTestModel'], ignore_date: bool = False):

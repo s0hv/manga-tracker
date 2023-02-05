@@ -131,7 +131,7 @@ def inject_service_values(dbutil: 'DbUtil'):
 
 
 def remove_chapter_prefix(title: str):
-    return re.sub(r'^chapter \d+(\.\d+)?( *[:-]? +|$)', '', title, flags=re.I)
+    return re.sub(r'^chapter \d+(\.\d+)?( *[:\-;]? +|$)', '', title, flags=re.I)
 
 
 def utcnow() -> datetime:
