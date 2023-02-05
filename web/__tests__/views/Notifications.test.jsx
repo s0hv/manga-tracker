@@ -1,4 +1,4 @@
-import { render, screen, act } from '@testing-library/react';
+import { render, screen, act, waitFor } from '@testing-library/react';
 import { QueryClientProvider } from '@tanstack/react-query';
 import fetchMock from 'fetch-mock';
 import { SnackbarProvider } from 'notistack';
@@ -21,8 +21,8 @@ const Root = ({ children }) => (
   </QueryClientProvider>
 );
 
-beforeEach(() => {
-  mockNotistackHooks();
+beforeEach(async () => {
+  await mockNotistackHooks();
   fetchMock.reset();
   queryClient.clear();
 });
@@ -61,9 +61,10 @@ describe('Notifications view', () => {
     await act(async () => {
       render(<Rendered />);
     });
-    restoreMocks(spies);
 
-    expectErrorSnackbar();
+    // For some reason this gets called after exiting act
+    await waitFor(expectErrorSnackbar);
+    restoreMocks(spies);
   });
 
   /* Commented out as it times out for some reason after switching to next.js swc config
