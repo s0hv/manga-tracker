@@ -15,7 +15,9 @@
   "exclude": [
     "node_modules",
     "src",
-    "__tests__/**"
+    "__tests__/**",
+    "vitest.config.ts",
+    "setupTests.ts"
   ],
   "paths": {
     "@/serverUtils*": ["utils*"],
