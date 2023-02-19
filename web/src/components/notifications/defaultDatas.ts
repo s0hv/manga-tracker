@@ -11,6 +11,7 @@ export const defaultDataForType: DefaultValuesType = {
     disabled: false,
     groupByManga: true,
     manga: null,
+    overrides: {},
     fields: [
       {
         value: '$MANGA_TITLE - Chapter $CHAPTER_NUMBER',
@@ -49,7 +50,7 @@ export const defaultDataForType: DefaultValuesType = {
     fields: [
       { name: 'json',
         value: `{
-  "$CHAPTER_ARRAY": "key",
+  "$CHAPTER_ARRAY": "key name that will contain chapters",
   "$CHAPTER_FORMAT": {}
 }`,
         optional: false,
