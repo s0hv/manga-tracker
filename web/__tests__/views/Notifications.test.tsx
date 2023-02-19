@@ -1,19 +1,22 @@
-import { render, screen, act, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import { QueryClientProvider } from '@tanstack/react-query';
 import fetchMock from 'fetch-mock';
 import { SnackbarProvider } from 'notistack';
 import { vi } from 'vitest';
+import type { PropsWithChildren } from 'react';
+import userEvent from '@testing-library/user-event';
 
 import {
-  queryClient,
-  mockNotistackHooks,
   expectErrorSnackbar,
-  silenceConsole,
+  mockNotistackHooks,
+  muiSelectValue,
+  queryClient,
   restoreMocks,
+  silenceConsole,
 } from '../utils';
 import Notifications from '../../src/views/Notifications';
 
-const Root = ({ children }) => (
+const Root = ({ children }: PropsWithChildren) => (
   <QueryClientProvider client={queryClient}>
     <SnackbarProvider>
       {children}
@@ -51,6 +54,8 @@ describe('Notifications view', () => {
       .toBeInTheDocument();
   });
 
+  // Does not understand await waitFor(expectErrorSnackbar);
+  // eslint-disable-next-line jest/expect-expect
   it('Shows error when fetch fails', async () => {
     fetchMock.get(
       'path:/api/notifications',
@@ -67,7 +72,6 @@ describe('Notifications view', () => {
     restoreMocks(spies);
   });
 
-  /* Commented out as it times out for some reason after switching to next.js swc config
   it('Creates notification when create clicked', async () => {
     const mockResponse = vi.fn();
     mockResponse.mockImplementation(() => ({ data: []}));
@@ -80,12 +84,10 @@ describe('Notifications view', () => {
     expect(screen.queryByRole('textbox', { name: /webhook url/i })).not.toBeInTheDocument();
 
     const user = userEvent.setup();
+    await muiSelectValue(user, screen, /notification type to create/i, /discord webhook/i);
+    await user.click(screen.getByRole('button', { name: /create new notification/i }));
 
-    await act(async () => {
-      await user.click(screen.getByRole('button', { name: /create new notification/i }));
-    });
-
-    expect(screen.getByRole('textbox', { name: /webhook url/i })).toBeInTheDocument();
-  });
-  */
+    // This takes long due to dynamic imports
+    expect(await screen.findByRole('textbox', { name: /webhook url/i }, { timeout: 10000 })).toBeInTheDocument();
+  }, 15000);
 });
