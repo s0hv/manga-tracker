@@ -1,6 +1,5 @@
 import { authTokenExists, sessionExists } from './dbutils';
 import { getCookie } from './utils';
-import { csrfToken } from './constants';
 
 export async function expectSessionRegenerated(agent, oldSess) {
   const sess = getCookie(agent, 'sess');
@@ -16,8 +15,4 @@ export async function expectAuthTokenRegenerated(agent, oldAuth) {
 
   expect(await authTokenExists(oldAuth.value)).toBeFalse();
   return auth;
-}
-
-export function withCSFR(agent) {
-  return agent.set('X-CSRF-Token', csrfToken);
 }

@@ -1,7 +1,6 @@
 import { body as validateBody, query } from 'express-validator';
 
 import { NoColumnsError } from '@/db/errors';
-import { requiresUser } from '@/db/auth';
 import {
   editChapter,
   deleteChapter,
@@ -11,7 +10,7 @@ import {
 import {
   validateAdminUser,
   handleValidationErrors,
-} from '../utils/validators.js';
+} from '../utils/validators.ts';
 import { handleError } from '@/db/utils';
 import { dbLogger } from '../utils/logging.js';
 
@@ -19,7 +18,7 @@ import { dbLogger } from '../utils/logging.js';
 const BASE_URL = '/api/chapter';
 
 export default app => {
-  app.post(`${BASE_URL}/:chapterId(\\d+)`, requiresUser, [
+  app.post(`${BASE_URL}/:chapterId(\\d+)`, [
     validateAdminUser(),
     validateBody('title').isString().optional(),
     validateBody('chapterNumber').isInt().optional(),
@@ -62,7 +61,7 @@ export default app => {
       });
   });
 
-  app.delete(`${BASE_URL}/:chapterId(\\d+)`, requiresUser, [
+  app.delete(`${BASE_URL}/:chapterId(\\d+)`, [
     validateAdminUser(),
     handleValidationErrors,
   ], (req, res) => {

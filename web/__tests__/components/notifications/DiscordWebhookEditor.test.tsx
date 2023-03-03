@@ -244,7 +244,7 @@ describe('DiscordWebhookEditor', () => {
     expect(screen.queryByRole('checkbox', { name: /^Disabled$/i })).not.toBeInTheDocument();
     expect(screen.queryByRole('checkbox', { name: /^Group by manga/i })).not.toBeInTheDocument();
 
-    expect(screen.queryByRole(/^formatting help/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/^formatting help/i)).not.toBeInTheDocument();
   });
 
   it('Does post request on save', async () => {

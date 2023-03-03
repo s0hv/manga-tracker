@@ -1,6 +1,5 @@
 import { body, matchedData, param } from 'express-validator';
 
-import { requiresUser } from '@/db/auth';
 import { handleError } from '@/db/utils';
 import {
   updateService,
@@ -12,7 +11,7 @@ import {
   handleValidationErrors,
   serviceIdValidation,
   isISO8601Duration,
-} from '../../utils/validators.js';
+} from '../../utils/validators.ts';
 
 export default app => {
   const validateService = [
@@ -52,7 +51,7 @@ export default app => {
       .optional(),
   ];
 
-  app.post('/api/admin/editService/:serviceId', requiresUser, [
+  app.post('/api/admin/editService/:serviceId', [
     validateAdminUser(),
     serviceIdValidation(param('serviceId')),
     ...validateService,

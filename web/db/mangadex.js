@@ -1,6 +1,6 @@
 import { Manga, Cover } from 'mangadex-full-api';
 
-import { mangadexLimiter } from '../utils/ratelimits.js';
+import { mangadexLimiter } from '../utils/ratelimits.ts';
 import { db } from './helpers';
 import { dbLogger } from '../utils/logging.js';
 

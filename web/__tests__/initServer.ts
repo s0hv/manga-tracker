@@ -6,7 +6,7 @@ vi.mock('./../db/auth', async () => {
   const auth = await vi.importActual<typeof import('./../db/auth')>('./../db/auth');
   return {
     ...auth,
-    requiresUser: vi.fn().mockImplementation(auth.requiresUser),
+    getSessionAndUser: vi.fn().mockImplementation(auth.getSessionAndUser),
   };
 });
 

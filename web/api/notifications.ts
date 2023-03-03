@@ -6,7 +6,6 @@ import {
   type ValidationChain,
 } from 'express-validator';
 import type { Application, Request, Response } from 'express-serve-static-core';
-import { requiresUser } from '@/db/auth';
 import {
   createUserNotification,
   deleteUserNotification,
@@ -24,7 +23,7 @@ import {
   mangaIdValidation,
   serviceIdValidation,
   validateUser,
-} from '../utils/validators.js';
+} from '../utils/validators';
 
 
 export default (app: Application) => {
@@ -51,7 +50,7 @@ export default (app: Application) => {
    *        401:
    *          $ref: '#/components/responses/unauthorized'
    */
-  app.get('/api/notifications', requiresUser, [
+  app.get('/api/notifications', [
     validateUser(),
     handleValidationErrors,
   ], (req: Request, res: Response) => {
@@ -92,7 +91,7 @@ export default (app: Application) => {
    *        404:
    *          $ref: '#/components/responses/notFound'
    */
-  app.post('/api/notifications', requiresUser, [
+  app.post('/api/notifications', [
     validateUser(),
     databaseIdValidation(body('notificationId')).optional({ nullable: true }),
     body('notificationType').isInt({ min: 1, max: 2 }),
@@ -161,7 +160,7 @@ export default (app: Application) => {
    *        404:
    *          $ref: '#/components/responses/notFound'
    */
-  app.post('/api/notifications/override', requiresUser, [
+  app.post('/api/notifications/override', [
     validateUser(),
     databaseIdValidation(body('notificationId')),
     databaseIdValidation(body('overrideId')),
@@ -213,7 +212,7 @@ export default (app: Application) => {
    *        404:
    *          $ref: '#/components/responses/notFound'
    */
-  app.delete('/api/notifications/:notificationId', requiresUser, [
+  app.delete('/api/notifications/:notificationId', [
     validateUser(),
     databaseIdValidation(param('notificationId')),
     handleValidationErrors,
@@ -249,7 +248,7 @@ export default (app: Application) => {
    *        401:
    *          $ref: '#/components/responses/unauthorized'
    */
-  app.get('/api/notifications/notificationFollows', requiresUser, [
+  app.get('/api/notifications/notificationFollows', [
     validateUser(),
     handleValidationErrors,
   ], (req: Request, res: Response) => {

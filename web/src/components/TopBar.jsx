@@ -22,11 +22,12 @@ import {
 import { styled } from '@mui/material/styles';
 import PropTypes from 'prop-types';
 import NextLink from 'next/link';
+import { signOut } from 'next-auth/react';
 import { useCSRF } from '../utils/csrf';
 
 import MangaSearch from './MangaSearch';
 import { useUser } from '../utils/useUser';
-import { updateUserTheme, logoutUser } from '../api/user';
+import { updateUserTheme } from '../api/user';
 
 const PREFIX = 'TopBar';
 const classes = {
@@ -91,6 +92,8 @@ const LinkComponent = ({ href, prefetch, as, Component, children, passHref=false
   </NextLink>
 );
 
+const signOutMemo = () => signOut();
+
 function TopBar(props) {
   const {
     activeTheme,
@@ -116,18 +119,6 @@ function TopBar(props) {
     setTheme(val);
     updateUserTheme(csrf, val)
       .catch(console.error);
-  };
-
-  const handleLogout = () => {
-    handleClose();
-    logoutUser(csrf)
-      .then(res => {
-        window.location.replace(res.url);
-      })
-      .catch(err => {
-        window.location.reload();
-        console.error(err);
-      });
   };
 
   return (
@@ -202,7 +193,7 @@ function TopBar(props) {
                   <ViewListIcon className={classes.menuItemIcon} /> Services
                 </LinkComponent>
               )}
-              <MenuItem onClick={handleLogout}>
+              <MenuItem onClick={signOutMemo}>
                 <ExitToAppIcon className={classes.menuItemIcon} /> Logout
               </MenuItem>
             </MenuStyled>

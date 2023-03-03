@@ -1,5 +1,4 @@
 import LRU from 'lru-cache';
-import { type SessionData, Store } from 'express-session';
 import type { JSONValue } from 'postgres';
 
 import { onSessionExpire } from '@/serverUtils/view-counter';
@@ -7,7 +6,9 @@ import { sessionLogger } from '@/serverUtils/logging';
 import type { DatabaseHelpers } from '@/db/helpers';
 
 const mergeSessionViews = (sess: SessionData, row: { data: SessionData }) => {
+  // @ts-ignore
   const a = sess.mangaViews || {};
+  // @ts-ignore
   const b = row.data.mangaViews || {};
   Object.keys(b).forEach((k: string) => {
     a[k] = (a[k] || 0) + b[k];
@@ -103,10 +104,10 @@ export default class PostgresStore extends Store {
     this.cache.set(sid, session);
     const sessionData = this.conn.sql.json(session as any as JSONValue);
     const sql = this.conn.any`INSERT INTO sessions (user_id, session_id, data, expires_at)
-                              VALUES (${session.userId}, ${sid},
+                              VALUES (${'session'}, ${sid},
                                       ${sessionData},
                                       ${session.cookie.expires})
-                              ON CONFLICT (session_id) DO UPDATE SET user_id=${session.userId},
+                              ON CONFLICT (session_id) DO UPDATE SET user_id=${'session'},
                                                                      data=${sessionData},
                                                                      expires_at=${session.cookie.expires}`;
 
@@ -150,7 +151,7 @@ export default class PostgresStore extends Store {
 
   clearUserSessions(uid: number, cb: Callback = noop) {
     sessionLogger.info('Clearing all user sessions from user %s', uid);
-    this.cache.forEach((sess, key) => { if (sess.userId === uid) this.cache.delete(key); });
+    this.cache.forEach((sess, key) => { if (uid === 1) this.cache.delete(key); });
     this.conn.sql`DELETE FROM sessions WHERE user_id=${uid}`
       .then(() => cb(null))
       .catch(err => {

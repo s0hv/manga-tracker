@@ -54,7 +54,7 @@ function MainApp({ Component, pageProps = {}, emotionCache = clientSideEmotionCa
     setPrefersDark(theme === 2);
     if (!user) {
       const darkTheme = window.localStorage.getItem('darkTheme');
-      if (!darkTheme) return;
+      if (!darkTheme) return setPrefersDark(true);
 
       setPrefersDark(darkTheme === '2');
     }
@@ -72,7 +72,7 @@ function MainApp({ Component, pageProps = {}, emotionCache = clientSideEmotionCa
     [prefersDark]);
 
   return (
-    <React.Fragment>
+    <>
       <Head>
         <meta name='viewport' content='initial-scale=1, width=device-width' />
       </Head>
@@ -117,9 +117,17 @@ function MainApp({ Component, pageProps = {}, emotionCache = clientSideEmotionCa
           </StyledEngineProvider>
         </CacheProvider>
       )}
-    </React.Fragment>
+    </>
   );
 }
+
+const getUserData = (user) => (user ? ({
+  uuid: user.uuid,
+  username: user.username,
+  theme: user.theme,
+  admin: user.admin,
+  isCredentialsAccount: user.isCredentialsAccount,
+}) : null);
 
 MainApp.getInitialProps = async function getInitialProps({ ctx: { req, res }}) {
   if (!req) {
@@ -130,8 +138,8 @@ MainApp.getInitialProps = async function getInitialProps({ ctx: { req, res }}) {
 
   return {
     props: {
-      user: req.user,
-      theme: req.user?.theme || req.session?.theme || 0,
+      user: getUserData(req.user),
+      theme: req.user?.theme || 2,
       statusCode: res?.statusCode || 200,
       ...csrfProps({ req }).props,
     },

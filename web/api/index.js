@@ -4,7 +4,7 @@ export { default as notificationsApi } from './notifications';
 export { default as rssApi } from './rss.js';
 export { default as searchApi } from './search.js';
 export { default as servicesApi } from './services.js';
-export { default as settingsApi } from './settings.js';
+export { default as settingsApi } from './settings.ts';
 export { default as userApi } from './user';
 
 export { default as adminServicesApi } from './admin/services.js';

@@ -1,15 +1,23 @@
+import type { DefaultUser } from 'next-auth';
+
 export enum Theme {
   Automatic = 0,
   Light = 1,
   Dark = 2
 }
 
-export interface SessionUser {
-    username: string,
-    uuid: string,
-    userId: number,
-    theme: Theme | null,
-    admin: boolean,
+export interface SessionUser extends DefaultUser {
+  username: string,
+  uuid: string,
+  userId: number,
+  theme: Theme | null,
+  admin: boolean,
+  isCredentialsAccount: boolean,
+}
+
+export interface SessionData {
+  mangaViews?: Record<string, number>
+  [k: string]: any
 }
 
 /**

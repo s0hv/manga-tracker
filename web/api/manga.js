@@ -10,8 +10,7 @@ import {
   validateAdminUser,
   databaseIdValidation,
   handleValidationErrors,
-} from '../utils/validators.js';
-import { requiresUser } from '@/db/auth';
+} from '../utils/validators.ts';
 import { getFullManga, getMangaForElastic } from '@/db/manga';
 import { updateManga, deleteManga } from '@/db/elasticsearch/manga';
 import { dbLogger } from '../utils/logging.js';
@@ -19,7 +18,7 @@ import { dbLogger } from '../utils/logging.js';
 const BASE_URL = '/api/manga';
 
 export default app => {
-  app.post('/api/manga/merge', requiresUser, [
+  app.post('/api/manga/merge', [
     validateAdminUser(),
     databaseIdValidation(query('base')),
     databaseIdValidation(query('toMerge')),

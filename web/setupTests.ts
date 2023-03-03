@@ -2,6 +2,9 @@ import matchers from '@testing-library/jest-dom/matchers';
 import { vi } from 'vitest';
 import { config } from 'dotenv';
 
+
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
 import * as extendedMatchers from 'jest-extended';
 
 import request from 'supertest';

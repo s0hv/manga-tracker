@@ -1,39 +1,48 @@
-// https://github.com/mui/material-ui/blob/64e83d53d7afca1d92a9b1c4c0cc05dc0081338c/examples/nextjs/pages/_document.js
+// https://github.com/mui/material-ui/blob/34d8f6ac1f6e969e2cedabc844fc8a9896569ca5/examples/material-next-ts/pages/_document.tsx
 /* eslint-disable */
 import * as React from 'react';
-import Document, { Html, Head, Main, NextScript } from 'next/document';
+import Document, {
+  type DocumentContext,
+  type DocumentProps,
+  Head,
+  Html,
+  Main,
+  NextScript,
+} from 'next/document';
+import type { EmotionJSX } from '@emotion/react/types/jsx-namespace';
 import createEmotionServer from '@emotion/server/create-instance';
 import { getTheme, roboto } from '../utils/theme';
 import createEmotionCache from '../utils/createEmotionCache';
 
 
-// Create a theme instance.
-const theme = getTheme();
-
-export default class MyDocument extends Document {
-  render() {
-    return (
-      <Html lang="en" className={roboto.className}>
-        <Head>
-          {/* PWA primary color */}
-          <meta name="theme-color" content={theme.palette.primary.main} />
-          <link rel="shortcut icon" href="/favicon.ico" />
-          <meta name="emotion-insertion-point" content="" />
-          {this.props.emotionStyleTags}
-        </Head>
-        <body>
-          <Main />
-          <NextScript />
-        </body>
-      </Html>
-    );
-  }
+interface MyDocumentProps extends DocumentProps {
+  emotionStyleTags: EmotionJSX.Element[];
 }
 
+// Create a theme instance.
+const theme = getTheme(true);
+
+export default function MyDocument({ emotionStyleTags }: MyDocumentProps) {
+  return (
+    <Html lang="en" className={roboto.className}>
+      <Head>
+        {/* PWA primary color */}
+        <meta name="theme-color" content={theme.palette.primary.main} />
+        <link rel="shortcut icon" href="/favicon.ico" />
+        <meta name="emotion-insertion-point" content="" />
+        {emotionStyleTags}
+      </Head>
+      <body>
+        <Main />
+        <NextScript />
+      </body>
+    </Html>
+  );
+}
 
 // `getInitialProps` belongs to `_document` (instead of `_app`),
 // it's compatible with static-site generation (SSG).
-MyDocument.getInitialProps = async (ctx) => {
+MyDocument.getInitialProps = async (ctx: DocumentContext) => {
   // Resolution order
   //
   // On the server:
@@ -65,7 +74,7 @@ MyDocument.getInitialProps = async (ctx) => {
 
   ctx.renderPage = () =>
     originalRenderPage({
-      enhanceApp: (App) =>
+      enhanceApp: (App: any) =>
         function EnhanceApp(props) {
           return <App emotionCache={cache} {...props} />;
         },

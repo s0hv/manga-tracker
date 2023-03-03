@@ -1,34 +1,29 @@
-import { getMangaPartial } from '../../../db/manga';
-import { mangaView, onSessionExpire } from '../../../utils/view-counter';
+import type { AdapterSession } from 'next-auth/adapters';
+import { getMangaPartial } from '@/db/manga';
+import { mangaView, onSessionExpire } from '@/serverUtils/view-counter';
 
 describe('mangaView increments manga views correctly', () => {
   it('Does nothing when session is not defined', () => {
-    expect(mangaView(null)).toBeUndefined();
-  });
-
-  it('Adds manga views object when it is missing', () => {
-    const sess = {};
-    mangaView(sess, {});
-    expect(sess).toHaveProperty('mangaViews');
-    expect(sess.mangaViews).toBeObject();
+    expect(mangaView(null, {})).toBeUndefined();
   });
 
   it('Returns when manga id not present in params', () => {
-    const sess = {};
+    const sess: Partial<AdapterSession> = {};
     mangaView(sess, {});
-    expect(sess.mangaViews).toBeEmpty();
+    expect(sess.data).toBeUndefined();
   });
 
   it('Increments the given manga id', () => {
-    const sess = {};
+    const sess: Partial<AdapterSession> = {};
     const mangaId = '1';
     mangaView(sess, { mangaId: mangaId });
 
-    expect(sess.mangaViews).toHaveProperty(mangaId);
-    expect(sess.mangaViews[mangaId]).toBe(1);
+    expect(sess.data).toBeObject();
+    expect(sess.data!.mangaViews).toHaveProperty(mangaId);
+    expect(sess.data!.mangaViews![mangaId]).toBe(1);
 
     mangaView(sess, { mangaId: mangaId });
-    expect(sess.mangaViews[mangaId]).toBe(2);
+    expect(sess.data!.mangaViews![mangaId]).toBe(2);
   });
 });
 
