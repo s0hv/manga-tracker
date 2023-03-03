@@ -1,33 +1,47 @@
 import { pattern } from 'iso8601-duration';
-import { query, body, validationResult } from 'express-validator';
+import {
+  body,
+  type CustomValidator,
+  query,
+  type ValidationChain,
+  validationResult,
+} from 'express-validator';
+import type {
+  NextFunction,
+  Request,
+  Response,
+} from 'express-serve-static-core';
 import { Forbidden, StatusError, Unauthorized } from './errors.js';
 
-/**
- * @param {import('express-validator').ValidationChain} field
- * @returns {import('express-validator').ValidationChain}
- */
-export const databaseIdValidation = (field) => field
+export const databaseIdValidation = (field: ValidationChain): ValidationChain => field
   .isInt({ min: 0 });
 
 // Technically the same behavior
 export const limitValidation = databaseIdValidation;
 
-export const mangaIdValidation = (field = query('mangaId')) => databaseIdValidation(field)
+export const mangaIdValidation = (field = query('mangaId')): ValidationChain => databaseIdValidation(field)
   .withMessage('Manga id must be a positive integer');
 
-export const serviceIdValidation = (field = query('serviceId')) => databaseIdValidation(field)
+export const serviceIdValidation = (field = query('serviceId')): ValidationChain => databaseIdValidation(field)
   .withMessage('Service id must be a positive integer');
 
-export const positiveTinyInt = (field) => query(field).isInt({ min: 0, max: 127 });
+export const positiveTinyInt = (field: string): ValidationChain => query(field).isInt({ min: 0, max: 127 });
 
-export const passwordRequired = (value, { req, path }) => {
+export const passwordRequired: CustomValidator = (value, { req, path }) => {
   if (value === undefined) return true;
   if (!req.body?.password) throw new Unauthorized(`Password required for modifying ${path}`);
   return true;
 };
 
-export const newPassword = (newPass, repeatPass) => body(newPass)
+export const credentialsAccountOnly: CustomValidator = (value, { req }) => {
+  if (!req.user?.isCredentialsAccount) throw new Forbidden('This action is only available if your account is a traditional email + password account.');
+  return true;
+};
+
+export const newPassword = (newPass: string, repeatPass: string): ValidationChain => body(newPass)
   .if(body(newPass).exists())
+  .custom(credentialsAccountOnly)
+  .bail()
   .custom(passwordRequired)
   .bail()
   .trim()
@@ -45,7 +59,7 @@ export const newPassword = (newPass, repeatPass) => body(newPass)
     return true;
   });
 
-export const validateUser = () => body('')
+export const validateUser = (): ValidationChain => body('')
   .custom((value, { req }) => {
     if (!req.user) {
       throw new Unauthorized('User not authenticated');
@@ -53,10 +67,10 @@ export const validateUser = () => body('')
     return true;
   });
 
-export const validateAdminUser = () => validateUser()
+export const validateAdminUser = (): ValidationChain => validateUser()
   .bail()
   .custom((value, { req }) => {
-    if (!req.user.admin) {
+    if (!req.user?.admin) {
       throw new Forbidden('Forbidden to perform this action');
     }
     return true;
@@ -65,10 +79,10 @@ export const validateAdminUser = () => validateUser()
 /**
  * @returns {boolean} true if validation errors occurred. false otherwise
  */
-export const hadValidationError = (req, res, sendAllErrors=true) => {
-  let errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    errors = errors.array();
+export const hadValidationError = (req: Request, res: Response, sendAllErrors=true) => {
+  const errorsObj = validationResult(req);
+  if (!errorsObj.isEmpty()) {
+    const errors = errorsObj.array();
 
     const customError = errors.find(err => err.msg instanceof StatusError)?.msg;
 
@@ -86,14 +100,11 @@ export const hadValidationError = (req, res, sendAllErrors=true) => {
   return false;
 };
 
-export const handleValidationErrors = (req, res, next) => {
+export const handleValidationErrors = (req: Request, res: Response, next: NextFunction) => {
   if (hadValidationError(req, res)) return;
   next();
 };
 
-/**
- * @param {import('express-validator').ValidationChain} chain
- * @return {import('express-validator').ValidationChain}
- */
-export const isISO8601Duration = (chain) => chain.custom((value) => pattern.test(value))
+
+export const isISO8601Duration = (chain: ValidationChain): ValidationChain => chain.custom((value) => pattern.test(value))
   .withMessage('Value must be a valid ISO 8601 duration');

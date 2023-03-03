@@ -17,6 +17,7 @@ export default defineConfig({
     },
     globals: true,
     setupFiles: ['./setupTests.ts'],
+    globalSetup: './__tests__/globalSetup.ts',
     include: ['__tests__/**/*.test.{ts,tsx,js,jsx}'],
     clearMocks: true,
     environmentMatchGlobs: [

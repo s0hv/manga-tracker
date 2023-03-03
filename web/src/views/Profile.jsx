@@ -1,6 +1,12 @@
 import { useSnackbar } from 'notistack';
 import React, { useCallback, useMemo } from 'react';
-import { Button, Container, LinearProgress, Paper } from '@mui/material';
+import {
+  Button,
+  Container,
+  LinearProgress,
+  Paper,
+  TextField as MuiTextField,
+} from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { Form } from 'react-final-form';
 import { TextField, makeValidateSync, makeRequired } from 'mui-rff';
@@ -22,8 +28,8 @@ const schema = Yup.object().shape({
   username: Yup.string().required(),
   email: Yup.string().email(),
   password: Yup.string()
-    .when(['newPassword', 'email'], {
-      is: (pwd, email) => pwd?.length > 0 || email?.length > 0,
+    .when(['newPassword'], {
+      is: (pwd) => pwd?.length > 0,
       then: Yup.string().required(),
     }),
   newPassword: Yup.string(),
@@ -39,6 +45,7 @@ const Profile = (props) => {
     user = {},
   } = props;
 
+  const isCredentialsAccount = Boolean(user.isCredentialsAccount);
   const csrf = useCSRF();
   const { enqueueSnackbar } = useSnackbar();
   const onSubmit = useCallback((values) => updateUserProfile(csrf, values)
@@ -85,52 +92,54 @@ const Profile = (props) => {
                   label='Username'
                   autoFocus
                 />
-                <TextField
+                <MuiTextField
                   variant='outlined'
                   margin='normal'
                   fullWidth
-                  id='email'
                   label='Email Address'
-                  name='email'
-                  type='email'
-                  autoComplete='email'
-                  autoFocus
+                  disabled
+                  value={initialValues.email}
+                  helperText={`Changing email is not possible ${isCredentialsAccount ? 'for a credentials based account' : 'when using third parties for login'}`}
                   required={required.email}
                 />
-                <TextField
-                  variant='outlined'
-                  margin='normal'
-                  fullWidth
-                  name='password'
-                  label='Password'
-                  type='password'
-                  id='current-password'
-                  autoComplete='current-password'
-                  required={required.password}
-                  showError={showErrorAlways}
-                />
-                <TextField
-                  variant='outlined'
-                  margin='normal'
-                  fullWidth
-                  name='newPassword'
-                  label='New password'
-                  type='password'
-                  id='new-password'
-                  autoComplete='new-password'
-                  required={required.newPassword}
-                />
-                <TextField
-                  variant='outlined'
-                  margin='normal'
-                  required={required.repeatPassword}
-                  fullWidth
-                  name='repeatPassword'
-                  label='New password again'
-                  type='password'
-                  id='repeat-password'
-                  autoComplete='new-password'
-                />
+                {isCredentialsAccount && (
+                  <>
+                    <TextField
+                      variant='outlined'
+                      margin='normal'
+                      fullWidth
+                      name='password'
+                      label='Password'
+                      type='password'
+                      id='current-password'
+                      autoComplete='current-password'
+                      required={required.password}
+                      showError={showErrorAlways}
+                    />
+                    <TextField
+                      variant='outlined'
+                      margin='normal'
+                      fullWidth
+                      name='newPassword'
+                      label='New password'
+                      type='password'
+                      id='new-password'
+                      autoComplete='new-password'
+                      required={required.newPassword}
+                    />
+                    <TextField
+                      variant='outlined'
+                      margin='normal'
+                      required={required.repeatPassword}
+                      fullWidth
+                      name='repeatPassword'
+                      label='New password again'
+                      type='password'
+                      id='repeat-password'
+                      autoComplete='new-password'
+                    />
+                  </>
+                )}
                 <CSRFInput />
                 <Button
                   type='submit'

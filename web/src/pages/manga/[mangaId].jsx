@@ -59,6 +59,15 @@ export async function getServerSideProps({ req, params }) {
   if (!manga) {
     return { props: { error: 404 }};
   }
+
+  if (req.session.userId) {
+    req.sessionStore.updateSession({ sessionToken: req.session.sessionToken, data: req.session.data })
+      // Restore csrf secret after updating session as it is only saved in memory
+      .then(sess => {
+        sess.csrfSecret = req.session.csrfSecret;
+      });
+  }
+
   const data = JSON.parse(JSON.stringify(manga));
 
   return {

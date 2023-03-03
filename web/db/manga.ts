@@ -1,4 +1,8 @@
 import camelcaseKeys from 'camelcase-keys';
+import {
+  INVALID_TEXT_REPRESENTATION,
+  NUMERIC_VALUE_OUT_OF_RANGE,
+} from 'pg-error-constants';
 
 import { db } from './helpers';
 import { fetchExtraInfo, MANGADEX_ID } from './mangadex.js';
@@ -115,7 +119,7 @@ export async function getFollows(userId: DatabaseId) {
     .then(rows => camelcaseKeys(rows, { deep: true }))
     .catch(err => {
       // integer overflow
-      if (err.code === '22003' || err.code === '22P02') {
+      if (err.code === NUMERIC_VALUE_OUT_OF_RANGE || err.code === INVALID_TEXT_REPRESENTATION) {
         return new Promise((resolve, reject) => reject(HttpError(404, 'Integer out of range')));
       }
       console.error(err);

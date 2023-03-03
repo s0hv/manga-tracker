@@ -7,7 +7,6 @@ import {
   updateMangaService,
   updateMangaTitle,
 } from '@/db/admin/manga';
-import { requiresUser } from '@/db/auth';
 import { handleError } from '@/db/utils';
 import {
   deleteScheduledRun,
@@ -20,7 +19,7 @@ import {
   mangaIdValidation,
   serviceIdValidation,
   validateAdminUser,
-} from '../../utils/validators.js';
+} from '../../utils/validators';
 import { getMangaForElastic } from '@/db/manga';
 import { updateManga } from '@/db/elasticsearch/manga';
 import { MangaStatus } from '@/types/dbTypes';
@@ -28,7 +27,7 @@ import { NoResultsError } from '@/db/errors';
 
 export default () => {
   const router = express.Router();
-  router.use([requiresUser, validateAdminUser()]);
+  router.use([validateAdminUser()]);
 
   router.use('/:mangaId(\\d+)/scheduledRuns', [
     mangaIdValidation(param('mangaId')),

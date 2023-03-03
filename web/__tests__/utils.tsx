@@ -22,6 +22,7 @@ import { UserProvider } from '@/webUtils/useUser';
 import { getOpenapiSpecification } from '../swagger';
 import type { User } from '@/types/db/user';
 import type { SessionUser } from '@/types/dbTypes';
+import type { PostgresAdapter } from '@/db/postgres-adapter';
 
 // Must be mocked here
 vi.mock('notistack', async () => {
@@ -59,37 +60,62 @@ export const adminUser: TestUser = {
   userId: 1,
   userUuid: '22fc15c9-37b9-4869-af86-b334333dedd8',
   uuid: '22fc15c9-37b9-4869-af86-b334333dedd8',
+  id: '22fc15c9-37b9-4869-af86-b334333dedd8',
   username: 'test ci admin',
   joinedAt: new Date(Date.now()),
   theme: 2,
   admin: true,
   password: 'te!st-pa#ss)wo(rd123',
   email: 'test-admin@test.com',
+  isCredentialsAccount: true,
 };
 
 export const normalUser: TestUser = {
   userId: 3,
   userUuid: 'cf5eddfd-e0fe-4e6e-b339-70be6f33794d',
   uuid: 'cf5eddfd-e0fe-4e6e-b339-70be6f33794d',
+  id: 'cf5eddfd-e0fe-4e6e-b339-70be6f33794d',
   username: 'test ci',
   joinedAt: new Date(Date.now()),
   theme: 2,
   admin: false,
   password: 'te!st-pa#ss)wo(rd123',
   email: 'test@test.com',
+  isCredentialsAccount: true,
 };
 
 export const authTestUser: TestUser = {
   userId: 3,
   userUuid: 'db598f65-c558-4205-937f-b0f149dda1fa',
   uuid: 'db598f65-c558-4205-937f-b0f149dda1fa',
+  id: 'db598f65-c558-4205-937f-b0f149dda1fa',
   username: 'test ci auth',
   joinedAt: new Date(Date.now()),
   theme: 2,
   admin: false,
   password: 'te!st-pa#ss)wo(rd123',
   email: 'test_auth@test.com',
+  isCredentialsAccount: true,
 };
+
+export const oauthUser: TestUser = {
+  userId: 5,
+  userUuid: 'd1e3395a-37fa-4df7-8441-46d2b2689788',
+  uuid: 'd1e3395a-37fa-4df7-8441-46d2b2689788',
+  id: 'd1e3395a-37fa-4df7-8441-46d2b2689788',
+  username: 'test oauth',
+  joinedAt: new Date(Date.now()),
+  theme: 2,
+  admin: false,
+  password: '',
+  email: 'test@oauth.com',
+  isCredentialsAccount: false,
+};
+
+export const convertToOauthUser = (u: TestUser): TestUser => ({
+  ...u,
+  isCredentialsAccount: false,
+});
 
 export const testManga = {
   mangaId: 2,
@@ -191,7 +217,7 @@ type WithUser = {
   (userObject: TestUser, cb: () => Promise<any>): Promise<void>,
 }
 
-export const withUser: WithUser = async (userObject: TestUser, cb: React.ReactElement | (() => Promise<any>)) => {
+export const withUser: WithUser = (async (userObject: TestUser, cb: React.ReactElement | (() => Promise<any>)) => {
   if (isValidElement(cb)) {
     return (
       <UserProvider value={userObject}>
@@ -200,20 +226,23 @@ export const withUser: WithUser = async (userObject: TestUser, cb: React.ReactEl
     ) as any;
   }
 
-  const { requiresUser } = (await import('../db/auth')) as any as { requiresUser: Mock };
+  const { getSessionAndUser } = (await import('../db/auth')) as any as { getSessionAndUser: Mock };
 
-  requiresUser.mockImplementation((req: ExpressRequest, res: any, next: NextFunction) => {
+  getSessionAndUser.mockImplementation((req: ExpressRequest, res: any, next: NextFunction) => {
+    req.session = {
+      userId: userObject.uuid as never,
+    };
     req.user = userObject;
     next();
   });
 
   try {
-    await (cb as () => Promise<any>)();
+    await cb();
   } finally {
     // Restore the original function
-    requiresUser.mockImplementation((await vi.importActual<typeof import('./../db/auth')>('./../db/auth')).requiresUser);
+    getSessionAndUser.mockImplementation((await vi.importActual<typeof import('./../db/auth')>('./../db/auth')).getSessionAndUser);
   }
-};
+}) as WithUser;
 
 export function getCookie(agent: request.SuperAgentTest, name: string) {
   return agent.jar.getCookie(name, { path: '/' } as any);
@@ -226,25 +255,30 @@ export function deleteCookie(agent: request.SuperAgentTest, name: string) {
   agent.jar.setCookie(c!);
 }
 
-export async function login(app: any, user: TestUser, rememberMe=false) {
+export async function login(app: any, user: TestUser) {
   const agent = request.agent(app);
+  const { db } = await import('@/db/helpers');
+  // Stuff breaks if this import is hoisted at the top of the file
+  const { PostgresAdapter } = await import('@/db/postgres-adapter');
+  const adapter: PostgresAdapter = PostgresAdapter(db);
+
+  const token = Date.now().toString();
+  await adapter.createSession({
+    sessionToken: token,
+    expires: new Date(Date.now() + 24*60*60*1000),
+    userId: user.id,
+  });
+
+  const authCookie = 'next-auth.session-token';
+  agent.jar.setCookie(`${authCookie}=${token}`);
+
   await agent
-    .post('/api/login')
+    .post('/api/authCheck')
     .csrf()
-    .send({
-      email: user.email,
-      password: user.password,
-      rememberme: rememberMe,
-    })
-    .expect(302)
-    .expect('set-cookie', /sess=/)
-    .expect('set-cookie', rememberMe ? /auth=/ : /sess=/);
+    .expect(200)
+    .expect(res => expect(res.body.user).toBeObject());
 
-  if (!rememberMe) {
-    expect(getCookie(agent, 'auth')).toBeUndefined();
-  }
-
-  expect(getCookie(agent, 'sess')).toBeDefined();
+  expect(getCookie(agent, authCookie)).toBeDefined();
 
   return agent;
 }

@@ -1,15 +1,17 @@
 import React from 'react';
-import { render, screen, act, fireEvent } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import fetchMock from 'fetch-mock';
 
 import {
-  mockNotistackHooks,
+  convertToOauthUser,
   expectErrorSnackbar,
   expectSuccessSnackbar,
-  normalUser,
   getSnackbarMessage,
-  silenceConsole,
+  mockNotistackHooks,
+  normalUser,
   restoreMocks,
+  silenceConsole,
 } from '../utils';
 import Profile from '../../src/views/Profile';
 
@@ -20,25 +22,49 @@ describe('Profile renders correctly', () => {
     expect(() => render(<Profile />)).not.toThrow();
   });
 
-  it('Should render correctly with user', () => {
+  it('Should render correctly with credentials user', () => {
     render(<Profile user={normalUser} />);
 
     // Username found
     const username = screen.getByLabelText(/Username/i);
-    expect(username.value).toStrictEqual(normalUser.username);
+    expect(username).toHaveValue(normalUser.username);
 
     // Email found
     const email = screen.getByLabelText(/^Email Address$/i);
-    expect(email.value).toStrictEqual(normalUser.email);
+    expect(email).toHaveValue(normalUser.email);
+    expect(email).toBeDisabled();
 
     // Password fields empty
-    expect(screen.getByLabelText(/^Password$/i).value).toBeEmpty();
-    expect(screen.getByLabelText(/^New password$/i).value).toBeEmpty();
-    expect(screen.getByLabelText(/^New password again$/i).value).toBeEmpty();
+    expect(screen.getByLabelText<HTMLInputElement>(/^Password$/i).value).toBeEmpty();
+    expect(screen.getByLabelText<HTMLInputElement>(/^New password$/i).value).toBeEmpty();
+    expect(screen.getByLabelText<HTMLInputElement>(/^New password again$/i).value).toBeEmpty();
 
     // Find submit button
     expect(
-      screen.getByRole('button', { type: 'submit', name: /Update profile/i })
+      screen.getByRole('button', { name: /Update profile/i })
+    ).toBeDefined();
+  });
+
+  it('Should render correctly with oauth user', () => {
+    render(<Profile user={convertToOauthUser(normalUser)} />);
+
+    // Username found
+    const username = screen.getByLabelText(/Username/i);
+    expect(username).toHaveValue(normalUser.username);
+
+    // Email found
+    const email = screen.getByLabelText(/^Email Address$/i);
+    expect(email).toHaveValue(normalUser.email);
+    expect(email).toBeDisabled();
+
+    // Password fields empty
+    expect(screen.queryByLabelText(/^Password$/i)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/^New password$/i)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/^New password again$/i)).not.toBeInTheDocument();
+
+    // Find submit button
+    expect(
+      screen.getByRole('button', { name: /Update profile/i })
     ).toBeDefined();
   });
 });
@@ -48,7 +74,7 @@ describe('Requests should be handled correctly', () => {
     fetchMock.reset();
   });
 
-  const editInput = (target, value) => {
+  const editInput = (target: HTMLElement, value: any) => {
     fireEvent.change(target, { target: { value }});
   };
 
@@ -70,7 +96,10 @@ describe('Requests should be handled correctly', () => {
     fetchMock.post('/api/profile', 200);
     render(<Profile user={normalUser} />);
 
-    expect(screen.getByLabelText(/^Password$/i).value).toBeEmpty();
+    expect(screen.getByLabelText<HTMLInputElement>(/^Password$/i).value).toBeEmpty();
+    const user = userEvent.setup();
+
+    await user.type(screen.getByLabelText(/^New password$/i), 'aaa');
 
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: /Update profile/i }));

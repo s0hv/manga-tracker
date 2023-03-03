@@ -45,17 +45,15 @@
     "@types/cookie-parser": "^1.4.3",
     "@types/csurf": "^1.11.2",
     "@types/express": "^4.17.17",
-    "@types/express-session": "^1.17.6",
     "@types/lodash.throttle": "^4.1.7",
-    "@types/passport": "^1.0.12",
     "@uiw/react-codemirror": "^4.19.9",
     "camelcase-keys": "^8.0.0",
     "cookie-parser": "^1.4.5",
+    "cookies-next": "^2.1.1",
     "core-js": "^3.28.0",
     "csurf": "^1.11.0",
     "date-fns": "^2.19.0",
     "express": "^4.18.1",
-    "express-session": "^1.17.3",
     "express-validator": "^6.15.0",
     "final-form": "^4.20.9",
     "frappe-charts": "^1.5.8",
@@ -69,12 +67,11 @@
     "mobx": "^6.8.0",
     "mui-rff": "^6.1.4",
     "next": "^13.2.1",
+    "next-auth": "^4.19.2",
     "next-seo": "^5.5.0",
     "nextjs-progressbar": "^0.0.16",
     "notistack": "^2.0.5",
     "nprogress": "^0.2.0",
-    "passport": "^0.6.0",
-    "passport-json": "^1.2.0",
     "pg-error-constants": "^1.0.0",
     "pino": "^8.11.0",
     "pino-http": "^8.3.3",
@@ -106,9 +103,7 @@
   ],
   "browserslist": {
     "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
+      "defaults"
     ],
     "development": [
       "last 1 chrome version",

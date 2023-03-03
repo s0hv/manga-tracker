@@ -5,7 +5,7 @@ import { handleElasticError, extractFields } from '@/db/elasticsearch/utils';
 import {
   hadValidationError,
   handleValidationErrors,
-} from '../utils/validators.js';
+} from '../utils/validators.ts';
 import { handleError } from '@/db/utils';
 import { getFullManga } from '@/db/manga';
 import { mangaSearch } from '@/db/elasticsearch/manga';

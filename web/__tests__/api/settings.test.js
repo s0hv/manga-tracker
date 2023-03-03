@@ -54,10 +54,10 @@ describe('POST /api/settings/theme', () => {
     });
   });
 
-  it('Returns 200 without logging in', async () => {
+  it('Returns 401 without logging in', async () => {
     await request(httpServer)
       .post('/api/settings/theme?value=1')
       .csrf()
-      .expect(200);
+      .expect(401);
   });
 });

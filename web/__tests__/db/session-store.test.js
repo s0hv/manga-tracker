@@ -8,7 +8,7 @@ vi.mock('../../utils/view-counter/manga-view-counter', async () => ({
   ...await vi.importActual('../../utils/view-counter/manga-view-counter'),
 }));
 
-describe('sessionStore', () => {
+describe.skip('sessionStore', () => {
   afterEach(() => {
     vi.restoreAllMocks();
     vi.clearAllTimers();

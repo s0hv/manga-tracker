@@ -19,7 +19,7 @@ import type { Db } from '.';
  * @param {Object} o Input object
  * @param {Db} sql Database instance
  */
-export const generateUpdate = (o: any, sql: Db) => {
+export const generateUpdate = (o: {[key: string]: any}, sql: Db) => {
   const obj = { ...o };
   Object.keys(obj).forEach(key => obj[key] === undefined && delete obj[key]);
 

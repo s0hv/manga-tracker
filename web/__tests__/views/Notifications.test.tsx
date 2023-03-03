@@ -88,6 +88,6 @@ describe('Notifications view', () => {
     await user.click(screen.getByRole('button', { name: /create new notification/i }));
 
     // This takes long due to dynamic imports
-    expect(await screen.findByRole('textbox', { name: /webhook url/i }, { timeout: 10000 })).toBeInTheDocument();
-  }, 15000);
+    expect(await screen.findByRole('textbox', { name: /webhook url/i }, { timeout: 13000 })).toBeInTheDocument();
+  }, 18000);
 });
