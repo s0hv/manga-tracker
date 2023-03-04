@@ -58,7 +58,18 @@ vi.mock('next');
 vi.mock('next/router');
 vi.mock('@next/font/google', () => {
   return {
-    Roboto: vi.fn(),
+    Roboto: vi.fn().mockReturnValue({ style: { fontFamily: 'test' }}),
   };
 });
 vi.mock('date-fns');
+
+// CssVarsProvider cannot be used as it expects a working DOM
+// which is not fully provided by the testing framework
+vi.mock('@mui/material/styles', async () => ({
+  ...(await vi.importActual<typeof import('@mui/material/styles')>('@mui/material/styles')),
+  useColorScheme: vi.fn().mockReturnValue({
+    setMode: vi.fn(),
+    mode: 'dark',
+    systemMode: 'dark',
+  }),
+}));

@@ -1,16 +1,12 @@
 import type { DefaultUser } from 'next-auth';
 
-export enum Theme {
-  Automatic = 0,
-  Light = 1,
-  Dark = 2
-}
+export type Theme = 'system' | 'light' | 'dark';
 
 export interface SessionUser extends DefaultUser {
   username: string,
   uuid: string,
   userId: number,
-  theme: Theme | null,
+  theme: Theme,
   admin: boolean,
   isCredentialsAccount: boolean,
 }

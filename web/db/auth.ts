@@ -25,7 +25,7 @@ export const authenticate = async (email: string, password: string) => {
 
   return db.oneOrNone<AdapterUser>`
     SELECT ${userSelect}
-    FROM users 
+    FROM users u
     WHERE email=${email} AND pwhash IS NOT NULL AND pwhash=crypt(${password}, pwhash)`;
 };
 

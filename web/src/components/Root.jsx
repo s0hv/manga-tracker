@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Divider, Link, Typography, IconButton } from '@mui/material';
-import { styled } from '@mui/material/styles';
+import { styled, useColorScheme } from '@mui/material/styles';
 import GitHubIcon from '@mui/icons-material/GitHub';
 import PropTypes from 'prop-types';
 
@@ -53,10 +53,18 @@ function Copyright(props) {
 export default function Layout(props) {
   const {
     statusCode,
-    activeTheme,
-    setTheme,
+    user,
     children,
   } = props;
+
+  const { setMode } = useColorScheme();
+
+  // Change theme when logging in/out.
+  // Will not be instant as the useEffect takes a bit to run.
+  // Should not be the biggest problem since the default theme is system theme.
+  useEffect(() => {
+    setMode(user?.theme || 'system');
+  }, [user, setMode]);
 
   if (statusCode !== 200) {
     return children;
@@ -64,7 +72,7 @@ export default function Layout(props) {
 
   return (
     <Root>
-      <TopBar setTheme={setTheme} activeTheme={activeTheme} />
+      <TopBar />
       {children}
       <FooterContainer>
         <FooterStyled>
@@ -94,9 +102,7 @@ export default function Layout(props) {
 Layout.propTypes = {
   props: PropTypes.shape({
     statusCode: PropTypes.number,
-    activeTheme: PropTypes.number,
     user: PropTypes.object,
-    setTheme: PropTypes.func,
     children: PropTypes.elementType,
   }),
 };

@@ -1,22 +1,19 @@
 import type { Express, Request, Response } from 'express-serve-static-core';
-import {
-  handleValidationErrors,
-  positiveTinyInt,
-  validateUser,
-} from '../utils/validators';
+import { query } from 'express-validator';
+import { handleValidationErrors, validateUser } from '../utils/validators';
 import { db } from '@/db/helpers';
 import { handleError } from '@/db/utils';
+import type { Theme } from '@/types/dbTypes';
 
 
 export default (app: Express) => {
   app.post('/api/settings/theme', [
     validateUser(),
-    positiveTinyInt('value'),
+    query('value')
+      .isIn(['system', 'light', 'dark'] as Theme[]),
     handleValidationErrors,
   ], (req: Request, res: Response) => {
-    const val = Number(req.query.value);
-
-    db.sql`UPDATE users SET theme=${val} WHERE user_id=${req.user!.userId}`
+    db.sql`UPDATE users SET theme=${req.query.value as string}::theme WHERE user_id=${req.user!.userId}`
       .execute()
       .then(() => {
         app.sessionStore.deleteUserFromCache(req.user!.id);

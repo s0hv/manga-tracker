@@ -19,8 +19,7 @@ import {
   Toolbar,
   Typography,
 } from '@mui/material';
-import { styled } from '@mui/material/styles';
-import PropTypes from 'prop-types';
+import { styled, useColorScheme } from '@mui/material/styles';
 import NextLink from 'next/link';
 import { signOut } from 'next-auth/react';
 import { useCSRF } from '../utils/csrf';
@@ -94,12 +93,8 @@ const LinkComponent = ({ href, prefetch, as, Component, children, passHref=false
 
 const signOutMemo = () => signOut();
 
-function TopBar(props) {
-  const {
-    activeTheme,
-    setTheme,
-  } = props;
-
+function TopBar() {
+  const { mode, setMode, systemMode } = useColorScheme();
   const { user } = useUser();
   const csrf = useCSRF();
   const [anchorEl, setAnchorEl] = React.useState(null);
@@ -115,8 +110,11 @@ function TopBar(props) {
 
   const handleThemeChange = () => {
     handleClose();
-    const val = activeTheme === 1 ? 2 : 1;
-    setTheme(val);
+    const currentMode = mode === 'system' ? systemMode : mode;
+    const val = currentMode === 'light' ? 'dark' : 'light';
+    setMode(val);
+    if (!user) return;
+
     updateUserTheme(csrf, val)
       .catch(console.error);
   };
@@ -179,8 +177,8 @@ function TopBar(props) {
                 <PersonIcon className={classes.menuItemIcon} /> Profile
               </LinkComponent>
               <MenuItem onClick={handleThemeChange}>
-                { activeTheme === 2 ? <SunIcon className={classes.menuItemIcon} /> : <MoonIcon className={classes.menuItemIcon} />}
-                Switch to {activeTheme === 2 ? 'light' : 'dark'} theme
+                { mode === 'dark' ? <SunIcon className={classes.menuItemIcon} /> : <MoonIcon className={classes.menuItemIcon} />}
+                Switch to {mode} theme
               </MenuItem>
               <LinkComponent Component={MenuItem} href='/follows' prefetch={false} onClick={handleClose}>
                 <BookmarksIcon className={classes.menuItemIcon} /> Follows
@@ -212,7 +210,7 @@ function TopBar(props) {
               color='inherit'
               size='large'
             >
-              {activeTheme === 2 ? <SunIcon /> : <MoonIcon />}
+              {mode === 'light' ? <SunIcon /> : <MoonIcon />}
             </IconButton>
           </React.Fragment>
           )}
@@ -222,8 +220,4 @@ function TopBar(props) {
   );
 }
 
-TopBar.propTypes = {
-  activeTheme: PropTypes.number,
-  setTheme: PropTypes.func,
-};
 export default TopBar;
