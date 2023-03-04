@@ -4,6 +4,9 @@ import withError from '../../utils/withError';
 import Services from '../../views/admin/Services';
 
 import { getServices } from '../../../db/services/serviceInfo';
+import {
+  DefaultLocalizationProvider,
+} from '../../components/DefaultLocalizationProvider';
 
 export async function getServerSideProps({ req }) {
   if (!(req.user && req.user.admin)) {
@@ -41,7 +44,9 @@ const ServicesPage = (props) => (
       nofollow
       noindex
     />
-    <ServicesView {...props} />
+    <DefaultLocalizationProvider>
+      <ServicesView {...props} />
+    </DefaultLocalizationProvider>
   </>
 );
 

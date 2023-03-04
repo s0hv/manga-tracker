@@ -42,7 +42,11 @@ export default nextApp.prepare()
       formAction: "'self' https://discord.com",
     };
     if (isDev) {
-      directives.scriptSrc = "'self' 'unsafe-eval'"; // required for fast refresh
+      // unsafe-eval required for fast refresh
+      directives.scriptSrc = "'self' 'unsafe-eval' 'sha256-6k13i7If3TvAai1sXmN5y2hfMfidi1GAP6UXk1irAMM='";
+    } else {
+      // sha is for script injected by getInitColorSchemeScript inside _document.tsx
+      directives.scriptSrc = "'self' 'sha256-6k13i7If3TvAai1sXmN5y2hfMfidi1GAP6UXk1irAMM='";
     }
 
     server.use(helmet({

@@ -30,7 +30,7 @@ import {
   TableRow,
   TableSortLabel,
 } from '@mui/material';
-import { darken, styled } from '@mui/material/styles';
+import { styled } from '@mui/material/styles';
 import PropTypes from 'prop-types';
 
 import { noop } from '@/webUtils/utilities';
@@ -61,7 +61,10 @@ const classes = {
 
 
 const TableHeadStyled = styled(TableHead)(({ theme }) => ({
-  backgroundColor: darken(theme.palette.background.paper, 0.01),
+  backgroundColor: theme.vars.palette.background.paper,
+  [theme.getColorSchemeSelector('light')]: {
+    filter: 'brightness(0.95)',
+  },
 }));
 
 const PaginationContainer = styled('div')({

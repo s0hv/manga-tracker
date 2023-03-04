@@ -10,6 +10,9 @@ import { getServiceConfigs } from '@/db/services';
 import type { GetServerSidePropsExpress } from '@/types/nextjs';
 import type { ServiceConfig } from '@/types/api/services';
 import type { FullMangaData } from '@/types/api/manga';
+import {
+  DefaultLocalizationProvider,
+} from '@/components/DefaultLocalizationProvider';
 
 type MangaPageProps = {
   manga: FullMangaData & { title: string }
@@ -29,9 +32,11 @@ function MangaPage(props: MangaPageProps) {
         nofollow
         noindex
       />
-      <ConfirmProvider>
-        <Manga mangaData={{ ...manga }} serviceConfigs={serviceConfigs} />
-      </ConfirmProvider>
+      <DefaultLocalizationProvider>
+        <ConfirmProvider>
+          <Manga mangaData={{ ...manga }} serviceConfigs={serviceConfigs} />
+        </ConfirmProvider>
+      </DefaultLocalizationProvider>
     </>
   );
 }

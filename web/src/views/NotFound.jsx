@@ -7,7 +7,7 @@ const Root = styled(Paper)(({ theme }) => ({
   flexDirection: 'column',
   justifyContent: 'center',
   alignItems: 'center',
-  backgroundColor: theme.palette.background.paper,
+  backgroundColor: theme.vars.palette.background.paper,
   minHeight: '100vh',
   verticalAlign: 'center',
 }));

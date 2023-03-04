@@ -3,9 +3,6 @@ import {
   StyledEngineProvider,
   Experimental_CssVarsProvider as CssVarsProvider,
 } from '@mui/material/styles';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import enLocale from 'date-fns/locale/en-GB';
 import { DefaultSeo } from 'next-seo';
 import { CacheProvider } from '@emotion/react';
 import NextNProgress from 'nextjs-progressbar';
@@ -72,22 +69,20 @@ function MainApp({ Component, pageProps = {}, emotionCache = clientSideEmotionCa
             <CssVarsProvider theme={theme}>
               <NextNProgress />
               <CssBaseline />
-              <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={enLocale}>
-                <SnackbarProvider>
-                  <QueryClientProvider client={queryClient}>
-                    <UserProvider value={user}>
-                      <CSRFProvider value={csrf}>
-                        <Root {...props}>
-                          <main>
-                            <Component {...pageProps} />
-                          </main>
-                        </Root>
-                        <ReactQueryDevtools initialIsOpen={false} />
-                      </CSRFProvider>
-                    </UserProvider>
-                  </QueryClientProvider>
-                </SnackbarProvider>
-              </LocalizationProvider>
+              <SnackbarProvider>
+                <QueryClientProvider client={queryClient}>
+                  <UserProvider value={user}>
+                    <CSRFProvider value={csrf}>
+                      <Root {...props}>
+                        <main>
+                          <Component {...pageProps} />
+                        </main>
+                      </Root>
+                      <ReactQueryDevtools initialIsOpen={false} />
+                    </CSRFProvider>
+                  </UserProvider>
+                </QueryClientProvider>
+              </SnackbarProvider>
             </CssVarsProvider>
           </StyledEngineProvider>
         </CacheProvider>
