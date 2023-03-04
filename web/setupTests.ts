@@ -2,13 +2,13 @@ import matchers from '@testing-library/jest-dom/matchers';
 import { vi } from 'vitest';
 import { config } from 'dotenv';
 
-
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import * as extendedMatchers from 'jest-extended';
 
 import request from 'supertest';
 import { csrfToken } from './__tests__/constants';
+import { theme } from '@/webUtils/theme';
 
 
 expect.extend(matchers);
@@ -65,11 +65,41 @@ vi.mock('date-fns');
 
 // CssVarsProvider cannot be used as it expects a working DOM
 // which is not fully provided by the testing framework
-vi.mock('@mui/material/styles', async () => ({
-  ...(await vi.importActual<typeof import('@mui/material/styles')>('@mui/material/styles')),
-  useColorScheme: vi.fn().mockReturnValue({
-    setMode: vi.fn(),
-    mode: 'dark',
-    systemMode: 'dark',
-  }),
-}));
+vi.mock('@mui/material/styles', async () => {
+  // eslint-disable-next-line @next/next/no-assign-module-variable
+  const module = await vi.importActual<typeof import('@mui/material/styles')>('@mui/material/styles');
+  let cachedTheme: any = null;
+
+  return {
+    ...module,
+    useColorScheme: vi.fn().mockReturnValue({
+      setMode: vi.fn(),
+      mode: 'dark',
+      systemMode: 'dark',
+    }),
+
+    // Mock styled so that the vars property of theme can be injected in as it's not
+    // present in the default theme
+    styled: (args: any) => {
+      const retval = module.styled(args);
+      return (v: any) => {
+        if (typeof v !== 'function') return retval(v);
+
+        return retval((obj: any) => {
+          if (!cachedTheme) {
+            cachedTheme = {
+              ...obj.theme,
+              ...theme,
+            };
+
+            cachedTheme.vars = theme.colorSchemes.dark;
+            cachedTheme.getColorSchemeSelector = () => 'test';
+          }
+          obj.theme = cachedTheme;
+
+          return v(obj);
+        });
+      };
+    },
+  } satisfies typeof import('@mui/material/styles');
+});

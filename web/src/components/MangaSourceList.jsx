@@ -17,9 +17,9 @@ import { useUser } from '../utils/useUser';
 
 const ListItemStyled = styled(ListItem)(({ theme }) => ({
   borderRadius: theme.shape.borderRadius,
-  backgroundColor: theme.palette.primary.main,
+  backgroundColor: theme.vars.palette.primary.main,
   '&:hover': {
-    backgroundColor: theme.palette.primary.dark,
+    backgroundColor: theme.vars.palette.primary.dark,
   },
 }));
 

@@ -18,7 +18,7 @@ const InfoTable = styled('table')(({ theme }) => ({
   borderSpacing: '0px 2px',
   margin: theme.spacing(1),
   '& tr:nth-of-type(odd)': {
-    backgroundColor: theme.palette.action.hover,
+    backgroundColor: theme.vars.palette.action.hover,
   },
   '& th': {
     textAlign: 'end',

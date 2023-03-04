@@ -7,18 +7,18 @@ describe('withError()', () => {
   it('should render error when error prop is defined', () => {
     const { container } = render(<Comp error={new Error('fail')} />);
     expect(container).toMatchInlineSnapshot(`
-<div>
-  <div
-    class="MuiPaper-root MuiPaper-elevation MuiPaper-elevation1 css-1w3d1px-MuiPaper-root"
-  >
-    <h1
-      class="MuiTypography-root MuiTypography-h1 css-zze3tp-MuiTypography-root"
-    >
-      404 Not found
-    </h1>
-  </div>
-</div>
-`);
+      <div>
+        <div
+          class="MuiPaper-root MuiPaper-elevation MuiPaper-elevation1 css-7y4uvt-MuiPaper-root"
+        >
+          <h1
+            class="MuiTypography-root MuiTypography-h1 css-zze3tp-MuiTypography-root"
+          >
+            404 Not found
+          </h1>
+        </div>
+      </div>
+    `);
   });
 
   it('should render component when error is not defined', () => {
