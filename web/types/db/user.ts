@@ -4,6 +4,6 @@ export type User = {
   userId: number
   username: string
   userUuid: string
-  theme: Theme | null
+  theme: Theme
   admin: boolean
 }

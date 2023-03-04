@@ -1,5 +1,8 @@
 import { CssBaseline } from '@mui/material';
-import { ThemeProvider, StyledEngineProvider } from '@mui/material/styles';
+import {
+  StyledEngineProvider,
+  Experimental_CssVarsProvider as CssVarsProvider,
+} from '@mui/material/styles';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import enLocale from 'date-fns/locale/en-GB';
@@ -12,14 +15,14 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 
 import Head from 'next/head';
 import { SnackbarProvider } from 'notistack';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { sessionLogger } from '../../utils/logging';
 
 import Root from '../components/Root';
 
 import { csrfProps, CSRFProvider } from '../utils/csrf';
 import { UserProvider } from '../utils/useUser';
-import { getTheme } from '../utils/theme';
+import { theme } from '../utils/theme';
 import createEmotionCache from '../utils/createEmotionCache';
 
 
@@ -28,10 +31,8 @@ const clientSideEmotionCache = createEmotionCache();
 
 
 function MainApp({ Component, pageProps = {}, emotionCache = clientSideEmotionCache, props }) {
-  const [theme, setTheme] = React.useState(props.theme);
   const [user, setUser] = React.useState(props.user);
   const [csrf, setCsrf] = React.useState(props._csrf);
-  const [prefersDark, setPrefersDark] = useState(theme === 2);
   const [queryClient] = useState(() => new QueryClient({
     defaultOptions: {
       queries: {
@@ -43,33 +44,7 @@ function MainApp({ Component, pageProps = {}, emotionCache = clientSideEmotionCa
   useEffect(() => setUser(props.user), [props.user]);
   useEffect(() => setCsrf(props._csrf), [props._csrf]);
 
-  const childSetTheme = useCallback((val) => {
-    setTheme(val);
-    if (!user) {
-      window.localStorage.setItem('darkTheme', val.toString());
-    }
-  }, [user]);
-
-  useEffect(() => {
-    setPrefersDark(theme === 2);
-    if (!user) {
-      const darkTheme = window.localStorage.getItem('darkTheme');
-      if (!darkTheme) return setPrefersDark(true);
-
-      setPrefersDark(darkTheme === '2');
-    }
-  }, [user, theme]);
-
-  // Does not work without workarounds
-  // const tempDark = useMediaQuery('(prefers-color-scheme: dark)');
-  // const prefersDarkMode = theme === 0 ? tempDark : theme === 2;
-
-  props.activeTheme = prefersDark ? 2 : 1;
   props.user = user;
-  props.setTheme = childSetTheme;
-
-  const activeTheme = React.useMemo(() => getTheme(prefersDark),
-    [prefersDark]);
 
   return (
     <>
@@ -94,7 +69,7 @@ function MainApp({ Component, pageProps = {}, emotionCache = clientSideEmotionCa
       ) : (
         <CacheProvider value={emotionCache}>
           <StyledEngineProvider injectFirst>
-            <ThemeProvider theme={activeTheme}>
+            <CssVarsProvider theme={theme}>
               <NextNProgress />
               <CssBaseline />
               <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={enLocale}>
@@ -113,7 +88,7 @@ function MainApp({ Component, pageProps = {}, emotionCache = clientSideEmotionCa
                   </QueryClientProvider>
                 </SnackbarProvider>
               </LocalizationProvider>
-            </ThemeProvider>
+            </CssVarsProvider>
           </StyledEngineProvider>
         </CacheProvider>
       )}
@@ -139,7 +114,6 @@ MainApp.getInitialProps = async function getInitialProps({ ctx: { req, res }}) {
   return {
     props: {
       user: getUserData(req.user),
-      theme: req.user?.theme || 2,
       statusCode: res?.statusCode || 200,
       ...csrfProps({ req }).props,
     },

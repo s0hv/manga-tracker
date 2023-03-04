@@ -9,9 +9,10 @@ import Document, {
   Main,
   NextScript,
 } from 'next/document';
+import { getInitColorSchemeScript } from '@mui/material/styles';
 import type { EmotionJSX } from '@emotion/react/types/jsx-namespace';
 import createEmotionServer from '@emotion/server/create-instance';
-import { getTheme, roboto } from '../utils/theme';
+import { roboto, theme } from '../utils/theme';
 import createEmotionCache from '../utils/createEmotionCache';
 
 
@@ -19,20 +20,18 @@ interface MyDocumentProps extends DocumentProps {
   emotionStyleTags: EmotionJSX.Element[];
 }
 
-// Create a theme instance.
-const theme = getTheme(true);
-
 export default function MyDocument({ emotionStyleTags }: MyDocumentProps) {
   return (
     <Html lang="en" className={roboto.className}>
       <Head>
         {/* PWA primary color */}
-        <meta name="theme-color" content={theme.palette.primary.main} />
+        <meta name="theme-color" content={(theme as any).colorSchemes.dark.palette.main} />
         <link rel="shortcut icon" href="/favicon.ico" />
         <meta name="emotion-insertion-point" content="" />
         {emotionStyleTags}
       </Head>
       <body>
+        {getInitColorSchemeScript({ defaultMode: 'system' })}
         <Main />
         <NextScript />
       </body>

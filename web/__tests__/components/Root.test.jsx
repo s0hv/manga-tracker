@@ -30,11 +30,7 @@ describe('Root component should render correctly', () => {
 
   it('Should only return children on non 200 status code', () => {
     render(
-      <Root
-        statusCode={400}
-        activeTheme={1}
-        setTheme={() => null}
-      >
+      <Root statusCode={400}>
         <DummyComponent />
       </Root>
     );

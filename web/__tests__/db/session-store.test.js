@@ -1,5 +1,4 @@
 import { vi } from 'vitest';
-import Store from '../../db/session-store';
 import { db } from '../../db/helpers';
 import { spyOnDb } from '../dbutils';
 

@@ -11,6 +11,7 @@ import { getSingletonPostgresAdapter } from '@/db/postgres-adapter';
 import { db } from '@/db/helpers';
 import { authenticate } from '@/db/auth';
 import { limiterSlowBruteByIP } from '@/serverUtils/ratelimits';
+import { userLogger } from '@/serverUtils/logging';
 
 
 const authOptionsBase = {
@@ -66,8 +67,8 @@ export default function nextauth(req: NextApiRequest & Request, res: NextApiResp
 
               return user;
             })
-            .catch(() => {
-              console.log('Failed to authenticate user');
+            .catch((err) => {
+              userLogger.error(err, 'Failed to authenticate user');
               throw new Error('Unknown error occurred');
             });
         },
