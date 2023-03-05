@@ -5,3 +5,4 @@ DROP TABLE chapters, manga, manga_alias, manga_info, manga_service,
     notification_types, user_notifications, user_notification_fields CASCADE;
 
 TRUNCATE TABLE migrations;
+DROP TYPE theme;

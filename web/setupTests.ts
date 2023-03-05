@@ -92,7 +92,7 @@ vi.mock('@mui/material/styles', async () => {
               ...theme,
             };
 
-            cachedTheme.vars = theme.colorSchemes.dark;
+            cachedTheme.vars = (theme as any).colorSchemes.dark;
             cachedTheme.getColorSchemeSelector = () => 'test';
           }
           obj.theme = cachedTheme;

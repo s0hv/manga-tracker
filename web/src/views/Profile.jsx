@@ -6,16 +6,20 @@ import {
   LinearProgress,
   Paper,
   TextField as MuiTextField,
+  Divider,
+  Typography,
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { Form } from 'react-final-form';
 import { TextField, makeValidateSync, makeRequired } from 'mui-rff';
 import * as Yup from 'yup';
 import propTypes from 'prop-types';
+import { useConfirm } from 'material-ui-confirm';
+import { signOut } from 'next-auth/react';
 import CSRFInput from '../components/utils/CSRFInput';
 import { showErrorAlways } from '../utils/formUtils';
 import { useCSRF } from '../utils/csrf';
-import { updateUserProfile } from '../api/user';
+import { updateUserProfile, deleteAccount } from '../api/user.ts';
 
 
 const ProfileForm = styled('form')(({ theme }) => ({
@@ -48,6 +52,7 @@ const Profile = (props) => {
   const isCredentialsAccount = Boolean(user.isCredentialsAccount);
   const csrf = useCSRF();
   const { enqueueSnackbar } = useSnackbar();
+  const confirm = useConfirm();
   const onSubmit = useCallback((values) => updateUserProfile(csrf, values)
     .then(() => {
       enqueueSnackbar('Profile updated successfully', { variant: 'success' });
@@ -66,6 +71,25 @@ const Profile = (props) => {
     submitting: true,
     hasValidationErrors: true,
   }), []);
+
+  const deleteAccountDialog = useCallback(() => {
+    const confirmationKeyword = user.username || 'I understand';
+    confirm(({
+      description: <Typography sx={{ mb: 2 }}>This action is permanent and irreversible.<br /> Type {`"${confirmationKeyword}"`} to acknowledge this.</Typography>,
+      title: 'Delete account permanently?',
+      confirmationKeyword,
+      confirmationText: `Delete account`,
+    }))
+      .then(() => {
+        deleteAccount(csrf)
+          .then(() => signOut())
+          .catch(() => {
+            enqueueSnackbar('Failed to delete account due to an unknown error', {
+              variant: 'error',
+            });
+          });
+      });
+  }, [confirm, csrf, enqueueSnackbar, user.username]);
 
   return (
     <Container maxWidth='lg'>
@@ -156,6 +180,16 @@ const Profile = (props) => {
               </ProfileForm>
             )}
           />
+          <Divider sx={{ mt: 5, mb: 5 }} />
+          <Button
+            fullWidth
+            variant='contained'
+            color='error'
+            onClick={deleteAccountDialog}
+            sx={{ mt: 3, mb: 2 }}
+          >
+            Delete account
+          </Button>
         </Container>
       </Paper>
     </Container>

@@ -9,6 +9,7 @@ import {
   adminUser,
   expectErrorMessage,
   getCookie,
+  getSessionToken,
   login,
   normalUser,
   oauthUser,
@@ -16,11 +17,18 @@ import {
   withUser,
 } from '../utils';
 import { redis } from '../../utils/ratelimits';
+import { apiRequiresUserPostTests } from './utilities';
+import { db } from '@/db/helpers';
 
 let httpServer: any;
+const serverReference = {
+  httpServer,
+};
+
 
 beforeAll(async () => {
   ({ httpServer } = await initServer());
+  serverReference.httpServer = httpServer;
 });
 
 afterAll(async () => {
@@ -451,5 +459,32 @@ describe('POST /api/user/profile', () => {
       .expect(200);
 
     await checkAndResetPassword(agent, newPassword, normalUser);
+  });
+});
+
+describe('POST /api/user/delete', () => {
+  const url = '/api/user/delete';
+  apiRequiresUserPostTests(serverReference, url);
+
+  it('Sets the deleteUser property of session', async () => {
+    const agent = await login(httpServer, normalUser);
+
+    const now = new Date(Date.now());
+
+    await agent.post(url)
+      .expect(200)
+      .csrf()
+      .expect(res => expect(res.body).toBeObject())
+      .expect(res => expect(res.body.message).toBeString());
+
+    const after = new Date(Date.now());
+
+    const sessionToken = getSessionToken(agent);
+
+    expect(sessionToken).toBeString();
+    const sess = await db.one<{ deleteUser: Date | null }>`SELECT delete_user FROM sessions WHERE session_id=${sessionToken}`;
+    expect(sess.deleteUser).toBeDate();
+    expect(sess.deleteUser).toBeAfter(now);
+    expect(sess.deleteUser).toBeBefore(after);
   });
 });

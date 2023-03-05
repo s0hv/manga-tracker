@@ -134,5 +134,27 @@ export default function nextauth(req: NextApiRequest & Request, res: NextApiResp
         return decode(params);
       },
     },
+
+    events: {
+      async signOut({ session }) {
+        // If delete user was set within the last minute delete the user
+        if (session.userId && session.deleteUser && (Date.now() - session.deleteUser.getTime()) < 60 * 1000) {
+          try {
+            await authOptionsBase.adapter!.deleteUser!(session.userId);
+          } catch (e) {
+            userLogger.error(e, 'Failed to delete user');
+            throw e;
+          }
+        } else if (session.userId) {
+          return authOptionsBase.adapter!.updateUserLastActivity(session.userId);
+        }
+      },
+
+      signIn({ user, isNewUser }) {
+        if (isNewUser || !user) return;
+
+        return authOptionsBase.adapter!.updateUserLastActivity(user.id);
+      },
+    },
   });
 }

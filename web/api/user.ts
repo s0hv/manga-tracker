@@ -94,4 +94,15 @@ export default (app: Express) => {
       })
       .catch(err => handleError(err, res));
   });
+
+  app.post('/api/user/delete', [
+    validateUser(),
+    handleValidationErrors,
+  ], (req: Request, res: Response) => {
+    db.any`UPDATE sessions SET delete_user=CURRENT_TIMESTAMP WHERE session_id=${req.session.sessionToken}`
+      .then(() => {
+        res.status(200).json({ message: 'Delete account by signing out within a minute' });
+      })
+      .catch(err => handleError(err, res));
+  });
 };
