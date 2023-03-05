@@ -1,6 +1,7 @@
 import type { AdapterSession } from 'next-auth/adapters';
 import type { Location } from 'express-validator';
 import type { Request as ExpressRequest } from 'express-serve-static-core';
+import '@mui/material/themeCssVarsAugmentation';
 import type { SessionData, SessionUser } from './dbTypes';
 import type { PostgresAdapter } from '@/db/postgres-adapter';
 
