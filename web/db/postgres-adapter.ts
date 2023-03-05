@@ -16,6 +16,7 @@ export type PostgresAdapter = Adapter<false> & {
   deleteSessionFromCache: (sessionId: string) => void
   getSession: (sessionId: string) => Promise<AdapterSession | null>
   clearOldSessions: () => ReturnType<typeof onSessionExpire>
+  updateUserLastActivity: (userId: string) => Promise<void>
 
   userCache: LRU<string, AdapterUser>,
   sessionCache: LRU<string, AdapterSession>
@@ -38,7 +39,7 @@ export interface StoreOptions {
  * Create a singleton adapter. After the first call will return the same adapter
  * even if settings are changed
  */
-export const getSingletonPostgresAdapter = (db: DatabaseHelpers, options: StoreOptions = {}) => {
+export const getSingletonPostgresAdapter = (db: DatabaseHelpers, options: StoreOptions = {}): PostgresAdapter => {
   return createSingleton<PostgresAdapter>('postgres-adapter', () => PostgresAdapter(db, options));
 };
 
@@ -117,7 +118,7 @@ export const PostgresAdapter = (db: DatabaseHelpers, options: StoreOptions = {})
     }
 
     const session = await db.oneOrNone<AdapterSession>`
-      SELECT user_id, session_id as session_token, expires_at as expires, data 
+      SELECT user_id, session_id as session_token, expires_at as expires, data
       FROM sessions 
       WHERE session_id=${sessionToken}`;
 
@@ -179,6 +180,10 @@ export const PostgresAdapter = (db: DatabaseHelpers, options: StoreOptions = {})
       return user;
     },
 
+    updateUserLastActivity(userId) {
+      return db.none`UPDATE users SET last_active=CURRENT_TIMESTAMP WHERE user_uuid=${userId}`;
+    },
+
     linkAccount(account) {
       return db.none`INSERT INTO account ${db.sql(account, 'type', 'provider', 'providerAccountId', 'refresh_token', 'access_token', 'expires_at', 'token_type', 'scope', 'id_token', 'session_state', 'userId')}`;
     },
@@ -223,7 +228,7 @@ export const PostgresAdapter = (db: DatabaseHelpers, options: StoreOptions = {})
       return db.oneOrNone<AdapterSession>`
         DELETE FROM sessions 
         WHERE session_id=${sessionToken} 
-        RETURNING session_id as sessionToken, expires_at as expires, user_id, data
+        RETURNING session_id as session_token, expires_at as expires, user_id, data, delete_user
       `
         .then<AdapterSession | null>(sess => {
           sessionCache.delete(sessionToken);

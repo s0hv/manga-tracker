@@ -97,12 +97,12 @@ const mapOverrides = (notificationData: NotificationData) => new Set(Object.keys
 type FormComponentProps = {
   defaultExpanded: boolean
   overrides: Set<number>
-  fieldOptional: MappedNotificationField<boolean>
+  fieldRequired: MappedNotificationField<boolean>
   changeOverride: ChangeOverride
 }
 
 const FormComponent: FC<FormComponentProps & FormRenderProps<FormValues<FieldTypes>, Partial<FormValues<FieldTypes>>>> = (
-  { defaultExpanded, overrides, fieldOptional, changeOverride, handleSubmit, submitting, hasValidationErrors }
+  { defaultExpanded, overrides, fieldRequired, changeOverride, handleSubmit, submitting, hasValidationErrors }
 ) => {
   const { input: override } = useField('overrideId');
   const isOverride = typeof override.value === 'number';
@@ -164,7 +164,7 @@ const FormComponent: FC<FormComponentProps & FormRenderProps<FormValues<FieldTyp
               variant='outlined'
               margin='normal'
               autoComplete='off'
-              required={!isOverride && !fieldOptional.username}
+              required={!isOverride && fieldRequired.username}
               name='username'
               label='Webhook username'
             />
@@ -172,7 +172,7 @@ const FormComponent: FC<FormComponentProps & FormRenderProps<FormValues<FieldTyp
               variant='outlined'
               margin='normal'
               fullWidth
-              required={!isOverride && !fieldOptional.embed_title}
+              required={!isOverride && fieldRequired.embed_title}
               name='embed_title'
               label='Embed title'
             />
@@ -180,7 +180,7 @@ const FormComponent: FC<FormComponentProps & FormRenderProps<FormValues<FieldTyp
               variant='outlined'
               margin='normal'
               multiline
-              required={!isOverride && !fieldOptional.message}
+              required={!isOverride && fieldRequired.message}
               name='message'
               label='Message'
             />
@@ -188,14 +188,14 @@ const FormComponent: FC<FormComponentProps & FormRenderProps<FormValues<FieldTyp
               variant='outlined'
               margin='normal'
               fullWidth
-              required={!isOverride && !fieldOptional.url}
+              required={!isOverride && fieldRequired.url}
               name='url'
               label='Embed url'
             />
             <TextField
               variant='outlined'
               margin='normal'
-              required={!isOverride && !fieldOptional.avatar_url}
+              required={!isOverride && fieldRequired.avatar_url}
               name='avatar_url'
               label='Webhook user avatar url'
             />
@@ -204,7 +204,7 @@ const FormComponent: FC<FormComponentProps & FormRenderProps<FormValues<FieldTyp
               margin='normal'
               fullWidth
               multiline
-              required={!isOverride && !fieldOptional.embed_content}
+              required={!isOverride && fieldRequired.embed_content}
               name='embed_content'
               label='Embed content'
             />
@@ -212,7 +212,7 @@ const FormComponent: FC<FormComponentProps & FormRenderProps<FormValues<FieldTyp
               variant='outlined'
               margin='normal'
               fullWidth
-              required={!isOverride && !fieldOptional.footer}
+              required={!isOverride && fieldRequired.footer}
               name='footer'
               label='Footer content'
             />
@@ -220,7 +220,7 @@ const FormComponent: FC<FormComponentProps & FormRenderProps<FormValues<FieldTyp
               variant='outlined'
               margin='normal'
               fullWidth
-              required={!isOverride && !fieldOptional.thumbnail}
+              required={!isOverride && fieldRequired.thumbnail}
               name='thumbnail'
               label='Embed thumbnail'
             />
@@ -240,7 +240,7 @@ const FormComponent: FC<FormComponentProps & FormRenderProps<FormValues<FieldTyp
           <RightSide disabled={isOverride}>
             <div style={{ height: '10%' }} />
             <Box sx={{
-              maxWidth: 'min-content',
+              minWidth: 'min-content',
             }}
             >
               Formatting help<br /><br />
@@ -275,8 +275,16 @@ const DiscordWebhookEditor: React.FC<DiscordWebhookEditorProps> = ({
   const initialValues: Partial<FormValues<FieldTypes>> = useMemo(() => getInitialValues(notificationData, notificationFields),
     [notificationData, notificationFields]);
 
-  const fieldOptional = useMemo(() => mapNotificationFields(notificationData.fields, 'optional'),
-    [notificationData.fields]);
+  const fieldRequired = useMemo(() => {
+    const mapped = mapNotificationFields(notificationData.fields, 'optional');
+    Object.keys(mapped)
+      .forEach(key => {
+        mapped[key] = !mapped[key];
+      });
+
+    return mapped;
+  },
+  [notificationData.fields]);
 
   const onSubmit = useCallback((values: FormValues<FieldTypes>, form: FormApi<any, Partial<FormValues<FieldTypes>>>) => {
     const isOverride = typeof values.overrideId === 'number';
@@ -329,6 +337,7 @@ const DiscordWebhookEditor: React.FC<DiscordWebhookEditorProps> = ({
       <Box sx={{
         p: 4,
         m: 2,
+        minWidth: '800px',
       }}
       >
         <ConfirmProvider>
@@ -341,7 +350,7 @@ const DiscordWebhookEditor: React.FC<DiscordWebhookEditorProps> = ({
                 defaultExpanded={defaultExpanded}
                 changeOverride={changeOverride}
                 overrides={overrides}
-                fieldOptional={fieldOptional}
+                fieldRequired={fieldRequired}
                 {...props}
               />
             )}

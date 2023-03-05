@@ -4,7 +4,7 @@ import enLocale from 'date-fns/locale/en-GB';
 import type { FC, PropsWithChildren } from 'react';
 
 export const DefaultLocalizationProvider: FC<PropsWithChildren> = ({ children }) => (
-   <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={enLocale}>
-     {children}
-   </LocalizationProvider>
-)
+  <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={enLocale}>
+    {children}
+  </LocalizationProvider>
+);

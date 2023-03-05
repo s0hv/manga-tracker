@@ -248,6 +248,10 @@ export function getCookie(agent: request.SuperAgentTest, name: string) {
   return agent.jar.getCookie(name, { path: '/' } as any);
 }
 
+export const getSessionToken = (agent: request.SuperAgentTest) => {
+  return getCookie(agent, 'next-auth.session-token')?.value;
+};
+
 export function deleteCookie(agent: request.SuperAgentTest, name: string) {
   const c = getCookie(agent, name);
   expect(cookie).toBeDefined();

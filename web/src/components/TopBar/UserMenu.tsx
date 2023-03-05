@@ -44,7 +44,8 @@ export type UserMenuProps = {
 export const UserMenu: FC<UserMenuProps> = ({ handleThemeChange }) => {
   const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null);
   const open = Boolean(anchorEl);
-  const { mode } = useColorScheme();
+  const { mode, systemMode } = useColorScheme();
+  const nextMode = (mode === 'system' ? systemMode : mode) === 'light' ? 'dark' : 'light';
   const csrf = useCSRF();
   const { user } = useUser();
 
@@ -104,7 +105,7 @@ export const UserMenu: FC<UserMenuProps> = ({ handleThemeChange }) => {
         <MenuItem onClick={handleUserThemeChange}>
           {mode === 'dark' ? <SunIcon className={classes.menuItemIcon} /> :
           <MoonIcon className={classes.menuItemIcon} />}
-          Switch to {mode} theme
+          Switch to {nextMode} theme
         </MenuItem>
         <LinkComponent
           Component={MenuItem}
