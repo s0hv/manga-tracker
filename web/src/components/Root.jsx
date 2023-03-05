@@ -3,6 +3,7 @@ import { Divider, Link, Typography, IconButton } from '@mui/material';
 import { styled, useColorScheme } from '@mui/material/styles';
 import GitHubIcon from '@mui/icons-material/GitHub';
 import PropTypes from 'prop-types';
+import NextLink from 'next/link';
 
 import TopBar from './TopBar';
 
@@ -80,6 +81,9 @@ export default function Layout(props) {
           <FooterContent>
             <Copyright />
             <div>
+              <NextLink href='/third_party_notices' style={{ marginRight: '8px', color: 'inherit' }}>
+                Third party notices
+              </NextLink>
               <Link color='inherit' href='https://github.com/s0hv/manga-tracker/blob/master/LICENSE' aria-label='license'>
                 License
               </Link>
