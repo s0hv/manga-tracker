@@ -5,7 +5,11 @@ import { generateUpdate } from './utils';
 import { db } from './helpers';
 import type { DatabaseId, MangaId } from '@/types/dbTypes';
 import type { Chapter } from '@/types/db/chapter';
-import type { ChapterReleaseDates, MangaChapter } from '@/types/api/chapter';
+import type {
+  ChapterRelease,
+  ChapterReleaseDates,
+  MangaChapter,
+} from '@/types/api/chapter';
 import type { DefaultExcept, PartialExcept } from '@/types/utility';
 
 export const getChapterReleases = (mangaId: MangaId) => {
@@ -14,8 +18,10 @@ export const getChapterReleases = (mangaId: MangaId) => {
                WHERE manga_id=${mangaId} GROUP BY 1 ORDER BY 1`;
 };
 
-export const getLatestChapters = (limit: number, offset: number) => {
-  return db.manyOrNone`SELECT
+export const getLatestChapters = (limit: number, offset: number, userId?: DatabaseId) => {
+  return db.manyOrNone<ChapterRelease>`
+                ${userId ? db.sql`WITH follows AS (SELECT DISTINCT manga_id FROM user_follows WHERE user_id=${userId})` : db.sql``}
+                SELECT
                     chapter_id,
                     chapters.title,
                     chapter_number,
@@ -33,6 +39,7 @@ export const getLatestChapters = (limit: number, offset: number) => {
                 INNER JOIN manga m ON chapters.manga_id = m.manga_id
                 INNER JOIN manga_service ms ON chapters.manga_id = ms.manga_id AND chapters.service_id=ms.service_id
                 LEFT JOIN manga_info mi ON m.manga_id = mi.manga_id
+                ${userId ? db.sql`INNER JOIN follows f ON f.manga_id=m.manga_id` : db.sql``}
                 ORDER BY release_date DESC
                 LIMIT ${limit} ${offset ? db.sql`OFFSET ${offset}` : db.sql``}`;
 };

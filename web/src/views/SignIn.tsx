@@ -145,7 +145,6 @@ export default function SignIn({ providers, _csrf }: SignInProps): React.ReactEl
                     name='email'
                     type='email'
                     autoComplete='email'
-                    autoFocus
                   />
                   <TextField
                     variant='outlined'

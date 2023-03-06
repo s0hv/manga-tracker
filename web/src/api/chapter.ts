@@ -2,6 +2,7 @@ import { handleError, handleResponse } from './utilities';
 import { csrfHeader } from '../utils/csrf';
 import { snakeCase } from '../utils/utilities';
 import type {
+  ChapterRelease,
   ChapterReleaseDates,
   MangaChapter,
   MangaChapterResponse,
@@ -37,15 +38,12 @@ export const getChapters =
 
 /**
  * Fetches the latest chapters
- * @param {Number|string} limit limit of the fetched chapters
- * @param {Number|string} offset current offset
- * @return {Promise<any>}
  */
 export const getLatestChapters =
-  (limit: number | string, offset: number | string): Promise<any> => fetch(
-    `/api/chapter/latest?limit=${limit}&offset=${offset}`
+  (limit: number | string, offset: number | string, useFollows: boolean): Promise<ChapterRelease[]> => fetch(
+    `/api/chapter/latest?limit=${limit}&offset=${offset}&useFollows=${useFollows}`
   )
-    .then(handleResponse)
+    .then(handleResponse<ChapterRelease[]>)
     .catch(handleError);
 
 /**

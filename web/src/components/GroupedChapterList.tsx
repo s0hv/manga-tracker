@@ -1,20 +1,36 @@
-import propTypes from 'prop-types';
-import React, { useEffect, useState, useMemo } from 'react';
+import React, {
+  type FC,
+  type PropsWithChildren,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import {
-  Paper,
   Container,
-  Typography,
   IconButton,
+  Paper,
   Skeleton,
+  Typography,
 } from '@mui/material';
 
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
-import { groupBy } from '@/common/utilities';
+import { type GetKey, groupBy } from '@/common/utilities';
 import { formatChapterTitle, formatChapterUrl } from '../utils/formatting';
 import { MangaCover } from './MangaCover';
+import type { Group } from '@/webUtils/utilities';
+import type { ServiceForApi } from '@/types/api/services';
+import type { ChapterRelease } from '@/types/api/chapter';
 
+export type ChapterComponentProps = {
+  chapter: ChapterRelease
+}
 
-export const ChapterGroupBase = ({ groupString, children }) => (
+export type GroupComponentProps = PropsWithChildren<{
+  groupString: string | React.ReactNode
+  group: string
+}>
+
+export const ChapterGroupBase: FC<Omit<GroupComponentProps, 'group'>> = ({ groupString, children }) => (
   <Paper sx={{
     mb: 1,
     pt: 2,
@@ -27,7 +43,7 @@ export const ChapterGroupBase = ({ groupString, children }) => (
   </Paper>
 );
 
-export const ChapterGroupWithCover = (mangaToCover) => ({ group, groupString, children }) => (
+export const ChapterGroupWithCover = (mangaToCover: Record<string, string>): FC<GroupComponentProps> => ({ group, groupString, children }) => (
   <ChapterGroupBase groupString={groupString}>
     <div style={{ display: 'flex' }}>
       <div>
@@ -44,7 +60,7 @@ export const ChapterGroupWithCover = (mangaToCover) => ({ group, groupString, ch
   </ChapterGroupBase>
 );
 
-export const ChapterWithLink = (services) => ({ chapter }) => {
+export const ChapterWithLink = (services: Record<number, ServiceForApi>): FC<ChapterComponentProps> => ({ chapter }) => {
   const service = services[chapter.serviceId];
   return (
     <li>
@@ -70,7 +86,16 @@ export const ChapterWithLink = (services) => ({ chapter }) => {
 };
 
 
-export const GroupedChapterList = ({
+export type GroupedChapterListProps = {
+  chapters: ChapterRelease[]
+  groupKey: keyof ChapterRelease | GetKey<ChapterRelease>
+  groupToString: (group: string, arr: ChapterRelease[]) => string
+  GroupComponent: React.ComponentType<GroupComponentProps>
+  ChapterComponent: React.ComponentType<ChapterComponentProps>
+  skeletons?: number
+}
+
+export const GroupedChapterList: FC<GroupedChapterListProps> = ({
   chapters,
   groupKey,
   groupToString = (group) => group,
@@ -78,13 +103,13 @@ export const GroupedChapterList = ({
   ChapterComponent,
   skeletons,
 }) => {
-  const [groupedChapters, setGroupedChapters] = useState([]);
+  const [groupedChapters, setGroupedChapters] = useState<Group<ChapterRelease>[]>([]);
   useEffect(() => {
     setGroupedChapters(groupBy(chapters, groupKey));
   }, [chapters, groupKey]);
 
   const skeletonArray = useMemo(() => {
-    if (skeletons > 0) return new Array(skeletons).fill(0);
+    if (skeletons) return new Array(skeletons).fill(0);
 
     return [];
   }, [skeletons]);
@@ -122,15 +147,6 @@ export const GroupedChapterList = ({
       ))}
     </Container>
   );
-};
-
-GroupedChapterList.propTypes = {
-  chapters: propTypes.arrayOf(propTypes.object),
-  groupKey: propTypes.oneOfType([propTypes.string, propTypes.func]),
-  groupToString: propTypes.func,
-  GroupComponent: propTypes.func,
-  ChapterComponent: propTypes.func,
-  skeletons: propTypes.number,
 };
 
 export default GroupedChapterList;

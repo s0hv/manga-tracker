@@ -1,32 +1,36 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import dynamic from 'next/dynamic';
-import { Typography, Container } from '@mui/material';
+import { Container, Typography } from '@mui/material';
 import { getLatestChapters } from '../api/chapter';
 import { getServices } from '../api/services';
 import {
   ChapterGroupWithCover,
   ChapterWithLink,
 } from '@/components/GroupedChapterList';
+import type { ChapterRelease } from '@/types/api/chapter';
+import type { ServiceForApi } from '@/types/api/services';
+import { useUser } from '@/webUtils/useUser';
 
 const GroupedChapterList = dynamic(import('../components/GroupedChapterList'));
 
-const getGroupName = (_, chapters) => chapters[0].manga;
+const getGroupName = (_: unknown, chapters: ChapterRelease[]) => chapters[0].manga;
 
 function App() {
-  const [chapters, setChapters] = useState([]);
-  const [services, setServices] = useState(null);
-  const [mangaToCover, setMangaToCover] = useState(null);
+  const { user } = useUser();
+  const [chapters, setChapters] = useState<ChapterRelease[]>([]);
+  const [services, setServices] = useState<Record<number, ServiceForApi> | null>(null);
+  const [mangaToCover, setMangaToCover] = useState<Record<string, string> | null>(null);
   const limit = 15;
 
   useEffect(() => {
-    getLatestChapters(limit, 0)
+    getLatestChapters(limit, 0, Boolean(user))
       .then(json => {
         setMangaToCover(
           json.reduce((prev, chapter) => ({ ...prev, [chapter.mangaId]: chapter.cover }), {})
         );
         setChapters(json);
       });
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     getServices()
@@ -35,15 +39,15 @@ function App() {
       ));
   }, []);
 
-  const GroupComponent = useMemo(() => ChapterGroupWithCover(mangaToCover),
+  const GroupComponent = useMemo(() => ChapterGroupWithCover(mangaToCover || {}),
     [mangaToCover]);
 
   // eslint-disable-next-line react/no-unstable-nested-components
-  const ChapterComponent = useMemo(() => ChapterWithLink(services), [services]);
+  const ChapterComponent = useMemo(() => ChapterWithLink(services || {}), [services]);
 
   return (
     <Container maxWidth='lg' sx={{ minHeight: '50vh' }}>
-      <Typography variant='h4' sx={{ m: 1 }}>Recent Releases</Typography>
+      <Typography variant='h4' sx={{ m: 1 }}>Recent Releases {user ? '(for your follows)' : ''}</Typography>
       <GroupedChapterList
         chapters={services ? chapters : []}
         groupKey='mangaId'
@@ -57,10 +61,4 @@ function App() {
   );
 }
 
-function MainApp({ user }) {
-  return (
-    <App user={user} />
-  );
-}
-
-export default MainApp;
+export default App;
