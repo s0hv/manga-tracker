@@ -59,13 +59,15 @@ export const newPassword = (newPass: string, repeatPass: string): ValidationChai
     return true;
   });
 
+export const userValidator: CustomValidator = (value, { req }) => {
+  if (!req.user) {
+    throw new Unauthorized('User not authenticated');
+  }
+  return true;
+};
+
 export const validateUser = (): ValidationChain => body('')
-  .custom((value, { req }) => {
-    if (!req.user) {
-      throw new Unauthorized('User not authenticated');
-    }
-    return true;
-  });
+  .custom(userValidator);
 
 export const validateAdminUser = (): ValidationChain => validateUser()
   .bail()

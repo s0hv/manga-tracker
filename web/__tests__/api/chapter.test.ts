@@ -306,17 +306,71 @@ describe('DELETE /api/chapter/:chapterId', () => {
 });
 
 describe('GET /api/chapter/latest', () => {
-  expectISEOnDbError(serverReference, '/api/chapter/latest');
+  const url = '/api/chapter/latest';
+  expectISEOnDbError(serverReference, url);
 
   it('Should match api spec', async () => {
     await request(httpServer)
-      .get('/api/chapter/latest')
+      .get(url)
+      .expect(200)
       .expect(res => {
         expect(res.body).toBeObject();
         expect(res.body.data).toBeArray();
         expect(res.body.data).not.toHaveLength(0);
       })
       .satisfiesApiSpec();
+  });
+
+  it('Should return 401 with useFollows without user', async () => {
+    await request(httpServer)
+      .get(`${url}?useFollows=true`)
+      .expect(401);
+  });
+
+  it('Should return 400 with invalid useFollows', async () => {
+    await Promise.all([
+      request(httpServer)
+        .get(`${url}?useFollows=yes`)
+        .expect(400)
+        .expect(expectErrorMessage('yes', 'useFollows')),
+
+      request(httpServer)
+        .get(`${url}?useFollows=tru`)
+        .expect(400)
+        .expect(expectErrorMessage('tru', 'useFollows')),
+
+      request(httpServer)
+        .get(`${url}?useFollows=no`)
+        .expect(400)
+        .expect(expectErrorMessage('no', 'useFollows')),
+    ]);
+  });
+
+
+  it('Should match api spec when useFollows is false', async () => {
+    await request(httpServer)
+      .get(`${url}?useFollows=false`)
+      .expect(200)
+      .expect(res => {
+        expect(res.body).toBeObject();
+        expect(res.body.data).toBeArray();
+        expect(res.body.data).not.toHaveLength(0);
+      })
+      .satisfiesApiSpec();
+  });
+
+  it('Should return follows with useFollows', async () => {
+    await withUser(normalUser, async () => {
+      await request(httpServer)
+        .get(`${url}?useFollows=true`)
+        .expect(200)
+        .expect(res => {
+          expect(res.body).toBeObject();
+          expect(res.body.data).toBeArray();
+          expect(res.body.data).not.toHaveLength(0);
+        })
+        .satisfiesApiSpec();
+    });
   });
 });
 

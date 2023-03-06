@@ -47,6 +47,7 @@ export const LatestChapter: JSONSchema4 = {
     manga: stringType,
     mangaId: positiveInteger,
     cover: imageType,
+    titleId: stringType,
   },
   required: [
     'chapterId',
@@ -58,6 +59,7 @@ export const LatestChapter: JSONSchema4 = {
     'chapterIdentifier',
     'manga',
     'mangaId',
+    'titleId',
   ],
 };
 

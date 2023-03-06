@@ -1,6 +1,6 @@
 import { Group } from '@/webUtils/utilities';
 
-type GetKey<T> = (value: T) => string;
+export type GetKey<T> = (value: T) => string;
 interface GroupByOptions<B extends boolean = boolean, C extends boolean = boolean> {
   keepOrder: B
   returnAsDict?: C

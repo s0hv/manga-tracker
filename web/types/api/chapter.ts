@@ -13,6 +13,7 @@ export type ChapterRelease = MangaChapter & {
   manga: string
   mangaId: number
   cover: string
+  titleId: string
 }
 
 export type MangaChapterResponse = {

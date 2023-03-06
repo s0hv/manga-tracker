@@ -1,4 +1,4 @@
-import { body as validateBody, query } from 'express-validator';
+import { body as validateBody, query, matchedData } from 'express-validator';
 
 import { NoColumnsError } from '@/db/errors';
 import {
@@ -10,6 +10,7 @@ import {
 import {
   validateAdminUser,
   handleValidationErrors,
+  userValidator,
 } from '../utils/validators.ts';
 import { handleError } from '@/db/utils';
 import { dbLogger } from '../utils/logging.js';
@@ -119,9 +120,17 @@ export default app => {
       .default(25)
       .withMessage('Limit must be between 0 and 50'),
     query('offset').optional().isInt({ min: 0, max: 500 }),
+    query('useFollows')
+      .isBoolean()
+      .bail()
+      .optional()
+      .toBoolean()
+      .if((val) => val === true)
+      .custom(userValidator),
     handleValidationErrors,
   ], (req, res) => {
-    getLatestChapters(req.query.limit, req.query.offset)
+    const data = matchedData(req, { includeOptionals: false });
+    getLatestChapters(data.limit, data.offset, data.useFollows ? req.user?.userId : undefined)
       .then(rows => res.status(200).json({ data: rows }))
       .catch(err => handleError(err, res));
   });
