@@ -8,8 +8,9 @@ import {
   Link,
   Typography,
 } from '@mui/material';
+import NextLink from 'next/link';
 import { LockOutlined as LockOutlinedIcon } from '@mui/icons-material';
-import { styled } from '@mui/material/styles';
+import { styled, useColorScheme } from '@mui/material/styles';
 import { Field, Form } from 'react-final-form';
 import { Checkboxes, TextField } from 'mui-rff';
 import type {
@@ -49,6 +50,14 @@ const providerStyles: Partial<Record<LiteralUnion<BuiltInProviderType>, Optional
     bgDark: '#7289DA',
     textDark: '#fff',
   },
+  google: {
+    logo: 'https://authjs.dev/img/providers/google.svg',
+    logoDark: 'https://authjs.dev/img/providers/google.svg',
+    bg: '#fff',
+    text: '#000',
+    bgDark: '#fff',
+    textDark: '#000',
+  },
 } as const;
 
 const renderProvider = (provider?: ClientSafeProvider): provider is ClientSafeProvider => provider !== undefined && provider.type !== 'credentials';
@@ -82,9 +91,12 @@ const getStyles = (style: OptionalLogoStyles | undefined, darkTheme: boolean) =>
 
 export default function SignIn({ providers, _csrf }: SignInProps): React.ReactElement {
   const hasCredentials = Boolean(providers?.credentials);
+  const { mode, systemMode } = useColorScheme();
+  // Will always be undefined on server
+  const currentMode = mode === 'system' ? systemMode : (mode ?? 'dark');
 
   return (
-    <Container component='main' maxWidth='xs'>
+    <Container component='main' maxWidth='xs' className={styles.container}>
       <Root>
         <Avatar sx={{ m: 1, backgroundColor: 'secondary.main' }}>
           <LockOutlinedIcon />
@@ -92,8 +104,12 @@ export default function SignIn({ providers, _csrf }: SignInProps): React.ReactEl
         <Typography component='h1' variant='h5'>
           Sign in
         </Typography>
+        <Typography sx={{ mb: 3 }}>
+          An account is created when signing in if it does not already exist.<br />
+          By signing up you accept the <NextLink href='/terms'>Terms</NextLink> and the <NextLink href='/privacy_policy'>Privacy Policy</NextLink>
+        </Typography>
         {Object.values(providers || {}).filter<ClientSafeProvider>(renderProvider).map(provider => {
-          const providerStyle = getStyles(providerStyles[provider.id], true);
+          const providerStyle = getStyles(providerStyles[provider.id], currentMode === 'dark');
           return (
             <div key={provider.id} className={styles.provider}>
               <button
