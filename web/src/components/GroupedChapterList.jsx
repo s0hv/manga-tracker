@@ -1,9 +1,15 @@
 import propTypes from 'prop-types';
-import React, { useEffect, useState } from 'react';
-import { Paper, Container, Typography, IconButton } from '@mui/material';
+import React, { useEffect, useState, useMemo } from 'react';
+import {
+  Paper,
+  Container,
+  Typography,
+  IconButton,
+  Skeleton,
+} from '@mui/material';
 
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
-import { groupBy } from '../../common/utilities';
+import { groupBy } from '@/common/utilities';
 import { formatChapterTitle, formatChapterUrl } from '../utils/formatting';
 import { MangaCover } from './MangaCover';
 
@@ -70,14 +76,36 @@ export const GroupedChapterList = ({
   groupToString = (group) => group,
   GroupComponent,
   ChapterComponent,
+  skeletons,
 }) => {
   const [groupedChapters, setGroupedChapters] = useState([]);
   useEffect(() => {
     setGroupedChapters(groupBy(chapters, groupKey));
   }, [chapters, groupKey]);
 
+  const skeletonArray = useMemo(() => {
+    if (skeletons > 0) return new Array(skeletons).fill(0);
+
+    return [];
+  }, [skeletons]);
+
   return (
     <Container maxWidth='lg' disableGutters>
+      {groupedChapters.length === 0 && skeletons && skeletonArray.map((_, i) => (
+        // eslint-disable-next-line react/no-array-index-key
+        <ChapterGroupBase groupString={<Skeleton width='75%' />} key={`${i}`}>
+          <div style={{ display: 'flex' }}>
+            <div>
+              <Skeleton width={96} height={134} variant='rounded' sx={{ mr: 2 }} />
+            </div>
+            <div>
+              <Skeleton width={300} />
+              <Skeleton width={300} />
+              <Skeleton width={300} />
+            </div>
+          </div>
+        </ChapterGroupBase>
+      ))}
       {groupedChapters.map((group, idx) => (
         <GroupComponent
           groupString={groupToString(group.group, group.arr)}
@@ -102,6 +130,7 @@ GroupedChapterList.propTypes = {
   groupToString: propTypes.func,
   GroupComponent: propTypes.func,
   ChapterComponent: propTypes.func,
+  skeletons: propTypes.number,
 };
 
 export default GroupedChapterList;

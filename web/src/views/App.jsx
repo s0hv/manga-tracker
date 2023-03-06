@@ -6,7 +6,7 @@ import { getServices } from '../api/services';
 import {
   ChapterGroupWithCover,
   ChapterWithLink,
-} from '../components/GroupedChapterList';
+} from '@/components/GroupedChapterList';
 
 const GroupedChapterList = dynamic(import('../components/GroupedChapterList'));
 
@@ -16,9 +16,10 @@ function App() {
   const [chapters, setChapters] = useState([]);
   const [services, setServices] = useState(null);
   const [mangaToCover, setMangaToCover] = useState(null);
+  const limit = 15;
 
   useEffect(() => {
-    getLatestChapters(25, 0)
+    getLatestChapters(limit, 0)
       .then(json => {
         setMangaToCover(
           json.reduce((prev, chapter) => ({ ...prev, [chapter.mangaId]: chapter.cover }), {})
@@ -41,7 +42,7 @@ function App() {
   const ChapterComponent = useMemo(() => ChapterWithLink(services), [services]);
 
   return (
-    <Container maxWidth='lg'>
+    <Container maxWidth='lg' sx={{ minHeight: '50vh' }}>
       <Typography variant='h4' sx={{ m: 1 }}>Recent Releases</Typography>
       <GroupedChapterList
         chapters={services ? chapters : []}
@@ -49,6 +50,7 @@ function App() {
         groupToString={getGroupName}
         ChapterComponent={ChapterComponent}
         GroupComponent={GroupComponent}
+        skeletons={limit}
       />
     </Container>
 
