@@ -44,6 +44,7 @@ export const db: Db = createSingleton<Db>('database', () => postgres<CustomTypes
     undefined: {} as PostgresType<undefined>,
   },
   debug: (connection, query, parameters) => {
+    // Should never be debug in production env
     queryLogger.level === 'debug' ?
       queryLogger.debug({ parameters }, query) :
       queryLogger.info({}, query);

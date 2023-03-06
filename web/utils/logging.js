@@ -32,4 +32,3 @@ export const sessionLogger = logger.child({ name: 'session' }, { level: level ||
 export const userLogger = logger.child({ name: 'user' }, { level: level || 'debug' });
 export const queryLogger = logger.child({ name: 'dbQuery' }, { level: level || 'debug' });
 export const dbLogger = logger.child({ name: 'db' }, { level: level || 'debug' });
-export const authLogger = logger.child({ name: 'auth' }, { level: level || 'debug' });
