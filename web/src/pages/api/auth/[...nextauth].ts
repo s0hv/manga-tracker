@@ -1,8 +1,14 @@
 import NextAuth, { type NextAuthOptions } from 'next-auth';
 import type { Request, Response } from 'express-serve-static-core';
 import { randomUUID } from 'crypto';
+import type {
+  OAuthConfig,
+  OAuthUserConfig,
+  Provider,
+} from 'next-auth/providers';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import DiscordProvider from 'next-auth/providers/discord';
+import GoogleProvider from 'next-auth/providers/google';
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { decode, encode } from 'next-auth/jwt';
 import { setCookie } from 'cookies-next';
@@ -11,7 +17,7 @@ import { getSingletonPostgresAdapter } from '@/db/postgres-adapter';
 import { db } from '@/db/helpers';
 import { authenticate } from '@/db/auth';
 import { limiterSlowBruteByIP } from '@/serverUtils/ratelimits';
-import { userLogger } from '@/serverUtils/logging';
+import { logger, userLogger } from '@/serverUtils/logging';
 
 
 const authOptionsBase = {
@@ -34,6 +40,37 @@ const isCredentialsRequest = (req: NextApiRequest): boolean | undefined => {
     req.method === 'POST'
   );
 };
+
+const extraProviders: Provider[] = [
+
+];
+
+type Providers = 'Discord' | 'Google'
+const Providers: Record<Providers, (options: OAuthUserConfig<any>) => OAuthConfig<any>> = {
+  Discord: DiscordProvider,
+  Google: GoogleProvider,
+} as const;
+
+const registerProvider = (prefix: keyof typeof Providers): void => {
+  logger.info(`Registering ${prefix} OAuth provider`);
+  const clientId = process.env[`${prefix.toUpperCase()}_CLIENT_ID`];
+  if (!clientId) return;
+
+  const clientSecret = process.env[`${prefix.toUpperCase()}_CLIENT_SECRET`];
+  if (!clientSecret) {
+    logger.error(`Client id provided for provider ${prefix} without client secret`);
+    return;
+  }
+
+  extraProviders.push(Providers[prefix]({
+    clientId,
+    clientSecret,
+  }));
+};
+
+registerProvider('Discord');
+registerProvider('Google');
+
 
 export default function nextauth(req: NextApiRequest & Request, res: NextApiResponse & Response) {
   return NextAuth(req, res, {
@@ -73,10 +110,7 @@ export default function nextauth(req: NextApiRequest & Request, res: NextApiResp
             });
         },
       }),
-      DiscordProvider({
-        clientId: process.env.DISCORD_ID!,
-        clientSecret: process.env.DISCORD_SECRET!,
-      }),
+      ...extraProviders,
     ],
 
     callbacks: {

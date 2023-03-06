@@ -91,6 +91,24 @@ const Profile = (props) => {
       });
   }, [confirm, csrf, enqueueSnackbar, user.username]);
 
+  const requestDataDialog = useCallback((event) => {
+    event.preventDefault();
+    confirm({
+      title: 'Request for collected personal data',
+      description: (
+        `
+          You are about to download a copy of the data stored of you on this service.
+          The data package might contain sensitive data so take the necessary precautions while handling it.
+          After proceeding it is on your responsibity to take care of proper handling of the provided data.
+        `
+      ),
+      confirmationText: 'Proceed',
+    })
+      .then(() => {
+        event.target.submit();
+      });
+  }, [confirm]);
+
   return (
     <Container maxWidth='lg'>
       <Paper sx={{ minWidth: '300px', minHeight: '400px', p: 2 }}>
@@ -181,6 +199,22 @@ const Profile = (props) => {
             )}
           />
           <Divider sx={{ mt: 5, mb: 5 }} />
+          <form
+            onSubmit={requestDataDialog}
+            method='POST'
+            action='/api/user/dataRequest'
+          >
+            <input type='hidden' value={csrf} name='_csrf' />
+            <Button
+              fullWidth
+              type='submit'
+              variant='contained'
+              color='primary'
+              sx={{ mt: 3, mb: 2 }}
+            >
+              Download a copy of personal data
+            </Button>
+          </form>
           <Button
             fullWidth
             variant='contained'

@@ -472,8 +472,8 @@ describe('POST /api/user/delete', () => {
     const now = new Date(Date.now());
 
     await agent.post(url)
-      .expect(200)
       .csrf()
+      .expect(200)
       .expect(res => expect(res.body).toBeObject())
       .expect(res => expect(res.body.message).toBeString());
 
@@ -486,5 +486,60 @@ describe('POST /api/user/delete', () => {
     expect(sess.deleteUser).toBeDate();
     expect(sess.deleteUser).toBeAfter(now);
     expect(sess.deleteUser).toBeBefore(after);
+  });
+});
+
+describe('POST /api/user/dataRequest', () => {
+  const url = '/api/user/dataRequest';
+  apiRequiresUserPostTests(serverReference, url);
+
+  it('Returns user data', async () => {
+    const agent = await login(httpServer, oauthUser);
+
+    let body: any;
+    await agent.post(url)
+      .csrf()
+      .expect(200)
+      .expect(res => expect(res.body).toBeObject())
+      .expect(res => { body = res.body });
+
+    expect(body).toEqual(expect.objectContaining({
+      notifications: expect.any(Array),
+
+      user: {
+        userId: oauthUser.userId,
+        username: oauthUser.username,
+        email: oauthUser.email,
+        pwhash: expect.toBeOneOf([expect.any(String), null]),
+        userUuid: oauthUser.userUuid,
+        joinedAt: expect.any(String),
+        admin: oauthUser.admin,
+        theme: oauthUser.theme,
+        emailVerified: expect.toBeOneOf([expect.any(Boolean), null]),
+        isCredentialsAccount: oauthUser.isCredentialsAccount,
+        lastActive: expect.any(String),
+      },
+
+      accounts: expect.arrayContaining([
+        {
+          id: expect.any(String),
+          type: expect.any(String),
+          provider: expect.any(String),
+          providerAccountId: expect.any(String),
+          refreshToken: expect.toBeOneOf([expect.any(String), null]),
+          accessToken: expect.toBeOneOf([expect.any(String), null]),
+          expiresAt: expect.any(Number),
+          tokenType: expect.toBeOneOf([expect.any(String), null]),
+          scope: expect.toBeOneOf([expect.any(String), null]),
+          idToken: expect.toBeOneOf([expect.any(String), null]),
+          sessionState: expect.toBeOneOf([expect.any(String), null]),
+          userId: oauthUser.userUuid,
+        },
+      ]),
+
+      follows: expect.any(Array),
+
+      sessions: expect.arrayContaining([expect.any(Object)]),
+    }));
   });
 });

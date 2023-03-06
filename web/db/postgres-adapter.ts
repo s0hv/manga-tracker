@@ -6,7 +6,6 @@ import type { DatabaseHelpers } from '@/db/helpers';
 import { createSingleton } from '@/serverUtils/utilities';
 import { onSessionExpire } from '@/serverUtils/view-counter';
 import { dbLogger, sessionLogger } from '@/serverUtils/logging';
-import type { SessionData } from '@/types/dbTypes';
 import { userSelect } from '@/db/auth';
 import { generateUpdate } from '@/db/utils';
 
@@ -15,7 +14,7 @@ export type PostgresAdapter = Adapter<false> & {
   deleteUserFromCache: (userId: string) => void
   deleteSessionFromCache: (sessionId: string) => void
   getSession: (sessionId: string) => Promise<AdapterSession | null>
-  clearOldSessions: () => ReturnType<typeof onSessionExpire>
+  clearOldSessions: () => Promise<void>
   updateUserLastActivity: (userId: string) => Promise<void>
 
   userCache: LRU<string, AdapterUser>,
@@ -59,30 +58,8 @@ export const PostgresAdapter = (db: DatabaseHelpers, options: StoreOptions = {})
     noDisposeOnSet: true,
   });
 
-  const mergeSessionViews = (data: SessionData, row: { data: SessionData | null }) => {
-    if (!row.data) return data;
-
-    const a = data.mangaViews || {};
-    const b = row.data.mangaViews || {};
-    Object.keys(b).forEach((k: string) => {
-      a[k] = (a[k] || 0) + b[k];
-    });
-
-    return {
-      ...data,
-      mangaViews: a,
-    };
-  };
-
   const clearOldSessions: PostgresAdapter['clearOldSessions'] = () => {
-    return db.any<{ data: SessionData | null }>`DELETE FROM sessions WHERE expires_at < CURRENT_TIMESTAMP RETURNING data`
-      // Idk how to make this work without unknown. ReturnType<typeof onSessionExpire> does not work.
-      .then((rows): unknown => {
-        if (rows.length === 0) return;
-
-        const sess = rows.reduce(mergeSessionViews, {} as SessionData);
-        return onSessionExpire(sess);
-      }) as ReturnType<typeof onSessionExpire>;
+    return db.none`DELETE FROM sessions WHERE expires_at < CURRENT_TIMESTAMP`;
   };
 
   type GetUser = {

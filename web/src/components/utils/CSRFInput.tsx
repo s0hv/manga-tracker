@@ -5,7 +5,7 @@ export default function CSRFInput() {
   const csrf = useCSRF();
   return (
     <Field
-      name='csrfToken'
+      name='_csrf'
       component='input'
       type='hidden'
       initialValue={csrf}

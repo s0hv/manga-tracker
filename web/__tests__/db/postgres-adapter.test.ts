@@ -166,8 +166,8 @@ describe('PostgresAdapter', () => {
     });
   });
 
-  describe('clearOldSessions and manga views', () => {
-    it('mergeSessionViews merges sessions correctly', async () => {
+  describe('clearOldSessions', () => {
+    it.skip('mergeSessionViews merges sessions correctly', async () => {
       vi.useFakeTimers();
 
       const createData = (mangaId: number, views: number) => ({ data: { mangaViews: { [mangaId]: views }}});
@@ -228,7 +228,7 @@ describe('PostgresAdapter', () => {
     it('Calls clearOldSessions automatically', async () => {
       vi.useFakeTimers();
 
-      const spy = spyOnDb('any');
+      const spy = spyOnDb('none');
       const sessionClearInterval = 1000;
       const adapter = PostgresAdapter(db, { clearInterval: sessionClearInterval });
       const sessionSpy = vi.spyOn(adapter, 'clearOldSessions');

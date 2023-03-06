@@ -51,7 +51,7 @@ export const mangadexLimiter = new RateLimiterMemory({
 export const limiterSlowBruteByIP = createSingleton('bruteforceByIp', () => new RateLimiterRedis({
   storeClient: redis,
   keyPrefix: 'login_fail_ip_per_day',
-  points: 50,
+  points: 10, // email + password logins are not possible to register so a low limit is fine.
   duration: 24 * 60 * 60, // 1 day
   blockDuration: 24 * 60 * 60, // 1 day
 }));

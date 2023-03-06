@@ -6,14 +6,10 @@ import {
 import { DefaultSeo } from 'next-seo';
 import { CacheProvider } from '@emotion/react';
 import NextNProgress from 'nextjs-progressbar';
-// Hydrate not used as relative fetch methods can't be used server-side
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 
 import Head from 'next/head';
 import { SnackbarProvider } from 'notistack';
-import React, { useEffect, useState } from 'react';
-import { sessionLogger } from '../../utils/logging';
+import React, { useEffect } from 'react';
 
 import Root from '../components/Root';
 
@@ -30,13 +26,6 @@ const clientSideEmotionCache = createEmotionCache();
 function MainApp({ Component, pageProps = {}, emotionCache = clientSideEmotionCache, props }) {
   const [user, setUser] = React.useState(props.user);
   const [csrf, setCsrf] = React.useState(props._csrf);
-  const [queryClient] = useState(() => new QueryClient({
-    defaultOptions: {
-      queries: {
-        refetchOnWindowFocus: false,
-      },
-    },
-  }));
 
   useEffect(() => setUser(props.user), [props.user]);
   useEffect(() => setCsrf(props._csrf), [props._csrf]);
@@ -69,8 +58,12 @@ function MainApp({ Component, pageProps = {}, emotionCache = clientSideEmotionCa
             <CssVarsProvider theme={theme}>
               <NextNProgress />
               <CssBaseline />
-              <SnackbarProvider>
-                <QueryClientProvider client={queryClient}>
+              {pageProps.staticPage ? (
+                <main>
+                  <Component {...pageProps} />
+                </main>
+              ) : (
+                <SnackbarProvider>
                   <UserProvider value={user}>
                     <CSRFProvider value={csrf}>
                       <Root {...props}>
@@ -78,11 +71,10 @@ function MainApp({ Component, pageProps = {}, emotionCache = clientSideEmotionCa
                           <Component {...pageProps} />
                         </main>
                       </Root>
-                      <ReactQueryDevtools initialIsOpen={false} />
                     </CSRFProvider>
                   </UserProvider>
-                </QueryClientProvider>
-              </SnackbarProvider>
+                </SnackbarProvider>
+              )}
             </CssVarsProvider>
           </StyledEngineProvider>
         </CacheProvider>
@@ -103,8 +95,6 @@ MainApp.getInitialProps = async function getInitialProps({ ctx: { req, res }}) {
   if (!req) {
     return { props: { statusCode: 200 }};
   }
-  sessionLogger.debug('Initial props %o', req.user);
-  sessionLogger.debug(csrfProps({ req }));
 
   return {
     props: {

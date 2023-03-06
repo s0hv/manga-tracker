@@ -13,6 +13,7 @@ import {
 } from '../utils/validators';
 import { db } from '@/db/helpers';
 import type { DatabaseId, MangaId } from '@/types/dbTypes';
+import { getUserNotifications } from '@/db/notifications';
 
 
 const MAX_USERNAME_LENGTH = 100;
@@ -102,6 +103,38 @@ export default (app: Express) => {
     db.any`UPDATE sessions SET delete_user=CURRENT_TIMESTAMP WHERE session_id=${req.session.sessionToken}`
       .then(() => {
         res.status(200).json({ message: 'Delete account by signing out within a minute' });
+      })
+      .catch(err => handleError(err, res));
+  });
+
+  app.post('/api/user/dataRequest', [
+    validateUser(),
+    handleValidationErrors,
+  ], (req: Request, res: Response) => {
+    const user = req.user!;
+
+    Promise.all([
+      getUserNotifications(user.userId),
+      db.one`SELECT * FROM users WHERE user_id=${user.userId}`,
+      db.any`SELECT * FROM account WHERE user_id=${user.uuid}`,
+      db.any`
+        SELECT uf.*, m.title, COALESCE(s.service_name, 'All services') as service_name FROM user_follows uf 
+        INNER JOIN manga m ON uf.manga_id=m.manga_id
+        LEFT JOIN services s ON uf.service_id = s.service_id
+        WHERE user_id=${user.userId}`,
+      db.any`SELECT * FROM sessions WHERE user_id=${user.uuid}`,
+    ])
+      .then(([notifications, userData, accounts, follows, sessions]) => {
+        res
+          .status(200)
+          .setHeader('Content-Disposition', 'attachment; filename="manga-tracker-user-data.json"')
+          .json({
+            notifications,
+            user: userData,
+            accounts,
+            follows,
+            sessions,
+          });
       })
       .catch(err => handleError(err, res));
   });

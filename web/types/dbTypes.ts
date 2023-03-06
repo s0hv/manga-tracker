@@ -12,7 +12,6 @@ export interface SessionUser extends DefaultUser {
 }
 
 export interface SessionData {
-  mangaViews?: Record<string, number>
   [k: string]: any
 }
 

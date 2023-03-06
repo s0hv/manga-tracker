@@ -7,7 +7,6 @@ import { isInteger } from '../../utils/utilities';
 
 import { getFullManga } from '../../../db/manga';
 import { getUserFollows } from '../../../db/db';
-import { mangaView } from '../../../utils/view-counter';
 
 function MangaPage(props) {
   const {
@@ -37,9 +36,6 @@ export async function getServerSideProps({ req, params }) {
     return { props: { error: 404 }};
   }
 
-  // Log a page view
-  mangaView(req.session, params);
-
   let manga;
   let userFollows;
   try {
@@ -58,14 +54,6 @@ export async function getServerSideProps({ req, params }) {
 
   if (!manga) {
     return { props: { error: 404 }};
-  }
-
-  if (req.session.userId) {
-    req.sessionStore.updateSession({ sessionToken: req.session.sessionToken, data: req.session.data })
-      // Restore csrf secret after updating session as it is only saved in memory
-      .then(sess => {
-        sess.csrfSecret = req.session.csrfSecret;
-      });
   }
 
   const data = JSON.parse(JSON.stringify(manga));
