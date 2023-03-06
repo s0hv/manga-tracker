@@ -3,12 +3,11 @@ import {
   DateTimePicker,
   DateTimePickerProps,
 } from '@mui/x-date-pickers/DateTimePicker';
-import { TextField } from '@mui/material';
 
 import { processCellEdit } from './useEditable';
 import { MaterialCellContext } from './types';
 
-export interface EditableDateTimePickerProps<TInputDate> extends Partial<DateTimePickerProps<TInputDate, TInputDate>> {
+export interface EditableDateTimePickerProps<TInputDate> extends Partial<DateTimePickerProps<TInputDate>> {
   ctx: MaterialCellContext<any, TInputDate>
 }
 
@@ -37,7 +36,7 @@ export default function EditableDateTimePicker<TInputDate>(props: EditableDateTi
     <DateTimePicker
       value={date}
       onChange={onChange ?? handleChange}
-      renderInput={(params) => <TextField {...params} variant='standard' />}
+      slotProps={{ textField: { variant: 'standard' }}}
       {...pickerProps}
     />
   );
