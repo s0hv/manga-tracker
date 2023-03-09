@@ -174,9 +174,9 @@ jobs:
     defaults:
       run:
         working-directory: web
-    name: Cypress E2E tests
+    name: Cypress Install
     runs-on: ubuntu-latest
-    container: node-16.18.1-chrome-110.0.5481.96-1-ff-109.0-edge-110.0.1587.41-1
+    container: cypress/node-16.18.1-chrome-110.0.5481.96-1-ff-109.0-edge-110.0.1587.41-1
 
     steps:
       - uses: actions/checkout@v3
@@ -203,7 +203,7 @@ jobs:
         working-directory: web
     name: Cypress E2E tests
     runs-on: ubuntu-latest
-    container: node-16.18.1-chrome-110.0.5481.96-1-ff-109.0-edge-110.0.1587.41-1
+    container: cypress/node-16.18.1-chrome-110.0.5481.96-1-ff-109.0-edge-110.0.1587.41-1
 
     # Service containers to run with `container-job`
     services:
