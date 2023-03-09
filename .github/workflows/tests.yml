@@ -15,7 +15,6 @@ jobs:
         working-directory: web
     name: Web app tests
     runs-on: ubuntu-latest
-    container: node:16-stretch
 
     # Service containers to run with `container-job`
     services:
@@ -48,6 +47,14 @@ jobs:
     # Force https use since ssh does not work
     - run: 'git config --global url."https://github.com/".insteadOf ssh://git@github.com/'
     - run: 'git config --global url."https://".insteadOf ssh://'
+
+    - uses: actions/setup-node@v3
+      with:
+        node-version: 16
+        cache: 'npm'
+        cache-dependency-path: |
+          ../package-lock.json
+          package-lock.json
 
     - name: Install deps
       run: |
@@ -161,3 +168,118 @@ jobs:
       NO_TEMP_DB: TRUE
       ELASTIC_TEST_HOST: elasticsearch
       ELASTIC_TEST_PORT: 9200
+
+  install:
+    defaults:
+      run:
+        working-directory: web
+    name: Cypress E2E tests
+    runs-on: ubuntu-latest
+    container: node-16.18.1-chrome-110.0.5481.96-1-ff-109.0-edge-110.0.1587.41-1
+
+    steps:
+      - uses: actions/checkout@v3
+      # Force https use since ssh does not work
+      - run: 'git config --global url."https://github.com/".insteadOf ssh://git@github.com/'
+      - run: 'git config --global url."https://".insteadOf ssh://'
+
+      - name: Save build folder
+        uses: actions/upload-artifact@v3
+        with:
+          name: build
+          if-no-files-found: error
+          path: build
+
+      - uses: cypress-io/github-action@v5.3.0
+        with:
+          runTests: false
+          build: npm run build
+
+
+  e2e-tests:
+    defaults:
+      run:
+        working-directory: web
+    name: Cypress E2E tests
+    runs-on: ubuntu-latest
+    container: node-16.18.1-chrome-110.0.5481.96-1-ff-109.0-edge-110.0.1587.41-1
+
+    # Service containers to run with `container-job`
+    services:
+      # Label used to access the service container
+      postgres:
+        # Docker Hub image
+        image: postgres:12.4
+        # Provide the password for postgres
+        env:
+          POSTGRES_PASSWORD: postgres
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        # Docker Hub image
+        image: redis
+        # Set health checks to wait until redis has started
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v3
+      # Force https use since ssh does not work
+      - run: 'git config --global url."https://github.com/".insteadOf ssh://git@github.com/'
+      - run: 'git config --global url."https://".insteadOf ssh://'
+
+      - name: Download the build folders
+        uses: actions/download-artifact@v3
+        with:
+          name: build
+          path: build
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          cache: 'npm'
+          cache-dependency-path: |
+            ../package-lock.json
+            package-lock.json
+
+      - name: Install deps
+        run: cd .. && npm ci
+
+      - name: Initialize database
+        run: cd .. && npm run migrate:up && npm run migrate:test
+
+      - uses: cypress-io/github-action@v5.3.0
+        with:
+          browser: chrome
+          start: npm run start
+          wait-on: 'http://localhost:3000'
+
+    env:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: postgres
+      DB_NAME_TEST: postgres
+      DB_USER: postgres
+      PGPASSWORD: postgres
+
+      ELASTIC_NODE: http://localhost:9200
+      NEXTAUTH_URL: 'http://localhost:3000'
+      NEXTAUTH_SECRET: secret
+
+      REDIS_URL: redis:6379
+      DEBUG: debug,session-*,auth-info
+      TZ: UTC
+      LEVEL: silent
+      SKIP_POSTINSTALL: true
+      IS_CI: true
+      LOGIN_RETRY_COUNT: 3
+      NODE_ENV: development
+      CYPRESS: true

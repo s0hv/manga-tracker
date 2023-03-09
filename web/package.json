@@ -11,16 +11,32 @@
   "scripts": {
     "start": "node --enable-source-maps --experimental-specifier-resolution=node dist/server.js",
     "start-dev": "node --enable-source-maps --experimental-specifier-resolution=node -r dotenv/config dist/server.js",
-    "build": "tsc --project tsconfig.server.json && tsc-alias --project tsconfig.server.json && next build",
+    "build": "npm run build-server && next build",
+    "build-server": "tsc --project tsconfig.server.json && tsc-alias --project tsconfig.server.json",
     "server-dev": "nodemon -r dotenv/config --experimental-specifier-resolution=node --loader ./loader.js --ext \"ts,js\" --watch api/* --watch db/* --watch server.ts server.ts",
     "deploy": "npm run start",
     "analyze": "cross-env ANALYZE=true next build",
     "test": "vitest run",
     "test:ci": "vitest run --coverage",
     "coverage": "vitest run --coverage",
-    "lint": "eslint --ext .jsx,.js,.snap,.ts,.tsx ."
+    "lint": "eslint --ext .jsx,.js,.snap,.ts,.tsx .",
+    "cypress": "cypress open",
+    "build-start-test": "npm run build && npm run start-dev"
   },
   "sideEffects": false,
+  "cacheDirectories": [
+    ".next/cache/"
+  ],
+  "browserslist": {
+    "production": [
+      "defaults"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
   "dependencies": {
     "@codemirror/autocomplete": "^6.4.2",
     "@codemirror/commands": "^6.2.1",
@@ -98,23 +114,11 @@
     "yaml": "^2.2.1",
     "yup": "^0.32.9"
   },
-  "cacheDirectories": [
-    ".next/cache/"
-  ],
-  "browserslist": {
-    "production": [
-      "defaults"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
-  },
   "devDependencies": {
     "@elastic/elasticsearch-mock": "^1.0.0",
     "@faker-js/faker": "^7.3.0",
     "@next/bundle-analyzer": "^13.2.3",
+    "@testing-library/cypress": "^9.0.0",
     "@testing-library/jest-dom": "^5.16.4",
     "@testing-library/react": "^14.0.0",
     "@testing-library/user-event": "^14.2.0",
@@ -132,6 +136,7 @@
     "cookie": "^0.5.0",
     "cookie-signature": "^1.1.0",
     "cross-env": "^7.0.3",
+    "cypress": "^12.7.0",
     "dotenv": "^16.0.1",
     "eslint": "^8.35.0",
     "eslint-config-airbnb": "^19.0.4",

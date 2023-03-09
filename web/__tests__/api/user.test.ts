@@ -1,7 +1,7 @@
 import request, { SuperAgentTest } from 'supertest';
 import { insertFollow } from '@/db/follows';
 import { csrfMissing } from '../../utils/constants';
-import { mangaIdError, userUnauthorized } from '../constants';
+import { mangaIdError, type TestUser, userUnauthorized } from '../constants';
 
 import initServer from '../initServer';
 import stopServer from '../stopServer';
@@ -13,7 +13,6 @@ import {
   login,
   normalUser,
   oauthUser,
-  type TestUser,
   withUser,
 } from '../utils';
 import { redis } from '../../utils/ratelimits';

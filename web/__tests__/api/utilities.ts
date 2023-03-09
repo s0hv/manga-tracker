@@ -3,11 +3,15 @@ import {
   expectErrorMessage,
   mockDbForErrors,
   normalUser,
-  TestUser,
   withUser,
 } from '../utils';
 import { csrfMissing } from '../../utils/constants';
-import { ISE, userForbidden, userUnauthorized } from '../constants';
+import {
+  ISE,
+  type TestUser,
+  userForbidden,
+  userUnauthorized,
+} from '../constants';
 
 export interface HttpServerReference {
   httpServer: any

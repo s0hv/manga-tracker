@@ -81,8 +81,11 @@ module.exports = {
     'import/no-extraneous-dependencies': ['error', {
       devDependencies: [
         '**/__tests__/**/*',
+        '**/__tests__/**',
         '**/setupTests.ts',
         'vitest.config.ts',
+        'cypress.config.ts',
+        'cypress/**',
         'loader.js',
       ]}],
 
@@ -149,7 +152,7 @@ module.exports = {
       'parser': '@typescript-eslint/parser',
       'parserOptions': {
         'tsconfigRootDir': __dirname,
-        'project': ['./tsconfig.test.json'],
+        'project': ['./__tests__/tsconfig.json', './cypress/tsconfig.json'],
       },
       'globals': {
         'NodeJS': true
@@ -179,6 +182,12 @@ module.exports = {
           '@typescript-eslint/parser': ['.ts', '.tsx']
         }
       }
-    }
+    },
+    {
+      files: ['./cypress/**'],
+      rules: {
+        'jest/expect-expect': 'off',
+      },
+    },
   ]
 }

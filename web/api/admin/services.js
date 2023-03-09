@@ -11,7 +11,7 @@ import {
   handleValidationErrors,
   serviceIdValidation,
   isISO8601Duration,
-} from '../../utils/validators.ts';
+} from '../../utils/validators';
 
 export default app => {
   const validateService = [

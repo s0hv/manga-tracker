@@ -27,7 +27,6 @@ import { getSessionAndUser } from '@/db/auth';
 
 // Turn off when not using this app with a reverse proxy like heroku
 const reverseProxy = !!process.env.TRUST_PROXY;
-if (!isDev && !process.env.SESSION_SECRET) throw new Error('No session secret given');
 
 const nextApp = next_({ dev: isDev });
 const handle = nextApp.getRequestHandler();
@@ -103,7 +102,7 @@ export default nextApp.prepare()
       csrfMiddleware(req, res, next);
     });
 
-    if (process.env.NODE_ENV !== 'test') {
+    if (!isTest && /y|yes|true/.test(process.env.CYPRESS || '')) {
       server.use((req, res, next) => {
         // No need to ratelimit static resources
         if (req.originalUrl.startsWith('/_next/static/')) return next();
