@@ -271,5 +271,5 @@ jobs:
       SKIP_POSTINSTALL: true
       IS_CI: true
       LOGIN_RETRY_COUNT: 3
-      NODE_ENV: development
+      NODE_ENV: production
       CYPRESS: true
