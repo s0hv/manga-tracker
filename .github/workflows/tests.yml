@@ -248,8 +248,8 @@ jobs:
         with:
           browser: chrome
           working-directory: ./web
-          build: NODE_ENV=production pnpm build
-          start: NODE_ENV=production pnpm start
+          build: export NODE_ENV=production && pnpm build
+          start: export NODE_ENV=production && pnpm start
           wait-on: 'http://localhost:3000'
 
     env:
