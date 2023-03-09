@@ -4,7 +4,7 @@ if (process.env.SKIP_POSTINSTALL) {
   process.exit(0);
 } else {
   try {
-    execSync('npm ci', { stdio: 'inherit' });
+    execSync('pnpm install --frozen-lockfile', { stdio: 'inherit' });
   }
   catch (e) {
     process.exit(e.status || 1);

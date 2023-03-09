@@ -5,7 +5,7 @@
   "license": "MIT",
   "engines": {
     "node": "^16",
-    "npm": ">=8.11"
+    "pnpm": ">=7.29"
   },
   "dependencies": {
     "db-migrate": "^0.11.13",
@@ -13,15 +13,15 @@
   },
   "scripts": {
     "postinstall": "cd web && node ../scripts/postinstall.js",
-    "heroku-postbuild": "npm run migrate:up && cd web && npm run build",
-    "deploy": "cd web && npm run deploy",
-    "server-dev": "cd web && npm run server-dev",
+    "heroku-postbuild": "pnpm migrate:up && cd web && pnpm build",
+    "deploy": "cd web && pnpm deploy",
+    "server-dev": "cd web && pnpm server-dev",
     "create-migration": "db-migrate --config migrations-config.json create",
     "create-migration:test": "db-migrate --config migrations-config.json create:test",
     "migrate:up": "db-migrate --config migrations-config.json up",
     "migrate:test": "db-migrate --config migrations-config.json up:test",
-    "migrate:up:test": "npm run migrate:up -- -e test && npm run migrate:test -- -e test",
-    "migrate:reset:test": "db-migrate --config migrations-config.json -e test reset:test && npm run migrate:up:test",
+    "migrate:up:test": "pnpm migrate:up -- -e test && pnpm migrate:test -- -e test",
+    "migrate:reset:test": "db-migrate --config migrations-config.json -e test reset:test && pnpm migrate:up:test",
     "migrate:down": "db-migrate --config migrations-config.json down"
   },
   "cacheDirectories": [
