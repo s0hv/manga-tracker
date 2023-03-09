@@ -27,6 +27,7 @@ import { getSessionAndUser } from '@/db/auth';
 
 // Turn off when not using this app with a reverse proxy like heroku
 const reverseProxy = !!process.env.TRUST_PROXY;
+const isCypress = /y|yes|true/.test(process.env.CYPRESS || '');
 
 const nextApp = next_({ dev: isDev });
 const handle = nextApp.getRequestHandler();
@@ -55,7 +56,7 @@ export default nextApp.prepare()
       },
       crossOriginResourcePolicy: false,
       crossOriginEmbedderPolicy: false,
-      hsts: !isDev,
+      hsts: !isDev && !isCypress,
     }));
     if (reverseProxy) server.set('trust proxy', process.env.TRUST_PROXY);
 
@@ -102,7 +103,7 @@ export default nextApp.prepare()
       csrfMiddleware(req, res, next);
     });
 
-    if (!isTest && /y|yes|true/.test(process.env.CYPRESS || '')) {
+    if (!isTest && !isCypress) {
       server.use((req, res, next) => {
         // No need to ratelimit static resources
         if (req.originalUrl.startsWith('/_next/static/')) return next();
