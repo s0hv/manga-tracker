@@ -54,7 +54,7 @@ def run_migrations(conn: Connection) -> None:
     env['DB_HOST'] = conn.info.host
     env['DB_NAME'] = conn.info.dbname
     env['DB_PORT'] = str(conn.info.port)
-    cmd = 'npm run migrate:up && npm run migrate:test'
+    cmd = 'pnpm migrate:up && pnpm migrate:test'
     p = subprocess.Popen(cmd, env=env, cwd=root, shell=True,
                          stdout=sys.stdout if DONT_USE_TEMP_DATABASE else subprocess.DEVNULL)
     p.wait()
