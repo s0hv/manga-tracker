@@ -64,6 +64,7 @@
     "@types/cookie-parser": "^1.4.3",
     "@types/csurf": "^1.11.2",
     "@types/express": "^4.17.17",
+    "@types/express-serve-static-core": "^4.17.33",
     "@types/lodash.throttle": "^4.1.7",
     "@uiw/react-codemirror": "^4.19.9",
     "camelcase-keys": "^8.0.0",
