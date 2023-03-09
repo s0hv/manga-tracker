@@ -55,7 +55,7 @@ function MainApp({ Component, pageProps = {}, emotionCache = clientSideEmotionCa
       ) : (
         <CacheProvider value={emotionCache}>
           <StyledEngineProvider injectFirst>
-            <CssVarsProvider theme={theme}>
+            <CssVarsProvider theme={theme} defaultMode='system'>
               <NextNProgress />
               <CssBaseline />
               {pageProps.staticPage ? (

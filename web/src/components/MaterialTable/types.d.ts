@@ -10,7 +10,7 @@ import type {
   Table,
   TableState,
 } from '@tanstack/react-table';
-import { TableCellProps } from '@mui/material';
+import type { TableCellProps } from '@mui/material';
 import { useConfirm } from 'material-ui-confirm';
 
 // eslint-disable-next-line import/export, @typescript-eslint/no-empty-interface
