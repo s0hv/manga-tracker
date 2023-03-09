@@ -49,7 +49,7 @@ declare global {
 }
 
 Cypress.Commands.add('login', (user) => {
-  cy.findByRole('button', { name: /login/i }).click();
+  cy.visit('/login');
 
   cy.findByRole('textbox', { name: /email address/i }).type(user.email);
   cy.findByLabelText(/password/i).type(user.password);
