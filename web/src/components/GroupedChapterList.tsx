@@ -14,10 +14,9 @@ import {
 } from '@mui/material';
 
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
-import { type GetKey, groupBy } from '@/common/utilities';
+import { type GetKey, type Group, groupBy } from '@/common/utilities';
 import { formatChapterTitle, formatChapterUrl } from '../utils/formatting';
 import { MangaCover } from './MangaCover';
-import type { Group } from '@/webUtils/utilities';
 import type { ServiceForApi } from '@/types/api/services';
 import type { ChapterRelease } from '@/types/api/chapter';
 
