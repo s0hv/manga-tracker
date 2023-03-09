@@ -27,7 +27,8 @@ describe('Test authentication', () => {
     for (let i = 0; i < 2; i++) {
       login();
       if (i === 0) {
-        cy.findByRole('alert', { name: /^sign in failed/i });
+        cy.findByRole('alert');
+        cy.findByText(/^sign in failed/i);
       }
     }
 
