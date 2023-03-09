@@ -273,3 +273,6 @@ jobs:
       LOGIN_RETRY_COUNT: 3
       NODE_ENV: production
       CYPRESS: true
+      # need at least one oauth provider or next-auth crashes
+      DISCORD_CLIENT_ID: test
+      DISCORD_CLIENT_SECRET: test
