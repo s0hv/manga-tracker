@@ -248,8 +248,8 @@ jobs:
         with:
           browser: chrome
           working-directory: ./web
-          build: pnpm build
-          start: pnpm start
+          build: NODE_ENV=production pnpm build
+          start: NODE_ENV=production pnpm start
           wait-on: 'http://localhost:3000'
 
     env:
@@ -271,7 +271,6 @@ jobs:
       SKIP_POSTINSTALL: true
       IS_CI: true
       LOGIN_RETRY_COUNT: 3
-      NODE_ENV: production
       CYPRESS: true
       # need at least one oauth provider or next-auth crashes
       DISCORD_CLIENT_ID: test
