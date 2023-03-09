@@ -30,6 +30,7 @@ import { getMangaReleases } from '../api/chapter';
 import { MangaCover } from './MangaCover';
 import type { FullMangaData } from '@/types/api/manga';
 import type { ChapterReleaseDates } from '@/types/api/chapter';
+import type { DatabaseId } from '@/types/dbTypes';
 
 const ReleaseHeatmap = dynamic(() => import('./ReleaseHeatmap'));
 
@@ -168,7 +169,7 @@ function Manga(props: MangaProps): React.ReactElement {
               classesProp={[classes.sourceList]}
               items={services}
               userFollows={userFollows}
-              followUnfollow={(serviceId) => followUnfollow(csrf, manga.mangaId, serviceId)}
+              followUnfollow={(serviceId: DatabaseId | null) => followUnfollow(csrf, manga.mangaId, serviceId)}
             />
           </Grid>
         </DetailsContainer>
