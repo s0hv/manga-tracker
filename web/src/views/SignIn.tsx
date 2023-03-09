@@ -1,5 +1,6 @@
 import React from 'react';
 import {
+  Alert,
   Avatar,
   Button,
   Container,
@@ -11,7 +12,7 @@ import {
 import NextLink from 'next/link';
 import { LockOutlined as LockOutlinedIcon } from '@mui/icons-material';
 import { styled, useColorScheme } from '@mui/material/styles';
-import { Field, Form } from 'react-final-form';
+import { Form } from 'react-final-form';
 import { Checkboxes, TextField } from 'mui-rff';
 import type {
   BuiltInProviderType,
@@ -20,7 +21,6 @@ import type {
 import type { ClientSafeProvider, LiteralUnion } from 'next-auth/react/types';
 import { signIn } from 'next-auth/react';
 import type { DefaultExcept } from '@/types/utility';
-import { noop } from '@/webUtils/utilities';
 
 import styles from './SignIn.module.css';
 
@@ -35,9 +35,43 @@ const SignInForm = styled('form')(({ theme }) => ({
   marginTop: theme.spacing(1),
 }));
 
+// https://github.com/nextauthjs/next-auth/blob/f6bb16b264f43a0afdbc6c26a2db6cd5c8e6030d/packages/core/src/types.ts#L294
+export type SignInPageErrorParam =
+  | 'Signin'
+  | 'OAuthSignin'
+  | 'OAuthCallback'
+  | 'OAuthCreateAccount'
+  | 'EmailCreateAccount'
+  | 'Callback'
+  | 'OAuthAccountNotLinked'
+  | 'EmailSignin'
+  | 'CredentialsSignin'
+  | 'SessionRequired'
+
+// This plus more from
+// https://github.com/nextauthjs/next-auth/blob/f6bb16b264f43a0afdbc6c26a2db6cd5c8e6030d/packages/core/src/lib/pages/signin.tsx#L7
+const signinErrors: Record<
+  Lowercase<SignInPageErrorParam | 'default'>,
+  string
+> = {
+  default: 'Unable to sign in.',
+  signin: 'Try signing in with a different account.',
+  oauthsignin: 'Try signing in with a different account.',
+  oauthcallback: 'Try signing in with a different account.',
+  oauthcreateaccount: 'Try signing in with a different account.',
+  emailcreateaccount: 'Try signing in with a different account.',
+  callback: 'Try signing in with a different account.',
+  oauthaccountnotlinked:
+    'To confirm your identity, sign in with the same account you used originally.',
+  emailsignin: 'The e-mail could not be sent.',
+  credentialssignin:
+    'Sign in failed. Check the details you provided are correct.',
+  sessionrequired: 'Please sign in to access this page.',
+};
+
 export type SignInProps = {
   providers: Partial<Record<LiteralUnion<BuiltInProviderType>, ClientSafeProvider>> | null
-  _csrf?: string
+  error?: SignInPageErrorParam | null
 }
 
 type OptionalLogoStyles = DefaultExcept<OAuthProviderButtonStyles, 'logoDark' | 'logo'>
@@ -89,11 +123,16 @@ const getStyles = (style: OptionalLogoStyles | undefined, darkTheme: boolean) =>
   };
 };
 
-export default function SignIn({ providers, _csrf }: SignInProps): React.ReactElement {
+export default function SignIn({ providers, error: errorType }: SignInProps): React.ReactElement {
   const hasCredentials = Boolean(providers?.credentials);
   const { mode, systemMode } = useColorScheme();
   // Will always be undefined on server
   const currentMode = mode === 'system' ? systemMode : (mode ?? 'dark');
+
+  const error =
+    errorType &&
+    (signinErrors[errorType.toLowerCase() as Lowercase<SignInPageErrorParam>] ??
+      signinErrors.default);
 
   return (
     <Container component='main' maxWidth='xs' className={styles.container}>
@@ -104,6 +143,7 @@ export default function SignIn({ providers, _csrf }: SignInProps): React.ReactEl
         <Typography component='h1' variant='h5'>
           Sign in
         </Typography>
+        {error && <Alert severity='error'>{error}</Alert>}
         <Typography sx={{ mb: 3 }}>
           An account is created when signing in if it does not already exist.<br />
           By signing up you accept the <NextLink href='/terms'>Terms</NextLink> and the <NextLink href='/privacy_policy'>Privacy Policy</NextLink>
@@ -129,11 +169,13 @@ export default function SignIn({ providers, _csrf }: SignInProps): React.ReactEl
         {hasCredentials && (
           <>
             <Divider flexItem variant='middle'>OR</Divider>
-            <Form onSubmit={noop}>
-              {() => (
+            <Form onSubmit={(values) => {
+              return signIn('credentials', { email: values.email, password: values.password });
+            }}
+            >
+              {({ handleSubmit }) => (
                 <SignInForm
-                  method='post'
-                  action='/api/auth/callback/credentials'
+                  onSubmit={handleSubmit}
                 >
                   <TextField
                     variant='outlined'
@@ -162,13 +204,6 @@ export default function SignIn({ providers, _csrf }: SignInProps): React.ReactEl
                     id='rememberme'
                     color='primary'
                     data={{ label: 'Remember me', value: undefined }}
-                  />
-                  <Field
-                    name='csrfToken'
-                    component='input'
-                    type='hidden'
-                    initialValue={_csrf}
-                    defaultValue={_csrf}
                   />
                   <Button
                     type='submit'

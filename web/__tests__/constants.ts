@@ -1,5 +1,12 @@
 import type { FullMangaData } from '@/types/api/manga';
+import type { User } from '@/types/db/user';
+import type { SessionUser } from '@/types/dbTypes';
 
+export type TestUser = User & SessionUser & {
+  joinedAt: Date
+  password: string
+  email: string
+}
 export const userForbidden = 'Forbidden to perform this action';
 export const userUnauthorized = 'User not authenticated';
 export const mangaIdError = 'Manga id must be a positive integer';
@@ -98,4 +105,60 @@ export const emptyFullManga: FullMangaData = {
       url: 'https://mangaplus.shueisha.co.jp/titles/{}',
     },
   ],
+};
+
+export const adminUser: TestUser = {
+  userId: 1,
+  userUuid: '22fc15c9-37b9-4869-af86-b334333dedd8',
+  uuid: '22fc15c9-37b9-4869-af86-b334333dedd8',
+  id: '22fc15c9-37b9-4869-af86-b334333dedd8',
+  username: 'test ci admin',
+  joinedAt: new Date(Date.now()),
+  theme: 'dark',
+  admin: true,
+  password: 'te!st-pa#ss)wo(rd123',
+  email: 'test-admin@test.com',
+  isCredentialsAccount: true,
+};
+
+export const normalUser: TestUser = {
+  userId: 3,
+  userUuid: 'cf5eddfd-e0fe-4e6e-b339-70be6f33794d',
+  uuid: 'cf5eddfd-e0fe-4e6e-b339-70be6f33794d',
+  id: 'cf5eddfd-e0fe-4e6e-b339-70be6f33794d',
+  username: 'test ci',
+  joinedAt: new Date(Date.now()),
+  theme: 'dark',
+  admin: false,
+  password: 'te!st-pa#ss)wo(rd123',
+  email: 'test@test.com',
+  isCredentialsAccount: true,
+};
+
+export const authTestUser: TestUser = {
+  userId: 3,
+  userUuid: 'db598f65-c558-4205-937f-b0f149dda1fa',
+  uuid: 'db598f65-c558-4205-937f-b0f149dda1fa',
+  id: 'db598f65-c558-4205-937f-b0f149dda1fa',
+  username: 'test ci auth',
+  joinedAt: new Date(Date.now()),
+  theme: 'dark',
+  admin: false,
+  password: 'te!st-pa#ss)wo(rd123',
+  email: 'test_auth@test.com',
+  isCredentialsAccount: true,
+};
+
+export const oauthUser: TestUser = {
+  userId: 5,
+  userUuid: 'd1e3395a-37fa-4df7-8441-46d2b2689788',
+  uuid: 'd1e3395a-37fa-4df7-8441-46d2b2689788',
+  id: 'd1e3395a-37fa-4df7-8441-46d2b2689788',
+  username: 'test oauth',
+  joinedAt: new Date(Date.now()),
+  theme: 'dark',
+  admin: false,
+  password: '',
+  email: 'test@oauth.com',
+  isCredentialsAccount: false,
 };

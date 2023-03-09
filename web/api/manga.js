@@ -10,7 +10,7 @@ import {
   validateAdminUser,
   databaseIdValidation,
   handleValidationErrors,
-} from '../utils/validators.ts';
+} from '../utils/validators';
 import { getFullManga, getMangaForElastic } from '@/db/manga';
 import { updateManga, deleteManga } from '@/db/elasticsearch/manga';
 import { dbLogger } from '../utils/logging.js';

@@ -11,7 +11,7 @@ import {
   validateAdminUser,
   handleValidationErrors,
   userValidator,
-} from '../utils/validators.ts';
+} from '../utils/validators';
 import { handleError } from '@/db/utils';
 import { dbLogger } from '../utils/logging.js';
 

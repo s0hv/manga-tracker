@@ -17,12 +17,8 @@
     "src",
     "__tests__/**",
     "vitest.config.ts",
-    "setupTests.ts"
-  ],
-  "paths": {
-    "@/serverUtils*": ["utils*"],
-    "@/common*": ["common*"],
-    "@/db*": ["db*"],
-    "@/types*": ["types*"]
-  }
+    "setupTests.ts",
+    "cypress/**",
+    "cypress.config.ts"
+  ]
 }

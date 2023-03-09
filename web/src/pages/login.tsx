@@ -1,8 +1,11 @@
 import type { GetServerSidePropsContext } from 'next';
-import { getCsrfToken, getProviders } from 'next-auth/react';
+import { getProviders } from 'next-auth/react';
 import type { FC } from 'react';
 import { NextSeo } from 'next-seo';
-import SignIn, { type SignInProps } from '../views/SignIn';
+import SignIn, {
+  type SignInPageErrorParam,
+  type SignInProps,
+} from '../views/SignIn';
 
 const SignInPage: FC<SignInProps> = (props) => {
   return (
@@ -17,11 +20,11 @@ const SignInPage: FC<SignInProps> = (props) => {
 
 export default SignInPage;
 
-export async function getServerSideProps(context: GetServerSidePropsContext): Promise<{ props: SignInProps }> {
+export async function getServerSideProps({ query }: GetServerSidePropsContext): Promise<{ props: SignInProps }> {
   return {
     props: {
       providers: await getProviders(),
-      _csrf: await getCsrfToken(context),
+      error: (query.error as SignInPageErrorParam || null),
     },
   };
 }
