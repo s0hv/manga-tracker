@@ -1,4 +1,8 @@
-import { Group } from '@/webUtils/utilities';
+
+export type Group<T> = {
+  group: string
+  arr: T[]
+}
 
 export type GetKey<T> = (value: T) => string;
 interface GroupByOptions<B extends boolean = boolean, C extends boolean = boolean> {

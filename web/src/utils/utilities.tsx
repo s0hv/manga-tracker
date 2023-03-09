@@ -203,11 +203,6 @@ export const isInteger = (s: any) => (
  * @param {any} value
  */
 
-export type Group<T> = {
-  group: string
-  arr: T[]
-}
-
 /**
  * Turns camelCase into snake_case
  * @param {String} s
