@@ -11,7 +11,6 @@ import type {
   TableState,
 } from '@tanstack/react-table';
 import type { TableCellProps } from '@mui/material';
-import { useConfirm } from 'material-ui-confirm';
 
 // eslint-disable-next-line import/export, @typescript-eslint/no-empty-interface
 export interface MaterialCellContext<TData extends RowData, TValue> extends Omit<
@@ -101,19 +100,3 @@ export interface MaterialCellContext<TData extends RowData, TValue> extends Omit
 
 export type AfterRowEdit<TData extends RowData> = (modifiedData: Partial<TData>, ctx: MaterialCellContext<TData, unknown>) => void
 export type RowChangeAction<TData extends RowData> = (ctx: MaterialCellContext<TData, unknown>) => void
-
-declare module '@tanstack/table-core' {
-  interface TableMeta<TData extends RowData> {
-    enableEditing: boolean
-    enableDeleting: boolean
-    enableCreating: boolean
-    classes?: Record<string, string>
-    onSaveRow?: AfterRowEdit<TData>
-    onCancelRow?: AfterRowEdit<TData>
-    onDeleteRow?: RowChangeAction<TData>
-    onEditRow?: RowChangeAction<TData>
-    confirm: ReturnType<typeof useConfirm>
-
-    setEditingRow?: (ctx: MaterialCellContext<TData, unknown>, isEditing: boolean) => void
-  }
-}
