@@ -191,6 +191,10 @@ jobs:
       - run: 'git config --global url."https://github.com/".insteadOf ssh://git@github.com/'
       - run: 'git config --global url."https://".insteadOf ssh://'
 
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 7
+
       - name: Save build folder
         uses: actions/upload-artifact@v3
         with:
@@ -243,6 +247,10 @@ jobs:
       # Force https use since ssh does not work
       - run: 'git config --global url."https://github.com/".insteadOf ssh://git@github.com/'
       - run: 'git config --global url."https://".insteadOf ssh://'
+
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 7
 
       - name: Download the build folders
         uses: actions/download-artifact@v3
