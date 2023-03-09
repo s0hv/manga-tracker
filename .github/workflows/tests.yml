@@ -76,7 +76,7 @@ jobs:
         name: Frontend coverage
 
     env:
-      DB_HOST: postgres
+      DB_HOST: localhost
       DB_PORT: 5432
       DB_NAME: postgres
       DB_NAME_TEST: postgres
@@ -85,7 +85,7 @@ jobs:
 
       ELASTIC_NODE: http://localhost:9200
 
-      REDIS_URL: redis:6379
+      REDIS_URL: localhost:6379
       DEBUG: debug,session-*,auth-info
       TZ: UTC
       LEVEL: silent
@@ -193,6 +193,8 @@ jobs:
         with:
           version: 7
 
+      - run: chown -R 1001:1001 /github/home/.cache && echo "pwn dat cache"
+
       - uses: cypress-io/github-action@v5.3.0
         with:
           runTests: false
@@ -267,6 +269,8 @@ jobs:
 
       - name: Initialize database
         run: cd .. && pnpm migrate:up && pnpm migrate:test
+
+      - run: chown -R 1001:1001 /github/home/.cache && echo "pwn dat cache"
 
       - uses: cypress-io/github-action@v5.3.0
         with:
