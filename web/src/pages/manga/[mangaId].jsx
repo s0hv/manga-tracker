@@ -5,8 +5,8 @@ import Manga from '../../components/Manga';
 import withError from '../../utils/withError';
 import { isInteger } from '../../utils/utilities';
 
-import { getFullManga } from '../../../db/manga';
-import { getUserFollows } from '../../../db/db';
+import { getFullManga } from '../../../server/db/manga';
+import { getUserFollows } from '../../../server/db/db';
 
 function MangaPage(props) {
   const {

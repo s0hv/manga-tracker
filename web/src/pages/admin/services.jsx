@@ -3,7 +3,7 @@ import { NextSeo } from 'next-seo';
 import withError from '../../utils/withError';
 import Services from '../../views/admin/Services';
 
-import { getServices } from '../../../db/services/serviceInfo';
+import { getServices } from '../../../server/db/services/serviceInfo';
 import {
   DefaultLocalizationProvider,
 } from '../../components/DefaultLocalizationProvider';

@@ -21,7 +21,7 @@ import {
   servicesApi,
   settingsApi,
   userApi,
-} from './api/index.js';
+} from './server/api/index.js';
 import { getSingletonPostgresAdapter } from '@/db/postgres-adapter';
 import { getSessionAndUser } from '@/db/auth';
 
@@ -33,7 +33,7 @@ const nextApp = next_({ dev: isDev });
 const handle = nextApp.getRequestHandler();
 
 export default nextApp.prepare()
-  .then(() => {
+  .then(async () => {
     const server = express();
 
     const directives: any = {
@@ -138,6 +138,16 @@ export default nextApp.prepare()
     servicesApi(server);
     notificationsApi(server);
     server.use('/api/admin/manga', adminMangaApi());
+
+    // https://github.com/gotwarlost/istanbul/blob/master/ignoring-code-for-coverage.md
+    /* istanbul ignore next */
+    if (isCypress && (global as any).__coverage__) {
+      server.get('/__coverage__', (req, res) => {
+        res.json({
+          coverage: (global as any).__coverage__ || null,
+        });
+      });
+    }
 
     server.get('/login', (req, res) => {
       if (req.session.userId) {

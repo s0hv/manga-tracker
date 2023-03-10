@@ -1,10 +1,10 @@
 import { vi } from 'vitest';
-import { db } from '../../db/helpers';
+import { db } from '../../server/db/helpers';
 import { spyOnDb } from '../dbutils';
 
 
-vi.mock('../../utils/view-counter/manga-view-counter', async () => ({
-  ...await vi.importActual('../../utils/view-counter/manga-view-counter'),
+vi.mock('@/serverUtils/view-counter/manga-view-counter', async () => ({
+  ...await vi.importActual('@/serverUtils/view-counter/manga-view-counter'),
 }));
 
 describe.skip('sessionStore', () => {
@@ -158,7 +158,7 @@ describe.skip('sessionStore', () => {
         },
       };
 
-      const mangaViews = await import('../../utils/view-counter/manga-view-counter');
+      const mangaViews = await import('../../server/utils/view-counter/manga-view-counter');
 
       const dbSpy = spyOnDb('any').mockImplementation(async () => rows);
       const sessionClearInterval = 1000;

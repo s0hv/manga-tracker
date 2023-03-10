@@ -86,6 +86,7 @@ module.exports = {
         'vitest.config.ts',
         'cypress.config.ts',
         'cypress/**',
+        './cypress/support/e2e.ts',
         'loader.js',
       ]}],
 
@@ -140,7 +141,7 @@ module.exports = {
   'globals': {
     'React': 'writable'
   },
-  'ignorePatterns': ['.*', 'public/*', '__mocks__/*', 'dist/*'],
+  'ignorePatterns': ['.*', 'public/*', '__mocks__/*', 'dist/*', 'instrumented/*'],
   'overrides': [
     {
       'files': ['**/*.ts', '**/*.tsx'],

@@ -24,8 +24,8 @@
       "@/views*": ["src/views*"],
       "@/webUtils*": ["src/utils*"],
       "@/common*": ["common*"],
-      "@/serverUtils*": ["utils*"],
-      "@/db*": ["db*"],
+      "@/serverUtils*": ["server/utils*"],
+      "@/db*": ["server/db*"],
       "@/types*": ["types*"]
     }
   },

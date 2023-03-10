@@ -1,5 +1,5 @@
 import request from 'supertest';
-import { csrfMissing } from '../../utils/constants';
+import { csrfMissing } from '@/serverUtils/constants';
 
 import initServer from '../initServer';
 import stopServer from '../stopServer';

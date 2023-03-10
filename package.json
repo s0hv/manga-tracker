@@ -20,7 +20,7 @@
     "create-migration:test": "db-migrate --config migrations-config.json create:test",
     "migrate:up": "db-migrate --config migrations-config.json up",
     "migrate:test": "db-migrate --config migrations-config.json up:test",
-    "migrate:up:test": "pnpm migrate:up -- -e test && pnpm migrate:test -- -e test",
+    "migrate:up:test": "pnpm migrate:up -e test && pnpm migrate:test -e test",
     "migrate:reset:test": "db-migrate --config migrations-config.json -e test reset:test && pnpm migrate:up:test",
     "migrate:down": "db-migrate --config migrations-config.json down"
   },

@@ -1,9 +1,9 @@
 import { Manga, Cover } from 'mangadex-full-api';
 import { vi } from 'vitest';
-import { mangadexLimiter, redis } from '../../utils/ratelimits';
+import { mangadexLimiter, redis } from '../../server/utils/ratelimits';
 import { spyOnDb } from '../dbutils';
 
-const { fetchExtraInfo } = await vi.importActual('../../db/mangadex');
+const { fetchExtraInfo } = await vi.importActual('@/db/mangadex');
 
 afterAll(async () => {
   redis.disconnect();

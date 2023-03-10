@@ -2,8 +2,8 @@ import { Server } from 'http';
 import { type AddressInfo } from 'net';
 import { vi } from 'vitest';
 
-vi.mock('./../db/auth', async () => {
-  const auth = await vi.importActual<typeof import('./../db/auth')>('./../db/auth');
+vi.mock('@/db/auth', async () => {
+  const auth = await vi.importActual<typeof import('@/db/auth')>('@/db/auth');
   return {
     ...auth,
     getSessionAndUser: vi.fn().mockImplementation(auth.getSessionAndUser),
@@ -11,7 +11,7 @@ vi.mock('./../db/auth', async () => {
 });
 
 export default async function initServer(): Promise<{ httpServer: Server, addr: string }> {
-  vi.mock('./../db/elasticsearch', async () => {
+  vi.mock('@/db/elasticsearch', async () => {
     const { Client } = await import('@elastic/elasticsearch');
     const { default: Mock } = await import('@elastic/elasticsearch-mock');
     const mock = new Mock();

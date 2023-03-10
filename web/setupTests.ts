@@ -17,7 +17,7 @@ expect.extend(extendedMatchers);
 config({ path: '../.env' });
 
 // Don't want API calls to 3rd party services during tests
-vi.mock('./db/mangadex', () => ({
+vi.mock('@/db/mangadex', () => ({
   MANGADEX_ID: 2,
   fetchExtraInfo: vi.fn().mockImplementation(async () => {}),
 }));

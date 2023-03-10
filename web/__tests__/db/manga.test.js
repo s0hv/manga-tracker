@@ -1,5 +1,5 @@
-import { getFollows, getAliases } from '../../db/manga';
-import { HttpError } from '../../utils/errors';
+import { getFollows, getAliases } from '../../server/db/manga';
+import { HttpError } from '../../server/utils/errors';
 import { normalUser, testManga } from '../utils';
 
 

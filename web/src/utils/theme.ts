@@ -6,6 +6,7 @@ import {
 import { blue } from '@mui/material/colors';
 import { Roboto } from '@next/font/google';
 
+/* istanbul ignore next */
 export const roboto = Roboto({
   weight: ['300', '400', '500', '700'],
   subsets: ['latin'],

@@ -1,6 +1,6 @@
 import request from 'supertest';
 import { type Mock, vi } from 'vitest';
-import { csrfMissing } from '../../utils/constants';
+import { csrfMissing } from '@/serverUtils/constants';
 import { userForbidden, userUnauthorized } from '../constants';
 
 import initServer from '../initServer';
@@ -25,8 +25,8 @@ const serverReference = {
   httpServer,
 };
 
-vi.mock('../../db/elasticsearch/manga', async () => {
-  const original = await vi.importActual<typeof import('../../db/elasticsearch/manga')>('../../db/elasticsearch/manga'); // Step 2.
+vi.mock('@/db/elasticsearch/manga', async () => {
+  const original = await vi.importActual<typeof import('@/db/elasticsearch/manga')>('@/db/elasticsearch/manga'); // Step 2.
   return {
     ...original,
     updateManga: vi.fn().mockImplementation(original.updateManga),

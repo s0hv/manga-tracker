@@ -11,6 +11,8 @@
   "scripts": {
     "start": "node --enable-source-maps --experimental-specifier-resolution=node dist/server.js",
     "start-dev": "node --enable-source-maps --experimental-specifier-resolution=node -r dotenv/config dist/server.js",
+    "start-coverage": "node --enable-source-maps --experimental-specifier-resolution=node instrumented/server.js",
+    "start-coverage-dev": "node --enable-source-maps --experimental-specifier-resolution=node -r dotenv/config instrumented/server.js",
     "build": "pnpm build-server && next build",
     "build-server": "tsc --project tsconfig.server.json && tsc-alias --project tsconfig.server.json",
     "server-dev": "nodemon -r dotenv/config --experimental-specifier-resolution=node --loader ./loader.js --ext \"ts,js\" --watch api/* --watch db/* --watch server.ts server.ts",
@@ -22,7 +24,8 @@
     "lint": "eslint --ext .jsx,.js,.snap,.ts,.tsx .",
     "cypress": "cypress open",
     "build-start-test": "pnpm build && pnpm start-dev",
-    "next-build": "next build"
+    "next-build": "next build",
+    "build-nyc": "pnpm build && nyc instrument --compact=false dist instrumented"
   },
   "sideEffects": false,
   "cacheDirectories": [
@@ -123,6 +126,7 @@
     "yup": "^0.32.9"
   },
   "devDependencies": {
+    "@cypress/code-coverage": "^3.10.0",
     "@elastic/elasticsearch-mock": "^1.0.0",
     "@faker-js/faker": "^7.3.0",
     "@next/bundle-analyzer": "^13.2.3",
@@ -163,9 +167,11 @@
     "json-schema-faker": "^0.5.0-rcv.44",
     "node-fetch": "^2.6.7",
     "nodemon": "^2.0.18",
+    "nyc": "^15.1.0",
     "random-seed": "^0.3.0",
     "supertest": "^6.2.4",
-    "ts-node": "^10.8.1",
+    "swc-plugin-coverage-instrument": "^0.0.14",
+    "ts-node": "^10.9.1",
     "tsconfig-paths": "^4.1.2",
     "vite-tsconfig-paths": "^4.0.5",
     "vitest": "^0.29.2"

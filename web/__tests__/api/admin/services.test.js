@@ -1,7 +1,7 @@
 import request from 'supertest';
 import { parse, toSeconds } from 'iso8601-duration';
 
-import { csrfMissing } from '../../../utils/constants';
+import { csrfMissing } from '../../../server/utils/constants';
 
 import { userForbidden, userUnauthorized, isCI } from '../../constants';
 import initServer from '../../initServer';
@@ -15,7 +15,7 @@ import {
   getIncrementalStringGenerator,
   mockUTCDates,
 } from '../../utils';
-import { getServiceFull } from '../../../db/services';
+import { getServiceFull } from '../../../server/db/services';
 import { copyService } from '../../dbutils';
 
 let httpServer;

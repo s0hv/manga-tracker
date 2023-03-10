@@ -166,7 +166,7 @@ export const withUser: WithUser = (async (userObject: TestUser, cb: React.ReactE
     ) as any;
   }
 
-  const { getSessionAndUser } = (await import('../db/auth')) as any as { getSessionAndUser: Mock };
+  const { getSessionAndUser } = (await import('@/db/auth')) as any as { getSessionAndUser: Mock };
 
   getSessionAndUser.mockImplementation((req: ExpressRequest, res: any, next: NextFunction) => {
     req.session = {
@@ -180,7 +180,7 @@ export const withUser: WithUser = (async (userObject: TestUser, cb: React.ReactE
     await cb();
   } finally {
     // Restore the original function
-    getSessionAndUser.mockImplementation((await vi.importActual<typeof import('./../db/auth')>('./../db/auth')).getSessionAndUser);
+    getSessionAndUser.mockImplementation((await vi.importActual<typeof import('@/db/auth')>('@/db/auth')).getSessionAndUser);
   }
 }) as WithUser;
 
