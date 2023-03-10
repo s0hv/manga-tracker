@@ -1,4 +1,4 @@
-import { getServices } from '../../../db/services/serviceInfo';
+import { getServices } from '../../../server/db/services/serviceInfo';
 
 describe('getServices()', () => {
   it('Returns services', async () => {

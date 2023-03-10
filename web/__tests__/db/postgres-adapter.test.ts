@@ -10,8 +10,8 @@ import { SessionData } from '@/types/dbTypes';
 
 faker.seed(42);
 
-vi.mock('../../utils/view-counter/manga-view-counter', async () => ({
-  ...await vi.importActual<typeof import('../../utils/view-counter/manga-view-counter')>('../../utils/view-counter/manga-view-counter'),
+vi.mock('@/serverUtils/view-counter/manga-view-counter', async () => ({
+  ...await vi.importActual<typeof import('@/serverUtils/view-counter/manga-view-counter')>('@/serverUtils/view-counter/manga-view-counter'),
 }));
 
 describe('PostgresAdapter', () => {
@@ -195,7 +195,7 @@ describe('PostgresAdapter', () => {
         },
       };
 
-      const mangaViews = await import('../../utils/view-counter/manga-view-counter');
+      const mangaViews = await import('../../server/utils/view-counter/manga-view-counter');
 
       const dbSpy = spyOnDb('any').mockImplementation(async () => rows);
       const sessionClearInterval = 1000;

@@ -16,7 +16,7 @@ const options = {
     },
   },
   failOnErrors: true,
-  apis: ['./api/**/*.js', './api/**/*.ts'], // Path relative to application root
+  apis: ['./server/api/**/*.js', './server/api/**/*.ts'], // Path relative to application root
 };
 
 export const getOpenapiSpecification = async () => {

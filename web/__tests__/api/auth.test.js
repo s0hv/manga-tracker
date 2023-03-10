@@ -1,12 +1,12 @@
 import request from 'supertest';
-import { csrfMissing } from '../../utils/constants';
+import { csrfMissing } from '../../server/utils/constants';
 import {
   authTokenCount,
   authTokenExists,
   sessionAssociatedWithUser,
   userSessionCount,
 } from '../dbutils';
-import { redis } from '../../utils/ratelimits';
+import { redis } from '../../server/utils/ratelimits';
 
 import initServer from '../initServer';
 import { expectAuthTokenRegenerated } from '../requestUtils';

@@ -2,8 +2,8 @@ import request from 'supertest';
 import {
   deleteScheduledRun,
   scheduleMangaRun,
-} from '../../../db/admin/management';
-import { getMangaPartial, getAliases } from '../../../db/manga';
+} from '../../../server/db/admin/management';
+import { getMangaPartial, getAliases } from '../../../server/db/manga';
 
 import { userForbidden, userUnauthorized } from '../../constants';
 import initServer from '../../initServer';
@@ -19,7 +19,7 @@ import {
   apiRequiresAdminUserPostTests,
   apiRequiresAdminUserGetTests,
 } from '../utilities';
-import { getMangaServices } from '../../../db/admin/manga';
+import { getMangaServices } from '../../../server/db/admin/manga';
 
 let httpServer;
 const serverReference = {

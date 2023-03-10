@@ -1,4 +1,4 @@
-import { getLatestReleases, getUserFollows } from '../../db/db';
+import { getLatestReleases, getUserFollows } from '../../server/db/db';
 import { normalUser } from '../utils';
 
 describe('getLatestReleases()', () => {

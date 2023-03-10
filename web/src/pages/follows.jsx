@@ -5,7 +5,7 @@ import withError from '../utils/withError';
 import Follows from '../views/Follows';
 import { jsonSerializable } from '../utils/utilities';
 
-import { getFollows } from '../../db/manga';
+import { getFollows } from '../../server/db/manga';
 
 const MangaPage = function MangaPage(props) {
   const {

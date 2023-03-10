@@ -5,7 +5,7 @@ import {
   normalUser,
   withUser,
 } from '../utils';
-import { csrfMissing } from '../../utils/constants';
+import { csrfMissing } from '@/serverUtils/constants';
 import {
   ISE,
   type TestUser,

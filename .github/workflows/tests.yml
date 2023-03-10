@@ -248,9 +248,16 @@ jobs:
         with:
           browser: chrome
           working-directory: ./web
-          build: pnpm cross-env NODE_ENV=production pnpm build
-          start: pnpm cross-env NODE_ENV=production pnpm start
+          build: pnpm cross-env NODE_ENV=production pnpm build-nyc
+          start: pnpm cross-env NODE_ENV=production pnpm start-coverage
           wait-on: 'http://localhost:3000'
+
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3.1.1
+        with:
+          flags: E2E
+          name: E2E coverage
 
     env:
       DB_HOST: postgres

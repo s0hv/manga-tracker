@@ -45,6 +45,14 @@ export default async (phase, { defaultConfig }) => {
     ],
   };
 
+  if (/true|y|yes/i.test(process.env.CYPRESS || '')) {
+    conf.experimental = {
+      swcPlugins: [
+        ['swc-plugin-coverage-instrument', {}],
+      ],
+    };
+  }
+
   if (process.env.ANALYZE) {
     // eslint-disable-next-line import/no-extraneous-dependencies
     const withBundleAnalyzer = (await import('@next/bundle-analyzer')).default({
