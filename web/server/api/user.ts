@@ -115,8 +115,8 @@ export default (app: Express) => {
 
     Promise.all([
       getUserNotifications(user.userId),
-      db.one`SELECT * FROM users WHERE user_id=${user.userId}`,
-      db.any`SELECT * FROM account WHERE user_id=${user.uuid}`,
+      db.one`SELECT user_id, username, email, user_uuid, joined_at, theme, admin, email_verified, is_credentials_account, last_active FROM users WHERE user_id=${user.userId}`,
+      db.any`SELECT id, type, provider, provider_account_id, expires_at, token_type, scope, user_id FROM account WHERE user_id=${user.uuid}`,
       db.any`
         SELECT uf.*, m.title, COALESCE(s.service_name, 'All services') as service_name FROM user_follows uf 
         INNER JOIN manga m ON uf.manga_id=m.manga_id
@@ -125,9 +125,9 @@ export default (app: Express) => {
       db.any`SELECT * FROM sessions WHERE user_id=${user.uuid}`,
     ])
       .then(([notifications, userData, accounts, follows, sessions]) => {
+        res.setHeader('Content-Disposition', 'attachment; filename="manga-tracker-user-data.json"');
         res
           .status(200)
-          .setHeader('Content-Disposition', 'attachment; filename="manga-tracker-user-data.json"')
           .json({
             notifications,
             user: userData,

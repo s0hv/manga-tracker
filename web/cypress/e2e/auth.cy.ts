@@ -51,7 +51,7 @@ describe('Test authentication', () => {
   });
 });
 
-describe('Test deleting account', () => {
+describe('Delete account', () => {
   it('is possible to delete your own account', () => {
     // Create a new user and log in
     cy.task<CreatedUser>('createUser')
@@ -89,5 +89,41 @@ describe('Test deleting account', () => {
     cy.findByText(/^sign in failed/i);
 
     cy.task('flushRedis');
+  });
+});
+
+describe.only('Request account data', () => {
+  it('is possible to download your data', () => {
+    // Create a new user and log in
+    cy.task<CreatedUser>('createUser')
+      .then(user => {
+        cy.wrap(user).as('user');
+      });
+
+    cy.get<CreatedUser>('@user')
+      .then((user) => cy.login(user));
+
+    // Go to profile page
+    cy.findByRole('button', { name: /account of current user/i }).click();
+    cy.findByRole('menuitem', { name: /^profile$/i }).click();
+    cy.findByRole('button', { name: /Download a copy of personal data/i }).click();
+
+    cy.intercept({
+      pathname: '/api/user/dataRequest',
+      method: 'POST',
+    }, (req) => {
+      req.redirect('/profile');
+    }).as('userData');
+
+    // Initiate data download
+    cy.findByRole('button', { name: /proceed/i }).click();
+
+    cy.wait('@userData').its('request').then((req) => {
+      cy.request(req)
+        .then(({ body, headers }) => {
+          expect(headers).to.have.property('content-disposition', 'attachment; filename="manga-tracker-user-data.json"');
+          expect(body).to.include.keys(['user', 'accounts', 'sessions', 'notifications', 'follows']);
+        });
+    });
   });
 });
