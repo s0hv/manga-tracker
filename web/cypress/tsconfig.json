@@ -3,22 +3,14 @@
     "target": "es6",
     "lib": ["es6", "dom", "esnext"],
     "types": ["cypress", "@testing-library/cypress", "node"],
+    "module": "ES2020",
     "baseUrl": ".",
     "paths": {
-      "@/common*": ["common*"],
-      "@/serverUtils*": ["../utils*"],
-      "@/db*": ["db*"],
-      "@/types*": ["types*"]
+      "@/types*": ["../types*"]
     }
   },
-  "include": ["**/*.ts", "../cypress.config.ts"],
+  "include": ["**/*.ts", "../cypress.config.ts", "../types/*.ts", "types.ts"],
   "exclude": [
     "node_modules"
-  ],
-      "paths": {
-      "@/common*": ["common*"],
-      "@/serverUtils*": ["../utils*"],
-      "@/db*": ["db*"],
-      "@/types*": ["types*"]
-    }
+  ]
 }

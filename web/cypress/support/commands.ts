@@ -36,25 +36,33 @@
 //   }
 // }
 import '@testing-library/cypress/add-commands';
-import type { TestUser } from '../../__tests__/constants';
+import { nextAuthSessionCookie } from '../constants';
+
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Cypress {
     interface Chainable {
-      login(user: TestUser): Chainable<void>
+      login(user: { email: string, password: string }, expectFail?: boolean): Chainable<void>
       logout(): Chainable<void>
     }
   }
 }
 
-Cypress.Commands.add('login', (user) => {
+Cypress.Commands.add('login', (user, expectFail = false) => {
+  cy.getCookie(nextAuthSessionCookie).should('be.null');
   cy.visit('/login');
 
   cy.findByRole('textbox', { name: /email address/i }).type(user.email);
   cy.findByLabelText(/password/i).type(user.password);
   cy.findByRole('button', { name: /^sign in$/i }).click();
+  if (expectFail) {
+    cy.getCookie(nextAuthSessionCookie).should('be.null');
+    return;
+  }
+
   cy.findByText(/^recent releases \(for your follows\)/i);
+  cy.getCookie(nextAuthSessionCookie).should('not.be.null');
 });
 
 Cypress.Commands.add('logout', () => {
@@ -62,4 +70,5 @@ Cypress.Commands.add('logout', () => {
 
   cy.findByRole('menuitem', { name: /^logout$/i }).click();
   cy.findByText(/^recent releases$/i);
+  cy.getCookie(nextAuthSessionCookie).should('be.null');
 });

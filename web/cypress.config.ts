@@ -1,12 +1,12 @@
 import { defineConfig } from 'cypress';
 import { redis } from './dist/server/utils/ratelimits';
+import { db } from './dist/server/db/helpers';
 
 export default defineConfig({
   video: false,
   watchForFileChanges: false,
   e2e: {
     async setupNodeEvents(on, config) {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
       await import('@cypress/code-coverage/task').then(({ default: fn }) => fn(on, config));
 
       on('task', {
@@ -16,6 +16,21 @@ export default defineConfig({
               console.error(err);
               throw err;
             });
+        },
+        async createUser() {
+          const username = Date.now().toString();
+          const password = username;
+          const email = `${username}@email.com`;
+
+          await db.none`
+            INSERT INTO users (username, email, pwhash, email_verified, is_credentials_account) 
+            VALUES (${username}, ${email}, crypt(${password}, gen_salt('bf')), NULL, TRUE)`;
+
+          return {
+            username,
+            password,
+            email,
+          };
         },
       });
 
