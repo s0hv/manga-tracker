@@ -92,7 +92,7 @@ describe('Delete account', () => {
   });
 });
 
-describe.only('Request account data', () => {
+describe('Request account data', () => {
   it('is possible to download your data', () => {
     // Create a new user and log in
     cy.task<CreatedUser>('createUser')
