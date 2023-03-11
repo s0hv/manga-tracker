@@ -23,8 +23,8 @@ export default defineConfig({
           const email = `${username}@email.com`;
 
           await db.none`
-            INSERT INTO users (username, email, pwhash, email_verified, is_credentials_account) 
-            VALUES (${username}, ${email}, crypt(${password}, gen_salt('bf')), NULL, TRUE)`;
+            INSERT INTO users (username, email, pwhash, email_verified, is_credentials_account, theme) 
+            VALUES (${username}, ${email}, crypt(${password}, gen_salt('bf')), NULL, TRUE, 'dark')`;
 
           return {
             username,

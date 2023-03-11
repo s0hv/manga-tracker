@@ -45,6 +45,8 @@ declare global {
     interface Chainable {
       login(user: { email: string, password: string }, expectFail?: boolean): Chainable<void>
       logout(): Chainable<void>
+      expectLightTheme(): Chainable<void>
+      expectDarkTheme(): Chainable<void>
     }
   }
 }
@@ -71,4 +73,12 @@ Cypress.Commands.add('logout', () => {
   cy.findByRole('menuitem', { name: /^logout$/i }).click();
   cy.findByText(/^recent releases$/i);
   cy.getCookie(nextAuthSessionCookie).should('be.null');
+});
+
+Cypress.Commands.add('expectLightTheme', () => {
+  cy.get('body').should('have.css', 'background-color', 'rgb(255, 255, 255)');
+});
+
+Cypress.Commands.add('expectDarkTheme', () => {
+  cy.get('body').should('have.css', 'background-color', 'rgb(18, 18, 18)');
 });
