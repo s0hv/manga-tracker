@@ -41,6 +41,10 @@
       "last 1 safari version"
     ]
   },
+  "nyc": {
+    "exclude": ["**/node_modules/**"],
+    "excludeAfterRemap": true
+  },
   "dependencies": {
     "@codemirror/autocomplete": "^6.4.2",
     "@codemirror/commands": "^6.2.1",
