@@ -16,4 +16,4 @@ RUN pnpm install --frozen-lockfile --prod
 RUN pnpm build
 
 WORKDIR /app
-CMD ["pnpm", "deploy"]
+CMD ["pnpm", "run", "deploy"]
