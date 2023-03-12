@@ -12,7 +12,7 @@
     "db-migrate-pg": "^1.2.2"
   },
   "scripts": {
-    "deploy": "cd web && pnpm deploy",
+    "deploy": "cd web && pnpm run deploy",
     "server-dev": "cd web && pnpm server-dev",
     "create-migration": "db-migrate --config migrations-config.json create",
     "create-migration:test": "db-migrate --config migrations-config.json create:test",
