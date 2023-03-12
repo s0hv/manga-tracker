@@ -12,8 +12,6 @@
     "db-migrate-pg": "^1.2.2"
   },
   "scripts": {
-    "postinstall": "cd web && node ../scripts/postinstall.js",
-    "heroku-postbuild": "pnpm migrate:up && cd web && pnpm build",
     "deploy": "cd web && pnpm deploy",
     "server-dev": "cd web && pnpm server-dev",
     "create-migration": "db-migrate --config migrations-config.json create",
