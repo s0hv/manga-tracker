@@ -1,9 +1,9 @@
 import os
-import os
 import unittest
 from datetime import timedelta
 from typing import Optional, cast
 
+import pytest
 import responses
 
 from src.db.models.chapter import Chapter
@@ -271,6 +271,21 @@ class TestMangaPlusParser(BaseTestClasses.DatabaseTestCase):
         s = self.dbutil.get_service(service_id)
         self.assertDateGreater(s.disabled_until, utcnow())
         self.assertDatesAlmostEqual(s.last_check, utcnow(), timedelta(seconds=3))
+
+
+@pytest.mark.parametrize('title, correct', [
+    ('Bronze Award', (0, None)),
+    ('Random string', (0, None)),
+    ('One-shot', (1, None)),
+    ('oneshot', (1, None)),
+    ('one shot', (1, None)),
+    ('ex', (0, 5)),
+    ('#ex', (0, 5)),
+    ('#10', (10, None)),
+])
+
+def test_parse_chapter(title: str, correct):
+    assert MangaPlus.parse_chapter(title) == correct, f'MangaPlus.parse_title("{title}") did not equal {correct}'
 
 
 if __name__ == '__main__':

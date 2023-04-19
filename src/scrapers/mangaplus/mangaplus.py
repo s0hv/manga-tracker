@@ -258,7 +258,9 @@ class MangaPlus(BaseScraperWhole):
             if match:
                 return 1, None
 
-            raise ValueError(f'Invalid chapter number given {chapter_number}')
+            logger.warning(f'Chapter number {chapter_number} could not be parsed. Treating it as chapter 0.')
+
+            return 0, None
 
         return int(match.groups()[0]), None
 
