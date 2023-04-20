@@ -33,6 +33,7 @@ class TestMangaPlusParser(BaseTestClasses.DatabaseTestCase):
     request_data_ongoing: bytes
     request_data_oneshot: bytes
     request_data_notfound: bytes
+    request_data_award: bytes
     request_data_all: bytes
 
     @staticmethod
