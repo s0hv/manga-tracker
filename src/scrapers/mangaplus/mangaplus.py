@@ -239,6 +239,7 @@ class MangaPlus(BaseScraperWhole):
     CHAPTER_REGEX = re.compile(r'#(\d+)')
     SPECIAL_CHAPTER_REGEX = re.compile(r'\s*(#?ex)s*', re.I)
     ONESHOT_REGEX = re.compile(r'\s*(one[- ]?shot)s*', re.I)
+    AWARD_REGEX = re.compile(r'\s*bronze award\s*', re.I)
     CHAPTER_URL_FORMAT = 'https://mangaplus.shueisha.co.jp/viewer/{}'
     MANGA_URL_FORMAT = 'https://mangaplus.shueisha.co.jp/titles/{}'
     GROUP = 'Shueisha'
@@ -372,7 +373,7 @@ class MangaPlus(BaseScraperWhole):
             )
 
         now = utcnow()
-        next_update: Optional[datetime] = now + timedelta(hours=4)
+        next_update: Optional[datetime] = now + timedelta(hours=12) + self.min_update_interval()
         disabled = False
         completed = False
         if series.next_timestamp:
@@ -387,14 +388,14 @@ class MangaPlus(BaseScraperWhole):
                 completed = True
         # Disable one shots
         elif series.update_timing == UpdateTiming.NOT_REGULARLY.value and chapters:
-            if chapters[0].name.lower().replace('-', '') == 'oneshot':
-                logger.info(f'One shot found for {self.NAME} title {series.title.name} / {series.title.title_id}. Disabling it.')
+            if self.ONESHOT_REGEX.match(chapters[0].name) or self.AWARD_REGEX.match(chapters[0].name):
+                logger.info(f'One shot or award chapter found for {self.NAME} title {series.title.name} / {series.title.title_id}. Disabling it.')
                 next_update = None
                 disabled = True
                 completed = True
 
         newest_chapter = None
-        for c in series.chapters:
+        for c in chapters:
             if not newest_chapter:
                 newest_chapter = c
                 continue

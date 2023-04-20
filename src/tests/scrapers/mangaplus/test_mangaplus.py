@@ -57,6 +57,7 @@ class TestMangaPlusParser(BaseTestClasses.DatabaseTestCase):
         cls.request_data_ongoing = cls.read_title_detail_data('ongoing')
         cls.request_data_oneshot = cls.read_title_detail_data('oneshot')
         cls.request_data_notfound = cls.read_title_detail_data('notfound')
+        cls.request_data_award = cls.read_title_detail_data('award')
         cls.request_data_all = cls.read_all_titles_data()
 
     def setUp(self) -> None:
@@ -203,6 +204,32 @@ class TestMangaPlusParser(BaseTestClasses.DatabaseTestCase):
             chapter_decimal=None,
             release_date=utcfromtimestamp(1618326000),
             chapter_identifier='1009202',
+            group_id=self.group_id
+        )
+
+        self.assertDbChaptersEqual(inserted[0], correct_chapter)
+        self.assertMangaServiceDisabled(ms.service_id, ms.title_id)
+
+    @responses.activate
+    def test_scrapes_correctly_for_award(self):
+        ms, chapter_ids = self.setup_with_data(self.request_data_award)
+
+        self.assertIsNotNone(chapter_ids)
+        chapter_ids = cast(set[int], chapter_ids)
+        self.assertEqual(len(chapter_ids), 1)
+        self.assertEqual(len(responses.calls), 1)
+
+        inserted = self.dbutil.get_chapters(ms.manga_id, ms.service_id, limit=len(chapter_ids))
+        self.assertEqual(len(inserted), 1)
+
+        correct_chapter = Chapter(
+            manga_id=ms.manga_id,
+            service_id=ms.service_id,
+            title="Apple to Orange",
+            chapter_number=0,
+            chapter_decimal=None,
+            release_date=utcfromtimestamp(1681743600),
+            chapter_identifier='1016128',
             group_id=self.group_id
         )
 
