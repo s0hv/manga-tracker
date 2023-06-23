@@ -2,7 +2,7 @@ name: Unit tests
 
 on:
   push:
-    branches: [ master, development ]
+    branches: [ master ]
     paths-ignore:
       - 'scripts/**'
       - '.github/workflows/dokku.yml'
@@ -73,7 +73,7 @@ jobs:
       run: pnpm test:ci
 
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v3.1.1
+      uses: codecov/codecov-action@v3.1.4
       with:
         flags: frontend
         name: Frontend coverage
@@ -136,12 +136,17 @@ jobs:
         with:
           node-version: '16'
           cache: 'pnpm'
+      - name: Setup poetry
+        uses: abatilo/actions-poetry@v2
+        with:
+          poetry-version: 1.5.1
+
       - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
+        run: poetry install --with dev
+
       - name: Lint with flake8
         run: |
+          python -m pip install --upgrade pip
           pip install flake8
           # stop the build if there are Python syntax errors or undefined names
           flake8 src --count --select=E9,F63,F7,F82 --show-source --statistics --exclude **/mangaplus_pb2.py*
@@ -149,18 +154,18 @@ jobs:
           flake8 src --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics --exclude **/mangaplus_pb2.py*
 
       - name: Type checks with mypy
-        run: mypy --config-file mypy.ini ./src
+        run: poetry run mypy --config-file mypy.ini ./src
 
       - name: Install db migration dependencies
         run: pnpm install --frozen-lockfile --ignore-scripts
       - name: Test with pytest
-        run: pytest --cov=./src --cov-report=xml src
+        run: poetry run pytest --cov=./src --cov-report=xml src
 
       - name: Uninstall coveragepy
-        run: pip uninstall -y coverage
+        run: poetry run pip uninstall -y coverage
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3.1.1
+        uses: codecov/codecov-action@v3.1.4
         with:
           flags: scraper
           name: Scraper coverage
@@ -246,7 +251,7 @@ jobs:
           restore-keys: |
             nextjs-${{ hashFiles('pnpm-lock.yaml') }}-
 
-      - uses: cypress-io/github-action@v5.3.0
+      - uses: cypress-io/github-action@v5.8.1
         with:
           browser: chrome
           working-directory: ./web
@@ -256,7 +261,7 @@ jobs:
 
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3.1.1
+        uses: codecov/codecov-action@v3.1.4
         with:
           flags: E2E
           name: E2E coverage
