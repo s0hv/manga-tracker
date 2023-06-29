@@ -1,7 +1,0 @@
-{
-    "name": "manga-tracker",
-    "script": "run.py",
-    "instances": 1,
-    "cron_restart": "*/5 * * * *",
-    "autorestart": false
-}
