@@ -1,6 +1,6 @@
-FROM node:16-stretch
+FROM node:18-bullseye
 
-RUN npm install -g pnpm@^7.29
+RUN npm install -g pnpm@^8
 
 WORKDIR /app
 ENV NODE_ENV production

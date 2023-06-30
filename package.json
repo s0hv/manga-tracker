@@ -4,8 +4,8 @@
   "private": true,
   "license": "MIT",
   "engines": {
-    "node": "^16",
-    "pnpm": ">=7.29"
+    "node": "^18",
+    "pnpm": "^8"
   },
   "dependencies": {
     "db-migrate": "^0.11.13",

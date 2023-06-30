@@ -1,5 +1,5 @@
 import type { Adapter, AdapterSession, AdapterUser } from 'next-auth/adapters';
-import LRU from 'lru-cache';
+import { LRUCache as LRU } from 'lru-cache';
 import type { JSONValue } from 'postgres';
 import type { DatabaseHelpers } from '@/db/helpers';
 
