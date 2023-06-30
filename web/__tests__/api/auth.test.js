@@ -1,26 +1,14 @@
 import request from 'supertest';
 import { csrfMissing } from '../../server/utils/constants';
-import {
-  authTokenCount,
-  authTokenExists,
-  sessionAssociatedWithUser,
-  userSessionCount,
-} from '../dbutils';
+import { authTokenExists, sessionAssociatedWithUser } from '../dbutils';
 import { redis } from '../../server/utils/ratelimits';
 
 import initServer from '../initServer';
-import { expectAuthTokenRegenerated } from '../requestUtils';
 import stopServer from '../stopServer';
 import {
-  adminUser,
-  authTestUser,
-  decodeAuthToken,
-  deleteCookie,
-  encodeAuthToken,
   expectCookieDeleted,
   expectErrorMessage,
   getCookie,
-  getCookieFromRes,
   login,
   normalUser,
 } from '../utils';
@@ -243,144 +231,3 @@ describe.skip('POST /api/logout', () => {
   });
 });
 
-describe.skip('Test authentication', () => {
-  it('/api/authCheck does not work with an invalid auth token', async () => {
-    const token = encodeURIComponent('aeffaf;argregtrsegikogtgetrh;arteiogfjaoeirjg');
-    await request(httpServer)
-      .get('/api/authCheck')
-      .set('Cookie', `auth=${token}`)
-      .expect('')
-      .expect(expectCookieDeleted('auth'))
-      .expect(401);
-  });
-
-  it('Invalidates all tokens and sessions when uuid and lookup are correct', async () => {
-    const agent = await login(httpServer, authTestUser, true);
-    const auth = getCookie(agent, 'auth');
-    const sess = getCookie(agent, 'sess');
-
-    const [lookup, token, uuid] = decodeAuthToken(auth.value);
-
-    const fakeToken = encodeAuthToken(
-      lookup,
-      token.split('').reverse().join(''),
-      uuid
-    );
-
-    await request(httpServer)
-      .get('/api/authCheck')
-      .set('Cookie', `auth=${fakeToken}`)
-      .expect(expectCookieDeleted('auth'))
-      .expect(401);
-
-    // Make sure sessions and tokens deleted
-    expect(await authTokenCount(uuid)).toBe(0);
-    expect(await userSessionCount(uuid)).toBe(0);
-
-    // Make sure session does not exist
-    await request(httpServer)
-      .get('/api/authCheck')
-      .set('Cookie', `sess=${sess.value}`)
-      .expect(401);
-  });
-
-  it('Does not work with correct token and lookup, but wrong uuid', async () => {
-    const agent = await login(httpServer, adminUser, true);
-    const auth = getCookie(agent, 'auth');
-
-    const [lookup, token, uuid] = decodeAuthToken(auth.value);
-
-    const fakeToken = encodeAuthToken(
-      lookup,
-      token.split('').reverse().join(''),
-      uuid.split('').reverse().join('')
-    );
-
-    await request(httpServer)
-      .get('/api/authCheck')
-      .set('Cookie', `auth=${fakeToken}`)
-      .expect(expectCookieDeleted('auth'))
-      .expect(401);
-
-    expect(await authTokenCount(uuid)).toBeGreaterThan(0);
-    expect(await userSessionCount(uuid)).toBeGreaterThan(0);
-  });
-
-  it('Regenerates token when presenting auth but no session', async () => {
-    const agent = await login(httpServer, adminUser, true);
-    const auth = getCookie(agent, 'auth');
-    deleteCookie(agent, 'sess');
-
-    await agent
-      .get('/api/authCheck')
-      .expect('set-cookie', /sess=/)
-      .expect(200);
-
-    await expectAuthTokenRegenerated(agent, auth);
-  });
-
-  it('Finds user when it is not in the cache', async () => {
-    const agent = await login(httpServer, adminUser, true);
-    const auth = getCookie(agent, 'auth');
-    deleteCookie(agent, 'sess');
-    clearUserCache();
-
-    await agent
-      .get('/api/authCheck')
-      .expect('set-cookie', /sess=/)
-      .expect(200);
-
-    await expectAuthTokenRegenerated(agent, auth);
-
-    clearUserCache();
-    await agent
-      .get('/api/authCheck')
-      .expect('content-type', /json/)
-      .expect(200);
-  });
-
-  it('Resets cookie with invalid uuid', async () => {
-    const agent = await login(httpServer, adminUser, true);
-    const auth = getCookie(agent, 'auth');
-
-    const [lookup, token, uuid] = decodeAuthToken(auth.value);
-
-    const fakeToken = encodeAuthToken(
-      lookup,
-      token,
-      uuid + 'a'
-    );
-
-    await request(httpServer)
-      .get('/api/authCheck')
-      .set('Cookie', `auth=${fakeToken}`)
-      .expect(expectCookieDeleted('auth'))
-      .expect(400);
-  });
-
-  it('Does not reset token with fast requests with the same token', async () => {
-    const agent = await login(httpServer, adminUser, true);
-    const auth = getCookie(agent, 'auth');
-    deleteCookie(agent, 'sess');
-
-    const tokens = [];
-    await Promise.all(Array(5)
-      .fill(0)
-      .map(() => request(httpServer)
-        .get('/api/authCheck')
-        .set('Cookie', `auth=${auth.value}`)
-        .expect((res) => {
-          const c = getCookieFromRes(res, 'auth');
-          if (c) {
-            tokens.push(c.auth);
-          }
-        })
-        .expect(200)));
-
-    expect(tokens).toHaveLength(1);
-    const newToken = tokens[0];
-    expect(newToken).not.toEqual(auth.value);
-
-    expect(await authTokenExists(auth.value)).toBeFalse();
-  });
-});
