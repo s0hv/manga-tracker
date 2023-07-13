@@ -48,7 +48,8 @@ export default async (phase, { defaultConfig }) => {
   if (/true|y|yes/i.test(process.env.CYPRESS || '')) {
     conf.experimental = {
       swcPlugins: [
-        ['swc-plugin-coverage-instrument', {}],
+        // Currently broken with latest nextjs version
+        // ['swc-plugin-coverage-instrument', {}],
       ],
     };
   }
