@@ -167,7 +167,7 @@
     "eslint-plugin-react-hooks": "^4.6.0",
     "fetch-mock": "^9.11.0",
     "identity-obj-proxy": "^3.0.0",
-    "jest-extended": "^4.0.0",
+    "jest-extended": "^3.2.4",
     "jest-openapi": "^0.14.2",
     "jsdom": "^22.1.0",
     "json-schema-faker": "^0.5.3",
