@@ -37,7 +37,7 @@ class TestUtilities(unittest.TestCase):
             assert match is not None
 
             correct = case['correct'].copy()
-            correct['chapter'] = correct['chapter'] or correct.pop('chapter_number2')
+            correct['chapter_number'] = correct.pop('chapter') or correct.pop('chapter_number2')
             correct['decimal'] = correct['decimal'] or correct.pop('chapter_decimal2')
 
             self.assertDictEqual(match, correct,

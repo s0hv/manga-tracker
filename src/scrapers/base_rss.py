@@ -32,7 +32,9 @@ class RSSChapter(BaseChapterSimple):
                  release_date: Optional[Union[time.struct_time, datetime]] = None,
                  manga_title: Optional[str] = None,
                  manga_url: Optional[str] = None,
-                 group: Optional[str] = None
+                 group: Optional[str] = None,
+                 # Ignore unused properties
+                 **_
                  ):
         super().__init__(
             chapter_title=chapter_title,
