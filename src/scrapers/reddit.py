@@ -18,7 +18,7 @@ logger = logging.getLogger('debug')
 
 
 class Chapter(BaseChapterSimple):
-    def __init__(self, chapter: Optional[str], chapter_identifier: str, title_id: str,
+    def __init__(self, chapter_number: Optional[str], chapter_identifier: str, title_id: str,
                  manga_url: str, chapter_title: Optional[str] = None,
                  release_date: Optional[time.struct_time] = None, volume: Optional[int] = None,
                  decimal: Optional[int] = None, group: Optional[str] = None,
@@ -26,7 +26,7 @@ class Chapter(BaseChapterSimple):
                  **_):
         super().__init__(
             chapter_title=chapter_title or None,
-            chapter_number=int(chapter) if chapter else 0,
+            chapter_number=int(chapter_number) if chapter_number else 0,
             decimal=int(decimal) if decimal else None,
             chapter_identifier=chapter_identifier,
             title_id=title_id,
@@ -46,7 +46,7 @@ class Reddit(BaseScraper):
     ID = 6
     URL = 'https://www.reddit.com'
     NAME = 'Reddit'
-    CHAPTER_REGEX = re.compile(r'(?:.+?)?(chapter|update) (?P<chapter>\d+)(?: \(?part (?P<decimal>\d+)\)?)?(?P<language> \[.+?])?(?: translated)?', re.I)
+    CHAPTER_REGEX = re.compile(r'(?:.+?)?(chapter|update) (?P<chapter_number>\d+)(?: \(?part (?P<decimal>\d+)\)?)?(?P<language> \[.+?])?(?: translated)?', re.I)
     SUBREDDIT_REGEX = re.compile(r'https?://(?:www\.)?reddit.com/(r/\w+).*')
     UPDATE_INTERVAL = timedelta(minutes=30)
     CHAPTER_URL_FORMAT = '{}'
@@ -74,7 +74,7 @@ class Reddit(BaseScraper):
 
                     # Special cases don't have a chapter number shown so default to 0
                     kwargs = {
-                        'chapter': '0'
+                        'chapter_number': '0'
                     }
 
                 else:
@@ -84,7 +84,7 @@ class Reddit(BaseScraper):
             else:
                 kwargs = match.groupdict()
 
-            if not kwargs['chapter']:
+            if not kwargs['chapter_number']:
                 logger.error(f'Failed to get chapter number from title "{title}"')
                 continue
 
