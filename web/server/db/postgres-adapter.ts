@@ -8,9 +8,10 @@ import { onSessionExpire } from '@/serverUtils/view-counter';
 import { dbLogger, sessionLogger } from '@/serverUtils/logging';
 import { userSelect } from '@/db/auth';
 import { generateUpdate } from '@/db/utils';
+import type { RequiredExcept } from '@/types/utility';
 
 
-export type PostgresAdapter = Adapter<false> & {
+export type PostgresAdapter = RequiredExcept<Adapter, 'createVerificationToken' | 'useVerificationToken'> & {
   deleteUserFromCache: (userId: string) => void
   deleteSessionFromCache: (sessionId: string) => void
   getSession: (sessionId: string) => Promise<AdapterSession | null>
