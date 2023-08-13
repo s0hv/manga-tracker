@@ -1,8 +1,8 @@
 import { normalUser } from '../../../__tests__/constants';
 
 describe('Login redirect works', () => {
-  cy.task('flushRedis');
   it.only('Redirects back to /manga/1 after logging in', () => {
+    cy.task('flushRedis');
     cy.visit('/manga/1');
 
     cy.findByRole('button', { name: /login/i }).click();
