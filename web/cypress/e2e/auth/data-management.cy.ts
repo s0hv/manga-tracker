@@ -2,10 +2,10 @@ import { CreatedUser } from '../../types';
 import { nextAuthSessionCookie } from '../../constants';
 
 describe('Account data management', () => {
-  cy.task('flushRedis');
-
   describe('Request account data', () => {
     it('is possible to download your data', () => {
+      cy.task('flushRedis');
+
       // Create a new user and log in
       cy.task<CreatedUser>('createUser')
         .then(user => {
@@ -42,6 +42,8 @@ describe('Account data management', () => {
 
   describe('Delete account', () => {
     it('is possible to delete your own account', () => {
+      cy.task('flushRedis');
+
       // Create a new user and log in
       cy.task<CreatedUser>('createUser')
         .then(user => {
