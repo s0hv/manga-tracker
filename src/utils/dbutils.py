@@ -715,12 +715,12 @@ class DbUtil:
         return list(map(MangaForNotifications.parse_obj, cur))
 
     @optional_transaction()
-    def update_latest_release(self, data: List[int], *, cur: Cursor = NotImplemented) -> None:
-        format_ids = self.get_format_args(data)
+    def update_latest_release(self, manga_ids: List[int], *, cur: Cursor = NotImplemented) -> None:
+        format_ids = self.get_format_args(manga_ids)
         sql = 'UPDATE manga m SET latest_release=c.release_date FROM ' \
               f'(SELECT MAX(release_date), manga_id FROM chapters WHERE manga_id IN ({format_ids}) GROUP BY manga_id) as c(release_date, manga_id)' \
               'WHERE m.manga_id=c.manga_id'
-        cur.execute(sql, data)
+        cur.execute(sql, manga_ids)
 
     @overload
     @optional_transaction()

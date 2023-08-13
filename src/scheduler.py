@@ -174,9 +174,29 @@ class UpdateScheduler:
                                                         manga_id, feed_url):
                             manga_ids.add(manga_id)
                             chapter_ids.extend(res)
+
                         elif res is None:
                             errors += 1
                             logger.error(f'Failed to scrape series {title_id} {manga_id}')
+
+                        ms = scraper.dbutil.get_manga_service(service_id, title_id)
+
+                        # release_interval actually gets set after this function is called, but it is likely that it has already been set before
+                        # as this feature requires manual configuration. That's why it should be ok to use it here even if it is the old value.
+                        if not ms.disabled and (ms.next_update is None or ms.next_update < utcnow()):
+                            if ms.release_interval is None:
+                                logger.warning(f'Release interval is None for manga {title_id} on service {service_id}. Disabling automatic updates for it.')
+                                scraper.dbutil.execute('UPDATE manga_service SET disabled=TRUE WHERE service_id = %s AND manga_id = %s', (service_id, manga_id))
+                            else:
+                                # If all ok set latest release and refetch manga_service to get the updated latest_release
+                                scraper.dbutil.update_latest_release([manga_id])
+                                ms = scraper.dbutil.get_manga_service(service_id, title_id)
+
+                                next_date = ms.latest_release + ms.release_interval
+                                if next_date < utcnow():
+                                    next_date = utcnow() + ms.release_interval
+                                scraper.dbutil.update_manga_next_update(service_id, manga_id, next_date + timedelta(minutes=10))
+
                 except psycopg.Error:
                     logger.exception(f'Database error while updating manga {title_id} on service {service_id}')
                     scraper.dbutil.update_manga_next_update(service_id, manga_id, scraper.next_update())
