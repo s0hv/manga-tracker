@@ -29,6 +29,8 @@ function MainApp({ Component, pageProps = {}, emotionCache = clientSideEmotionCa
 
   useEffect(() => setUser(props.user), [props.user]);
   useEffect(() => setCsrf(props._csrf), [props._csrf]);
+  // Clear previous page on page load/refresh
+  useEffect(() => window.sessionStorage.removeItem('previousPage'), []);
 
   props.user = user;
 

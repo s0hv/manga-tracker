@@ -170,7 +170,8 @@ export default function SignIn({ providers, error: errorType }: SignInProps): Re
           <>
             <Divider flexItem variant='middle'>OR</Divider>
             <Form onSubmit={(values) => {
-              return signIn('credentials', { email: values.email, password: values.password });
+              const previousPage = window.sessionStorage.getItem('previousPage') ?? undefined;
+              return signIn('credentials', { email: values.email, password: values.password, callbackUrl: previousPage });
             }}
             >
               {({ handleSubmit }) => (

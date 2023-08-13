@@ -115,6 +115,15 @@ export default function nextauth(req: NextApiRequest & Request, res: NextApiResp
     ],
 
     callbacks: {
+      async redirect({ url, baseUrl }) {
+        // Allows relative callback URLs
+        if (url.startsWith('/')) return `${baseUrl}${url}`;
+        // Allows callback URLs on the same origin
+        if (new URL(url).origin === baseUrl) return url;
+
+        return baseUrl;
+      },
+
       async signIn({ user, credentials }) {
         if (!isCredentialsRequest(req)) return true;
 

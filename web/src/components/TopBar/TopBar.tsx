@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import {
   Brightness3 as MoonIcon,
   Home as HomeIcon,
@@ -12,6 +12,7 @@ import dynamic from 'next/dynamic';
 import { useUser } from '@/webUtils/useUser';
 import { Theme } from '@/types/dbTypes';
 import { LinkComponent } from './LinkComponent';
+import { useRouter } from 'next/router';
 
 const MangaSearch = dynamic(() => import('../MangaSearch'));
 const UserMenu = dynamic(() => import('./UserMenu').then(mod => mod.UserMenu));
@@ -61,6 +62,12 @@ const SiteTitle = styled(Typography)(({ theme }) => ({
 function TopBar() {
   const { mode, setMode, systemMode } = useColorScheme();
   const { user } = useUser();
+  const router = useRouter();
+
+  const onAuthChange = useCallback(() => {
+    console.log(router.asPath);
+    window.sessionStorage.setItem('previousPage', router.asPath);
+  }, [router.asPath]);
 
   const handleThemeChange = (): Theme => {
     const currentMode = mode === 'system' ? systemMode : mode;
@@ -100,7 +107,7 @@ function TopBar() {
           ) || (
           <React.Fragment>
             <NextLink href='/login' prefetch={false}>
-              <Button variant='outlined' sx={{ position: 'relative', ml: 3, mr: 1, float: 'right' }}>
+              <Button variant='outlined' sx={{ position: 'relative', ml: 3, mr: 1, float: 'right' }} onClick={onAuthChange}>
                 Login
               </Button>
             </NextLink>
