@@ -253,7 +253,7 @@ class BaseRSS(BaseScraperWhole, ABC):
         if entries is None:
             return None
 
-        return self.handle_adding_chapters(entries, service_id)
+        return self.handle_adding_chapters(entries, service_id) or ScrapeServiceRetVal()
 
     def scrape_service(self, service_id: int, feed_url: str,
                        last_update: Optional[datetime],
