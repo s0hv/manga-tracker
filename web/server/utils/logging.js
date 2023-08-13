@@ -1,6 +1,6 @@
 import pino from 'pino';
 
-import { isDev } from './constants.js';
+import { isDev } from './constants';
 
 const level = process.env.LEVEL;
 

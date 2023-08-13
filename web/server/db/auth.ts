@@ -6,6 +6,7 @@ import type {
 import type { AdapterUser } from 'next-auth/adapters';
 
 import { db } from './helpers';
+import { cookiePrefix } from '@/serverUtils/constants';
 
 export const userSelect = db.sql`
   u.user_uuid as id,
@@ -31,7 +32,7 @@ export const authenticate = async (email: string, password: string) => {
 
 export const getSessionAndUser = (req: Request, res: Response, next: NextFunction) => {
   req.session = {};
-  const sessCookie = 'next-auth.session-token';
+  const sessCookie = cookiePrefix + 'next-auth.session-token';
 
   if (!req.cookies[sessCookie] || req.originalUrl.startsWith('/_next/static/')) return next();
 

@@ -18,6 +18,7 @@ import { db } from '@/db/helpers';
 import { authenticate } from '@/db/auth';
 import { limiterSlowBruteByIP } from '@/serverUtils/ratelimits';
 import { logger, userLogger } from '@/serverUtils/logging';
+import { cookiePrefix, isSecure } from '@/serverUtils/constants';
 
 
 const authOptionsBase = {
@@ -133,7 +134,7 @@ export default function nextauth(req: NextApiRequest & Request, res: NextApiResp
         // res.cookie() for some reason doesn't play nice when called from here.
         // The old value is not overwritten which causes problems.
         setCookie(
-          'next-auth.session-token',
+          cookiePrefix + 'next-auth.session-token',
           sessionToken,
           {
             req,
@@ -142,7 +143,7 @@ export default function nextauth(req: NextApiRequest & Request, res: NextApiResp
             expires: sessionExpiry,
             sameSite: 'lax',
             httpOnly: true,
-            secure: (process.env.NEXTAUTH_URL || '').startsWith('https://'),
+            secure: isSecure,
           }
         );
 
@@ -153,7 +154,7 @@ export default function nextauth(req: NextApiRequest & Request, res: NextApiResp
     jwt: {
       encode(params) {
         if (isCredentialsRequest(req)) {
-          const cookie = req.cookies['next-auth.session-token'];
+          const cookie = req.cookies[cookiePrefix + 'next-auth.session-token'];
           if (typeof cookie === 'string' && cookie) return cookie;
           return '';
         }
