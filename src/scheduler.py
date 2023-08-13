@@ -195,6 +195,7 @@ class UpdateScheduler:
                                 next_date = ms.latest_release + ms.release_interval
                                 if next_date < utcnow():
                                     next_date = utcnow() + ms.release_interval
+
                                 scraper.dbutil.update_manga_next_update(service_id, manga_id, next_date + timedelta(minutes=10))
 
                 except psycopg.Error:
@@ -205,6 +206,8 @@ class UpdateScheduler:
                     logger.exception(f'Unknown error while updating manga {title_id} on service {service_id}')
                     scraper.dbutil.update_manga_next_update(service_id, manga_id, scraper.next_update())
                     errors += 1
+
+                scraper.dbutil.set_manga_last_checked(service_id, manga_id, utcnow())
 
                 if errors > 1:
                     break
