@@ -45,7 +45,7 @@ describe('Login features', () => {
         });
     });
 
-    it.only('Sets 1 day expiry date without remember me', () => {
+    it('Sets 1 day expiry date without remember me', () => {
       cy.task('flushRedis');
       cy.visit('/');
 
