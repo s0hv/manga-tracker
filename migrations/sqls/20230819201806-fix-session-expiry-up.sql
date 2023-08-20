@@ -1,0 +1,4 @@
+ALTER TABLE sessions
+    ALTER COLUMN expires_at
+    TYPE TIMESTAMP WITH TIME ZONE
+    USING expires_at AT TIME ZONE 'UTC';

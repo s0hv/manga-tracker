@@ -43,7 +43,7 @@ declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Cypress {
     interface Chainable {
-      login(user: { email: string, password: string }, expectFail?: boolean): Chainable<void>
+      login(user: { email: string, password: string }, expectFail?: boolean, rememberMe?: boolean): Chainable<void>
       logout(): Chainable<void>
       expectLightTheme(): Chainable<void>
       expectDarkTheme(): Chainable<void>
@@ -51,12 +51,17 @@ declare global {
   }
 }
 
-Cypress.Commands.add('login', (user, expectFail = false) => {
+Cypress.Commands.add('login', (user, expectFail = false, rememberMe = false) => {
   cy.getCookie(nextAuthSessionCookie).should('be.null');
   cy.visit('/login');
 
   cy.findByRole('textbox', { name: /email address/i }).type(user.email);
   cy.findByLabelText(/password/i).type(user.password);
+
+  if (rememberMe) {
+    cy.findByRole('checkbox', { name: /remember me/i }).click();
+  }
+
   cy.findByRole('button', { name: /^sign in$/i }).click();
   if (expectFail) {
     cy.getCookie(nextAuthSessionCookie).should('be.null');

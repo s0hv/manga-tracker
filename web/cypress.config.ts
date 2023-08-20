@@ -1,6 +1,7 @@
 import { defineConfig } from 'cypress';
 import { redis } from './dist/server/utils/ratelimits';
 import { db } from './dist/server/db/helpers';
+import type { CreatedUser } from './cypress/types';
 
 export default defineConfig({
   video: false,
@@ -17,7 +18,7 @@ export default defineConfig({
               throw err;
             });
         },
-        async createUser() {
+        async createUser(): Promise<CreatedUser> {
           const username = Date.now().toString();
           const password = username;
           const email = `${username}@email.com`;
@@ -31,6 +32,9 @@ export default defineConfig({
             password,
             email,
           };
+        },
+        getSession(sessionId: string) {
+          return db.oneOrNone`SELECT * FROM sessions WHERE session_id = ${sessionId}`;
         },
       });
 
