@@ -8,11 +8,11 @@ import { AppBar, Button, IconButton, Toolbar, Typography } from '@mui/material';
 import { styled, useColorScheme } from '@mui/material/styles';
 import NextLink from 'next/link';
 import dynamic from 'next/dynamic';
+import { useRouter } from 'next/router';
 
 import { useUser } from '@/webUtils/useUser';
 import { Theme } from '@/types/dbTypes';
 import { LinkComponent } from './LinkComponent';
-import { useRouter } from 'next/router';
 
 const MangaSearch = dynamic(() => import('../MangaSearch'));
 const UserMenu = dynamic(() => import('./UserMenu').then(mod => mod.UserMenu));
