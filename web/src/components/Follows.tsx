@@ -16,6 +16,7 @@ import { useCSRF } from '../utils/csrf';
 
 import { defaultDateDistanceToNow, followUnfollow } from '../utils/utilities';
 import { nextImageFix } from '../utils/theme';
+import type { Follow } from '@/types/db/follows';
 
 
 const FollowContent = styled('div')({
@@ -42,8 +43,14 @@ const Thumbnail = styled('div')(({ theme }) => ({
 
 const serviceNameText = { mr: 2 };
 const followServiceItem = { display: 'flex', justifyContent: 'space-between' };
+const mangaLinkStyles = { display: 'flex', height: '100%', position: 'relative' } satisfies React.CSSProperties;
 
-function Follows(props) {
+export type FollowProps = {
+  follows?: Follow[];
+}
+
+
+function Follows(props: FollowProps) {
   const {
     follows = [],
   } = props;
@@ -52,7 +59,7 @@ function Follows(props) {
   const columnsXs = 1;
   const columnsMd = 2;
 
-  const renderFollow = (follow) => {
+  const renderFollow = (follow: Follow, index: number) => {
     const followedServices = follow.followedServices;
 
     return (
@@ -66,13 +73,14 @@ function Follows(props) {
         </Typography>
         <FollowContent>
           <Thumbnail>
-            <NextLink href='/manga/[id]' as={`/manga/${follow.mangaId}`} target='_blank'>
+            <NextLink href='/manga/[id]' as={`/manga/${follow.mangaId}`} target='_blank' style={mangaLinkStyles}>
               <Image
                 src={`${follow.cover}.256.jpg`}
                 alt={follow.title}
                 fill
                 style={{ objectFit: 'contain' }}
                 sizes='(max-width: 600px) 192px, 256px'
+                priority={index < 2}
               />
             </NextLink>
           </Thumbnail>
@@ -85,7 +93,7 @@ function Follows(props) {
                   </th>
                   <td>
                     <Typography>
-                      {defaultDateDistanceToNow(new Date(follow.latestRelease))}
+                      {defaultDateDistanceToNow(new Date(follow.latestRelease || 0))}
                     </Typography>
                   </td>
                 </tr>
@@ -102,7 +110,7 @@ function Follows(props) {
             <List sx={{ overflow: 'auto', maxHeight: '250px' }} aria-label='manga services'>
               <ListItem key='all_services' disableGutters sx={followServiceItem}>
                 <ListItemText primary='All services' sx={serviceNameText} />
-                <Button variant='contained' color='primary' onClick={followUnfollow(csrf, follow.mangaId)}>
+                <Button variant='contained' color='primary' onClick={followUnfollow(csrf, follow.mangaId, null)}>
                   {followedServices.indexOf(null) < 0 ? 'Follow' : 'Unfollow'}
                 </Button>
               </ListItem>

@@ -1,18 +1,18 @@
 import React from 'react';
 
 import { Container, IconButton, Paper, Typography } from '@mui/material';
-import { lighten, styled } from '@mui/material/styles';
+import { styled } from '@mui/material/styles';
 import { RssFeed as RssFeedIcon } from '@mui/icons-material';
 import PropTypes from 'prop-types';
 
-import FollowsComponent from '../components/Follows';
+import FollowsComponent, { type FollowProps } from '../components/Follows';
 import { useUser } from '../utils/useUser';
 
 const FollowCard = styled(Paper)(({ theme }) => ({
   height: '100%',
   overflow: 'hidden',
   marginBottom: theme.spacing(2),
-  backgroundColor: lighten(theme.palette.background.paper, 0.05),
+  backgroundColor: theme.vars.palette.AppBar.defaultBg,
 }));
 
 const TopRow = styled('div')({
@@ -20,7 +20,7 @@ const TopRow = styled('div')({
   justifyContent: 'space-between',
 });
 
-const Follows = (props) => {
+const Follows = (props: FollowProps) => {
   const { user } = useUser();
 
   return (
@@ -31,7 +31,7 @@ const Follows = (props) => {
             Follows
           </Typography>
           <IconButton
-            href={`/rss/${user.uuid.replace(/-/g, '')}`}
+            href={`/rss/${user!.uuid.replace(/-/g, '')}`}
             target='_blank'
             sx={{ alignSelf: 'center', height: '100%' }}
             size='medium'

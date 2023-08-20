@@ -11,7 +11,7 @@ import {
   enumValues,
   statusToString,
 } from '../utils/utilities';
-import { MangaStatus, PostgresInterval } from '../../types/dbTypes';
+import { MangaStatus, PostgresInterval } from '@/types/dbTypes';
 import { asNumber } from '../utils/formUtils';
 import { useCSRF } from '../utils/csrf';
 import { updateMangaInfo } from '../api/admin/manga';

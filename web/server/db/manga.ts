@@ -10,6 +10,7 @@ import { HttpError } from '../utils/errors.js';
 import { mangadexLogger } from '../utils/logging.js';
 import type { DatabaseId, MangaId } from '@/types/dbTypes';
 import type { Manga } from '@/types/db/manga';
+import type { Follow } from '@/types/db/follows';
 
 const links = {
   al: 'https://anilist.co/manga/',
@@ -100,12 +101,13 @@ export function getFullManga(mangaId: MangaId): Promise<FullManga | null> {
     });
 }
 
-export async function getFollows(userId: DatabaseId) {
+
+export async function getFollows(userId: DatabaseId): Promise<Follow[]> {
   if (!userId) {
     throw HttpError(404);
   }
 
-  return db.any`SELECT m.title, mi.cover, m.manga_id, m.latest_release, m.latest_chapter,
+  return db.any<Follow>`SELECT m.title, mi.cover, m.manga_id, m.latest_release, m.latest_chapter,
                     (SELECT json_agg(s) FROM (
                        SELECT ms.service_id, service_name, ms.title_id, manga_url_format as url
                        FROM services INNER JOIN manga_service ms ON services.service_id = ms.service_id
