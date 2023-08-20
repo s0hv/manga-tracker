@@ -171,7 +171,7 @@ export default function SignIn({ providers, error: errorType }: SignInProps): Re
             <Divider flexItem variant='middle'>OR</Divider>
             <Form onSubmit={(values) => {
               const previousPage = window.sessionStorage.getItem('previousPage') ?? undefined;
-              return signIn('credentials', { email: values.email, password: values.password, callbackUrl: previousPage });
+              return signIn('credentials', { email: values.email, password: values.password, callbackUrl: previousPage, rememberme: values.rememberme });
             }}
             >
               {({ handleSubmit }) => (
@@ -204,7 +204,7 @@ export default function SignIn({ providers, error: errorType }: SignInProps): Re
                     name='rememberme'
                     id='rememberme'
                     color='primary'
-                    data={{ label: 'Remember me', value: undefined }}
+                    data={{ label: 'Remember me', value: 'true' }}
                   />
                   <Button
                     type='submit'

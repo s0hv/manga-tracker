@@ -132,7 +132,7 @@ export default function nextauth(req: NextApiRequest & Request, res: NextApiResp
         const adapter = authOptionsBase.adapter!;
         const sessionToken = randomUUID();
         const day = 24 * 60 * 60 * 1000;
-        const sessionExpiry = new Date(Date.now() + ((credentials as any)?.rememberme === 'on' ? day * 30 : day));
+        const sessionExpiry = new Date(Date.now() + ((credentials as any)?.rememberme === 'true' ? day * 30 : day));
 
         await adapter.createSession({
           sessionToken,
