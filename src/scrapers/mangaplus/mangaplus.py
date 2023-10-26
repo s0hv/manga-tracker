@@ -111,6 +111,12 @@ class TitleDetailViewWrapper:
     def is_simul_release(self) -> Optional[bool]:
         return self._title_detail.is_simul_release
 
+    @property
+    def release_schedule(self):
+        labels = self._title_detail.title_labels
+        if labels:
+            return labels.release_schedule
+
 
 class AllTitlesViewWrapper:
     def __init__(self, all_titles: mangaplus_pb2.AllTitlesView):
@@ -232,7 +238,7 @@ class ChapterWrapper(BaseChapter):
 class MangaPlus(BaseScraperWhole):
     ID = 1
     NAME = 'MANGA Plus'
-    API = 'https://jumpg-webapi.tokyo-cdn.com/api/title_detailV2?title_id={}'
+    API = 'https://jumpg-webapi.tokyo-cdn.com/api/title_detailV3?title_id={}'
     FEED_URL = 'https://jumpg-webapi.tokyo-cdn.com/api/title_list/allV2'
     URL = 'https://mangaplus.shueisha.co.jp'
     MANGA_URL = 'https://mangaplus.shueisha.co.jp/titles/{}'
@@ -286,7 +292,7 @@ class MangaPlus(BaseScraperWhole):
             logger.exception('Failed to fetch all mangaplus titles')
             return None
 
-        if r.status_code != 200:
+        if not r.ok:
             return None
 
         resp = ResponseWrapper(r.content)
@@ -393,6 +399,13 @@ class MangaPlus(BaseScraperWhole):
                 next_update = None
                 disabled = True
                 completed = True
+
+        if series.release_schedule:
+            ReleaseSchedule = mangaplus_pb2.TitleLabels.ReleaseSchedule
+            if series.release_schedule == ReleaseSchedule.COMPLETED or series.release_schedule == ReleaseSchedule.DISABLED:
+                next_update = None
+                disabled = True
+                completed = False
 
         newest_chapter = None
         for c in chapters:

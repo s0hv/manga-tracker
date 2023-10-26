@@ -4,11 +4,13 @@ from datetime import timedelta
 from typing import Optional, cast
 
 import pytest
+import requests
 import responses
 
 from src.db.models.chapter import Chapter
 from src.db.models.manga import MangaServiceWithId
 from src.scrapers.mangaplus.mangaplus import MangaPlus
+from src.scrapers.mangaplus.protobuf import mangaplus_pb2
 from src.tests.testing_utils import BaseTestClasses, spy_on
 from src.utils.utilities import utcfromtimestamp, utcnow
 
@@ -40,7 +42,7 @@ class TestMangaPlusParser(BaseTestClasses.DatabaseTestCase):
     def read_title_detail_data(status: str) -> bytes:
         file = os.path.dirname(__file__)
 
-        with open(os.path.join(file, f'title_detailV2-{status}.dat'), 'rb') as f:
+        with open(os.path.join(file, f'title_detailV3-{status}.dat'), 'rb') as f:
             return f.read()
 
     @staticmethod
@@ -59,6 +61,7 @@ class TestMangaPlusParser(BaseTestClasses.DatabaseTestCase):
         cls.request_data_oneshot = cls.read_title_detail_data('oneshot')
         cls.request_data_notfound = cls.read_title_detail_data('notfound')
         cls.request_data_award = cls.read_title_detail_data('award')
+        cls.request_data_hiatus = cls.read_title_detail_data('hiatus')
         cls.request_data_all = cls.read_all_titles_data()
 
     def setUp(self) -> None:
@@ -95,14 +98,14 @@ class TestMangaPlusParser(BaseTestClasses.DatabaseTestCase):
 
         self.assertIsNotNone(chapter_ids)
         chapter_ids = cast(set[int], chapter_ids)
-        self.assertEqual(len(chapter_ids), 94)
+        self.assertEqual(len(chapter_ids), 14)
         self.assertEqual(len(responses.calls), 1)
 
         inserted = self.dbutil.get_chapters(ms.manga_id, ms.service_id, limit=len(chapter_ids))
 
         last_chapter: Optional[Chapter] = None
         for c in inserted:
-            if c.chapter_number == 92:
+            if c.chapter_number == 124:
                 last_chapter = c
                 break
 
@@ -112,17 +115,17 @@ class TestMangaPlusParser(BaseTestClasses.DatabaseTestCase):
         correct_chapter = Chapter(
             manga_id=ms.manga_id,
             service_id=ms.service_id,
-            title="Just Can't Sleep",
-            chapter_number=92,
+            title="Ombusman",
+            chapter_number=124,
             chapter_decimal=None,
-            release_date=utcfromtimestamp(1675090800),
-            chapter_identifier='1015706',
+            release_date=utcfromtimestamp(1696863600),
+            chapter_identifier='1019019',
             group_id=self.group_id
         )
         self.assertDbChaptersEqual(last_chapter, correct_chapter)
         self.assertMangaServiceEnabled(ms.service_id, ms.title_id)
         ms = self.dbutil.get_manga_service(ms.service_id, ms.title_id)
-        self.assertDatesEqual(ms.next_update, utcfromtimestamp(1675695600))
+        self.assertDatesEqual(ms.next_update, utcfromtimestamp(1697468400))
 
     @responses.activate
     def test_scrapes_correctly_for_existing_chapters(self):
@@ -130,7 +133,7 @@ class TestMangaPlusParser(BaseTestClasses.DatabaseTestCase):
 
         self.assertIsNotNone(chapter_ids)
         chapter_ids = cast(set[int], chapter_ids)
-        self.assertEqual(len(chapter_ids), 0)
+        self.assertEqual(len(chapter_ids), 2)
         self.assertEqual(len(responses.calls), 1)
         self.assertMangaServiceDisabled(ms.service_id, ms.title_id)  # It is completed
 
@@ -140,7 +143,7 @@ class TestMangaPlusParser(BaseTestClasses.DatabaseTestCase):
 
         self.assertIsNotNone(chapter_ids)
         chapter_ids = cast(set[int], chapter_ids)
-        self.assertEqual(len(chapter_ids), 3)
+        self.assertEqual(len(chapter_ids), 5)
         self.assertEqual(len(responses.calls), 1)
 
         inserted = self.dbutil.get_chapters(ms.manga_id, ms.service_id, limit=len(chapter_ids))
@@ -236,6 +239,106 @@ class TestMangaPlusParser(BaseTestClasses.DatabaseTestCase):
 
         self.assertDbChaptersEqual(inserted[0], correct_chapter)
         self.assertMangaServiceDisabled(ms.service_id, ms.title_id)
+
+    @responses.activate
+    def test_scrapes_correctly_for_hiatus(self):
+        ms, chapter_ids = self.setup_with_data(self.request_data_hiatus)
+
+        self.assertIsNotNone(chapter_ids)
+        chapter_ids = cast(set[int], chapter_ids)
+        self.assertEqual(len(chapter_ids), 8)
+        self.assertEqual(len(responses.calls), 1)
+
+        self.assertMangaServiceEnabled(ms.service_id, ms.title_id)
+
+        found = self.dbutil.get_manga_service(MangaPlus.ID, ms.title_id)
+        # Hiatus manga should be checked roughly every 2 days
+        self.assertDateGreater(found.next_update, utcnow() + timedelta(days=2))
+        self.assertDateLess(found.next_update, utcnow() + timedelta(days=3))
+
+    @responses.activate
+    def test_parsing(self):
+        title_id = 'test'
+        responses.add(responses.GET, MangaPlus.API.format(title_id),
+                      body=self.request_data_hiatus)
+        resp = self.mangaplus.parse_series(title_id)
+        self.assertEqual(len(responses.calls), 1)
+
+        self.assertIsNone(resp.error_result)
+        self.assertIsNone(resp.all_titles_view)
+        self.assertIsNotNone(resp.success_result)
+        self.assertIsNotNone(resp.title_detail_view)
+
+        detail = resp.title_detail_view
+        UpdateTiming = mangaplus_pb2.TitleDetailView.UpdateTiming
+        self.assertEqual(detail.release_schedule, mangaplus_pb2.TitleLabels.ReleaseSchedule.WEEKLY)
+        self.assertIsNone(detail.next_timestamp)
+        self.assertEqual(detail.non_appearance_info, 'On a hiatus. Wait for it resuming.')
+        self.assertEqual(detail.is_simul_release, True)
+        self.assertEqual(detail.overview, "Gon might be a country boy, but he has high aspirations. Despite his Aunt Mito's protests, Gon decides to follow in his father's footsteps and become a legendary Hunter. The Hunter hopefuls begin their journey by storm-tossed ship, where Gon meets Leorio and Kurapika, the only other applicants who aren't devastated by bouts of seasickness. Having survived the terrors of the high seas, Gon and his companions now have to prove their worth in a variety of tests in order to find the elusive Exam Hall. And once they get there, will they ever leave alive...?")
+        self.assertEqual(detail.update_timing, UpdateTiming.Name(UpdateTiming.NOT_REGULARLY))
+        self.assertEqual(detail.viewing_period_description, 'The latest 3 chapters are viewable in this title.\nPlease be aware that the 3rd latest chapter will be hidden when a new chapter is added.')
+
+        title = detail.title
+        self.assertEqual(title.title_id, 100015)
+        self.assertEqual(title.name, 'Hunter x Hunter')
+        self.assertEqual(title.author, 'Yoshihiro Togashi')
+        self.assertEqual(title.language, mangaplus_pb2.Title.Language.Name(mangaplus_pb2.Title.Language.ENGLISH))
+        self.assertEqual(title.view_count, 0)
+
+        self.assertTrue(title == title.title_id)
+        self.assertTrue(title == title)
+        self.assertFalse(title != title.title_id)
+        self.assertEqual(str(title), f'{title.name} / {title.title_id}')
+
+        chapter = detail.chapters[0]
+        self.assertEqual(chapter.chapter_identifier, '1000338')
+        self.assertEqual(chapter.name, '#001')
+        self.assertEqual(chapter.title_id, '100015')
+        self.assertEqual(chapter.title, 'Chapter 1: The Day of Departure')
+        self.assertEqual(chapter.chapter_number, 1)
+        self.assertEqual(chapter.group, 'Shueisha')
+        self.assertEqual(chapter.chapter_title, 'Chapter 1: The Day of Departure')
+        self.assertIsNone(chapter.decimal)
+        self.assertRaises(ValueError, lambda: chapter.group_id)
+        self.assertEqual(chapter.manga_title, 'Hunter x Hunter')
+        self.assertEqual(chapter.manga_url, 'https://mangaplus.shueisha.co.jp/titles/100015')
+        self.assertDatesEqual(chapter.release_date, utcfromtimestamp(1547996400))
+        self.assertIsNone(chapter.volume)
+
+    @responses.activate
+    def test_parse_series_failed_request(self):
+        title_id = 'test'
+        responses.add(responses.GET, MangaPlus.API.format(title_id),
+                      body=requests.RequestException())
+
+        resp = self.mangaplus.parse_series(title_id)
+        self.assertIsNone(resp)
+        self.assertEqual(len(responses.calls), 1)
+
+        responses.replace(responses.GET, MangaPlus.API.format(title_id),
+                          json={}, status=400)
+
+        resp = self.mangaplus.parse_series(title_id)
+        self.assertIsNone(resp)
+        self.assertEqual(len(responses.calls), 2)
+
+    @responses.activate
+    def test_parse_all_view(self):
+        url = self.mangaplus.FEED_URL
+        responses.add(responses.GET, url,
+                      body=requests.RequestException())
+
+        resp = self.mangaplus.get_all_titles(url)
+        self.assertIsNone(resp)
+        self.assertEqual(len(responses.calls), 1)
+
+        responses.replace(responses.GET, url,
+                          json={}, status=400)
+
+        resp = self.mangaplus.get_all_titles(url)
+        self.assertIsNone(resp)
+        self.assertEqual(len(responses.calls), 2)
 
     @responses.activate
     def test_scrapes_correctly_for_notfound(self):
