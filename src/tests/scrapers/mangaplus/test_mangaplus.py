@@ -9,7 +9,8 @@ import responses
 
 from src.db.models.chapter import Chapter
 from src.db.models.manga import MangaServiceWithId
-from src.scrapers.mangaplus.mangaplus import MangaPlus
+from src.scrapers.mangaplus.mangaplus import (MangaPlus, ResponseWrapper,
+                                              TitleDetailViewWrapper)
 from src.scrapers.mangaplus.protobuf import mangaplus_pb2
 from src.tests.testing_utils import BaseTestClasses, spy_on
 from src.utils.utilities import utcfromtimestamp, utcnow
@@ -36,6 +37,7 @@ class TestMangaPlusParser(BaseTestClasses.DatabaseTestCase):
     request_data_oneshot: bytes
     request_data_notfound: bytes
     request_data_award: bytes
+    request_data_hiatus: bytes
     request_data_all: bytes
 
     @staticmethod
@@ -264,12 +266,18 @@ class TestMangaPlusParser(BaseTestClasses.DatabaseTestCase):
         resp = self.mangaplus.parse_series(title_id)
         self.assertEqual(len(responses.calls), 1)
 
+        self.assertIsNotNone(resp)
+        resp = cast(ResponseWrapper, resp)
+
         self.assertIsNone(resp.error_result)
         self.assertIsNone(resp.all_titles_view)
         self.assertIsNotNone(resp.success_result)
         self.assertIsNotNone(resp.title_detail_view)
 
         detail = resp.title_detail_view
+        self.assertIsNotNone(detail)
+        detail = cast(TitleDetailViewWrapper, detail)
+
         UpdateTiming = mangaplus_pb2.TitleDetailView.UpdateTiming
         self.assertEqual(detail.release_schedule, mangaplus_pb2.TitleLabels.ReleaseSchedule.WEEKLY)
         self.assertIsNone(detail.next_timestamp)
