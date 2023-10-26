@@ -76,6 +76,24 @@ message TitleDetailView {
 	bool is_simul_release = 14;
 	// 27 is title ids for other languages
 	repeated ChaptersView chapters = 28;
+	TitleLabels title_labels = 32;
+}
+
+message TitleLabels {
+	enum ReleaseSchedule {
+		DISABLED = 0;
+		EVERYDAY = 1;
+		WEEKLY = 2;
+		BIWEEKLY = 3;
+		MONTHLY = 4;
+		BIMONTHLY = 5;
+		TRIMONTHLY = 6;
+		OTHER = 7;
+		COMPLETED = 8;
+	}
+
+	ReleaseSchedule release_schedule = 1;
+	bool is_simulpub = 2;
 }
 
 message ChaptersView {

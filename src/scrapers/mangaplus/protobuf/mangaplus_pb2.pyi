@@ -237,6 +237,7 @@ class TitleDetailView(google.protobuf.message.Message):
     RECOMMENDED_TITLES_FIELD_NUMBER: builtins.int
     IS_SIMUL_RELEASE_FIELD_NUMBER: builtins.int
     CHAPTERS_FIELD_NUMBER: builtins.int
+    TITLE_LABELS_FIELD_NUMBER: builtins.int
     @property
     def title(self) -> global___Title: ...
     title_image_url: builtins.str
@@ -252,6 +253,8 @@ class TitleDetailView(google.protobuf.message.Message):
     @property
     def chapters(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___ChaptersView]:
         """27 is title ids for other languages"""
+    @property
+    def title_labels(self) -> global___TitleLabels: ...
     def __init__(
         self,
         *,
@@ -266,11 +269,57 @@ class TitleDetailView(google.protobuf.message.Message):
         recommended_titles: collections.abc.Iterable[global___Title] | None = ...,
         is_simul_release: builtins.bool = ...,
         chapters: collections.abc.Iterable[global___ChaptersView] | None = ...,
+        title_labels: global___TitleLabels | None = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing_extensions.Literal["title", b"title"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing_extensions.Literal["background_image_url", b"background_image_url", "chapters", b"chapters", "is_simul_release", b"is_simul_release", "next_timestamp", b"next_timestamp", "non_appearance_info", b"non_appearance_info", "overview", b"overview", "recommended_titles", b"recommended_titles", "title", b"title", "title_image_url", b"title_image_url", "update_timing", b"update_timing", "viewing_period_description", b"viewing_period_description"]) -> None: ...
+    def HasField(self, field_name: typing_extensions.Literal["title", b"title", "title_labels", b"title_labels"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing_extensions.Literal["background_image_url", b"background_image_url", "chapters", b"chapters", "is_simul_release", b"is_simul_release", "next_timestamp", b"next_timestamp", "non_appearance_info", b"non_appearance_info", "overview", b"overview", "recommended_titles", b"recommended_titles", "title", b"title", "title_image_url", b"title_image_url", "title_labels", b"title_labels", "update_timing", b"update_timing", "viewing_period_description", b"viewing_period_description"]) -> None: ...
 
 global___TitleDetailView = TitleDetailView
+
+@typing_extensions.final
+class TitleLabels(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    class _ReleaseSchedule:
+        ValueType = typing.NewType("ValueType", builtins.int)
+        V: typing_extensions.TypeAlias = ValueType
+
+    class _ReleaseScheduleEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[TitleLabels._ReleaseSchedule.ValueType], builtins.type):  # noqa: F821
+        DESCRIPTOR: google.protobuf.descriptor.EnumDescriptor
+        DISABLED: TitleLabels._ReleaseSchedule.ValueType  # 0
+        EVERYDAY: TitleLabels._ReleaseSchedule.ValueType  # 1
+        WEEKLY: TitleLabels._ReleaseSchedule.ValueType  # 2
+        BIWEEKLY: TitleLabels._ReleaseSchedule.ValueType  # 3
+        MONTHLY: TitleLabels._ReleaseSchedule.ValueType  # 4
+        BIMONTHLY: TitleLabels._ReleaseSchedule.ValueType  # 5
+        TRIMONTHLY: TitleLabels._ReleaseSchedule.ValueType  # 6
+        OTHER: TitleLabels._ReleaseSchedule.ValueType  # 7
+        COMPLETED: TitleLabels._ReleaseSchedule.ValueType  # 8
+
+    class ReleaseSchedule(_ReleaseSchedule, metaclass=_ReleaseScheduleEnumTypeWrapper): ...
+    DISABLED: TitleLabels.ReleaseSchedule.ValueType  # 0
+    EVERYDAY: TitleLabels.ReleaseSchedule.ValueType  # 1
+    WEEKLY: TitleLabels.ReleaseSchedule.ValueType  # 2
+    BIWEEKLY: TitleLabels.ReleaseSchedule.ValueType  # 3
+    MONTHLY: TitleLabels.ReleaseSchedule.ValueType  # 4
+    BIMONTHLY: TitleLabels.ReleaseSchedule.ValueType  # 5
+    TRIMONTHLY: TitleLabels.ReleaseSchedule.ValueType  # 6
+    OTHER: TitleLabels.ReleaseSchedule.ValueType  # 7
+    COMPLETED: TitleLabels.ReleaseSchedule.ValueType  # 8
+
+    RELEASE_SCHEDULE_FIELD_NUMBER: builtins.int
+    IS_SIMULPUB_FIELD_NUMBER: builtins.int
+    release_schedule: global___TitleLabels.ReleaseSchedule.ValueType
+    is_simulpub: builtins.bool
+    def __init__(
+        self,
+        *,
+        release_schedule: global___TitleLabels.ReleaseSchedule.ValueType = ...,
+        is_simulpub: builtins.bool = ...,
+    ) -> None: ...
+    def ClearField(self, field_name: typing_extensions.Literal["is_simulpub", b"is_simulpub", "release_schedule", b"release_schedule"]) -> None: ...
+
+global___TitleLabels = TitleLabels
 
 @typing_extensions.final
 class ChaptersView(google.protobuf.message.Message):
