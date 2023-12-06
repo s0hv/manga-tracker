@@ -7,13 +7,14 @@ from typing import Optional, Set, cast, List, Type, TypeVar, Dict, Tuple
 
 from lxml import etree
 
-from src.scrapers.base_scraper import BaseChapterSimple, ScrapeServiceRetVal, \
-    BaseScraperWhole
+from src.scrapers.base_scraper import (BaseChapterSimple, ScrapeServiceRetVal,
+                                       BaseScraperWhole)
 from src.utils.utilities import utctoday
 
 logger = logging.getLogger('debug')
 
 chapter_regex = re.compile(r'^Chapter (?P<chapter_number>\d+)((-\d+)| ?(?P<special_chapter>ex\d*|\.?[A-z]|extra *\d*))?(\.(?P<chapter_decimal>\d+))?( – (?P<chapter_title>.+?))?$', re.I)
+ignore_chapter_regex = re.compile(r'^\s*chapter announcement\s*$', re.I)
 
 
 class ParsedChapter(BaseChapterSimple, ABC):
@@ -35,7 +36,12 @@ class ParsedChapter(BaseChapterSimple, ABC):
         return self.chapter_title
 
     def parse_title(self, title: str) -> Optional[Tuple[str, int, Optional[int]]]:
+        if ignore_chapter_regex.match(title):
+            self.invalid = True
+            return None
+
         match = chapter_regex.match(title)
+
         if not match:
             logger.error(f'Failed to parse title from {title}')
             self.invalid = True

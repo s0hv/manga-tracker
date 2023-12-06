@@ -196,6 +196,7 @@ class AzukiTest(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAssertion
     ('Chapter 3b – Special Broadcast: His Unhinged Passions', ('Special Broadcast: His Unhinged Passions', 3, 2)),
     ('Chapter 126-127', ('Chapter 126-127', 126, None)),
     ('Chapter 10.b', ('Chapter 10.b', 10, 2)),
+    ('Chapter Announcement', None),
 ])
 def test_parse_chapter_title(title: str, correct):
     ch = TempChapter()
