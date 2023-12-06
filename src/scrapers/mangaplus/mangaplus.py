@@ -11,8 +11,8 @@ from src.db.mappers.chapter_mapper import ChapterMapper, Chapter as ChapterModel
 from src.db.models.authors import AuthorPartial
 from src.db.models.manga import MangaService
 from src.enums import Status
-from src.scrapers.base_scraper import BaseChapter, BaseScraperWhole, \
-    BaseScraper, ScrapeServiceRetVal
+from src.scrapers.base_scraper import (BaseChapter, BaseScraperWhole,
+                                       BaseScraper, ScrapeServiceRetVal)
 from src.utils.utilities import random_timedelta, utcnow, utcfromtimestamp
 from .protobuf import mangaplus_pb2
 
@@ -245,7 +245,7 @@ class MangaPlus(BaseScraperWhole):
     CHAPTER_REGEX = re.compile(r'#(\d+)')
     SPECIAL_CHAPTER_REGEX = re.compile(r'\s*(#?ex)s*', re.I)
     ONESHOT_REGEX = re.compile(r'\s*(one[- ]?shot)s*', re.I)
-    AWARD_REGEX = re.compile(r'\s*bronze award\s*', re.I)
+    AWARD_REGEX = re.compile(r'\s*bronze award(\s|:)*', re.I)
     CHAPTER_URL_FORMAT = 'https://mangaplus.shueisha.co.jp/viewer/{}'
     MANGA_URL_FORMAT = 'https://mangaplus.shueisha.co.jp/titles/{}'
     GROUP = 'Shueisha'
@@ -402,10 +402,13 @@ class MangaPlus(BaseScraperWhole):
 
         if series.release_schedule:
             ReleaseSchedule = mangaplus_pb2.TitleLabels.ReleaseSchedule
-            if series.release_schedule == ReleaseSchedule.COMPLETED or series.release_schedule == ReleaseSchedule.DISABLED:
+            if series.release_schedule in (ReleaseSchedule.COMPLETED, ReleaseSchedule.DISABLED, ReleaseSchedule.OTHER):
                 next_update = None
                 disabled = True
                 completed = False
+
+            if series.release_schedule == ReleaseSchedule.OTHER:
+                logger.warning(f'Release schedule is OTHER for {self.NAME} title {series.title.name} / {series.title.title_id}. Disabling it.')
 
         newest_chapter = None
         for c in chapters:

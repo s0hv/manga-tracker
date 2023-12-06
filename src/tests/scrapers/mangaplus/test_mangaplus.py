@@ -39,6 +39,7 @@ class TestMangaPlusParser(BaseTestClasses.DatabaseTestCase):
     request_data_award: bytes
     request_data_hiatus: bytes
     request_data_all: bytes
+    request_data_otherschedule: bytes
 
     @staticmethod
     def read_title_detail_data(status: str) -> bytes:
@@ -64,6 +65,7 @@ class TestMangaPlusParser(BaseTestClasses.DatabaseTestCase):
         cls.request_data_notfound = cls.read_title_detail_data('notfound')
         cls.request_data_award = cls.read_title_detail_data('award')
         cls.request_data_hiatus = cls.read_title_detail_data('hiatus')
+        cls.request_data_otherschedule = cls.read_title_detail_data('otherschedule')
         cls.request_data_all = cls.read_all_titles_data()
 
     def setUp(self) -> None:
@@ -188,6 +190,31 @@ class TestMangaPlusParser(BaseTestClasses.DatabaseTestCase):
         for ch, correct in zip(inserted, correct_chapters):
             self.assertDbChaptersEqual(ch, correct)
 
+        self.assertMangaServiceDisabled(ms.service_id, ms.title_id)
+
+    @responses.activate
+    def test_scrapes_correctly_for_other_schedule_chapters(self):
+        ms, chapter_ids = self.setup_with_data(self.request_data_otherschedule)
+
+        self.assertIsNotNone(chapter_ids)
+        chapter_ids = cast(set[int], chapter_ids)
+        self.assertEqual(len(chapter_ids), 1)
+        self.assertEqual(len(responses.calls), 1)
+
+        inserted = self.dbutil.get_chapters(ms.manga_id, ms.service_id, limit=len(chapter_ids))
+
+        correct = Chapter(
+            manga_id=ms.manga_id,
+            service_id=ms.service_id,
+            title="Bronze Award: METRA-K",
+            chapter_number=0,
+            chapter_decimal=None,
+            release_date=utcfromtimestamp(1699887600),
+            chapter_identifier='1019511',
+            group_id=self.group_id
+        )
+
+        self.assertDbChaptersEqual(inserted[0], correct)
         self.assertMangaServiceDisabled(ms.service_id, ms.title_id)
 
     @responses.activate
