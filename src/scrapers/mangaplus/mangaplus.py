@@ -400,15 +400,12 @@ class MangaPlus(BaseScraperWhole):
                 disabled = True
                 completed = True
 
+        ReleaseSchedule = mangaplus_pb2.TitleLabels.ReleaseSchedule
         if series.release_schedule:
-            ReleaseSchedule = mangaplus_pb2.TitleLabels.ReleaseSchedule
-            if series.release_schedule in (ReleaseSchedule.COMPLETED, ReleaseSchedule.DISABLED, ReleaseSchedule.OTHER):
+            if series.release_schedule in (ReleaseSchedule.COMPLETED, ReleaseSchedule.DISABLED):
                 next_update = None
                 disabled = True
                 completed = False
-
-            if series.release_schedule == ReleaseSchedule.OTHER:
-                logger.warning(f'Release schedule is OTHER for {self.NAME} title {series.title.name} / {series.title.title_id}. Disabling it.')
 
         newest_chapter = None
         for c in chapters:
@@ -418,6 +415,16 @@ class MangaPlus(BaseScraperWhole):
 
             if c.chapter_number > newest_chapter.chapter_number:
                 newest_chapter = c
+
+        if (not next_update and
+                newest_chapter and
+                series.release_schedule == ReleaseSchedule.OTHER and
+                utcnow() - newest_chapter.release_date > timedelta(days=60)
+        ):
+            next_update = None
+            disabled = True
+
+            logger.info(f'No new chapters for {self.NAME} title {series.title.name} / {series.title.title_id} in 60 days. Disabling it.')
 
         with self.conn.transaction():
             with self.conn.cursor() as cursor:

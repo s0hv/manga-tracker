@@ -215,7 +215,8 @@ class TestMangaPlusParser(BaseTestClasses.DatabaseTestCase):
         )
 
         self.assertDbChaptersEqual(inserted[0], correct)
-        self.assertMangaServiceDisabled(ms.service_id, ms.title_id)
+        # TODO this test will fail in time due to timedelta checks. When that happens change to assertMangaServiceDisabled
+        self.assertMangaServiceEnabled(ms.service_id, ms.title_id)
 
     @responses.activate
     def test_scrapes_correctly_for_oneshot(self):
