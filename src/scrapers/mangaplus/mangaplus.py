@@ -245,7 +245,7 @@ class MangaPlus(BaseScraperWhole):
     CHAPTER_REGEX = re.compile(r'#(\d+)')
     SPECIAL_CHAPTER_REGEX = re.compile(r'\s*(#?ex)s*', re.I)
     ONESHOT_REGEX = re.compile(r'\s*(one[- ]?shot)s*', re.I)
-    AWARD_REGEX = re.compile(r'\s*bronze award(\s|:)*', re.I)
+    AWARD_REGEX = re.compile(r'\s*(bronze award|creators)(\s|:)*', re.I)
     CHAPTER_URL_FORMAT = 'https://mangaplus.shueisha.co.jp/viewer/{}'
     MANGA_URL_FORMAT = 'https://mangaplus.shueisha.co.jp/titles/{}'
     GROUP = 'Shueisha'
@@ -395,7 +395,7 @@ class MangaPlus(BaseScraperWhole):
         # Disable one shots
         elif series.update_timing == UpdateTiming.NOT_REGULARLY.value and chapters:
             if self.ONESHOT_REGEX.match(chapters[0].name) or self.AWARD_REGEX.match(chapters[0].name):
-                logger.info(f'One shot or award chapter found for {self.NAME} title {series.title.name} / {series.title.title_id}. Disabling it.')
+                logger.info(f'One shot, award or creators chapter found for {self.NAME} title {series.title.name} / {series.title.title_id}. Disabling it.')
                 next_update = None
                 disabled = True
                 completed = True

@@ -37,6 +37,7 @@ class TestMangaPlusParser(BaseTestClasses.DatabaseTestCase):
     request_data_oneshot: bytes
     request_data_notfound: bytes
     request_data_award: bytes
+    request_data_creators: bytes
     request_data_hiatus: bytes
     request_data_all: bytes
     request_data_otherschedule: bytes
@@ -64,6 +65,7 @@ class TestMangaPlusParser(BaseTestClasses.DatabaseTestCase):
         cls.request_data_oneshot = cls.read_title_detail_data('oneshot')
         cls.request_data_notfound = cls.read_title_detail_data('notfound')
         cls.request_data_award = cls.read_title_detail_data('award')
+        cls.request_data_creators = cls.read_title_detail_data('creators')
         cls.request_data_hiatus = cls.read_title_detail_data('hiatus')
         cls.request_data_otherschedule = cls.read_title_detail_data('otherschedule')
         cls.request_data_all = cls.read_all_titles_data()
@@ -271,6 +273,32 @@ class TestMangaPlusParser(BaseTestClasses.DatabaseTestCase):
         self.assertMangaServiceDisabled(ms.service_id, ms.title_id)
 
     @responses.activate
+    def test_scrapes_correctly_for_creators(self):
+        ms, chapter_ids = self.setup_with_data(self.request_data_creators)
+
+        self.assertIsNotNone(chapter_ids)
+        chapter_ids = cast(set[int], chapter_ids)
+        self.assertEqual(len(chapter_ids), 1)
+        self.assertEqual(len(responses.calls), 1)
+
+        inserted = self.dbutil.get_chapters(ms.manga_id, ms.service_id, limit=len(chapter_ids))
+        self.assertEqual(len(inserted), 1)
+
+        correct_chapter = Chapter(
+            manga_id=ms.manga_id,
+            service_id=ms.service_id,
+            title="Hollow Grimoire (One-shot)",
+            chapter_number=0,
+            chapter_decimal=None,
+            release_date=utcfromtimestamp(1708873200),
+            chapter_identifier='1020458',
+            group_id=self.group_id
+        )
+
+        self.assertDbChaptersEqual(inserted[0], correct_chapter)
+        self.assertMangaServiceDisabled(ms.service_id, ms.title_id)
+
+    @responses.activate
     def test_scrapes_correctly_for_hiatus(self):
         ms, chapter_ids = self.setup_with_data(self.request_data_hiatus)
 
@@ -449,6 +477,7 @@ class TestMangaPlusParser(BaseTestClasses.DatabaseTestCase):
     ('ex', (0, 5)),
     ('#ex', (0, 5)),
     ('#10', (10, None)),
+    ('Creators', (0, None)),
 ])
 
 def test_parse_chapter(title: str, correct):
