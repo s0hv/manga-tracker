@@ -4,7 +4,7 @@ exports[`GET /api/manga/:mangaId/chapters > Returns 400 with invalid sort column
 [
   {
     "location": "query",
-    "msg": "Sort column must be one of \\"chapter_id\\", \\"chapter_number\\", \\"release_date\\", \\"group\\"",
+    "msg": "Sort column must be one of "chapter_id", "chapter_number", "release_date", "group"",
     "param": "sortBy",
     "value": "test",
   },
@@ -15,7 +15,7 @@ exports[`GET /api/manga/:mangaId/chapters > Returns 400 with invalid sort direct
 [
   {
     "location": "query",
-    "msg": "Sorting direction must be one of \\"asc\\" or \\"desc\\"",
+    "msg": "Sorting direction must be one of "asc" or "desc"",
     "param": "sort",
     "value": "test",
   },
