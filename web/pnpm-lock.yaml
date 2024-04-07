@@ -136,6 +136,9 @@ dependencies:
   express-validator:
     specifier: ^6.15.0
     version: 6.15.0
+  extensionless:
+    specifier: ^1.9.6
+    version: 1.9.6
   final-form:
     specifier: ^4.20.10
     version: 4.20.10
@@ -6219,6 +6222,10 @@ packages:
   /extend@3.0.2:
     resolution: {integrity: sha512-fjquC59cD7CyW6urNXK0FBufkZcoiGG80wTuPujX590cB5Ttln20E2UB4S/WARVqhXffZl2LNgS+gQdPIIim/g==}
     dev: true
+
+  /extensionless@1.9.6:
+    resolution: {integrity: sha512-40F6zThJu1MxaT1A1pJ/2SHlU1BPYYnQNHt0j2ZlPuxxm2ddMcNc1D7uS/LGc4K3VwMEMaZLkCdHWaKk0LnQXA==}
+    dev: false
 
   /extract-zip@2.0.1(supports-color@8.1.1):
     resolution: {integrity: sha512-GDhU9ntwuKyGXdZBUgTIe+vXnWj0fppUEtMDL0+idd5Sta8TGpHssn/eusA9mrPr9qNDym6SxAYZjNvCn/9RBg==}
