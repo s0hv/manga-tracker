@@ -1,26 +1,22 @@
+import type { ChapterRelease, ChapterReleaseDates, MangaChapter, } from '@/types/api/chapter';
+import type { Chapter } from '@/types/db/chapter';
+import type { DatabaseId, MangaId } from '@/types/dbTypes';
+import type { DefaultExcept, PartialExcept } from '@/types/utility';
 import camelcaseKeys from 'camelcase-keys';
 import type { PendingQuery } from 'postgres';
 import { NO_GROUP } from '../utils/constants.js';
-import { generateUpdate } from './utils';
 import { db } from './helpers';
-import type { DatabaseId, MangaId } from '@/types/dbTypes';
-import type { Chapter } from '@/types/db/chapter';
-import type {
-  ChapterRelease,
-  ChapterReleaseDates,
-  MangaChapter,
-} from '@/types/api/chapter';
-import type { DefaultExcept, PartialExcept } from '@/types/utility';
+import { generateUpdate } from './utils';
 
 export const getChapterReleases = (mangaId: MangaId) => {
-  return db.manyOrNone<ChapterReleaseDates>`SELECT extract(EPOCH FROM date_trunc('day', release_date)) as "timestamp", CAST(count(release_date) as int) count 
+  return db.manyOrNone<ChapterReleaseDates>`SELECT extract(EPOCH FROM date_trunc('day', release_date))::float8 as "timestamp", CAST(count(release_date) as int) count 
                FROM chapters 
                WHERE manga_id=${mangaId} GROUP BY 1 ORDER BY 1`;
 };
 
 export const getLatestChapters = (limit: number, offset: number, userId?: DatabaseId) => {
   return db.manyOrNone<ChapterRelease>`
-                ${userId ? db.sql`WITH follows AS (SELECT DISTINCT manga_id FROM user_follows WHERE user_id=${userId})` : db.sql``}
+                ${userId ? db.sql`WITH follows AS (SELECT DISTINCT manga_id, service_id FROM user_follows WHERE user_id=${userId})` : db.sql``}
                 SELECT
                     chapter_id,
                     chapters.title,
@@ -39,7 +35,7 @@ export const getLatestChapters = (limit: number, offset: number, userId?: Databa
                 INNER JOIN manga m ON chapters.manga_id = m.manga_id
                 INNER JOIN manga_service ms ON chapters.manga_id = ms.manga_id AND chapters.service_id=ms.service_id
                 LEFT JOIN manga_info mi ON m.manga_id = mi.manga_id
-                ${userId ? db.sql`INNER JOIN follows f ON f.manga_id=m.manga_id` : db.sql``}
+                ${userId ? db.sql`INNER JOIN follows f ON f.manga_id=m.manga_id AND (f.service_id IS NULL OR f.service_id=ms.service_id)` : db.sql``}
                 ORDER BY release_date DESC
                 LIMIT ${limit} ${offset ? db.sql`OFFSET ${offset}` : db.sql``}`;
 };
