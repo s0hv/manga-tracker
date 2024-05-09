@@ -1,18 +1,21 @@
 import { NextSeo } from 'next-seo';
 import React from 'react';
 
+import { getUserFollows } from '@/db/db';
+import { getFullManga } from '@/db/manga';
+import type { FullMangaData } from '@/types/api/manga.js';
+import type { GetServerSidePropsExpress } from '@/types/nextjs';
+import { isInteger } from '@/webUtils/utilities';
 import Manga from '../../components/Manga';
 import withError from '../../utils/withError';
-import { isInteger } from '../../utils/utilities';
 
-import { getFullManga } from '../../../server/db/manga';
-import { getUserFollows } from '../../../server/db/db';
-
-function MangaPage(props) {
+function MangaPage(props: { manga: FullMangaData, follows: number[] }) {
   const {
-    manga,
+    manga: fullManga,
     follows,
   } = props;
+
+  const manga = fullManga.manga;
 
   return (
     <>
@@ -20,19 +23,19 @@ function MangaPage(props) {
         title={manga.title}
         openGraph={{
           title: manga.title,
-          images: [{
+          images: manga.cover ? [{
             url: manga.cover,
             alt: `${manga.title} cover art`,
-          }],
+          }] : undefined,
         }}
       />
-      <Manga mangaData={{ ...manga }} userFollows={follows} />
+      <Manga mangaData={{ ...fullManga }} userFollows={follows as any} />
     </>
   );
 }
 
-export async function getServerSideProps({ req, params }) {
-  if (!isInteger(params.mangaId)) {
+export const getServerSideProps: GetServerSidePropsExpress = async ({ req, params }) => {
+  if (!params || !isInteger(params.mangaId)) {
     return { props: { error: 404 }};
   }
 
@@ -49,7 +52,7 @@ export async function getServerSideProps({ req, params }) {
         .map(service => service.serviceId);
     }
   } catch (e) {
-    return { props: { error: e?.status || 404 }};
+    return { props: { error: (e as any)?.status || 404 }};
   }
 
   if (!manga) {
@@ -64,5 +67,5 @@ export async function getServerSideProps({ req, params }) {
       follows: userFollows || [],
     },
   };
-}
+};
 export default withError(MangaPage);

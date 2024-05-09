@@ -1,5 +1,5 @@
+import { ServiceForApi } from '@/types/api/services';
 import { handleError, handleResponse } from './utilities';
-import { ServiceForApi } from '../../types/api/services';
 
 /**
  * Fetches all services

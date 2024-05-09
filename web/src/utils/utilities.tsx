@@ -1,11 +1,11 @@
+import type { FormValues } from '@/components/notifications/types';
+import type { NotificationField } from '@/types/api/notifications';
+import type { DatabaseId, MangaId } from '@/types/dbTypes';
 import { format, formatDistanceToNowStrict } from 'date-fns';
 import enLocale from 'date-fns/locale/en-GB';
 import throttle from 'lodash.throttle';
 import type { MouseEvent, MouseEventHandler } from 'react';
 import { csrfHeader } from './csrf';
-import type { DatabaseId, MangaId } from '@/types/dbTypes';
-import type { FormValues } from '@/components/notifications/types';
-import type { NotificationField } from '@/types/api/notifications';
 
 export const followUnfollow = (csrf: string, mangaId: MangaId, serviceId: DatabaseId | null): MouseEventHandler => {
   const url = serviceId ? `/api/user/follows?mangaId=${mangaId}&serviceId=${serviceId}` :
@@ -190,7 +190,7 @@ export const statusToString = (status: number | string) => {
   }
 };
 
-export const isInteger = (s: any) => (
+export const isInteger = (s: any): s is number | string => (
   Number.isInteger(s) ||
   /^-?\d+$/.test(s)
 );
