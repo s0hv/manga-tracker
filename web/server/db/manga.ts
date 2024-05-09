@@ -1,16 +1,13 @@
+import type { MangaInfoData } from '@/types/api/manga';
+import type { Follow } from '@/types/db/follows';
+import type { Manga } from '@/types/db/manga';
+import type { DatabaseId, MangaId } from '@/types/dbTypes';
 import camelcaseKeys from 'camelcase-keys';
-import {
-  INVALID_TEXT_REPRESENTATION,
-  NUMERIC_VALUE_OUT_OF_RANGE,
-} from 'pg-error-constants';
-
-import { db } from './helpers';
-import { fetchExtraInfo, MANGADEX_ID } from './mangadex.js';
+import { INVALID_TEXT_REPRESENTATION, NUMERIC_VALUE_OUT_OF_RANGE, } from 'pg-error-constants';
 import { HttpError } from '../utils/errors.js';
 import { mangadexLogger } from '../utils/logging.js';
-import type { DatabaseId, MangaId } from '@/types/dbTypes';
-import type { Manga } from '@/types/db/manga';
-import type { Follow } from '@/types/db/follows';
+import { db } from './helpers';
+import { fetchExtraInfo, MANGADEX_ID } from './mangadex.js';
 
 const links = {
   al: 'https://anilist.co/manga/',
@@ -33,23 +30,32 @@ export function formatLinks(row: Record<string, string>) {
   });
 }
 
+export type MangaData = {
+  mangaId: number,
+  title: string,
+  releaseInterval?: Date | null,
+  latestRelease?: Date | null,
+  estimatedRelease?: Date | null,
+  latestChapter?: number | null,
+  lastUpdated? : Date | null,
+} & Omit<MangaInfoData, 'lastUpdated'>
+
 export type FullManga = {
   services?: object[],
   chapters?: object[],
   aliases?: string[]
-  manga: object
+  manga: MangaData
 }
 
 type FullMangaUnformatted = {
   services: any[],
   chapters?: any[],
   aliases: string[],
-  [key: string]: any
-}
+} & MangaData
 
 function formatFullManga(obj: Partial<FullMangaUnformatted>): FullManga {
   const out: FullManga = {
-    manga: {},
+    manga: {} as any,
   };
 
   if (obj.services) {
@@ -66,7 +72,7 @@ function formatFullManga(obj: Partial<FullMangaUnformatted>): FullManga {
     out.aliases = obj.aliases;
     delete obj.aliases;
   }
-  out.manga = obj;
+  out.manga = obj as MangaData;
 
   return out;
 }
@@ -91,12 +97,12 @@ export function getFullManga(mangaId: MangaId): Promise<FullManga | null> {
 
       const mdIdx = row.services.findIndex(v => v.serviceId === MANGADEX_ID);
       // If info doesn't exist or 2 weeks since last update
-      if ((!row.lastUpdated || (Date.now() - row.lastUpdated)/8.64E7 > 14) && mdIdx >= 0) {
+      if ((!row.lastUpdated || (Date.now() - (row.lastUpdated as any))/8.64E7 > 14) && mdIdx >= 0) {
         fetchExtraInfo(row.services[mdIdx].titleId, mangaId)
           .catch(mangadexLogger.error);
       }
 
-      formatLinks(row);
+      formatLinks(row as any);
       return formatFullManga(row);
     });
 }

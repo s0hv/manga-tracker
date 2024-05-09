@@ -6,12 +6,27 @@ import { resolve as resolveTs } from 'ts-node/esm';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import * as tsConfigPaths from 'tsconfig-paths';
 import { pathToFileURL } from 'url';
+import fs from 'fs';
 
 const { absoluteBaseUrl, paths } = tsConfigPaths.loadConfig();
 const matchPath = tsConfigPaths.createMatchPath(absoluteBaseUrl, paths);
 
 export function resolve(specifier, ctx, defaultResolve) {
-  const match = matchPath(specifier);
+  let match = matchPath(specifier);
+  // Only resolve extensions for path shortcuts
+  if (specifier.startsWith('@') && match && match.indexOf('.') === -1) {
+    // If match is a directory point to the index file
+    if (fs.existsSync(match) && fs.lstatSync(match).isDirectory()) {
+      match = `${match}/index`;
+    }
+
+    // First try .ts extension and then .js
+    const newFile = `${match}.ts`;
+    match = fs.existsSync(newFile) ?
+      newFile :
+      `${match}.js`;
+  }
+
   return match ?
     resolveTs(pathToFileURL(`${match}`).href, ctx, defaultResolve) :
     resolveTs(specifier, ctx, defaultResolve);
