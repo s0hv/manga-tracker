@@ -3,16 +3,16 @@ import { render, screen } from '@testing-library/react';
 import { vi } from 'vitest';
 
 import {
-  GroupedChapterList,
   ChapterGroupWithCover,
   ChapterWithLink,
+  GroupedChapterList,
 } from '../../src/components/GroupedChapterList';
 import { testChapterUrlFormat } from '../constants';
 import {
   formatChapterTitle,
   formatChapterUrl,
 } from '../../src/utils/formatting';
-import { setupFaker, generateNSchemas, LatestChapter } from '../schemas';
+import { generateNSchemas, LatestChapter, setupFaker } from '../schemas';
 
 
 describe('ChapterGroupWithCover', () => {
@@ -71,7 +71,7 @@ describe('ChapterWithLink', () => {
     expect(screen.getByRole('listitem')).toBeInTheDocument();
 
     // Chapter title should be properly formatted
-    expect(screen.getByText(new RegExp(formatChapterTitle(chapter) + '.+?'))).toBeInTheDocument();
+    expect(screen.getByText(formatChapterTitle(chapter))).toBeInTheDocument();
 
     // Link button should exist
     const linkBtn = screen.getByRole('button', { name: /Open chapter in new tab/i });

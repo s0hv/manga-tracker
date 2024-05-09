@@ -10,6 +10,7 @@ import {
   IconButton,
   Paper,
   Skeleton,
+  Tooltip,
   Typography,
 } from '@mui/material';
 
@@ -19,6 +20,8 @@ import { formatChapterTitle, formatChapterUrl } from '../utils/formatting';
 import { MangaCover } from './MangaCover';
 import type { ServiceForApi } from '@/types/api/services';
 import type { ChapterRelease } from '@/types/api/chapter';
+import { defaultDateFormat } from '@/webUtils/utilities';
+import type { DatabaseId } from '@/types/dbTypes';
 
 export type ChapterComponentProps = {
   chapter: ChapterRelease
@@ -27,9 +30,10 @@ export type ChapterComponentProps = {
 export type GroupComponentProps = PropsWithChildren<{
   groupString: string | React.ReactNode
   group: string
+  mangaId: DatabaseId
 }>
 
-export const ChapterGroupBase: FC<Omit<GroupComponentProps, 'group'>> = ({ groupString, children }) => (
+export const ChapterGroupBase: FC<Omit<GroupComponentProps, 'group' | 'mangaId'>> = ({ groupString, children }) => (
   <Paper sx={{
     mb: 1,
     pt: 2,
@@ -42,15 +46,19 @@ export const ChapterGroupBase: FC<Omit<GroupComponentProps, 'group'>> = ({ group
   </Paper>
 );
 
-export const ChapterGroupWithCover = (mangaToCover: Record<string, string>): FC<GroupComponentProps> => ({ group, groupString, children }) => (
+export const ChapterGroupWithCover = (mangaToCover: Record<string, string>): FC<GroupComponentProps> => (
+  { mangaId, group, groupString, children }
+) => (
   <ChapterGroupBase groupString={groupString}>
     <div style={{ display: 'flex' }}>
       <div>
-        <MangaCover
-          url={mangaToCover[group]}
-          alt={groupString}
-          maxWidth={96}
-        />
+        <a href={`/manga/${mangaId}`} target='_blank' rel='noopener noreferrer'>
+          <MangaCover
+            url={mangaToCover[group]}
+            alt={groupString}
+            maxWidth={96}
+          />
+        </a>
       </div>
       <div>
         {children}
@@ -64,7 +72,21 @@ export const ChapterWithLink = (services: Record<number, ServiceForApi>): FC<Cha
   return (
     <li>
       <div>
-        {formatChapterTitle(chapter)}
+        <Tooltip
+          title={defaultDateFormat(new Date(chapter.releaseDate))}
+          arrow
+          slotProps={{
+            tooltip: {
+              sx: {
+                fontSize: '1rem',
+              },
+            },
+          }}
+        >
+          <span>
+            {formatChapterTitle(chapter)}
+          </span>
+        </Tooltip>
         <a
           href={formatChapterUrl(service.chapterUrlFormat, chapter.chapterIdentifier, chapter.titleId)}
           target='_blank'
@@ -134,6 +156,7 @@ export const GroupedChapterList: FC<GroupedChapterListProps> = ({
         <GroupComponent
           groupString={groupToString(group.group, group.arr)}
           group={group.group}
+          mangaId={group.arr[0].mangaId}
           /* eslint-disable-next-line react/no-array-index-key */
           key={`${idx}`}
         >

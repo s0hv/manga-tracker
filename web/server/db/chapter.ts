@@ -20,28 +20,35 @@ export const getChapterReleases = (mangaId: MangaId) => {
 
 export const getLatestChapters = (limit: number, offset: number, userId?: DatabaseId) => {
   return db.manyOrNone<ChapterRelease>`
-                ${userId ? db.sql`WITH follows AS (SELECT DISTINCT manga_id, service_id FROM user_follows WHERE user_id=${userId})` : db.sql``}
-                SELECT
-                    chapter_id,
-                    chapters.title,
-                    chapter_number,
-                    chapter_decimal,
-                    release_date,
-                    g.name as "group",
-                    chapters.service_id,
-                    chapter_identifier,
-                    m.title as manga,
-                    m.manga_id,
-                    ms.title_id,
-                    mi.cover
-                FROM chapters
-                INNER JOIN groups g ON g.group_id = chapters.group_id
-                INNER JOIN manga m ON chapters.manga_id = m.manga_id
-                INNER JOIN manga_service ms ON chapters.manga_id = ms.manga_id AND chapters.service_id=ms.service_id
-                LEFT JOIN manga_info mi ON m.manga_id = mi.manga_id
-                ${userId ? db.sql`INNER JOIN follows f ON f.manga_id=m.manga_id AND (f.service_id IS NULL OR f.service_id=ms.service_id)` : db.sql``}
-                ORDER BY release_date DESC
-                LIMIT ${limit} ${offset ? db.sql`OFFSET ${offset}` : db.sql``}`;
+      ${userId ? db.sql`WITH follow_all AS (
+          SELECT manga_id FROM user_follows WHERE user_id=${userId} GROUP BY manga_id HAVING COUNT(*) != COUNT(service_id)
+      ),
+      follows AS (
+          SELECT DISTINCT manga_id, service_id FROM user_follows WHERE user_id=${userId} AND manga_id NOT IN (SELECT manga_id FROM follow_all)
+          UNION ALL
+          SELECT manga_id, NULL as service_id FROM follow_all
+      )` : db.sql``}
+      SELECT
+          chapter_id,
+          chapters.title,
+          chapter_number,
+          chapter_decimal,
+          release_date,
+          g.name as "group",
+          chapters.service_id,
+          chapter_identifier,
+          m.title as manga,
+          m.manga_id,
+          ms.title_id,
+          mi.cover
+      FROM chapters
+      INNER JOIN groups g ON g.group_id = chapters.group_id
+      INNER JOIN manga m ON chapters.manga_id = m.manga_id
+      INNER JOIN manga_service ms ON chapters.manga_id = ms.manga_id AND chapters.service_id=ms.service_id
+      LEFT JOIN manga_info mi ON m.manga_id = mi.manga_id
+      ${userId ? db.sql`INNER JOIN follows f ON f.manga_id=m.manga_id AND (f.service_id IS NULL OR f.service_id=ms.service_id)` : db.sql``}
+      ORDER BY release_date DESC
+      LIMIT ${limit} ${offset ? db.sql`OFFSET ${offset}` : db.sql``}`;
 };
 
 export type AddChapter = DefaultExcept<Omit<Chapter, 'chapterId'>,
