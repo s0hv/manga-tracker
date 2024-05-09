@@ -1,9 +1,13 @@
-import type { ChapterRelease, ChapterReleaseDates, MangaChapter, } from '@/types/api/chapter';
+import camelcaseKeys from 'camelcase-keys';
+import type { PendingQuery } from 'postgres';
+import type {
+  ChapterRelease,
+  ChapterReleaseDates,
+  MangaChapter,
+} from '@/types/api/chapter';
 import type { Chapter } from '@/types/db/chapter';
 import type { DatabaseId, MangaId } from '@/types/dbTypes';
 import type { DefaultExcept, PartialExcept } from '@/types/utility';
-import camelcaseKeys from 'camelcase-keys';
-import type { PendingQuery } from 'postgres';
 import { NO_GROUP } from '../utils/constants.js';
 import { db } from './helpers';
 import { generateUpdate } from './utils';

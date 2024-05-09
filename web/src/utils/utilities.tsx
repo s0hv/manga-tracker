@@ -1,10 +1,10 @@
-import type { FormValues } from '@/components/notifications/types';
-import type { NotificationField } from '@/types/api/notifications';
-import type { DatabaseId, MangaId } from '@/types/dbTypes';
 import { format, formatDistanceToNowStrict } from 'date-fns';
 import enLocale from 'date-fns/locale/en-GB';
 import throttle from 'lodash.throttle';
 import type { MouseEvent, MouseEventHandler } from 'react';
+import type { DatabaseId, MangaId } from '@/types/dbTypes';
+import type { NotificationField } from '@/types/api/notifications';
+import type { FormValues } from '@/components/notifications/types';
 import { csrfHeader } from './csrf';
 
 export const followUnfollow = (csrf: string, mangaId: MangaId, serviceId: DatabaseId | null): MouseEventHandler => {

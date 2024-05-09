@@ -1,9 +1,12 @@
+import camelcaseKeys from 'camelcase-keys';
+import {
+  INVALID_TEXT_REPRESENTATION,
+  NUMERIC_VALUE_OUT_OF_RANGE,
+} from 'pg-error-constants';
 import type { MangaInfoData } from '@/types/api/manga';
 import type { Follow } from '@/types/db/follows';
 import type { Manga } from '@/types/db/manga';
 import type { DatabaseId, MangaId } from '@/types/dbTypes';
-import camelcaseKeys from 'camelcase-keys';
-import { INVALID_TEXT_REPRESENTATION, NUMERIC_VALUE_OUT_OF_RANGE, } from 'pg-error-constants';
 import { HttpError } from '../utils/errors.js';
 import { mangadexLogger } from '../utils/logging.js';
 import { db } from './helpers';
