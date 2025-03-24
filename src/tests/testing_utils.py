@@ -1,17 +1,16 @@
-import json
 import os
 import subprocess
 import sys
 import typing
 import unittest
 from datetime import datetime, timedelta
-from typing import TypeVar, Optional, Union, Type, List, Tuple, Any
+from typing import Any, List, Optional, Tuple, Type, TypeVar, Union
 from unittest import mock
 
 import feedparser
 import psycopg
 import pytest
-import testing.postgresql  # type: ignore[import]
+import testing.postgresql
 from psycopg import Connection
 from psycopg.rows import DictRow, dict_row
 from pydantic import BaseModel
@@ -20,8 +19,7 @@ from src.constants import NO_GROUP
 from src.db.models.chapter import Chapter as DbChapter
 from src.db.models.manga import MangaService, MangaServiceWithId
 from src.scheduler import LoggingCursor
-from src.scrapers.base_scraper import BaseChapter, BaseScraper, \
-    BaseChapterSimple
+from src.scrapers.base_scraper import BaseChapter, BaseChapterSimple, BaseScraper
 from src.tests.scrapers.testing_scraper import DummyScraper
 from src.utils.utilities import utcnow
 
@@ -45,7 +43,7 @@ else:
 T = TypeVar('T')
 
 
-def run_migrations(conn: Connection) -> None:
+def run_migrations(conn: Connection[DictRow]) -> None:
     filepath = os.path.dirname(__file__)
     root = os.path.join(filepath, '..', '..')
     env = os.environ.copy()
@@ -60,14 +58,14 @@ def run_migrations(conn: Connection) -> None:
     p.wait()
 
 
-def create_db(postgres: Optional[testing.postgresql.Postgresql]) -> Connection:
+def create_db(postgres: Optional[testing.postgresql.Postgresql]) -> Connection[DictRow]:
     conn = create_conn(postgres)
     run_migrations(conn)
     return conn
 
 
-def create_conn(postgres: Optional[testing.postgresql.Postgresql]) -> Connection:
-    conn: Connection
+def create_conn(postgres: Optional[testing.postgresql.Postgresql]) -> Connection[DictRow]:
+    conn: Connection[DictRow]
     if DONT_USE_TEMP_DATABASE or not postgres:
         conn = psycopg.connect(
             host=os.environ['DB_HOST'],
@@ -89,7 +87,7 @@ def start_db() -> None:
         Postgresql.cache.start()
 
 
-def get_conn() -> Connection:
+def get_conn() -> Connection[DictRow]:
     conn = create_conn(None if not Postgresql else Postgresql.cache)
     return conn
 
@@ -144,7 +142,7 @@ class BaseTestClasses:
             return f'{name}_{self._id}'
 
     class DatabaseTestCase(unittest.TestCase):
-        _conn: Connection = NotImplemented
+        _conn: Connection[DictRow] = NotImplemented
         _generator: 'BaseTestClasses.TitleIdGenerator' = NotImplemented
 
         @pytest.fixture(autouse=True, scope='class')
@@ -225,12 +223,12 @@ class BaseTestClasses:
                 chapter_attr, row_attr = val[:2]
                 if len(val) == 3:
                     # Mypy thinks index is out of range even with len check
-                    get_vals = val[2]  # type: ignore[misc]
+                    get_vals = val[2]
                 else:
                     def get_vals():
                         return getattr(chapter, chapter_attr), row[row_attr]
 
-                c_val, r_val = get_vals()  # type: ignore[operator]
+                c_val, r_val = get_vals()
                 if c_val != r_val:
                     self.fail(
                         'Chapter from database does not equal model\n'
@@ -301,7 +299,8 @@ class BaseTestClasses:
             if include_id:
                 self.assertEqual(a.chapter_id, expected.chapter_id, msg=f'Chapter ids not equal for {a.chapter_identifier}')
 
-        def assertAllDbChaptersEqual(self, chapters: List['DbChapter'], expected: List['DbChapter'], include_id: bool = False):
+        def assertAllDbChaptersEqual(self, chapters: List['DbChapter'], expected: List['DbChapter'],
+                                     include_id: bool = False):
             self.assertEqual(len(chapters), len(expected), msg='Different amount of chapters passed')
 
             for chapter, expect in zip(
@@ -352,12 +351,14 @@ class BaseTestClasses:
         def chapterSortKey(chapter: Union[BaseChapter, 'ChapterTestModel']):
             return chapter.chapter_identifier
 
-        def assertAllChaptersEqual(self, chapters: Union[List[BaseChapter], List['ChapterTestModel']],
-                                   expected: Union[List[BaseChapter], List['ChapterTestModel']],
-                                   ignore_date: bool = False):
+        def assertAllChaptersEqual[C: BaseChapter | 'ChapterTestModel'](
+                self, chapters: list[C],
+                expected: Union[List[BaseChapter], List['ChapterTestModel']],
+                ignore_date: bool = False):
             self.assertEqual(len(chapters), len(expected), msg='Different amount of chapters passed')
 
-            for chapter, expect in zip(sorted(chapters, key=self.chapterSortKey), sorted(expected, key=self.chapterSortKey)):
+            for chapter, expect in zip(sorted(chapters, key=self.chapterSortKey),
+                                       sorted(expected, key=self.chapterSortKey)):
                 self.assertChaptersEqual(
                     typing.cast(BaseChapter, chapter),
                     typing.cast(BaseChapter, expect),
@@ -392,16 +393,16 @@ class Chapter(BaseChapterSimple):
 
 
 class ChapterTestModel(BaseModel):
-    chapter_title: Optional[str]
+    chapter_title: Optional[str] = None
     chapter_number: int
-    volume: Optional[int]
-    decimal: Optional[int]
+    volume: Optional[int] = None
+    decimal: Optional[int] = None
     release_date: datetime
     chapter_identifier: str
-    title_id: Optional[str]
-    manga_title: Optional[str]
-    manga_url: Optional[str]
-    group: Optional[str]
+    title_id: Optional[str] = None
+    manga_title: Optional[str] = None
+    manga_url: Optional[str] = None
+    group: Optional[str] = None
     title: str
     group_id: int
 
@@ -448,4 +449,4 @@ def save_chapters_snapshot(chapters: List[BaseChapter], filename: str):
 
 def load_chapters_snapshot(filename: str) -> List[ChapterTestModel]:
     with open(filename, 'r', encoding='utf-8') as f:
-        return ChapterSnapshot.parse_obj(json.load(f)).data
+        return ChapterSnapshot.model_validate_json(f.read()).data

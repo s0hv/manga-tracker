@@ -1,21 +1,22 @@
 import abc
 import logging
 from abc import ABC
-from datetime import timedelta, datetime, timezone
+from datetime import datetime, timedelta, timezone
 from inspect import isabstract
 from itertools import groupby
 from operator import attrgetter
-from typing import (Optional, TYPE_CHECKING, ClassVar, Set, Dict, List,
-                    Sequence, Iterable, TypeVar, Mapping, cast, Collection)
+from typing import (ClassVar, Collection, Dict, Iterable, List, LiteralString, Mapping, Optional,
+                    Sequence, Set, TYPE_CHECKING, TypeVar, cast)
 
 import psycopg
 import pydantic
 import requests
 from psycopg import Connection
+from psycopg.rows import DictRow
 from pydantic import BaseModel, Field
 
 from src.db.mappers.chapter_mapper import ChapterMapper
-from src.db.models.chapter import Chapter as ChapterModel
+from src.db.models.chapter import Chapter, Chapter as ChapterModel
 from src.db.models.manga import MangaService
 from src.db.models.services import ServiceConfig
 from src.utils.utilities import get_latest_chapters, utcnow
@@ -91,22 +92,22 @@ class BaseChapter(abc.ABC):
         """
         raise NotImplementedError
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f'{self.manga_title} {self.chapter_number} / {self.chapter_identifier}'
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(self.chapter_identifier)
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         if isinstance(other, BaseChapter):
             return other.chapter_identifier == self.chapter_identifier
         else:
             return self.chapter_identifier == other
 
-    def __ne__(self, other):
+    def __ne__(self, other) -> bool:
         return not self.__eq__(other)
 
-    def __lt__(self, other):
+    def __lt__(self, other) -> bool:
         if isinstance(other, BaseChapter):
             return self.chapter_identifier < other.chapter_identifier
         raise TypeError(f'Incorrect type {type(other)} for less than operator')
@@ -236,7 +237,7 @@ class BaseScraper(abc.ABC):
     CONFIG: ServiceConfig = NotImplemented
     """Service configuration values"""
 
-    def __init_subclass__(cls, **kwargs):
+    def __init_subclass__(cls, **kwargs: dict):
         # Ignore for abstract classes
         if isabstract(cls):
             return
@@ -259,7 +260,7 @@ class BaseScraper(abc.ABC):
             self._dbutil = dbutil
 
     @property
-    def conn(self) -> Connection:
+    def conn(self) -> Connection[DictRow]:
         return self._conn
 
     @property
@@ -270,7 +271,7 @@ class BaseScraper(abc.ABC):
         with self.conn.cursor() as cursor:
             now = utcnow()
             disabled_until = now + self.min_update_interval()
-            sql = "UPDATE services SET last_check = %s, disabled_until = %s WHERE service_id=%s"
+            sql: LiteralString = 'UPDATE services SET last_check = %s, disabled_until = %s WHERE service_id=%s'
             try:
                 cursor.execute(sql, (utcnow(), disabled_until, service_id))
             except psycopg.Error:
@@ -300,17 +301,18 @@ class BaseScraper(abc.ABC):
                        title_id: Optional[str] = None) -> Optional[ScrapeServiceRetVal]:
         raise NotImplementedError
 
-    def add_service(self):
-        sql = 'SELECT 1 FROM services WHERE url=%s OR service_id=%s'
+    def add_service(self) -> int | None:
+        sql: LiteralString = 'SELECT 1 FROM services WHERE url=%s OR service_id=%s'
         with self.conn.cursor() as cur:
             cur.execute(sql, (self.URL, self.ID))
             if cur.fetchone():
                 logger.error(f'Service {self.NAME} already exists with duplicate url {self.URL} or id {self.ID}')
-                return
+                return None
 
         logger.info(f'Adding service {self.NAME} {self.URL}')
-        sql = 'INSERT INTO services (service_id, service_name, url, disabled, last_check, chapter_url_format, manga_url_format, disabled_until) VALUES ' \
-              '(%s, %s, %s, FALSE, NULL, %s, %s, NULL) RETURNING service_id'
+        sql: LiteralString = '''
+            INSERT INTO services (service_id, service_name, url, disabled, last_check, chapter_url_format, manga_url_format, disabled_until) 
+            VALUES (%s, %s, %s, FALSE, NULL, %s, %s, NULL) RETURNING service_id'''
         with self.conn.transaction():
             with self.conn.cursor() as cur:
                 cur.execute(sql, (self.ID, self.NAME, self.URL, self.CHAPTER_URL_FORMAT, self.MANGA_URL_FORMAT))
@@ -343,8 +345,8 @@ class BaseScraper(abc.ABC):
         titles: Dict[str, List[ScraperChapter]] = {}
         # Must be sorted for groupby to work, as it only splits the list each time the key changes
         for k, g in groupby(sorted(chapters, key=attrgetter('title_id')),
-                            attrgetter('title_id')):  # type: ignore
-            titles[k] = list(g)  # type: ignore[index]
+                            attrgetter('title_id')):
+            titles[k] = list(g)
 
         return titles
 
@@ -468,7 +470,7 @@ class BaseScraperWhole(BaseScraper, ABC):
 
         titles = self.group_by_manga(entries)
 
-        chapters = []
+        chapters: list[Chapter] = []
         manga_ids = set()
 
         # Find already added titles

@@ -2,11 +2,11 @@ from abc import ABC, abstractmethod
 from datetime import datetime
 from itertools import groupby
 from string import Template
-from typing import Optional, List, TypeVar, Tuple, Type
+from typing import Any, List, Optional, Tuple, Type, TypeVar
 
 from pydantic import BaseModel
 
-from src.db.models.notifications import NotificationOptions, InputField
+from src.db.models.notifications import InputField, NotificationOptions
 
 T = TypeVar('T', str, Optional[str])
 TEmbedInputs = TypeVar('TEmbedInputs')
@@ -54,7 +54,7 @@ class NotificationMangaService(BaseModel):
 class NotificationManga(BaseModel):
     name: str
     service: NotificationMangaService
-    cover: Optional[str]
+    cover: Optional[str] = None
     url: str
     manga_id: int
     title_id: str
@@ -75,7 +75,7 @@ class NotificationChapter(BaseModel):
     url: str
     group: str
 
-    def to_dict(self):
+    def to_dict(self) -> dict[str, Any]:
         return {
             'TITLE': self.title,
             'CHAPTER_NUMBER': self.chapter_number,

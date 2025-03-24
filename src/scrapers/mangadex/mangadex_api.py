@@ -2,13 +2,11 @@ import logging
 from datetime import datetime
 from enum import Enum
 from itertools import chain
-from typing import Optional, List, Union, Dict, Iterable, Literal, TypeVar, \
-    Type, TypedDict, Generic
+from typing import (Dict, Generic, Iterable, List, Literal, Optional, Type, TypeVar, TypedDict,
+                    Union)
 
 import requests
-from pydantic import BaseModel, Field, validator, ValidationError, \
-    root_validator
-from pydantic.generics import GenericModel
+from pydantic import BaseModel, Field, ValidationError, field_validator, model_validator
 from ratelimit import rate_limited, sleep_and_retry
 
 from src.enums import Status as MangaStatus
@@ -39,17 +37,17 @@ class Relationship(BaseModel):
 
 
 class Links(BaseModel):
-    al: Optional[str]
-    ap: Optional[str]
-    bw: Optional[str]
-    mu: Optional[str]
-    nu: Optional[str]
-    kt: Optional[str]
-    amz: Optional[str]
-    ebj: Optional[str]
-    mal: Optional[str]
-    raw: Optional[str]
-    engtl: Optional[str]
+    al: Optional[str] = None
+    ap: Optional[str] = None
+    bw: Optional[str] = None
+    mu: Optional[str] = None
+    nu: Optional[str] = None
+    kt: Optional[str] = None
+    amz: Optional[str] = None
+    ebj: Optional[str] = None
+    mal: Optional[str] = None
+    raw: Optional[str] = None
+    engtl: Optional[str] = None
 
 
 class Status(Enum):
@@ -69,16 +67,16 @@ class Status(Enum):
         return d[self]
 
 
-class MangadexData(GenericModel, Generic[DataT]):
+class MangadexData(BaseModel, Generic[DataT]):
     id: str
     attributes: DataT
-    relationships: Optional[List[Relationship]]
+    relationships: Optional[List[Relationship]] = None
 
 
 class ChapterAttributes(BaseModel):
-    volume: Optional[str]
-    chapter: Optional[str]
-    title: Optional[str]
+    volume: Optional[str] = None
+    chapter: Optional[str] = None
+    title: Optional[str] = None
     publish_at: datetime = Field(..., alias='publishAt')
     readable_at: datetime = Field(..., alias='readableAt')
 
@@ -88,9 +86,10 @@ class ScanlationGroupAttributes(BaseModel):
 
 
 class ChapterResult(MangadexData[ChapterAttributes]):
-    group: Optional[MangadexData[ScanlationGroupAttributes]]
+    group: Optional[MangadexData[ScanlationGroupAttributes]] = None
 
-    @root_validator(pre=True)
+    @model_validator(mode="before")
+    @classmethod
     def restructure_data(cls, data):
         """
         Maps data for reference expanded objects
@@ -135,8 +134,9 @@ class MangaAttributes(BaseModel):
     links: Links
     status: Status
 
-    @root_validator(pre=True)
-    def restructure_data(cls, data):
+    @model_validator(mode="before")
+    @classmethod
+    def restructure_data(cls, data: dict):
         if 'en' in data['title']:
             return data
 
@@ -153,11 +153,13 @@ class MangaAttributes(BaseModel):
         data['title']['en'] = next(iter(data['title'].values()))
         return data
 
-    @validator('title', pre=True)
+    @field_validator('title', mode="before")
+    @classmethod
     def validate_title(cls, v):
         return v['en']
 
-    @validator('links', pre=True)
+    @field_validator('links', mode="before")
+    @classmethod
     def validate_links(cls, v):
         if v is None:
             return Links()
@@ -176,11 +178,12 @@ class MangaResult(MangadexData[MangaAttributes]):
     # We need to redefine this here as mypy is too stupid to understand
     # nested generics
     attributes: MangaAttributes
-    authors: Optional[List[MangadexData[AuthorAttributes]]]
-    artists: Optional[List[MangadexData[AuthorAttributes]]]
-    cover: Optional[MangadexData[CoverAttributes]]
+    authors: Optional[List[MangadexData[AuthorAttributes]]] = None
+    artists: Optional[List[MangadexData[AuthorAttributes]]] = None
+    cover: Optional[MangadexData[CoverAttributes]] = None
 
-    @root_validator(pre=True)
+    @model_validator(mode="before")
+    @classmethod
     def restructure_data(cls, data):
         """
         Maps data for reference expanded objects
@@ -265,7 +268,7 @@ GenericMangadexResults = TypeVar('GenericMangadexResults', bound=MangadexData)
 
 
 # noinspection PyPep8Naming
-def request_to_model(r: requests.Response, Model: Type[GenericResults], continue_on_error: bool = False) -> Iterable[GenericResults]:
+def request_to_model[TModel: BaseModel](r: requests.Response, Model: Type[TModel], continue_on_error: bool = False) -> Iterable[TModel]:
     for result in handle_response(r)['data']:
         try:
             yield Model(**result)
@@ -283,7 +286,7 @@ api_rate_limiter = rate_limited(5, 1)
 
 
 class MangadexAPI:
-    def __init__(self, url='https://api.mangadex.org'):
+    def __init__(self, url: str = 'https://api.mangadex.org'):
         self.base_url = url
 
     @staticmethod

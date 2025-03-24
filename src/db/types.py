@@ -1,6 +1,5 @@
-from pydantic import ConstrainedInt
+from typing import Annotated
 
+from pydantic import Field
 
-class SmallInt(ConstrainedInt):
-    ge = -32768
-    le = 32767
+SmallInt = Annotated[int, Field(ge=-32768, le=32767)]

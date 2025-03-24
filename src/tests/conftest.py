@@ -13,7 +13,7 @@ from src.tests.testing_utils import (create_db, Postgresql, teardown_db,
                                      start_db, get_conn)
 from src.utils.dbutils import DbUtil
 from src.utils.utilities import inject_service_values
-from setup_logging import setup
+from src.setup_logging import setup
 
 
 @pytest.fixture(scope='session')

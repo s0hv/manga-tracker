@@ -98,7 +98,7 @@ jobs:
   python-tests:
     name: Scraper tests
     runs-on: ubuntu-latest
-    container: python:3.10-buster
+    container: python:3.13
 
     services:
       # Label used to access the service container
@@ -116,7 +116,7 @@ jobs:
           --health-retries 5
 
       elasticsearch:
-        image: docker.elastic.co/elasticsearch/elasticsearch:7.17.1
+        image: docker.elastic.co/elasticsearch/elasticsearch:7.17.28
         env:
           discovery.type: single-node
         options: >-
@@ -136,13 +136,14 @@ jobs:
         with:
           node-version: '20'
           cache: 'pnpm'
-      - name: Setup poetry
-        uses: abatilo/actions-poetry@v2
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v5
         with:
-          poetry-version: 1.5.1
+          version: '0.6.10'
+          enable-cache: true
 
       - name: Install dependencies
-        run: poetry install --with dev
+        run: uv sync --group dev
 
       - name: Lint with flake8
         run: |
@@ -154,22 +155,23 @@ jobs:
           flake8 src --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics --exclude **/mangaplus_pb2.py*
 
       - name: Type checks with mypy
-        run: poetry run mypy --config-file mypy.ini ./src
+        run: uv run mypy --config-file mypy.ini ./src
 
       - name: Install db migration dependencies
         run: pnpm install --frozen-lockfile --ignore-scripts
       - name: Test with pytest
-        run: poetry run pytest --cov=./src --cov-report=xml src
+        run: uv run pytest --cov=./src --cov-report=xml src
 
       - name: Uninstall coveragepy
-        run: poetry run pip uninstall -y coverage
+        run: uv run pip uninstall -y coverage
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3.1.4
+        uses: codecov/codecov-action@v5
         with:
           flags: scraper
           name: Scraper coverage
           files: './coverage/coverage.xml'
+          token: ${{ secrets.CODECOV_TOKEN }}
 
     env:
       DB_HOST: postgres
@@ -261,10 +263,11 @@ jobs:
 
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3.1.4
+        uses: codecov/codecov-action@v5
         with:
           flags: E2E
           name: E2E coverage
+          token: ${{ secrets.CODECOV_TOKEN }}
 
     env:
       DB_HOST: postgres

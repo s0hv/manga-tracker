@@ -2,19 +2,17 @@ import logging
 import re
 from datetime import datetime, timedelta
 from json.decoder import JSONDecodeError
-from typing import Dict, Optional, List, Tuple, Iterable, Set, cast, Sequence
+from typing import Dict, Iterable, List, Optional, Sequence, Set, Tuple, cast
 
 from src.constants import NO_GROUP
-from src.db.models.authors import AuthorPartial, MangaAuthor, MangaArtist
+from src.db.models.authors import AuthorPartial, MangaArtist, MangaAuthor
 from src.db.models.groups import Group, GroupPartial
 from src.db.models.manga import MangaInfo
-from src.scrapers.base_scraper import BaseScraperWhole, BaseChapterSimple, \
-    ScrapeServiceRetVal
+from src.scrapers.base_scraper import BaseChapterSimple, BaseScraperWhole, ScrapeServiceRetVal
 from src.utils.dbutils import DbUtil
-from .mangadex_api import (ChapterResult, MangadexAPI, MangaResult,
-                           ChapterAttributes, ScanlationGroupResult,
-                           MangadexData,
-                           AuthorAttributes, ScanlationGroupAttributes)
+from .mangadex_api import (AuthorAttributes, ChapterAttributes, ChapterResult, MangaResult,
+                           MangadexAPI, MangadexData, ScanlationGroupAttributes,
+                           ScanlationGroupResult)
 
 logger = logging.getLogger('debug')
 
@@ -103,7 +101,7 @@ class MangaDex(BaseScraperWhole):
         for chapter in entries:
             try:
                 # Mypy thinks attrs is of type DataT which makes no sense as DataT is a TypeVar
-                attrs: ChapterAttributes = chapter.attributes  # type: ignore[assignment]
+                attrs: ChapterAttributes = chapter.attributes
                 chapters.append(Chapter(
                     attrs.chapter,
                     chapter.id,
@@ -140,7 +138,7 @@ class MangaDex(BaseScraperWhole):
                 MangaInfo(manga_id=manga_id,
                           cover=cover,
                           status=manga.attributes.status.to_int(),
-                          **links.dict()))
+                          **links.model_dump()))
 
         self.dbutil.update_manga_infos(manga_infos, update_last_check=False)
         self.dbutil.update_manga_titles([
@@ -304,7 +302,7 @@ class MangaDex(BaseScraperWhole):
             result = self.api.get_chapters({'readableAt': 'desc'}, manga_id=title_id, languages=['en'], limit=limit)
             return list(self.parse_feed(result))
         except JSONDecodeError:
-            logger.exception(f'Failed to parse mangadex response')
+            logger.exception('Failed to parse mangadex response')
             return None
         except ValueError as e:
             logger.exception(f'Failed to parse mangadex result {e}')

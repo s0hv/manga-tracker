@@ -1,8 +1,8 @@
 import os
 from argparse import ArgumentParser
 
-import setup_logging
-from src.scheduler import UpdateScheduler, DbUtil
+from src import setup_logging
+from src.scheduler import DbUtil, UpdateScheduler
 
 setup_logging.setup('debug')
 logger = setup_logging.setup('maintenance')

@@ -3,6 +3,8 @@ from typing import Optional
 
 from colors import color as get_color
 
+type ColorType = str | int | tuple[int]
+
 
 class LoggingFormatter(logging.Formatter):
     def __init__(self, fmt=None, datefmt=None, style='%', override_colors: Optional[dict] = None):
@@ -20,8 +22,13 @@ class LoggingFormatter(logging.Formatter):
             self.colors.update(override_colors)
 
     @staticmethod
-    def get_color(**kwargs):
-        color = get_color("", **kwargs)
+    def get_color(
+            *,
+            fg: ColorType | None = None,
+            bg: ColorType | None = None,
+            style: str | None = None
+    ) -> Optional[str]:
+        color = get_color("", fg=fg, bg=bg, style=style)
         if color:
             return color[:-4]
 

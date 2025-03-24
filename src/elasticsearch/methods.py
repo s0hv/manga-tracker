@@ -1,5 +1,5 @@
 import logging
-from typing import Iterable, Collection, TypedDict
+from typing import Collection, Iterable, TypedDict
 
 from elasticsearch import Elasticsearch
 from elasticsearch.helpers import bulk
@@ -26,7 +26,7 @@ class ElasticMethods:
         return self._es
 
     def update_manga_title(self, manga_id: int, title: str):
-        self.es.update(INDEX_NAME, manga_id, body={'title': title})
+        self.es.update(index=INDEX_NAME, id=str(manga_id), body={'title': title})
 
     def bulk_upsert(self, documents: Iterable, operation='update'):
         logger.debug('Bulk upsert returned %s', bulk(
