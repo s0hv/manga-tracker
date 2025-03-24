@@ -1,5 +1,5 @@
-from datetime import timedelta, datetime
-from typing import Optional, Type, TYPE_CHECKING
+from datetime import datetime, timedelta
+from typing import Iterable, Optional, TYPE_CHECKING, Type
 
 from psycopg import Connection
 from pydantic import BaseModel, Field
@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 
 
 class Manga(BaseModel):
-    manga_id: Optional[int]
+    manga_id: Optional[int] = None
     title: str
     release_interval: Optional[timedelta] = None
     latest_release: Optional[datetime] = None
@@ -28,7 +28,7 @@ class MangaWithId(Manga):
 class MangaForNotifications(BaseModel):
     manga_id: int
     title: str
-    cover: Optional[str]
+    cover: Optional[str] = None
     title_id: str
     service_id: int
 
@@ -54,7 +54,7 @@ class MangaInfo(BaseModel):
 
 
 class MangaServicePartial(BaseModel):
-    manga_id: Optional[int]
+    manga_id: Optional[int] = None
     service_id: int
     disabled: bool = False
     title_id: str
@@ -62,6 +62,10 @@ class MangaServicePartial(BaseModel):
     next_update: Optional[datetime] = None
     feed_url: Optional[str] = None
     latest_decimal: Optional[int] = None
+
+    @classmethod
+    def from_manga_service(cls, manga_service: 'MangaService'):
+        return cls.model_validate(manga_service.model_dump())
 
     # Returns a class initializer so it is named as a class would
     # noinspection PyPep8Naming
@@ -82,7 +86,10 @@ class MangaServicePartialWithId(MangaServicePartial):
 
 
 class MangaService(Manga, MangaServicePartial):
-    pass
+
+    @classmethod
+    def from_partial(cls, manga_service_partial: MangaServicePartial):
+        return cls.model_validate(manga_service_partial.model_dump())
 
 
 class MangaServiceWithId(MangaService):
@@ -90,3 +97,11 @@ class MangaServiceWithId(MangaService):
     Manga service object but with guaranteed manga_id
     """
     manga_id: int
+
+    @classmethod
+    def from_manga_service(cls, manga_service: MangaService):
+        return cls.model_validate(manga_service.model_dump())
+
+    @classmethod
+    def from_manga_services(cls, manga_services: Iterable[MangaService]):
+        return map(cls.from_manga_service, manga_services)

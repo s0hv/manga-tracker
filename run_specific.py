@@ -1,6 +1,6 @@
 from argparse import ArgumentParser
 
-import setup_logging
+from src import setup_logging
 from src.scheduler import UpdateScheduler
 
 parser = ArgumentParser()

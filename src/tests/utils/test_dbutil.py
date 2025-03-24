@@ -1,23 +1,18 @@
 import statistics
 import unittest
 from datetime import datetime, timedelta, timezone
-from typing import TYPE_CHECKING, Optional, List
+from typing import List, Optional
 
 import psycopg
 
 from src.constants import NO_GROUP
 from src.db.models.chapter import Chapter as ChapterModel
-from src.db.models.manga import MangaService, Manga, MangaServicePartial, \
-    MangaWithId
+from src.db.models.manga import (Manga, MangaService, MangaServicePartial, MangaServiceWithId,
+                                 MangaWithId)
 from src.db.models.services import Service
 from src.tests.scrapers.testing_scraper import DummyScraper, DummyScraper2
-from src.tests.testing_utils import Chapter, BaseTestClasses, spy_on
+from src.tests.testing_utils import BaseTestClasses, Chapter, spy_on
 from src.utils.utilities import utcnow
-
-if TYPE_CHECKING:
-    # noinspection PyUnresolvedReferences
-    from src.scrapers import BaseScraper
-
 
 testing_series = {
     'test_manga_1': [
@@ -204,8 +199,10 @@ class TestGetAndAddManga(BaseDbutilTest):
     def test_add_new_manga_service(self):
         title_id = self.get_str_id()
         manga = MangaService(
-            service_id=DummyScraper.ID, disabled=False,
-            title_id=title_id, title=f'{title_id}_manga',
+            service_id=DummyScraper.ID,
+            disabled=False,
+            title_id=title_id,
+            title=f'{title_id}_manga',
             last_check=self.utcnow()
         )
 
@@ -214,7 +211,7 @@ class TestGetAndAddManga(BaseDbutilTest):
 
         self.assertEqual(
             self.dbutil.get_manga_service(manga.service_id, title_id),
-            manga
+            MangaServiceWithId.from_manga_service(manga)
         )
 
     def test_add_new_manga_service_all_properties(self):
@@ -238,11 +235,11 @@ class TestGetAndAddManga(BaseDbutilTest):
         self.assertIsNotNone(manga.manga_id)
         self.assertEqual(
             self.dbutil.get_manga_service(manga.service_id, title_id),
-            manga
+            MangaServiceWithId.from_manga_service(manga)
         )
         self.assertEqual(
             self.dbutil.get_manga(manga.manga_id),
-            Manga(**manga.dict())
+            Manga(**manga.model_dump())
         )
 
     def test_get_manga_invalid_id(self):
@@ -354,7 +351,7 @@ class TestAddNewMangaWithDuplicates(BaseDbutilTest):
         with self.conn.transaction():
             with self.conn.cursor() as cur:
                 retval = self.dbutil.add_new_manga_and_check_duplicate_titles(mangas, cur=cur)
-                self.assertListEqual(retval, mangas)
+                self.assertListEqual(retval, list(MangaServiceWithId.from_manga_services(mangas)))
 
                 self.assertNotIn(retval[0].manga_id, [id1, id2])
 
@@ -400,7 +397,7 @@ class TestAddNewMangaWithDuplicates(BaseDbutilTest):
                 self.assertTrue(added)
 
                 self.assertEqual(added[0].manga_id, manga.manga_id)
-                self.assertEqual(added, mangas)
+                self.assertEqual(added, list(MangaServiceWithId.from_manga_services(mangas)))
 
     def test_add_new_manga(self):
         service_id = DummyScraper.ID
@@ -424,7 +421,7 @@ class TestAddNewMangaWithDuplicates(BaseDbutilTest):
             with self.conn.cursor() as cur:
                 retval = self.dbutil.add_new_manga_and_check_duplicate_titles(mangas, cur=cur)
 
-                self.assertListEqual(retval, mangas)
+                self.assertListEqual(retval, list(MangaServiceWithId.from_manga_services(mangas)))
                 self.assertNotIn(None, map(lambda ms: ms.manga_id, mangas))
 
     def test_get_service_manga_returns_nothing_with_invalid_id(self):
@@ -442,7 +439,7 @@ class TestAddNewMangaWithDuplicates(BaseDbutilTest):
         retval = self.dbutil.get_service_manga(DummyScraper.ID)
 
         for manga in mangas:
-            self.assertIn(MangaServicePartial.parse_obj(manga), retval)
+            self.assertIn(MangaServicePartial.from_manga_service(manga), retval)
 
 
 class TestDbUtil(BaseDbutilTest):
@@ -572,7 +569,7 @@ class TestUpdateInterval(BaseDbutilTest):
         m = self.get_manga_service(DummyScraper)
         self.dbutil.add_manga_service(m, add_manga=True)
 
-        self.assertFalse(self.dbutil.update_chapter_interval(m.manga_id))  # type: ignore[arg-type]
+        self.assertFalse(self.dbutil.update_chapter_interval(m.manga_id))
 
         return m
 
@@ -638,7 +635,7 @@ class TestUpdateInterval(BaseDbutilTest):
 
         def get_chapter(decimal: Optional[int] = None) -> ChapterModel:
             chapter = self.get_chapter(m, chapter_number)
-            chapter.chapter_decimal = decimal  # type: ignore[assignment]
+            chapter.chapter_decimal = decimal
 
             return chapter
 
@@ -775,7 +772,7 @@ class TestUpdateInterval(BaseDbutilTest):
 
             chapter = self.get_chapter(m, chapter_number, t)
             if decimal:
-                chapter.chapter_decimal = decimal # type: ignore[assignment]
+                chapter.chapter_decimal = decimal
                 decimal = None
             else:
                 decimal = 5

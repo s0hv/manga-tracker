@@ -3,16 +3,13 @@ import time
 from abc import ABC, abstractmethod
 from calendar import timegm
 from datetime import datetime, timedelta
-from typing import Optional, List, Iterable, Dict, Pattern, Any, Type, Union, \
-    Set
+from typing import Any, Dict, Iterable, List, Optional, Pattern, Set, Type, Union
 
 import feedparser
 
 from src.errors import FeedHttpError, InvalidFeedError
-from src.scrapers.base_scraper import BaseScraperWhole, \
-    BaseChapterSimple, ScrapeServiceRetVal
-from src.utils.utilities import (match_title, is_valid_feed, utcnow,
-                                 utcfromtimestamp)
+from src.scrapers.base_scraper import BaseChapterSimple, BaseScraperWhole, ScrapeServiceRetVal
+from src.utils.utilities import (is_valid_feed, match_title, utcfromtimestamp, utcnow)
 
 logger = logging.getLogger('debug')
 
@@ -103,7 +100,7 @@ class BaseRSS(BaseScraperWhole, ABC):
     TITLE_REGEX: Pattern = NotImplemented
     Chapter: Type[RSSChapter] = RSSChapter
 
-    def __init_subclass__(cls, **kwargs):
+    def __init_subclass__(cls, **kwargs: dict):
         if cls.TITLE_REGEX is None:
             raise NotImplementedError('Service does not have a title regex to parse entries')
 
@@ -238,13 +235,13 @@ class BaseRSS(BaseScraperWhole, ABC):
                       feed_url: Optional[str] = None) -> Optional[Set[int]]:
         pass
 
-    def get_feed_chapters(self, feed_url):
+    def get_feed_chapters(self, feed_url: str) -> list[RSSChapter] | None:
         feed = feedparser.parse(feed_url)
         try:
             is_valid_feed(feed)
         except (FeedHttpError, InvalidFeedError):
             logger.exception(f'Failed to fetch feed {feed_url}')
-            return
+            return None
 
         return self.parse_feed(feed.entries, self.get_group_id())
 

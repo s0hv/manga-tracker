@@ -5,17 +5,18 @@ import time
 from collections import Counter
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
-from datetime import timedelta, datetime
+from datetime import datetime, timedelta
 from itertools import groupby
 from operator import attrgetter
-from typing import Type, ContextManager, TypedDict, Optional, Collection, List, \
-    Set, cast, Tuple, Dict
+from typing import (Collection, ContextManager, Dict, List, LiteralString, Optional, Set, Tuple,
+                    Type, TypedDict, cast)
 
 import psycopg
 import psycopg.rows
 from elasticsearch import Elasticsearch
 from psycopg import Connection
 from psycopg.cursor import Cursor
+from psycopg.rows import DictRow
 from psycopg_pool import ConnectionPool
 
 from src.db.mappers.notifications_mapper import NotificationsMapper
@@ -39,7 +40,7 @@ class MangaServiceInfo(TypedDict):
     feed_url: Optional[str]
 
 
-class LoggingCursor(Cursor):
+class LoggingCursor(Cursor[DictRow]):
     def execute(self, query, params=None, *, prepare: Optional[bool] = None, binary: Optional[bool] = None):
         try:
             return super(LoggingCursor, self).execute(query, params, prepare=prepare, binary=binary)
@@ -64,10 +65,12 @@ class UpdateScheduler:
             'row_factory': psycopg.rows.dict_row
         }
 
-        self.pool: ConnectionPool = ConnectionPool(
+        self.pool = ConnectionPool[Connection[DictRow]](
+            connection_class=Connection[DictRow],
             min_size=1,
             max_size=self.MAX_POOLS,
-            kwargs=config
+            kwargs=config,
+            open=True
         )
         self.thread_pool = ThreadPoolExecutor(max_workers=self.MAX_POOLS-1)
         self._es: Elasticsearch = get_client()
@@ -85,10 +88,10 @@ class UpdateScheduler:
 
     # Workaround described in https://youtrack.jetbrains.com/issue/PY-36444
     # Required for mypy pass and PyCharm autocompletion
-    def conn(self) -> ContextManager[Connection]:
+    def conn(self) -> ContextManager[Connection[DictRow]]:
         @contextmanager
         def wrapper():
-            conn = self.pool.getconn()
+            conn: Connection[DictRow] = self.pool.getconn()
             try:
                 conn.cursor_factory = LoggingCursor
                 yield conn
@@ -304,7 +307,7 @@ class UpdateScheduler:
     def run_once(self) -> datetime:
         with self.conn() as conn:
             futures = []
-            sql = '''
+            sql: LiteralString = '''
                 SELECT ms.service_id, s.url, array_agg(json_build_object('title_id', ms.title_id, 'manga_id', ms.manga_id, 'feed_url', ms.feed_url)) as manga_info
                 FROM manga_service ms
                 INNER JOIN services s ON s.service_id=ms.service_id
@@ -415,10 +418,10 @@ class UpdateScheduler:
             '''
             with conn.cursor() as cursor:
                 cursor.execute(sql)
-                retval = cursor.fetchone()
-                if not retval:
+                next_update_row = cursor.fetchone()
+                if not next_update_row:
                     return utcnow() + timedelta(hours=1)
-                return retval['update']
+                return next_update_row['update']
 
     def send_notifications(self, manga_ids: Set[int], chapter_ids: List[int]):
         if not (manga_ids and chapter_ids):

@@ -1,13 +1,13 @@
 import unittest
-from typing import Type, Optional, List, Collection
+from typing import Collection, List, Optional, Type
 
 import psycopg.errors
 import pytest
 from pydantic import BaseModel
 
-from src.db.models.authors import MangaArtist, AuthorPartial, MangaAuthor
+from src.db.models.authors import AuthorPartial, MangaArtist, MangaAuthor
 from src.db.models.chapter import Chapter
-from src.db.models.manga import MangaService, MangaInfo, MangaServiceWithId
+from src.db.models.manga import MangaInfo, MangaService, MangaServiceWithId
 from src.scrapers import MangaPlus
 from src.scrapers.base_scraper import BaseScraper
 from src.tests.scrapers.testing_scraper import DummyScraper, DummyScraper2
@@ -38,7 +38,7 @@ class TestMergeManga(BaseTestClasses.DatabaseTestCase):
         ms = self.get_manga_service(scraper)
         ms.last_check = self.utcnow()
         self.dbutil.add_manga_service(ms, add_manga=True)
-        return MangaServiceWithId(**ms.dict())
+        return MangaServiceWithId(**ms.model_dump())
 
     def create_manga_info(self, ms: MangaService, status: int = 1) -> MangaInfo:
         if ms.manga_id is None:
@@ -193,7 +193,7 @@ class TestMergeManga(BaseTestClasses.DatabaseTestCase):
         m2 = self.create_manga_service(DummyScraper2)
         mi2 = self.create_manga_info(m2, 2)
 
-        m3 = m2.copy()
+        m3 = m2.model_copy()
         m3.service_id = MangaPlus.ID
         self.dbutil.add_manga_service(m3)
 
@@ -259,7 +259,7 @@ class TestMergeManga(BaseTestClasses.DatabaseTestCase):
         mar2 = self.create_artist(m2.manga_id)
         mau2 = self.create_author(m2.manga_id)
 
-        m3 = m2.copy()
+        m3 = m2.model_copy()
         m3.service_id = MangaPlus.ID
         self.dbutil.add_manga_service(m3)
 

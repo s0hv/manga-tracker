@@ -3,12 +3,12 @@ import logging
 import os
 import unittest
 from typing import Dict, List
-from unittest.mock import patch, Mock
+from unittest.mock import Mock, patch
 
 import pytest
 import responses
 from psycopg.rows import class_row
-from pydantic import parse_obj_as
+from pydantic import TypeAdapter
 
 import src.scrapers.mangadex.mangadex
 from src.constants import NO_GROUP
@@ -16,8 +16,7 @@ from src.db.models.authors import AuthorPartial
 from src.db.models.chapter import Chapter
 from src.db.models.groups import Group, GroupPartial
 from src.db.models.manga import MangaService
-from src.scrapers.mangadex import MangaDex, ChapterResult, \
-    Chapter as MangaDexChapter
+from src.scrapers.mangadex import Chapter as MangaDexChapter, ChapterResult, MangaDex
 from src.tests.testing_utils import BaseTestClasses, ChapterTestModel
 from src.utils.utilities import utcnow
 
@@ -164,7 +163,8 @@ class MangadexTests(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsser
         self.assertLogs(logger, logging.ERROR)
 
     def test_parse_feed(self):
-        chapters = parse_obj_as(List[ChapterResult], self.chapters_data['data'])
+        adapter = TypeAdapter(list[ChapterResult])
+        chapters = adapter.validate_python(self.chapters_data['data'])
         parsed = self.mangadex.parse_feed(chapters)
         for chapter in parsed:
             # Parse feed does not handle fetching groups
@@ -200,7 +200,7 @@ class MangadexTests(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsser
 
         # Assert correct amount of chapters
         chapters: List[Chapter] = list(
-            map(Chapter.parse_obj, self.dbutil.execute('SELECT * FROM chapters WHERE service_id=%s', (service_id,)))
+            map(Chapter.model_validate, self.dbutil.execute('SELECT * FROM chapters WHERE service_id=%s', (service_id,)))
         )
         self.assertEqual(
             len(chapters),

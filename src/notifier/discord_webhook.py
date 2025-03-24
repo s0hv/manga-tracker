@@ -1,27 +1,26 @@
 import logging
 from typing import List, Optional, Tuple
 
-import pydantic.color
-from discord_webhook import DiscordWebhook, DiscordEmbed
+import pydantic_extra_types.color as pydantic_color
+from discord_webhook import DiscordEmbed, DiscordWebhook
 
 from src.db.models.notifications import InputField, NotificationOptions
-from src.notifier.base_notifier import (
-    NotifierBase, NotificationChapter, BaseEmbedInputs, Overrides
-)
+from src.notifier.base_notifier import (BaseEmbedInputs, NotificationChapter, NotifierBase,
+                                        Overrides)
 
 logger = logging.getLogger('debug')
 
 
 class EmbedInputs(BaseEmbedInputs):
-    message: Optional[str]
+    message: Optional[str] = None
     embed_title: str
-    username: Optional[str]
-    avatar_url: Optional[str]
+    username: Optional[str] = None
+    avatar_url: Optional[str] = None
     embed_content: str
-    url: Optional[str]
-    footer: Optional[str]
-    thumbnail: Optional[str]
-    color: Optional[pydantic.color.Color]
+    url: Optional[str] = None
+    footer: Optional[str] = None
+    thumbnail: Optional[str] = None
+    color: Optional[pydantic_color.Color] = None
 
 
 class WebhookLimits:

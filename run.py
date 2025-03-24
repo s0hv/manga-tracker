@@ -2,7 +2,7 @@ import os
 
 import sentry_sdk
 
-import setup_logging
+from src import setup_logging
 from src.scheduler import UpdateScheduler
 from src.utils.utilities import utcnow
 

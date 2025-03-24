@@ -1,9 +1,8 @@
 import logging
 import random
 import re
-from datetime import timedelta, datetime, timezone, time
-from typing import (Optional, Tuple, Union, Iterable, Dict, TYPE_CHECKING,
-                    NoReturn)
+from datetime import datetime, time, timedelta, timezone
+from typing import (Dict, Iterable, NoReturn, Optional, TYPE_CHECKING, Tuple, Union)
 
 from psycopg.rows import DictRow
 
@@ -11,7 +10,6 @@ from src.errors import FeedHttpError, InvalidFeedError
 
 if TYPE_CHECKING:
     # noinspection PyUnresolvedReferences
-    from src.scrapers.base_scraper import BaseChapter as BaseChapterType
     from src.utils.dbutils import DbUtil
 
 logger = logging.getLogger('debug')
@@ -139,7 +137,7 @@ def utcnow() -> datetime:
 
 
 def utcfromtimestamp(t: int | float) -> datetime:
-    return datetime.utcfromtimestamp(t).replace(tzinfo=timezone.utc)
+    return datetime.fromtimestamp(t, timezone.utc)
 
 
 def utctoday() -> datetime:

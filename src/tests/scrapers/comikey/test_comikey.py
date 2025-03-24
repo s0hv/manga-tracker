@@ -2,7 +2,7 @@ import os
 import re
 from datetime import datetime
 from typing import cast
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 import responses
@@ -11,9 +11,9 @@ from requests import PreparedRequest
 from src.constants import NO_GROUP
 from src.db.models.chapter import Chapter
 from src.db.models.manga import MangaService
+from src.scrapers.base_rss import RSSChapter
 from src.scrapers.comikey import Comikey
-from src.tests.testing_utils import ChapterTestModel, BaseTestClasses, \
-    mock_feedparse
+from src.tests.testing_utils import BaseTestClasses, ChapterTestModel, mock_feedparse
 from src.utils.dbutils import DbUtil
 from src.utils.utilities import utcfromtimestamp
 
@@ -188,7 +188,8 @@ class ComikeyTest(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsserti
         self.assertEqual(len(responses.calls), 2, msg='All requests not done')
         self.assertEqual(len(Comikey.id_cache), 2)
 
-        self.assertAllChaptersEqual(chapters, correct_chapters)
+        self.assertIsNotNone(chapters)
+        self.assertAllChaptersEqual(cast(list[RSSChapter], chapters), correct_chapters)
 
     @responses.activate
     @patch('feedparser.parse', wraps=mock_feedparse(test_manga_feed))

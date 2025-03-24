@@ -14,14 +14,14 @@ class NotificationOptions(BaseModel):
 class PartialNotificationInfo(BaseModel):
     notification_id: int
     manga_id: int
-    service_id: Optional[int]
+    service_id: Optional[int] = None
 
 
 class InputField(BaseModel):
     name: str
     value: str
     optional: bool
-    override_id: Optional[int]
+    override_id: Optional[int] = None
 
 
 class UserNotification(NotificationOptions):

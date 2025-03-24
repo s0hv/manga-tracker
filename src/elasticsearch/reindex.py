@@ -1,18 +1,21 @@
+from typing import LiteralString
+
 from elasticsearch import Elasticsearch
 from elasticsearch.helpers import bulk
 from psycopg import Cursor
+from psycopg.rows import DictRow
 
-from src.elasticsearch.configuration import INDEX_NAME, INDEX_BODY
+from src.elasticsearch.configuration import INDEX_BODY, INDEX_NAME
 from src.elasticsearch.methods import ElasticMethods
 
 
-def reindex(es: Elasticsearch, cur: Cursor, batch_size=5000):
+def reindex(es: Elasticsearch, cur: Cursor[DictRow], batch_size=5000):
     print(f'reindexing index {INDEX_NAME}')
-    if es.indices.exists(INDEX_NAME):
-        es.indices.delete(INDEX_NAME)
-    es.indices.create(INDEX_NAME, body=INDEX_BODY)
+    if es.indices.exists(index=INDEX_NAME):
+        es.indices.delete(index=INDEX_NAME)
+    es.indices.create(index=INDEX_NAME, body=INDEX_BODY)
 
-    sql = '''
+    sql: LiteralString = '''
 SELECT
     m.manga_id as _id,
     m.manga_id,
@@ -24,7 +27,7 @@ FROM manga m
 INNER JOIN manga_service ms ON m.manga_id = ms.manga_id
 INNER JOIN services s ON s.service_id = ms.service_id
 GROUP BY m.manga_id, ms.manga_id
-    '''
+'''
 
     cur.execute(sql)
     data = cur.fetchmany(batch_size)
@@ -42,7 +45,7 @@ GROUP BY m.manga_id, ms.manga_id
 if __name__ == '__main__':
     from src.elasticsearch.configuration import get_client
     from src.scheduler import UpdateScheduler
-    import setup_logging
+    from src import setup_logging
 
     setup_logging.setup()
     scheduler = UpdateScheduler()

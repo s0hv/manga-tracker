@@ -2,18 +2,18 @@ import logging
 import re
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Optional, List, Tuple, Set
+from typing import Any, List, Optional, Set, Tuple
 
 import psycopg
 import requests
 
-from src.db.mappers.chapter_mapper import ChapterMapper, Chapter as ChapterModel
+from src.db.mappers.chapter_mapper import Chapter as ChapterModel, ChapterMapper
 from src.db.models.authors import AuthorPartial
 from src.db.models.manga import MangaService
 from src.enums import Status
-from src.scrapers.base_scraper import (BaseChapter, BaseScraperWhole,
-                                       BaseScraper, ScrapeServiceRetVal)
-from src.utils.utilities import random_timedelta, utcnow, utcfromtimestamp
+from src.scrapers.base_scraper import (BaseChapter, BaseScraper, BaseScraperWhole,
+                                       ScrapeServiceRetVal)
+from src.utils.utilities import random_timedelta, utcfromtimestamp, utcnow
 from .protobuf import mangaplus_pb2
 
 logger = logging.getLogger('debug')
@@ -53,13 +53,13 @@ class TitleWrapper:
     def __hash__(self):
         return hash(self.title_id)
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any):
         if isinstance(other, TitleWrapper):
             return other.title_id == self.title_id
         else:
             return self.title_id == other
 
-    def __ne__(self, other):
+    def __ne__(self, other: Any):
         return not self.__eq__(other)
 
 
@@ -131,7 +131,7 @@ class AllTitlesViewWrapper:
 
 
 class ResponseWrapper:
-    def __init__(self, data):
+    def __init__(self, data: bytes):
         self._response = mangaplus_pb2.Response()
         self._response.ParseFromString(data)
 
