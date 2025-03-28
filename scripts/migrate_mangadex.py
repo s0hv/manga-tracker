@@ -8,7 +8,7 @@ from src.db.utilities import execute_values
 from src.scheduler import UpdateScheduler
 
 
-def fetch_ids(type_: str, ids):
+def fetch_ids(type_: str, ids: list[str]) -> dict:
     url = 'https://api.mangadex.org/legacy/mapping'
     try:
         r = requests.post(url, json={
@@ -31,7 +31,7 @@ def fetch_ids(type_: str, ids):
     return r.json()
 
 
-def migrate_chapters(delete=False):
+def migrate_chapters(delete: bool=False) -> None:
     chapter_sql = 'SELECT chapter_identifier FROM chapters WHERE service_id=2'
 
     # Easiest way to get a new connection
@@ -46,7 +46,7 @@ def migrate_chapters(delete=False):
                          'FROM (VALUES %s) as v(new_id, old_id) ' \
                          'WHERE service_id=2 AND c.chapter_identifier=v.old_id'
 
-    def isdigit(r):
+    def isdigit(r: dict) -> bool:
         return r['chapter_identifier'].isdigit()
 
     chapters = list(filter(isdigit, chapters))
@@ -81,7 +81,7 @@ def migrate_chapters(delete=False):
         sleep(3)
 
 
-def migrate_manga(delete=False):
+def migrate_manga(delete: bool=False) -> None:
     manga_sql = 'SELECT title_id FROM manga_service WHERE service_id=2'
     # Easiest way to get a new connection
     scheduler = UpdateScheduler()
@@ -95,7 +95,7 @@ def migrate_manga(delete=False):
                          'FROM (VALUES %s) as v(new_id, old_id) ' \
                          'WHERE service_id=2 AND m.title_id=v.old_id'
 
-    def isdigit(r):
+    def isdigit(r: dict) -> bool:
         return r['title_id'].isdigit()
 
     manga = list(filter(isdigit, manga))

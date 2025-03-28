@@ -8,10 +8,9 @@ import responses
 from responses import matchers
 
 from src.db.models.notifications import InputField, NotificationOptions
-from src.notifier.base_notifier import (
-    NotificationChapter, NotificationMangaService, NotificationManga
-)
-from src.notifier.webhook import WebhookNotifier, JsonFields
+from src.notifier.base_notifier import (NotificationChapter, NotificationManga,
+                                        NotificationMangaService)
+from src.notifier.webhook import JsonFields, WebhookNotifier
 
 
 class TestWebhook(unittest.TestCase):
@@ -44,7 +43,7 @@ class TestWebhook(unittest.TestCase):
             InputField(name='json', value=TestWebhook.test_json, optional=False)
         ]
 
-    def create_matcher(self, chapters: List[NotificationChapter], chapters_key: str = 'chapters'):
+    def create_matcher(self, chapters: List[NotificationChapter], chapters_key: str = 'chapters') -> object:
         return matchers.json_params_matcher({
             chapters_key: list(map(lambda c: WebhookNotifier().format_dict(
                     WebhookNotifier.validate_json(self.test_json)[JsonFields.CHAPTER_FORMAT],

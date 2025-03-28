@@ -25,10 +25,10 @@ class ElasticMethods:
     def es(self) -> Elasticsearch:
         return self._es
 
-    def update_manga_title(self, manga_id: int, title: str):
+    def update_manga_title(self, manga_id: int, title: str) -> None:
         self.es.update(index=INDEX_NAME, id=str(manga_id), body={'title': title})
 
-    def bulk_upsert(self, documents: Iterable, operation='update'):
+    def bulk_upsert(self, documents: Iterable, operation: str='update') -> None:
         logger.debug('Bulk upsert returned %s', bulk(
             self.es,
             ({

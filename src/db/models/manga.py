@@ -1,7 +1,8 @@
 from datetime import datetime, timedelta
-from typing import Iterable, Optional, TYPE_CHECKING, Type
+from typing import Iterable, Optional, Self, TYPE_CHECKING, Type
 
 from psycopg import Connection
+from psycopg.rows import DictRow
 from pydantic import BaseModel, Field
 
 from src.utils.utilities import utcnow
@@ -64,7 +65,7 @@ class MangaServicePartial(BaseModel):
     latest_decimal: Optional[int] = None
 
     @classmethod
-    def from_manga_service(cls, manga_service: 'MangaService'):
+    def from_manga_service(cls, manga_service: 'MangaService') -> Self:
         return cls.model_validate(manga_service.model_dump())
 
     # Returns a class initializer so it is named as a class would
@@ -74,7 +75,7 @@ class MangaServicePartial(BaseModel):
         from src.scrapers import SCRAPERS_ID
         return SCRAPERS_ID[self.service_id]
 
-    def scrape_series(self, conn: Connection, dbutil: 'DbUtil'):
+    def scrape_series(self, conn: Connection[DictRow], dbutil: 'DbUtil') -> set[int] | None:
         if self.manga_id is None or self.feed_url is None:
             raise ValueError('Manga id or feed url was None')
         scraper = self.Scraper(conn, dbutil)
@@ -88,7 +89,7 @@ class MangaServicePartialWithId(MangaServicePartial):
 class MangaService(Manga, MangaServicePartial):
 
     @classmethod
-    def from_partial(cls, manga_service_partial: MangaServicePartial):
+    def from_partial(cls, manga_service_partial: MangaServicePartial) -> Self:
         return cls.model_validate(manga_service_partial.model_dump())
 
 
@@ -99,9 +100,9 @@ class MangaServiceWithId(MangaService):
     manga_id: int
 
     @classmethod
-    def from_manga_service(cls, manga_service: MangaService):
+    def from_manga_service(cls, manga_service: MangaService) -> Self:
         return cls.model_validate(manga_service.model_dump())
 
     @classmethod
-    def from_manga_services(cls, manga_services: Iterable[MangaService]):
+    def from_manga_services(cls, manga_services: Iterable[MangaService]) -> Iterable[Self]:
         return map(cls.from_manga_service, manga_services)

@@ -4,24 +4,26 @@ import sys
 import typing
 import unittest
 from datetime import datetime, timedelta
-from typing import Any, List, Optional, Tuple, Type, TypeVar, Union
+from typing import Any, Callable, List, Optional, Tuple, Type, TypeVar, Union
 from unittest import mock
 
 import feedparser
 import psycopg
 import pytest
 import testing.postgresql
+from elasticsearch.client import Elasticsearch
 from psycopg import Connection
 from psycopg.rows import DictRow, dict_row
 from pydantic import BaseModel
 
 from src.constants import NO_GROUP
 from src.db.models.chapter import Chapter as DbChapter
-from src.db.models.manga import MangaService, MangaServiceWithId
+from src.db.models.manga import Manga, MangaService, MangaServiceWithId
 from src.scheduler import LoggingCursor
 from src.scrapers.base_scraper import BaseChapter, BaseChapterSimple, BaseScraper
 from src.tests.scrapers.testing_scraper import DummyScraper
-from src.utils.utilities import utcnow
+from src.utils.dbutils import DbUtil
+from src.utils.utilities import FeedType, utcnow
 
 originalParse = feedparser.parse
 
@@ -102,8 +104,8 @@ def teardown_db() -> None:
         Postgresql.clear_cache()
 
 
-def mock_feedparse(feed, *args, **kwargs):
-    def wrapper(*_, **__):
+def mock_feedparse[**P](feed: object, *args: P.args, **kwargs: P.kwargs) -> Callable[P, FeedType]:
+    def wrapper(*_, **__) -> FeedType:
         return originalParse(feed, *args, **kwargs)
 
     return wrapper
@@ -146,7 +148,7 @@ class BaseTestClasses:
         _generator: 'BaseTestClasses.TitleIdGenerator' = NotImplemented
 
         @pytest.fixture(autouse=True, scope='class')
-        def _setup_class(self, request: pytest.FixtureRequest, conn) -> None:
+        def _setup_class(self, request: pytest.FixtureRequest, conn: Connection[DictRow]) -> None:
             request.cls._conn = conn
             # Integers are retained during tests but they reset to the default value
             # for some reason. Circumvent this by using a class.
@@ -159,11 +161,11 @@ class BaseTestClasses:
             return self._conn
 
         @pytest.fixture(autouse=True)
-        def _get_elasticsearch(self, es):
+        def _get_elasticsearch(self, es: Elasticsearch):
             self.elasticsearch = es
 
         @pytest.fixture(autouse=True)
-        def _set_up_dbutil(self, dbutil):
+        def _set_up_dbutil(self, dbutil: DbUtil):
             self.dbutil = dbutil
 
         def _teardown_class(self) -> None:
@@ -205,6 +207,15 @@ class BaseTestClasses:
             self.dbutil.execute('DELETE FROM chapters WHERE service_id=%s',
                                 (service_id,))
 
+        # region DbUtil wrappers
+
+        def get_manga_db(self, manga_id: int | None) -> Manga:
+            manga = self.dbutil.get_manga(manga_id or -1)
+            assert manga is not None
+            return manga
+
+        # endregion
+
         def assertChapterEqualsRow(self, chapter: 'Chapter', row: DictRow) -> None:
             pairs: list[tuple[str, str] | tuple[str, str, Any]] = [
                 ('chapter_title', 'title'),
@@ -225,7 +236,7 @@ class BaseTestClasses:
                     # Mypy thinks index is out of range even with len check
                     get_vals = val[2]
                 else:
-                    def get_vals():
+                    def get_vals() -> tuple[Any, Any]:
                         return getattr(chapter, chapter_attr), row[row_attr]
 
                 c_val, r_val = get_vals()
@@ -236,28 +247,28 @@ class BaseTestClasses:
                         f'{c_val} != {row[row_attr]}'
                     )
 
-        def assertDatesEqual(self, date1: datetime, date2: datetime):
+        def assertDatesEqual(self, date1: datetime | None, date2: datetime | None):
             if date1 != date2:
                 self.fail(f'Date {date1} does not match date {date2}')
 
-        def assertDatesNotEqual(self, date1: datetime, date2: datetime):
+        def assertDatesNotEqual(self, date1: datetime | None, date2: datetime):
             if date1 == date2:
                 self.fail(f'Date {date1} equals date {date2}')
 
-        def assertDateGreater(self, date1: datetime, date2: datetime):
+        def assertDateGreater(self, date1: datetime | None, date2: datetime):
+            assert date1 is not None
             if date1 <= date2:
                 self.fail(f'Date {date1} is earlier or equal to {date2}')
 
-        def assertDateLess(self, date1: datetime, date2: datetime):
+        def assertDateLess(self, date1: datetime | None, date2: datetime):
+            assert date1 is not None
             if date1 >= date2:
                 self.fail(f'Date {date1} is later or equal to {date2}')
 
-        def assertDatesAlmostEqual(self, date1: datetime, date2: datetime,
+        def assertDatesAlmostEqual(self, date1: datetime | None, date2: datetime,
                                    delta: timedelta = timedelta(seconds=1),
                                    msg: Optional[str] = None):
-            date1 = date1
-            date2 = date2
-
+            assert date1 is not None
             self.assertAlmostEqual(date1, date2, delta=delta, msg=msg)
 
         def assertMangaServiceExists(self, title_id: str, service_id: int):
@@ -282,7 +293,7 @@ class BaseTestClasses:
             return utcnow()
 
         @staticmethod
-        def dbChapterSortKey(chapter: 'DbChapter'):
+        def dbChapterSortKey(chapter: 'DbChapter') -> str:
             return chapter.chapter_identifier
 
         def assertDbChaptersEqual(self, a: 'DbChapter', expected: 'DbChapter', include_id: bool = False):
@@ -311,6 +322,7 @@ class BaseTestClasses:
         def _get_manga_service(self, service_id: int, title_id: str) -> MangaService:
             ms = self.dbutil.get_manga_service(service_id, title_id)
             self.assertIsNotNone(ms)
+            assert ms is not None
             return ms
 
         def assertMangaServiceEnabled(self, service_id: int, title_id: str):
@@ -348,7 +360,7 @@ class BaseTestClasses:
             self.assertEqual(a.group_id, b.group_id, msg=f'Group ids are not equal for {a.chapter_identifier}')
 
         @staticmethod
-        def chapterSortKey(chapter: Union[BaseChapter, 'ChapterTestModel']):
+        def chapterSortKey(chapter: Union[BaseChapter, 'ChapterTestModel', DbChapter]) -> str:
             return chapter.chapter_identifier
 
         def assertAllChaptersEqual[C: BaseChapter | 'ChapterTestModel'](
@@ -407,7 +419,7 @@ class ChapterTestModel(BaseModel):
     group_id: int
 
     @classmethod
-    def from_chapter(cls, c: BaseChapter):
+    def from_chapter(cls, c: BaseChapter) -> 'ChapterTestModel':
         return cls(
             chapter_title=c.chapter_title,
             chapter_number=c.chapter_number,
@@ -423,13 +435,13 @@ class ChapterTestModel(BaseModel):
             group_id=c.group_id
         )
 
-    def __lt__(self, other):
+    def __lt__(self, other: BaseChapter) -> bool:
         return self.chapter_identifier < other.chapter_identifier
 
     def __hash__(self):
         return hash(self.chapter_identifier)
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         if hasattr(other, 'chapter_identifier'):
             return other.chapter_identifier == self.chapter_identifier
         else:

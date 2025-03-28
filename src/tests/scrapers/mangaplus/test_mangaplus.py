@@ -16,7 +16,7 @@ from src.tests.testing_utils import BaseTestClasses, spy_on
 from src.utils.utilities import utcfromtimestamp, utcnow
 
 
-def find_dict_inequality(d1, d2):
+def find_dict_inequality(d1: dict, d2: dict) -> bool:
     if d1 == d2:
         return True
 
@@ -131,6 +131,7 @@ class TestMangaPlusParser(BaseTestClasses.DatabaseTestCase):
         self.assertDbChaptersEqual(last_chapter, correct_chapter)
         self.assertMangaServiceEnabled(ms.service_id, ms.title_id)
         ms = self.dbutil.get_manga_service(ms.service_id, ms.title_id)
+        assert ms is not None
         self.assertDatesEqual(ms.next_update, utcfromtimestamp(1697468400))
 
     @responses.activate
@@ -309,6 +310,7 @@ class TestMangaPlusParser(BaseTestClasses.DatabaseTestCase):
         self.assertMangaServiceEnabled(ms.service_id, ms.title_id)
 
         found = self.dbutil.get_manga_service(MangaPlus.ID, ms.title_id)
+        assert found is not None
         # Hiatus manga should be checked roughly every 2 days
         self.assertDateGreater(found.next_update, utcnow() + timedelta(days=2))
         self.assertDateLess(found.next_update, utcnow() + timedelta(days=3))
@@ -436,6 +438,7 @@ class TestMangaPlusParser(BaseTestClasses.DatabaseTestCase):
         self.assertEqual(found.next_update, None)
 
         service_whole = self.dbutil.get_service_whole(MangaPlus.ID)
+        assert service_whole is not None
         self.assertDatesAlmostEqual(service_whole.last_check, utcnow())
         self.assertDateGreater(service_whole.next_update, utcnow() + timedelta(days=1))
 
@@ -446,9 +449,11 @@ class TestMangaPlusParser(BaseTestClasses.DatabaseTestCase):
         self.mangaplus.set_checked(service_id, True)
 
         sw = self.dbutil.get_service_whole(service_id)
+        assert sw is not None
         self.assertIsNone(sw.next_update)
 
         s = self.dbutil.get_service(service_id)
+        assert s is not None
         self.assertDateGreater(s.disabled_until, utcnow())
         self.assertDatesAlmostEqual(s.last_check, utcnow(), timedelta(seconds=3))
 
@@ -459,10 +464,12 @@ class TestMangaPlusParser(BaseTestClasses.DatabaseTestCase):
         self.mangaplus.set_checked(service_id)
 
         sw = self.dbutil.get_service_whole(service_id)
+        assert sw is not None
         self.assertIsNotNone(sw.next_update)
         self.assertDateGreater(sw.next_update, utcnow() + timedelta(days=1))
 
         s = self.dbutil.get_service(service_id)
+        assert s is not None
         self.assertDateGreater(s.disabled_until, utcnow())
         self.assertDatesAlmostEqual(s.last_check, utcnow(), timedelta(seconds=3))
 
@@ -479,7 +486,7 @@ class TestMangaPlusParser(BaseTestClasses.DatabaseTestCase):
     ('Creators', (0, None)),
 ])
 
-def test_parse_chapter(title: str, correct):
+def test_parse_chapter(title: str, correct: tuple[int, int | None]):
     assert MangaPlus.parse_chapter(title) == correct, f'MangaPlus.parse_title("{title}") did not equal {correct}'
 
 

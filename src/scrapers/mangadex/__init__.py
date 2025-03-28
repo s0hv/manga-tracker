@@ -1,1 +1,1 @@
-from .mangadex import *
+from .mangadex import *  # noqa: F403

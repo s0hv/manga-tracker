@@ -4,6 +4,7 @@ import re
 from datetime import datetime, time, timedelta, timezone
 from typing import (Dict, Iterable, NoReturn, Optional, TYPE_CHECKING, Tuple, Union)
 
+from feedparser import FeedParserDict
 from psycopg.rows import DictRow
 
 from src.errors import FeedHttpError, InvalidFeedError
@@ -13,6 +14,8 @@ if TYPE_CHECKING:
     from src.utils.dbutils import DbUtil
 
 logger = logging.getLogger('debug')
+
+type FeedType = FeedParserDict[str, bool | list | FeedParserDict | dict]
 
 chapter_regex = re.compile(r'(\d+)(\.\d+)?')
 universal_chapter_regex = \
@@ -81,7 +84,7 @@ def random_timedelta(low: Union[timedelta, int], high: Union[timedelta, int]) ->
     return timedelta(seconds=random.randint(low, high))
 
 
-def is_valid_feed(feed) -> Optional[NoReturn]:
+def is_valid_feed(feed: FeedType) -> Optional[NoReturn]:
     if hasattr(feed, 'status'):
         if feed.status != 200:
             raise FeedHttpError(f'Failed to get feed. Status: {feed.status}')
@@ -115,7 +118,7 @@ def get_latest_chapters(rows: Iterable[Union[dict, DictRow]]) -> Dict[str, Tuple
     return chapter_data
 
 
-def inject_service_values(dbutil: 'DbUtil'):
+def inject_service_values(dbutil: 'DbUtil') -> None:
     """
     Injects configs and other possible values into scraper class variables.
     Must be run before instantiating any scraper
@@ -128,7 +131,7 @@ def inject_service_values(dbutil: 'DbUtil'):
             Service.CONFIG = config
 
 
-def remove_chapter_prefix(title: str):
+def remove_chapter_prefix(title: str) -> str:
     return re.sub(r'^chapter \d+(\.\d+)?( *[:\-;]? +|$)', '', title, flags=re.I)
 
 

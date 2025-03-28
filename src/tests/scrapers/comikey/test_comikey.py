@@ -161,13 +161,13 @@ class ComikeyTest(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsserti
         self.comikey.get_group_id = lambda *_, **__: NO_GROUP  # type: ignore
         self.comikey.id_cache.clear()
 
-    def redirect(self, request: PreparedRequest):
+    def redirect(self, request: PreparedRequest) -> tuple[int, dict[str, str], bytes | None]:
         if not request.url:
-            return 200, (), None
+            return 200, {}, None
 
         title_id = request.url.split('/')[-1]
         if not title_id or title_id.isnumeric():
-            return 200, (), None
+            return 200, {}, None
 
         redirect_headers = {"location": "/comics/{}/".format(self.redirects[title_id])}
         return 301, redirect_headers, b""

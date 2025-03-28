@@ -2,7 +2,7 @@ import logging
 import re
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, List, Optional, Set, Tuple
+from typing import List, Optional, Set, Tuple
 
 import psycopg
 import requests
@@ -47,19 +47,19 @@ class TitleWrapper:
     def language(self) -> str:
         return mangaplus_pb2.Title.Language.Name(self._title.language)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f'{self.name} / {self.title_id}'
 
     def __hash__(self):
         return hash(self.title_id)
 
-    def __eq__(self, other: Any):
+    def __eq__(self, other: object):
         if isinstance(other, TitleWrapper):
             return other.title_id == self.title_id
         else:
             return self.title_id == other
 
-    def __ne__(self, other: Any):
+    def __ne__(self, other: object):
         return not self.__eq__(other)
 
 
@@ -112,10 +112,11 @@ class TitleDetailViewWrapper:
         return self._title_detail.is_simul_release
 
     @property
-    def release_schedule(self):
+    def release_schedule(self) -> mangaplus_pb2.TitleLabels.ReleaseSchedule.ValueType | None:
         labels = self._title_detail.title_labels
         if labels:
             return labels.release_schedule
+        return None
 
 
 class AllTitlesViewWrapper:
@@ -227,7 +228,7 @@ class ChapterWrapper(BaseChapter):
         return self._group_id
 
     @group_id.setter
-    def group_id(self, value: int):
+    def group_id(self, value: int) -> None:
         self._group_id = value
 
     @property
@@ -254,7 +255,7 @@ class MangaPlus(BaseScraperWhole):
         return random_timedelta(timedelta(minutes=10), timedelta(minutes=20))
 
     @staticmethod
-    def parse_chapter(chapter_number) -> Tuple[int, Optional[int]]:
+    def parse_chapter(chapter_number: str) -> Tuple[int, Optional[int]]:
         match = MangaPlus.CHAPTER_REGEX.match(chapter_number)
         if not match:
             match = MangaPlus.SPECIAL_CHAPTER_REGEX.match(chapter_number)
@@ -333,7 +334,7 @@ class MangaPlus(BaseScraperWhole):
         return None
 
     def scrape_series(self, title_id: str, service_id: int, manga_id: int,
-                      feed_url=None) -> Optional[Set[int]]:
+                      feed_url: str | None = None) -> Optional[Set[int]]:
         parsed = self.parse_series(title_id)
         if parsed is None:
             return None

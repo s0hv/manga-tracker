@@ -3,10 +3,14 @@ import time
 
 import pytest
 from elasticsearch import Elasticsearch
+from psycopg import Connection
+from psycopg.rows import DictRow
 
 ELASTIC_INDEX = 'manga_test'
 os.environ['ES_INDEX'] = ELASTIC_INDEX
 
+# The environment variable must be set before importing the module
+# ruff: noqa: E402
 from src.elasticsearch.methods import ElasticMethods
 from src.tests.scrapers.testing_scraper import DummyScraper, DummyScraper2
 from src.tests.testing_utils import (create_db, Postgresql, teardown_db,
@@ -29,22 +33,22 @@ def es():
 
 
 @pytest.fixture
-def esm(es: Elasticsearch):
+def esm(es: Elasticsearch) -> ElasticMethods:
     return ElasticMethods(es)
 
 
 @pytest.fixture
-def dbutil(esm: ElasticMethods, conn):
+def dbutil(esm: ElasticMethods, conn: Connection[DictRow]) -> DbUtil:
     return DbUtil(conn, esm)
 
 
 @pytest.fixture(scope='class')
-def class_dbutil(es: Elasticsearch, conn):
+def class_dbutil(es: Elasticsearch, conn: Connection[DictRow]) -> DbUtil:
     return DbUtil(conn, ElasticMethods(es))
 
 
 @pytest.fixture(scope='session')
-def database(request: pytest.FixtureRequest, es):
+def database(request: pytest.FixtureRequest, es: Elasticsearch) -> None:
     print('setting up')
     start_db()
     conn = create_db(None if not Postgresql else Postgresql.cache)
@@ -68,7 +72,7 @@ def database(request: pytest.FixtureRequest, es):
     conn.commit()
     conn.close()
 
-    def fin():
+    def fin() -> None:
         print('\nDeleting test db')
         teardown_db()
 
@@ -76,12 +80,12 @@ def database(request: pytest.FixtureRequest, es):
 
 
 @pytest.fixture(scope='class')
-def conn(database):
+def conn(database: None) -> Connection[DictRow]:
     return get_conn()
 
 
 @pytest.fixture(scope='session', autouse=True)
-def setup_tests():
+def setup_tests() -> None:
     # No need to sleep in tests
     time.sleep = lambda *_: None
 

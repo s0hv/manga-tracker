@@ -1,7 +1,7 @@
 import os
 import re
 from datetime import datetime, timezone
-from unittest.mock import patch, Mock
+from unittest.mock import Mock, patch
 
 import pytest
 import responses
@@ -9,7 +9,7 @@ import responses
 import src.scrapers.azuki
 from src.constants import NO_GROUP
 from src.scrapers.azuki import Azuki, ParsedChapter
-from src.tests.testing_utils import ChapterTestModel, BaseTestClasses
+from src.tests.testing_utils import BaseTestClasses, ChapterTestModel
 from src.utils.utilities import utctoday
 
 
@@ -73,7 +73,7 @@ correct_chapters = [
 ]
 
 
-def get_date(s: str):
+def get_date(s: str) -> datetime:
     return datetime.strptime(s, '%b %d, %Y').replace(tzinfo=timezone.utc)
 
 
@@ -198,7 +198,7 @@ class AzukiTest(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAssertion
     ('Chapter 10.b', ('Chapter 10.b', 10, 2)),
     ('Chapter Announcement', None),
 ])
-def test_parse_chapter_title(title: str, correct):
+def test_parse_chapter_title(title: str, correct: tuple[str, int, int | None] | None):
     ch = TempChapter()
     assert ch.parse_title(title) == correct, f'ParsedChapter.parse_title("{title}") did not equal {correct}'
 

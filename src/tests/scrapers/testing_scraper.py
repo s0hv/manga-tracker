@@ -1,6 +1,9 @@
 from datetime import datetime, timedelta
 from typing import Optional
 
+from psycopg import Connection
+from psycopg.rows import DictRow
+
 from src.db.models.services import ServiceConfig
 from src.scrapers.base_scraper import BaseScraper
 from src.utils.dbutils import DbUtil
@@ -18,7 +21,7 @@ class DummyScraper(BaseScraper):
         return timedelta(0)
 
     def scrape_series(self, title_id: str, service_id: int, manga_id: int,
-                      feed_url=None):
+                      feed_url: str | None = None):
         pass
 
     def scrape_service(self, service_id: int, feed_url: str,
@@ -26,7 +29,7 @@ class DummyScraper(BaseScraper):
                        title_id: Optional[str] = None):
         pass
 
-    def __init__(self, conn, dbutil: Optional[DbUtil] = None):
+    def __init__(self, conn: Connection[DictRow], dbutil: Optional[DbUtil] = None):
         super().__init__(conn, dbutil)
 
 

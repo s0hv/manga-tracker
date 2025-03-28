@@ -1,1 +1,22 @@
 [lint]
+exclude = ["src/**/protobuf/**"]
+select = [
+    "ANN",
+    "E4",
+    "E7",
+    "E9",
+    "F"
+]
+ignore = [
+    "ANN204",
+]
+
+[lint.flake8-annotations]
+mypy-init-return = true
+suppress-none-returning = true
+suppress-dummy-args = true
+
+[format]
+quote-style = "single"
+docstring-code-format = true
+exclude = ["src/**/protobuf/**"]

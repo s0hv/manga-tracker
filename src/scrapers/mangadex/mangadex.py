@@ -4,6 +4,9 @@ from datetime import datetime, timedelta
 from json.decoder import JSONDecodeError
 from typing import Dict, Iterable, List, Optional, Sequence, Set, Tuple, cast
 
+from psycopg import Connection
+from psycopg.rows import DictRow
+
 from src.constants import NO_GROUP
 from src.db.models.authors import AuthorPartial, MangaArtist, MangaAuthor
 from src.db.models.groups import Group, GroupPartial
@@ -11,8 +14,7 @@ from src.db.models.manga import MangaInfo
 from src.scrapers.base_scraper import BaseChapterSimple, BaseScraperWhole, ScrapeServiceRetVal
 from src.utils.dbutils import DbUtil
 from .mangadex_api import (AuthorAttributes, ChapterAttributes, ChapterResult, MangaResult,
-                           MangadexAPI, MangadexData, ScanlationGroupAttributes,
-                           ScanlationGroupResult)
+                           MangadexAPI, MangadexData, ScanlationGroupAttributes)
 
 logger = logging.getLogger('debug')
 
@@ -90,7 +92,7 @@ class MangaDex(BaseScraperWhole):
     MANGA_URL_FORMAT = 'https://mangadex.org/title/{}'
     COVER_FORMAT: str = 'https://uploads.mangadex.org/covers/{title_id}/{file_name}'
 
-    def __init__(self, conn, dbutil: Optional[DbUtil] = None):
+    def __init__(self, conn: Connection[DictRow], dbutil: Optional[DbUtil] = None):
         super().__init__(conn, dbutil)
 
         self.api = MangadexAPI()
@@ -111,13 +113,13 @@ class MangaDex(BaseScraperWhole):
                     attrs.volume,
                     chapter.group
                 ))
-            except:
+            except Exception:
                 logger.exception(f'Failed to parse chapter {chapter}')
                 continue
 
         return chapters
 
-    def update_manga_info_and_title(self, mangas: Dict[int, MangaResult]):
+    def update_manga_info_and_title(self, mangas: Dict[int, MangaResult]) -> None:
         """
         Updates infos and titles for the given manga
         Args:
@@ -145,7 +147,7 @@ class MangaDex(BaseScraperWhole):
             (manga_id, m.attributes.title) for manga_id, m in mangas.items()
         ])
 
-    def add_authors(self, mangas: List[Tuple[MangaResult, int]]):
+    def add_authors(self, mangas: List[Tuple[MangaResult, int]]) -> None:
         """
         Add manga authors and artists to the database
         Args:
@@ -258,7 +260,6 @@ class MangaDex(BaseScraperWhole):
 
         # Set mangadex id for existing groups and add group ids to chapters
         if do_mangadex_id_update:
-            mangadex_group: ScanlationGroupResult
             for chapter in missing_group:
                 found_group = do_mangadex_id_update.get(chapter.group)
                 if found_group is None or chapter.mangadex_group is None:
@@ -378,7 +379,7 @@ class MangaDex(BaseScraperWhole):
 
             self.update_manga_info_and_title(db2result)
             self.add_authors([(v, k) for k, v in db2result.items()])
-        except:
+        except Exception:
             logger.exception('Failed to add manga infos')
 
         return ScrapeServiceRetVal(

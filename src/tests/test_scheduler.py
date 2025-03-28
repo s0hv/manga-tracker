@@ -2,23 +2,21 @@ import unittest
 from datetime import timedelta
 from typing import Optional, cast
 from unittest import mock
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 import psycopg
 import pytest
 from psycopg.rows import class_row
 
 from src.db.models.manga import MangaServiceWithId
-from src.db.models.notifications import UserNotification, \
-    PartialNotificationInfo
+from src.db.models.notifications import PartialNotificationInfo, UserNotification
 from src.db.models.scheduled_run import ScheduledRun, ScheduledRunResult
 from src.notifier import DiscordEmbedWebhookNotifier
-from src.scheduler import UpdateScheduler, MangaServiceInfo
-from src.scrapers import SCRAPERS, MangaPlus, MangaDex
+from src.scheduler import MangaServiceInfo, UpdateScheduler
+from src.scrapers import MangaDex, MangaPlus, SCRAPERS
 from src.tests.scrapers.testing_scraper import DummyScraper, DummyScraper2
-from src.tests.testing_utils import (
-    BaseTestClasses, spy_on, set_db_environ, EMPTY_SCRAPE_SERVICE, TEST_USER_ID
-)
+from src.tests.testing_utils import (BaseTestClasses, EMPTY_SCRAPE_SERVICE, TEST_USER_ID,
+                                     set_db_environ, spy_on)
 from src.utils.utilities import utcnow
 
 
@@ -309,7 +307,9 @@ class SchedulerScrapeServiceTest(BaseTestClasses.DatabaseTestCase):
         self.assertEqual(self.scraper1.set_checked.call_count, 1)  # type: ignore[union-attr]
         self.assertEqual(self.scraper1.next_update.call_count, 2)  # type: ignore[union-attr]
 
-        self.assertDatesEqual(self.dbutil.get_manga_service(ms1.service_id, ms1.title_id).next_update, next_update)
+        ms = self.dbutil.get_manga_service(ms1.service_id, ms1.title_id)
+        assert ms is not None
+        self.assertDatesEqual(ms.next_update, next_update)
 
     def test_scrape_service_stops_after_none_returned_2_times(self):
         ms1 = self.create_manga_service(DummyScraper)
@@ -330,7 +330,9 @@ class SchedulerScrapeServiceTest(BaseTestClasses.DatabaseTestCase):
         self.assertEqual(self.scraper1.set_checked.call_count, 1)  # type: ignore[union-attr]
         self.assertEqual(self.scraper1.next_update.call_count, 0)  # type: ignore[union-attr]
 
-        self.assertIsNone(self.dbutil.get_manga_service(ms1.service_id, ms1.title_id).next_update)
+        found_ms1 = self.dbutil.get_manga_service(ms1.service_id, ms1.title_id)
+        assert found_ms1 is not None
+        self.assertIsNone(found_ms1.next_update)
 
 
 if __name__ == '__main__':

@@ -1,5 +1,5 @@
 from math import ceil
-from typing import TypeVar, Sequence, Any, overload, Literal, Optional
+from typing import Any, Literal, Optional, Sequence, TypeVar, overload
 
 import psycopg
 
@@ -14,7 +14,7 @@ def execute_values(cur: psycopg.Cursor[T],
                    fetch: Literal[False],
                    cols_count: Optional[int] = None,
                    template: Optional[str] = None,
-                   page_size=100) -> None: ...
+                   page_size: int=100) -> None: ...
 
 
 @overload
@@ -25,7 +25,7 @@ def execute_values(cur: psycopg.Cursor[T],
                    fetch: Literal[True],
                    cols_count: Optional[int] = None,
                    template: Optional[str] = None,
-                   page_size=100) -> list[T]: ...
+                   page_size: int=100) -> list[T]: ...
 
 
 @overload
@@ -35,7 +35,7 @@ def execute_values(cur: psycopg.Cursor[T],
                    *,
                    cols_count: Optional[int] = None,
                    template: Optional[str] = None,
-                   page_size=100,
+                   page_size: int=100,
                    fetch: bool = False) -> list[T] | None: ...
 
 

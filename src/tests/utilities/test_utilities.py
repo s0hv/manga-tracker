@@ -4,9 +4,8 @@ import unittest
 
 import pytest
 
-from src.utils.utilities import (universal_chapter_regex, match_title,
-                                 parse_chapter_number, round_seconds,
-                                 remove_chapter_prefix)
+from src.utils.utilities import (match_title, parse_chapter_number, remove_chapter_prefix,
+                                 round_seconds, universal_chapter_regex)
 
 
 class TestUtilities(unittest.TestCase):
@@ -49,7 +48,7 @@ class TestUtilities(unittest.TestCase):
     ('abc', (None, None)),
     ('1.5', ('1', '5')),
 ])
-def test_parse_chapter_number(chapter_number, correct):
+def test_parse_chapter_number(chapter_number: str, correct: tuple[str | None, str | None]):
     assert parse_chapter_number(chapter_number) == correct
 
 
@@ -60,7 +59,7 @@ def test_parse_chapter_number(chapter_number, correct):
     ((150, 100), 100),
     ((151, 100), 200),
 ])
-def test_round_seconds(args, correct):
+def test_round_seconds(args: tuple[float, int], correct: int):
     assert round_seconds(*args) == correct, f'round_seconds({", ".join(map(str, args))}) did not equal {correct}'
 
 
@@ -77,7 +76,7 @@ def test_round_seconds(args, correct):
     ('Chapter 1- Chapter title', 'Chapter title'),
     ('Chapter 1; Chapter title', 'Chapter title'),
 ])
-def test_remove_chapter_prefix(title, correct):
+def test_remove_chapter_prefix(title: str, correct: str):
     assert remove_chapter_prefix(title) == correct
 
 
