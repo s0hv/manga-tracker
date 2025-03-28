@@ -3,12 +3,11 @@ import logging
 import re
 from abc import ABC
 from datetime import datetime, timezone
-from typing import Optional, Set, cast, List, Type, TypeVar, Dict, Tuple
+from typing import Dict, List, Optional, Set, Tuple, Type, TypeVar, cast
 
 from lxml import etree
 
-from src.scrapers.base_scraper import (BaseChapterSimple, ScrapeServiceRetVal,
-                                       BaseScraperWhole)
+from src.scrapers.base_scraper import (BaseChapterSimple, BaseScraperWhole, ScrapeServiceRetVal)
 from src.utils.utilities import utctoday
 
 logger = logging.getLogger('debug')
@@ -122,7 +121,7 @@ class MangaChapter(ParsedChapter):
         return self._manga_title
 
     @manga_title.setter
-    def manga_title(self, val: str):
+    def manga_title(self, val: str) -> None:
         self._manga_title = val
 
 
@@ -200,7 +199,7 @@ class Azuki(BaseScraperWhole):
 
         try:
             manga_title = root.cssselect('div.o-series-summary h1')[0].text.strip()
-        except:
+        except Exception:
             logger.exception('Failed to extract title from manga page')
         else:
             for c in chapters:

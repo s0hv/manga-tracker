@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from datetime import datetime
 from itertools import groupby
 from string import Template
-from typing import Any, List, Optional, Tuple, Type, TypeVar
+from typing import Any, List, Optional, Self, Tuple, Type, TypeVar
 
 from pydantic import BaseModel
 
@@ -15,7 +15,7 @@ Overrides = dict[int, TEmbedInputs]
 
 class BaseEmbedInputs(BaseModel):
     @classmethod
-    def from_input_list(cls, input_fields: List[InputField]):
+    def from_input_list(cls, input_fields: List[InputField]) -> Self:
         d = {i.name: i.value for i in input_fields if i.override_id is None}
         return cls(**d)
 
@@ -44,7 +44,7 @@ class NotificationMangaService(BaseModel):
     manga_url_format: str
     chapter_url_format: str
 
-    def to_dict(self, prefix: str = 'PLATFORM_'):
+    def to_dict(self, prefix: str = 'PLATFORM_') -> dict[str, str | None]:
         return {
             prefix + 'NAME': self.name,
             prefix + 'URL': self.url
@@ -59,7 +59,7 @@ class NotificationManga(BaseModel):
     manga_id: int
     title_id: str
 
-    def to_dict(self, prefix: str = 'MANGA_'):
+    def to_dict(self, prefix: str = 'MANGA_') -> dict[str, str | None]:
         return {
             prefix + 'TITLE': self.name,
             prefix + 'COVER': self.cover,
@@ -88,15 +88,15 @@ class NotificationChapter(BaseModel):
         }
 
 
-def get_manga_id(chapter: NotificationChapter):
+def get_manga_id(chapter: NotificationChapter) -> int:
     return chapter.manga.manga_id
 
 
-def get_release_date(chapter: NotificationChapter):
+def get_release_date(chapter: NotificationChapter) -> datetime:
     return chapter.release_date
 
 
-def get_chapter_number(chapter: NotificationChapter):
+def get_chapter_number(chapter: NotificationChapter) -> float:
     return float(chapter.chapter_number)
 
 
@@ -128,12 +128,12 @@ class NotifierBase(ABC):
         template = Template(msg_template)
         return template.safe_substitute(**chapter.to_dict())
 
-    def format_title(self, msg_format: str, chapters: List[NotificationChapter]):
+    def format_title(self, msg_format: str, chapters: List[NotificationChapter]) -> str:
         titles = ', '.join(set(map(lambda c: c.manga.name, chapters)))
         template = Template(msg_format)
         s = template.safe_substitute(MANGA_TITLES=titles)
 
         return s
 
-    def sort_chapters(self, chapters: List[NotificationChapter]) -> List[NotificationChapter]:
+    def sort_chapters(self, chapters: list[NotificationChapter]) -> list[NotificationChapter]:
         return sorted(chapters, key=get_chapter_number)

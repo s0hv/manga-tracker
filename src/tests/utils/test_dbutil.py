@@ -181,7 +181,7 @@ class TestGetAndAddManga(BaseDbutilTest):
         self.assertIs(manga, retval)
         self.assertIsNotNone(manga.manga_id)
 
-        self.assertEqual(manga, self.dbutil.get_manga(manga.manga_id))
+        self.assertEqual(manga, self.get_manga_db(manga.manga_id))
 
     def test_add_new_manga_service_without_manga_id(self):
         title_id = self.get_str_id()
@@ -193,7 +193,7 @@ class TestGetAndAddManga(BaseDbutilTest):
         dbutil = spy_on(self.dbutil)
 
         self.assertRaises(psycopg.IntegrityError, dbutil.add_manga_service, manga)
-        dbutil.add_new_manga.assert_not_called()
+        dbutil.add_new_manga.assert_not_called()  # type: ignore[union-attr]
         self.assertIsNone(self.dbutil.get_manga_service(manga.service_id, manga.title_id))
 
     def test_add_new_manga_service(self):
@@ -238,7 +238,7 @@ class TestGetAndAddManga(BaseDbutilTest):
             MangaServiceWithId.from_manga_service(manga)
         )
         self.assertEqual(
-            self.dbutil.get_manga(manga.manga_id),
+            self.get_manga_db(manga.manga_id),
             Manga(**manga.model_dump())
         )
 
@@ -261,13 +261,13 @@ class TestAddNewMangaWithDuplicates(BaseDbutilTest):
         )
         self.assertTrue(retval, msg='No manga added')
 
-        for manga in retval:
-            chapters = testing_series.get(manga.title_id, [])
-            self.assertTrue(chapters, msg=f'Chapters not found for manga {manga}')
+        for ms in retval:
+            chapters = testing_series.get(ms.title_id, [])
+            self.assertTrue(chapters, msg=f'Chapters not found for manga {ms}')
             new_chapters.extend(chapters)
-            new_manga.append((manga.manga_id, chapters))
+            new_manga.append((ms.manga_id, chapters))
 
-            self.dbutil.add_chapters(chapters, manga.manga_id, DummyScraper.ID)
+            self.dbutil.add_chapters(chapters, ms.manga_id, DummyScraper.ID)
 
         self._conn.commit()
 
@@ -300,6 +300,7 @@ class TestAddNewMangaWithDuplicates(BaseDbutilTest):
                 manga = cur.fetchone()
 
             self.assertIsNotNone(manga)
+            assert manga is not None
             self.assertEqual(c.manga_title, manga['title'])
             self.assertEqual(c.title_id, manga['title_id'])
             self.assertFalse(manga['disabled'])
@@ -490,7 +491,7 @@ class TestDbUtil(BaseDbutilTest):
     def test_update_estimated_release(self):
         with self._conn.transaction():
             with self._conn.cursor() as cur:
-                self.assertIsNone(self.dbutil.update_estimated_release(None, cur=cur))
+                self.assertIsNone(self.dbutil.update_estimated_release(-1, cur=cur))
                 self.assertLogs('maintenance', 'WARNING')
                 self.assertEqual(cur.rowcount, 0)
 
@@ -505,6 +506,7 @@ class TestDbUtil(BaseDbutilTest):
 
                 row = self.dbutil.update_estimated_release(manga_id, cur=cur)
                 self.assertIsNotNone(row)
+                assert row is not None
                 self.assertEqual(cur.rowcount, 1)
                 self.assertLogs('maintenance', 'INFO')
                 self.assertDatesNotEqual(row['estimated_release_old'], row['estimated_release'])
@@ -520,7 +522,7 @@ class TestDbUtil(BaseDbutilTest):
                                                        cur=cur)
 
                 service = self.dbutil.get_service(service_id, cur=cur)
-
+                assert service is not None
                 self.assertDatesEqual(disabled_until, service.disabled_until)
 
     def test_update_service_whole(self):
@@ -537,6 +539,7 @@ class TestDbUtil(BaseDbutilTest):
 
                 self.assertIsNotNone(service, 'Service is None')
                 self.assertIsNotNone(service_whole, 'Service whole is None')
+                assert service is not None and service_whole is not None
 
                 self.assertDatesAlmostEqual(service.last_check, now)
                 self.assertDatesAlmostEqual(service_whole.last_check, now)
@@ -565,13 +568,15 @@ class TestUpdateInterval(BaseDbutilTest):
     def test_without_chapters(self):
         self.assertFalse(self.dbutil.update_chapter_interval(-1))
 
-    def setup_manga(self) -> MangaService:
+    def setup_manga(self) -> MangaServiceWithId:
         m = self.get_manga_service(DummyScraper)
         self.dbutil.add_manga_service(m, add_manga=True)
 
-        self.assertFalse(self.dbutil.update_chapter_interval(m.manga_id))
+        ms_with_id = MangaServiceWithId.from_manga_service(m)
 
-        return m
+        self.assertFalse(self.dbutil.update_chapter_interval(ms_with_id.manga_id))
+
+        return ms_with_id
 
     def get_chapter(self, m: MangaService, chapter_number: int, release_date: Optional[datetime] = None) -> ChapterModel:
         id_ = self.get_str_id()
@@ -606,7 +611,7 @@ class TestUpdateInterval(BaseDbutilTest):
         self.assertFalse(self.dbutil.update_chapter_interval(m.manga_id))
 
         self.assertIsNone(
-            self.dbutil.get_manga(manga_id=m.manga_id).release_interval
+            self.get_manga_db(manga_id=m.manga_id).release_interval
         )
 
     def test_with_large_chapter_gaps(self):
@@ -625,7 +630,7 @@ class TestUpdateInterval(BaseDbutilTest):
         # Make sure manga was not updated
         self.assertFalse(self.dbutil.update_chapter_interval(m.manga_id))
         self.assertIsNone(
-            self.dbutil.get_manga(manga_id=m.manga_id).release_interval
+            self.get_manga_db(manga_id=m.manga_id).release_interval
         )
 
     def test_with_same_chapter_number(self):
@@ -651,7 +656,7 @@ class TestUpdateInterval(BaseDbutilTest):
         # Make sure manga was not updated
         self.assertFalse(self.dbutil.update_chapter_interval(m.manga_id))
         self.assertIsNone(
-            self.dbutil.get_manga(manga_id=m.manga_id).release_interval
+            self.get_manga_db(manga_id=m.manga_id).release_interval
         )
 
     def test_with_small_interval(self):
@@ -669,7 +674,7 @@ class TestUpdateInterval(BaseDbutilTest):
         # Make sure manga was not updated
         self.assertFalse(self.dbutil.update_chapter_interval(m.manga_id))
         self.assertIsNone(
-            self.dbutil.get_manga(manga_id=m.manga_id).release_interval
+            self.get_manga_db(manga_id=m.manga_id).release_interval
         )
 
     def test_with_valid_interval(self):
@@ -690,7 +695,7 @@ class TestUpdateInterval(BaseDbutilTest):
         # Make sure manga was updated
         self.assertTrue(self.dbutil.update_chapter_interval(m.manga_id))
         self.assertEqual(
-            self.dbutil.get_manga(manga_id=m.manga_id).release_interval,
+            self.get_manga_db(manga_id=m.manga_id).release_interval,
             interval
         )
 
@@ -724,7 +729,7 @@ class TestUpdateInterval(BaseDbutilTest):
         # Make sure manga was updated
         self.assertTrue(self.dbutil.update_chapter_interval(m.manga_id))
         self.assertEqual(
-            self.dbutil.get_manga(manga_id=m.manga_id).release_interval,
+            self.get_manga_db(m.manga_id).release_interval,
             interval
         )
 
@@ -753,7 +758,7 @@ class TestUpdateInterval(BaseDbutilTest):
         # Make sure manga was updated
         self.assertTrue(self.dbutil.update_chapter_interval(m.manga_id))
         self.assertEqual(
-            self.dbutil.get_manga(manga_id=m.manga_id).release_interval,
+            self.get_manga_db(m.manga_id).release_interval,
             timedelta(seconds=statistics.median(intervals))
         )
 
@@ -784,7 +789,7 @@ class TestUpdateInterval(BaseDbutilTest):
         # Make sure manga was updated
         self.assertTrue(self.dbutil.update_chapter_interval(m.manga_id))
         self.assertEqual(
-            self.dbutil.get_manga(manga_id=m.manga_id).release_interval,
+            self.get_manga_db(m.manga_id).release_interval,
             interval*2
         )
 
@@ -813,9 +818,9 @@ class TestUpdateInterval(BaseDbutilTest):
         self.dbutil.add_chapters([get_chapter() for _ in range(10)])
 
         # Make sure manga was updated
-        self.assertTrue(self.dbutil.update_chapter_interval(m.manga_id))
+        self.assertTrue(self.dbutil.update_chapter_interval(m.manga_id or -1))
         self.assertEqual(
-            self.dbutil.get_manga(manga_id=m.manga_id).release_interval,
+            self.get_manga_db(m.manga_id).release_interval,
             interval
         )
 
@@ -826,7 +831,7 @@ class TestUpdateMangaTitle(BaseDbutilTest):
 
     def create_manga(self, title: Optional[str] = None) -> MangaWithId:
         ms = Manga(title=title or self.gen_title())
-        return self.dbutil.add_new_manga(ms)
+        return MangaWithId.model_validate(self.dbutil.add_new_manga(ms).model_dump())
 
     def get_manga_aliases(self, manga_id: int) -> List[str]:
         sql = 'SELECT title FROM manga_alias WHERE manga_id=%s'
@@ -855,11 +860,11 @@ class TestUpdateMangaTitle(BaseDbutilTest):
 
         # Assert correct changes
         self.assertEqual(
-            self.dbutil.get_manga(m1.manga_id).title,
+            self.get_manga_db(m1.manga_id).title,
             new_title1
         )
         self.assertEqual(
-            self.dbutil.get_manga(m2.manga_id).title,
+            self.get_manga_db(m2.manga_id).title,
             new_title2
         )
 
@@ -888,11 +893,11 @@ class TestUpdateMangaTitle(BaseDbutilTest):
 
         # Assert correct changes
         self.assertEqual(
-            self.dbutil.get_manga(m1.manga_id).title,
+            self.get_manga_db(m1.manga_id).title,
             new_title1
         )
         self.assertEqual(
-            self.dbutil.get_manga(m2.manga_id).title,
+            self.get_manga_db(m2.manga_id).title,
             old_title2
         )
 
@@ -920,11 +925,11 @@ class TestUpdateMangaTitle(BaseDbutilTest):
 
         # Assert correct changes
         self.assertEqual(
-            self.dbutil.get_manga(m1.manga_id).title,
+            self.get_manga_db(m1.manga_id).title,
             new_title1
         )
         self.assertEqual(
-            self.dbutil.get_manga(m2.manga_id).title,
+            self.get_manga_db(m2.manga_id).title,
             new_title2
         )
 

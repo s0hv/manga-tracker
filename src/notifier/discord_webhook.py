@@ -102,7 +102,7 @@ class DiscordEmbedWebhookNotifier(NotifierBase):
                     response = webhook.execute()
                     if not response or not response.ok:
                         return times_executed, False
-                except:
+                except Exception:
                     logger.exception('Failed to send webhook')
                     return times_executed, False
 

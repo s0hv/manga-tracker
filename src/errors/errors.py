@@ -15,7 +15,7 @@ class FeedHttpError(BaseFeedException):
 
 
 class InvalidFeedError(BaseFeedException):
-    def __init__(self, msg, original: Union[Exception, SAXException]):
+    def __init__(self, msg: str, original: Union[Exception, SAXException]):
         exc = cast(SAXException, original).getException() if hasattr(original, 'getException') else original
         super().__init__(f'{msg}\n{exc}')
         self.original = original

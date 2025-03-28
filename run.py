@@ -19,7 +19,7 @@ else:
 scheduler = UpdateScheduler()
 try:
     logger.debug("Next update in %s", scheduler.run_once()-utcnow())
-except:
+except Exception:
     logger.exception('Failed to run once')
 
 scheduler.es.close()

@@ -8,7 +8,10 @@ from contextlib import contextmanager
 from datetime import datetime, timedelta
 from itertools import groupby
 from operator import attrgetter
-from typing import (Collection, ContextManager, Dict, List, LiteralString, Optional, Set, Tuple,
+from typing import (Collection, ContextManager, Dict, List, LiteralString, Mapping, Optional, Self,
+                    Sequence,
+                    Set,
+                    Tuple,
                     Type, TypedDict, cast)
 
 import psycopg
@@ -17,6 +20,7 @@ from elasticsearch import Elasticsearch
 from psycopg import Connection
 from psycopg.cursor import Cursor
 from psycopg.rows import DictRow
+from psycopg.sql import Composed, SQL
 from psycopg_pool import ConnectionPool
 
 from src.db.mappers.notifications_mapper import NotificationsMapper
@@ -41,7 +45,14 @@ class MangaServiceInfo(TypedDict):
 
 
 class LoggingCursor(Cursor[DictRow]):
-    def execute(self, query, params=None, *, prepare: Optional[bool] = None, binary: Optional[bool] = None):
+    def execute(
+            self,
+            query: LiteralString | bytes | SQL | Composed,
+            params: Sequence | Mapping[str, object] | None = None,
+            *,
+            prepare: Optional[bool] = None,
+            binary: Optional[bool] = None
+            ) -> Self:
         try:
             return super(LoggingCursor, self).execute(query, params, prepare=prepare, binary=binary)
         finally:
@@ -183,6 +194,10 @@ class UpdateScheduler:
                             logger.error(f'Failed to scrape series {title_id} {manga_id}')
 
                         ms = scraper.dbutil.get_manga_service(service_id, title_id)
+                        if ms is None:
+                            logger.error(f'Manga {title_id} not found on service {service_id}')
+                            errors += 1
+                            continue
 
                         # release_interval actually gets set after this function is called, but it is likely that it has already been set before
                         # as this feature requires manual configuration. That's why it should be ok to use it here even if it is the old value.
@@ -194,8 +209,10 @@ class UpdateScheduler:
                                 # If all ok set latest release and refetch manga_service to get the updated latest_release
                                 scraper.dbutil.update_latest_release([manga_id])
                                 ms = scraper.dbutil.get_manga_service(service_id, title_id)
+                                assert ms is not None
+                                assert ms.latest_release is not None and ms.release_interval is not None
 
-                                next_date = ms.latest_release + ms.release_interval
+                                next_date: datetime = ms.latest_release + ms.release_interval
                                 if next_date < utcnow():
                                     next_date = utcnow() + ms.release_interval
 
@@ -205,7 +222,7 @@ class UpdateScheduler:
                     logger.exception(f'Database error while updating manga {title_id} on service {service_id}')
                     scraper.dbutil.update_manga_next_update(service_id, manga_id, scraper.next_update())
                     errors += 1
-                except:
+                except Exception:
                     logger.exception(f'Unknown error while updating manga {title_id} on service {service_id}')
                     scraper.dbutil.update_manga_next_update(service_id, manga_id, scraper.next_update())
                     errors += 1
@@ -265,7 +282,7 @@ class UpdateScheduler:
                     except psycopg.Error:
                         logger.exception(f'Database error while scraping {service_id} {scraper.NAME}: {title_id}')
                         return None
-                    except:
+                    except Exception:
                         logger.exception(f'Failed to scrape service {service_id}')
                         return None
 
@@ -362,7 +379,7 @@ class UpdateScheduler:
                         logger.exception(f'Database error while scraping {feed_url}')
                         scraper.set_checked(service_id)
                         continue
-                    except:
+                    except Exception:
                         logger.exception(f'Failed to scrape service {feed_url}')
                         scraper.set_checked(service_id)
                         continue
@@ -395,7 +412,7 @@ class UpdateScheduler:
 
             try:
                 self.send_notifications(manga_ids, chapter_ids)
-            except:
+            except Exception:
                 logger.exception('Failed to send notifications')
 
             sql = '''
@@ -423,7 +440,7 @@ class UpdateScheduler:
                     return utcnow() + timedelta(hours=1)
                 return next_update_row['update']
 
-    def send_notifications(self, manga_ids: Set[int], chapter_ids: List[int]):
+    def send_notifications(self, manga_ids: Set[int], chapter_ids: List[int]) -> None:
         if not (manga_ids and chapter_ids):
             return
 
@@ -477,7 +494,7 @@ class UpdateScheduler:
                         notification,
                         input_fields
                     )
-                except:
+                except Exception:
                     logger.exception('Failed to send notification')
                     sent = 0
                     success = False

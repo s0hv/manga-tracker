@@ -1,6 +1,6 @@
 import os
 import unittest
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 import feedparser
 import pytest
@@ -8,15 +8,15 @@ import pytest
 from src.constants import NO_GROUP
 from src.db.models.manga import MangaService
 from src.scrapers import Reddit
-from src.tests.testing_utils import (BaseTestClasses, mock_feedparse,
-                                     load_chapters_snapshot)
+from src.tests.testing_utils import (BaseTestClasses, ChapterTestModel, load_chapters_snapshot,
+                                     mock_feedparse)
 
 test_feed = os.path.join(os.path.dirname(__file__), 'test_data.xml')
 
 
 class TestRedditScraper(BaseTestClasses.ModelAssertions, BaseTestClasses.DatabaseTestCase):
     @staticmethod
-    def read_test_data():
+    def read_test_data() -> list[ChapterTestModel]:
         p = os.path.join(os.path.dirname(__file__), 'chapters.json')
         return load_chapters_snapshot(p)
 

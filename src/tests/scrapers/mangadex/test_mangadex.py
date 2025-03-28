@@ -18,6 +18,7 @@ from src.db.models.groups import Group, GroupPartial
 from src.db.models.manga import MangaService
 from src.scrapers.mangadex import Chapter as MangaDexChapter, ChapterResult, MangaDex
 from src.tests.testing_utils import BaseTestClasses, ChapterTestModel
+from src.utils.dbutils import DbUtil
 from src.utils.utilities import utcnow
 
 correct_parsed_chapters = list(sorted([
@@ -102,11 +103,11 @@ class MangadexTests(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsser
     manga_data: Dict = NotImplemented
 
     @pytest.fixture(autouse=True)
-    def _caplog(self, caplog):
+    def _caplog(self, caplog: pytest.LogCaptureFixture):
         self.caplog = caplog
 
     @pytest.fixture(autouse=True, scope='class')
-    def _setup_mangadex(self, class_dbutil) -> None:
+    def _setup_mangadex(self, class_dbutil: DbUtil) -> None:
         dbutil = class_dbutil
         dbutil.add_authors([
             AuthorPartial(name='Im Dal-Young', mangadex_id='d21a9418-817a-43e5-a4d2-bf1e7391d7ec')
@@ -309,7 +310,7 @@ class MangadexTests(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsser
 
 
 @patch.object(src.scrapers.mangadex.mangadex, 'logger', Mock())
-def test_special_chapter_parsing_valid_string(caplog):
+def test_special_chapter_parsing_valid_string(caplog: pytest.LogCaptureFixture):
     logger = logging.getLogger('mangadex_test_chapter_valid')
     logger.setLevel(logging.WARNING)
     src.scrapers.mangadex.mangadex.logger = logger
@@ -321,7 +322,7 @@ def test_special_chapter_parsing_valid_string(caplog):
 
 
 @patch.object(src.scrapers.mangadex.mangadex, 'logger', Mock())
-def test_special_chapter_parsing_invalid_string(caplog):
+def test_special_chapter_parsing_invalid_string(caplog: pytest.LogCaptureFixture):
     logger = logging.getLogger('mangadex_test_chapter_invalid')
     logger.setLevel(logging.WARNING)
     src.scrapers.mangadex.mangadex.logger = logger

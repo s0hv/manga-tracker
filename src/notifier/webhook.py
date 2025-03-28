@@ -1,14 +1,12 @@
 import json
 import logging
-from typing import List, Tuple, Dict
+from typing import Dict, List, Tuple
 
 import requests
 from pydantic import Field
 
 from src.db.models.notifications import InputField, NotificationOptions
-from src.notifier.base_notifier import (
-    NotifierBase, NotificationChapter, BaseEmbedInputs
-)
+from src.notifier.base_notifier import (BaseEmbedInputs, NotificationChapter, NotifierBase)
 
 logger = logging.getLogger('debug')
 
@@ -25,7 +23,7 @@ class JsonFields:
 class WebhookNotifier(NotifierBase):
     MAX_DEPTH = 5
 
-    def format_dict(self, d: Dict, chapter: NotificationChapter, depth: int = 0):
+    def format_dict(self, d: dict, chapter: NotificationChapter, depth: int = 0) -> dict:
         """
         Recursively formats all strings in the dict with the given chapter
         """
@@ -84,7 +82,7 @@ class WebhookNotifier(NotifierBase):
                 times_executed += 1
                 if not r.ok:
                     return times_executed, False
-            except:
+            except Exception:
                 logger.exception('Failed to send webhook')
                 return times_executed, False
 

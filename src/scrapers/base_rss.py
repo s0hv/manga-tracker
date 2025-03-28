@@ -222,7 +222,7 @@ class BaseRSS(BaseScraperWhole, ABC):
 
             try:
                 titles.append(self.Chapter(**kwargs))
-            except:
+            except Exception:
                 logger.exception(f'Failed to parse chapter {entry}')
                 continue
 
@@ -254,5 +254,5 @@ class BaseRSS(BaseScraperWhole, ABC):
 
     def scrape_service(self, service_id: int, feed_url: str,
                        last_update: Optional[datetime],
-                       title_id: Optional[str] = None):
+                       title_id: Optional[str] = None) -> ScrapeServiceRetVal | None:
         return self.add_from_feed_url(service_id, feed_url)

@@ -3,6 +3,8 @@ from typing import Collection, List, Optional, Type
 
 import psycopg.errors
 import pytest
+from psycopg import Connection
+from psycopg.rows import DictRow
 from pydantic import BaseModel
 
 from src.db.models.authors import AuthorPartial, MangaArtist, MangaAuthor
@@ -12,6 +14,7 @@ from src.scrapers import MangaPlus
 from src.scrapers.base_scraper import BaseScraper
 from src.tests.scrapers.testing_scraper import DummyScraper, DummyScraper2
 from src.tests.testing_utils import BaseTestClasses
+from src.utils.dbutils import DbUtil
 from src.utils.utilities import utcnow
 
 
@@ -22,7 +25,7 @@ class MergeResult(BaseModel):
 
 class TestMergeManga(BaseTestClasses.DatabaseTestCase):
     @pytest.fixture(autouse=True, scope='class')
-    def _set_up_merge_manga(self, class_dbutil, conn) -> None:
+    def _set_up_merge_manga(self, class_dbutil: DbUtil, conn: Connection[DictRow]) -> None:
         MangaPlus(conn, class_dbutil).add_service()
 
     def merge_manga(self, base: int, to_merge: int, service_id: Optional[int] = None) -> MergeResult:

@@ -5,7 +5,7 @@ import sys
 from src.utils.formatter import LoggingFormatter
 
 
-def setup(name='debug') -> logging.Logger:
+def setup(name: str='debug') -> logging.Logger:
     logger = logging.getLogger(name)
     logger.setLevel(logging.DEBUG)
     handler = logging.StreamHandler(sys.stdout)

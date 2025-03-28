@@ -98,16 +98,16 @@ class BaseChapter(abc.ABC):
     def __hash__(self) -> int:
         return hash(self.chapter_identifier)
 
-    def __eq__(self, other) -> bool:
+    def __eq__(self, other: object) -> bool:
         if isinstance(other, BaseChapter):
             return other.chapter_identifier == self.chapter_identifier
         else:
             return self.chapter_identifier == other
 
-    def __ne__(self, other) -> bool:
+    def __ne__(self, other: object) -> bool:
         return not self.__eq__(other)
 
-    def __lt__(self, other) -> bool:
+    def __lt__(self, other: object) -> bool:
         if isinstance(other, BaseChapter):
             return self.chapter_identifier < other.chapter_identifier
         raise TypeError(f'Incorrect type {type(other)} for less than operator')
@@ -193,14 +193,14 @@ class BaseChapterSimple(BaseChapter):
         return self._group_id
 
     @group_id.setter
-    def group_id(self, value: int):
+    def group_id(self, value: int) -> None:
         self._group_id = value
 
     @property
     def title(self) -> str:
         return self.chapter_title or f'{"Volume " + str(self.volume) + ", " if self.volume is not None else ""}Chapter {self.chapter_number}{"" if not self.decimal else "." + str(self.decimal)}'
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'{self._chapter_title} {self._chapter_identifier} - {self._title_id}'
 
 
@@ -248,7 +248,7 @@ class BaseScraper(abc.ABC):
         if cls.URL is NotImplemented:
             raise NotImplementedError("Service doesn't have the URL class property")
 
-    def __init__(self, conn, dbutil: Optional['DbUtil'] = None):
+    def __init__(self, conn: Connection[DictRow], dbutil: Optional['DbUtil'] = None):
         if self.CONFIG is NotImplemented:
             raise NotImplementedError(f'Service config value not set for {type(self).__name__}')
 

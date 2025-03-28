@@ -1,4 +1,3 @@
-from typing import Any
 from uuid import UUID
 
 from pydantic import BaseModel, field_validator
@@ -10,7 +9,7 @@ class AuthorPartial(BaseModel):
 
     @field_validator('mangadex_id', mode="before")
     @classmethod
-    def uuid2str(cls, v: Any):
+    def uuid2str(cls, v: str | UUID) -> str:
         if isinstance(v, UUID):
             return str(v)
         return v

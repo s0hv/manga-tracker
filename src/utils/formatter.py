@@ -1,5 +1,5 @@
 import logging
-from typing import Optional
+from typing import Literal, Optional
 
 from colors import color as get_color
 
@@ -7,16 +7,24 @@ type ColorType = str | int | tuple[int]
 
 
 class LoggingFormatter(logging.Formatter):
-    def __init__(self, fmt=None, datefmt=None, style='%', override_colors: Optional[dict] = None):
+    def __init__(
+            self,
+            fmt: str | None = None,
+            datefmt: str | None = None,
+            style: Literal["%", "{", "$"] = '%',
+            override_colors: Optional[dict] = None
+    ):
         super().__init__(fmt, datefmt, style)
 
-        self.colors = {logging.NOTSET: {'fg': 'default'},
-                       logging.DEBUG: {'fg': 'CYAN'},
-                       logging.INFO: {'fg': 'GREEN'},
-                       logging.WARNING: {'fg': 'YELLOW'},
-                       logging.ERROR: {'fg': 'red'},
-                       logging.CRITICAL: {'fg': 'RED', 'style': 'negative'},
-                       'EXCEPTION': {'fg': 'RED'}}  # Style for exception traceback
+        self.colors = {
+            logging.NOTSET:   {'fg': 'default'},
+            logging.DEBUG:    {'fg': 'CYAN'},
+            logging.INFO:     {'fg': 'GREEN'},
+            logging.WARNING:  {'fg': 'YELLOW'},
+            logging.ERROR:    {'fg': 'red'},
+            logging.CRITICAL: {'fg': 'RED', 'style': 'negative'},
+            'EXCEPTION':      {'fg': 'RED'}
+        }  # Style for exception traceback
 
         if override_colors:
             self.colors.update(override_colors)
@@ -34,7 +42,7 @@ class LoggingFormatter(logging.Formatter):
 
         return color
 
-    def format(self, record):
+    def format(self, record: logging.LogRecord) -> str:
         """
         Format the specified record as text.
         The record's attribute dictionary is used as the operand to a

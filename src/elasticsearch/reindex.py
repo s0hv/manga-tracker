@@ -9,7 +9,7 @@ from src.elasticsearch.configuration import INDEX_BODY, INDEX_NAME
 from src.elasticsearch.methods import ElasticMethods
 
 
-def reindex(es: Elasticsearch, cur: Cursor[DictRow], batch_size=5000):
+def reindex(es: Elasticsearch, cur: Cursor[DictRow], batch_size: int=5000) -> None:
     print(f'reindexing index {INDEX_NAME}')
     if es.indices.exists(index=INDEX_NAME):
         es.indices.delete(index=INDEX_NAME)

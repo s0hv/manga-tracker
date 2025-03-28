@@ -4,15 +4,15 @@ import time
 import typing
 from calendar import timegm
 from datetime import datetime, timedelta
-from typing import Dict, Optional, List, Any, Set
+from typing import Any, Dict, List, Optional, Set
 
 import feedparser
 from lxml import etree
 
 from src.errors import FeedHttpError, InvalidFeedError
-from src.scrapers.base_scraper import BaseScraper, BaseChapterSimple
-from src.utils.utilities import match_title, is_valid_feed, get_latest_chapters, \
-    utcnow, utcfromtimestamp
+from src.scrapers.base_scraper import BaseChapterSimple, BaseScraper
+from src.utils.utilities import (get_latest_chapters, is_valid_feed, match_title, utcfromtimestamp,
+                                 utcnow)
 
 logger = logging.getLogger('debug')
 
@@ -150,5 +150,5 @@ class Reddit(BaseScraper):
         self.dbutil.update_latest_chapter(tuple(c for c in get_latest_chapters(chapter_rows).values()))
         return {row.chapter_id for row in inserted}
 
-    def scrape_service(self, service_id: int, feed_url: str, last_update: Optional[datetime], title_id: Optional[str] = None):
+    def scrape_service(self, service_id: int, feed_url: str, last_update: Optional[datetime], title_id: Optional[str] = None) -> None:
         return None

@@ -90,7 +90,7 @@ class ChapterResult(MangadexData[ChapterAttributes]):
 
     @model_validator(mode="before")
     @classmethod
-    def restructure_data(cls, data):
+    def restructure_data(cls, data: dict) -> dict:
         """
         Maps data for reference expanded objects
         """
@@ -136,7 +136,7 @@ class MangaAttributes(BaseModel):
 
     @model_validator(mode="before")
     @classmethod
-    def restructure_data(cls, data: dict):
+    def restructure_data(cls, data: dict) -> dict:
         if 'en' in data['title']:
             return data
 
@@ -155,12 +155,12 @@ class MangaAttributes(BaseModel):
 
     @field_validator('title', mode="before")
     @classmethod
-    def validate_title(cls, v):
+    def validate_title(cls, v: dict) -> str:
         return v['en']
 
     @field_validator('links', mode="before")
     @classmethod
-    def validate_links(cls, v):
+    def validate_links(cls, v: dict | None) -> Links | dict:
         if v is None:
             return Links()
         return v
@@ -184,7 +184,7 @@ class MangaResult(MangadexData[MangaAttributes]):
 
     @model_validator(mode="before")
     @classmethod
-    def restructure_data(cls, data):
+    def restructure_data(cls, data: dict) -> dict:
         """
         Maps data for reference expanded objects
         """
@@ -290,7 +290,7 @@ class MangadexAPI:
         self.base_url = url
 
     @staticmethod
-    def join_array(ids: List[str], key: str):
+    def join_array(ids: List[str], key: str) -> str:
         key = key + '[]'
         return f'{key}={f"&{key}=".join(ids)}'
 
@@ -327,7 +327,7 @@ class MangadexAPI:
     def get_chapters(self, sort_by: SortColumns, *, languages: List[str],
                      manga_id: Optional[str] = None, limit: int = MAX_LIMIT,
                      include_groups: Optional[bool] = True, offset: Optional[int] = None,
-                     include_future_updates=True) -> Iterable[ChapterResult]:
+                     include_future_updates: bool=True) -> Iterable[ChapterResult]:
         params = []
         order = []
         for k, v in sort_by.items():
