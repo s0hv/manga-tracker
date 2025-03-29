@@ -1,9 +1,9 @@
 import logging
-from typing import Collection, Iterable, TypedDict
+from collections.abc import Collection, Iterable
+from typing import TypedDict
 
 from elasticsearch import Elasticsearch
 from elasticsearch.helpers import bulk
-
 from src.elasticsearch.configuration import INDEX_NAME
 
 logger = logging.getLogger('debug')

@@ -1,26 +1,29 @@
 import logging
-from typing import List, Optional, Tuple
 
 import pydantic_extra_types.color as pydantic_color
 from discord_webhook import DiscordEmbed, DiscordWebhook
 
 from src.db.models.notifications import InputField, NotificationOptions
-from src.notifier.base_notifier import (BaseEmbedInputs, NotificationChapter, NotifierBase,
-                                        Overrides)
+from src.notifier.base_notifier import (
+    BaseEmbedInputs,
+    NotificationChapter,
+    NotifierBase,
+    Overrides,
+)
 
 logger = logging.getLogger('debug')
 
 
 class EmbedInputs(BaseEmbedInputs):
-    message: Optional[str] = None
+    message: str | None = None
     embed_title: str
-    username: Optional[str] = None
-    avatar_url: Optional[str] = None
+    username: str | None = None
+    avatar_url: str | None = None
     embed_content: str
-    url: Optional[str] = None
-    footer: Optional[str] = None
-    thumbnail: Optional[str] = None
-    color: Optional[pydantic_color.Color] = None
+    url: str | None = None
+    footer: str | None = None
+    thumbnail: str | None = None
+    color: pydantic_color.Color | None = None
 
 
 class WebhookLimits:
@@ -57,7 +60,7 @@ class DiscordEmbedWebhookNotifier(NotifierBase):
 
         return embed
 
-    def send_notification(self, chapters: List[NotificationChapter], options: NotificationOptions, input_fields: List[InputField]) -> Tuple[int, bool]:
+    def send_notification(self, chapters: list[NotificationChapter], options: NotificationOptions, input_fields: list[InputField]) -> tuple[int, bool]:
         groups = self.get_chapters_grouped(chapters, options)
 
         embed_inputs_original = EmbedInputs.from_input_list(input_fields)

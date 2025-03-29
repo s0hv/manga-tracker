@@ -1,5 +1,6 @@
+from collections.abc import Sequence
 from math import ceil
-from typing import Any, Literal, Optional, Sequence, TypeVar, overload
+from typing import Any, Literal, TypeVar, overload
 
 import psycopg
 
@@ -12,8 +13,8 @@ def execute_values(cur: psycopg.Cursor[T],
                    values: Sequence[Sequence[Any]],
                    *,
                    fetch: Literal[False],
-                   cols_count: Optional[int] = None,
-                   template: Optional[str] = None,
+                   cols_count: int | None = None,
+                   template: str | None = None,
                    page_size: int=100) -> None: ...
 
 
@@ -23,8 +24,8 @@ def execute_values(cur: psycopg.Cursor[T],
                    values: Sequence[Sequence[Any]],
                    *,
                    fetch: Literal[True],
-                   cols_count: Optional[int] = None,
-                   template: Optional[str] = None,
+                   cols_count: int | None = None,
+                   template: str | None = None,
                    page_size: int=100) -> list[T]: ...
 
 
@@ -33,8 +34,8 @@ def execute_values(cur: psycopg.Cursor[T],
                    sql: str,
                    values: Sequence[Sequence[Any]],
                    *,
-                   cols_count: Optional[int] = None,
-                   template: Optional[str] = None,
+                   cols_count: int | None = None,
+                   template: str | None = None,
                    page_size: int=100,
                    fetch: bool = False) -> list[T] | None: ...
 
@@ -43,8 +44,8 @@ def execute_values(cur: psycopg.Cursor[T],
                    sql: str,
                    values: Sequence[Sequence[Any]],
                    *,
-                   cols_count: Optional[int] = None,
-                   template: Optional[str] = None,
+                   cols_count: int | None = None,
+                   template: str | None = None,
                    page_size=100,
                    fetch: bool | Literal[True] | Literal[False] = False) -> list[T] | None:
     """

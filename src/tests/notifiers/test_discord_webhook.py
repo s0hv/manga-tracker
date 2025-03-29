@@ -1,16 +1,17 @@
 import json
 import unittest
 from datetime import datetime, timezone
-from typing import List
 
 import responses
 from requests.models import PreparedRequest
 
 from src.db.models.notifications import InputField, NotificationOptions
-from src.notifier.base_notifier import NotificationChapter, \
-    NotificationMangaService, NotificationManga
-from src.notifier.discord_webhook import DiscordEmbedWebhookNotifier, \
-    EmbedInputs
+from src.notifier.base_notifier import (
+    NotificationChapter,
+    NotificationManga,
+    NotificationMangaService,
+)
+from src.notifier.discord_webhook import DiscordEmbedWebhookNotifier, EmbedInputs
 
 
 class TestDiscordWebhook(unittest.TestCase):
@@ -43,7 +44,7 @@ class TestDiscordWebhook(unittest.TestCase):
         )
 
     @staticmethod
-    def get_input_fields() -> List[InputField]:
+    def get_input_fields() -> list[InputField]:
         return [
             InputField(name='message', value='new chapter', optional=True),
             InputField(name='embed_title', value='$MANGA_TITLE', optional=False),

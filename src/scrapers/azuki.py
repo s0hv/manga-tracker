@@ -3,11 +3,15 @@ import logging
 import re
 from abc import ABC
 from datetime import datetime, timezone
-from typing import Dict, List, Optional, Set, Tuple, Type, TypeVar, cast
+from typing import TypeVar, cast
 
 from lxml import etree
 
-from src.scrapers.base_scraper import (BaseChapterSimple, BaseScraperWhole, ScrapeServiceRetVal)
+from src.scrapers.base_scraper import (
+    BaseChapterSimple,
+    BaseScraperWhole,
+    ScrapeServiceRetVal,
+)
 from src.utils.utilities import utctoday
 
 logger = logging.getLogger('debug')
@@ -20,7 +24,7 @@ class ParsedChapter(BaseChapterSimple, ABC):
     invalid: bool
 
     @abc.abstractmethod
-    def __init__(self, chapter_element: etree.ElementBase, group_id: Optional[int] = None): ...
+    def __init__(self, chapter_element: etree.ElementBase, group_id: int | None = None): ...
 
     def __repr__(self) -> str:
         return f'{self.manga_title} chapter {self.chapter_number}: {self.title}'
@@ -34,7 +38,7 @@ class ParsedChapter(BaseChapterSimple, ABC):
     def title(self) -> str:
         return self.chapter_title
 
-    def parse_title(self, title: str) -> Optional[Tuple[str, int, Optional[int]]]:
+    def parse_title(self, title: str) -> tuple[str, int, int | None] | None:
         if ignore_chapter_regex.match(title):
             self.invalid = True
             return None
@@ -49,7 +53,7 @@ class ParsedChapter(BaseChapterSimple, ABC):
         d = match.groupdict()
         chapter_number = int(d['chapter_number'])
         special_chapter = d['special_chapter']
-        chapter_decimal: Optional[int] = None
+        chapter_decimal: int | None = None
         if d['chapter_decimal']:
             chapter_decimal = int(d['chapter_decimal'])
 
@@ -74,7 +78,7 @@ TChapter = TypeVar('TChapter', bound=ParsedChapter)
 
 
 class MangaChapter(ParsedChapter):
-    def __init__(self, chapter_element: etree.ElementBase, group_id: Optional[int] = None):
+    def __init__(self, chapter_element: etree.ElementBase, group_id: int | None = None):
         self.invalid = False
 
         title_el = chapter_element.cssselect('a.a-card-link')[0]
@@ -117,7 +121,7 @@ class MangaChapter(ParsedChapter):
         )
 
     @property
-    def manga_title(self) -> Optional[str]:
+    def manga_title(self) -> str | None:
         return self._manga_title
 
     @manga_title.setter
@@ -126,7 +130,7 @@ class MangaChapter(ParsedChapter):
 
 
 class ReleaseChapter(ParsedChapter):
-    def __init__(self, chapter_element: etree.ElementBase, group_id: Optional[int] = None):
+    def __init__(self, chapter_element: etree.ElementBase, group_id: int | None = None):
         self.invalid = False
         title_el, chapter_el, date_el = chapter_element.cssselect('td')
 
@@ -175,7 +179,7 @@ class Azuki(BaseScraperWhole):
     MANGA_URL_FORMAT = 'https://www.azuki.co/series/{}'
 
     @staticmethod
-    def parse_chapters(rows: List[etree.ElementBase], chapter_cls: Type[TChapter], group_id: int) -> List[TChapter]:
+    def parse_chapters(rows: list[etree.ElementBase], chapter_cls: type[TChapter], group_id: int) -> list[TChapter]:
         chapters = []
         now = utctoday()
         for row in rows:
@@ -187,7 +191,7 @@ class Azuki(BaseScraperWhole):
 
         return chapters
 
-    def get_manga_chapters(self, title_id: str, group_id: int) -> Optional[List[MangaChapter]]:
+    def get_manga_chapters(self, title_id: str, group_id: int) -> list[MangaChapter] | None:
         r = self.fetch_url(self.MANGA_URL_FORMAT.format(title_id))
         if r is None:
             return None
@@ -207,8 +211,8 @@ class Azuki(BaseScraperWhole):
 
         return chapters
 
-    def scrape_series(self, title_id: str, service_id: int, manga_id: Optional[int],
-                      feed_url: Optional[str] = None) -> Optional[Set[int]]:
+    def scrape_series(self, title_id: str, service_id: int, manga_id: int | None,
+                      feed_url: str | None = None) -> set[int] | None:
         group_id = self.dbutil.get_or_create_group(self.NAME).group_id
         chapters = self.get_manga_chapters(title_id, group_id)
 
@@ -225,8 +229,8 @@ class Azuki(BaseScraperWhole):
         return set() if not retval else retval.chapter_ids
 
     def scrape_service(self, service_id: int, feed_url: str,
-                       last_update: Optional[datetime],
-                       title_id: Optional[str] = None) -> Optional[ScrapeServiceRetVal]:
+                       last_update: datetime | None,
+                       title_id: str | None = None) -> ScrapeServiceRetVal | None:
         r = self.fetch_url(feed_url)
         if r is None:
             return None
@@ -255,7 +259,7 @@ class Azuki(BaseScraperWhole):
                 if not named_chapters:
                     continue
 
-                mapped: Dict[str, ParsedChapter] = {c.chapter_identifier: c for c in manga_chapters}
+                mapped: dict[str, ParsedChapter] = {c.chapter_identifier: c for c in manga_chapters}
 
                 for c in named_chapters:
                     temp = mapped.get(c.chapter_identifier)

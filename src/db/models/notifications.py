@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import Optional
 
 from pydantic import BaseModel
 
@@ -14,14 +13,14 @@ class NotificationOptions(BaseModel):
 class PartialNotificationInfo(BaseModel):
     notification_id: int
     manga_id: int
-    service_id: Optional[int] = None
+    service_id: int | None = None
 
 
 class InputField(BaseModel):
     name: str
     value: str
     optional: bool
-    override_id: Optional[int] = None
+    override_id: int | None = None
 
 
 class UserNotification(NotificationOptions):

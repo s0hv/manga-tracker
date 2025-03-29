@@ -2,13 +2,16 @@ import logging
 import re
 from abc import ABC, abstractmethod
 from datetime import datetime, timedelta, timezone
-from typing import Optional, Set, List, Pattern
+from re import Pattern
 
 import requests
 from lxml import etree
 
-from src.scrapers.base_scraper import BaseScraperWhole, BaseChapterSimple, \
-    ScrapeServiceRetVal
+from src.scrapers.base_scraper import (
+    BaseChapterSimple,
+    BaseScraperWhole,
+    ScrapeServiceRetVal,
+)
 from src.utils.utilities import utctoday
 
 logger = logging.getLogger('debug')
@@ -25,7 +28,7 @@ class FoolSlideChapter(BaseChapterSimple):
                  chapter_element: etree.ElementBase,
                  manga_title: str,
                  title_id: str,
-                 group_id: Optional[int] = None
+                 group_id: int | None = None
                  ):
         chapter_link = chapter_element.find('div/a')
         chapter_url = chapter_link.attrib['href']
@@ -82,9 +85,9 @@ class FoolSlide(BaseScraperWhole, ABC):
         return url.split('/series/', 1)[1].strip('/')
 
     @staticmethod
-    def parse_feed(html: str, group_id: int) -> List[FoolSlideChapter]:
+    def parse_feed(html: str, group_id: int) -> list[FoolSlideChapter]:
         root: etree.ElementBase = etree.HTML(html)
-        titles: List[etree.ElementBase] = root.cssselect('div.group > div.title')
+        titles: list[etree.ElementBase] = root.cssselect('div.group > div.title')
 
         chapters = []
 
@@ -107,7 +110,7 @@ class FoolSlide(BaseScraperWhole, ABC):
     def get_group_id(self) -> int:
         return self.dbutil.get_or_create_group(self.NAME).group_id
 
-    def scrape_series(self, title_id: str, service_id: int, manga_id: Optional[int], feed_url: Optional[str] = None) -> Optional[Set[int]]:
+    def scrape_series(self, title_id: str, service_id: int, manga_id: int | None, feed_url: str | None = None) -> set[int] | None:
         r = requests.get(self.MANGA_URL_FORMAT.format(title_id))
         if not r.ok:
             logger.error(f'Failed to fetch {type(self).__name__} {feed_url}')
@@ -132,8 +135,8 @@ class FoolSlide(BaseScraperWhole, ABC):
         retval = self.handle_adding_chapters(chapters, service_id)
         return retval if retval is None else retval.chapter_ids
 
-    def scrape_service(self, service_id: int, feed_url: str, last_update: Optional[datetime],
-                       title_id: Optional[str] = None) -> Optional[ScrapeServiceRetVal]:
+    def scrape_service(self, service_id: int, feed_url: str, last_update: datetime | None,
+                       title_id: str | None = None) -> ScrapeServiceRetVal | None:
         r = requests.get(feed_url)
         if not r.ok:
             logger.error(f'Failed to fetch {type(self).__name__} {feed_url}')

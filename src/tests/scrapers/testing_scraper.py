@@ -1,5 +1,4 @@
 from datetime import datetime, timedelta
-from typing import Optional
 
 from psycopg import Connection
 from psycopg.rows import DictRow
@@ -25,11 +24,11 @@ class DummyScraper(BaseScraper):
         pass
 
     def scrape_service(self, service_id: int, feed_url: str,
-                       last_update: Optional[datetime],
-                       title_id: Optional[str] = None):
+                       last_update: datetime | None,
+                       title_id: str | None = None):
         pass
 
-    def __init__(self, conn: Connection[DictRow], dbutil: Optional[DbUtil] = None):
+    def __init__(self, conn: Connection[DictRow], dbutil: DbUtil | None = None):
         super().__init__(conn, dbutil)
 
 

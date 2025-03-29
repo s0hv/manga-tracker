@@ -1,4 +1,4 @@
-from typing import Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 from src.db.models.chapter import Chapter
 from src.utils.utilities import remove_chapter_prefix
@@ -9,7 +9,7 @@ if TYPE_CHECKING:
 
 class ChapterMapper:
     @staticmethod
-    def base_chapter_to_db(base: 'BaseChapter', manga_id: Optional[int], service_id: int, strip_chapter_prefix: bool = False) -> Chapter:
+    def base_chapter_to_db(base: 'BaseChapter', manga_id: int | None, service_id: int, strip_chapter_prefix: bool = False) -> Chapter:
         return Chapter(
             chapter_id=None,
             manga_id=manga_id,

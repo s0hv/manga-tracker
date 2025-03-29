@@ -1,12 +1,12 @@
 import abc
 import logging
 from abc import ABC
+from collections.abc import Collection, Iterable, Mapping, Sequence
 from datetime import datetime, timedelta, timezone
 from inspect import isabstract
 from itertools import groupby
 from operator import attrgetter
-from typing import (ClassVar, Collection, Dict, Iterable, List, LiteralString, Mapping, Optional,
-                    Sequence, Set, TYPE_CHECKING, TypeVar, cast)
+from typing import TYPE_CHECKING, ClassVar, LiteralString, Optional, TypeVar, cast
 
 import psycopg
 import pydantic
@@ -16,7 +16,8 @@ from psycopg.rows import DictRow
 from pydantic import BaseModel, Field
 
 from src.db.mappers.chapter_mapper import ChapterMapper
-from src.db.models.chapter import Chapter, Chapter as ChapterModel
+from src.db.models.chapter import Chapter
+from src.db.models.chapter import Chapter as ChapterModel
 from src.db.models.manga import MangaService
 from src.db.models.services import ServiceConfig
 from src.utils.utilities import get_latest_chapters, utcnow
@@ -30,7 +31,7 @@ logger = logging.getLogger('debug')
 class BaseChapter(abc.ABC):
     @property
     @abc.abstractmethod
-    def chapter_title(self) -> Optional[str]:
+    def chapter_title(self) -> str | None:
         raise NotImplementedError
 
     @property
@@ -40,12 +41,12 @@ class BaseChapter(abc.ABC):
 
     @property
     @abc.abstractmethod
-    def volume(self) -> Optional[int]:
+    def volume(self) -> int | None:
         raise NotImplementedError
 
     @property
     @abc.abstractmethod
-    def decimal(self) -> Optional[int]:
+    def decimal(self) -> int | None:
         raise NotImplementedError
 
     @property
@@ -60,22 +61,22 @@ class BaseChapter(abc.ABC):
 
     @property
     @abc.abstractmethod
-    def title_id(self) -> Optional[str]:
+    def title_id(self) -> str | None:
         raise NotImplementedError
 
     @property
     @abc.abstractmethod
-    def manga_title(self) -> Optional[str]:
+    def manga_title(self) -> str | None:
         raise NotImplementedError
 
     @property
     @abc.abstractmethod
-    def manga_url(self) -> Optional[str]:
+    def manga_url(self) -> str | None:
         raise NotImplementedError
 
     @property
     @abc.abstractmethod
-    def group(self) -> Optional[str]:
+    def group(self) -> str | None:
         raise NotImplementedError
 
     @property
@@ -118,17 +119,17 @@ class BaseChapterSimple(BaseChapter):
     A sensible default implementation for a chapter
     """
     def __init__(self,
-                 chapter_title: Optional[str],
+                 chapter_title: str | None,
                  chapter_number: int,
                  chapter_identifier: str,
                  title_id: str,
-                 volume: Optional[int] = None,
-                 decimal: Optional[int] = None,
-                 release_date: Optional[datetime] = None,
-                 manga_title: Optional[str] = None,
-                 manga_url: Optional[str] = None,
-                 group: Optional[str] = None,
-                 group_id: Optional[int] = None
+                 volume: int | None = None,
+                 decimal: int | None = None,
+                 release_date: datetime | None = None,
+                 manga_title: str | None = None,
+                 manga_url: str | None = None,
+                 group: str | None = None,
+                 group_id: int | None = None
                  ):
         self._chapter_title = chapter_title
         self._chapter_number = chapter_number
@@ -146,7 +147,7 @@ class BaseChapterSimple(BaseChapter):
         self._group_id = group_id
 
     @property
-    def chapter_title(self) -> Optional[str]:
+    def chapter_title(self) -> str | None:
         return self._chapter_title
 
     @property
@@ -154,11 +155,11 @@ class BaseChapterSimple(BaseChapter):
         return self._chapter_number
 
     @property
-    def volume(self) -> Optional[int]:
+    def volume(self) -> int | None:
         return self._volume
 
     @property
-    def decimal(self) -> Optional[int]:
+    def decimal(self) -> int | None:
         return self._decimal
 
     @property
@@ -174,15 +175,15 @@ class BaseChapterSimple(BaseChapter):
         return self._title_id
 
     @property
-    def manga_title(self) -> Optional[str]:
+    def manga_title(self) -> str | None:
         return self._manga_title
 
     @property
-    def manga_url(self) -> Optional[str]:
+    def manga_url(self) -> str | None:
         return self._manga_url
 
     @property
-    def group(self) -> Optional[str]:
+    def group(self) -> str | None:
         return self._group
 
     @property
@@ -208,8 +209,8 @@ ScraperChapter = TypeVar('ScraperChapter', bound=BaseChapter)
 
 
 class ScrapeServiceRetVal(BaseModel):
-    manga_ids: Set[int] = Field(default_factory=set)
-    chapter_ids: Set[int] = Field(default_factory=set)
+    manga_ids: set[int] = Field(default_factory=set)
+    chapter_ids: set[int] = Field(default_factory=set)
 
 
 class BaseScraper(abc.ABC):
@@ -288,7 +289,7 @@ class BaseScraper(abc.ABC):
         return utcnow() + self.min_update_interval()
 
     @abc.abstractmethod
-    def scrape_series(self, title_id: str, service_id: int, manga_id: int, feed_url: Optional[str]) -> Optional[Set[int]]:
+    def scrape_series(self, title_id: str, service_id: int, manga_id: int, feed_url: str | None) -> set[int] | None:
         """
         Returns:
             Set of new chapter ids.
@@ -297,8 +298,8 @@ class BaseScraper(abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def scrape_service(self, service_id: int, feed_url: str, last_update: Optional[datetime],
-                       title_id: Optional[str] = None) -> Optional[ScrapeServiceRetVal]:
+    def scrape_service(self, service_id: int, feed_url: str, last_update: datetime | None,
+                       title_id: str | None = None) -> ScrapeServiceRetVal | None:
         raise NotImplementedError
 
     def add_service(self) -> int | None:
@@ -324,11 +325,11 @@ class BaseScraper(abc.ABC):
     @staticmethod
     def titles_dict_to_manga_service(
             titles: Mapping[str, Sequence[BaseChapter]],
-            service_id: int, disabled: bool = False, manga_title: Optional[str] = None) -> List[MangaService]:
+            service_id: int, disabled: bool = False, manga_title: str | None = None) -> list[MangaService]:
         """
         Turns a dict Dict[title_id, chapters] into a list of MangaService objects.
         """
-        mangas: List[MangaService] = []
+        mangas: list[MangaService] = []
         for title_id, chapters in titles.items():
             mangas.append(
                 MangaService(
@@ -341,8 +342,8 @@ class BaseScraper(abc.ABC):
         return mangas
 
     @staticmethod
-    def group_by_manga(chapters: Iterable[ScraperChapter]) -> Dict[str, List[ScraperChapter]]:
-        titles: Dict[str, List[ScraperChapter]] = {}
+    def group_by_manga(chapters: Iterable[ScraperChapter]) -> dict[str, list[ScraperChapter]]:
+        titles: dict[str, list[ScraperChapter]] = {}
         # Must be sorted for groupby to work, as it only splits the list each time the key changes
         for k, g in groupby(sorted(chapters, key=attrgetter('title_id')),
                             attrgetter('title_id')):
@@ -350,13 +351,13 @@ class BaseScraper(abc.ABC):
 
         return titles
 
-    def map_already_added_titles(self, service_id: int, titles: Dict[str, List[ScraperChapter]],
-                                 manga_ids: Set[int]) -> List[ChapterModel]:
+    def map_already_added_titles(self, service_id: int, titles: dict[str, list[ScraperChapter]],
+                                 manga_ids: set[int]) -> list[ChapterModel]:
         """
         Maps the chapters of titles that already exist to the database model.
         Updates the given manga_ids set with the manga that were found.
         """
-        chapters: List[ChapterModel] = []
+        chapters: list[ChapterModel] = []
 
         for ms in self.dbutil.find_added_titles(service_id, tuple(titles.keys())):
             # Manga id has been set so it can't be None
@@ -381,9 +382,9 @@ class BaseScraper(abc.ABC):
 
     def add_new_manga_with_dupe_check(self, service_id: int,
                                       mangas: Sequence[MangaService],
-                                      manga_ids: Set[int],
-                                      chapters: List[ChapterModel],
-                                      titles: Dict[str, List[ScraperChapter]]) -> None:
+                                      manga_ids: set[int],
+                                      chapters: list[ChapterModel],
+                                      titles: dict[str, list[ScraperChapter]]) -> None:
         """
         Calls DbUtil.add_new_manga_and_check_duplicate_titles
         to add the given manga to the database with checks for duplicate titles.
@@ -400,7 +401,7 @@ class BaseScraper(abc.ABC):
                 except pydantic.ValidationError:
                     logger.exception(f'Failed to map chapter {chapter} to db model')
 
-    def get_new_entries(self, service_id: int, entries: Collection[ScraperChapter]) -> Optional[Collection[ScraperChapter]]:
+    def get_new_entries(self, service_id: int, entries: Collection[ScraperChapter]) -> Collection[ScraperChapter] | None:
         """
         Get only the new chapters to a service. Returns None if no new entries found.
         """
@@ -415,7 +416,7 @@ class BaseScraper(abc.ABC):
 
         return entries
 
-    def fetch_url(self, url: str, headers: Optional[Dict[str, str]] = None) -> Optional[requests.Response]:
+    def fetch_url(self, url: str, headers: dict[str, str] | None = None) -> requests.Response | None:
         try:
             r = requests.get(url, headers=headers)
         except requests.RequestException:
@@ -430,7 +431,7 @@ class BaseScraper(abc.ABC):
 
 
 class BaseScraperWhole(BaseScraper, ABC):
-    def add_service(self) -> Optional[int]:
+    def add_service(self) -> int | None:
         service_id = super().add_service()
         if not service_id:
             return None
@@ -453,7 +454,7 @@ class BaseScraperWhole(BaseScraper, ABC):
         except psycopg.Error:
             logger.exception(f'Failed to update service {service_id}')
 
-    def handle_adding_chapters(self, entries: Collection[ScraperChapter], service_id: int) -> Optional[ScrapeServiceRetVal]:
+    def handle_adding_chapters(self, entries: Collection[ScraperChapter], service_id: int) -> ScrapeServiceRetVal | None:
         """
         Given a list of parsed chapters this method will filter out already added chapters,
         add new manga and check for duplicate title, add the new chapters and return the updated manga ids
@@ -485,7 +486,7 @@ class BaseScraperWhole(BaseScraper, ABC):
         self.add_new_manga_with_dupe_check(
             service_id,
             mangas,
-            cast(Set[int], manga_ids),
+            cast(set[int], manga_ids),
             chapters,
             titles
         )
@@ -496,6 +497,6 @@ class BaseScraperWhole(BaseScraper, ABC):
 
         # At this point the set has no None values
         return ScrapeServiceRetVal(
-            manga_ids=cast(Set[int], manga_ids),
+            manga_ids=cast(set[int], manga_ids),
             chapter_ids={row.chapter_id for row in inserted}
         )

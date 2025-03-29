@@ -169,7 +169,7 @@ class ComikeyTest(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsserti
         if not title_id or title_id.isnumeric():
             return 200, {}, None
 
-        redirect_headers = {"location": "/comics/{}/".format(self.redirects[title_id])}
+        redirect_headers = {"location": f"/comics/{self.redirects[title_id]}/"}
         return 301, redirect_headers, b""
 
     @responses.activate

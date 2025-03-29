@@ -1,6 +1,5 @@
 import json
 import logging
-from typing import Dict, List, Tuple
 
 import requests
 from pydantic import Field
@@ -41,7 +40,7 @@ class WebhookNotifier(NotifierBase):
         return d
 
     @staticmethod
-    def validate_json(json_string: str) -> Dict:
+    def validate_json(json_string: str) -> dict:
         try:
             data = json.loads(json_string)
         except Exception:
@@ -60,7 +59,7 @@ class WebhookNotifier(NotifierBase):
 
         return data
 
-    def send_notification(self, chapters: List[NotificationChapter], options: NotificationOptions, input_fields: List[InputField]) -> Tuple[int, bool]:
+    def send_notification(self, chapters: list[NotificationChapter], options: NotificationOptions, input_fields: list[InputField]) -> tuple[int, bool]:
         inputs = EmbedInputs.from_input_list(input_fields)
 
         data = self.validate_json(inputs.json_field)
@@ -68,7 +67,7 @@ class WebhookNotifier(NotifierBase):
 
         groups = self.get_chapters_grouped(chapters, options)
 
-        chapter_format: Dict = data.pop(JsonFields.CHAPTER_FORMAT)
+        chapter_format: dict = data.pop(JsonFields.CHAPTER_FORMAT)
         chapters_array_key = data.pop(JsonFields.CHAPTER_ARRAY)
 
         for group in groups:

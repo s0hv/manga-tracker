@@ -3,19 +3,20 @@ import subprocess
 import sys
 import typing
 import unittest
+from collections.abc import Callable
 from datetime import datetime, timedelta
-from typing import Any, Callable, List, Optional, Tuple, Type, TypeVar, Union
+from typing import Any, TypeVar, Union
 from unittest import mock
 
 import feedparser
 import psycopg
 import pytest
 import testing.postgresql
-from elasticsearch.client import Elasticsearch
 from psycopg import Connection
 from psycopg.rows import DictRow, dict_row
 from pydantic import BaseModel
 
+from elasticsearch.client import Elasticsearch
 from src.constants import NO_GROUP
 from src.db.models.chapter import Chapter as DbChapter
 from src.db.models.manga import Manga, MangaService, MangaServiceWithId
@@ -29,9 +30,9 @@ originalParse = feedparser.parse
 
 DONT_USE_TEMP_DATABASE = bool(os.environ.get('NO_TEMP_DB', False))
 
-Postgresql: Optional[testing.postgresql.PostgresqlFactory] = None
+Postgresql: testing.postgresql.PostgresqlFactory | None = None
 
-EMPTY_SCRAPE_SERVICE: Tuple[List, List] = ([], [])
+EMPTY_SCRAPE_SERVICE: tuple[list, list] = ([], [])
 TEST_USER_ID = 3
 
 if DONT_USE_TEMP_DATABASE:
@@ -60,13 +61,13 @@ def run_migrations(conn: Connection[DictRow]) -> None:
     p.wait()
 
 
-def create_db(postgres: Optional[testing.postgresql.Postgresql]) -> Connection[DictRow]:
+def create_db(postgres: testing.postgresql.Postgresql | None) -> Connection[DictRow]:
     conn = create_conn(postgres)
     run_migrations(conn)
     return conn
 
 
-def create_conn(postgres: Optional[testing.postgresql.Postgresql]) -> Connection[DictRow]:
+def create_conn(postgres: testing.postgresql.Postgresql | None) -> Connection[DictRow]:
     conn: Connection[DictRow]
     if DONT_USE_TEMP_DATABASE or not postgres:
         conn = psycopg.connect(
@@ -112,7 +113,7 @@ def mock_feedparse[**P](feed: object, *args: P.args, **kwargs: P.kwargs) -> Call
 
 
 # Actually returns a literal union between the input and MagicMock
-def spy_on(instance: T) -> Union[T, mock.MagicMock]:
+def spy_on(instance: T) -> T | mock.MagicMock:
     return mock.MagicMock(spec_set=instance, wraps=instance)
 
 
@@ -174,18 +175,18 @@ class BaseTestClasses:
         def get_str_id(self) -> str:
             return self._generator.generate(type(self).__name__)
 
-        def get_manga_service(self, scraper: Type['BaseScraper'] = DummyScraper) -> MangaService:
+        def get_manga_service(self, scraper: type['BaseScraper'] = DummyScraper) -> MangaService:
             id_ = self.get_str_id()
             return MangaService(service_id=scraper.ID, title_id=id_,
                                 title=f'{id_}_manga')
 
-        def create_manga_service(self, scraper: Type['BaseScraper'] = DummyScraper) -> MangaServiceWithId:
+        def create_manga_service(self, scraper: type['BaseScraper'] = DummyScraper) -> MangaServiceWithId:
             id_ = self.get_str_id()
             ms = MangaServiceWithId(service_id=scraper.ID, title_id=id_,
                                     title=f'{id_}_manga', manga_id=0)
             return self.dbutil.add_manga_service(ms, add_manga=True)
 
-        def create_db_chapter_objects(self, manga: MangaService, n: int) -> List['DbChapter']:
+        def create_db_chapter_objects(self, manga: MangaService, n: int) -> list['DbChapter']:
             return [
                 DbChapter(
                     manga_id=manga.manga_id, service_id=manga.service_id,
@@ -195,7 +196,7 @@ class BaseTestClasses:
                     group_id=NO_GROUP)
                 for id_ in [self.get_str_id() for _ in range(n)]]
 
-        def create_chapters(self, manga: MangaService, n: int) -> List[DbChapter]:
+        def create_chapters(self, manga: MangaService, n: int) -> list[DbChapter]:
             chapters = self.create_db_chapter_objects(manga, n)
             inserted = {c.chapter_identifier: c.chapter_id for c in self.dbutil.add_chapters(chapters)}
             for c in chapters:
@@ -267,7 +268,7 @@ class BaseTestClasses:
 
         def assertDatesAlmostEqual(self, date1: datetime | None, date2: datetime,
                                    delta: timedelta = timedelta(seconds=1),
-                                   msg: Optional[str] = None):
+                                   msg: str | None = None):
             assert date1 is not None
             self.assertAlmostEqual(date1, date2, delta=delta, msg=msg)
 
@@ -310,7 +311,7 @@ class BaseTestClasses:
             if include_id:
                 self.assertEqual(a.chapter_id, expected.chapter_id, msg=f'Chapter ids not equal for {a.chapter_identifier}')
 
-        def assertAllDbChaptersEqual(self, chapters: List['DbChapter'], expected: List['DbChapter'],
+        def assertAllDbChaptersEqual(self, chapters: list['DbChapter'], expected: list['DbChapter'],
                                      include_id: bool = False):
             self.assertEqual(len(chapters), len(expected), msg='Different amount of chapters passed')
 
@@ -365,7 +366,7 @@ class BaseTestClasses:
 
         def assertAllChaptersEqual[C: BaseChapter | 'ChapterTestModel'](
                 self, chapters: list[C],
-                expected: Union[List[BaseChapter], List['ChapterTestModel']],
+                expected: list[BaseChapter] | list['ChapterTestModel'],
                 ignore_date: bool = False):
             self.assertEqual(len(chapters), len(expected), msg='Different amount of chapters passed')
 
@@ -379,11 +380,11 @@ class BaseTestClasses:
 
 
 class Chapter(BaseChapterSimple):
-    def __init__(self, chapter_title: Optional[str] = None, chapter_number: int = 0,
-                 volume: Optional[int] = None, decimal: Optional[int] = None,
-                 release_date: Optional[datetime] = None, chapter_identifier: str = '',
-                 title_id: str = '', manga_title: Optional[str] = None,
-                 manga_url: Optional[str] = None, group: Optional[str] = None,
+    def __init__(self, chapter_title: str | None = None, chapter_number: int = 0,
+                 volume: int | None = None, decimal: int | None = None,
+                 release_date: datetime | None = None, chapter_identifier: str = '',
+                 title_id: str = '', manga_title: str | None = None,
+                 manga_url: str | None = None, group: str | None = None,
                  group_id: int = NO_GROUP):
         super().__init__(
             chapter_title=chapter_title,
@@ -405,16 +406,16 @@ class Chapter(BaseChapterSimple):
 
 
 class ChapterTestModel(BaseModel):
-    chapter_title: Optional[str] = None
+    chapter_title: str | None = None
     chapter_number: int
-    volume: Optional[int] = None
-    decimal: Optional[int] = None
+    volume: int | None = None
+    decimal: int | None = None
     release_date: datetime
     chapter_identifier: str
-    title_id: Optional[str] = None
-    manga_title: Optional[str] = None
-    manga_url: Optional[str] = None
-    group: Optional[str] = None
+    title_id: str | None = None
+    manga_title: str | None = None
+    manga_url: str | None = None
+    group: str | None = None
     title: str
     group_id: int
 
@@ -449,16 +450,16 @@ class ChapterTestModel(BaseModel):
 
 
 class ChapterSnapshot(BaseModel):
-    data: List[ChapterTestModel]
+    data: list[ChapterTestModel]
 
 
-def save_chapters_snapshot(chapters: List[BaseChapter], filename: str):
+def save_chapters_snapshot(chapters: list[BaseChapter], filename: str):
     chs = list(map(ChapterTestModel.from_chapter, chapters))
 
     with open(filename, 'w', encoding='utf-8') as f:
         f.write(ChapterSnapshot(data=chs).json(ensure_ascii=False, indent=2))
 
 
-def load_chapters_snapshot(filename: str) -> List[ChapterTestModel]:
-    with open(filename, 'r', encoding='utf-8') as f:
+def load_chapters_snapshot(filename: str) -> list[ChapterTestModel]:
+    with open(filename, encoding='utf-8') as f:
         return ChapterSnapshot.model_validate_json(f.read()).data

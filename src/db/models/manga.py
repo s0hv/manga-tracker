@@ -1,5 +1,6 @@
+from collections.abc import Iterable
 from datetime import datetime, timedelta
-from typing import Iterable, Optional, Self, TYPE_CHECKING, Type
+from typing import TYPE_CHECKING, Self
 
 from psycopg import Connection
 from psycopg.rows import DictRow
@@ -13,12 +14,12 @@ if TYPE_CHECKING:
 
 
 class Manga(BaseModel):
-    manga_id: Optional[int] = None
+    manga_id: int | None = None
     title: str
-    release_interval: Optional[timedelta] = None
-    latest_release: Optional[datetime] = None
-    estimated_release: Optional[datetime] = None
-    latest_chapter: Optional[int] = None
+    release_interval: timedelta | None = None
+    latest_release: datetime | None = None
+    estimated_release: datetime | None = None
+    latest_chapter: int | None = None
     views: int = 0
 
 
@@ -29,40 +30,40 @@ class MangaWithId(Manga):
 class MangaForNotifications(BaseModel):
     manga_id: int
     title: str
-    cover: Optional[str] = None
+    cover: str | None = None
     title_id: str
     service_id: int
 
 
 class MangaInfo(BaseModel):
     manga_id: int
-    cover: Optional[str] = None
+    cover: str | None = None
     status: int = 0
-    artist: Optional[str] = None
-    author: Optional[str] = None
-    bw: Optional[str] = None
-    mu: Optional[str] = None
-    mal: Optional[str] = None
-    amz: Optional[str] = None
-    ebj: Optional[str] = None
-    engtl: Optional[str] = None
-    raw: Optional[str] = None
-    nu: Optional[str] = None
-    kt: Optional[str] = None
-    ap: Optional[str] = None
-    al: Optional[str] = None
+    artist: str | None = None
+    author: str | None = None
+    bw: str | None = None
+    mu: str | None = None
+    mal: str | None = None
+    amz: str | None = None
+    ebj: str | None = None
+    engtl: str | None = None
+    raw: str | None = None
+    nu: str | None = None
+    kt: str | None = None
+    ap: str | None = None
+    al: str | None = None
     last_updated: datetime = Field(default_factory=utcnow)
 
 
 class MangaServicePartial(BaseModel):
-    manga_id: Optional[int] = None
+    manga_id: int | None = None
     service_id: int
     disabled: bool = False
     title_id: str
-    last_check: Optional[datetime] = Field(default_factory=utcnow)
-    next_update: Optional[datetime] = None
-    feed_url: Optional[str] = None
-    latest_decimal: Optional[int] = None
+    last_check: datetime | None = Field(default_factory=utcnow)
+    next_update: datetime | None = None
+    feed_url: str | None = None
+    latest_decimal: int | None = None
 
     @classmethod
     def from_manga_service(cls, manga_service: 'MangaService') -> Self:
@@ -71,7 +72,7 @@ class MangaServicePartial(BaseModel):
     # Returns a class initializer so it is named as a class would
     # noinspection PyPep8Naming
     @property
-    def Scraper(self) -> Type['BaseScraper']:
+    def Scraper(self) -> type['BaseScraper']:
         from src.scrapers import SCRAPERS_ID
         return SCRAPERS_ID[self.service_id]
 

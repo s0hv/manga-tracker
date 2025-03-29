@@ -1,14 +1,18 @@
 import statistics
 import unittest
 from datetime import datetime, timedelta, timezone
-from typing import List, Optional
 
 import psycopg
 
 from src.constants import NO_GROUP
 from src.db.models.chapter import Chapter as ChapterModel
-from src.db.models.manga import (Manga, MangaService, MangaServicePartial, MangaServiceWithId,
-                                 MangaWithId)
+from src.db.models.manga import (
+    Manga,
+    MangaService,
+    MangaServicePartial,
+    MangaServiceWithId,
+    MangaWithId,
+)
 from src.db.models.services import Service
 from src.tests.scrapers.testing_scraper import DummyScraper, DummyScraper2
 from src.tests.testing_utils import BaseTestClasses, Chapter, spy_on
@@ -578,7 +582,7 @@ class TestUpdateInterval(BaseDbutilTest):
 
         return ms_with_id
 
-    def get_chapter(self, m: MangaService, chapter_number: int, release_date: Optional[datetime] = None) -> ChapterModel:
+    def get_chapter(self, m: MangaService, chapter_number: int, release_date: datetime | None = None) -> ChapterModel:
         id_ = self.get_str_id()
 
         return ChapterModel(
@@ -638,7 +642,7 @@ class TestUpdateInterval(BaseDbutilTest):
 
         chapter_number = 1
 
-        def get_chapter(decimal: Optional[int] = None) -> ChapterModel:
+        def get_chapter(decimal: int | None = None) -> ChapterModel:
             chapter = self.get_chapter(m, chapter_number)
             chapter.chapter_decimal = decimal
 
@@ -766,7 +770,7 @@ class TestUpdateInterval(BaseDbutilTest):
         m = self.setup_manga()
 
         chapter_number = 0
-        decimal: Optional[int] = None
+        decimal: int | None = None
         interval = timedelta(days=7)
         t = utcnow()
 
@@ -829,11 +833,11 @@ class TestUpdateMangaTitle(BaseDbutilTest):
     def gen_title(self) -> str:
         return f'{self.get_str_id()}_manga'
 
-    def create_manga(self, title: Optional[str] = None) -> MangaWithId:
+    def create_manga(self, title: str | None = None) -> MangaWithId:
         ms = Manga(title=title or self.gen_title())
         return MangaWithId.model_validate(self.dbutil.add_new_manga(ms).model_dump())
 
-    def get_manga_aliases(self, manga_id: int) -> List[str]:
+    def get_manga_aliases(self, manga_id: int) -> list[str]:
         sql = 'SELECT title FROM manga_alias WHERE manga_id=%s'
         return [row['title'] for row in self.dbutil.execute(sql, (manga_id,))]
 

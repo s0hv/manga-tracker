@@ -2,18 +2,23 @@ import logging
 import re
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import List, Optional, Set, Tuple
 
 import psycopg
 import requests
 
-from src.db.mappers.chapter_mapper import Chapter as ChapterModel, ChapterMapper
+from src.db.mappers.chapter_mapper import Chapter as ChapterModel
+from src.db.mappers.chapter_mapper import ChapterMapper
 from src.db.models.authors import AuthorPartial
 from src.db.models.manga import MangaService
 from src.enums import Status
-from src.scrapers.base_scraper import (BaseChapter, BaseScraper, BaseScraperWhole,
-                                       ScrapeServiceRetVal)
+from src.scrapers.base_scraper import (
+    BaseChapter,
+    BaseScraper,
+    BaseScraperWhole,
+    ScrapeServiceRetVal,
+)
 from src.utils.utilities import random_timedelta, utcfromtimestamp, utcnow
+
 from .protobuf import mangaplus_pb2
 
 logger = logging.getLogger('debug')
@@ -40,7 +45,7 @@ class TitleWrapper:
         return self._title.author
 
     @property
-    def view_count(self) -> Optional[int]:
+    def view_count(self) -> int | None:
         return self._title.view_count
 
     @property
@@ -72,11 +77,11 @@ class TitleDetailViewWrapper:
         return TitleWrapper(self._title_detail.title)
 
     @property
-    def overview(self) -> Optional[str]:
+    def overview(self) -> str | None:
         return self._title_detail.overview
 
     @property
-    def next_timestamp(self) -> Optional[datetime]:
+    def next_timestamp(self) -> datetime | None:
         if self._title_detail.next_timestamp:
             return utcfromtimestamp(self._title_detail.next_timestamp)
         else:
@@ -87,15 +92,15 @@ class TitleDetailViewWrapper:
         return mangaplus_pb2.TitleDetailView.UpdateTiming.Name(self._title_detail.update_timing)
 
     @property
-    def viewing_period_description(self) -> Optional[str]:
+    def viewing_period_description(self) -> str | None:
         return self._title_detail.viewing_period_description
 
     @property
-    def non_appearance_info(self) -> Optional[str]:
+    def non_appearance_info(self) -> str | None:
         return self._title_detail.non_appearance_info
 
     @property
-    def chapters(self) -> List['ChapterWrapper']:
+    def chapters(self) -> list['ChapterWrapper']:
         title_name = self.title.name
 
         def flatten(chapters_view: mangaplus_pb2.ChaptersView):
@@ -108,7 +113,7 @@ class TitleDetailViewWrapper:
                 for c in flatten(ch_cont)]
 
     @property
-    def is_simul_release(self) -> Optional[bool]:
+    def is_simul_release(self) -> bool | None:
         return self._title_detail.is_simul_release
 
     @property
@@ -124,7 +129,7 @@ class AllTitlesViewWrapper:
         self._all_titles = all_titles
 
     @property
-    def titles(self) -> List[TitleWrapper]:
+    def titles(self) -> list[TitleWrapper]:
         return [TitleWrapper(title)
                 for variant in self._all_titles.title_variants
                 for title in variant.title
@@ -137,21 +142,21 @@ class ResponseWrapper:
         self._response.ParseFromString(data)
 
     @property
-    def success_result(self) -> Optional[mangaplus_pb2.SuccessResult]:
+    def success_result(self) -> mangaplus_pb2.SuccessResult | None:
         if self._response.HasField('success_result'):
             return self._response.success_result
         else:
             return None
 
     @property
-    def error_result(self) -> Optional[mangaplus_pb2.ErrorResult]:
+    def error_result(self) -> mangaplus_pb2.ErrorResult | None:
         if self._response.HasField('error_result'):
             return self._response.error_result
         else:
             return None
 
     @property
-    def title_detail_view(self) -> Optional[TitleDetailViewWrapper]:
+    def title_detail_view(self) -> TitleDetailViewWrapper | None:
         res = self.success_result
         if not res or not res.HasField('title_detail'):
             return None
@@ -159,7 +164,7 @@ class ResponseWrapper:
         return TitleDetailViewWrapper(res.title_detail)
 
     @property
-    def all_titles_view(self) -> Optional[AllTitlesViewWrapper]:
+    def all_titles_view(self) -> AllTitlesViewWrapper | None:
         res = self.success_result
         if not res or not res.HasField('all_titles'):
             return None
@@ -168,14 +173,14 @@ class ResponseWrapper:
 
 
 class ChapterWrapper(BaseChapter):
-    def __init__(self, chapter: mangaplus_pb2.Chapter, manga_title: str, group_id: Optional[int] = None):
+    def __init__(self, chapter: mangaplus_pb2.Chapter, manga_title: str, group_id: int | None = None):
         self._chapter = chapter
         self._chapter_number, self._chapter_decimal = MangaPlus.parse_chapter(chapter.name)
         self._manga_title = manga_title
         self._group_id = group_id
 
     @property
-    def chapter_title(self) -> Optional[str]:
+    def chapter_title(self) -> str | None:
         return self._chapter.sub_title
 
     @property
@@ -191,7 +196,7 @@ class ChapterWrapper(BaseChapter):
         return None
 
     @property
-    def decimal(self) -> Optional[int]:
+    def decimal(self) -> int | None:
         return self._chapter_decimal
 
     @property
@@ -255,7 +260,7 @@ class MangaPlus(BaseScraperWhole):
         return random_timedelta(timedelta(minutes=10), timedelta(minutes=20))
 
     @staticmethod
-    def parse_chapter(chapter_number: str) -> Tuple[int, Optional[int]]:
+    def parse_chapter(chapter_number: str) -> tuple[int, int | None]:
         match = MangaPlus.CHAPTER_REGEX.match(chapter_number)
         if not match:
             match = MangaPlus.SPECIAL_CHAPTER_REGEX.match(chapter_number)
@@ -273,7 +278,7 @@ class MangaPlus(BaseScraperWhole):
         return int(match.groups()[0]), None
 
     @staticmethod
-    def parse_series(title_id: str) -> Optional[ResponseWrapper]:
+    def parse_series(title_id: str) -> ResponseWrapper | None:
         try:
             r = requests.get(MangaPlus.API.format(title_id))
         except requests.RequestException:
@@ -286,7 +291,7 @@ class MangaPlus(BaseScraperWhole):
         return ResponseWrapper(r.content)
 
     @staticmethod
-    def get_all_titles(api_url: str) -> Optional[AllTitlesViewWrapper]:
+    def get_all_titles(api_url: str) -> AllTitlesViewWrapper | None:
         try:
             r = requests.get(api_url)
         except requests.RequestException:
@@ -302,7 +307,7 @@ class MangaPlus(BaseScraperWhole):
         return all_titles
 
     def scrape_service(self, service_id: int, feed_url: str,
-                       last_update: Optional[datetime], title_id: Optional[str] = None) -> Optional[ScrapeServiceRetVal]:
+                       last_update: datetime | None, title_id: str | None = None) -> ScrapeServiceRetVal | None:
         self.dbutil.update_service_whole(service_id, timedelta(days=1) + self.min_update_interval())
         all_titles = self.get_all_titles(feed_url)
         if not all_titles:
@@ -334,7 +339,7 @@ class MangaPlus(BaseScraperWhole):
         return None
 
     def scrape_series(self, title_id: str, service_id: int, manga_id: int,
-                      feed_url: str | None = None) -> Optional[Set[int]]:
+                      feed_url: str | None = None) -> set[int] | None:
         parsed = self.parse_series(title_id)
         if parsed is None:
             return None
@@ -351,11 +356,11 @@ class MangaPlus(BaseScraperWhole):
 
         return self.add_chapters(series, service_id, manga_id)
 
-    def add_chapters(self, series: TitleDetailViewWrapper, service_id: int, manga_id: int) -> Optional[Set[int]]:
+    def add_chapters(self, series: TitleDetailViewWrapper, service_id: int, manga_id: int) -> set[int] | None:
         group = self.dbutil.get_or_create_group(self.GROUP)
 
         group_id = group.group_id
-        chapters: List[ChapterWrapper] = series.chapters
+        chapters: list[ChapterWrapper] = series.chapters
 
         # Update chapter number for special chapters
         prev_chapter = None
@@ -373,14 +378,14 @@ class MangaPlus(BaseScraperWhole):
 
         entries = self.get_new_entries(service_id, chapters) or []
 
-        new_chapters: List[ChapterModel] = []
+        new_chapters: list[ChapterModel] = []
         for chapter in entries:
             new_chapters.append(
                 ChapterMapper.base_chapter_to_db(chapter, manga_id, service_id, strip_chapter_prefix=True)
             )
 
         now = utcnow()
-        next_update: Optional[datetime] = now + timedelta(hours=12) + self.min_update_interval()
+        next_update: datetime | None = now + timedelta(hours=12) + self.min_update_interval()
         disabled = False
         completed = False
         if series.next_timestamp:

@@ -131,7 +131,7 @@ class AzukiTest(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAssertion
     @responses.activate
     def test_parse_manga_page(self):
         title_id = 'grand-blue-dreaming'
-        with open(manga_page_path, 'r', encoding='utf-8') as f:
+        with open(manga_page_path, encoding='utf-8') as f:
             data = f.read()
         responses.add(responses.GET, Azuki.MANGA_URL_FORMAT.format(title_id), body=data)
 
@@ -156,7 +156,7 @@ class AzukiTest(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAssertion
     def test_parse_releases_page(self):
         src.scrapers.azuki.utctoday.return_value = get_date('Jun 1, 2022').replace(tzinfo=timezone.utc)  # type: ignore[attr-defined]
 
-        with open(releases_page_path, 'r', encoding='utf-8') as f:
+        with open(releases_page_path, encoding='utf-8') as f:
             data = f.read()
         responses.get(Azuki.FEED_URL, body=data)
         resp = responses.get(re.compile(Azuki.MANGA_URL_FORMAT.format('.+')), status=500)

@@ -1,7 +1,7 @@
 import os
 import unittest
 from datetime import timedelta
-from typing import Optional, cast
+from typing import cast
 
 import pytest
 import requests
@@ -9,8 +9,11 @@ import responses
 
 from src.db.models.chapter import Chapter
 from src.db.models.manga import MangaServiceWithId
-from src.scrapers.mangaplus.mangaplus import (MangaPlus, ResponseWrapper,
-                                              TitleDetailViewWrapper)
+from src.scrapers.mangaplus.mangaplus import (
+    MangaPlus,
+    ResponseWrapper,
+    TitleDetailViewWrapper,
+)
 from src.scrapers.mangaplus.protobuf import mangaplus_pb2
 from src.tests.testing_utils import BaseTestClasses, spy_on
 from src.utils.utilities import utcfromtimestamp, utcnow
@@ -58,7 +61,7 @@ class TestMangaPlusParser(BaseTestClasses.DatabaseTestCase):
 
     @classmethod
     def setUpClass(cls) -> None:
-        super(TestMangaPlusParser, cls).setUpClass()
+        super().setUpClass()
         cls.request_data_complete = cls.read_title_detail_data('complete')
         cls.request_data_existing = cls.read_title_detail_data('existing')
         cls.request_data_ongoing = cls.read_title_detail_data('ongoing')
@@ -109,7 +112,7 @@ class TestMangaPlusParser(BaseTestClasses.DatabaseTestCase):
 
         inserted = self.dbutil.get_chapters(ms.manga_id, ms.service_id, limit=len(chapter_ids))
 
-        last_chapter: Optional[Chapter] = None
+        last_chapter: Chapter | None = None
         for c in inserted:
             if c.chapter_number == 124:
                 last_chapter = c

@@ -1,22 +1,24 @@
-from typing import List, Dict, Tuple
 
 from src.db.models.chapter import Chapter
 from src.db.models.manga import MangaForNotifications
 from src.db.models.services import Service
-from src.notifier.base_notifier import NotificationChapter, NotificationManga, \
-    NotificationMangaService
+from src.notifier.base_notifier import (
+    NotificationChapter,
+    NotificationManga,
+    NotificationMangaService,
+)
 
 
 class NotificationsMapper:
     @staticmethod
     def chapter_to_notification(
-            chapters: List[Chapter],
-            services: Dict[int, Service],
-            manga: List[MangaForNotifications]
-    ) -> List[NotificationChapter]:
-        mapped: List[NotificationChapter] = []
+            chapters: list[Chapter],
+            services: dict[int, Service],
+            manga: list[MangaForNotifications]
+    ) -> list[NotificationChapter]:
+        mapped: list[NotificationChapter] = []
         mapped_services = NotificationsMapper.services_to_notification(services)
-        mapped_manga: Dict[Tuple[int, int], NotificationManga] = {
+        mapped_manga: dict[tuple[int, int], NotificationManga] = {
             (m.manga_id, m.service_id): NotificationsMapper.manga_to_notification(m, mapped_services)
             for m in manga
         }
@@ -35,8 +37,8 @@ class NotificationsMapper:
         return mapped
 
     @staticmethod
-    def services_to_notification(services: Dict[int, Service]) -> Dict[int, NotificationMangaService]:
-        mapped: Dict[int, NotificationMangaService] = {}
+    def services_to_notification(services: dict[int, Service]) -> dict[int, NotificationMangaService]:
+        mapped: dict[int, NotificationMangaService] = {}
 
         for service in services.values():
             mapped[service.service_id] = NotificationMangaService(
@@ -49,7 +51,7 @@ class NotificationsMapper:
         return mapped
 
     @staticmethod
-    def manga_to_notification(manga: MangaForNotifications, services: Dict[int, NotificationMangaService]) -> NotificationManga:
+    def manga_to_notification(manga: MangaForNotifications, services: dict[int, NotificationMangaService]) -> NotificationManga:
         service = services[manga.service_id]
         return NotificationManga(
             name=manga.title,

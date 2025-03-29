@@ -1,4 +1,3 @@
-from typing import Optional
 from uuid import UUID
 
 from pydantic import BaseModel, field_validator
@@ -6,7 +5,7 @@ from pydantic import BaseModel, field_validator
 
 class GroupPartial(BaseModel):
     name: str
-    mangadex_id: Optional[str] = None
+    mangadex_id: str | None = None
 
     @field_validator('mangadex_id', mode="before")
     @classmethod

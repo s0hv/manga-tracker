@@ -1,5 +1,5 @@
 import unittest
-from typing import Collection, List, Optional, Type
+from collections.abc import Collection
 
 import psycopg.errors
 import pytest
@@ -28,16 +28,16 @@ class TestMergeManga(BaseTestClasses.DatabaseTestCase):
     def _set_up_merge_manga(self, class_dbutil: DbUtil, conn: Connection[DictRow]) -> None:
         MangaPlus(conn, class_dbutil).add_service()
 
-    def merge_manga(self, base: int, to_merge: int, service_id: Optional[int] = None) -> MergeResult:
+    def merge_manga(self, base: int, to_merge: int, service_id: int | None = None) -> MergeResult:
         return MergeResult(
             **self.dbutil.execute('SELECT alias_count, chapter_count FROM merge_manga(%s, %s, %s)', (base, to_merge, service_id))[0]
         )
 
-    def get_aliases(self, manga_id: int) -> List[str]:
+    def get_aliases(self, manga_id: int) -> list[str]:
         rows = self.dbutil.execute('SELECT title FROM manga_alias WHERE manga_id=%s', (manga_id,))
         return [row['title'] for row in rows]
 
-    def create_manga_service(self, scraper: Type[BaseScraper] = DummyScraper) -> MangaServiceWithId:
+    def create_manga_service(self, scraper: type[BaseScraper] = DummyScraper) -> MangaServiceWithId:
         ms = self.get_manga_service(scraper)
         ms.last_check = self.utcnow()
         self.dbutil.add_manga_service(ms, add_manga=True)
@@ -81,7 +81,7 @@ class TestMergeManga(BaseTestClasses.DatabaseTestCase):
         self.dbutil.add_manga_authors([ma])
         return ma
 
-    def get_manga_info(self, manga_id: int) -> Optional[MangaInfo]:
+    def get_manga_info(self, manga_id: int) -> MangaInfo | None:
         rows = self.dbutil.execute('SELECT * FROM manga_info WHERE manga_id=%s', (manga_id,))
         if not rows:
             return None
@@ -90,10 +90,10 @@ class TestMergeManga(BaseTestClasses.DatabaseTestCase):
             **rows[0]
         )
 
-    def create_aliases(self, manga_id: int, n: int) -> List[str]:
+    def create_aliases(self, manga_id: int, n: int) -> list[str]:
         aliases = [self.get_str_id() for _ in range(n)]
         sql = f"INSERT INTO manga_alias (manga_id, title) VALUES {','.join(('(%s, %s)',)*len(aliases))}"
-        args: List = []
+        args: list = []
         for a in aliases:
             args.extend((manga_id, a))
 

@@ -2,14 +2,20 @@ import logging
 import time
 from abc import ABC, abstractmethod
 from calendar import timegm
+from collections.abc import Iterable
 from datetime import datetime, timedelta
-from typing import Any, Dict, Iterable, List, Optional, Pattern, Set, Type, Union
+from re import Pattern
+from typing import Any
 
 import feedparser
 
 from src.errors import FeedHttpError, InvalidFeedError
-from src.scrapers.base_scraper import BaseChapterSimple, BaseScraperWhole, ScrapeServiceRetVal
-from src.utils.utilities import (is_valid_feed, match_title, utcfromtimestamp, utcnow)
+from src.scrapers.base_scraper import (
+    BaseChapterSimple,
+    BaseScraperWhole,
+    ScrapeServiceRetVal,
+)
+from src.utils.utilities import is_valid_feed, match_title, utcfromtimestamp, utcnow
 
 logger = logging.getLogger('debug')
 
@@ -19,17 +25,17 @@ class RSSChapter(BaseChapterSimple):
     A sensible default implementation for a chapter in an RSS feed
     """
     def __init__(self,
-                 chapter_title: Optional[str],
+                 chapter_title: str | None,
                  chapter_number: str,
                  chapter_identifier: str,
                  title_id: str,
                  group_id: int,
-                 volume: Optional[str] = None,
-                 decimal: Optional[str] = None,
-                 release_date: Optional[Union[time.struct_time, datetime]] = None,
-                 manga_title: Optional[str] = None,
-                 manga_url: Optional[str] = None,
-                 group: Optional[str] = None,
+                 volume: str | None = None,
+                 decimal: str | None = None,
+                 release_date: time.struct_time | datetime | None = None,
+                 manga_title: str | None = None,
+                 manga_url: str | None = None,
+                 group: str | None = None,
                  # Ignore unused properties
                  **_
                  ):
@@ -52,7 +58,7 @@ class RSSChapter(BaseChapterSimple):
             self._release_date = release_date if release_date else utcnow()
 
     @property
-    def chapter_title(self) -> Optional[str]:
+    def chapter_title(self) -> str | None:
         return self._chapter_title
 
     @property
@@ -60,11 +66,11 @@ class RSSChapter(BaseChapterSimple):
         return self._chapter_number
 
     @property
-    def volume(self) -> Optional[int]:
+    def volume(self) -> int | None:
         return self._volume
 
     @property
-    def decimal(self) -> Optional[int]:
+    def decimal(self) -> int | None:
         return self._decimal
 
     @property
@@ -80,15 +86,15 @@ class RSSChapter(BaseChapterSimple):
         return self._title_id
 
     @property
-    def manga_title(self) -> Optional[str]:
+    def manga_title(self) -> str | None:
         return self._manga_title
 
     @property
-    def manga_url(self) -> Optional[str]:
+    def manga_url(self) -> str | None:
         return self._manga_url
 
     @property
-    def group(self) -> Optional[str]:
+    def group(self) -> str | None:
         return self._group
 
     @property
@@ -98,16 +104,16 @@ class RSSChapter(BaseChapterSimple):
 
 class BaseRSS(BaseScraperWhole, ABC):
     TITLE_REGEX: Pattern = NotImplemented
-    Chapter: Type[RSSChapter] = RSSChapter
+    Chapter: type[RSSChapter] = RSSChapter
 
     def __init_subclass__(cls, **kwargs: dict):
         if cls.TITLE_REGEX is None:
             raise NotImplementedError('Service does not have a title regex to parse entries')
 
-        super(BaseRSS, cls).__init_subclass__()
+        super().__init_subclass__()
 
     @abstractmethod
-    def get_chapter_id(self, entry: Dict) -> str:
+    def get_chapter_id(self, entry: dict) -> str:
         """
         A method to get the chapter id for a feed entry
         Args:
@@ -119,7 +125,7 @@ class BaseRSS(BaseScraperWhole, ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def get_chapter_title(self, entry: Dict) -> Optional[str]:
+    def get_chapter_title(self, entry: dict) -> str | None:
         """
         Return the title of the chapter or None if the chapter name should be automatically generated
         Args:
@@ -131,7 +137,7 @@ class BaseRSS(BaseScraperWhole, ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def get_title_id(self, entry: Dict) -> str:
+    def get_title_id(self, entry: dict) -> str:
         """
         Get the title id for the manga of an entry
         Args:
@@ -143,7 +149,7 @@ class BaseRSS(BaseScraperWhole, ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def get_group(self, entry: Dict) -> Optional[str]:
+    def get_group(self, entry: dict) -> str | None:
         """
         Return the group responsible for this chapter
         Args:
@@ -155,7 +161,7 @@ class BaseRSS(BaseScraperWhole, ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def get_manga_title(self, entry: Dict) -> Optional[str]:
+    def get_manga_title(self, entry: dict) -> str | None:
         """
         Get the title of the manga. If None is returned use manga_title key from regex.
         Args:
@@ -166,7 +172,7 @@ class BaseRSS(BaseScraperWhole, ABC):
         """
         raise NotImplementedError
 
-    def skip_entry(self, entry: Dict) -> bool:
+    def skip_entry(self, entry: dict) -> bool:
         """
         Whether to skip the given entry
         Args:
@@ -180,7 +186,7 @@ class BaseRSS(BaseScraperWhole, ABC):
     def get_group_id(self) -> int:
         return self.dbutil.get_or_create_group(self.NAME).group_id
 
-    def parse_feed(self, entries: Iterable[Dict], group_id: int) -> List[RSSChapter]:
+    def parse_feed(self, entries: Iterable[dict], group_id: int) -> list[RSSChapter]:
         titles = []
         for entry in entries:
             if self.skip_entry(entry):
@@ -188,7 +194,7 @@ class BaseRSS(BaseScraperWhole, ABC):
 
             title = entry.get('title', '')
             match = self.TITLE_REGEX.match(title)
-            kwargs: Dict[str, Any]
+            kwargs: dict[str, Any]
             if not match:
                 universal_match = match_title(title)
                 if not universal_match:
@@ -232,7 +238,7 @@ class BaseRSS(BaseScraperWhole, ABC):
         return self.UPDATE_INTERVAL
 
     def scrape_series(self, title_id: str, service_id: int, manga_id: int,
-                      feed_url: Optional[str] = None) -> Optional[Set[int]]:
+                      feed_url: str | None = None) -> set[int] | None:
         pass
 
     def get_feed_chapters(self, feed_url: str) -> list[RSSChapter] | None:
@@ -245,7 +251,7 @@ class BaseRSS(BaseScraperWhole, ABC):
 
         return self.parse_feed(feed.entries, self.get_group_id())
 
-    def add_from_feed_url(self, service_id: int, feed_url: str) -> Optional[ScrapeServiceRetVal]:
+    def add_from_feed_url(self, service_id: int, feed_url: str) -> ScrapeServiceRetVal | None:
         entries = self.get_feed_chapters(feed_url)
         if entries is None:
             return None
@@ -253,6 +259,6 @@ class BaseRSS(BaseScraperWhole, ABC):
         return self.handle_adding_chapters(entries, service_id) or ScrapeServiceRetVal()
 
     def scrape_service(self, service_id: int, feed_url: str,
-                       last_update: Optional[datetime],
-                       title_id: Optional[str] = None) -> ScrapeServiceRetVal | None:
+                       last_update: datetime | None,
+                       title_id: str | None = None) -> ScrapeServiceRetVal | None:
         return self.add_from_feed_url(service_id, feed_url)

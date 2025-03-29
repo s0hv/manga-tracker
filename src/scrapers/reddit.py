@@ -4,25 +4,30 @@ import time
 import typing
 from calendar import timegm
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Set
+from typing import Any
 
 import feedparser
 from lxml import etree
 
 from src.errors import FeedHttpError, InvalidFeedError
 from src.scrapers.base_scraper import BaseChapterSimple, BaseScraper
-from src.utils.utilities import (get_latest_chapters, is_valid_feed, match_title, utcfromtimestamp,
-                                 utcnow)
+from src.utils.utilities import (
+    get_latest_chapters,
+    is_valid_feed,
+    match_title,
+    utcfromtimestamp,
+    utcnow,
+)
 
 logger = logging.getLogger('debug')
 
 
 class Chapter(BaseChapterSimple):
-    def __init__(self, chapter_number: Optional[str], chapter_identifier: str, title_id: str,
-                 manga_url: str, chapter_title: Optional[str] = None,
-                 release_date: Optional[time.struct_time] = None, volume: Optional[int] = None,
-                 decimal: Optional[int] = None, group: Optional[str] = None,
-                 group_id: Optional[int] = None,
+    def __init__(self, chapter_number: str | None, chapter_identifier: str, title_id: str,
+                 manga_url: str, chapter_title: str | None = None,
+                 release_date: time.struct_time | None = None, volume: int | None = None,
+                 decimal: int | None = None, group: str | None = None,
+                 group_id: int | None = None,
                  **_):
         super().__init__(
             chapter_title=chapter_title or None,
@@ -55,12 +60,12 @@ class Reddit(BaseScraper):
     SPECIAL_REGEX = re.compile(r'volume \d+ (bonus)? chapter .+?', re.I)
 
     @staticmethod
-    def parse_feed(entries: typing.Iterable[dict], group_id: Optional[int] = None) -> List[Chapter]:
+    def parse_feed(entries: typing.Iterable[dict], group_id: int | None = None) -> list[Chapter]:
         chapters = []
         for post in entries:
             title = post.get('title', '')
             match = Reddit.CHAPTER_REGEX.match(title)
-            kwargs: Dict[str, Any]
+            kwargs: dict[str, Any]
             if not match:
                 m = match_title(title)
 
@@ -116,7 +121,7 @@ class Reddit(BaseScraper):
 
         return chapters
 
-    def scrape_series(self, title_id: str, service_id: int, manga_id: int, feed_url: Optional[str]) -> Optional[Set[int]]:
+    def scrape_series(self, title_id: str, service_id: int, manga_id: int, feed_url: str | None) -> set[int] | None:
         if feed_url is None:
             raise ValueError('feed_url cannot be None')
 
@@ -150,5 +155,5 @@ class Reddit(BaseScraper):
         self.dbutil.update_latest_chapter(tuple(c for c in get_latest_chapters(chapter_rows).values()))
         return {row.chapter_id for row in inserted}
 
-    def scrape_service(self, service_id: int, feed_url: str, last_update: Optional[datetime], title_id: Optional[str] = None) -> None:
+    def scrape_service(self, service_id: int, feed_url: str, last_update: datetime | None, title_id: str | None = None) -> None:
         return None
