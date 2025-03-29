@@ -26,12 +26,12 @@ class TestRedditScraper(BaseTestClasses.ModelAssertions, BaseTestClasses.Databas
 
     def test_feed_parsed_correctly(self):
         feed = feedparser.parse(test_feed)
-        self.assertGreater(len(feed.entries), 0)
+        assert len(feed.entries) > 0
         chapters = Reddit.parse_feed(feed.entries, group_id=NO_GROUP)
-        self.assertEqual(len(chapters), len(feed.entries))
+        assert len(chapters) == len(feed.entries)
 
         correct_chapters = self.read_test_data()
-        self.assertEqual(len(chapters), len(correct_chapters))
+        assert len(chapters) == len(correct_chapters)
         for a, b in zip(chapters, correct_chapters, strict=True):
             self.assertChaptersEqual(a, b)
 
@@ -47,7 +47,7 @@ class TestRedditScraper(BaseTestClasses.ModelAssertions, BaseTestClasses.Databas
 
         # Mypy fix
         if manga_id is None:
-            self.assertIsNotNone(manga_id)
+            assert manga_id is not None
             return
 
         with self._conn.transaction():
@@ -55,15 +55,15 @@ class TestRedditScraper(BaseTestClasses.ModelAssertions, BaseTestClasses.Databas
 
         parse.assert_called_once()
         parse.assert_called_with(feed_url)
-        self.assertIsNotNone(did_update)
-        self.assertTrue(did_update)
+        assert did_update is not None
+        assert did_update
 
         with self._conn.transaction():
             # Parse feed again to make sure it works with duplicate inputs
             did_update = reddit.scrape_series('TestTitleId', Reddit.ID, manga_id, feed_url)
-        self.assertEqual(parse.call_count, 2)
-        self.assertIsNotNone(did_update)
-        self.assertFalse(did_update)
+        assert parse.call_count == 2
+        assert did_update is not None
+        assert not did_update
 
     def test_scrape_service_without_feed_url_throws(self):
         with pytest.raises(ValueError, match='feed_url cannot be None'):

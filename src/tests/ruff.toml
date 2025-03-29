@@ -1,0 +1,10 @@
+[lint]
+extend-select = [
+    "PT"
+]
+extend-ignore = [
+    "PT011"
+]
+
+[lint.flake8-pytest-style]
+parametrize-names-type = "tuple"

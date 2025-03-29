@@ -62,10 +62,7 @@ class TestDiscordWebhook(unittest.TestCase):
         embed_inputs = EmbedInputs.from_input_list(fields)
 
         # Make sure all fields were set
-        self.assertEqual(
-            len(embed_inputs.dict(exclude_defaults=True, exclude_unset=True)),
-            len(fields)
-        )
+        assert len(embed_inputs.dict(exclude_defaults=True, exclude_unset=True)) == len(fields)
 
     def test_embed_fields_create_overrides(self):
         override1 = 1
@@ -88,26 +85,20 @@ class TestDiscordWebhook(unittest.TestCase):
 
         overrides = EmbedInputs.overrides(fields)
 
-        self.assertEqual(len(overrides.keys()), 2)
-        self.assertIsNotNone(overrides.get(override1))
-        self.assertIsNotNone(overrides.get(override2))
+        assert len(overrides.keys()) == 2
+        assert overrides.get(override1) is not None
+        assert overrides.get(override2) is not None
 
         for o in overrideFields1:
-            self.assertEqual(overrides[override1].__getattribute__(o.name), o.value)
+            assert overrides[override1].__getattribute__(o.name) == o.value
 
         for o in overrideFields2:
-            self.assertEqual(overrides[override2].__getattribute__(o.name), o.value)
+            assert overrides[override2].__getattribute__(o.name) == o.value
 
         # Make sure all base fields were used
-        self.assertEqual(
-            len(overrides[override1].dict(exclude_defaults=True, exclude_unset=True)),
-            len(base_fields)
-        )
+        assert len(overrides[override1].dict(exclude_defaults=True, exclude_unset=True)) == len(base_fields)
 
-        self.assertEqual(
-            len(overrides[override2].dict(exclude_defaults=True, exclude_unset=True)),
-            len(base_fields)
-        )
+        assert len(overrides[override2].dict(exclude_defaults=True, exclude_unset=True)) == len(base_fields)
 
     def test_embed_fields_create_with_required_fields(self):
         fields = [
@@ -117,10 +108,7 @@ class TestDiscordWebhook(unittest.TestCase):
         embed_inputs = EmbedInputs.from_input_list(fields)
 
         # Make sure all fields were set
-        self.assertEqual(
-            len(embed_inputs.dict(exclude_defaults=True, exclude_unset=True)),
-            len(fields)
-        )
+        assert len(embed_inputs.dict(exclude_defaults=True, exclude_unset=True)) == len(fields)
 
     def test_get_chapter_embed(self):
         notifier = DiscordEmbedWebhookNotifier()
@@ -155,7 +143,7 @@ class TestDiscordWebhook(unittest.TestCase):
         }
 
         # The webhook lib uses __dict__ internally to serialize embed objects
-        self.assertDictEqual(embed.__dict__, snapshot)
+        assert embed.__dict__ == snapshot
 
     def test_get_chapter_embed_with_override(self):
         notifier = DiscordEmbedWebhookNotifier()
@@ -196,7 +184,7 @@ class TestDiscordWebhook(unittest.TestCase):
         }
 
         # The webhook lib uses __dict__ internally to serialize embed objects
-        self.assertDictEqual(embed.__dict__, snapshot)
+        assert embed.__dict__ == snapshot
 
     @responses.activate
     def test_webhook_called(self):
@@ -213,9 +201,9 @@ class TestDiscordWebhook(unittest.TestCase):
         expected_calls = 1
         sent, success = notifier.send_notification([chapter], options=options, input_fields=input_fields)
 
-        self.assertEqual(len(responses.calls), expected_calls)
-        self.assertEqual(sent, expected_calls)
-        self.assertTrue(success)
+        assert len(responses.calls) == expected_calls
+        assert sent == expected_calls
+        assert success
 
     @responses.activate
     def test_webhook_called_group_by_manga(self):
@@ -237,9 +225,9 @@ class TestDiscordWebhook(unittest.TestCase):
         expected_calls = 3
         sent, success = notifier.send_notification(chapters, options=options, input_fields=input_fields)
 
-        self.assertEqual(len(responses.calls), expected_calls)
-        self.assertEqual(sent, expected_calls)
-        self.assertTrue(success)
+        assert len(responses.calls) == expected_calls
+        assert sent == expected_calls
+        assert success
 
     @responses.activate
     def test_webhook_called_with_override(self):
@@ -294,12 +282,12 @@ class TestDiscordWebhook(unittest.TestCase):
         expected_calls = 2
         sent, success = notifier.send_notification(chapters, options=options, input_fields=[*input_fields, *override_fields])
 
-        self.assertEqual(len(responses.calls), expected_calls)
-        self.assertEqual(sent, expected_calls)
-        self.assertTrue(success)
+        assert len(responses.calls) == expected_calls
+        assert sent == expected_calls
+        assert success
 
-        self.assertEqual(respOverride.call_count, 1)
-        self.assertEqual(resp.call_count, 1)
+        assert respOverride.call_count == 1
+        assert resp.call_count == 1
 
     @responses.activate
     def test_webhook_called_with_error(self):
@@ -322,9 +310,9 @@ class TestDiscordWebhook(unittest.TestCase):
         sent, success = notifier.send_notification(chapters, options=options,
                                                    input_fields=input_fields)
 
-        self.assertEqual(len(responses.calls), expected_calls)
-        self.assertEqual(sent, expected_calls)
-        self.assertFalse(success)
+        assert len(responses.calls) == expected_calls
+        assert sent == expected_calls
+        assert not success
 
 
 if __name__ == '__main__':

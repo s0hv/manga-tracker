@@ -1,3 +1,4 @@
+import collections
 import os
 import subprocess
 import sys
@@ -5,7 +6,7 @@ import typing
 import unittest
 from collections.abc import Callable
 from datetime import datetime, timedelta
-from typing import Any, TypeVar, Union
+from typing import Any, Iterable, TypeVar, Union
 from unittest import mock
 
 import feedparser
@@ -130,9 +131,16 @@ def set_db_environ():
     conf = Postgresql.cache.dsn()
     os.environ['DB_HOST'] = conf['host']
     os.environ['DB_NAME'] = conf.get('database', conf.get('dbname'))
-    os.environ['DB_USER'] = conf['user']
-    os.environ['DB_PASSWORD'] = ''
-    os.environ['DB_PORT'] = str(conf['port'])
+    os.environ["DB_USER"] = conf["user"]
+    os.environ["DB_PASSWORD"] = ""
+    os.environ["DB_PORT"] = str(conf["port"])
+
+
+def assert_count_equals(first: Iterable, second: Iterable) -> None:
+    first_counter = collections.Counter(list(first))
+    second_counter = collections.Counter(list(second))
+
+    assert first_counter == second_counter
 
 
 class BaseTestClasses:
@@ -155,7 +163,7 @@ class BaseTestClasses:
             # for some reason. Circumvent this by using a class.
             request.cls._generator = BaseTestClasses.TitleIdGenerator()
 
-            request.addfinalizer(self._teardown_class)
+            request.addfinalizer(self._teardown_class)  # noqa: PT021
 
         @property
         def conn(self) -> Connection[DictRow]:
@@ -269,7 +277,10 @@ class BaseTestClasses:
                                    delta: timedelta = timedelta(seconds=1),
                                    msg: str | None = None):
             assert date1 is not None
-            self.assertAlmostEqual(date1, date2, delta=delta, msg=msg)
+            if date1 == date2:
+                return
+
+            assert abs(date1 - date2) <= delta, msg
 
         def assertMangaServiceExists(self, title_id: str, service_id: int):
             sql = 'SELECT 1 FROM manga_service WHERE service_id=%s AND title_id=%s'
@@ -277,13 +288,10 @@ class BaseTestClasses:
                 cur.execute(sql, (service_id, title_id))
                 row = cur.fetchone()
 
-            self.assertIsNotNone(row, msg=f'Manga {title_id} not found')
+            assert row is not None, f'Manga {title_id} not found'
 
         def assertMangaWithTitleFound(self, title: str):
-            self.assertIsNotNone(
-                self.dbutil.find_manga_by_title(title),
-                msg=f'Manga with title {title} not found when expected to be found'
-            )
+            assert self.dbutil.find_manga_by_title(title) is not None, f'Manga with title {title} not found when expected to be found'
 
         @staticmethod
         def utcnow() -> datetime:
@@ -297,22 +305,22 @@ class BaseTestClasses:
             return chapter.chapter_identifier
 
         def assertDbChaptersEqual(self, a: 'DbChapter', expected: 'DbChapter', include_id: bool = False):
-            self.assertEqual(a.chapter_number, expected.chapter_number, msg=f'Chapter numbers not equal for {a.chapter_identifier}')
-            self.assertEqual(a.chapter_decimal, expected.chapter_decimal, msg=f'Chapter decimal numbers not equal for {a.chapter_identifier}')
+            assert a.chapter_number == expected.chapter_number, f'Chapter numbers not equal for {a.chapter_identifier}'
+            assert a.chapter_decimal == expected.chapter_decimal, f'Chapter decimal numbers not equal for {a.chapter_identifier}'
             self.assertDatesEqual(a.release_date, expected.release_date)
-            self.assertEqual(a.chapter_identifier, expected.chapter_identifier, msg=f'Chapter identifiers not equal for {a.chapter_identifier}')
-            self.assertEqual(a.manga_id, expected.manga_id, msg=f'Manga ids not equal for {a.chapter_identifier}')
-            self.assertEqual(a.group, expected.group, msg=f'Chapter groups not equal for {a.chapter_identifier}')
-            self.assertEqual(a.title, expected.title, msg=f'Chapter titles not equal for {a.chapter_identifier}')
-            self.assertEqual(a.group_id, expected.group_id, msg=f'Group ids are not equal for {a.chapter_identifier}')
-            self.assertEqual(a.service_id, expected.service_id, msg=f'Service ids not equal for {a.chapter_identifier}')
+            assert a.chapter_identifier == expected.chapter_identifier, f'Chapter identifiers not equal for {a.chapter_identifier}'
+            assert a.manga_id == expected.manga_id, f'Manga ids not equal for {a.chapter_identifier}'
+            assert a.group == expected.group, f'Chapter groups not equal for {a.chapter_identifier}'
+            assert a.title == expected.title, f'Chapter titles not equal for {a.chapter_identifier}'
+            assert a.group_id == expected.group_id, f'Group ids are not equal for {a.chapter_identifier}'
+            assert a.service_id == expected.service_id, f'Service ids not equal for {a.chapter_identifier}'
 
             if include_id:
-                self.assertEqual(a.chapter_id, expected.chapter_id, msg=f'Chapter ids not equal for {a.chapter_identifier}')
+                assert a.chapter_id == expected.chapter_id, f'Chapter ids not equal for {a.chapter_identifier}'
 
         def assertAllDbChaptersEqual(self, chapters: list['DbChapter'], expected: list['DbChapter'],
                                      include_id: bool = False):
-            self.assertEqual(len(chapters), len(expected), msg='Different amount of chapters passed')
+            assert len(chapters) == len(expected), 'Different amount of chapters passed'
 
             for chapter, expect in zip(
                     sorted(chapters, key=self.dbChapterSortKey),
@@ -321,43 +329,42 @@ class BaseTestClasses:
 
         def _get_manga_service(self, service_id: int, title_id: str) -> MangaService:
             ms = self.dbutil.get_manga_service(service_id, title_id)
-            self.assertIsNotNone(ms)
             assert ms is not None
             return ms
 
         def assertMangaServiceEnabled(self, service_id: int, title_id: str):
-            self.assertFalse(self._get_manga_service(service_id, title_id).disabled)
+            assert not self._get_manga_service(service_id, title_id).disabled
 
         def assertMangaServiceDisabled(self, service_id: int, title_id: str):
-            self.assertTrue(self._get_manga_service(service_id, title_id).disabled)
+            assert self._get_manga_service(service_id, title_id).disabled
 
     class ModelAssertions(unittest.TestCase):
         def assertChaptersEqual(self, a: Union[BaseChapter, 'ChapterTestModel', DbChapter],
                                 b: Union[BaseChapter, 'ChapterTestModel'], ignore_date: bool = False):
 
             if isinstance(a, DbChapter):
-                self.assertEqual(a.chapter_number, b.chapter_number, msg=f'Chapter numbers not equal for {a.chapter_identifier}')
-                self.assertEqual(a.chapter_decimal, b.decimal, msg=f'Chapter decimal numbers not equal for {a.chapter_identifier}')
+                assert a.chapter_number == b.chapter_number, f'Chapter numbers not equal for {a.chapter_identifier}'
+                assert a.chapter_decimal == b.decimal, f'Chapter decimal numbers not equal for {a.chapter_identifier}'
 
                 if not ignore_date:
-                    self.assertEqual(a.release_date, b.release_date, msg=f'Chapter release dates not equal for {a.chapter_identifier}')
+                    assert a.release_date == b.release_date, f'Chapter release dates not equal for {a.chapter_identifier}'
 
             else:
-                self.assertEqual(a.chapter_title, b.chapter_title, msg=f'Chapter titles not equal for {a.chapter_identifier}')
-                self.assertEqual(a.volume, b.volume, msg=f'Chapter volumes not equal for {a.chapter_identifier}')
-                self.assertEqual(a.decimal, b.decimal, msg=f'Chapter decimal numbers not equal for {a.chapter_identifier}')
-                self.assertEqual(a.title_id, b.title_id, msg=f'Manga title ids not equal for {a.chapter_identifier}')
-                self.assertEqual(a.manga_title, b.manga_title, msg=f'Manga titles not equal for {a.chapter_identifier}')
-                self.assertEqual(a.manga_url, b.manga_url, msg=f'Manga urls not equal for {a.chapter_identifier}')
-                self.assertEqual(a.group, b.group, msg=f'Chapter groups not equal for {a.chapter_identifier}')
+                assert a.chapter_title == b.chapter_title, f'Chapter titles not equal for {a.chapter_identifier}'
+                assert a.volume == b.volume, f'Chapter volumes not equal for {a.chapter_identifier}'
+                assert a.decimal == b.decimal, f'Chapter decimal numbers not equal for {a.chapter_identifier}'
+                assert a.title_id == b.title_id, f'Manga title ids not equal for {a.chapter_identifier}'
+                assert a.manga_title == b.manga_title, f'Manga titles not equal for {a.chapter_identifier}'
+                assert a.manga_url == b.manga_url, f'Manga urls not equal for {a.chapter_identifier}'
+                assert a.group == b.group, f'Chapter groups not equal for {a.chapter_identifier}'
 
                 if not ignore_date:
-                    self.assertEqual(a.release_date, b.release_date, msg=f'Chapter release dates not equal for {a.chapter_identifier}')
+                    assert a.release_date == b.release_date, f'Chapter release dates not equal for {a.chapter_identifier}'
 
-            self.assertEqual(a.chapter_identifier, b.chapter_identifier, msg=f'Chapter identifiers not equal for {a.chapter_identifier}')
+            assert a.chapter_identifier == b.chapter_identifier, f'Chapter identifiers not equal for {a.chapter_identifier}'
 
-            self.assertEqual(a.title, b.title, msg=f'Chapter titles not equal for {a.chapter_identifier}')
-            self.assertEqual(a.group_id, b.group_id, msg=f'Group ids are not equal for {a.chapter_identifier}')
+            assert a.title == b.title, f'Chapter titles not equal for {a.chapter_identifier}'
+            assert a.group_id == b.group_id, f'Group ids are not equal for {a.chapter_identifier}'
 
         @staticmethod
         def chapterSortKey(chapter: Union[BaseChapter, 'ChapterTestModel', DbChapter]) -> str:
@@ -367,7 +374,7 @@ class BaseTestClasses:
                 self, chapters: list[C],
                 expected: list[BaseChapter] | list['ChapterTestModel'],
                 ignore_date: bool = False):
-            self.assertEqual(len(chapters), len(expected), msg='Different amount of chapters passed')
+            assert len(chapters) == len(expected), 'Different amount of chapters passed'
 
             for chapter, expect in zip(sorted(chapters, key=self.chapterSortKey),
                                        sorted(expected, key=self.chapterSortKey), strict=True):

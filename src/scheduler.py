@@ -57,7 +57,7 @@ class LoggingCursor(Cursor[DictRow]):
             if isinstance(query, bytes):
                 db_logger.debug(f"{query.decode('utf-8')}{param_string}")
             else:
-                db_logger.debug(f"{query}{param_string}")
+                db_logger.debug(f'{query}{param_string}')
 
 
 class UpdateScheduler:
@@ -285,9 +285,9 @@ class UpdateScheduler:
                 return {manga_id}, list(retval)
 
             else:
-                sql = """SELECT s.service_id, sw.feed_url, s.url
+                sql = '''SELECT s.service_id, sw.feed_url, s.url
                          FROM service_whole sw INNER JOIN services s on sw.service_id = s.service_id
-                         WHERE s.service_id=%s"""
+                         WHERE s.service_id=%s'''
 
                 manga_ids: set[int] = set()
                 chapter_ids: list[int] = []
@@ -341,9 +341,9 @@ class UpdateScheduler:
                         Scraper, row['manga_info'][:batch_size]
                     ))
 
-            sql = """SELECT s.service_id, sw.feed_url, s.url
+            sql = '''SELECT s.service_id, sw.feed_url, s.url
                      FROM service_whole sw INNER JOIN services s on sw.service_id = s.service_id
-                     WHERE NOT s.disabled AND (sw.next_update IS NULL OR sw.next_update < NOW())"""
+                     WHERE NOT s.disabled AND (sw.next_update IS NULL OR sw.next_update < NOW())'''
 
             services = []
             with conn.cursor() as cursor:
@@ -395,7 +395,7 @@ class UpdateScheduler:
 
             with conn.transaction():
                 if manga_ids:
-                    logger.debug(f"Updating interval of {len(manga_ids)} manga")
+                    logger.debug(f'Updating interval of {len(manga_ids)} manga')
                     dbutil = DbUtil(conn, self.es_methods)
                     with conn.cursor() as cursor:
                         dbutil.update_latest_release(list(manga_ids), cur=cursor)

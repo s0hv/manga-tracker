@@ -62,7 +62,7 @@ class SchedulerRunTest(BaseTestClasses.DatabaseTestCase):
                 return self.dbutil.fetchone_or_throw(cur)
 
     def test_scheduled_runs_without_data(self):
-        self.assertFalse(self.dbutil.get_scheduled_runs())
+        assert not self.dbutil.get_scheduled_runs()
 
         self.scheduler.do_scheduled_runs()
 
@@ -72,19 +72,19 @@ class SchedulerRunTest(BaseTestClasses.DatabaseTestCase):
             ScheduledRun(manga_id=manga_id, service_id=MangaPlus.ID),
             ScheduledRun(manga_id=manga_id, service_id=MangaDex.ID)]
         )
-        self.assertTrue(self.scheduler.do_scheduled_runs())
+        assert self.scheduler.do_scheduled_runs()
         self.scraper1.scrape_series.assert_called_with(mock.ANY, MangaPlus.ID, manga_id, feed_url=MangaPlus.FEED_URL)  # type: ignore[union-attr]
         self.scraper2.scrape_series.assert_called_with(mock.ANY, MangaDex.ID, manga_id, feed_url=MangaDex.FEED_URL)# type: ignore[union-attr]
 
-        self.assertFalse(self.dbutil.get_scheduled_runs())
+        assert not self.dbutil.get_scheduled_runs()
 
         # Make sure cooldown is applied
         self.dbutil.add_scheduled_runs([
             ScheduledRun(manga_id=manga_id, service_id=MangaPlus.ID),
             ScheduledRun(manga_id=manga_id, service_id=MangaDex.ID)]
         )
-        self.assertEqual(self.scheduler.do_scheduled_runs(), EMPTY_SCRAPE_SERVICE)
-        self.assertFalse(self.dbutil.get_scheduled_runs())
+        assert self.scheduler.do_scheduled_runs() == EMPTY_SCRAPE_SERVICE
+        assert not self.dbutil.get_scheduled_runs()
         self.dbutil.execute('TRUNCATE TABLE scheduled_runs')
 
     def test_scheduled_runs_limit(self):
@@ -104,11 +104,8 @@ class SchedulerRunTest(BaseTestClasses.DatabaseTestCase):
         ])
 
         # Only the oldest one should be run
-        self.assertCountEqual(self.scheduler.do_scheduled_runs(), ([ms1.manga_id], []))
-        self.assertEqual(
-            self.dbutil.get_all_scheduled_runs(),
-            [ScheduledRunResult(manga_id=ms2.manga_id, service_id=ms2.service_id, title_id=ms2.title_id)]
-        )
+        assert self.scheduler.do_scheduled_runs() == ([ms1.manga_id], [])
+        assert self.dbutil.get_all_scheduled_runs() == [ScheduledRunResult(manga_id=ms2.manga_id, service_id=ms2.service_id, title_id=ms2.title_id)]
         self.dbutil.execute('TRUNCATE TABLE scheduled_runs')
 
     def test_scheduled_runs_when_its_disabled(self):
@@ -122,11 +119,8 @@ class SchedulerRunTest(BaseTestClasses.DatabaseTestCase):
         ])
 
         # Only the oldest one should be run
-        self.assertCountEqual(self.scheduler.do_scheduled_runs(), ([], []))
-        self.assertEqual(
-            self.dbutil.get_all_scheduled_runs(),
-            []
-        )
+        assert self.scheduler.do_scheduled_runs() == ([], [])
+        assert self.dbutil.get_all_scheduled_runs() == []
         self.dbutil.execute('TRUNCATE TABLE scheduled_runs')
 
     def test_scheduled_runs_when_manga_service_does_not_exist(self):
@@ -148,19 +142,16 @@ class SchedulerRunTest(BaseTestClasses.DatabaseTestCase):
         ])
 
         # Only the oldest one should be run
-        self.assertCountEqual(self.scheduler.do_scheduled_runs(), ([ms2.manga_id], []))
-        self.assertEqual(
-            self.dbutil.get_all_scheduled_runs(),
-            []
-        )
+        assert self.scheduler.do_scheduled_runs() ==([ms2.manga_id], [])
+        assert self.dbutil.get_all_scheduled_runs() == []
         self.dbutil.execute('TRUNCATE TABLE scheduled_runs')
 
     def test_force_run_with_invalid_service(self):
-        self.assertIsNone(self.scheduler.force_run(-1, 1))
+        assert self.scheduler.force_run(-1, 1) is None
         self.assertLogs('debug', 'warning')
 
     def test_force_run_with_invalid_manga(self):
-        self.assertIsNone(self.scheduler.force_run(DummyScraper.ID, -1))
+        assert self.scheduler.force_run(DummyScraper.ID, -1) is None
         self.assertLogs('debug', 'debug')
 
     def test_do_scheduled_runs_with_disabled_service(self):
@@ -172,7 +163,7 @@ class SchedulerRunTest(BaseTestClasses.DatabaseTestCase):
             self.dbutil.add_scheduled_runs([
                 ScheduledRun(manga_id=ms.manga_id, service_id=DummyScraper.ID)
             ])
-            self.assertEqual(self.scheduler.do_scheduled_runs(), EMPTY_SCRAPE_SERVICE)
+            assert self.scheduler.do_scheduled_runs() == EMPTY_SCRAPE_SERVICE
         finally:
             sql = 'UPDATE services SET disabled=FALSE WHERE service_id=%s'
             self.dbutil.execute(sql, [DummyScraper.ID])
@@ -199,23 +190,23 @@ class SchedulerRunTest(BaseTestClasses.DatabaseTestCase):
             [cast(int, c.chapter_id) for c in [*chapters1, *chapters2]]
         )
 
-        self.assertEqual(notify_mock.call_count, 2)
+        assert notify_mock.call_count == 2
 
         notif_ids = [args.args[1].notification_id for args in notify_mock.call_args_list]
-        self.assertIn(nm1.notification_id, notif_ids)
-        self.assertIn(nm2.notification_id, notif_ids)
+        assert nm1.notification_id in notif_ids
+        assert nm2.notification_id in notif_ids
 
         chapter_counts = [len(args.args[0]) for args in notify_mock.call_args_list]
-        self.assertIn(len(chapters1), chapter_counts)
-        self.assertIn(len(chapters2), chapter_counts)
+        assert len(chapters1) in chapter_counts
+        assert len(chapters2) in chapter_counts
 
         for info in [
             self.dbutil.get_notification_info(notif1.notification_id),
             self.dbutil.get_notification_info(notif2.notification_id)
         ]:
-            self.assertEqual(info.times_run, notif_times_run)
-            self.assertEqual(info.failed_in_row, 0)
-            self.assertEqual(info.times_failed, 0)
+            assert info.times_run == notif_times_run
+            assert info.failed_in_row == 0
+            assert info.times_failed == 0
 
     @patch.object(DiscordEmbedWebhookNotifier, 'send_notification')
     def test_send_notifications_failed(self, notify_mock: MagicMock):
@@ -234,20 +225,20 @@ class SchedulerRunTest(BaseTestClasses.DatabaseTestCase):
             [cast(int, c.chapter_id) for c in chapters1]
         )
 
-        self.assertEqual(notify_mock.call_count, 1)
+        assert notify_mock.call_count == 1
 
         notif_ids = [args.args[1].notification_id for args in
                      notify_mock.call_args_list]
-        self.assertIn(nm1.notification_id, notif_ids)
+        assert nm1.notification_id in notif_ids
 
         chapter_counts = [len(args.args[0]) for args in
                           notify_mock.call_args_list]
-        self.assertIn(len(chapters1), chapter_counts)
+        assert len(chapters1) in chapter_counts
 
         info = self.dbutil.get_notification_info(notif1.notification_id)
-        self.assertEqual(info.times_run, notif_times_run)
-        self.assertEqual(info.failed_in_row, 1)
-        self.assertEqual(info.times_failed, 1)
+        assert info.times_run == notif_times_run
+        assert info.failed_in_row == 1
+        assert info.times_failed == 1
 
 
 class SchedulerScrapeServiceTest(BaseTestClasses.DatabaseTestCase):
@@ -286,15 +277,15 @@ class SchedulerScrapeServiceTest(BaseTestClasses.DatabaseTestCase):
             [manga_info]
         )
 
-        self.assertEqual(manga_ids, {ms1.manga_id})
-        self.assertListEqual(chapter_ids, mock_chapters)
+        assert manga_ids == {ms1.manga_id}
+        assert chapter_ids == mock_chapters
 
-        self.assertEqual(self.scraper1.scrape_series.call_count, 1)  # type: ignore[union-attr]
-        self.assertEqual(self.scraper1.set_checked.call_count, 1)  # type: ignore[union-attr]
+        assert self.scraper1.scrape_series.call_count == 1  # type: ignore[union-attr]
+        assert self.scraper1.set_checked.call_count == 1  # type: ignore[union-attr]
 
     def test_scrape_service_stops_after_2_errors(self):
         ms1 = self.create_manga_service(DummyScraper)
-        self.assertIsNone(ms1.next_update)
+        assert ms1.next_update is None
 
         self.scraper1.scrape_series.side_effect = [Exception('mock error'), psycopg.Error('mock db error')]  # type: ignore[union-attr]
         next_update = utcnow() + timedelta(hours=1)
@@ -307,12 +298,12 @@ class SchedulerScrapeServiceTest(BaseTestClasses.DatabaseTestCase):
             [manga_info, manga_info, manga_info]
         )
 
-        self.assertEqual(len(manga_ids), 0)
-        self.assertEqual(chapter_ids, [])
+        assert len(manga_ids) == 0
+        assert chapter_ids == []
 
-        self.assertEqual(self.scraper1.scrape_series.call_count, 2)  # type: ignore[union-attr]
-        self.assertEqual(self.scraper1.set_checked.call_count, 1)  # type: ignore[union-attr]
-        self.assertEqual(self.scraper1.next_update.call_count, 2)  # type: ignore[union-attr]
+        assert self.scraper1.scrape_series.call_count == 2  # type: ignore[union-attr]
+        assert self.scraper1.set_checked.call_count == 1  # type: ignore[union-attr]
+        assert self.scraper1.next_update.call_count == 2  # type: ignore[union-attr]
 
         ms = self.dbutil.get_manga_service(ms1.service_id, ms1.title_id)
         assert ms is not None
@@ -330,16 +321,16 @@ class SchedulerScrapeServiceTest(BaseTestClasses.DatabaseTestCase):
             [manga_info, manga_info, manga_info]
         )
 
-        self.assertEqual(len(manga_ids), 0)
-        self.assertEqual(chapter_ids, [])
+        assert len(manga_ids) == 0
+        assert chapter_ids == []
 
-        self.assertEqual(self.scraper1.scrape_series.call_count, 2)  # type: ignore[union-attr]
-        self.assertEqual(self.scraper1.set_checked.call_count, 1)  # type: ignore[union-attr]
-        self.assertEqual(self.scraper1.next_update.call_count, 0)  # type: ignore[union-attr]
+        assert self.scraper1.scrape_series.call_count == 2  # type: ignore[union-attr]
+        assert self.scraper1.set_checked.call_count == 1  # type: ignore[union-attr]
+        assert self.scraper1.next_update.call_count == 0  # type: ignore[union-attr]
 
         found_ms1 = self.dbutil.get_manga_service(ms1.service_id, ms1.title_id)
         assert found_ms1 is not None
-        self.assertIsNone(found_ms1.next_update)
+        assert found_ms1.next_update is None
 
 
 if __name__ == '__main__':

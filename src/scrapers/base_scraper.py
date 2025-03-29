@@ -215,28 +215,28 @@ class ScrapeServiceRetVal(BaseModel):
 
 class BaseScraper(abc.ABC):
     ID: ClassVar[int] = NotImplemented
-    """Database id of this service"""
+    '''Database id of this service'''
 
     UPDATE_INTERVAL: ClassVar[timedelta] = timedelta(hours=1)
-    """The minimum time between two updates of this service"""
+    '''The minimum time between two updates of this service'''
 
     URL: ClassVar[str] = NotImplemented
-    """URL to the website of this service"""
+    '''URL to the website of this service'''
 
     FEED_URL: ClassVar[str] = NotImplemented
-    """URL of the feed (usually rss feed) of this service"""
+    '''URL of the feed (usually rss feed) of this service'''
 
     NAME: ClassVar[str] = NotImplemented
-    """Name of this service"""
+    '''Name of this service'''
 
     CHAPTER_URL_FORMAT: ClassVar[str] = NotImplemented
-    """Format of chapter urls"""
+    '''Format of chapter urls'''
 
     MANGA_URL_FORMAT: ClassVar[str] = NotImplemented
-    """Format of manga urls"""
+    '''Format of manga urls'''
 
     CONFIG: ServiceConfig = NotImplemented
-    """Service configuration values"""
+    '''Service configuration values'''
 
     def __init_subclass__(cls, **kwargs: dict):
         # Ignore for abstract classes

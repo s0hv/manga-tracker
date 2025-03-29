@@ -1229,7 +1229,7 @@ class DbUtil:
     def get_notifications_by_manga_ids(
         self, manga_ids: list[int], *, cur: CursorType = NotImplemented
     ) -> list[PartialNotificationInfo]:
-        sql = """
+        sql = '''
             SELECT un.notification_id, manga_id, service_id
             FROM user_notifications un
               INNER JOIN notification_manga nm ON un.notification_id = nm.notification_id
@@ -1243,7 +1243,7 @@ class DbUtil:
             WHERE NOT un.disabled
               AND un.use_follows
               AND manga_id = ANY(%(manga_ids)s)
-        """
+        '''
 
         cur.execute(sql, {'manga_ids': manga_ids})
         return list(map(PartialNotificationInfo.model_validate, cur))

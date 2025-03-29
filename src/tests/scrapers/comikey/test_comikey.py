@@ -185,10 +185,10 @@ class ComikeyTest(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsserti
 
         # Each redirect is counted as a separate request
         # One manga has already been added to the db
-        self.assertEqual(len(responses.calls), 2, msg='All requests not done')
-        self.assertEqual(len(Comikey.id_cache), 2)
+        assert len(responses.calls) == 2, 'All requests not done'
+        assert len(Comikey.id_cache) == 2
 
-        self.assertIsNotNone(chapters)
+        assert chapters is not None
         self.assertAllChaptersEqual(cast(list[RSSChapter], chapters), correct_chapters)
 
     @responses.activate
@@ -205,9 +205,9 @@ class ComikeyTest(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsserti
         parse.assert_called_with(feed_url)
 
         # Each redirect is counted as a separate request
-        self.assertEqual(len(responses.calls), 0, msg='Requests found when title id should have been cached')
-        self.assertEqual(len(Comikey.id_cache), 1)
-        self.assertTrue(success, msg='Series scraping status not successful')
+        assert len(responses.calls) == 0, 'Requests found when title id should have been cached'
+        assert len(Comikey.id_cache) == 1
+        assert success, 'Series scraping status not successful'
 
         new_chapters = self.dbutil.get_chapters(None, Comikey.ID)
         self.assertAllDbChaptersEqual(
@@ -225,7 +225,7 @@ class ComikeyTest(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsserti
         ]
         for chapter_id in chapter_ids:
             mock.return_value = chapter_id
-            self.assertTrue(self.comikey.skip_entry({}), msg='Chapter in another language was not skipped')
+            assert self.comikey.skip_entry({}), 'Chapter in another language was not skipped'
 
         valid_chapters = [
             'test/eZ5PLD/chapter-123',
@@ -234,4 +234,4 @@ class ComikeyTest(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsserti
         ]
         for chapter_id in valid_chapters:
             mock.return_value = chapter_id
-            self.assertFalse(self.comikey.skip_entry({}), msg='Valid chapter skipped')
+            assert not self.comikey.skip_entry({}), 'Valid chapter skipped'

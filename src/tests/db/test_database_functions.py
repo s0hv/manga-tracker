@@ -13,7 +13,7 @@ from src.db.models.manga import MangaInfo, MangaService, MangaServiceWithId
 from src.scrapers import MangaPlus
 from src.scrapers.base_scraper import BaseScraper
 from src.tests.scrapers.testing_scraper import DummyScraper, DummyScraper2
-from src.tests.testing_utils import BaseTestClasses
+from src.tests.testing_utils import BaseTestClasses, assert_count_equals
 from src.utils.dbutils import DbUtil
 from src.utils.utilities import utcnow
 
@@ -106,7 +106,7 @@ class TestMergeManga(BaseTestClasses.DatabaseTestCase):
         for c in actual:
             c.chapter_id = None
 
-        self.assertCountEqual(actual, expected)
+        assert actual, expected
 
     def test_crashes_without_parameters(self):
         with pytest.raises(psycopg.errors.UndefinedFunction):
@@ -132,24 +132,13 @@ class TestMergeManga(BaseTestClasses.DatabaseTestCase):
         self.create_manga_info(manga2, 2)
 
         result = self.merge_manga(manga1.manga_id, manga2.manga_id)
-        self.assertEqual(
-            result,
-            MergeResult(alias_count=0, chapter_count=0)
-        )
+        assert result == MergeResult(alias_count=0, chapter_count=0)
 
-        self.assertEqual(
-            self.get_aliases(manga1.manga_id),
-            [manga2.title]
-        )
+        assert self.get_aliases(manga1.manga_id) == [manga2.title]
 
-        self.assertEqual(
-            self.get_manga_info(manga1.manga_id),
-            mi1,
-        )
+        assert self.get_manga_info(manga1.manga_id) == mi1
 
-        self.assertIsNone(
-            self.get_manga_info(manga2.manga_id)
-        )
+        assert self.get_manga_info(manga2.manga_id) is None
 
     def test_merges_chapters(self):
         manga1 = self.create_manga_service()
@@ -160,10 +149,7 @@ class TestMergeManga(BaseTestClasses.DatabaseTestCase):
         self.dbutil.add_chapters([*c1, *c2], fetch=False)
 
         result = self.merge_manga(manga1.manga_id, manga2.manga_id)
-        self.assertEqual(
-            result,
-            MergeResult(alias_count=0, chapter_count=3)
-        )
+        assert result == MergeResult(alias_count=0, chapter_count=3)
 
         # Set the expected manga id
         for c in c2:
@@ -183,15 +169,9 @@ class TestMergeManga(BaseTestClasses.DatabaseTestCase):
         self.dbutil.execute(sql, (manga1.manga_id, aliases[0]), fetch=False)
 
         result = self.merge_manga(manga1.manga_id, manga2.manga_id)
-        self.assertEqual(
-            result,
-            MergeResult(alias_count=4, chapter_count=0)
-        )
+        assert result == MergeResult(alias_count=4, chapter_count=0)
 
-        self.assertCountEqual(
-            self.get_aliases(manga1.manga_id),
-            [*aliases, manga2.title]
-        )
+        assert_count_equals(self.get_aliases(manga1.manga_id), [*aliases, manga2.title])
 
     def test_merge_service_id(self):
         m1 = self.create_manga_service(DummyScraper)
@@ -216,34 +196,20 @@ class TestMergeManga(BaseTestClasses.DatabaseTestCase):
         result = self.merge_manga(m1.manga_id, m2.manga_id, m2.service_id)
 
         # Aliases should not be transferred in service specific operation
-        self.assertEqual(
-            result,
-            MergeResult(alias_count=0, chapter_count=3)
-        )
+        assert result == MergeResult(alias_count=0, chapter_count=3)
 
         # Make sure one manga was not deleted or merged in any way
-        self.assertEqual(
-            self.dbutil.get_manga_service(m3.service_id, m3.title_id),
-            m3
-        )
+        assert self.dbutil.get_manga_service(m3.service_id, m3.title_id) == m3
         self.assertChaptersEqual(
             self.dbutil.get_chapters(m3.manga_id),
             c3
         )
-        self.assertCountEqual(
-            self.get_aliases(m3.manga_id),
-            [*aliases3, *aliases]
-        )
-        self.assertEqual(
-            self.get_manga_info(m3.manga_id),
-            mi2
-        )
+        assert_count_equals(self.get_aliases(m3.manga_id), [*aliases3, *aliases])
+        assert self.get_manga_info(m3.manga_id) == mi2
 
         # Assert the specific service was merged
-        self.assertCountEqual(
-            self.get_aliases(m1.manga_id),
-            [duplicate_alias]
-        )
+        assert self.get_aliases(m1.manga_id) == [duplicate_alias]
+
 
         # Set the expected manga id
         for c in c2:
@@ -254,9 +220,7 @@ class TestMergeManga(BaseTestClasses.DatabaseTestCase):
             [*c1, *c2]
         )
 
-        self.assertIsNone(
-            self.get_manga_info(m1.manga_id)
-        )
+        assert self.get_manga_info(m1.manga_id) is None
 
     def test_merge_author_artist_with_third_manga(self):
         m1 = self.create_manga_service(DummyScraper)
@@ -271,24 +235,21 @@ class TestMergeManga(BaseTestClasses.DatabaseTestCase):
         result = self.merge_manga(m1.manga_id, m2.manga_id, m2.service_id)
 
         # Aliases should not be transferred in service specific operation
-        self.assertEqual(
-            result,
-            MergeResult(alias_count=0, chapter_count=0)
-        )
+        assert result == MergeResult(alias_count=0, chapter_count=0)
 
         # Make sure artists and authors not merged
         m_art = self.dbutil.get_manga_artists(m1.manga_id)
-        self.assertListEqual(m_art, [], msg='Artists were merged when they should not have been')
+        assert m_art == [], 'Artists were merged when they should not have been'
 
         m_aut = self.dbutil.get_manga_authors(m1.manga_id)
-        self.assertListEqual(m_aut, [], msg='Authors were transferred when they should not have been')
+        assert m_aut == [], 'Authors were transferred when they should not have been'
 
         # Make sure old artists and authors exist
         m_art = self.dbutil.get_manga_artists(m2.manga_id)
-        self.assertCountEqual(m_art, [mar2],)
+        assert m_art == [mar2]
 
         m_aut = self.dbutil.get_manga_authors(m2.manga_id)
-        self.assertCountEqual(m_aut, [mau2])
+        assert m_aut == [mau2]
 
     def test_merge_author_artist_successfully(self):
         m1 = self.create_manga_service(DummyScraper)
@@ -302,24 +263,21 @@ class TestMergeManga(BaseTestClasses.DatabaseTestCase):
         result = self.merge_manga(m1.manga_id, m2.manga_id)
 
         # Aliases should not be transferred in service specific operation
-        self.assertEqual(
-            result,
-            MergeResult(alias_count=0, chapter_count=0)
-        )
+        assert result == MergeResult(alias_count=0, chapter_count=0)
 
         # Make sure artists and authors not merged
         m_art = self.dbutil.get_manga_artists(m1.manga_id)
-        self.assertCountEqual(m_art, [mar2], )
+        assert m_art == [mar2]
 
         m_aut = self.dbutil.get_manga_authors(m1.manga_id)
-        self.assertCountEqual(m_aut, [mau2])
+        assert m_aut == [mau2]
 
         # Make sure old artists and authors exist
         m_art = self.dbutil.get_manga_artists(m2.manga_id)
-        self.assertListEqual(m_art, [], msg='Artists were merged when they should not have been')
+        assert m_art == [], 'Artists were merged when they should not have been'
 
         m_aut = self.dbutil.get_manga_authors(m2.manga_id)
-        self.assertListEqual(m_aut, [], msg='Authors were transferred when they should not have been')
+        assert m_aut == [], 'Authors were transferred when they should not have been'
 
 
 if __name__ == '__main__':

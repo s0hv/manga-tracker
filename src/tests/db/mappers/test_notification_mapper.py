@@ -6,8 +6,7 @@ from src.db.mappers.notifications_mapper import NotificationsMapper
 from src.db.models.chapter import Chapter
 from src.db.models.manga import MangaForNotifications
 from src.db.models.services import Service
-from src.notifier.base_notifier import NotificationMangaService, \
-    NotificationManga
+from src.notifier.base_notifier import NotificationManga, NotificationMangaService
 from src.utils.utilities import utcnow
 
 
@@ -28,13 +27,13 @@ class TestUtilities(unittest.TestCase):
             chapter_url_format='chapter_url_format/{}'
         )
         mapped = NotificationsMapper.services_to_notification({service.service_id: service})
-        self.assertEqual(len(mapped), 1)
+        assert len(mapped) == 1
 
         mapped_service = mapped[service.service_id]
-        self.assertEqual(mapped_service.name, service.service_name)
-        self.assertEqual(mapped_service.url, service.url)
-        self.assertEqual(mapped_service.manga_url_format, service.manga_url_format)
-        self.assertEqual(mapped_service.chapter_url_format, service.chapter_url_format)
+        assert mapped_service.name == service.service_name
+        assert mapped_service.url == service.url
+        assert mapped_service.manga_url_format == service.manga_url_format
+        assert mapped_service.chapter_url_format == service.chapter_url_format
 
     def test_map_manga_to_notification(self):
         service = self.get_service()
@@ -45,11 +44,11 @@ class TestUtilities(unittest.TestCase):
         )
         mapped = NotificationsMapper.manga_to_notification(manga, {service_id: service})
 
-        self.assertEqual(mapped.name, manga.title)
-        self.assertEqual(mapped.url, service.manga_url_format.format(manga.title_id))
-        self.assertEqual(mapped.service, service)
-        self.assertEqual(mapped.manga_id,  manga.manga_id)
-        self.assertEqual(mapped.cover,  manga.cover)
+        assert mapped.name == manga.title
+        assert mapped.url == service.manga_url_format.format(manga.title_id)
+        assert mapped.service == service
+        assert mapped.manga_id == manga.manga_id
+        assert mapped.cover == manga.cover
 
     @patch.object(NotificationsMapper, 'manga_to_notification')
     @patch.object(NotificationsMapper, 'services_to_notification')
@@ -87,17 +86,17 @@ class TestUtilities(unittest.TestCase):
             [MangaForNotifications(manga_id=manga_id, title='', title_id='', service_id=service_id)]
         )
 
-        self.assertEqual(len(mapped_chapters), 1)
+        assert len(mapped_chapters) == 1
 
-        self.assertEqual(mock_manga.call_count, 1)
-        self.assertEqual(mock_services.call_count, 1)
+        assert mock_manga.call_count == 1
+        assert mock_services.call_count == 1
 
         mapped = mapped_chapters[0]
-        self.assertEqual(mapped.url, service.chapter_url_format.format(chapter.chapter_identifier, title_id=title_id))
-        self.assertEqual(mapped.manga, mock_manga.return_value)
-        self.assertEqual(mapped.title, chapter.title)
-        self.assertEqual(mapped.group, chapter.group)
-        self.assertEqual(mapped.release_date, chapter.release_date)
+        assert mapped.url == service.chapter_url_format.format(chapter.chapter_identifier, title_id=title_id)
+        assert mapped.manga == mock_manga.return_value
+        assert mapped.title == chapter.title
+        assert mapped.group == chapter.group
+        assert mapped.release_date == chapter.release_date
 
 
 if __name__ == '__main__':

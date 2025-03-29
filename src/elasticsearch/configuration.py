@@ -8,71 +8,71 @@ logger = logging.getLogger('debug')
 INDEX_NAME = os.getenv('ES_INDEX', 'manga')
 INDEX_BODY = {
     'settings': {
-        "analysis": {
-            "analyzer": {
-                "trigram_analyzer": {
-                    "filter": [
-                        "lowercase"
+        'analysis': {
+            'analyzer': {
+                'trigram_analyzer': {
+                    'filter': [
+                        'lowercase'
                     ],
-                    "type": "custom",
-                    "tokenizer": "trigram_tokenizer"
+                    'type': 'custom',
+                    'tokenizer': 'trigram_tokenizer'
                 }
             },
-            "tokenizer": {
-                "trigram_tokenizer": {
-                    "token_chars": [
-                        "letter",
-                        "digit"
+            'tokenizer': {
+                'trigram_tokenizer': {
+                    'token_chars': [
+                        'letter',
+                        'digit'
                     ],
-                    "min_gram": "3",
-                    "type": "ngram",
-                    "max_gram": "3"
+                    'min_gram': '3',
+                    'type': 'ngram',
+                    'max_gram': '3'
                 }
             }
         }
     },
     'mappings': {
-        "properties": {
-            "manga_id": {
-                "type": "integer"
+        'properties': {
+            'manga_id': {
+                'type': 'integer'
             },
-            "title": {
-                "type": "text",
-                "fields": {
-                    "ngram": {
-                        "type": "text",
-                        "analyzer": "trigram_analyzer"
+            'title': {
+                'type': 'text',
+                'fields': {
+                    'ngram': {
+                        'type': 'text',
+                        'analyzer': 'trigram_analyzer'
                     }
                 }
             },
-            "views": {
-                "type": "integer",
-                "null_value": 0
+            'views': {
+                'type': 'integer',
+                'null_value': 0
             },
-            "aliases": {
-                "properties": {
-                    "title": {
-                        "type": "text",
-                        "fields": {
-                            "ngram": {
-                                "type": "text",
-                                "analyzer": "trigram_analyzer"
+            'aliases': {
+                'properties': {
+                    'title': {
+                        'type': 'text',
+                        'fields': {
+                            'ngram': {
+                                'type': 'text',
+                                'analyzer': 'trigram_analyzer'
                             }
                         }
                     }
                 }
             },
-            "services": {
-                "properties": {
-                    "service_id": {
-                        "type": "short"
+            'services': {
+                'properties': {
+                    'service_id': {
+                        'type': 'short'
                     },
-                    "service_name": {
-                        "type": "text",
-                        "fields": {
-                            "keyword": {
-                                "type": "keyword",
-                                "ignore_above": 256
+                    'service_name': {
+                        'type': 'text',
+                        'fields': {
+                            'keyword': {
+                                'type': 'keyword',
+                                'ignore_above': 256
                             }
                         }
                     }

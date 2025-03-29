@@ -144,7 +144,7 @@ class AzukiTest(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAssertion
         self.delete_chapters(Azuki.ID)
         chapter_ids = azuki.scrape_series(title_id, Azuki.ID, None)
 
-        self.assertTrue(chapter_ids)
+        assert chapter_ids
 
         chapters = self.dbutil.get_chapters(None, Azuki.ID)
 
@@ -170,12 +170,12 @@ class AzukiTest(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAssertion
         self.delete_chapters(Azuki.ID)
         retval = azuki.scrape_service(Azuki.ID, Azuki.FEED_URL, None)
 
-        self.assertTrue(retval)
+        assert retval
         assert retval is not None
-        self.assertEqual(len(retval.manga_ids), 3)
-        self.assertEqual(len(retval.chapter_ids), 3)
+        assert len(retval.manga_ids) == 3
+        assert len(retval.chapter_ids) == 3
 
-        self.assertEqual(resp.call_count, 3)
+        assert resp.call_count == 3
 
         chapters = self.dbutil.get_chapters(None, Azuki.ID)
 
@@ -183,7 +183,7 @@ class AzukiTest(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAssertion
             self.assertChaptersEqual(parsed, correct)
 
 
-@pytest.mark.parametrize('title, correct', [
+@pytest.mark.parametrize(('title', 'correct'), [
     ('Chapter 54 extra 1', ('Chapter 54 extra 1', 54, 5)),
     ('Chapter 75ex1', ('Chapter 75ex1', 75, 5)),
     ('Chapter 75ex', ('Chapter 75ex', 75, 5)),
