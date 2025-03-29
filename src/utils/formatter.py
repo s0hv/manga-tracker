@@ -1,5 +1,5 @@
 import logging
-from typing import Literal, Optional
+from typing import Literal
 
 from colors import color as get_color
 
@@ -12,7 +12,7 @@ class LoggingFormatter(logging.Formatter):
             fmt: str | None = None,
             datefmt: str | None = None,
             style: Literal["%", "{", "$"] = '%',
-            override_colors: Optional[dict] = None
+            override_colors: dict | None = None
     ):
         super().__init__(fmt, datefmt, style)
 
@@ -35,7 +35,7 @@ class LoggingFormatter(logging.Formatter):
             fg: ColorType | None = None,
             bg: ColorType | None = None,
             style: str | None = None
-    ) -> Optional[str]:
+    ) -> str | None:
         color = get_color("", fg=fg, bg=bg, style=style)
         if color:
             return color[:-4]

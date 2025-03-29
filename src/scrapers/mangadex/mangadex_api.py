@@ -1,9 +1,9 @@
 import logging
+from collections.abc import Iterable
 from datetime import datetime
 from enum import Enum
 from itertools import chain
-from typing import (Dict, Generic, Iterable, List, Literal, Optional, Type, TypeVar, TypedDict,
-                    Union)
+from typing import Generic, Literal, TypedDict, TypeVar
 
 import requests
 from pydantic import BaseModel, Field, ValidationError, field_validator, model_validator
@@ -17,13 +17,12 @@ SortDirection = Literal['asc', 'desc']
 DataT = TypeVar('DataT')
 MAX_LIMIT = 100
 
-SortColumns = TypedDict('SortColumns', {
-    'createdAt': SortDirection,
-    'updatedAt': SortDirection,
-    'publishAt': SortDirection,
-    'volume': SortDirection,
-    'chapter': SortDirection,
-}, total=False)
+class SortColumns(TypedDict, total=False):
+    createdAt: SortDirection
+    updatedAt: SortDirection
+    publishAt: SortDirection
+    volume: SortDirection
+    chapter: SortDirection
 
 
 class MangadexResultStatus(Enum):
@@ -37,17 +36,17 @@ class Relationship(BaseModel):
 
 
 class Links(BaseModel):
-    al: Optional[str] = None
-    ap: Optional[str] = None
-    bw: Optional[str] = None
-    mu: Optional[str] = None
-    nu: Optional[str] = None
-    kt: Optional[str] = None
-    amz: Optional[str] = None
-    ebj: Optional[str] = None
-    mal: Optional[str] = None
-    raw: Optional[str] = None
-    engtl: Optional[str] = None
+    al: str | None = None
+    ap: str | None = None
+    bw: str | None = None
+    mu: str | None = None
+    nu: str | None = None
+    kt: str | None = None
+    amz: str | None = None
+    ebj: str | None = None
+    mal: str | None = None
+    raw: str | None = None
+    engtl: str | None = None
 
 
 class Status(Enum):
@@ -57,7 +56,7 @@ class Status(Enum):
     cancelled = 'cancelled'
 
     def to_int(self) -> int:
-        d: Dict[Status, int] = {
+        d: dict[Status, int] = {
             self.ongoing: MangaStatus.ONGOING.value,        # type: ignore[dict-item]
             self.completed: MangaStatus.COMPLETED.value,    # type: ignore[dict-item]
             self.hiatus: MangaStatus.HIATUS.value,          # type: ignore[dict-item]
@@ -70,13 +69,13 @@ class Status(Enum):
 class MangadexData(BaseModel, Generic[DataT]):
     id: str
     attributes: DataT
-    relationships: Optional[List[Relationship]] = None
+    relationships: list[Relationship] | None = None
 
 
 class ChapterAttributes(BaseModel):
-    volume: Optional[str] = None
-    chapter: Optional[str] = None
-    title: Optional[str] = None
+    volume: str | None = None
+    chapter: str | None = None
+    title: str | None = None
     publish_at: datetime = Field(..., alias='publishAt')
     readable_at: datetime = Field(..., alias='readableAt')
 
@@ -86,7 +85,7 @@ class ScanlationGroupAttributes(BaseModel):
 
 
 class ChapterResult(MangadexData[ChapterAttributes]):
-    group: Optional[MangadexData[ScanlationGroupAttributes]] = None
+    group: MangadexData[ScanlationGroupAttributes] | None = None
 
     @model_validator(mode="before")
     @classmethod
@@ -178,9 +177,9 @@ class MangaResult(MangadexData[MangaAttributes]):
     # We need to redefine this here as mypy is too stupid to understand
     # nested generics
     attributes: MangaAttributes
-    authors: Optional[List[MangadexData[AuthorAttributes]]] = None
-    artists: Optional[List[MangadexData[AuthorAttributes]]] = None
-    cover: Optional[MangadexData[CoverAttributes]] = None
+    authors: list[MangadexData[AuthorAttributes]] | None = None
+    artists: list[MangadexData[AuthorAttributes]] | None = None
+    cover: MangadexData[CoverAttributes] | None = None
 
     @model_validator(mode="before")
     @classmethod
@@ -225,7 +224,7 @@ class MangaResult(MangadexData[MangaAttributes]):
                 if relationship.type == 'artist':
                     yield relationship
 
-    def cover_id(self) -> Optional[str]:
+    def cover_id(self) -> str | None:
         if self.relationships:
             for relationship in self.relationships:
                 if relationship.type == 'cover_art':
@@ -246,14 +245,14 @@ class ScanlationGroupResult(MangadexData[ScanlationGroupAttributes]):
     pass
 
 
-def handle_response(r: requests.Response) -> Dict:
+def handle_response(r: requests.Response) -> dict:
     if not r.ok:
         raise ValueError(f'Failed to fetch {r.url}', r)
 
     return try_parse_result(r)
 
 
-def try_parse_result(r: requests.Response) -> Dict:
+def try_parse_result(r: requests.Response) -> dict:
     data = r.json()
 
     if 'data' not in data:
@@ -268,7 +267,7 @@ GenericMangadexResults = TypeVar('GenericMangadexResults', bound=MangadexData)
 
 
 # noinspection PyPep8Naming
-def request_to_model[TModel: BaseModel](r: requests.Response, Model: Type[TModel], continue_on_error: bool = False) -> Iterable[TModel]:
+def request_to_model[TModel: BaseModel](r: requests.Response, Model: type[TModel], continue_on_error: bool = False) -> Iterable[TModel]:
     for result in handle_response(r)['data']:
         try:
             yield Model(**result)
@@ -290,13 +289,13 @@ class MangadexAPI:
         self.base_url = url
 
     @staticmethod
-    def join_array(ids: List[str], key: str) -> str:
+    def join_array(ids: list[str], key: str) -> str:
         key = key + '[]'
         return f'{key}={f"&{key}=".join(ids)}'
 
     @sleep_and_retry
     @api_rate_limiter
-    def get_manga(self, manga_ids: Union[str, List[str]], include_authors: bool = True,
+    def get_manga(self, manga_ids: str | list[str], include_authors: bool = True,
                   include_artists: bool = True, include_cover: bool = True) -> Iterable[MangaResult]:
         if isinstance(manga_ids, str):
             manga_ids = [manga_ids]
@@ -324,9 +323,9 @@ class MangadexAPI:
 
     @sleep_and_retry
     @api_rate_limiter
-    def get_chapters(self, sort_by: SortColumns, *, languages: List[str],
-                     manga_id: Optional[str] = None, limit: int = MAX_LIMIT,
-                     include_groups: Optional[bool] = True, offset: Optional[int] = None,
+    def get_chapters(self, sort_by: SortColumns, *, languages: list[str],
+                     manga_id: str | None = None, limit: int = MAX_LIMIT,
+                     include_groups: bool | None = True, offset: int | None = None,
                      include_future_updates: bool=True) -> Iterable[ChapterResult]:
         params = []
         order = []

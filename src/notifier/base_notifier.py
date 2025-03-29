@@ -2,25 +2,25 @@ from abc import ABC, abstractmethod
 from datetime import datetime
 from itertools import groupby
 from string import Template
-from typing import Any, List, Optional, Self, Tuple, Type, TypeVar
+from typing import Any, Self, TypeVar
 
 from pydantic import BaseModel
 
 from src.db.models.notifications import InputField, NotificationOptions
 
-T = TypeVar('T', str, Optional[str])
+T = TypeVar('T', str, str | None)
 TEmbedInputs = TypeVar('TEmbedInputs')
 
 Overrides = dict[int, TEmbedInputs]
 
 class BaseEmbedInputs(BaseModel):
     @classmethod
-    def from_input_list(cls, input_fields: List[InputField]) -> Self:
+    def from_input_list(cls, input_fields: list[InputField]) -> Self:
         d = {i.name: i.value for i in input_fields if i.override_id is None}
         return cls(**d)
 
     @classmethod
-    def overrides(cls: Type[TEmbedInputs], input_fields: List[InputField]) -> Overrides[TEmbedInputs]:
+    def overrides(cls: type[TEmbedInputs], input_fields: list[InputField]) -> Overrides[TEmbedInputs]:
         manga_ids: set[int] = {i.override_id for i in input_fields if i.override_id is not None}
 
         if not manga_ids:
@@ -54,7 +54,7 @@ class NotificationMangaService(BaseModel):
 class NotificationManga(BaseModel):
     name: str
     service: NotificationMangaService
-    cover: Optional[str] = None
+    cover: str | None = None
     url: str
     manga_id: int
     title_id: str
@@ -102,15 +102,15 @@ def get_chapter_number(chapter: NotificationChapter) -> float:
 
 class NotifierBase(ABC):
     @abstractmethod
-    def send_notification(self, chapters: List[NotificationChapter],
+    def send_notification(self, chapters: list[NotificationChapter],
                           options: NotificationOptions,
-                          input_fields: List[InputField]
-                          ) -> Tuple[int, bool]:
+                          input_fields: list[InputField]
+                          ) -> tuple[int, bool]:
         raise NotImplementedError
 
     @staticmethod
-    def get_chapters_grouped(chapters: List[NotificationChapter], options: NotificationOptions) -> List[List[NotificationChapter]]:
-        groups: List[List[NotificationChapter]]
+    def get_chapters_grouped(chapters: list[NotificationChapter], options: NotificationOptions) -> list[list[NotificationChapter]]:
+        groups: list[list[NotificationChapter]]
 
         if options.group_by_manga:
             groups = []
@@ -128,7 +128,7 @@ class NotifierBase(ABC):
         template = Template(msg_template)
         return template.safe_substitute(**chapter.to_dict())
 
-    def format_title(self, msg_format: str, chapters: List[NotificationChapter]) -> str:
+    def format_title(self, msg_format: str, chapters: list[NotificationChapter]) -> str:
         titles = ', '.join(set(map(lambda c: c.manga.name, chapters)))
         template = Template(msg_format)
         s = template.safe_substitute(MANGA_TITLES=titles)

@@ -3,26 +3,23 @@ import os
 import random
 import time
 from collections import Counter
+from collections.abc import Collection, Generator, Mapping, Sequence
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 from datetime import datetime, timedelta
 from itertools import groupby
 from operator import attrgetter
-from typing import (Collection, ContextManager, Dict, List, LiteralString, Mapping, Optional, Self,
-                    Sequence,
-                    Set,
-                    Tuple,
-                    Type, TypedDict, cast)
+from typing import LiteralString, Self, TypedDict, cast
 
 import psycopg
 import psycopg.rows
-from elasticsearch import Elasticsearch
 from psycopg import Connection
 from psycopg.cursor import Cursor
 from psycopg.rows import DictRow
-from psycopg.sql import Composed, SQL
+from psycopg.sql import SQL, Composed
 from psycopg_pool import ConnectionPool
 
+from elasticsearch import Elasticsearch
 from src.db.mappers.notifications_mapper import NotificationsMapper
 from src.db.models.chapter import Chapter
 from src.elasticsearch.configuration import get_client
@@ -41,7 +38,7 @@ class MangaServiceInfo(TypedDict):
     manga_id: int
     title_id: str
     service_id: int
-    feed_url: Optional[str]
+    feed_url: str | None
 
 
 class LoggingCursor(Cursor[DictRow]):
@@ -50,11 +47,11 @@ class LoggingCursor(Cursor[DictRow]):
             query: LiteralString | bytes | SQL | Composed,
             params: Sequence | Mapping[str, object] | None = None,
             *,
-            prepare: Optional[bool] = None,
-            binary: Optional[bool] = None
+            prepare: bool | None = None,
+            binary: bool | None = None
             ) -> Self:
         try:
-            return super(LoggingCursor, self).execute(query, params, prepare=prepare, binary=binary)
+            return super().execute(query, params, prepare=prepare, binary=binary)
         finally:
             param_string = '' if not params else f', {params}'
             if isinstance(query, bytes):
@@ -97,26 +94,21 @@ class UpdateScheduler:
     def es_methods(self) -> ElasticMethods:
         return ElasticMethods(self._es)
 
-    # Workaround described in https://youtrack.jetbrains.com/issue/PY-36444
-    # Required for mypy pass and PyCharm autocompletion
-    def conn(self) -> ContextManager[Connection[DictRow]]:
-        @contextmanager
-        def wrapper():
-            conn: Connection[DictRow] = self.pool.getconn()
-            try:
-                conn.cursor_factory = LoggingCursor
-                yield conn
-            except Exception:
-                conn.rollback()
-                raise
-            else:
-                conn.commit()
-            finally:
-                self.pool.putconn(conn)
+    @contextmanager
+    def conn(self) -> Generator[Connection[DictRow]]:
+        conn: Connection[DictRow] = self.pool.getconn()
+        try:
+            conn.cursor_factory = LoggingCursor
+            yield conn
+        except Exception:
+            conn.rollback()
+            raise
+        else:
+            conn.commit()
+        finally:
+            self.pool.putconn(conn)
 
-        return wrapper()
-
-    def do_scheduled_runs(self) -> Tuple[List[int], List[int]]:
+    def do_scheduled_runs(self) -> tuple[list[int], list[int]]:
         with self.conn() as conn:
             dbutil = DbUtil(conn, self.es_methods)
             delete = []
@@ -167,13 +159,13 @@ class UpdateScheduler:
     # noinspection PyPep8Naming
     def scrape_series(self,
                       service_id: int,
-                      Scraper: Type[BaseScraper],
-                      manga_info: Collection[MangaServiceInfo]) -> Tuple[Set[int], List[int]]:
+                      Scraper: type[BaseScraper],
+                      manga_info: Collection[MangaServiceInfo]) -> tuple[set[int], list[int]]:
         with self.conn() as conn:
             scraper = Scraper(conn, DbUtil(conn, self.es_methods))
             rng = random.Random()
-            manga_ids: Set[int] = set()
-            chapter_ids: List[int] = []
+            manga_ids: set[int] = set()
+            chapter_ids: list[int] = []
             errors = 0
 
             idx = 0
@@ -240,7 +232,7 @@ class UpdateScheduler:
 
             return manga_ids, chapter_ids
 
-    def force_run(self, service_id: int, manga_id: Optional[int] = None) -> Optional[Tuple[Set[int], List[int]]]:
+    def force_run(self, service_id: int, manga_id: int | None = None) -> tuple[set[int], list[int]] | None:
         if service_id not in SCRAPERS_ID:
             logger.warning(f'No service found with id {service_id}')
             return None
@@ -297,8 +289,8 @@ class UpdateScheduler:
                          FROM service_whole sw INNER JOIN services s on sw.service_id = s.service_id
                          WHERE s.service_id=%s"""
 
-                manga_ids: Set[int] = set()
-                chapter_ids: List[int] = []
+                manga_ids: set[int] = set()
+                chapter_ids: list[int] = []
                 with conn.cursor() as cursor:
                     cursor.execute(sql, (service_id,))
                     row = cursor.fetchone()
@@ -335,8 +327,8 @@ class UpdateScheduler:
             with conn.cursor() as cursor:
                 cursor.execute(sql)
 
-                manga_ids: Set[int] = set()
-                chapter_ids: List[int] = []
+                manga_ids: set[int] = set()
+                chapter_ids: list[int] = []
                 for row in cursor:
                     batch_size = random.randint(3, 6)
                     Scraper = SCRAPERS.get(row['url'])
@@ -440,7 +432,7 @@ class UpdateScheduler:
                     return utcnow() + timedelta(hours=1)
                 return next_update_row['update']
 
-    def send_notifications(self, manga_ids: Set[int], chapter_ids: List[int]) -> None:
+    def send_notifications(self, manga_ids: set[int], chapter_ids: list[int]) -> None:
         if not (manga_ids and chapter_ids):
             return
 
@@ -456,12 +448,12 @@ class UpdateScheduler:
                 return chapter.manga_id
 
             chapters = sorted(dbutil.get_chapters_by_id(chapter_ids, list(manga_ids)), key=get_manga_id)
-            chapter_by_manga: Dict[int, List[Chapter]] = {}
+            chapter_by_manga: dict[int, list[Chapter]] = {}
 
             for group, chapter_it in groupby(chapters, key=get_manga_id):
                 chapter_by_manga[group] = list(chapter_it)
 
-            notifications: Dict[int, List[Chapter]] = {
+            notifications: dict[int, list[Chapter]] = {
                 pn.notification_id: [] for pn in partial_notifications
             }
 

@@ -1,4 +1,4 @@
-from typing import Dict, TYPE_CHECKING, Type
+from typing import TYPE_CHECKING
 
 from src.scrapers.azuki import Azuki
 from src.scrapers.comikey import Comikey
@@ -9,7 +9,7 @@ from src.scrapers.reddit import Reddit
 if TYPE_CHECKING:
     from src.scrapers.base_scraper import BaseScraper
 
-SCRAPERS: Dict[str, Type['BaseScraper']] = {
+SCRAPERS: dict[str, type['BaseScraper']] = {
     MangaDex.URL: MangaDex,
     MangaPlus.URL: MangaPlus,
     Reddit.URL: Reddit,
@@ -17,6 +17,6 @@ SCRAPERS: Dict[str, Type['BaseScraper']] = {
     Azuki.URL: Azuki
 }
 
-SCRAPERS_ID: Dict[int, Type['BaseScraper']] = {
+SCRAPERS_ID: dict[int, type['BaseScraper']] = {
     s.ID: s for s in SCRAPERS.values()
 }

@@ -1,8 +1,9 @@
 import logging
 import random
 import re
+from collections.abc import Iterable
 from datetime import datetime, time, timedelta, timezone
-from typing import (Dict, Iterable, NoReturn, Optional, TYPE_CHECKING, Tuple, Union)
+from typing import TYPE_CHECKING, NoReturn
 
 from feedparser import FeedParserDict
 from psycopg.rows import DictRow
@@ -34,7 +35,7 @@ universal_chapter_regex = \
                re.IGNORECASE)
 
 
-def match_title(s: str) -> Optional[Dict[str, str]]:
+def match_title(s: str) -> dict[str, str] | None:
     match = universal_chapter_regex.match(s)
     if not match:
         return None
@@ -46,7 +47,7 @@ def match_title(s: str) -> Optional[Dict[str, str]]:
     return match
 
 
-def parse_chapter_number(chapter_number: str) -> Tuple[Optional[str], Optional[str]]:
+def parse_chapter_number(chapter_number: str) -> tuple[str | None, str | None]:
     match = chapter_regex.match(chapter_number)
     if not match:
         return None, None
@@ -66,7 +67,7 @@ def round_seconds(sec: float, accuracy: int) -> int:
     return int(sec)
 
 
-def random_timedelta(low: Union[timedelta, int], high: Union[timedelta, int]) -> timedelta:
+def random_timedelta(low: timedelta | int, high: timedelta | int) -> timedelta:
     """
     Args:
         low (timedelta or int): Lower bound of the time as timedelta or seconds
@@ -84,7 +85,7 @@ def random_timedelta(low: Union[timedelta, int], high: Union[timedelta, int]) ->
     return timedelta(seconds=random.randint(low, high))
 
 
-def is_valid_feed(feed: FeedType) -> Optional[NoReturn]:
+def is_valid_feed(feed: FeedType) -> NoReturn | None:
     if hasattr(feed, 'status'):
         if feed.status != 200:
             raise FeedHttpError(f'Failed to get feed. Status: {feed.status}')
@@ -95,7 +96,7 @@ def is_valid_feed(feed: FeedType) -> Optional[NoReturn]:
     return None
 
 
-def get_latest_chapters(rows: Iterable[Union[dict, DictRow]]) -> Dict[str, Tuple[int, int, datetime]]:
+def get_latest_chapters(rows: Iterable[dict | DictRow]) -> dict[str, tuple[int, int, datetime]]:
     """
     From a set of rows get the ones with the highest chapter number and smallest release date
     Args:
@@ -104,7 +105,7 @@ def get_latest_chapters(rows: Iterable[Union[dict, DictRow]]) -> Dict[str, Tuple
     Returns:
         dict: of rows with the highest chapter number and smallest release date for a single manga
     """
-    chapter_data: Dict[str, Tuple[int, int, datetime]] = {}
+    chapter_data: dict[str, tuple[int, int, datetime]] = {}
     for row in rows:
         if row['chapter_decimal'] is not None:
             continue

@@ -1,5 +1,4 @@
 from datetime import datetime, timedelta
-from typing import Optional
 
 from pydantic import BaseModel
 
@@ -11,16 +10,16 @@ class Service(BaseModel):
     disabled: bool = False
     chapter_url_format: str = ''
     manga_url_format: str = ''
-    disabled_until: Optional[datetime] = None
-    last_check: Optional[datetime] = None
+    disabled_until: datetime | None = None
+    last_check: datetime | None = None
 
 
 class ServiceWhole(BaseModel):
     service_id: int
     feed_url: str
-    last_check: Optional[datetime] = None
-    next_update: Optional[datetime] = None
-    last_id: Optional[str] = None
+    last_check: datetime | None = None
+    next_update: datetime | None = None
+    last_id: str | None = None
 
 
 class ServiceConfig(BaseModel):

@@ -2,7 +2,6 @@ import json
 import logging
 import os
 import unittest
-from typing import Dict, List
 from unittest.mock import Mock, patch
 
 import pytest
@@ -16,7 +15,8 @@ from src.db.models.authors import AuthorPartial
 from src.db.models.chapter import Chapter
 from src.db.models.groups import Group, GroupPartial
 from src.db.models.manga import MangaService
-from src.scrapers.mangadex import Chapter as MangaDexChapter, ChapterResult, MangaDex
+from src.scrapers.mangadex import Chapter as MangaDexChapter
+from src.scrapers.mangadex import ChapterResult, MangaDex
 from src.tests.testing_utils import BaseTestClasses, ChapterTestModel
 from src.utils.dbutils import DbUtil
 from src.utils.utilities import utcnow
@@ -99,8 +99,8 @@ correct_parsed_chapters = list(sorted([
 class MangadexTests(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAssertions):
     API_URL = 'https://api.mangadex.org'
 
-    chapters_data: Dict = NotImplemented
-    manga_data: Dict = NotImplemented
+    chapters_data: dict = NotImplemented
+    manga_data: dict = NotImplemented
 
     @pytest.fixture(autouse=True)
     def _caplog(self, caplog: pytest.LogCaptureFixture):
@@ -122,10 +122,10 @@ class MangadexTests(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsser
     def load_data(self):
         api_path = os.path.join(os.path.dirname(__file__), 'api_data')
 
-        with open(os.path.join(api_path, 'chapters.json'), 'r', encoding='utf-8') as f:
+        with open(os.path.join(api_path, 'chapters.json'), encoding='utf-8') as f:
             self.chapters_data = json.load(f)
 
-        with open(os.path.join(api_path, 'manga.json'), 'r', encoding='utf-8') as f:
+        with open(os.path.join(api_path, 'manga.json'), encoding='utf-8') as f:
             self.manga_data = json.load(f)
 
     def setUp(self) -> None:
@@ -200,7 +200,7 @@ class MangadexTests(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsser
         self.assertFalse([r for r in self.caplog.records if r.levelno >= logging.WARNING], msg='Warnings found')
 
         # Assert correct amount of chapters
-        chapters: List[Chapter] = list(
+        chapters: list[Chapter] = list(
             map(Chapter.model_validate, self.dbutil.execute('SELECT * FROM chapters WHERE service_id=%s', (service_id,)))
         )
         self.assertEqual(

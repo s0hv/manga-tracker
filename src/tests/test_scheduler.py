@@ -1,6 +1,6 @@
 import unittest
 from datetime import timedelta
-from typing import Optional, cast
+from typing import cast
 from unittest import mock
 from unittest.mock import MagicMock, patch
 
@@ -13,10 +13,15 @@ from src.db.models.notifications import PartialNotificationInfo, UserNotificatio
 from src.db.models.scheduled_run import ScheduledRun, ScheduledRunResult
 from src.notifier import DiscordEmbedWebhookNotifier
 from src.scheduler import MangaServiceInfo, UpdateScheduler
-from src.scrapers import MangaDex, MangaPlus, SCRAPERS
+from src.scrapers import SCRAPERS, MangaDex, MangaPlus
 from src.tests.scrapers.testing_scraper import DummyScraper, DummyScraper2
-from src.tests.testing_utils import (BaseTestClasses, EMPTY_SCRAPE_SERVICE, TEST_USER_ID,
-                                     set_db_environ, spy_on)
+from src.tests.testing_utils import (
+    EMPTY_SCRAPE_SERVICE,
+    TEST_USER_ID,
+    BaseTestClasses,
+    set_db_environ,
+    spy_on,
+)
 from src.utils.utilities import utcnow
 
 
@@ -36,7 +41,7 @@ class SchedulerRunTest(BaseTestClasses.DatabaseTestCase):
         SCRAPERS[MangaPlus.URL] = lambda *_, **__: self.scraper1  # type: ignore[assignment]
         SCRAPERS[MangaDex.URL] = lambda *_, **__: self.scraper2  # type: ignore[assignment]
 
-    def create_notification(self, user_id: int = TEST_USER_ID, use_follows: bool = False, dest: Optional[str] = None) -> UserNotification:
+    def create_notification(self, user_id: int = TEST_USER_ID, use_follows: bool = False, dest: str | None = None) -> UserNotification:
         sql = 'INSERT INTO user_notifications (notification_type, user_id, use_follows) VALUES (1, %s, %s) RETURNING *'
         with self.conn.transaction():
             with self.conn.cursor() as cur:
@@ -46,7 +51,7 @@ class SchedulerRunTest(BaseTestClasses.DatabaseTestCase):
                 cur.execute(sql, (d['notification_id'], dest or self.get_str_id()))
                 return UserNotification(**d, **self.dbutil.fetchone_or_throw(cur))
 
-    def create_notification_manga(self, notification_id: int, manga_id: int, service_id: Optional[int] = None) -> PartialNotificationInfo:
+    def create_notification_manga(self, notification_id: int, manga_id: int, service_id: int | None = None) -> PartialNotificationInfo:
         sql = 'INSERT INTO notification_manga (notification_id, manga_id, service_id) ' \
               'VALUES (%s, %s, %s) RETURNING *'
         with self.conn.transaction():

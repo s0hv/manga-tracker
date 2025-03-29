@@ -1,11 +1,17 @@
 import logging
 import statistics
+from collections.abc import (
+    Callable,
+    Collection,
+    Generator,
+    Iterable,
+    Iterator,
+    Sequence,
+)
 from datetime import datetime, timedelta
 from functools import wraps
 from itertools import groupby
-from typing import (Any, Callable, Collection, Dict, Generator, Iterable, Iterator, List,
-                    LiteralString, Optional, Sequence, Set, TYPE_CHECKING, Tuple, TypeVar,
-                    Union, cast, overload)
+from typing import TYPE_CHECKING, Any, LiteralString, TypeVar, cast, overload
 
 from psycopg import Connection, Cursor
 from psycopg.rows import DictRow, RowFactory, class_row, dict_row
@@ -14,10 +20,20 @@ from src.db.errors import RowNotFound
 from src.db.models.authors import Author, AuthorPartial, MangaArtist, MangaAuthor
 from src.db.models.chapter import Chapter, InsertedChapter
 from src.db.models.groups import Group, GroupPartial
-from src.db.models.manga import (Manga, MangaForNotifications, MangaInfo, MangaService,
-                                 MangaServicePartial,
-                                 MangaServicePartialWithId, MangaServiceWithId)
-from src.db.models.notifications import InputField, PartialNotificationInfo, UserNotification
+from src.db.models.manga import (
+    Manga,
+    MangaForNotifications,
+    MangaInfo,
+    MangaService,
+    MangaServicePartial,
+    MangaServicePartialWithId,
+    MangaServiceWithId,
+)
+from src.db.models.notifications import (
+    InputField,
+    PartialNotificationInfo,
+    UserNotification,
+)
 from src.db.models.scheduled_run import ScheduledRun, ScheduledRunResult
 from src.db.models.services import Service, ServiceConfig, ServiceWhole
 from src.db.utilities import execute_values
@@ -91,7 +107,7 @@ class OptionalTransaction[Row = DictRow]:
 
 
 class DbUtil:
-    def __init__(self, conn: Connection[DictRow], es: Optional[ElasticMethods]):
+    def __init__(self, conn: Connection[DictRow], es: ElasticMethods | None):
         self._conn = conn
         self._es = es
 
@@ -106,7 +122,7 @@ class DbUtil:
         return self._es
 
     @staticmethod
-    def get_format_args(val: Union[Collection, int]) -> str:
+    def get_format_args(val: Collection | int) -> str:
         """
         Joins n %s signs together
         """
@@ -122,8 +138,8 @@ class DbUtil:
         return row
 
     @OptionalTransaction()
-    def execute[T = DictRow](self, sql: str, args: Optional[Collection[Any]] = None,
-                *, fetch: Optional[bool] = None, cur: Cursor[T] = NotImplemented) -> list[T]:
+    def execute[T = DictRow](self, sql: str, args: Collection[Any] | None = None,
+                *, fetch: bool | None = None, cur: Cursor[T] = NotImplemented) -> list[T]:
         """
         Easy way for tests to call sql functions. Should not be used outside of tests.
         """
@@ -147,8 +163,8 @@ class DbUtil:
         cur.execute(sql, (next_update, manga_id, service_id))
 
     @OptionalTransaction()
-    def get_service_manga(self, service_id: int, include_only: Optional[Collection[int]] = None,
-                          *, cur: CursorType = NotImplemented) -> List[MangaServicePartial]:
+    def get_service_manga(self, service_id: int, include_only: Collection[int] | None = None,
+                          *, cur: CursorType = NotImplemented) -> list[MangaServicePartial]:
         if include_only:
             raise NotImplementedError()
             # TODO filter by given manga
@@ -162,16 +178,16 @@ class DbUtil:
 
     @overload
     @OptionalTransaction()
-    def get_service(self, service: int, *, cur: CursorType = NotImplemented) -> Optional[Service]:
+    def get_service(self, service: int, *, cur: CursorType = NotImplemented) -> Service | None:
         ...
 
     @overload
     @OptionalTransaction()
-    def get_service(self, service: str, *, cur: CursorType = NotImplemented) -> Optional[Service]:
+    def get_service(self, service: str, *, cur: CursorType = NotImplemented) -> Service | None:
         ...
 
     @OptionalTransaction()
-    def get_service(self, service: Union[int, str], *, cur: CursorType = NotImplemented) -> Optional[Service]:
+    def get_service(self, service: int | str, *, cur: CursorType = NotImplemented) -> Service | None:
         """
         Get service by url or by id
         Args:
@@ -197,7 +213,7 @@ class DbUtil:
         cur.execute(sql, (disabled_until, service_id))
 
     @OptionalTransaction()
-    def get_scheduled_runs(self, *, cur: CursorType = NotImplemented) -> List[ScheduledRunResult]:
+    def get_scheduled_runs(self, *, cur: CursorType = NotImplemented) -> list[ScheduledRunResult]:
         """
         Get scheduled runs ordered by creation time. Checks if runs are on cooldown
         """
@@ -211,7 +227,7 @@ class DbUtil:
         return list(map(ScheduledRunResult.model_validate, cur))
 
     @OptionalTransaction()
-    def get_all_scheduled_runs(self, *, cur: CursorType = NotImplemented) -> List[ScheduledRunResult]:
+    def get_all_scheduled_runs(self, *, cur: CursorType = NotImplemented) -> list[ScheduledRunResult]:
         sql = 'SELECT sr.manga_id, sr.service_id, ms.title_id FROM scheduled_runs sr ' \
               'LEFT JOIN manga_service ms ON sr.manga_id = ms.manga_id AND sr.service_id = ms.service_id'
 
@@ -219,7 +235,7 @@ class DbUtil:
         return list(map(ScheduledRunResult.model_validate, cur))
 
     @OptionalTransaction()
-    def update_scheduled_run_disabled(self, service_ids: List[int], *, cur: CursorType = NotImplemented) -> None:
+    def update_scheduled_run_disabled(self, service_ids: list[int], *, cur: CursorType = NotImplemented) -> None:
         """
         Disables scheduled runs for the given services for the time defined in their config
         """
@@ -235,7 +251,7 @@ class DbUtil:
         cur.execute(sql, service_ids)
 
     @OptionalTransaction()
-    def delete_scheduled_runs(self, to_delete: List[Tuple[int, int]], *, cur: CursorType = NotImplemented) -> int:
+    def delete_scheduled_runs(self, to_delete: list[tuple[int, int]], *, cur: CursorType = NotImplemented) -> int:
         """
         Delete the given scheduled runs
         Args:
@@ -257,7 +273,7 @@ class DbUtil:
         return cur.rowcount
 
     @OptionalTransaction()
-    def add_scheduled_runs(self, runs: List[ScheduledRun], *, cur: CursorType = NotImplemented) -> None:
+    def add_scheduled_runs(self, runs: list[ScheduledRun], *, cur: CursorType = NotImplemented) -> None:
         sql = 'INSERT INTO scheduled_runs (manga_id, service_id, created_by) VALUES %s'
         execute_values(cur, sql, [(sr.manga_id, sr.service_id, sr.created_by) for sr in runs])
 
@@ -323,8 +339,8 @@ class DbUtil:
         return True
 
     @OptionalTransaction()
-    def get_chapters_by_id(self, chapter_ids: List[int], manga_ids: List[int], cur: CursorType = NotImplemented) -> \
-            List[Chapter]:
+    def get_chapters_by_id(self, chapter_ids: list[int], manga_ids: list[int], cur: CursorType = NotImplemented) -> \
+            list[Chapter]:
         if not chapter_ids:
             return []
 
@@ -335,20 +351,20 @@ class DbUtil:
         return list(map(Chapter.model_validate, cur))
 
     @overload
-    def get_chapters(self, manga_id: int, *, limit: int = 100, cur: CursorType = NotImplemented) -> List[Chapter]: ...
+    def get_chapters(self, manga_id: int, *, limit: int = 100, cur: CursorType = NotImplemented) -> list[Chapter]: ...
 
     @overload
     def get_chapters(self, manga_id: int, service_id: int, *, limit: int = 100, cur: CursorType = NotImplemented) -> \
-            List[Chapter]: ...
+            list[Chapter]: ...
 
     @overload
-    def get_chapters(self, manga_id: Optional[None], service_id: int, *, limit: int = 100,
-                     cur: CursorType = NotImplemented) -> List[Chapter]: ...
+    def get_chapters(self, manga_id: None | None, service_id: int, *, limit: int = 100,
+                     cur: CursorType = NotImplemented) -> list[Chapter]: ...
 
     @OptionalTransaction()
-    def get_chapters(self, manga_id: Optional[int], service_id: Optional[int] = None, *, limit: int = 100,
-                     cur: CursorType = NotImplemented) -> List[Chapter]:
-        args: Tuple
+    def get_chapters(self, manga_id: int | None, service_id: int | None = None, *, limit: int = 100,
+                     cur: CursorType = NotImplemented) -> list[Chapter]:
+        args: tuple
         if service_id is None:
             sql = 'SELECT * FROM chapters WHERE manga_id=%s LIMIT %s'
             args = (manga_id, limit)
@@ -364,8 +380,8 @@ class DbUtil:
         return list(map(Chapter.model_validate, cur.fetchall()))
 
     @OptionalTransaction()
-    def manga_id_from_title(self, manga_title: str, service_id: Optional[int] = None,
-                            *, cur: CursorType = NotImplemented) -> Optional[int]:
+    def manga_id_from_title(self, manga_title: str, service_id: int | None = None,
+                            *, cur: CursorType = NotImplemented) -> int | None:
         """
         Tries to find a manga id by the title.
         If service id given will filter out manga from that service.
@@ -378,7 +394,7 @@ class DbUtil:
         Returns:
             The id of the manga that matches the title or None in case the amount of results was 0 or more than 1
         """
-        args: Tuple
+        args: tuple
         sql: LiteralString
         if service_id is None:
             sql = 'SELECT manga_id FROM manga WHERE LOWER(title)=LOWER(%s) LIMIT 2'
@@ -476,7 +492,7 @@ class DbUtil:
 
     @OptionalTransaction()
     def add_new_manga_and_check_duplicate_titles(self, mangas: Sequence[MangaService],
-                                                 *, cur: CursorType = NotImplemented) -> List[MangaServiceWithId]:
+                                                 *, cur: CursorType = NotImplemented) -> list[MangaServiceWithId]:
         """
         Given a sequence of new MangaService objects that are not in the database,
         this function adds them to the database while checking for duplicate titles.
@@ -508,7 +524,7 @@ class DbUtil:
         return self.add_new_mangas([manga], cur=cur)[0]
 
     @OptionalTransaction()
-    def add_new_mangas(self, mangas: Collection[MangaModel], *, cur: CursorType = NotImplemented) -> List[MangaModel]:
+    def add_new_mangas(self, mangas: Collection[MangaModel], *, cur: CursorType = NotImplemented) -> list[MangaModel]:
         """
         Adds the given manga to the database and updates the manga_id property.
         Does not check if a duplicate exists
@@ -580,7 +596,7 @@ class DbUtil:
 
     @OptionalTransaction()
     def add_manga_services(self, mangas: Collection[MangaServiceBound], *,
-                           cur: CursorType = NotImplemented) -> List[MangaServiceBound]:
+                           cur: CursorType = NotImplemented) -> list[MangaServiceBound]:
         """
         Adds the given manga service objects to the database
         """
@@ -620,7 +636,7 @@ class DbUtil:
             manga_services = self.get_manga_services(manga_ids)
             elastic_data = []
             m_it: Iterator[MangaServicePartialWithId]
-            services: Dict[int, Service] = {s.service_id: s for s in self.get_services()}
+            services: dict[int, Service] = {s.service_id: s for s in self.get_services()}
 
             for manga_id, m_it in groupby(sorted(manga_services, key=lambda r: r.manga_id), key=lambda r: r.manga_id):
                 elastic_data.append({
@@ -639,20 +655,20 @@ class DbUtil:
         return list(mangas)
 
     @OptionalTransaction()
-    def get_service_whole(self, service_id: int, *, cur: CursorType = NotImplemented) -> Optional[ServiceWhole]:
+    def get_service_whole(self, service_id: int, *, cur: CursorType = NotImplemented) -> ServiceWhole | None:
         cur.execute('SELECT * FROM service_whole WHERE service_id=%s', [service_id])
         row = cur.fetchone()
 
         return ServiceWhole.model_validate(row) if row else None
 
     @OptionalTransaction()
-    def get_service_configs(self, *, cur: CursorType = NotImplemented) -> List[ServiceConfig]:
+    def get_service_configs(self, *, cur: CursorType = NotImplemented) -> list[ServiceConfig]:
         cur.execute('SELECT * FROM service_config')
 
         return list(map(ServiceConfig.model_validate, cur))
 
     @OptionalTransaction()
-    def get_services(self, *, cur: CursorType = NotImplemented) -> List[Service]:
+    def get_services(self, *, cur: CursorType = NotImplemented) -> list[Service]:
         cur.execute('SELECT * FROM services')
 
         return list(map(Service.model_validate, cur))
@@ -670,7 +686,7 @@ class DbUtil:
 
     @optional_generator_transaction
     def find_added_titles(self, service_id: int, title_ids: Collection[str], *, cur: CursorType = NotImplemented) -> \
-            Generator[MangaServicePartial, None, None]:
+            Generator[MangaServicePartial]:
         """Find manga_service rows with an existing title_id"""
         if len(title_ids) == 0:
             return None
@@ -682,14 +698,14 @@ class DbUtil:
             yield MangaServicePartial(**row)
 
     @OptionalTransaction()
-    def find_service_manga(self, service_id: int, title_id: str, *, cur: CursorType = NotImplemented) -> Optional[DictRow]:
+    def find_service_manga(self, service_id: int, title_id: str, *, cur: CursorType = NotImplemented) -> DictRow | None:
         sql: LiteralString = 'SELECT * from manga_service WHERE service_id=%s AND title_id=%s'
         cur.execute(sql, (service_id, title_id))
         return cur.fetchone()
 
     @OptionalTransaction(class_row(MangaServiceWithId))
     def get_manga_service(self, service_id: int, title_id: str, *, cur: Cursor[MangaServiceWithId] = NotImplemented) -> \
-            Optional[MangaServiceWithId]:
+            MangaServiceWithId | None:
         sql = '''
             SELECT * FROM manga_service ms
             INNER JOIN manga m ON ms.manga_id = m.manga_id
@@ -700,7 +716,7 @@ class DbUtil:
         return cur.fetchone()
 
     @OptionalTransaction()
-    def get_manga_services(self, manga_ids: Sequence[int], *, cur: CursorType = NotImplemented) -> List[MangaServicePartialWithId]:
+    def get_manga_services(self, manga_ids: Sequence[int], *, cur: CursorType = NotImplemented) -> list[MangaServicePartialWithId]:
         if not manga_ids:
             return []
 
@@ -719,7 +735,7 @@ class DbUtil:
         return Manga(**row) if row else None
 
     @OptionalTransaction()
-    def get_mangas_for_notifications(self, manga_ids: List[int], *, cur: CursorType = NotImplemented) -> List[MangaForNotifications]:
+    def get_mangas_for_notifications(self, manga_ids: list[int], *, cur: CursorType = NotImplemented) -> list[MangaForNotifications]:
         """
         Get manga object from database
         """
@@ -734,7 +750,7 @@ class DbUtil:
         return list(map(MangaForNotifications.model_validate, cur))
 
     @OptionalTransaction()
-    def update_latest_release(self, manga_ids: List[int], *, cur: CursorType = NotImplemented) -> None:
+    def update_latest_release(self, manga_ids: list[int], *, cur: CursorType = NotImplemented) -> None:
         format_ids = self.get_format_args(manga_ids)
         sql = 'UPDATE manga m SET latest_release=c.release_date FROM ' \
               f'(SELECT MAX(release_date), manga_id FROM chapters WHERE manga_id IN ({format_ids}) GROUP BY manga_id) as c(release_date, manga_id)' \
@@ -743,19 +759,19 @@ class DbUtil:
 
     @overload
     def add_chapters(self, chapters: Sequence[BaseChapter], manga_id: int,
-                     service_id: int, *, fetch: bool = True, cur: CursorType = NotImplemented) -> List[InsertedChapter]: ...
+                     service_id: int, *, fetch: bool = True, cur: CursorType = NotImplemented) -> list[InsertedChapter]: ...
 
     @overload
-    def add_chapters(self, chapters: Sequence[Chapter], *, fetch: bool = True, cur: CursorType = NotImplemented) -> List[InsertedChapter]: ...
+    def add_chapters(self, chapters: Sequence[Chapter], *, fetch: bool = True, cur: CursorType = NotImplemented) -> list[InsertedChapter]: ...
 
     @OptionalTransaction()
     def add_chapters(self, chapters: Sequence[Chapter] | Sequence[BaseChapter],
-                     manga_id: Optional[int] = None, service_id: Optional[int] = None, *,
-                     fetch: bool = True, cur: CursorType = NotImplemented) -> List[InsertedChapter]:
+                     manga_id: int | None = None, service_id: int | None = None, *,
+                     fetch: bool = True, cur: CursorType = NotImplemented) -> list[InsertedChapter]:
         if not chapters:
             return []
 
-        data: List[Tuple]
+        data: list[tuple]
         if isinstance(chapters[0], Chapter):
             chapters = cast(Sequence[Chapter], chapters)
             data = [
@@ -789,7 +805,7 @@ class DbUtil:
         return list(map(InsertedChapter.model_validate, retval))
 
     @OptionalTransaction()
-    def update_latest_chapter(self, data: Collection[Tuple[int, int, datetime]], *,
+    def update_latest_chapter(self, data: Collection[tuple[int, int, datetime]], *,
                               cur: CursorType = NotImplemented) -> None:
         """
         Updates the latest chapter and next chapter estimates for the given manga that contain new chapters
@@ -873,7 +889,7 @@ class DbUtil:
     def get_only_latest_entries(self,
                                 service_id: int,
                                 entries: Collection[BaseChapter],
-                                manga_id: Optional[int] = None,
+                                manga_id: int | None = None,
                                 limit: int = 400,
                                 *, cur: CursorType = NotImplemented) -> Collection[BaseChapter]:
         if not entries:
@@ -905,12 +921,12 @@ class DbUtil:
 
     @OptionalTransaction()
     def set_manga_last_checked(self, service_id: int, manga_id: int,
-                               last_checked: Optional[datetime], *, cur: CursorType = NotImplemented) -> None:
+                               last_checked: datetime | None, *, cur: CursorType = NotImplemented) -> None:
         sql: LiteralString = 'UPDATE manga_service SET last_check=%s WHERE manga_id=%s AND service_id=%s'
         cur.execute(sql, [last_checked, manga_id, service_id])
 
     @OptionalTransaction(class_row(Group))
-    def find_existing_groups(self, group_names: List[str], *, cur: Cursor[Group] = NotImplemented) -> List[Group]:
+    def find_existing_groups(self, group_names: list[str], *, cur: Cursor[Group] = NotImplemented) -> list[Group]:
         if not group_names:
             return []
 
@@ -946,7 +962,7 @@ class DbUtil:
         )
 
     @OptionalTransaction()
-    def get_manga_ids_without_artist(self, manga_ids: Set[int], *, cur: CursorType = NotImplemented) -> Set[int]:
+    def get_manga_ids_without_artist(self, manga_ids: set[int], *, cur: CursorType = NotImplemented) -> set[int]:
         """
         Returns the manga ids that do not have an artist assigned to them
         """
@@ -959,7 +975,7 @@ class DbUtil:
         return manga_ids.difference([row['manga_id'] for row in cur])
 
     @OptionalTransaction()
-    def get_manga_ids_without_author(self, manga_ids: Set[int], *, cur: CursorType = NotImplemented) -> Set[int]:
+    def get_manga_ids_without_author(self, manga_ids: set[int], *, cur: CursorType = NotImplemented) -> set[int]:
         """
         Returns the manga ids that do not have an author assigned to them
         """
@@ -972,7 +988,7 @@ class DbUtil:
         return manga_ids.difference([row['manga_id'] for row in cur])
 
     @OptionalTransaction()
-    def get_author_by_name(self, name: str, *, cur: CursorType = NotImplemented) -> Optional[Author]:
+    def get_author_by_name(self, name: str, *, cur: CursorType = NotImplemented) -> Author | None:
         sql = 'SELECT * FROM authors WHERE name=%s LIMIT 1'
         cur.execute(sql, (name,))
 
@@ -1005,7 +1021,7 @@ class DbUtil:
 
     def add_manga_author_artist_if_not_exist(self, manga_id: int,
                                              author: AuthorPartial,
-                                             artist: Optional[AuthorPartial], *,
+                                             artist: AuthorPartial | None, *,
                                              cur: CursorType = NotImplemented) -> None:
         """
         Adds the given author and artist to the manga if that manga does not already have them assigned.
@@ -1061,19 +1077,19 @@ class DbUtil:
         execute_values(cur, sql, [(ma.manga_id, ma.author_id) for ma in manga_author])
 
     @OptionalTransaction(class_row(MangaAuthor))
-    def get_manga_authors(self, manga_id: int, *, cur: Cursor[MangaAuthor] = NotImplemented) -> List[MangaAuthor]:
+    def get_manga_authors(self, manga_id: int, *, cur: Cursor[MangaAuthor] = NotImplemented) -> list[MangaAuthor]:
         sql = 'SELECT * FROM manga_authors WHERE manga_id=%s'
         cur.execute(sql, (manga_id,))
         return cur.fetchall()
 
     @OptionalTransaction(class_row(MangaArtist))
-    def get_manga_artists(self, manga_id: int, *, cur: Cursor[MangaArtist] = NotImplemented) -> List[MangaArtist]:
+    def get_manga_artists(self, manga_id: int, *, cur: Cursor[MangaArtist] = NotImplemented) -> list[MangaArtist]:
         sql = 'SELECT * FROM manga_artists WHERE manga_id=%s'
         cur.execute(sql, (manga_id,))
         return cur.fetchall()
 
     @OptionalTransaction(class_row(Author))
-    def find_existing_mangadex_authors(self, mangadex_ids: List[str], *, cur: Cursor[Author] = NotImplemented) -> List[
+    def find_existing_mangadex_authors(self, mangadex_ids: list[str], *, cur: Cursor[Author] = NotImplemented) -> list[
         Author]:
         if not mangadex_ids:
             return []
@@ -1126,7 +1142,7 @@ class DbUtil:
         execute_values(cur, sql, data)
 
     @OptionalTransaction()
-    def update_manga_titles(self, titles: List[Tuple[int, str]], *, cur: CursorType = NotImplemented) -> None:
+    def update_manga_titles(self, titles: list[tuple[int, str]], *, cur: CursorType = NotImplemented) -> None:
         """
         Update manga titles with new ones with the given (title, id) list
         """
@@ -1176,14 +1192,14 @@ class DbUtil:
             logger.exception('Failed to update elasticsearch aliases')
 
     @OptionalTransaction()
-    def find_manga_by_title(self, title: str, *, cur: CursorType = NotImplemented) -> Optional[Manga]:
+    def find_manga_by_title(self, title: str, *, cur: CursorType = NotImplemented) -> Manga | None:
         sql = 'SELECT * FROM manga WHERE title=%s LIMIT 1'
         cur.execute(sql, (title,))
         row = cur.fetchone()
         return None if not row else Manga(**row)
 
     @OptionalTransaction()
-    def get_notifications_by_manga_ids(self, manga_ids: List[int], *, cur: CursorType = NotImplemented) -> List[PartialNotificationInfo]:
+    def get_notifications_by_manga_ids(self, manga_ids: list[int], *, cur: CursorType = NotImplemented) -> list[PartialNotificationInfo]:
         sql = '''
             SELECT un.notification_id, manga_id, service_id
             FROM user_notifications un
@@ -1213,7 +1229,7 @@ class DbUtil:
         return self.fetchone_or_throw(cur)
 
     @OptionalTransaction(class_row(InputField))
-    def get_notification_inputs(self, notification_id: int, *, cur: Cursor[InputField] = NotImplemented) -> List[InputField]:
+    def get_notification_inputs(self, notification_id: int, *, cur: Cursor[InputField] = NotImplemented) -> list[InputField]:
         sql = 'SELECT unf.value, nf.name, nf.optional, unf.override_id FROM user_notification_fields unf ' \
               'INNER JOIN notification_fields nf ON nf.field_id=unf.field_id ' \
               'WHERE notification_id=%s'

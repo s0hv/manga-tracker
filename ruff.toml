@@ -5,10 +5,12 @@ select = [
     "E4",
     "E7",
     "E9",
-    "F"
+    "F",
+    "UP",
 ]
 ignore = [
     "ANN204",
+    "UP017"
 ]
 
 [lint.flake8-annotations]
