@@ -59,8 +59,10 @@ class TestMergeManga(BaseTestClasses.DatabaseTestCase):
             al=self.get_str_id(), last_updated=utcnow()
         )
 
-        sql = 'INSERT INTO manga_info (manga_id, cover, status, bw, mu, mal, amz, ebj, engtl, raw, nu, kt, ap, al, last_updated) ' \
-              'VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'
+        sql = (
+            'INSERT INTO manga_info (manga_id, cover, status, bw, mu, mal, amz, ebj, engtl, raw, nu, kt, ap, al, last_updated) '
+            'VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'
+        )
         self.dbutil.execute(sql,
                             (mi.manga_id, mi.cover, mi.status,
                              mi.bw, mi.mu, mi.mal, mi.amz, mi.ebj, mi.engtl,

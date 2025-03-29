@@ -15,7 +15,9 @@ select = [
     "S604",
     "B",
     "A",
-    "C4"
+    "C4",
+    "DTZ",
+    "ISC"
 ]
 ignore = [
     "ANN204",
