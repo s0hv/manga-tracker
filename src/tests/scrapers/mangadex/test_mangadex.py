@@ -21,7 +21,7 @@ from src.tests.testing_utils import BaseTestClasses, ChapterTestModel
 from src.utils.dbutils import DbUtil
 from src.utils.utilities import utcnow
 
-correct_parsed_chapters = list(sorted([
+correct_parsed_chapters = sorted([
     ChapterTestModel(
         chapter_title='The Boss Geng Chen has landed',
         chapter_number=24,
@@ -93,7 +93,7 @@ correct_parsed_chapters = list(sorted([
         group=None,
         title='Chapter 5b',
         group_id=NO_GROUP)
-], key=lambda c: c.chapter_identifier))
+], key=lambda c: c.chapter_identifier)
 
 
 class MangadexTests(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAssertions):
@@ -174,7 +174,7 @@ class MangadexTests(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsser
         self.assertEqual(len(parsed), len(correct_parsed_chapters),
                          msg='Not all chapters parsed')
 
-        for actual, expected in zip(sorted(parsed, key=lambda c: c.chapter_identifier), correct_parsed_chapters):
+        for actual, expected in zip(sorted(parsed, key=lambda c: c.chapter_identifier), correct_parsed_chapters, strict=True):
             self.assertChaptersEqual(actual, expected)
 
     def test_scrape_service_without_feed_url_throws(self):

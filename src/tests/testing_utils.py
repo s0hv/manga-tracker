@@ -223,7 +223,7 @@ class BaseTestClasses:
                 ('chapter_number', 'chapter_number'),
                 ('decimal', 'chapter_decimal'),
                 ('release_date', 'release_date',
-                 lambda: (getattr(chapter, 'release_date'), row['release_date'])
+                 lambda: (chapter.release_date, row['release_date'])
                  ),
                 ('chapter_identifier', 'chapter_identifier'),
                 ('group', 'group')
@@ -234,11 +234,10 @@ class BaseTestClasses:
                 row_attr: str
                 chapter_attr, row_attr = val[:2]
                 if len(val) == 3:
-                    # Mypy thinks index is out of range even with len check
                     get_vals = val[2]
                 else:
                     def get_vals() -> tuple[Any, Any]:
-                        return getattr(chapter, chapter_attr), row[row_attr]
+                        return getattr(chapter, chapter_attr), row[row_attr]  # noqa: B023 Function is only used once in the same loop
 
                 c_val, r_val = get_vals()
                 if c_val != r_val:
@@ -317,7 +316,7 @@ class BaseTestClasses:
 
             for chapter, expect in zip(
                     sorted(chapters, key=self.dbChapterSortKey),
-                    sorted(expected, key=self.dbChapterSortKey)):
+                    sorted(expected, key=self.dbChapterSortKey), strict=True):
                 self.assertDbChaptersEqual(chapter, expect, include_id=include_id)
 
         def _get_manga_service(self, service_id: int, title_id: str) -> MangaService:
@@ -371,7 +370,7 @@ class BaseTestClasses:
             self.assertEqual(len(chapters), len(expected), msg='Different amount of chapters passed')
 
             for chapter, expect in zip(sorted(chapters, key=self.chapterSortKey),
-                                       sorted(expected, key=self.chapterSortKey)):
+                                       sorted(expected, key=self.chapterSortKey), strict=True):
                 self.assertChaptersEqual(
                     typing.cast(BaseChapter, chapter),
                     typing.cast(BaseChapter, expect),

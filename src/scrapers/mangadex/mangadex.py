@@ -171,7 +171,7 @@ class MangaDex(BaseScraperWhole):
         author_map: dict[str | None, int] = {}
         add_authors: dict[str | None, MangadexData[AuthorAttributes]] = {}
 
-        manga_ids = set([t[1] for t in mangas])
+        manga_ids: set[int] = {t[1] for t in mangas}
         without_author = self.dbutil.get_manga_ids_without_author(manga_ids)
         without_artist = self.dbutil.get_manga_ids_without_artist(manga_ids)
 

@@ -41,18 +41,21 @@ class TestWebhook(unittest.TestCase):
 
     @staticmethod
     def get_input_fields() -> list[InputField]:
-        return [
-            InputField(name='json', value=TestWebhook.test_json, optional=False)
-        ]
+        return [InputField(name='json', value=TestWebhook.test_json, optional=False)]
 
-    def create_matcher(self, chapters: list[NotificationChapter], chapters_key: str = 'chapters') -> object:
-        return matchers.json_params_matcher({
-            chapters_key: list(map(lambda c: WebhookNotifier().format_dict(
-                    WebhookNotifier.validate_json(self.test_json)[JsonFields.CHAPTER_FORMAT],
-                    c
-                ), chapters))
-
-          })
+    def create_matcher(
+        self, chapters: list[NotificationChapter], chapters_key: str = 'chapters'
+    ) -> object:
+        return matchers.json_params_matcher(
+            {
+                chapters_key: [
+                    WebhookNotifier().format_dict(
+                        WebhookNotifier.validate_json(self.test_json)[JsonFields.CHAPTER_FORMAT], chapter
+                    )
+                    for chapter in chapters
+                ]
+            }
+        )
 
     def test_validate_json(self):
         notifier = WebhookNotifier()

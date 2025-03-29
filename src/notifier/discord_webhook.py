@@ -71,7 +71,7 @@ class DiscordEmbedWebhookNotifier(NotifierBase):
             embed_inputs = embed_inputs_original
             group_sorted = self.sort_chapters(group)
 
-            embeds = list(map(lambda c: self.get_chapter_embed(c, embed_inputs, overrides), group_sorted))
+            embeds = [self.get_chapter_embed(chapter, embed_inputs, overrides) for chapter in group_sorted]
 
             # If group by manga is true we can use the override for the non embed properties
             # Otherwise use defaults
@@ -90,8 +90,8 @@ class DiscordEmbedWebhookNotifier(NotifierBase):
             def get_webhook() -> DiscordWebhook:
                 return DiscordWebhook(
                     url=options.destination,
-                    username=username,
-                    avatar_url=embed_inputs.avatar_url,
+                    username=username,  # noqa: B023 Function is only called inside this loop
+                    avatar_url=embed_inputs.avatar_url,  # noqa: B023
                     timeout=10
                 )
 

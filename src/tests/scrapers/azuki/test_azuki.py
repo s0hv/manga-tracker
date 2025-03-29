@@ -148,7 +148,7 @@ class AzukiTest(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAssertion
 
         chapters = self.dbutil.get_chapters(None, Azuki.ID)
 
-        for parsed, correct in zip(sorted(chapters, key=self.chapterSortKey), sorted(correct_chapters, key=self.chapterSortKey)):
+        for parsed, correct in zip(sorted(chapters, key=self.chapterSortKey), sorted(correct_chapters, key=self.chapterSortKey), strict=True):
             self.assertChaptersEqual(parsed, correct)
 
     @responses.activate
@@ -179,7 +179,7 @@ class AzukiTest(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAssertion
 
         chapters = self.dbutil.get_chapters(None, Azuki.ID)
 
-        for parsed, correct in zip(sorted(chapters, key=self.chapterSortKey), sorted(correct_chapters_releases, key=self.chapterSortKey)):
+        for parsed, correct in zip(sorted(chapters, key=self.chapterSortKey), sorted(correct_chapters_releases, key=self.chapterSortKey), strict=True):
             self.assertChaptersEqual(parsed, correct)
 
 

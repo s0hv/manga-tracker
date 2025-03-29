@@ -164,36 +164,56 @@ class TestMangaPlusParser(BaseTestClasses.DatabaseTestCase):
             Chapter(
                 manga_id=ms.manga_id,
                 service_id=ms.service_id,
-                title="Cruelty",
+                title='Cruelty',
                 chapter_number=1,
                 chapter_decimal=None,
                 release_date=utcfromtimestamp(1547996400),
                 chapter_identifier='1000303',
-                group_id=self.group_id
+                group_id=self.group_id,
             ),
             Chapter(
                 manga_id=ms.manga_id,
                 service_id=ms.service_id,
-                title="The Stranger",
+                title='The Stranger',
                 chapter_number=2,
                 chapter_decimal=None,
                 release_date=utcfromtimestamp(1547996400),
                 chapter_identifier='1000304',
-                group_id=self.group_id
+                group_id=self.group_id,
             ),
             Chapter(
                 manga_id=ms.manga_id,
                 service_id=ms.service_id,
-                title="To Return By Dawn Without Fail",
+                title='To Return By Dawn Without Fail',
                 chapter_number=3,
                 chapter_decimal=None,
                 release_date=utcfromtimestamp(1547996400),
                 chapter_identifier='1000305',
-                group_id=self.group_id
-            )
+                group_id=self.group_id,
+            ),
+            Chapter(
+                manga_id=ms.manga_id,
+                service_id=ms.service_id,
+                title="Tanjiro's Journal, Part 1",
+                chapter_number=4,
+                chapter_decimal=None,
+                release_date=utcfromtimestamp(1547996400),
+                chapter_identifier='1000306',
+                group_id=self.group_id,
+            ),
+            Chapter(
+                manga_id=ms.manga_id,
+                service_id=ms.service_id,
+                title='Special one shot ',
+                chapter_number=4,
+                chapter_decimal=5,
+                release_date=utcfromtimestamp(1633363200),
+                chapter_identifier='1006664',
+                group_id=self.group_id,
+            ),
         ]
 
-        for ch, correct in zip(inserted, correct_chapters):
+        for ch, correct in zip(inserted, correct_chapters, strict=True):
             self.assertDbChaptersEqual(ch, correct)
 
         self.assertMangaServiceDisabled(ms.service_id, ms.title_id)

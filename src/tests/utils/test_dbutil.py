@@ -427,7 +427,7 @@ class TestAddNewMangaWithDuplicates(BaseDbutilTest):
                 retval = self.dbutil.add_new_manga_and_check_duplicate_titles(mangas, cur=cur)
 
                 self.assertListEqual(retval, list(MangaServiceWithId.from_manga_services(mangas)))
-                self.assertNotIn(None, map(lambda ms: ms.manga_id, mangas))
+                self.assertNotIn(None, (ms.manga_id for ms in mangas))
 
     def test_get_service_manga_returns_nothing_with_invalid_id(self):
         self.assertFalse(self.dbutil.get_service_manga(-1))

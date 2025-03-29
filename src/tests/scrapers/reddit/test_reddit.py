@@ -8,8 +8,12 @@ import pytest
 from src.constants import NO_GROUP
 from src.db.models.manga import MangaService
 from src.scrapers import Reddit
-from src.tests.testing_utils import (BaseTestClasses, ChapterTestModel, load_chapters_snapshot,
-                                     mock_feedparse)
+from src.tests.testing_utils import (
+    BaseTestClasses,
+    ChapterTestModel,
+    load_chapters_snapshot,
+    mock_feedparse,
+)
 
 test_feed = os.path.join(os.path.dirname(__file__), 'test_data.xml')
 
@@ -28,7 +32,7 @@ class TestRedditScraper(BaseTestClasses.ModelAssertions, BaseTestClasses.Databas
 
         correct_chapters = self.read_test_data()
         self.assertEqual(len(chapters), len(correct_chapters))
-        for a, b in zip(chapters, correct_chapters):
+        for a, b in zip(chapters, correct_chapters, strict=True):
             self.assertChaptersEqual(a, b)
 
     @patch('feedparser.parse', wraps=mock_feedparse(test_feed))
