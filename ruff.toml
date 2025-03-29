@@ -1,3 +1,5 @@
+line-length = 100
+
 [lint]
 exclude = ["src/**/protobuf/**"]
 select = [
@@ -7,10 +9,18 @@ select = [
     "E9",
     "F",
     "UP",
+    "S110",
+    "S112",
+    "S603",
+    "S604",
+    "B",
+    "A",
+    "C4"
 ]
 ignore = [
     "ANN204",
-    "UP017"
+    "UP017",
+    "C401"
 ]
 
 [lint.flake8-annotations]
@@ -20,5 +30,7 @@ suppress-dummy-args = true
 
 [format]
 quote-style = "single"
+indent-style = "space"
 docstring-code-format = true
+
 exclude = ["src/**/protobuf/**"]

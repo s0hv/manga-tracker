@@ -307,7 +307,7 @@ class DbUtil:
 
         intervals = []
         accuracy = 60 * 60 * 4  # 4h
-        for a, b in zip(chapters[:-1], chapters[1:]):
+        for a, b in zip(chapters[:-1], chapters[1:], strict=True):
             t = round_seconds(
                 (a['release_date'] - b['release_date']).total_seconds(),
                 accuracy
@@ -358,7 +358,7 @@ class DbUtil:
             list[Chapter]: ...
 
     @overload
-    def get_chapters(self, manga_id: None | None, service_id: int, *, limit: int = 100,
+    def get_chapters(self, manga_id: None, service_id: int, *, limit: int = 100,
                      cur: CursorType = NotImplemented) -> list[Chapter]: ...
 
     @OptionalTransaction()
@@ -557,7 +557,7 @@ class DbUtil:
 
         try:
             elastic_data = []
-            for row, manga in zip(rows, mangas):
+            for row, manga in zip(rows, mangas, strict=True):
                 if row['title'] != manga.title:
                     logger.warning(f'Inserted manga mismatch with {manga}')
                     continue
@@ -623,7 +623,7 @@ class DbUtil:
         rows = execute_values(cur, sql, args, page_size=len(args),
                               fetch=True)
 
-        for row, manga in zip(rows, mangas):
+        for row, manga in zip(rows, mangas, strict=True):
             if row['title_id'] != manga.title_id:
                 logger.warning(f'Inserted manga mismatch with {manga}')
                 continue

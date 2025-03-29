@@ -5,7 +5,7 @@ import requests
 from pydantic import Field
 
 from src.db.models.notifications import InputField, NotificationOptions
-from src.notifier.base_notifier import (BaseEmbedInputs, NotificationChapter, NotifierBase)
+from src.notifier.base_notifier import BaseEmbedInputs, NotificationChapter, NotifierBase
 
 logger = logging.getLogger('debug')
 
@@ -73,7 +73,7 @@ class WebhookNotifier(NotifierBase):
         for group in groups:
             group_sorted = self.sort_chapters(group)
 
-            chapters_array = list(map(lambda c: self.format_dict(chapter_format, c), group_sorted))
+            chapters_array = [self.format_dict(chapter_format, chapter) for chapter in group_sorted]
             data[chapters_array_key] = chapters_array
 
             try:

@@ -129,7 +129,7 @@ class NotifierBase(ABC):
         return template.safe_substitute(**chapter.to_dict())
 
     def format_title(self, msg_format: str, chapters: list[NotificationChapter]) -> str:
-        titles = ', '.join(set(map(lambda c: c.manga.name, chapters)))
+        titles = ', '.join({c.manga.name for c in chapters})
         template = Template(msg_format)
         s = template.safe_substitute(MANGA_TITLES=titles)
 
