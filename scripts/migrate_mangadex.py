@@ -1,4 +1,4 @@
-import argparse
+import argparse  # noqa: INP001 This is a script and not a module
 from operator import itemgetter
 from time import sleep
 

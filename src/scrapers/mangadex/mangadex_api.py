@@ -87,7 +87,7 @@ class ScanlationGroupAttributes(BaseModel):
 class ChapterResult(MangadexData[ChapterAttributes]):
     group: MangadexData[ScanlationGroupAttributes] | None = None
 
-    @model_validator(mode="before")
+    @model_validator(mode='before')
     @classmethod
     def restructure_data(cls, data: dict) -> dict:
         """
@@ -133,7 +133,7 @@ class MangaAttributes(BaseModel):
     links: Links
     status: Status
 
-    @model_validator(mode="before")
+    @model_validator(mode='before')
     @classmethod
     def restructure_data(cls, data: dict) -> dict:
         if 'en' in data['title']:
@@ -152,12 +152,12 @@ class MangaAttributes(BaseModel):
         data['title']['en'] = next(iter(data['title'].values()))
         return data
 
-    @field_validator('title', mode="before")
+    @field_validator('title', mode='before')
     @classmethod
     def validate_title(cls, v: dict) -> str:
         return v['en']
 
-    @field_validator('links', mode="before")
+    @field_validator('links', mode='before')
     @classmethod
     def validate_links(cls, v: dict | None) -> Links | dict:
         if v is None:
@@ -181,7 +181,7 @@ class MangaResult(MangadexData[MangaAttributes]):
     artists: list[MangadexData[AuthorAttributes]] | None = None
     cover: MangadexData[CoverAttributes] | None = None
 
-    @model_validator(mode="before")
+    @model_validator(mode='before')
     @classmethod
     def restructure_data(cls, data: dict) -> dict:
         """
@@ -310,7 +310,7 @@ class MangadexAPI:
         if include_cover:
             includes.append('cover_art')
 
-        params = [self.join_array(manga_ids, "ids")]
+        params = [self.join_array(manga_ids, 'ids')]
 
         if includes:
             params.append(self.join_array(includes, 'includes'))

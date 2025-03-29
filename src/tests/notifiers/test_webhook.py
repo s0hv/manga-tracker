@@ -68,7 +68,7 @@ class TestWebhook(unittest.TestCase):
 
         data = notifier.validate_json(js)
 
-        self.assertDictEqual(json.loads(js), data)
+        assert json.loads(js) == data
 
     def test_validate_json_without_array(self):
         notifier = WebhookNotifier()
@@ -124,7 +124,7 @@ class TestWebhook(unittest.TestCase):
         }
         d = notifier.format_dict(d, c)
 
-        self.assertDictEqual(d, expected)
+        assert d == expected
 
     def test_format_dict_max_recursion_throws(self):
         notifier = WebhookNotifier()
@@ -156,9 +156,9 @@ class TestWebhook(unittest.TestCase):
         expected_calls = 1
         sent, success = notifier.send_notification(chapters, options=options, input_fields=input_fields)
 
-        self.assertEqual(len(responses.calls), expected_calls)
-        self.assertEqual(sent, expected_calls)
-        self.assertTrue(success)
+        assert len(responses.calls) == expected_calls
+        assert sent == expected_calls
+        assert success
 
     @responses.activate
     def test_webhook_called_group_by_manga(self):
@@ -180,9 +180,9 @@ class TestWebhook(unittest.TestCase):
         expected_calls = 3
         sent, success = notifier.send_notification(chapters, options=options, input_fields=input_fields)
 
-        self.assertEqual(len(responses.calls), expected_calls)
-        self.assertEqual(sent, expected_calls)
-        self.assertTrue(success)
+        assert len(responses.calls) == expected_calls
+        assert sent == expected_calls
+        assert success
 
     @responses.activate
     def test_webhook_called_with_error(self):
@@ -205,9 +205,9 @@ class TestWebhook(unittest.TestCase):
         sent, success = notifier.send_notification(chapters, options=options,
                                                    input_fields=input_fields)
 
-        self.assertEqual(len(responses.calls), expected_calls)
-        self.assertEqual(sent, expected_calls)
-        self.assertFalse(success)
+        assert len(responses.calls) == expected_calls
+        assert sent == expected_calls
+        assert not success
 
 
 if __name__ == '__main__':

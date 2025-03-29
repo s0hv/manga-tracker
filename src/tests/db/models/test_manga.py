@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 from src import scrapers
 from src.db.models.manga import MangaInfo, MangaService
@@ -15,12 +15,12 @@ class MyTestCase(unittest.TestCase):
 
     def test_can_instantiate_manga_info(self):
         m = MangaInfo(manga_id=1)
-        self.assertEqual(m.manga_id, 1)
+        assert m.manga_id == 1
 
     def test_manga_service_scraper(self):
         with self.mock_scrapers:
             m = MangaService(service_id=1, disabled=False, manga_id=1, title='', title_id='')
-            self.assertEqual(m.Scraper, self.mock_scraper)
+            assert m.Scraper == self.mock_scraper
 
     def test_manga_service_scrape_series(self):
         with self.mock_scrapers:

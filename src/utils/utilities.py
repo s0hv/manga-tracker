@@ -43,7 +43,7 @@ def match_title(s: str) -> dict[str, str] | None:
     match = match.groupdict()
     match['chapter_number'] = match.pop('chapter') or match.pop('chapter_number2')
     match['decimal'] = match['decimal'] or match.pop('chapter_decimal2')
-    logger.debug(f"Parsed title with universal regex: {match}")
+    logger.debug(f'Parsed title with universal regex: {match}')
     return match
 
 

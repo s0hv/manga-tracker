@@ -11,7 +11,7 @@ class LoggingFormatter(logging.Formatter):
             self,
             fmt: str | None = None,
             datefmt: str | None = None,
-            style: Literal["%", "{", "$"] = '%',
+            style: Literal['%', '{', '$'] = '%',
             override_colors: dict | None = None
     ):
         super().__init__(fmt, datefmt, style)
@@ -36,7 +36,7 @@ class LoggingFormatter(logging.Formatter):
             bg: ColorType | None = None,
             style: str | None = None
     ) -> str | None:
-        color = get_color("", fg=fg, bg=bg, style=style)
+        color = get_color('', fg=fg, bg=bg, style=style)
         if color:
             return color[:-4]
 
@@ -69,15 +69,15 @@ class LoggingFormatter(logging.Formatter):
             if not record.exc_text:
                 record.exc_text = self.formatException(record.exc_info)
         if record.exc_text:
-            if s[-1:] != "\n":
-                s = s + "\n"
+            if s[-1:] != '\n':
+                s = s + '\n'
             color = self.get_color(**self.colors.get('EXCEPTION', {}))
             if color:
                 s = s + color + record.exc_text + '\x1b[0m'
             else:
                 s = s + record.exc_text
         if record.stack_info:
-            if s[-1:] != "\n":
-                s = s + "\n"
+            if s[-1:] != '\n':
+                s = s + '\n'
             s = s + self.formatStack(record.stack_info)
         return s

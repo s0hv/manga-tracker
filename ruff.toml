@@ -17,7 +17,11 @@ select = [
     "A",
     "C4",
     "DTZ",
-    "ISC"
+    "ISC",
+    "LOG",
+    "INP",
+    "PIE",
+    "Q"
 ]
 ignore = [
     "ANN204",
@@ -29,6 +33,11 @@ ignore = [
 mypy-init-return = true
 suppress-none-returning = true
 suppress-dummy-args = true
+
+[lint.flake8-quotes]
+docstring-quotes = "double"
+inline-quotes = "single"
+multiline-quotes = "single"
 
 [format]
 quote-style = "single"

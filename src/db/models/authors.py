@@ -7,7 +7,7 @@ class AuthorPartial(BaseModel):
     name: str
     mangadex_id: str | None = None
 
-    @field_validator('mangadex_id', mode="before")
+    @field_validator('mangadex_id', mode='before')
     @classmethod
     def uuid2str(cls, v: str | UUID) -> str:
         if isinstance(v, UUID):

@@ -160,7 +160,7 @@ class MangadexTests(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsser
         src.scrapers.mangadex.mangadex.logger = logger
 
         retVal = self.mangadex.scrape_service(self.mangadex.ID, self.mangadex.FEED_URL, None)
-        self.assertIsNone(retVal)
+        assert retVal is None
         self.assertLogs(logger, logging.ERROR)
 
     def test_parse_feed(self):
@@ -171,8 +171,7 @@ class MangadexTests(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsser
             # Parse feed does not handle fetching groups
             chapter.group_id = NO_GROUP
 
-        self.assertEqual(len(parsed), len(correct_parsed_chapters),
-                         msg='Not all chapters parsed')
+        assert len(parsed) == len(correct_parsed_chapters), 'Not all chapters parsed'
 
         for actual, expected in zip(sorted(parsed, key=lambda c: c.chapter_identifier), correct_parsed_chapters, strict=True):
             self.assertChaptersEqual(actual, expected)
@@ -195,59 +194,36 @@ class MangadexTests(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsser
         retVal = self.mangadex.scrape_service(service_id, self.mangadex.FEED_URL, None)
         assert retVal is not None
 
-        self.assertEqual(len(retVal.manga_ids), manga_count, msg='Updated manga count invalid')
-        self.assertEqual(len(retVal.chapter_ids), len(correct_parsed_chapters), msg='Updated manga count invalid')
-        self.assertFalse([r for r in self.caplog.records if r.levelno >= logging.WARNING], msg='Warnings found')
+        assert len(retVal.manga_ids) == manga_count, 'Updated manga count invalid'
+        assert len(retVal.chapter_ids) == len(correct_parsed_chapters), 'Updated manga count invalid'
+        assert not [r for r in self.caplog.records if r.levelno >= logging.WARNING], 'Warnings found'
 
         # Assert correct amount of chapters
         chapters: list[Chapter] = list(
             map(Chapter.model_validate, self.dbutil.execute('SELECT * FROM chapters WHERE service_id=%s', (service_id,)))
         )
-        self.assertEqual(
-            len(chapters),
-            chapter_count
-        )
+        assert len(chapters) == chapter_count
 
         # Assert groups added
-        self.assertEqual(
-            len({c.group_id for c in chapters}),
-            group_count
-        )
+        assert len({c.group_id for c in chapters}) == group_count
 
         # Assert all covers were set
         format_args = self.dbutil.get_format_args(retVal.manga_ids)
         covers = self.dbutil.execute(f'SELECT cover FROM manga_info WHERE manga_id IN ({format_args})', retVal.manga_ids)
-        self.assertNotIn(
-            None,
-            [row['cover'] for row in covers]
-        )
+        assert None not in [row['cover'] for row in covers]
 
         # Assert correct amount of artists added
-        self.assertEqual(
-            self.dbutil.execute(
-                f'SELECT COUNT(*) as count FROM manga_artists WHERE manga_id IN ({format_args})',
-                retVal.manga_ids
-            )[0]['count'],
-            artist_count,
-            msg='Not all manga artists added'
-        )
+        assert self.dbutil.execute(f'SELECT COUNT(*) as count FROM manga_artists WHERE manga_id IN ({format_args})', retVal.manga_ids)[0]['count'] == artist_count, 'Not all manga artists added'
 
         # Assert correct amount of authors added
-        self.assertEqual(
-            self.dbutil.execute(
-                f'SELECT COUNT(*) as count FROM manga_authors WHERE manga_id IN ({format_args})',
-                retVal.manga_ids
-            )[0]['count'],
-            author_count,
-            msg='Not all manga authors added'
-        )
+        assert self.dbutil.execute(f'SELECT COUNT(*) as count FROM manga_authors WHERE manga_id IN ({format_args})', retVal.manga_ids)[0]['count'] == author_count, 'Not all manga authors added'
 
         self.assertMangaWithTitleFound("Circle Zero's Otherworldly Hero Business: Reboot")
 
         retval = self.mangadex.scrape_service(service_id, self.mangadex.FEED_URL, None)
         assert retval is not None
-        self.assertEqual(len(retval.chapter_ids), 0)
-        self.assertEqual(len(retval.manga_ids), 0)
+        assert len(retval.chapter_ids) == 0
+        assert len(retval.manga_ids) == 0
 
     @responses.activate
     def test_duplicate_group(self):
@@ -258,23 +234,23 @@ class MangadexTests(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsser
         retval = self.mangadex.scrape_service(service_id, self.mangadex.FEED_URL, None)
         assert retval is not None
 
-        self.assertGreater(len(retval.manga_ids), 0, msg='Nothing updated')
-        self.assertGreater(len(retval.chapter_ids), 0, msg='Nothing updated')
-        self.assertFalse([r for r in self.caplog.records if r.levelno >= logging.WARNING], msg='Warnings found')
+        assert len(retval.manga_ids) > 0, 'Nothing updated'
+        assert len(retval.chapter_ids) > 0, 'Nothing updated'
+        assert not [r for r in self.caplog.records if r.levelno >= logging.WARNING], 'Warnings found'
 
         groups_before = self.conn.execute('SELECT COUNT(*) as count FROM groups').fetchone()
         # Only delete chapters, leaves groups as is
         self.delete_chapters()
         groups_after = self.conn.execute('SELECT COUNT(*) as count FROM groups').fetchone()
 
-        self.assertEqual(groups_before, groups_after)
+        assert groups_before == groups_after
 
         retval = self.mangadex.scrape_service(service_id, self.mangadex.FEED_URL, None)
         assert retval is not None
 
-        self.assertGreater(len(retval.manga_ids), 0, msg='Nothing updated')
-        self.assertGreater(len(retval.chapter_ids), 0, msg='Nothing updated')
-        self.assertFalse([r for r in self.caplog.records if r.levelno >= logging.WARNING], msg='Warnings found')
+        assert len(retval.manga_ids) > 0, 'Nothing updated'
+        assert len(retval.chapter_ids) > 0, 'Nothing updated'
+        assert not [r for r in self.caplog.records if r.levelno >= logging.WARNING], 'Warnings found'
 
     @responses.activate
     def test_existing_group(self):
@@ -284,7 +260,7 @@ class MangadexTests(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsser
         service_id = self.mangadex.ID
 
         groups = [GroupPartial(name=c) for c in {c.group for c in correct_parsed_chapters if c.group is not None}]
-        self.assertGreater(len(groups), 2)
+        assert len(groups) > 2
         groups = list(groups)[:2]
         exist_groups = list(self.dbutil.add_new_groups(groups))
 
@@ -292,21 +268,21 @@ class MangadexTests(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsser
 
         assert retval is not None
 
-        self.assertGreater(len(retval.manga_ids), 0, msg='Nothing updated')
-        self.assertGreater(len(retval.chapter_ids), 0, msg='Nothing updated')
-        self.assertFalse([r for r in self.caplog.records if r.levelno >= logging.WARNING], msg='Warnings found')
+        assert len(retval.manga_ids) > 0, 'Nothing updated'
+        assert len(retval.chapter_ids) > 0, 'Nothing updated'
+        assert not [r for r in self.caplog.records if r.levelno >= logging.WARNING], 'Warnings found'
 
         with self.conn.cursor(row_factory=class_row(Group)) as cur:
             cur.execute('SELECT g.* FROM groups g INNER JOIN chapters c ON g.group_id = c.group_id WHERE g.group_id != %s AND c.service_id=%s GROUP BY g.group_id', (NO_GROUP, MangaDex.ID))
             all_groups: list[Group] = cur.fetchall()
             all_groups_dict: dict[str, Group] = {g.name: g for g in all_groups}
 
-            self.assertEqual(len(all_groups), len(all_groups_dict), msg='Not all existing groups processed properly')
+            assert len(all_groups) == len(all_groups_dict), 'Not all existing groups processed properly'
 
         for group in exist_groups:
-            self.assertIsNotNone(all_groups_dict[group.name].mangadex_id)
+            assert all_groups_dict[group.name].mangadex_id is not None
 
-        self.assertGreater(len(all_groups), len(exist_groups))
+        assert len(all_groups) > len(exist_groups)
 
 
 @patch.object(src.scrapers.mangadex.mangadex, 'logger', Mock())

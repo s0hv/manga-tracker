@@ -3,6 +3,7 @@ import unittest
 from datetime import datetime, timedelta, timezone
 
 import psycopg
+import pytest
 
 from src.constants import NO_GROUP
 from src.db.models.chapter import Chapter as ChapterModel
@@ -99,7 +100,7 @@ class TestSplitExistingManga(BaseDbutilTest):
             with self.conn.cursor() as cur:
                 cur = spy_on(cur)
                 retval = self.dbutil.split_existing_manga(DummyScraper.ID, [], cur=cur)
-                self.assertTupleEqual(retval, ([], []))
+                assert retval == ([], [])
                 cur.execute.assert_not_called()  # type: ignore[union-attr]
 
     def test_with_no_existing(self):
@@ -113,8 +114,8 @@ class TestSplitExistingManga(BaseDbutilTest):
             DummyScraper.ID, mangas
         )
 
-        self.assertFalse(exists)
-        self.assertEqual(not_exists, mangas)
+        assert not exists
+        assert not_exists == mangas
 
     def test_with_existing_in_service(self):
         """
@@ -135,8 +136,8 @@ class TestSplitExistingManga(BaseDbutilTest):
             DummyScraper.ID, mangas
         )
 
-        self.assertFalse(exists)
-        self.assertEqual(not_exists, [m1, m2])
+        assert not exists
+        assert not_exists == [m1, m2]
 
     def test_with_existing_not_in_service(self):
         """
@@ -171,8 +172,8 @@ class TestSplitExistingManga(BaseDbutilTest):
             DummyScraper.ID, mangas
         )
 
-        self.assertEqual(exists, [m1, m2])
-        self.assertEqual(not_exists, [m3])
+        assert exists == [m1, m2]
+        assert not_exists == [m3]
 
 
 class TestGetAndAddManga(BaseDbutilTest):
@@ -182,23 +183,26 @@ class TestGetAndAddManga(BaseDbutilTest):
     def test_add_new_manga(self):
         manga = self.get_unique_manga()
         retval = self.dbutil.add_new_manga(manga)
-        self.assertIs(manga, retval)
-        self.assertIsNotNone(manga.manga_id)
+        assert manga is retval
+        assert manga.manga_id is not None
 
-        self.assertEqual(manga, self.get_manga_db(manga.manga_id))
+        assert manga == self.get_manga_db(manga.manga_id)
 
     def test_add_new_manga_service_without_manga_id(self):
         title_id = self.get_str_id()
         manga = MangaService(
-            service_id=DummyScraper.ID, disabled=False,
-            title_id=title_id, title=f'{title_id}_manga'
+            service_id=DummyScraper.ID,
+            disabled=False,
+            title_id=title_id,
+            title=f"{title_id}_manga",
         )
 
         dbutil = spy_on(self.dbutil)
 
-        self.assertRaises(psycopg.IntegrityError, dbutil.add_manga_service, manga)
+        with pytest.raises(psycopg.IntegrityError):
+            dbutil.add_manga_service(manga)
         dbutil.add_new_manga.assert_not_called()  # type: ignore[union-attr]
-        self.assertIsNone(self.dbutil.get_manga_service(manga.service_id, manga.title_id))
+        assert self.dbutil.get_manga_service(manga.service_id, manga.title_id) is None
 
     def test_add_new_manga_service(self):
         title_id = self.get_str_id()
@@ -211,12 +215,9 @@ class TestGetAndAddManga(BaseDbutilTest):
         )
 
         self.dbutil.add_manga_service(manga, add_manga=True)
-        self.assertIsNotNone(manga.manga_id)
+        assert manga.manga_id is not None
 
-        self.assertEqual(
-            self.dbutil.get_manga_service(manga.service_id, title_id),
-            MangaServiceWithId.from_manga_service(manga)
-        )
+        assert self.dbutil.get_manga_service(manga.service_id, title_id) == MangaServiceWithId.from_manga_service(manga)
 
     def test_add_new_manga_service_all_properties(self):
         title_id = self.get_str_id()
@@ -236,21 +237,15 @@ class TestGetAndAddManga(BaseDbutilTest):
         self.dbutil.add_manga_service(manga, add_manga=True)
 
         # Assert inserted rows map and match correctly
-        self.assertIsNotNone(manga.manga_id)
-        self.assertEqual(
-            self.dbutil.get_manga_service(manga.service_id, title_id),
-            MangaServiceWithId.from_manga_service(manga)
-        )
-        self.assertEqual(
-            self.get_manga_db(manga.manga_id),
-            Manga(**manga.model_dump())
-        )
+        assert manga.manga_id is not None
+        assert self.dbutil.get_manga_service(manga.service_id, title_id) == MangaServiceWithId.from_manga_service(manga)
+        assert self.get_manga_db(manga.manga_id) == Manga(**manga.model_dump())
 
     def test_get_manga_invalid_id(self):
-        self.assertIsNone(self.dbutil.get_manga(-1))
+        assert self.dbutil.get_manga(-1) is None
 
     def test_get_manga_service_invalid_id(self):
-        self.assertIsNone(self.dbutil.get_manga_service(DummyScraper.ID, 'undefined'))
+        assert self.dbutil.get_manga_service(DummyScraper.ID, 'undefined') is None
 
 
 class TestAddNewMangaWithDuplicates(BaseDbutilTest):
@@ -263,11 +258,11 @@ class TestAddNewMangaWithDuplicates(BaseDbutilTest):
         retval = self.dbutil.add_new_manga_and_check_duplicate_titles(
             DummyScraper.titles_dict_to_manga_service(testing_series, DummyScraper.ID)
         )
-        self.assertTrue(retval, msg='No manga added')
+        assert retval, 'No manga added'
 
         for ms in retval:
             chapters = testing_series.get(ms.title_id, [])
-            self.assertTrue(chapters, msg=f'Chapters not found for manga {ms}')
+            assert chapters, f'Chapters not found for manga {ms}'
             new_chapters.extend(chapters)
             new_manga.append((ms.manga_id, chapters))
 
@@ -275,18 +270,18 @@ class TestAddNewMangaWithDuplicates(BaseDbutilTest):
 
         self._conn.commit()
 
-        self.assertEqual(len(new_manga), len(testing_series), 'Chapter counts not equal')
+        assert len(new_manga) == len(testing_series), 'Chapter counts not equal'
 
         for manga_id, chapters in new_manga:
             c: Chapter = chapters[0]
-            self.assertGreater(len(chapters), 0)
-            self.assertListEqual(chapters, testing_series[c.title_id])
+            assert len(chapters) > 0
+            assert chapters == testing_series[c.title_id]
 
             with self._conn.cursor() as cur:
                 sql = 'SELECT * FROM chapters WHERE manga_id=%s AND service_id=%s'
                 cur.execute(sql, (manga_id, DummyScraper.ID))
                 rows = cur.fetchall()
-                self.assertEqual(len(chapters), len(rows), 'Not all chapters found from database')
+                assert len(chapters) == len(rows), 'Not all chapters found from database'
 
             for c in chapters:
                 row = filter(
@@ -305,18 +300,18 @@ class TestAddNewMangaWithDuplicates(BaseDbutilTest):
                 cur.execute(sql, (manga_id, DummyScraper.ID))
                 manga = cur.fetchone()
 
-            self.assertIsNotNone(manga)
             assert manga is not None
-            self.assertEqual(c.manga_title, manga['title'])
-            self.assertEqual(c.title_id, manga['title_id'])
-            self.assertFalse(manga['disabled'])
+            assert manga is not None
+            assert c.manga_title == manga['title']
+            assert c.title_id == manga['title_id']
+            assert not manga['disabled']
 
     def test_add_new_series_empty(self):
         with self._conn.transaction():
             with self._conn.cursor() as cur:
                 cur = spy_on(cur)
                 retval = self.dbutil.add_new_manga_and_check_duplicate_titles([])
-                self.assertEqual(len(retval), 0, msg='Manga added when empty list passed')
+                assert len(retval) == 0, 'Manga added when empty list passed'
                 cur.execute.assert_not_called()  # type: ignore[union-attr]
 
     def test_add_new_manga_with_only_duplicates(self):
@@ -333,7 +328,7 @@ class TestAddNewMangaWithDuplicates(BaseDbutilTest):
         with self.conn.transaction():
             with self.conn.cursor() as cur:
                 cur = spy_on(cur)
-                self.assertFalse(self.dbutil.add_new_manga_and_check_duplicate_titles(mangas, cur=cur))
+                assert not self.dbutil.add_new_manga_and_check_duplicate_titles(mangas, cur=cur)
                 cur.execute.assert_not_called()  # type: ignore[union-attr]
 
     def test_add_new_manga_with_multiple_same_matches(self):
@@ -358,9 +353,9 @@ class TestAddNewMangaWithDuplicates(BaseDbutilTest):
         with self.conn.transaction():
             with self.conn.cursor() as cur:
                 retval = self.dbutil.add_new_manga_and_check_duplicate_titles(mangas, cur=cur)
-                self.assertListEqual(retval, list(MangaServiceWithId.from_manga_services(mangas)))
 
-                self.assertNotIn(retval[0].manga_id, [id1, id2])
+                assert retval == list(MangaServiceWithId.from_manga_services(mangas))
+                assert retval[0].manga_id not in [id1, id2]
 
     def test_add_new_manga_with_same_input_titles(self):
         service_id = 1
@@ -379,7 +374,7 @@ class TestAddNewMangaWithDuplicates(BaseDbutilTest):
             with self.conn.cursor() as cur:
                 cur = spy_on(cur)
 
-                self.assertFalse(self.dbutil.add_new_manga_and_check_duplicate_titles(mangas, cur=cur))
+                assert not self.dbutil.add_new_manga_and_check_duplicate_titles(mangas, cur=cur)
                 cur.execute.assert_not_called()  # type: ignore[union-attr]
 
     def test_add_new_manga_with_existing_title(self):
@@ -399,12 +394,12 @@ class TestAddNewMangaWithDuplicates(BaseDbutilTest):
 
         with self.conn.transaction():
             with self.conn.cursor() as cur:
-                self.assertIsNone(mangas[0].manga_id)
+                assert mangas[0].manga_id is None
                 added = self.dbutil.add_new_manga_and_check_duplicate_titles(mangas, cur=cur)
-                self.assertTrue(added)
+                assert added
 
-                self.assertEqual(added[0].manga_id, manga.manga_id)
-                self.assertEqual(added, list(MangaServiceWithId.from_manga_services(mangas)))
+                assert added[0].manga_id == manga.manga_id
+                assert added == list(MangaServiceWithId.from_manga_services(mangas))
 
     def test_add_new_manga(self):
         service_id = DummyScraper.ID
@@ -428,11 +423,11 @@ class TestAddNewMangaWithDuplicates(BaseDbutilTest):
             with self.conn.cursor() as cur:
                 retval = self.dbutil.add_new_manga_and_check_duplicate_titles(mangas, cur=cur)
 
-                self.assertListEqual(retval, list(MangaServiceWithId.from_manga_services(mangas)))
-                self.assertNotIn(None, (ms.manga_id for ms in mangas))
+                assert retval == list(MangaServiceWithId.from_manga_services(mangas))
+                assert None not in (ms.manga_id for ms in mangas)
 
     def test_get_service_manga_returns_nothing_with_invalid_id(self):
-        self.assertFalse(self.dbutil.get_service_manga(-1))
+        assert not self.dbutil.get_service_manga(-1)
 
     def test_get_service_manga_returns_added_manga(self):
         mangas = [
@@ -446,7 +441,7 @@ class TestAddNewMangaWithDuplicates(BaseDbutilTest):
         retval = self.dbutil.get_service_manga(DummyScraper.ID)
 
         for manga in mangas:
-            self.assertIn(MangaServicePartial.from_manga_service(manga), retval)
+            assert MangaServicePartial.from_manga_service(manga) in retval
 
 
 class TestDbUtil(BaseDbutilTest):
@@ -483,23 +478,23 @@ class TestDbUtil(BaseDbutilTest):
 
         no_update = next(filter(lambda r: r['manga_id'] == manga_ids[0][0], rows))
         assert no_update is not None
-        self.assertNotEqual(no_update['latest_chapter'], manga_ids[0][1])
+        assert no_update['latest_chapter'] != manga_ids[0][1]
         self.assertDatesEqual(no_update['estimated_release'], original_no_update['estimated_release'])
 
         update_single = next(filter(lambda r: r['manga_id'] == manga_ids[1][0], rows))
-        self.assertEqual(update_single['latest_chapter'], manga_ids[1][1])
+        assert update_single['latest_chapter'] == manga_ids[1][1]
         self.assertDatesEqual(update_single['estimated_release'], manga_ids[1][2] + update_single['release_interval'])
 
         update_multiple = next(filter(lambda r: r['manga_id'] == manga_ids[2][0], rows))
-        self.assertEqual(update_multiple['latest_chapter'], manga_ids[2][1])
+        assert update_multiple['latest_chapter'] == manga_ids[2][1]
         self.assertDatesEqual(update_multiple['estimated_release'], manga_ids[2][2] + update_multiple['release_interval'])
 
     def test_update_estimated_release(self):
         with self._conn.transaction():
             with self._conn.cursor() as cur:
-                self.assertIsNone(self.dbutil.update_estimated_release(-1, cur=cur))
+                assert self.dbutil.update_estimated_release(-1, cur=cur) is None
                 self.assertLogs('maintenance', 'WARNING')
-                self.assertEqual(cur.rowcount, 0)
+                assert cur.rowcount == 0
 
                 manga_id = 1
                 release = utcnow()
@@ -513,9 +508,9 @@ class TestDbUtil(BaseDbutilTest):
                                   999, 5, '123456789987654321', release, NO_GROUP))
 
                 row = self.dbutil.update_estimated_release(manga_id, cur=cur)
-                self.assertIsNotNone(row)
                 assert row is not None
-                self.assertEqual(cur.rowcount, 1)
+                assert row is not None
+                assert cur.rowcount == 1
                 self.assertLogs('maintenance', 'INFO')
                 self.assertDatesNotEqual(row['estimated_release_old'], row['estimated_release'])
                 self.assertDateGreater(row['estimated_release'], release)
@@ -545,9 +540,8 @@ class TestDbUtil(BaseDbutilTest):
                 service = self.dbutil.get_service(service_id)
                 service_whole = self.dbutil.get_service_whole(service_id)
 
-                self.assertIsNotNone(service, 'Service is None')
-                self.assertIsNotNone(service_whole, 'Service whole is None')
-                assert service is not None and service_whole is not None
+                assert service is not None, 'Service is None'
+                assert service_whole is not None, 'Service whole is None'
 
                 self.assertDatesAlmostEqual(service.last_check, now)
                 self.assertDatesAlmostEqual(service_whole.last_check, now)
@@ -565,16 +559,16 @@ class TestGetService(BaseDbutilTest):
 
     def test_with_id(self):
         service = self.dbutil.get_service(DummyScraper.ID)
-        self.assertEqual(service, self.get_service_obj())
+        assert service == self.get_service_obj()
 
     def test_with_url(self):
         service = self.dbutil.get_service(DummyScraper.URL)
-        self.assertEqual(service, self.get_service_obj())
+        assert service == self.get_service_obj()
 
 
 class TestUpdateInterval(BaseDbutilTest):
     def test_without_chapters(self):
-        self.assertFalse(self.dbutil.update_chapter_interval(-1))
+        assert not self.dbutil.update_chapter_interval(-1)
 
     def setup_manga(self) -> MangaServiceWithId:
         m = self.get_manga_service(DummyScraper)
@@ -582,7 +576,7 @@ class TestUpdateInterval(BaseDbutilTest):
 
         ms_with_id = MangaServiceWithId.from_manga_service(m)
 
-        self.assertFalse(self.dbutil.update_chapter_interval(ms_with_id.manga_id))
+        assert not self.dbutil.update_chapter_interval(ms_with_id.manga_id)
 
         return ms_with_id
 
@@ -612,15 +606,13 @@ class TestUpdateInterval(BaseDbutilTest):
 
         # Should do nothing with a single chapter
         self.dbutil.add_chapters([get_chapter()])
-        self.assertFalse(self.dbutil.update_chapter_interval(m.manga_id))
+        assert not self.dbutil.update_chapter_interval(m.manga_id)
 
         # Should do nothing with 2 chapters
         self.dbutil.add_chapters([get_chapter()])
-        self.assertFalse(self.dbutil.update_chapter_interval(m.manga_id))
+        assert not self.dbutil.update_chapter_interval(m.manga_id)
 
-        self.assertIsNone(
-            self.get_manga_db(manga_id=m.manga_id).release_interval
-        )
+        assert self.get_manga_db(manga_id=m.manga_id).release_interval is None
 
     def test_with_large_chapter_gaps(self):
         m = self.setup_manga()
@@ -636,10 +628,8 @@ class TestUpdateInterval(BaseDbutilTest):
         self.dbutil.add_chapters([get_chapter() for _ in range(10)])
 
         # Make sure manga was not updated
-        self.assertFalse(self.dbutil.update_chapter_interval(m.manga_id))
-        self.assertIsNone(
-            self.get_manga_db(manga_id=m.manga_id).release_interval
-        )
+        assert not self.dbutil.update_chapter_interval(m.manga_id)
+        assert self.get_manga_db(manga_id=m.manga_id).release_interval is None
 
     def test_with_same_chapter_number(self):
         m = self.setup_manga()
@@ -662,10 +652,8 @@ class TestUpdateInterval(BaseDbutilTest):
         ])
 
         # Make sure manga was not updated
-        self.assertFalse(self.dbutil.update_chapter_interval(m.manga_id))
-        self.assertIsNone(
-            self.get_manga_db(manga_id=m.manga_id).release_interval
-        )
+        assert not self.dbutil.update_chapter_interval(m.manga_id)
+        assert self.get_manga_db(manga_id=m.manga_id).release_interval is None
 
     def test_with_small_interval(self):
         m = self.setup_manga()
@@ -680,10 +668,8 @@ class TestUpdateInterval(BaseDbutilTest):
         self.dbutil.add_chapters([get_chapter() for _ in range(10)])
 
         # Make sure manga was not updated
-        self.assertFalse(self.dbutil.update_chapter_interval(m.manga_id))
-        self.assertIsNone(
-            self.get_manga_db(manga_id=m.manga_id).release_interval
-        )
+        assert not self.dbutil.update_chapter_interval(m.manga_id)
+        assert self.get_manga_db(manga_id=m.manga_id).release_interval is None
 
     def test_with_valid_interval(self):
         m = self.setup_manga()
@@ -701,11 +687,8 @@ class TestUpdateInterval(BaseDbutilTest):
         self.dbutil.add_chapters([get_chapter() for _ in range(10)])
 
         # Make sure manga was updated
-        self.assertTrue(self.dbutil.update_chapter_interval(m.manga_id))
-        self.assertEqual(
-            self.get_manga_db(manga_id=m.manga_id).release_interval,
-            interval
-        )
+        assert self.dbutil.update_chapter_interval(m.manga_id)
+        assert self.get_manga_db(manga_id=m.manga_id).release_interval == interval
 
     def test_with_some_close_interval(self):
         m = self.setup_manga()
@@ -735,11 +718,8 @@ class TestUpdateInterval(BaseDbutilTest):
         self.dbutil.add_chapters(chapters)
 
         # Make sure manga was updated
-        self.assertTrue(self.dbutil.update_chapter_interval(m.manga_id))
-        self.assertEqual(
-            self.get_manga_db(m.manga_id).release_interval,
-            interval
-        )
+        assert self.dbutil.update_chapter_interval(m.manga_id)
+        assert self.get_manga_db(m.manga_id).release_interval == interval
 
     def test_median_used_when_mode_fails(self):
         m = self.setup_manga()
@@ -764,11 +744,8 @@ class TestUpdateInterval(BaseDbutilTest):
         intervals.pop(-1)
 
         # Make sure manga was updated
-        self.assertTrue(self.dbutil.update_chapter_interval(m.manga_id))
-        self.assertEqual(
-            self.get_manga_db(m.manga_id).release_interval,
-            timedelta(seconds=statistics.median(intervals))
-        )
+        assert self.dbutil.update_chapter_interval(m.manga_id)
+        assert self.get_manga_db(m.manga_id).release_interval == timedelta(seconds=statistics.median(intervals))
 
     def test_decimals_ignored(self) -> None:
         m = self.setup_manga()
@@ -795,11 +772,8 @@ class TestUpdateInterval(BaseDbutilTest):
         self.dbutil.add_chapters([get_chapter() for _ in range(10)])
 
         # Make sure manga was updated
-        self.assertTrue(self.dbutil.update_chapter_interval(m.manga_id))
-        self.assertEqual(
-            self.get_manga_db(m.manga_id).release_interval,
-            interval*2
-        )
+        assert self.dbutil.update_chapter_interval(m.manga_id)
+        assert self.get_manga_db(m.manga_id).release_interval == interval * 2
 
     def test_gets_minimum_release_dates(self):
         m = self.setup_manga()
@@ -826,11 +800,8 @@ class TestUpdateInterval(BaseDbutilTest):
         self.dbutil.add_chapters([get_chapter() for _ in range(10)])
 
         # Make sure manga was updated
-        self.assertTrue(self.dbutil.update_chapter_interval(m.manga_id or -1))
-        self.assertEqual(
-            self.get_manga_db(m.manga_id).release_interval,
-            interval
-        )
+        assert self.dbutil.update_chapter_interval(m.manga_id or -1)
+        assert self.get_manga_db(m.manga_id).release_interval == interval
 
 
 class TestUpdateMangaTitle(BaseDbutilTest):
@@ -850,7 +821,7 @@ class TestUpdateMangaTitle(BaseDbutilTest):
         self.dbutil.execute(sql, (manga_id, alias))
 
     def test_without_data(self):
-        self.assertIsNone(self.dbutil.update_manga_titles([]))
+        assert self.dbutil.update_manga_titles([]) is None
 
     def test_with_all_new_titles(self):
         # Create manga and titles
@@ -867,23 +838,11 @@ class TestUpdateMangaTitle(BaseDbutilTest):
         ])
 
         # Assert correct changes
-        self.assertEqual(
-            self.get_manga_db(m1.manga_id).title,
-            new_title1
-        )
-        self.assertEqual(
-            self.get_manga_db(m2.manga_id).title,
-            new_title2
-        )
+        assert self.get_manga_db(m1.manga_id).title == new_title1
+        assert self.get_manga_db(m2.manga_id).title == new_title2
 
-        self.assertEqual(
-            self.get_manga_aliases(m1.manga_id),
-            [m1.title]
-        )
-        self.assertEqual(
-            self.get_manga_aliases(m2.manga_id),
-            [m2.title]
-        )
+        assert self.get_manga_aliases(m1.manga_id) == [m1.title]
+        assert self.get_manga_aliases(m2.manga_id) == [m2.title]
 
     def test_with_new_and_duplicate_titles(self):
         # Create manga and titles
@@ -900,21 +859,11 @@ class TestUpdateMangaTitle(BaseDbutilTest):
         ])
 
         # Assert correct changes
-        self.assertEqual(
-            self.get_manga_db(m1.manga_id).title,
-            new_title1
-        )
-        self.assertEqual(
-            self.get_manga_db(m2.manga_id).title,
-            old_title2
-        )
+        assert self.get_manga_db(m1.manga_id).title == new_title1
+        assert self.get_manga_db(m2.manga_id).title == old_title2
 
-        self.assertEqual(
-            self.get_manga_aliases(m1.manga_id),
-            [m1.title]
-        )
-        self.assertFalse(self.get_manga_aliases(m2.manga_id),
-                         'Manga alias list should have been empty')
+        assert self.get_manga_aliases(m1.manga_id) == [m1.title]
+        assert self.get_manga_aliases(m2.manga_id) == [], 'Manga alias list should have been empty'
 
     def test_with_existing_alias(self):
         # Create manga and titles
@@ -932,23 +881,11 @@ class TestUpdateMangaTitle(BaseDbutilTest):
         ])
 
         # Assert correct changes
-        self.assertEqual(
-            self.get_manga_db(m1.manga_id).title,
-            new_title1
-        )
-        self.assertEqual(
-            self.get_manga_db(m2.manga_id).title,
-            new_title2
-        )
+        assert self.get_manga_db(m1.manga_id).title == new_title1
+        assert self.get_manga_db(m2.manga_id).title == new_title2
 
-        self.assertEqual(
-            self.get_manga_aliases(m1.manga_id),
-            [m1.title]
-        )
-        self.assertEqual(
-            self.get_manga_aliases(m2.manga_id),
-            [m2.title]
-        )
+        assert self.get_manga_aliases(m1.manga_id) == [m1.title]
+        assert self.get_manga_aliases(m2.manga_id) == [m2.title]
 
 
 if __name__ == '__main__':
