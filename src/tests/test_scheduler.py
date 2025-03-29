@@ -52,8 +52,10 @@ class SchedulerRunTest(BaseTestClasses.DatabaseTestCase):
                 return UserNotification(**d, **self.dbutil.fetchone_or_throw(cur))
 
     def create_notification_manga(self, notification_id: int, manga_id: int, service_id: int | None = None) -> PartialNotificationInfo:
-        sql = 'INSERT INTO notification_manga (notification_id, manga_id, service_id) ' \
-              'VALUES (%s, %s, %s) RETURNING *'
+        sql = (
+            'INSERT INTO notification_manga (notification_id, manga_id, service_id) '
+            'VALUES (%s, %s, %s) RETURNING *'
+        )
         with self.conn.transaction():
             with self.conn.cursor(row_factory=class_row(PartialNotificationInfo)) as cur:
                 cur.execute(sql, (notification_id, manga_id, service_id))

@@ -170,8 +170,10 @@ class DbUtil:
             # TODO filter by given manga
         else:
             args = (service_id,)
-            sql = 'SELECT manga_id, title_id, last_check, latest_chapter, latest_decimal, service_id ' \
-                  'FROM manga_service WHERE service_id=%s'
+            sql = (
+                'SELECT manga_id, title_id, last_check, latest_chapter, latest_decimal, service_id '
+                'FROM manga_service WHERE service_id=%s'
+            )
 
         cur.execute(sql, args)
         return list(map(MangaServicePartial.model_validate, cur))
@@ -217,19 +219,23 @@ class DbUtil:
         """
         Get scheduled runs ordered by creation time. Checks if runs are on cooldown
         """
-        sql = 'SELECT sr.manga_id, sr.service_id, ms.title_id FROM scheduled_runs sr ' \
-              'LEFT JOIN manga_service ms ON sr.manga_id = ms.manga_id AND sr.service_id = ms.service_id ' \
-              'INNER JOIN services s ON s.service_id = sr.service_id ' \
-              'WHERE s.scheduled_runs_disabled_until IS NULL OR s.scheduled_runs_disabled_until < NOW() ' \
-              'ORDER BY created_at'
+        sql = '''
+            SELECT sr.manga_id, sr.service_id, ms.title_id FROM scheduled_runs sr
+            LEFT JOIN manga_service ms ON sr.manga_id = ms.manga_id AND sr.service_id = ms.service_id
+            INNER JOIN services s ON s.service_id = sr.service_id
+            WHERE s.scheduled_runs_disabled_until IS NULL OR s.scheduled_runs_disabled_until < NOW()
+            ORDER BY created_at
+        '''
 
         cur.execute(sql)
         return list(map(ScheduledRunResult.model_validate, cur))
 
     @OptionalTransaction()
     def get_all_scheduled_runs(self, *, cur: CursorType = NotImplemented) -> list[ScheduledRunResult]:
-        sql = 'SELECT sr.manga_id, sr.service_id, ms.title_id FROM scheduled_runs sr ' \
-              'LEFT JOIN manga_service ms ON sr.manga_id = ms.manga_id AND sr.service_id = ms.service_id'
+        sql = (
+            'SELECT sr.manga_id, sr.service_id, ms.title_id FROM scheduled_runs sr '
+            'LEFT JOIN manga_service ms ON sr.manga_id = ms.manga_id AND sr.service_id = ms.service_id'
+        )
 
         cur.execute(sql)
         return list(map(ScheduledRunResult.model_validate, cur))
@@ -243,10 +249,12 @@ class DbUtil:
             return
 
         format_args = self.get_format_args(service_ids)
-        sql = 'UPDATE services s ' \
-              'SET scheduled_runs_disabled_until=NOW() + sc.scheduled_run_interval ' \
-              'FROM service_config sc ' \
-              f'WHERE sc.service_id = s.service_id AND s.service_id IN ({format_args})'
+        sql = (
+            'UPDATE services s ' 
+            'SET scheduled_runs_disabled_until=NOW() + sc.scheduled_run_interval ' 
+            'FROM service_config sc ' 
+            f'WHERE sc.service_id = s.service_id AND s.service_id IN ({format_args})'
+        )
 
         cur.execute(sql, service_ids)
 
@@ -344,9 +352,11 @@ class DbUtil:
         if not chapter_ids:
             return []
 
-        sql = 'SELECT c.*, g.name as "group" FROM chapters c ' \
-              'INNER JOIN groups g ON g.group_id=c.group_id ' \
-              'WHERE chapter_id=ANY(%s) AND manga_id=ANY(%s) '
+        sql = (
+            'SELECT c.*, g.name as "group" FROM chapters c ' 
+            'INNER JOIN groups g ON g.group_id=c.group_id ' 
+            'WHERE chapter_id=ANY(%s) AND manga_id=ANY(%s) '
+        )
         cur.execute(sql, (chapter_ids, manga_ids))
         return list(map(Chapter.model_validate, cur))
 
@@ -472,9 +482,11 @@ class DbUtil:
         if format_args:
             # This sql filters out manga in this service already. This is because
             # this function assumes all series added in this function are new
-            sql = f'SELECT MIN(manga.manga_id) as manga_id, LOWER(title) as title, COUNT(manga.manga_id) as count ' \
-                  f'FROM manga LEFT JOIN manga_service ms ON ms.service_id=%s AND manga.manga_id=ms.manga_id ' \
-                  f'WHERE ms.manga_id IS NULL AND LOWER(title) IN ({format_args}) GROUP BY LOWER(title)'
+            sql = (
+                f'SELECT MIN(manga.manga_id) as manga_id, LOWER(title) as title, COUNT(manga.manga_id) as count ' 
+                f'FROM manga LEFT JOIN manga_service ms ON ms.service_id=%s AND manga.manga_id=ms.manga_id ' 
+                f'WHERE ms.manga_id IS NULL AND LOWER(title) IN ({format_args}) GROUP BY LOWER(title)'
+            )
 
             cur.execute(sql, (service_id, *args))
 
@@ -549,9 +561,11 @@ class DbUtil:
             for manga in mangas]
 
         # Assume that RETURNING returns records in order
-        sql = 'INSERT INTO manga ' \
-              '(title, release_interval, latest_release, estimated_release, latest_chapter, views) ' \
-              'VALUES %s RETURNING title, manga_id'
+        sql = (
+            'INSERT INTO manga '
+            '(title, release_interval, latest_release, estimated_release, latest_chapter, views) '
+            'VALUES %s RETURNING title, manga_id'
+        )
         rows = execute_values(cur, sql, args, page_size=len(args),
                               fetch=True)
 
@@ -616,9 +630,11 @@ class DbUtil:
                 m.feed_url
             ) for m in mangas
         ]
-        sql = 'INSERT INTO manga_service ' \
-              '(manga_id, service_id, disabled, last_check, title_id, next_update, latest_chapter, latest_decimal, feed_url)  ' \
-              'VALUES %s RETURNING manga_id, title_id'
+        sql = (
+            'INSERT INTO manga_service ' 
+            '(manga_id, service_id, disabled, last_check, title_id, next_update, latest_chapter, latest_decimal, feed_url)  ' 
+            'VALUES %s RETURNING manga_id, title_id'
+        )
 
         rows = execute_values(cur, sql, args, page_size=len(args),
                               fetch=True)
@@ -752,9 +768,11 @@ class DbUtil:
     @OptionalTransaction()
     def update_latest_release(self, manga_ids: list[int], *, cur: CursorType = NotImplemented) -> None:
         format_ids = self.get_format_args(manga_ids)
-        sql = 'UPDATE manga m SET latest_release=c.release_date FROM ' \
-              f'(SELECT MAX(release_date), manga_id FROM chapters WHERE manga_id IN ({format_ids}) GROUP BY manga_id) as c(release_date, manga_id)' \
-              'WHERE m.manga_id=c.manga_id'
+        sql = (
+            'UPDATE manga m SET latest_release=c.release_date FROM ' 
+            f'(SELECT MAX(release_date), manga_id FROM chapters WHERE manga_id IN ({format_ids}) GROUP BY manga_id) as c(release_date, manga_id)' 
+            'WHERE m.manga_id=c.manga_id'
+        )
         cur.execute(sql, manga_ids)
 
     @overload
@@ -793,8 +811,10 @@ class DbUtil:
                 ) for chapter in chapters
             ]
 
-        sql = 'INSERT INTO chapters (manga_id, service_id, title, chapter_number, chapter_decimal, chapter_identifier, release_date, group_id) VALUES ' \
-              '%s ON CONFLICT DO NOTHING'
+        sql = (
+            'INSERT INTO chapters (manga_id, service_id, title, chapter_number, chapter_decimal, chapter_identifier, release_date, group_id) ' 
+            'VALUES %s ON CONFLICT DO NOTHING'
+        )
         if fetch:
             sql += ' RETURNING chapter_id, manga_id, chapter_number, chapter_decimal, release_date, chapter_identifier'
 
@@ -832,9 +852,11 @@ class DbUtil:
         if not data:
             return
 
-        sql = 'UPDATE manga m SET latest_chapter=c.latest_chapter, estimated_release=c.release_date + release_interval FROM ' \
-              ' (VALUES %s) as c(manga_id, latest_chapter, release_date) ' \
-              'WHERE c.manga_id=m.manga_id'
+        sql = (
+            'UPDATE manga m SET latest_chapter=c.latest_chapter, estimated_release=c.release_date + release_interval FROM ' 
+            ' (VALUES %s) as c(manga_id, latest_chapter, release_date) '
+            'WHERE c.manga_id=m.manga_id'
+        )
         execute_values(cur, sql, data)
 
     @OptionalTransaction()
@@ -902,12 +924,16 @@ class DbUtil:
         format_args = ','.join(('%s',) * len(args))
 
         if manga_id:
-            sql = 'SELECT chapter_identifier FROM chapters ' \
-                  f'WHERE service_id=%s AND manga_id=%s AND chapter_identifier IN ({format_args})'
+            sql = (
+                'SELECT chapter_identifier FROM chapters ' 
+                f'WHERE service_id=%s AND manga_id=%s AND chapter_identifier IN ({format_args})'
+            )
             args = (service_id, manga_id, *args)
         else:
-            sql = 'SELECT chapter_identifier FROM chapters ' \
-                  f'WHERE service_id=%s AND chapter_identifier IN ({format_args})'
+            sql = (
+                'SELECT chapter_identifier FROM chapters '
+                f'WHERE service_id=%s AND chapter_identifier IN ({format_args})'
+            )
             args = (service_id, *args)
 
         try:
@@ -937,9 +963,11 @@ class DbUtil:
 
     @OptionalTransaction()
     def update_group_mangadex_ids(self, groups: Iterable[Group], *, cur: CursorType = NotImplemented) -> None:
-        sql = 'UPDATE groups g SET mangadex_id=v.mangadex_id::uuid ' \
-              'FROM (VALUES %s) AS v(mangadex_id, group_id) ' \
-              'WHERE g.group_id = v.group_id'
+        sql = (
+            'UPDATE groups g SET mangadex_id=v.mangadex_id::uuid ' 
+            'FROM (VALUES %s) AS v(mangadex_id, group_id) ' 
+            'WHERE g.group_id = v.group_id'
+        )
 
         execute_values(cur, sql, [(g.mangadex_id, g.group_id) for g in groups], page_size=200)
 
@@ -953,8 +981,7 @@ class DbUtil:
 
     @OptionalTransaction()
     def add_new_groups(self, groups: Collection[GroupPartial], *, cur: CursorType = NotImplemented) -> Iterable[Group]:
-        sql = 'INSERT INTO groups (name, mangadex_id) VALUES %s ' \
-              'ON CONFLICT DO NOTHING RETURNING *'
+        sql = 'INSERT INTO groups (name, mangadex_id) VALUES %s ON CONFLICT DO NOTHING RETURNING *'
 
         return map(
             Group.model_validate,
@@ -1199,8 +1226,10 @@ class DbUtil:
         return None if not row else Manga(**row)
 
     @OptionalTransaction()
-    def get_notifications_by_manga_ids(self, manga_ids: list[int], *, cur: CursorType = NotImplemented) -> list[PartialNotificationInfo]:
-        sql = '''
+    def get_notifications_by_manga_ids(
+        self, manga_ids: list[int], *, cur: CursorType = NotImplemented
+    ) -> list[PartialNotificationInfo]:
+        sql = """
             SELECT un.notification_id, manga_id, service_id
             FROM user_notifications un
               INNER JOIN notification_manga nm ON un.notification_id = nm.notification_id
@@ -1214,7 +1243,7 @@ class DbUtil:
             WHERE NOT un.disabled
               AND un.use_follows
               AND manga_id = ANY(%(manga_ids)s)
-        '''
+        """
 
         cur.execute(sql, {'manga_ids': manga_ids})
         return list(map(PartialNotificationInfo.model_validate, cur))
@@ -1222,17 +1251,21 @@ class DbUtil:
     @OptionalTransaction(class_row(UserNotification))
     def get_notification_info(self, notification_id: int, *,
                               cur: Cursor[UserNotification] = NotImplemented) -> UserNotification:
-        sql = 'SELECT * FROM user_notifications un ' \
-              'INNER JOIN notification_options no ON un.notification_id = no.notification_id ' \
-              'WHERE un.notification_id=%s'
+        sql = (
+            'SELECT * FROM user_notifications un ' 
+            'INNER JOIN notification_options no ON un.notification_id = no.notification_id ' 
+            'WHERE un.notification_id=%s'
+        )
         cur.execute(sql, (notification_id,))
         return self.fetchone_or_throw(cur)
 
     @OptionalTransaction(class_row(InputField))
     def get_notification_inputs(self, notification_id: int, *, cur: Cursor[InputField] = NotImplemented) -> list[InputField]:
-        sql = 'SELECT unf.value, nf.name, nf.optional, unf.override_id FROM user_notification_fields unf ' \
-              'INNER JOIN notification_fields nf ON nf.field_id=unf.field_id ' \
-              'WHERE notification_id=%s'
+        sql = (
+            'SELECT unf.value, nf.name, nf.optional, unf.override_id FROM user_notification_fields unf '
+            'INNER JOIN notification_fields nf ON nf.field_id=unf.field_id '
+            'WHERE notification_id=%s'
+        )
         cur.execute(sql, (notification_id,))
         return cur.fetchall()
 

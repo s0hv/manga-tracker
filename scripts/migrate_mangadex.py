@@ -42,9 +42,11 @@ def migrate_chapters(delete: bool=False) -> None:
             chapters = cur.fetchall()
 
     chunk_size = 700
-    update_chapter_sql = 'UPDATE chapters c SET chapter_identifier=v.new_id ' \
-                         'FROM (VALUES %s) as v(new_id, old_id) ' \
-                         'WHERE service_id=2 AND c.chapter_identifier=v.old_id'
+    update_chapter_sql = (
+        'UPDATE chapters c SET chapter_identifier=v.new_id '
+        'FROM (VALUES %s) as v(new_id, old_id) '
+        'WHERE service_id=2 AND c.chapter_identifier=v.old_id'
+    )
 
     def isdigit(r: dict) -> bool:
         return r['chapter_identifier'].isdigit()
@@ -91,9 +93,11 @@ def migrate_manga(delete: bool=False) -> None:
             manga = cur.fetchall()
 
     chunk_size = 700
-    update_manga_sql = 'UPDATE manga_service m SET title_id=v.new_id ' \
-                         'FROM (VALUES %s) as v(new_id, old_id) ' \
-                         'WHERE service_id=2 AND m.title_id=v.old_id'
+    update_manga_sql = (
+        'UPDATE manga_service m SET title_id=v.new_id '
+        'FROM (VALUES %s) as v(new_id, old_id) '
+        'WHERE service_id=2 AND m.title_id=v.old_id'
+    )
 
     def isdigit(r: dict) -> bool:
         return r['title_id'].isdigit()

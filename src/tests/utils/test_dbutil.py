@@ -296,9 +296,11 @@ class TestAddNewMangaWithDuplicates(BaseDbutilTest):
                 self.assertChapterEqualsRow(c, next(row))
 
             with self._conn.cursor() as cur:
-                sql = 'SELECT m.title, ms.* FROM manga m ' \
-                      '     INNER JOIN manga_service ms ON m.manga_id = ms.manga_id ' \
-                      'WHERE m.manga_id=%s AND ms.service_id=%s'
+                sql = (
+                    'SELECT m.title, ms.* FROM manga m '
+                    '     INNER JOIN manga_service ms ON m.manga_id = ms.manga_id '
+                    'WHERE m.manga_id=%s AND ms.service_id=%s'
+                )
 
                 cur.execute(sql, (manga_id, DummyScraper.ID))
                 manga = cur.fetchone()
@@ -502,9 +504,11 @@ class TestDbUtil(BaseDbutilTest):
                 manga_id = 1
                 release = utcnow()
 
-                sql = 'INSERT INTO chapters ' \
-                      '(manga_id, service_id, title, chapter_number, chapter_decimal, chapter_identifier, release_date, group_id) ' \
-                      'VALUES (%s, %s, %s, %s, %s, %s, %s, %s)'
+                sql = (
+                    'INSERT INTO chapters '
+                    '(manga_id, service_id, title, chapter_number, chapter_decimal, chapter_identifier, release_date, group_id) '
+                    'VALUES (%s, %s, %s, %s, %s, %s, %s, %s)'
+                )
                 cur.execute(sql, (manga_id, DummyScraper.ID, 'test title',
                                   999, 5, '123456789987654321', release, NO_GROUP))
 

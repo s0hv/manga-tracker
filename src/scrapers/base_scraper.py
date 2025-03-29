@@ -437,8 +437,10 @@ class BaseScraperWhole(BaseScraper, ABC):
             return None
         with self.conn.transaction():
             with self.conn.cursor() as cur:
-                sql = 'INSERT INTO service_whole (service_id, feed_url, last_check, next_update, last_id) VALUES ' \
-                      '(%s, %s, NULL, NULL, NULL)'
+                sql = (
+                    'INSERT INTO service_whole (service_id, feed_url, last_check, next_update, last_id) ' 
+                    'VALUES (%s, %s, NULL, NULL, NULL)'
+                )
                 cur.execute(sql, (service_id, self.FEED_URL))
 
         return service_id
