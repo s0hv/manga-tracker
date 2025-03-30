@@ -330,7 +330,7 @@ class BaseScraper(abc.ABC):
 
         logger.info(f'Adding service {self.NAME} {self.URL}')
         sql: LiteralString = '''
-            INSERT INTO services (service_id, service_name, url, disabled, last_check, chapter_url_format, manga_url_format, disabled_until) 
+            INSERT INTO services (service_id, service_name, url, disabled, last_check, chapter_url_format, manga_url_format, disabled_until)
             VALUES (%s, %s, %s, FALSE, NULL, %s, %s, NULL) RETURNING service_id'''
         with self.conn.transaction(), self.conn.cursor() as cur:
             cur.execute(sql, (self.ID, self.NAME, self.URL, self.CHAPTER_URL_FORMAT, self.MANGA_URL_FORMAT))
@@ -456,7 +456,7 @@ class BaseScraperWhole(BaseScraper, ABC):
             return None
         with self.conn.transaction(), self.conn.cursor() as cur:
             sql = (
-                'INSERT INTO service_whole (service_id, feed_url, last_check, next_update, last_id) ' 
+                'INSERT INTO service_whole (service_id, feed_url, last_check, next_update, last_id) '
                 'VALUES (%s, %s, NULL, NULL, NULL)'
             )
             cur.execute(sql, (service_id, self.FEED_URL))

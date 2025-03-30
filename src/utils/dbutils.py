@@ -10,7 +10,7 @@ from collections.abc import (
 )
 from datetime import datetime, timedelta
 from functools import wraps
-from itertools import groupby
+from itertools import groupby, pairwise
 from typing import TYPE_CHECKING, Any, LiteralString, TypeVar, cast, overload
 
 from psycopg import Connection, Cursor
@@ -248,9 +248,9 @@ class DbUtil:
 
         format_args = self.get_format_args(service_ids)
         sql = (
-            'UPDATE services s ' 
-            'SET scheduled_runs_disabled_until=NOW() + sc.scheduled_run_interval ' 
-            'FROM service_config sc ' 
+            'UPDATE services s '
+            'SET scheduled_runs_disabled_until=NOW() + sc.scheduled_run_interval '
+            'FROM service_config sc '
             f'WHERE sc.service_id = s.service_id AND s.service_id IN ({format_args})'
         )
 
@@ -313,7 +313,8 @@ class DbUtil:
 
         intervals = []
         accuracy = 60 * 60 * 4  # 4h
-        for a, b in zip(chapters[:-1], chapters[1:], strict=True):
+        # Iterate over pairs of pairwise chapters
+        for a, b in pairwise(chapters):
             t = round_seconds(
                 (a['release_date'] - b['release_date']).total_seconds(),
                 accuracy
@@ -351,8 +352,8 @@ class DbUtil:
             return []
 
         sql = (
-            'SELECT c.*, g.name as "group" FROM chapters c ' 
-            'INNER JOIN groups g ON g.group_id=c.group_id ' 
+            'SELECT c.*, g.name as "group" FROM chapters c '
+            'INNER JOIN groups g ON g.group_id=c.group_id '
             'WHERE chapter_id=ANY(%s) AND manga_id=ANY(%s) '
         )
         cur.execute(sql, (chapter_ids, manga_ids))
@@ -481,8 +482,8 @@ class DbUtil:
             # This sql filters out manga in this service already. This is because
             # this function assumes all series added in this function are new
             sql = (
-                f'SELECT MIN(manga.manga_id) as manga_id, LOWER(title) as title, COUNT(manga.manga_id) as count ' 
-                f'FROM manga LEFT JOIN manga_service ms ON ms.service_id=%s AND manga.manga_id=ms.manga_id ' 
+                f'SELECT MIN(manga.manga_id) as manga_id, LOWER(title) as title, COUNT(manga.manga_id) as count '
+                f'FROM manga LEFT JOIN manga_service ms ON ms.service_id=%s AND manga.manga_id=ms.manga_id '
                 f'WHERE ms.manga_id IS NULL AND LOWER(title) IN ({format_args}) GROUP BY LOWER(title)'
             )
 
@@ -629,8 +630,8 @@ class DbUtil:
             ) for m in mangas
         ]
         sql = (
-            'INSERT INTO manga_service ' 
-            '(manga_id, service_id, disabled, last_check, title_id, next_update, latest_chapter, latest_decimal, feed_url)  ' 
+            'INSERT INTO manga_service '
+            '(manga_id, service_id, disabled, last_check, title_id, next_update, latest_chapter, latest_decimal, feed_url)  '
             'VALUES %s RETURNING manga_id, title_id'
         )
 
@@ -767,8 +768,8 @@ class DbUtil:
     def update_latest_release(self, manga_ids: list[int], *, cur: CursorType = NotImplemented) -> None:
         format_ids = self.get_format_args(manga_ids)
         sql = (
-            'UPDATE manga m SET latest_release=c.release_date FROM ' 
-            f'(SELECT MAX(release_date), manga_id FROM chapters WHERE manga_id IN ({format_ids}) GROUP BY manga_id) as c(release_date, manga_id)' 
+            'UPDATE manga m SET latest_release=c.release_date FROM '
+            f'(SELECT MAX(release_date), manga_id FROM chapters WHERE manga_id IN ({format_ids}) GROUP BY manga_id) as c(release_date, manga_id)'
             'WHERE m.manga_id=c.manga_id'
         )
         cur.execute(sql, manga_ids)
@@ -810,7 +811,7 @@ class DbUtil:
             ]
 
         sql = (
-            'INSERT INTO chapters (manga_id, service_id, title, chapter_number, chapter_decimal, chapter_identifier, release_date, group_id) ' 
+            'INSERT INTO chapters (manga_id, service_id, title, chapter_number, chapter_decimal, chapter_identifier, release_date, group_id) '
             'VALUES %s ON CONFLICT DO NOTHING'
         )
         if fetch:
@@ -851,7 +852,7 @@ class DbUtil:
             return
 
         sql = (
-            'UPDATE manga m SET latest_chapter=c.latest_chapter, estimated_release=c.release_date + release_interval FROM ' 
+            'UPDATE manga m SET latest_chapter=c.latest_chapter, estimated_release=c.release_date + release_interval FROM '
             ' (VALUES %s) as c(manga_id, latest_chapter, release_date) '
             'WHERE c.manga_id=m.manga_id'
         )
@@ -922,7 +923,7 @@ class DbUtil:
 
         if manga_id:
             sql = (
-                'SELECT chapter_identifier FROM chapters ' 
+                'SELECT chapter_identifier FROM chapters '
                 f'WHERE service_id=%s AND manga_id=%s AND chapter_identifier IN ({format_args})'
             )
             args = (service_id, manga_id, *args)
@@ -961,8 +962,8 @@ class DbUtil:
     @OptionalTransaction()
     def update_group_mangadex_ids(self, groups: Iterable[Group], *, cur: CursorType = NotImplemented) -> None:
         sql = (
-            'UPDATE groups g SET mangadex_id=v.mangadex_id::uuid ' 
-            'FROM (VALUES %s) AS v(mangadex_id, group_id) ' 
+            'UPDATE groups g SET mangadex_id=v.mangadex_id::uuid '
+            'FROM (VALUES %s) AS v(mangadex_id, group_id) '
             'WHERE g.group_id = v.group_id'
         )
 
@@ -1041,7 +1042,7 @@ class DbUtil:
         if found_author:
             return found_author
 
-        return list(self.add_authors([author], cur=cur))[0]
+        return next(iter(self.add_authors([author], cur=cur)))
 
     def add_manga_author_artist_if_not_exist(self, manga_id: int,
                                              author: AuthorPartial,
@@ -1146,9 +1147,9 @@ class DbUtil:
             for mi in manga_infos
         ]
         sql = f'''
-            INSERT INTO manga_info as mi (manga_id, cover, bw, mu, mal, amz, ebj, engtl, raw, nu, kt, ap, al) 
+            INSERT INTO manga_info as mi (manga_id, cover, bw, mu, mal, amz, ebj, engtl, raw, nu, kt, ap, al)
             VALUES %s
-            ON CONFLICT (manga_id) DO UPDATE SET 
+            ON CONFLICT (manga_id) DO UPDATE SET
                 cover=COALESCE(excluded.cover, mi.cover),
                 bw=COALESCE(excluded.bw, mi.bw),
                 mu=COALESCE(excluded.mu, mi.mu),
@@ -1249,8 +1250,8 @@ class DbUtil:
     def get_notification_info(self, notification_id: int, *,
                               cur: Cursor[UserNotification] = NotImplemented) -> UserNotification:
         sql = (
-            'SELECT * FROM user_notifications un ' 
-            'INNER JOIN notification_options no ON un.notification_id = no.notification_id ' 
+            'SELECT * FROM user_notifications un '
+            'INNER JOIN notification_options no ON un.notification_id = no.notification_id '
             'WHERE un.notification_id=%s'
         )
         cur.execute(sql, (notification_id,))

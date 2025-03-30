@@ -3,7 +3,7 @@ import random
 import re
 from collections.abc import Iterable
 from datetime import datetime, time, timedelta, timezone
-from typing import TYPE_CHECKING, NoReturn
+from typing import TYPE_CHECKING
 
 from feedparser import FeedParserDict
 from psycopg.rows import DictRow
@@ -22,9 +22,9 @@ chapter_regex = re.compile(r'(\d+)(\.\d+)?')
 universal_chapter_regex = \
     re.compile(r'(?P<manga_title>.+?)(?: -)? +'
                r'(?:(?:Volume|Vol) (?P<volume_number>\d+),? ?)?'  # Try to match volume number
-               
+
                # Check for chapter number if one exists
-               r'(?:'  
+               r'(?:'
                    r'((Chapter) ?(?P<chapter>\d+)(?:\.(?P<decimal>\d))?,?)|'  # Match chapter number in the format of Chapter x.y
                    r'((?=Oneshot))|'  # Check if oneshot. Those won't have a defined chapter number
                    # Broad chapter number lookup. Matches any string following a number as long as it's preceded by a space or : and doesn't have a chapter after it
@@ -85,7 +85,7 @@ def random_timedelta(low: timedelta | int, high: timedelta | int) -> timedelta:
     return timedelta(seconds=random.randint(low, high))
 
 
-def is_valid_feed(feed: FeedType) -> NoReturn | None:
+def is_valid_feed(feed: FeedType) -> None:
     if hasattr(feed, 'status') and feed.status != 200:
         raise FeedHttpError(f'Failed to get feed. Status: {feed.status}')
 
