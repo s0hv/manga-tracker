@@ -122,19 +122,21 @@ class BaseChapterSimple(BaseChapter):
     """
     A sensible default implementation for a chapter
     """
-    def __init__(self,
-                 chapter_title: str | None,
-                 chapter_number: int,
-                 chapter_identifier: str,
-                 title_id: str,
-                 volume: int | None = None,
-                 decimal: int | None = None,
-                 release_date: datetime | None = None,
-                 manga_title: str | None = None,
-                 manga_url: str | None = None,
-                 group: str | None = None,
-                 group_id: int | None = None
-                 ):
+
+    def __init__(
+        self,
+        chapter_title: str | None,
+        chapter_number: int,
+        chapter_identifier: str,
+        title_id: str,
+        volume: int | None = None,
+        decimal: int | None = None,
+        release_date: datetime | None = None,
+        manga_title: str | None = None,
+        manga_url: str | None = None,
+        group: str | None = None,
+        group_id: int | None = None,
+    ):
         self._chapter_title = chapter_title
         self._chapter_number = chapter_number
         self._chapter_identifier = chapter_identifier
@@ -215,7 +217,10 @@ class BaseChapterSimple(BaseChapter):
     @override
     @property
     def title(self) -> str:
-        return self.chapter_title or f'{"Volume " + str(self.volume) + ", " if self.volume is not None else ""}Chapter {self.chapter_number}{"" if not self.decimal else "." + str(self.decimal)}'
+        return (
+            self.chapter_title
+            or f'{"Volume " + str(self.volume) + ", " if self.volume is not None else ""}Chapter {self.chapter_number}{"" if not self.decimal else "." + str(self.decimal)}'
+        )
 
     @override
     def __repr__(self) -> str:
@@ -232,28 +237,28 @@ class ScrapeServiceRetVal(BaseModel):
 
 class BaseScraper(abc.ABC):
     ID: ClassVar[int] = NotImplemented
-    '''Database id of this service'''
+    """Database id of this service"""
 
     UPDATE_INTERVAL: ClassVar[timedelta] = timedelta(hours=1)
-    '''The minimum time between two updates of this service'''
+    """The minimum time between two updates of this service"""
 
     URL: ClassVar[str] = NotImplemented
-    '''URL to the website of this service'''
+    """URL to the website of this service"""
 
     FEED_URL: ClassVar[str] = NotImplemented
-    '''URL of the feed (usually rss feed) of this service'''
+    """URL of the feed (usually rss feed) of this service"""
 
     NAME: ClassVar[str] = NotImplemented
-    '''Name of this service'''
+    """Name of this service"""
 
     CHAPTER_URL_FORMAT: ClassVar[str] = NotImplemented
-    '''Format of chapter urls'''
+    """Format of chapter urls"""
 
     MANGA_URL_FORMAT: ClassVar[str] = NotImplemented
-    '''Format of manga urls'''
+    """Format of manga urls"""
 
     CONFIG: ServiceConfig = NotImplemented
-    '''Service configuration values'''
+    """Service configuration values"""
 
     @override
     def __init_subclass__(cls, **kwargs: dict):
@@ -274,6 +279,7 @@ class BaseScraper(abc.ABC):
         self._conn = conn
         if dbutil is None:
             from src.utils.dbutils import DbUtil
+
             self._dbutil = DbUtil(conn, None)
         else:
             self._dbutil = dbutil
@@ -290,7 +296,9 @@ class BaseScraper(abc.ABC):
         with self.conn.cursor() as cursor:
             now = utcnow()
             disabled_until = now + self.min_update_interval()
-            sql: LiteralString = 'UPDATE services SET last_check = %s, disabled_until = %s WHERE service_id=%s'
+            sql: LiteralString = (
+                'UPDATE services SET last_check = %s, disabled_until = %s WHERE service_id=%s'
+            )
             try:
                 cursor.execute(sql, (utcnow(), disabled_until, service_id))
             except psycopg.Error:
@@ -307,7 +315,9 @@ class BaseScraper(abc.ABC):
         return utcnow() + self.min_update_interval()
 
     @abc.abstractmethod
-    def scrape_series(self, title_id: str, service_id: int, manga_id: int, feed_url: str | None) -> set[int] | None:
+    def scrape_series(
+        self, title_id: str, service_id: int, manga_id: int, feed_url: str | None
+    ) -> set[int] | None:
         """
         Returns:
             Set of new chapter ids.
@@ -316,8 +326,13 @@ class BaseScraper(abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def scrape_service(self, service_id: int, feed_url: str, last_update: datetime | None,
-                       title_id: str | None = None) -> ScrapeServiceRetVal | None:
+    def scrape_service(
+        self,
+        service_id: int,
+        feed_url: str,
+        last_update: datetime | None,
+        title_id: str | None = None,
+    ) -> ScrapeServiceRetVal | None:
         raise NotImplementedError
 
     def add_service(self) -> int | None:
@@ -325,15 +340,19 @@ class BaseScraper(abc.ABC):
         with self.conn.cursor() as cur:
             cur.execute(sql, (self.URL, self.ID))
             if cur.fetchone():
-                logger.error(f'Service {self.NAME} already exists with duplicate url {self.URL} or id {self.ID}')
+                logger.error(
+                    f'Service {self.NAME} already exists with duplicate url {self.URL} or id {self.ID}'
+                )
                 return None
 
         logger.info(f'Adding service {self.NAME} {self.URL}')
-        sql: LiteralString = '''
+        sql: LiteralString = """
             INSERT INTO services (service_id, service_name, url, disabled, last_check, chapter_url_format, manga_url_format, disabled_until)
-            VALUES (%s, %s, %s, FALSE, NULL, %s, %s, NULL) RETURNING service_id'''
+            VALUES (%s, %s, %s, FALSE, NULL, %s, %s, NULL) RETURNING service_id"""
         with self.conn.transaction(), self.conn.cursor() as cur:
-            cur.execute(sql, (self.ID, self.NAME, self.URL, self.CHAPTER_URL_FORMAT, self.MANGA_URL_FORMAT))
+            cur.execute(
+                sql, (self.ID, self.NAME, self.URL, self.CHAPTER_URL_FORMAT, self.MANGA_URL_FORMAT)
+            )
             row = cur.fetchone()
             if not row:
                 raise ValueError('Row is None after service insert')
@@ -341,10 +360,13 @@ class BaseScraper(abc.ABC):
 
     @staticmethod
     def titles_dict_to_manga_service(
-            titles: Mapping[str, Sequence[BaseChapter]],
-            service_id: int, disabled: bool = False, manga_title: str | None = None) -> list[MangaService]:
+        titles: Mapping[str, Sequence[BaseChapter]],
+        service_id: int,
+        disabled: bool = False,
+        manga_title: str | None = None,
+    ) -> list[MangaService]:
         """
-        Turns a dict Dict[title_id, chapters] into a list of MangaService objects.
+        Turns a dict[title_id, chapters] into a list of MangaService objects.
         """
         mangas: list[MangaService] = []
         for title_id, chapters in titles.items():
@@ -353,7 +375,8 @@ class BaseScraper(abc.ABC):
                     service_id=service_id,
                     disabled=disabled,
                     title_id=title_id,
-                    title=manga_title if manga_title is not None else chapters[0].manga_title)
+                    title=manga_title if manga_title is not None else chapters[0].manga_title,
+                )
             )
 
         return mangas
@@ -362,14 +385,14 @@ class BaseScraper(abc.ABC):
     def group_by_manga(chapters: Iterable[ScraperChapter]) -> dict[str, list[ScraperChapter]]:
         titles: dict[str, list[ScraperChapter]] = {}
         # Must be sorted for groupby to work, as it only splits the list each time the key changes
-        for k, g in groupby(sorted(chapters, key=attrgetter('title_id')),
-                            attrgetter('title_id')):
+        for k, g in groupby(sorted(chapters, key=attrgetter('title_id')), attrgetter('title_id')):
             titles[k] = list(g)
 
         return titles
 
-    def map_already_added_titles(self, service_id: int, titles: dict[str, list[ScraperChapter]],
-                                 manga_ids: set[int]) -> list[ChapterModel]:
+    def map_already_added_titles(
+        self, service_id: int, titles: dict[str, list[ScraperChapter]], manga_ids: set[int]
+    ) -> list[ChapterModel]:
         """
         Maps the chapters of titles that already exist to the database model.
         Updates the given manga_ids set with the manga that were found.
@@ -380,28 +403,32 @@ class BaseScraper(abc.ABC):
             # Manga id has been set so it can't be None
             manga_ids.add(ms.manga_id)  # type: ignore[arg-type]
             for chapter in titles.pop(ms.title_id):
-                chapters.append(
-                    ChapterMapper.base_chapter_to_db(chapter, ms.manga_id,
-                                                     service_id))
+                chapters.append(ChapterMapper.base_chapter_to_db(chapter, ms.manga_id, service_id))
 
         return chapters
 
     def update_latest_chapter(self, chapters: Iterable[ChapterModel]) -> None:
-        chapter_rows = [{
-            'chapter_decimal': c.chapter_decimal,
-            'manga_id': c.manga_id,
-            'chapter_number': c.chapter_number,
-            'release_date': c.release_date
-        } for c in chapters]
+        chapter_rows = [
+            {
+                'chapter_decimal': c.chapter_decimal,
+                'manga_id':        c.manga_id,
+                'chapter_number':  c.chapter_number,
+                'release_date':    c.release_date,
+            }
+            for c in chapters
+        ]
         self.dbutil.update_latest_chapter(
             tuple(c for c in get_latest_chapters(chapter_rows).values())
         )
 
-    def add_new_manga_with_dupe_check(self, service_id: int,
-                                      mangas: Sequence[MangaService],
-                                      manga_ids: set[int],
-                                      chapters: list[ChapterModel],
-                                      titles: dict[str, list[ScraperChapter]]) -> None:
+    def add_new_manga_with_dupe_check(
+        self,
+        service_id: int,
+        mangas: Sequence[MangaService],
+        manga_ids: set[int],
+        chapters: list[ChapterModel],
+        titles: dict[str, list[ScraperChapter]],
+    ) -> None:
         """
         Calls DbUtil.add_new_manga_and_check_duplicate_titles
         to add the given manga to the database with checks for duplicate titles.
@@ -412,13 +439,14 @@ class BaseScraper(abc.ABC):
             for chapter in titles.get(manga.title_id, []):
                 try:
                     chapters.append(
-                        ChapterMapper.base_chapter_to_db(chapter, manga.manga_id,
-                                                         service_id)
+                        ChapterMapper.base_chapter_to_db(chapter, manga.manga_id, service_id)
                     )
                 except pydantic.ValidationError:
                     logger.exception(f'Failed to map chapter {chapter} to db model')
 
-    def get_new_entries(self, service_id: int, entries: Collection[ScraperChapter]) -> Collection[ScraperChapter] | None:
+    def get_new_entries(
+        self, service_id: int, entries: Collection[ScraperChapter]
+    ) -> Collection[ScraperChapter] | None:
         """
         Get only the new chapters to a service. Returns None if no new entries found.
         """
@@ -427,13 +455,18 @@ class BaseScraper(abc.ABC):
             logger.info(f'No new entries found for {type(self).__name__}')
             return None
 
-        logger.info('%s new chapters found for %s. %s', len(entries),
-                    self.NAME,
-                    [e.chapter_identifier for e in entries])
+        logger.info(
+            '%s new chapters found for %s. %s',
+            len(entries),
+            self.NAME,
+            [e.chapter_identifier for e in entries],
+        )
 
         return entries
 
-    def fetch_url(self, url: str, headers: dict[str, str] | None = None) -> requests.Response | None:
+    def fetch_url(
+        self, url: str, headers: dict[str, str] | None = None
+    ) -> requests.Response | None:
         try:
             r = requests.get(url, headers=headers)
         except requests.RequestException:
@@ -441,14 +474,15 @@ class BaseScraper(abc.ABC):
             return None
 
         if not r.ok:
-            logger.error(f'Failed to fetch {self.__class__.__name__} url {url}. HTTP {r.status_code}')
+            logger.error(
+                f'Failed to fetch {self.__class__.__name__} url {url}. HTTP {r.status_code}'
+            )
             return None
 
         return r
 
 
 class BaseScraperWhole(BaseScraper, ABC):
-
     @override
     def add_service(self) -> int | None:
         service_id = super().add_service()
@@ -475,7 +509,9 @@ class BaseScraperWhole(BaseScraper, ABC):
         except psycopg.Error:
             logger.exception(f'Failed to update service {service_id}')
 
-    def handle_adding_chapters(self, entries: Collection[ScraperChapter], service_id: int) -> ScrapeServiceRetVal | None:
+    def handle_adding_chapters(
+        self, entries: Collection[ScraperChapter], service_id: int
+    ) -> ScrapeServiceRetVal | None:
         """
         Given a list of parsed chapters this method will filter out already added chapters,
         add new manga and check for duplicate title, add the new chapters and return the updated manga ids

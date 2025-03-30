@@ -34,7 +34,12 @@ class WebhookLimits:
 
 
 class DiscordEmbedWebhookNotifier(NotifierBase):
-    def get_chapter_embed(self, chapter: NotificationChapter, embed_inputs: EmbedInputs, overrides: Overrides[EmbedInputs]) -> DiscordEmbed:
+    def get_chapter_embed(
+        self,
+        chapter: NotificationChapter,
+        embed_inputs: EmbedInputs,
+        overrides: Overrides[EmbedInputs],
+    ) -> DiscordEmbed:
         embed_inputs = overrides.get(chapter.manga.manga_id, embed_inputs)
 
         color = None
@@ -42,27 +47,28 @@ class DiscordEmbedWebhookNotifier(NotifierBase):
             color = int(embed_inputs.color.as_hex().lstrip('#')[:6], 16)
 
         embed = DiscordEmbed(
-            title=self.format_string(embed_inputs.embed_title, chapter)[:WebhookLimits.TITLE],
+            title=self.format_string(embed_inputs.embed_title, chapter)[: WebhookLimits.TITLE],
             description=self.format_string(embed_inputs.embed_content, chapter),
             color=color,
             url=self.format_string(embed_inputs.url, chapter),
-            timestamp=chapter.release_date.isoformat()
+            timestamp=chapter.release_date.isoformat(),
         )
 
         if embed_inputs.footer is not None:
-            embed.set_footer(
-                text=self.format_string(embed_inputs.footer, chapter)
-            )
+            embed.set_footer(text=self.format_string(embed_inputs.footer, chapter))
 
         if embed_inputs.thumbnail is not None:
-            embed.set_thumbnail(
-                url=self.format_string(embed_inputs.thumbnail, chapter)
-            )
+            embed.set_thumbnail(url=self.format_string(embed_inputs.thumbnail, chapter))
 
         return embed
 
     @override
-    def send_notification(self, chapters: list[NotificationChapter], options: NotificationOptions, input_fields: list[InputField]) -> tuple[int, bool]:
+    def send_notification(
+        self,
+        chapters: list[NotificationChapter],
+        options: NotificationOptions,
+        input_fields: list[InputField],
+    ) -> tuple[int, bool]:
         groups = self.get_chapters_grouped(chapters, options)
 
         embed_inputs_original = EmbedInputs.from_input_list(input_fields)
@@ -73,7 +79,9 @@ class DiscordEmbedWebhookNotifier(NotifierBase):
             embed_inputs = embed_inputs_original
             group_sorted = self.sort_chapters(group)
 
-            embeds = [self.get_chapter_embed(chapter, embed_inputs, overrides) for chapter in group_sorted]
+            embeds = [
+                self.get_chapter_embed(chapter, embed_inputs, overrides) for chapter in group_sorted
+            ]
 
             # If group by manga is true we can use the override for the non embed properties
             # Otherwise use defaults
@@ -81,7 +89,7 @@ class DiscordEmbedWebhookNotifier(NotifierBase):
                 embed_inputs = overrides.get(group[0].manga.manga_id, embed_inputs)
 
             if embed_inputs.username:
-                username = self.format_title(embed_inputs.username, group)[:WebhookLimits.USERNAME]
+                username = self.format_title(embed_inputs.username, group)[: WebhookLimits.USERNAME]
             else:
                 username = None
 
@@ -94,11 +102,11 @@ class DiscordEmbedWebhookNotifier(NotifierBase):
                     url=options.destination,
                     username=username,  # noqa: B023 Function is only called inside this loop
                     avatar_url=embed_inputs.avatar_url,  # noqa: B023
-                    timeout=10
+                    timeout=10,
                 )
 
             for i in range(0, len(embeds), WebhookLimits.EMBEDS):
-                chunk = embeds[i:i+WebhookLimits.EMBEDS]
+                chunk = embeds[i: i + WebhookLimits.EMBEDS]
                 webhook = get_webhook()
                 list(map(webhook.add_embed, chunk))
                 webhook.content = message

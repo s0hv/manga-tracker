@@ -23,12 +23,20 @@ logger = logging.getLogger('debug')
 
 
 class Chapter(BaseChapterSimple):
-    def __init__(self, chapter_number: str | None, chapter_identifier: str, title_id: str,
-                 manga_url: str, chapter_title: str | None = None,
-                 release_date: time.struct_time | None = None, volume: int | None = None,
-                 decimal: int | None = None, group: str | None = None,
-                 group_id: int | None = None,
-                 **_):
+    def __init__(
+        self,
+        chapter_number: str | None,
+        chapter_identifier: str,
+        title_id: str,
+        manga_url: str,
+        chapter_title: str | None = None,
+        release_date: time.struct_time | None = None,
+        volume: int | None = None,
+        decimal: int | None = None,
+        group: str | None = None,
+        group_id: int | None = None,
+        **_,
+    ):
         super().__init__(
             chapter_title=chapter_title or None,
             chapter_number=int(chapter_number) if chapter_number else 0,
@@ -39,20 +47,26 @@ class Chapter(BaseChapterSimple):
             release_date=utcfromtimestamp(timegm(release_date)) if release_date else utcnow(),
             group=group,
             manga_url=manga_url,
-            group_id=group_id
+            group_id=group_id,
         )
 
     @override
     @property
     def title(self) -> str:
-        return self.chapter_title or f'Chapter {self.chapter_number}{"" if not self.decimal else "." + str(self.decimal)}'
+        return (
+            self.chapter_title
+            or f'Chapter {self.chapter_number}{"" if not self.decimal else "." + str(self.decimal)}'
+        )
 
 
 class Reddit(BaseScraper):
     ID = 6
     URL = 'https://www.reddit.com'
     NAME = 'Reddit'
-    CHAPTER_REGEX = re.compile(r'(?:.+?)?(chapter|update) (?P<chapter_number>\d+)(?: \(?part (?P<decimal>\d+)\)?)?(?P<language> \[.+?])?(?: translated)?', re.I)
+    CHAPTER_REGEX = re.compile(
+        r'(?:.+?)?(chapter|update) (?P<chapter_number>\d+)(?: \(?part (?P<decimal>\d+)\)?)?(?P<language> \[.+?])?(?: translated)?',
+        re.I,
+    )
     SUBREDDIT_REGEX = re.compile(r'https?://(?:www\.)?reddit.com/(r/\w+).*')
     UPDATE_INTERVAL = timedelta(minutes=30)
     CHAPTER_URL_FORMAT = '{}'
@@ -79,9 +93,7 @@ class Reddit(BaseScraper):
                         continue
 
                     # Special cases don't have a chapter number shown so default to 0
-                    kwargs = {
-                        'chapter_number': '0'
-                    }
+                    kwargs = {'chapter_number': '0'}
 
                 else:
                     logger.info(f'Fallback to universal regex successful on {title or post}')
@@ -98,7 +110,7 @@ class Reddit(BaseScraper):
             kwargs['group_id'] = group_id
 
             # The tree might have more than one root element so force it to have only a single one
-            tree = etree.fromstring(f"<root>{post.get('summary', '')}</root>")
+            tree = etree.fromstring(f'<root>{post.get("summary", "")}</root>')
             kwargs['chapter_identifier'] = tree.cssselect('span a')[0].get('href')
             if not kwargs['chapter_identifier']:
                 logger.error(f'Chapter identifier not found from {post}')
@@ -123,7 +135,9 @@ class Reddit(BaseScraper):
         return chapters
 
     @override
-    def scrape_series(self, title_id: str, service_id: int, manga_id: int, feed_url: str | None) -> set[int] | None:
+    def scrape_series(
+        self, title_id: str, service_id: int, manga_id: int, feed_url: str | None
+    ) -> set[int] | None:
         if feed_url is None:
             raise ValueError('feed_url cannot be None')
 
@@ -140,7 +154,9 @@ class Reddit(BaseScraper):
         group_name = '/'.join(feed_url.split('reddit.com/')[1].split('/')[:2])
         group_id = self.dbutil.get_or_create_group(group_name).group_id
 
-        chapters = self.dbutil.get_only_latest_entries(service_id, self.parse_feed(feed.entries, group_id=group_id))
+        chapters = self.dbutil.get_only_latest_entries(
+            service_id, self.parse_feed(feed.entries, group_id=group_id)
+        )
         if not chapters:
             logger.debug(f'Nothing to update in {feed_url}')
             return set()
@@ -148,15 +164,26 @@ class Reddit(BaseScraper):
         logger.info(f'{len(chapters)} new chapters on {feed_url}')
         inserted = self.dbutil.add_chapters(list(chapters), manga_id, service_id, fetch=True)
 
-        chapter_rows = [{
-            'chapter_decimal': c.decimal,
-            'manga_id': manga_id,
-            'chapter_number': c.chapter_number,
-            'release_date': c.release_date
-        } for c in chapters]
-        self.dbutil.update_latest_chapter(tuple(c for c in get_latest_chapters(chapter_rows).values()))
+        chapter_rows = [
+            {
+                'chapter_decimal': c.decimal,
+                'manga_id':        manga_id,
+                'chapter_number':  c.chapter_number,
+                'release_date':    c.release_date,
+            }
+            for c in chapters
+        ]
+        self.dbutil.update_latest_chapter(
+            tuple(c for c in get_latest_chapters(chapter_rows).values())
+        )
         return {row.chapter_id for row in inserted}
 
     @override
-    def scrape_service(self, service_id: int, feed_url: str, last_update: datetime | None, title_id: str | None = None) -> None:
+    def scrape_service(
+        self,
+        service_id: int,
+        feed_url: str,
+        last_update: datetime | None,
+        title_id: str | None = None,
+    ) -> None:
         return None

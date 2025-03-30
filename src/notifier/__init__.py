@@ -5,5 +5,5 @@ from src.notifier.webhook import WebhookNotifier
 
 NOTIFIERS: dict[NotificationType, type[NotifierBase]] = {
     NotificationType.DiscordWebhook: DiscordEmbedWebhookNotifier,
-    NotificationType.Webhook: WebhookNotifier
+    NotificationType.Webhook:        WebhookNotifier,
 }

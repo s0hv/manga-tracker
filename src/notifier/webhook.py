@@ -36,7 +36,7 @@ class WebhookNotifier(NotifierBase):
             if isinstance(value, str):
                 d[key] = self.format_string(value, chapter)
             elif isinstance(value, dict):
-                d[key] = self.format_dict(value, chapter, depth=depth+1)
+                d[key] = self.format_dict(value, chapter, depth=depth + 1)
 
         return d
 
@@ -61,7 +61,12 @@ class WebhookNotifier(NotifierBase):
         return data
 
     @override
-    def send_notification(self, chapters: list[NotificationChapter], options: NotificationOptions, input_fields: list[InputField]) -> tuple[int, bool]:
+    def send_notification(
+        self,
+        chapters: list[NotificationChapter],
+        options: NotificationOptions,
+        input_fields: list[InputField],
+    ) -> tuple[int, bool]:
         inputs = EmbedInputs.from_input_list(input_fields)
 
         data = self.validate_json(inputs.json_field)

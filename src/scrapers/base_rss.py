@@ -24,21 +24,23 @@ class RSSChapter(BaseChapterSimple):
     """
     A sensible default implementation for a chapter in an RSS feed
     """
-    def __init__(self,
-                 chapter_title: str | None,
-                 chapter_number: str,
-                 chapter_identifier: str,
-                 title_id: str,
-                 group_id: int,
-                 volume: str | None = None,
-                 decimal: str | None = None,
-                 release_date: time.struct_time | datetime | None = None,
-                 manga_title: str | None = None,
-                 manga_url: str | None = None,
-                 group: str | None = None,
-                 # Ignore unused properties
-                 **_
-                 ):
+
+    def __init__(
+        self,
+        chapter_title: str | None,
+        chapter_number: str,
+        chapter_identifier: str,
+        title_id: str,
+        group_id: int,
+        volume: str | None = None,
+        decimal: str | None = None,
+        release_date: time.struct_time | datetime | None = None,
+        manga_title: str | None = None,
+        manga_url: str | None = None,
+        group: str | None = None,
+        # Ignore unused properties
+        **_,
+    ):
         super().__init__(
             chapter_title=chapter_title,
             chapter_number=int(chapter_number),
@@ -49,7 +51,7 @@ class RSSChapter(BaseChapterSimple):
             manga_title=manga_title,
             manga_url=manga_url,
             group=group,
-            group_id=group_id
+            group_id=group_id,
         )
 
         if isinstance(release_date, time.struct_time):
@@ -110,7 +112,10 @@ class RSSChapter(BaseChapterSimple):
     @override
     @property
     def title(self) -> str:
-        return self.chapter_title or f'{"Volume " + str(self.volume) + ", " if self.volume is not None else ""}Chapter {self.chapter_number}{"" if not self.decimal else "." + str(self.decimal)}'
+        return (
+            self.chapter_title
+            or f'{"Volume " + str(self.volume) + ", " if self.volume is not None else ""}Chapter {self.chapter_number}{"" if not self.decimal else "." + str(self.decimal)}'
+        )
 
 
 class BaseRSS(BaseScraperWhole, ABC):
@@ -252,8 +257,9 @@ class BaseRSS(BaseScraperWhole, ABC):
         return self.UPDATE_INTERVAL
 
     @override
-    def scrape_series(self, title_id: str, service_id: int, manga_id: int,
-                      feed_url: str | None = None) -> set[int] | None:
+    def scrape_series(
+        self, title_id: str, service_id: int, manga_id: int, feed_url: str | None = None
+    ) -> set[int] | None:
         pass
 
     def get_feed_chapters(self, feed_url: str) -> list[RSSChapter] | None:
@@ -274,7 +280,11 @@ class BaseRSS(BaseScraperWhole, ABC):
         return self.handle_adding_chapters(entries, service_id) or ScrapeServiceRetVal()
 
     @override
-    def scrape_service(self, service_id: int, feed_url: str,
-                       last_update: datetime | None,
-                       title_id: str | None = None) -> ScrapeServiceRetVal | None:
+    def scrape_service(
+        self,
+        service_id: int,
+        feed_url: str,
+        last_update: datetime | None,
+        title_id: str | None = None,
+    ) -> ScrapeServiceRetVal | None:
         return self.add_from_feed_url(service_id, feed_url)

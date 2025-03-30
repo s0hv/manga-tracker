@@ -42,22 +42,21 @@ class MangaServiceInfo(TypedDict):
 
 
 class LoggingCursor(Cursor[DictRow]):
-
     @override
     def execute(
-            self,
-            query: LiteralString | bytes | SQL | Composed,
-            params: Sequence | Mapping[str, object] | None = None,
-            *,
-            prepare: bool | None = None,
-            binary: bool | None = None
-            ) -> Self:
+        self,
+        query: LiteralString | bytes | SQL | Composed,
+        params: Sequence | Mapping[str, object] | None = None,
+        *,
+        prepare: bool | None = None,
+        binary: bool | None = None,
+    ) -> Self:
         try:
             return super().execute(query, params, prepare=prepare, binary=binary)
         finally:
             param_string = '' if not params else f', {params}'
             if isinstance(query, bytes):
-                db_logger.debug(f"{query.decode('utf-8')}{param_string}")
+                db_logger.debug(f'{query.decode("utf-8")}{param_string}')
             else:
                 db_logger.debug(f'{query}{param_string}')
 
@@ -67,12 +66,12 @@ class UpdateScheduler:
 
     def __init__(self) -> None:
         config = {
-            'host': os.environ['DB_HOST'],
-            'dbname': os.environ['DB_NAME'],
-            'user': os.environ['DB_USER'],
-            'password': os.environ['DB_PASSWORD'],
-            'port': os.environ['DB_PORT'],
-            'row_factory': psycopg.rows.dict_row
+            'host':        os.environ['DB_HOST'],
+            'dbname':      os.environ['DB_NAME'],
+            'user':        os.environ['DB_USER'],
+            'password':    os.environ['DB_PASSWORD'],
+            'port':        os.environ['DB_PORT'],
+            'row_factory': psycopg.rows.dict_row,
         }
 
         self.pool = ConnectionPool[Connection[DictRow]](
@@ -80,9 +79,9 @@ class UpdateScheduler:
             min_size=1,
             max_size=self.MAX_POOLS,
             kwargs=config,
-            open=True
+            open=True,
         )
-        self.thread_pool = ThreadPoolExecutor(max_workers=self.MAX_POOLS-1)
+        self.thread_pool = ThreadPoolExecutor(max_workers=self.MAX_POOLS - 1)
         self._es: Elasticsearch = get_client()
 
         with self.conn() as conn:
@@ -118,7 +117,9 @@ class UpdateScheduler:
             chapter_ids = []
             service_counter: Counter = Counter()
 
-            disabled_services = set(map(attrgetter('service_id'), filter(attrgetter('disabled'), dbutil.get_services())))
+            disabled_services = set(
+                map(attrgetter('service_id'), filter(attrgetter('disabled'), dbutil.get_services()))
+            )
 
             for sr in dbutil.get_scheduled_runs():
                 manga_id = sr.manga_id
@@ -159,10 +160,9 @@ class UpdateScheduler:
             return manga_ids, chapter_ids
 
     # noinspection PyPep8Naming
-    def scrape_series(self,
-                      service_id: int,
-                      Scraper: type[BaseScraper],
-                      manga_info: Collection[MangaServiceInfo]) -> tuple[set[int], list[int]]:
+    def scrape_series(
+        self, service_id: int, Scraper: type[BaseScraper], manga_info: Collection[MangaServiceInfo]
+    ) -> tuple[set[int], list[int]]:
         with self.conn() as conn:
             scraper = Scraper(conn, DbUtil(conn, self.es_methods))
             rng = random.Random()
@@ -178,8 +178,7 @@ class UpdateScheduler:
                 logger.info(f'Updating {title_id} on service {service_id}')
                 try:
                     with conn.transaction():
-                        if res := scraper.scrape_series(title_id, service_id,
-                                                        manga_id, feed_url):
+                        if res := scraper.scrape_series(title_id, service_id, manga_id, feed_url):
                             manga_ids.add(manga_id)
                             chapter_ids.extend(res)
 
@@ -195,30 +194,44 @@ class UpdateScheduler:
 
                         # release_interval actually gets set after this function is called, but it is likely that it has already been set before
                         # as this feature requires manual configuration. That's why it should be ok to use it here even if it is the old value.
-                        if not ms.disabled and (ms.next_update is None or ms.next_update < utcnow()):
+                        if not ms.disabled and (
+                            ms.next_update is None or ms.next_update < utcnow()
+                        ):
                             if ms.release_interval is None:
                                 logger.warning(f'Release interval is None for manga {title_id} on service {service_id}. Disabling automatic updates for it.')
-                                scraper.dbutil.execute('UPDATE manga_service SET disabled=TRUE WHERE service_id = %s AND manga_id = %s', (service_id, manga_id))
+                                scraper.dbutil.execute(
+                                    'UPDATE manga_service SET disabled=TRUE WHERE service_id = %s AND manga_id = %s',
+                                    (service_id, manga_id),
+                                )
                             else:
                                 # If all ok set latest release and refetch manga_service to get the updated latest_release
                                 scraper.dbutil.update_latest_release([manga_id])
                                 ms = scraper.dbutil.get_manga_service(service_id, title_id)
                                 assert ms is not None
-                                assert ms.latest_release is not None and ms.release_interval is not None
+                                assert (
+                                    ms.latest_release is not None
+                                    and ms.release_interval is not None
+                                )
 
                                 next_date: datetime = ms.latest_release + ms.release_interval
                                 if next_date < utcnow():
                                     next_date = utcnow() + ms.release_interval
 
-                                scraper.dbutil.update_manga_next_update(service_id, manga_id, next_date + timedelta(minutes=10))
+                                scraper.dbutil.update_manga_next_update(
+                                    service_id, manga_id, next_date + timedelta(minutes=10)
+                                )
 
                 except psycopg.Error:
                     logger.exception(f'Database error while updating manga {title_id} on service {service_id}')
-                    scraper.dbutil.update_manga_next_update(service_id, manga_id, scraper.next_update())
+                    scraper.dbutil.update_manga_next_update(
+                        service_id, manga_id, scraper.next_update()
+                    )
                     errors += 1
                 except Exception:
                     logger.exception(f'Unknown error while updating manga {title_id} on service {service_id}')
-                    scraper.dbutil.update_manga_next_update(service_id, manga_id, scraper.next_update())
+                    scraper.dbutil.update_manga_next_update(
+                        service_id, manga_id, scraper.next_update()
+                    )
                     errors += 1
 
                 scraper.dbutil.set_manga_last_checked(service_id, manga_id, utcnow())
@@ -228,26 +241,28 @@ class UpdateScheduler:
 
                 idx += 1
                 if idx != len(manga_info):
-                    time.sleep(rng.randint(200, 1000)/100)
+                    time.sleep(rng.randint(200, 1000) / 100)
 
             scraper.set_checked(service_id, True)
 
             return manga_ids, chapter_ids
 
-    def force_run(self, service_id: int, manga_id: int | None = None) -> tuple[set[int], list[int]] | None:
+    def force_run(
+        self, service_id: int, manga_id: int | None = None
+    ) -> tuple[set[int], list[int]] | None:
         if service_id not in SCRAPERS_ID:
             logger.warning(f'No service found with id {service_id}')
             return None
 
         with self.conn() as conn:
             if manga_id is not None:
-                sql = '''
-                    SELECT ms.service_id, s.url, ms.title_id, ms.manga_id, ms.feed_url, sw.feed_url as service_feed_url
+                sql = """
+                    SELECT ms.service_id, s.url, ms.title_id, ms.manga_id, ms.feed_url, sw.feed_url AS service_feed_url
                     FROM manga_service ms
                     INNER JOIN services s ON s.service_id=ms.service_id
                     LEFT JOIN service_whole sw ON s.service_id = sw.service_id
                     WHERE s.service_id=%s AND ms.manga_id=%s
-                '''
+                """
                 with conn.cursor() as cursor:
                     cursor.execute(sql, (service_id, manga_id))
                     row = cursor.fetchone()
@@ -272,7 +287,9 @@ class UpdateScheduler:
                 logger.info(f'Force updating {title_id} on service {service_id}')
                 with conn.transaction():
                     try:
-                        retval = scraper.scrape_series(title_id, service_id, manga_id, feed_url=feed_url)
+                        retval = scraper.scrape_series(
+                            title_id, service_id, manga_id, feed_url=feed_url
+                        )
                     except psycopg.Error:
                         logger.exception(f'Database error while scraping {service_id} {scraper.NAME}: {title_id}')
                         return None
@@ -287,9 +304,9 @@ class UpdateScheduler:
                 return {manga_id}, list(retval)
 
             else:
-                sql = '''SELECT s.service_id, sw.feed_url, s.url
-                         FROM service_whole sw INNER JOIN services s on sw.service_id = s.service_id
-                         WHERE s.service_id=%s'''
+                sql = """SELECT s.service_id, sw.feed_url, s.url
+                         FROM service_whole sw INNER JOIN services s ON sw.service_id = s.service_id
+                         WHERE s.service_id=%s"""
 
                 manga_ids: set[int] = set()
                 chapter_ids: list[int] = []
@@ -318,13 +335,13 @@ class UpdateScheduler:
     def run_once(self) -> datetime:
         with self.conn() as conn:
             futures = []
-            sql: LiteralString = '''
-                SELECT ms.service_id, s.url, array_agg(json_build_object('title_id', ms.title_id, 'manga_id', ms.manga_id, 'feed_url', ms.feed_url)) as manga_info
+            sql: LiteralString = """
+                SELECT ms.service_id, s.url, array_agg(json_build_object('title_id', ms.title_id, 'manga_id', ms.manga_id, 'feed_url', ms.feed_url)) AS manga_info
                 FROM manga_service ms
                 INNER JOIN services s ON s.service_id=ms.service_id
-                WHERE NOT (s.disabled OR ms.disabled) AND (s.disabled_until IS NULL OR s.disabled_until < NOW()) AND (ms.next_update IS NULL OR ms.next_update < NOW())
+                WHERE NOT (s.disabled OR ms.disabled) AND (s.disabled_until IS NULL OR s.disabled_until < now()) AND (ms.next_update IS NULL OR ms.next_update < now())
                 GROUP BY ms.service_id, s.url
-            '''
+            """
 
             with conn.cursor() as cursor:
                 cursor.execute(sql)
@@ -338,14 +355,18 @@ class UpdateScheduler:
                         logger.error(f'Failed to find scraper for {row}')
                         continue
 
-                    futures.append(self.thread_pool.submit(
-                        self.scrape_series, row['service_id'],
-                        Scraper, row['manga_info'][:batch_size]
-                    ))
+                    futures.append(
+                        self.thread_pool.submit(
+                            self.scrape_series,
+                            row['service_id'],
+                            Scraper,
+                            row['manga_info'][:batch_size],
+                        )
+                    )
 
-            sql = '''SELECT s.service_id, sw.feed_url, s.url
-                     FROM service_whole sw INNER JOIN services s on sw.service_id = s.service_id
-                     WHERE NOT s.disabled AND (sw.next_update IS NULL OR sw.next_update < NOW())'''
+            sql = """SELECT s.service_id, sw.feed_url, s.url
+                     FROM service_whole sw INNER JOIN services s ON sw.service_id = s.service_id
+                     WHERE NOT s.disabled AND (sw.next_update IS NULL OR sw.next_update < NOW())"""
 
             services = []
             with conn.cursor() as cursor:
@@ -409,8 +430,8 @@ class UpdateScheduler:
             except Exception:
                 logger.exception('Failed to send notifications')
 
-            sql = '''
-            SELECT MIN(t.update) as update FROM (
+            sql = """
+            SELECT MIN(t.update) AS update FROM (
                 SELECT
                    LEAST(
                        GREATEST(MIN(ms.next_update), s.disabled_until),
@@ -420,13 +441,13 @@ class UpdateScheduler:
                                INNER JOIN services s2 ON s2.service_id = sw.service_id
                            WHERE s2.disabled=FALSE
                        )
-                   ) as update
+                   ) AS update
                 FROM manga_service ms
                 INNER JOIN services s ON s.service_id = ms.service_id
                 WHERE s.disabled=FALSE AND ms.disabled=FALSE
                 GROUP BY s.service_id, ms.service_id
-            ) as t
-            '''
+            ) AS t
+            """
             with conn.cursor() as cursor:
                 cursor.execute(sql)
                 next_update_row = cursor.fetchone()
@@ -449,7 +470,9 @@ class UpdateScheduler:
             def get_manga_id(chapter: Chapter) -> int:
                 return chapter.manga_id
 
-            chapters = sorted(dbutil.get_chapters_by_id(chapter_ids, list(manga_ids)), key=get_manga_id)
+            chapters = sorted(
+                dbutil.get_chapters_by_id(chapter_ids, list(manga_ids)), key=get_manga_id
+            )
             chapter_by_manga: dict[int, list[Chapter]] = {}
 
             for group, chapter_it in groupby(chapters, key=get_manga_id):
@@ -462,8 +485,11 @@ class UpdateScheduler:
             for partial_notification in partial_notifications:
                 selected_chapters = chapter_by_manga.get(partial_notification.manga_id, [])
                 if partial_notification.service_id is not None:
-                    selected_chapters = [c for c in selected_chapters
-                                         if c.service_id == partial_notification.service_id]
+                    selected_chapters = [
+                        c
+                        for c in selected_chapters
+                        if c.service_id == partial_notification.service_id
+                    ]
 
                 notifications[partial_notification.notification_id].extend(selected_chapters)
 
@@ -484,9 +510,7 @@ class UpdateScheduler:
 
                 try:
                     sent, success = notifier.send_notification(
-                        chapters_notif,
-                        notification,
-                        input_fields
+                        chapters_notif, notification, input_fields
                     )
                 except Exception:
                     logger.exception('Failed to send notification')

@@ -10,11 +10,11 @@ if TYPE_CHECKING:
     from src.scrapers.base_scraper import BaseScraper
 
 SCRAPERS: dict[str, type['BaseScraper']] = {
-    MangaDex.URL: MangaDex,
+    MangaDex.URL:  MangaDex,
     MangaPlus.URL: MangaPlus,
-    Reddit.URL: Reddit,
-    Comikey.URL: Comikey,
-    Azuki.URL: Azuki
+    Reddit.URL:    Reddit,
+    Comikey.URL:   Comikey,
+    Azuki.URL:     Azuki,
 }
 
 SCRAPERS_ID: dict[int, type['BaseScraper']] = {

@@ -3,7 +3,7 @@ import logging
 import re
 from abc import ABC
 from datetime import datetime, timezone
-from typing import TypeVar, cast, override
+from typing import cast, override
 
 from lxml import etree
 
@@ -16,7 +16,10 @@ from src.utils.utilities import utctoday
 
 logger = logging.getLogger('debug')
 
-chapter_regex = re.compile(r'^Chapter (?P<chapter_number>\d+)((-\d+)| ?(?P<special_chapter>ex\d*|\.?[A-z]|extra *\d*))?(\.(?P<chapter_decimal>\d+))?( – (?P<chapter_title>.+?))?$', re.I)  # noqa: RUF001 the dash is used for a reason here
+chapter_regex = re.compile(
+    r'^Chapter (?P<chapter_number>\d+)((-\d+)| ?(?P<special_chapter>ex\d*|\.?[A-z]|extra *\d*))?(\.(?P<chapter_decimal>\d+))?( – (?P<chapter_title>.+?))?$',  # noqa: RUF001 the dash is used for a reason here
+    re.I,
+)
 ignore_chapter_regex = re.compile(r'^\s*chapter announcement\s*$', re.I)
 
 
@@ -64,7 +67,9 @@ class ParsedChapter(BaseChapterSimple, ABC):
             special_chapter = special_chapter.strip('.')
 
         if special_chapter and chapter_decimal is not None:
-            logger.warning(f'Special chapter and chapter decimal specified for azuki chapter {title}')
+            logger.warning(
+                f'Special chapter and chapter decimal specified for azuki chapter {title}'
+            )
 
         if chapter_decimal is None and special_chapter:
             if len(special_chapter) == 1:
@@ -75,9 +80,6 @@ class ParsedChapter(BaseChapterSimple, ABC):
         chapter_title = d['chapter_title'] or title
 
         return chapter_title, chapter_number, chapter_decimal
-
-
-TChapter = TypeVar('TChapter', bound=ParsedChapter)
 
 
 class MangaChapter(ParsedChapter):
@@ -153,7 +155,9 @@ class ReleaseChapter(ParsedChapter):
         chapter_title, chapter_number, chapter_decimal = result
 
         try:
-            release_date = datetime.strptime(date_el.text.strip(), '%b %d, %Y').replace(tzinfo=timezone.utc)
+            release_date = datetime.strptime(date_el.text.strip(), '%b %d, %Y').replace(
+                tzinfo=timezone.utc
+            )
         except ValueError:
             logger.exception('Failed to parse time')
             self.invalid = True
@@ -184,7 +188,9 @@ class Azuki(BaseScraperWhole):
     MANGA_URL_FORMAT = 'https://www.azuki.co/series/{}'
 
     @staticmethod
-    def parse_chapters(rows: list[etree.ElementBase], chapter_cls: type[TChapter], group_id: int) -> list[TChapter]:
+    def parse_chapters[TChapter: ParsedChapter](
+        rows: list[etree.ElementBase], chapter_cls: type[TChapter], group_id: int
+    ) -> list[TChapter]:
         chapters = []
         now = utctoday()
         for row in rows:
@@ -203,7 +209,9 @@ class Azuki(BaseScraperWhole):
 
         root = etree.HTML(r.text)
 
-        chapter_rows = root.xpath(".//azuki-chapter-row-list//li[contains(@class, 'm-chapter-row') and not(contains(@class, 'm-chapter-row--upcoming'))]")
+        chapter_rows = root.xpath(
+            ".//azuki-chapter-row-list//li[contains(@class, 'm-chapter-row') and not(contains(@class, 'm-chapter-row--upcoming'))]"
+        )
         chapters = self.parse_chapters(chapter_rows, MangaChapter, group_id)
 
         try:
@@ -217,8 +225,9 @@ class Azuki(BaseScraperWhole):
         return chapters
 
     @override
-    def scrape_series(self, title_id: str, service_id: int, manga_id: int | None,
-                      feed_url: str | None = None) -> set[int] | None:
+    def scrape_series(
+        self, title_id: str, service_id: int, manga_id: int | None, feed_url: str | None = None
+    ) -> set[int] | None:
         group_id = self.dbutil.get_or_create_group(self.NAME).group_id
         chapters = self.get_manga_chapters(title_id, group_id)
 
@@ -235,9 +244,13 @@ class Azuki(BaseScraperWhole):
         return set() if not retval else retval.chapter_ids
 
     @override
-    def scrape_service(self, service_id: int, feed_url: str,
-                       last_update: datetime | None,
-                       title_id: str | None = None) -> ScrapeServiceRetVal | None:
+    def scrape_service(
+        self,
+        service_id: int,
+        feed_url: str,
+        last_update: datetime | None,
+        title_id: str | None = None,
+    ) -> ScrapeServiceRetVal | None:
         r = self.fetch_url(feed_url)
         if r is None:
             return None
@@ -250,10 +263,7 @@ class Azuki(BaseScraperWhole):
 
         chapters = list(self.dbutil.get_only_latest_entries(service_id, chapters))
         if not chapters:
-            return ScrapeServiceRetVal(
-                manga_ids=set(),
-                chapter_ids=set()
-            )
+            return ScrapeServiceRetVal(manga_ids=set(), chapter_ids=set())
 
         logger.debug(f'{len(chapters)} new chapters on {self.NAME}')
 

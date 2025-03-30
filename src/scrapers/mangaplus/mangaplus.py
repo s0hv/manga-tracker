@@ -113,9 +113,11 @@ class TitleDetailViewWrapper:
             yield from chapters_view.unavailable_chapter_list
             yield from chapters_view.last_chapter_list
 
-        return [ChapterWrapper(c, title_name)
-                for ch_cont in self._title_detail.chapters
-                for c in flatten(ch_cont)]
+        return [
+            ChapterWrapper(c, title_name)
+            for ch_cont in self._title_detail.chapters
+            for c in flatten(ch_cont)
+        ]
 
     @property
     def is_simul_release(self) -> bool | None:
@@ -135,10 +137,12 @@ class AllTitlesViewWrapper:
 
     @property
     def titles(self) -> list[TitleWrapper]:
-        return [TitleWrapper(title)
-                for variant in self._all_titles.title_variants
-                for title in variant.title
-                if title.language == mangaplus_pb2.Title.Language.ENGLISH]
+        return [
+            TitleWrapper(title)
+            for variant in self._all_titles.title_variants
+            for title in variant.title
+            if title.language == mangaplus_pb2.Title.Language.ENGLISH
+        ]
 
 
 class ResponseWrapper:
@@ -178,7 +182,9 @@ class ResponseWrapper:
 
 
 class ChapterWrapper(BaseChapter):
-    def __init__(self, chapter: mangaplus_pb2.Chapter, manga_title: str, group_id: int | None = None):
+    def __init__(
+        self, chapter: mangaplus_pb2.Chapter, manga_title: str, group_id: int | None = None
+    ):
         self._chapter = chapter
         self._chapter_number, self._chapter_decimal = MangaPlus.parse_chapter(chapter.name)
         self._manga_title = manga_title
@@ -290,7 +296,9 @@ class MangaPlus(BaseScraperWhole):
             if match:
                 return 1, None
 
-            logger.warning(f'Chapter number {chapter_number} could not be parsed. Treating it as chapter 0.')
+            logger.warning(
+                f'Chapter number {chapter_number} could not be parsed. Treating it as chapter 0.'
+            )
 
             return 0, None
 
@@ -326,8 +334,13 @@ class MangaPlus(BaseScraperWhole):
         return all_titles
 
     @override
-    def scrape_service(self, service_id: int, feed_url: str,
-                       last_update: datetime | None, title_id: str | None = None) -> ScrapeServiceRetVal | None:
+    def scrape_service(
+        self,
+        service_id: int,
+        feed_url: str,
+        last_update: datetime | None,
+        title_id: str | None = None,
+    ) -> ScrapeServiceRetVal | None:
         self.dbutil.update_service_whole(service_id, timedelta(days=1) + self.min_update_interval())
         all_titles = self.get_all_titles(feed_url)
         if not all_titles:
@@ -350,7 +363,7 @@ class MangaPlus(BaseScraperWhole):
                 disabled=False,
                 title_id=str(t.title_id),
                 title=t.name,
-                manga_id=None
+                manga_id=None,
             )
             for t in new_titles
         ])
@@ -359,8 +372,9 @@ class MangaPlus(BaseScraperWhole):
         return None
 
     @override
-    def scrape_series(self, title_id: str, service_id: int, manga_id: int,
-                      feed_url: str | None = None) -> set[int] | None:
+    def scrape_series(
+        self, title_id: str, service_id: int, manga_id: int, feed_url: str | None = None
+    ) -> set[int] | None:
         parsed = self.parse_series(title_id)
         if parsed is None:
             return None
@@ -377,7 +391,9 @@ class MangaPlus(BaseScraperWhole):
 
         return self.add_chapters(series, service_id, manga_id)
 
-    def add_chapters(self, series: TitleDetailViewWrapper, service_id: int, manga_id: int) -> set[int] | None:
+    def add_chapters(
+        self, series: TitleDetailViewWrapper, service_id: int, manga_id: int
+    ) -> set[int] | None:
         group = self.dbutil.get_or_create_group(self.GROUP)
 
         group_id = group.group_id
@@ -402,7 +418,9 @@ class MangaPlus(BaseScraperWhole):
         new_chapters: list[ChapterModel] = []
         for chapter in entries:
             new_chapters.append(
-                ChapterMapper.base_chapter_to_db(chapter, manga_id, service_id, strip_chapter_prefix=True)
+                ChapterMapper.base_chapter_to_db(
+                    chapter, manga_id, service_id, strip_chapter_prefix=True
+                )
             )
 
         now = utcnow()
@@ -420,19 +438,26 @@ class MangaPlus(BaseScraperWhole):
                 disabled = True
                 completed = True
         # Disable one shots
-        elif (series.update_timing == UpdateTiming.NOT_REGULARLY.value and
-              chapters and
-              (self.ONESHOT_REGEX.match(chapters[0].name) or self.AWARD_REGEX.match(
-                  chapters[0].name))
+        elif (
+            series.update_timing == UpdateTiming.NOT_REGULARLY.value
+            and chapters
+            and (
+                self.ONESHOT_REGEX.match(chapters[0].name)
+                or self.AWARD_REGEX.match(chapters[0].name)
+            )
         ):
             logger.info(
-                f'One shot, award or creators chapter found for {self.NAME} title {series.title.name} / {series.title.title_id}. Disabling it.')
+                f'One shot, award or creators chapter found for {self.NAME} title {series.title.name} / {series.title.title_id}. Disabling it.'
+            )
             next_update = None
             disabled = True
             completed = True
 
         ReleaseSchedule = mangaplus_pb2.TitleLabels.ReleaseSchedule
-        if series.release_schedule and series.release_schedule in (ReleaseSchedule.COMPLETED, ReleaseSchedule.DISABLED):
+        if series.release_schedule and series.release_schedule in (
+            ReleaseSchedule.COMPLETED,
+            ReleaseSchedule.DISABLED,
+        ):
             next_update = None
             disabled = True
             completed = False
@@ -446,15 +471,18 @@ class MangaPlus(BaseScraperWhole):
             if c.chapter_number > newest_chapter.chapter_number:
                 newest_chapter = c
 
-        if (not next_update and
-                newest_chapter and
-                series.release_schedule == ReleaseSchedule.OTHER and
-                utcnow() - newest_chapter.release_date > timedelta(days=60)
+        if (
+            not next_update
+            and newest_chapter
+            and series.release_schedule == ReleaseSchedule.OTHER
+            and utcnow() - newest_chapter.release_date > timedelta(days=60)
         ):
             next_update = None
             disabled = True
 
-            logger.info(f'No new chapters for {self.NAME} title {series.title.name} / {series.title.title_id} in 60 days. Disabling it.')
+            logger.info(
+                f'No new chapters for {self.NAME} title {series.title.name} / {series.title.title_id} in 60 days. Disabling it.'
+            )
 
         with self.conn.transaction(), self.conn.cursor() as cursor:
             inserted = self.dbutil.add_chapters(new_chapters, fetch=True)
@@ -462,7 +490,10 @@ class MangaPlus(BaseScraperWhole):
             sql = 'UPDATE manga_service SET last_check=%s, next_update=%s, disabled=%s WHERE manga_id=%s AND service_id=%s'
             cursor.execute(sql, [now, next_update, disabled, manga_id, service_id])
             if newest_chapter:
-                self.dbutil.update_latest_chapter(((manga_id, newest_chapter.chapter_number, newest_chapter.release_date),), cur=cursor)
+                self.dbutil.update_latest_chapter(
+                    ((manga_id, newest_chapter.chapter_number, newest_chapter.release_date),),
+                    cur=cursor,
+                )
 
             if completed:
                 sql = 'INSERT INTO manga_info (manga_id, status) VALUES (%s, %s) ON CONFLICT (manga_id) DO UPDATE SET status=EXCLUDED.status'
