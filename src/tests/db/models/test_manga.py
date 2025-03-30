@@ -1,4 +1,5 @@
 import unittest
+from typing import override
 from unittest.mock import MagicMock, patch
 
 from src import scrapers
@@ -6,6 +7,8 @@ from src.db.models.manga import MangaInfo, MangaService
 
 
 class MyTestCase(unittest.TestCase):
+
+    @override
     def setUp(self) -> None:
         self.mock_scraper = MagicMock()
 

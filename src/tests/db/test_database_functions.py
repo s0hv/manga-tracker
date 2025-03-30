@@ -1,5 +1,6 @@
 import unittest
 from collections.abc import Collection
+from typing import override
 
 import psycopg.errors
 import pytest
@@ -37,6 +38,7 @@ class TestMergeManga(BaseTestClasses.DatabaseTestCase):
         rows = self.dbutil.execute('SELECT title FROM manga_alias WHERE manga_id=%s', (manga_id,))
         return [row['title'] for row in rows]
 
+    @override
     def create_manga_service(self, scraper: type[BaseScraper] = DummyScraper) -> MangaServiceWithId:
         ms = self.get_manga_service(scraper)
         ms.last_check = self.utcnow()

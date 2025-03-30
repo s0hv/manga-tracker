@@ -2,9 +2,10 @@ import os
 import time
 
 import pytest
-from elasticsearch import Elasticsearch
 from psycopg import Connection
 from psycopg.rows import DictRow
+
+from elasticsearch import Elasticsearch
 
 ELASTIC_INDEX = 'manga_test'
 os.environ['ES_INDEX'] = ELASTIC_INDEX
@@ -12,12 +13,11 @@ os.environ['ES_INDEX'] = ELASTIC_INDEX
 # The environment variable must be set before importing the module
 # ruff: noqa: E402
 from src.elasticsearch.methods import ElasticMethods
+from src.setup_logging import setup
 from src.tests.scrapers.testing_scraper import DummyScraper, DummyScraper2
-from src.tests.testing_utils import (create_db, Postgresql, teardown_db,
-                                     start_db, get_conn)
+from src.tests.testing_utils import Postgresql, create_db, get_conn, start_db, teardown_db
 from src.utils.dbutils import DbUtil
 from src.utils.utilities import inject_service_values
-from src.setup_logging import setup
 
 
 @pytest.fixture(scope='session')
@@ -76,7 +76,7 @@ def database(request: pytest.FixtureRequest, es: Elasticsearch) -> None:
         print('\nDeleting test db')
         teardown_db()
 
-    request.addfinalizer(fin)
+    request.addfinalizer(fin)  # noqa: PT021
 
 
 @pytest.fixture(scope='class')

@@ -86,9 +86,8 @@ def random_timedelta(low: timedelta | int, high: timedelta | int) -> timedelta:
 
 
 def is_valid_feed(feed: FeedType) -> NoReturn | None:
-    if hasattr(feed, 'status'):
-        if feed.status != 200:
-            raise FeedHttpError(f'Failed to get feed. Status: {feed.status}')
+    if hasattr(feed, 'status') and feed.status != 200:
+        raise FeedHttpError(f'Failed to get feed. Status: {feed.status}')
 
     if feed.bozo:
         raise InvalidFeedError('Invalid feed returned', feed.bozo_exception)
@@ -110,9 +109,11 @@ def get_latest_chapters(rows: Iterable[dict | DictRow]) -> dict[str, tuple[int, 
         if row['chapter_decimal'] is not None:
             continue
         manga_id = row['manga_id']
-        if manga_id in chapter_data:
-            if chapter_data[manga_id][1] > row['chapter_number'] or chapter_data[manga_id][2] > row['release_date']:
-                continue
+        if manga_id in chapter_data and (
+            chapter_data[manga_id][1] > row['chapter_number']
+            or chapter_data[manga_id][2] > row['release_date']
+        ):
+            continue
 
         chapter_data[manga_id] = (row['manga_id'], row['chapter_number'], row['release_date'])
 

@@ -1,5 +1,5 @@
 import logging
-from typing import Literal
+from typing import Literal, override
 
 from colors import color as get_color
 
@@ -12,7 +12,7 @@ class LoggingFormatter(logging.Formatter):
             fmt: str | None = None,
             datefmt: str | None = None,
             style: Literal['%', '{', '$'] = '%',
-            override_colors: dict | None = None
+            override_colors: dict | None = None,
     ):
         super().__init__(fmt, datefmt, style)
 
@@ -31,10 +31,7 @@ class LoggingFormatter(logging.Formatter):
 
     @staticmethod
     def get_color(
-            *,
-            fg: ColorType | None = None,
-            bg: ColorType | None = None,
-            style: str | None = None
+            *, fg: ColorType | None = None, bg: ColorType | None = None, style: str | None = None
     ) -> str | None:
         color = get_color('', fg=fg, bg=bg, style=style)
         if color:
@@ -42,6 +39,7 @@ class LoggingFormatter(logging.Formatter):
 
         return color
 
+    @override
     def format(self, record: logging.LogRecord) -> str:
         """
         Format the specified record as text.
@@ -63,11 +61,11 @@ class LoggingFormatter(logging.Formatter):
             record.colorend = '\x1b[0m'
 
         s = self.formatMessage(record)
-        if record.exc_info:
+        if record.exc_info and not record.exc_text:
             # Cache the traceback text to avoid converting it multiple times
             # (it's constant anyway)
-            if not record.exc_text:
-                record.exc_text = self.formatException(record.exc_info)
+            record.exc_text = self.formatException(record.exc_info)
+
         if record.exc_text:
             if s[-1:] != '\n':
                 s = s + '\n'

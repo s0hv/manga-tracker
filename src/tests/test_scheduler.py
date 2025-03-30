@@ -1,6 +1,6 @@
 import unittest
 from datetime import timedelta
-from typing import cast
+from typing import cast, override
 from unittest import mock
 from unittest.mock import MagicMock, patch
 
@@ -33,6 +33,7 @@ class SchedulerRunTest(BaseTestClasses.DatabaseTestCase):
         set_db_environ()
         request.cls.scheduler = UpdateScheduler()
 
+    @override
     def setUp(self) -> None:
         super().setUp()
         self.scraper1 = spy_on(DummyScraper(self.conn, self.dbutil))
@@ -249,6 +250,7 @@ class SchedulerScrapeServiceTest(BaseTestClasses.DatabaseTestCase):
         set_db_environ()
         request.cls.scheduler = UpdateScheduler()
 
+    @override
     def setUp(self) -> None:
         super().setUp()
         self.scraper1 = spy_on(DummyScraper(self.conn, self.dbutil))

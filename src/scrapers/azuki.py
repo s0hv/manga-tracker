@@ -3,7 +3,7 @@ import logging
 import re
 from abc import ABC
 from datetime import datetime, timezone
-from typing import TypeVar, cast
+from typing import TypeVar, cast, override
 
 from lxml import etree
 
@@ -26,14 +26,17 @@ class ParsedChapter(BaseChapterSimple, ABC):
     @abc.abstractmethod
     def __init__(self, chapter_element: etree.ElementBase, group_id: int | None = None): ...
 
+    @override
     def __repr__(self) -> str:
         return f'{self.manga_title} chapter {self.chapter_number}: {self.title}'
 
+    @override
     @property
     def chapter_title(self) -> str:
         # Guaranteed string in this class
         return cast(str, self._chapter_title)
 
+    @override
     @property
     def title(self) -> str:
         return self.chapter_title
@@ -120,6 +123,8 @@ class MangaChapter(ParsedChapter):
             group_id=group_id,
         )
 
+    # Does not work when setter is defined
+    @override  # type: ignore[explicit-override]
     @property
     def manga_title(self) -> str | None:
         return self._manga_title
@@ -211,6 +216,7 @@ class Azuki(BaseScraperWhole):
 
         return chapters
 
+    @override
     def scrape_series(self, title_id: str, service_id: int, manga_id: int | None,
                       feed_url: str | None = None) -> set[int] | None:
         group_id = self.dbutil.get_or_create_group(self.NAME).group_id
@@ -228,6 +234,7 @@ class Azuki(BaseScraperWhole):
 
         return set() if not retval else retval.chapter_ids
 
+    @override
     def scrape_service(self, service_id: int, feed_url: str,
                        last_update: datetime | None,
                        title_id: str | None = None) -> ScrapeServiceRetVal | None:

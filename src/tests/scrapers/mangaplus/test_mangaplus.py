@@ -1,7 +1,7 @@
 import os
 import unittest
 from datetime import timedelta
-from typing import cast
+from typing import cast, override
 
 import pytest
 import requests
@@ -59,6 +59,7 @@ class TestMangaPlusParser(BaseTestClasses.DatabaseTestCase):
         with open(os.path.join(file, 'allV2.dat'), 'rb') as f:
             return f.read()
 
+    @override
     @classmethod
     def setUpClass(cls) -> None:
         super().setUpClass()
@@ -73,6 +74,7 @@ class TestMangaPlusParser(BaseTestClasses.DatabaseTestCase):
         cls.request_data_otherschedule = cls.read_title_detail_data('otherschedule')
         cls.request_data_all = cls.read_all_titles_data()
 
+    @override
     def setUp(self) -> None:
         super().setUp()
         self.dbutil = spy_on(self.dbutil)

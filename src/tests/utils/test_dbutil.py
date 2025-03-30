@@ -1,6 +1,7 @@
 import statistics
 import unittest
 from datetime import datetime, timedelta, timezone
+from typing import override
 
 import psycopg
 import pytest
@@ -84,6 +85,8 @@ testing_series = {
 
 
 class BaseDbutilTest(BaseTestClasses.DatabaseTestCase):
+
+    @override
     def setUp(self) -> None:
         super().setUp()
 

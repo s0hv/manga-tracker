@@ -1,6 +1,7 @@
 import random
 import re
 import time
+from typing import override
 
 import requests
 
@@ -16,6 +17,7 @@ class Comikey(BaseRSS):
     id_cache: dict[str, str] = {}
     NAME = 'Comikey'
 
+    @override
     def get_chapter_title(self, entry: dict) -> str | None:
         return None
 
@@ -29,6 +31,7 @@ class Comikey(BaseRSS):
         time.sleep(random.uniform(0.5, 1.5))
         return real_id
 
+    @override
     def get_title_id(self, entry: dict) -> str:
         match = re.search(r'.com/read/((\w|-)+)/', entry['link'])
         if not match:
@@ -46,17 +49,21 @@ class Comikey(BaseRSS):
 
         return self.get_real_title_id(title_id)
 
+    @override
     def skip_entry(self, entry: dict) -> bool:
         chapter_id = self.get_chapter_id(entry).strip('/').split('/')[-1]
         # Skip non english chapters for now
         return re.match(r'^(capitulo-(espanol|portugues)|bab-bahasa)(-|\d)+$', chapter_id, re.I) is not None
 
+    @override
     def get_group(self, entry: dict) -> str | None:
         return self.NAME
 
+    @override
     def get_manga_title(self, entry: dict) -> str | None:
         return None
 
+    @override
     def get_chapter_id(self, entry: dict) -> str:
         # Extract the end part of the url.
         match = re.search(r'.com/read/((?:\w|-)+/(.+?))/?$', entry['link'])
@@ -65,6 +72,7 @@ class Comikey(BaseRSS):
 
         return match.group(1)
 
+    @override
     def scrape_series(self, title_id: str, service_id: int, manga_id: int,
                       feed_url: str | None = None) -> set[int] | None:
         retval = self.add_from_feed_url(

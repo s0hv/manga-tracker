@@ -1,4 +1,5 @@
 import argparse  # noqa: INP001 This is a script and not a module
+from collections.abc import Iterator
 from operator import itemgetter
 from time import sleep
 
@@ -8,7 +9,7 @@ from src.db.utilities import execute_values
 from src.scheduler import UpdateScheduler
 
 
-def fetch_ids(type_: str, ids: list[str]) -> dict:
+def fetch_ids(type_: str, ids: Iterator[str]) -> dict:
     url = 'https://api.mangadex.org/legacy/mapping'
     try:
         r = requests.post(url, json={
@@ -36,10 +37,9 @@ def migrate_chapters(delete: bool=False) -> None:
 
     # Easiest way to get a new connection
     scheduler = UpdateScheduler()
-    with scheduler.conn() as conn:
-        with conn.cursor() as cur:
-            cur.execute(chapter_sql)
-            chapters = cur.fetchall()
+    with scheduler.conn() as conn, conn.cursor() as cur:
+        cur.execute(chapter_sql)
+        chapters = cur.fetchall()
 
     chunk_size = 700
     update_chapter_sql = (
@@ -56,9 +56,8 @@ def migrate_chapters(delete: bool=False) -> None:
     if delete:
         format_args = ','.join(('%s',) * len(chapters))
         sql = f'DELETE FROM chapters WHERE service_id=2 AND chapter_identifier IN ({format_args})'
-        with scheduler.conn() as conn:
-            with conn.cursor() as cur:
-                cur.execute(sql, list(map(itemgetter('chapter_identifier'), chapters)))
+        with scheduler.conn() as conn, conn.cursor() as cur:
+            cur.execute(sql, list(map(itemgetter('chapter_identifier'), chapters)))
 
         print(f'Deleted {len(chapters)} chapters')
         return
@@ -67,7 +66,7 @@ def migrate_chapters(delete: bool=False) -> None:
     for i in range(0, len(chapters), chunk_size):
         print(i)
         chapter_chunk = chapters[i:i + chunk_size]
-        identifiers = map(itemgetter('chapter_identifier'), chapter_chunk)
+        identifiers: list[str] = [c['chapter_identifier'] for c in chapter_chunk]
         mapping = fetch_ids('chapter', identifiers)
 
         args = []
@@ -75,22 +74,19 @@ def migrate_chapters(delete: bool=False) -> None:
             attrs = m['data']['attributes']
             args.append((attrs['newId'], str(attrs['legacyId'])))
 
-        with scheduler.conn() as conn:
-            with conn.cursor() as cur:
-                execute_values(cur, update_chapter_sql, args,
-                               page_size=chunk_size)
+        with scheduler.conn() as conn, conn.cursor() as cur:
+            execute_values(cur, update_chapter_sql, args, page_size=chunk_size)
 
         sleep(3)
 
 
-def migrate_manga(delete: bool=False) -> None:
+def migrate_manga(delete: bool = False) -> None:
     manga_sql = 'SELECT title_id FROM manga_service WHERE service_id=2'
     # Easiest way to get a new connection
     scheduler = UpdateScheduler()
-    with scheduler.conn() as conn:
-        with conn.cursor() as cur:
-            cur.execute(manga_sql)
-            manga = cur.fetchall()
+    with scheduler.conn() as conn, conn.cursor() as cur:
+        cur.execute(manga_sql)
+        manga = cur.fetchall()
 
     chunk_size = 700
     update_manga_sql = (
@@ -106,9 +102,8 @@ def migrate_manga(delete: bool=False) -> None:
     if delete:
         format_args = ','.join(('%s',)*len(manga))
         sql = f'DELETE FROM manga_service WHERE service_id=2 AND title_id IN ({format_args})'
-        with scheduler.conn() as conn:
-            with conn.cursor() as cur:
-                cur.execute(sql, list(map(itemgetter('title_id'), manga)))
+        with scheduler.conn() as conn, conn.cursor() as cur:
+            cur.execute(sql, list(map(itemgetter('title_id'), manga)))
 
         print(f'Deleted {len(manga)} manga')
         return
@@ -125,10 +120,8 @@ def migrate_manga(delete: bool=False) -> None:
             attrs = m['data']['attributes']
             args.append((attrs['newId'], str(attrs['legacyId'])))
 
-        with scheduler.conn() as conn:
-            with conn.cursor() as cur:
-                execute_values(cur, update_manga_sql, args,
-                               page_size=chunk_size)
+        with scheduler.conn() as conn, conn.cursor() as cur:
+            execute_values(cur, update_manga_sql, args, page_size=chunk_size)
 
         sleep(3)
 
