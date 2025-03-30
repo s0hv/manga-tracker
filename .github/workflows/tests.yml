@@ -17,6 +17,7 @@ jobs:
         working-directory: web
     name: Web app tests
     runs-on: ubuntu-latest
+    environment: tests
     container: node:20-bullseye
 
     # Service containers to run with `container-job`
@@ -73,10 +74,12 @@ jobs:
       run: pnpm test:ci
 
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v3.1.4
+      uses: codecov/codecov-action@v5
       with:
         flags: frontend
         name: Frontend coverage
+        fail_ci_if_error: true
+        token: ${{ secrets.CODECOV_TOKEN }}
 
     env:
       DB_HOST: postgres
@@ -98,6 +101,7 @@ jobs:
   python-tests:
     name: Scraper tests
     runs-on: ubuntu-latest
+    environment: tests
     container: python:3.13
 
     services:
@@ -165,6 +169,7 @@ jobs:
           flags: scraper
           name: Scraper coverage
           files: './coverage/coverage.xml'
+          fail_ci_if_error: true
           token: ${{ secrets.CODECOV_TOKEN }}
 
     env:
@@ -261,6 +266,7 @@ jobs:
         with:
           flags: E2E
           name: E2E coverage
+          fail_ci_if_error: true
           token: ${{ secrets.CODECOV_TOKEN }}
 
     env:
