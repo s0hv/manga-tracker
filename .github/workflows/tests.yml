@@ -158,7 +158,7 @@ jobs:
       - name: Install db migration dependencies
         run: pnpm install --frozen-lockfile --ignore-scripts
       - name: Test with pytest
-        run: uv run pytest --cov=./src --cov-report=xml src
+        run: uv run pytest --cov=./src --cov-report=xml --junit-xml=./junit.xml src
 
       - name: Uninstall coveragepy
         run: uv run pip uninstall -y coverage
@@ -168,7 +168,7 @@ jobs:
         with:
           flags: scraper
           name: Scraper coverage
-          files: './coverage/coverage.xml'
+          files: './coverage/coverage.xml,./junit.xml'
           fail_ci_if_error: true
           token: ${{ secrets.CODECOV_TOKEN }}
 
