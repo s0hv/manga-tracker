@@ -1,7 +1,7 @@
 import os
 import re
 from datetime import datetime
-from typing import cast
+from typing import cast, override
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -155,6 +155,7 @@ class ComikeyTest(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsserti
         for c in correct_chapters_manga_feed:
             c.manga_id = request.cls.manga_id
 
+    @override
     def setUp(self) -> None:
         super().setUp()
         self.comikey = Comikey(self._conn, self.dbutil)

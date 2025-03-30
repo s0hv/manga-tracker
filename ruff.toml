@@ -21,12 +21,16 @@ select = [
     "LOG",
     "INP",
     "PIE",
-    "Q"
+    "Q",
+    "SIM",
+    "ARG"
 ]
 ignore = [
     "ANN204",
     "UP017",
-    "C401"
+    "C401",
+    "SIM108",
+    "SIM300"
 ]
 
 [lint.flake8-annotations]

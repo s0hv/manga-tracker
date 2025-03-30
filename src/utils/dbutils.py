@@ -66,11 +66,10 @@ def optional_generator_transaction[**P, T](f: Callable[P, Iterator[T]]) -> Calla
                 yield v
 
         dbutil = cast('DbUtil', args[0])
-        with dbutil.conn.transaction():
-            with dbutil.conn.cursor() as cur:
-                kwargs['cur'] = cur
-                for v in f(*args, **kwargs):
-                    yield v
+        with dbutil.conn.transaction(), dbutil.conn.cursor() as cur:
+            kwargs['cur'] = cur
+            for v in f(*args, **kwargs):
+                yield v
 
     return wrapper
 
@@ -98,10 +97,9 @@ class OptionalTransaction[Row = DictRow]:
 
                 return retval
 
-            with dbutil.conn.transaction():
-                with dbutil.conn.cursor(row_factory=self.row_factory or dict_row) as new_cur:
-                    kwargs['cur'] = new_cur
-                    return f(*args, **kwargs)
+            with dbutil.conn.transaction(), dbutil.conn.cursor(row_factory=self.row_factory or dict_row) as new_cur:
+                kwargs['cur'] = new_cur
+                return f(*args, **kwargs)
 
         return wrapper
 
@@ -912,7 +910,6 @@ class DbUtil:
                                 service_id: int,
                                 entries: Collection[BaseChapter],
                                 manga_id: int | None = None,
-                                limit: int = 400,
                                 *, cur: CursorType = NotImplemented) -> Collection[BaseChapter]:
         if not entries:
             return []

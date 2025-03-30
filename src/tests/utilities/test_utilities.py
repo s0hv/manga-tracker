@@ -1,6 +1,7 @@
 import json
 import os
 import unittest
+from typing import override
 
 import pytest
 
@@ -14,6 +15,8 @@ from src.utils.utilities import (
 
 
 class TestUtilities(unittest.TestCase):
+
+    @override
     def setUp(self) -> None:
         super().setUp()
         with open(os.path.join(os.path.dirname(__file__), 'utilities.json'), encoding='utf-8') as f:

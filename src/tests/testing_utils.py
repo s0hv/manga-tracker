@@ -6,7 +6,7 @@ import typing
 import unittest
 from collections.abc import Callable
 from datetime import datetime, timedelta
-from typing import Any, Iterable, TypeVar, Union
+from typing import Any, Iterable, TypeVar, Union, override
 from unittest import mock
 
 import feedparser
@@ -406,6 +406,7 @@ class Chapter(BaseChapterSimple):
             group_id=group_id
         )
 
+    @override
     @property
     def title(self) -> str:
         return self.chapter_title or 'No title'
@@ -445,9 +446,11 @@ class ChapterTestModel(BaseModel):
     def __lt__(self, other: BaseChapter) -> bool:
         return self.chapter_identifier < other.chapter_identifier
 
+    @override
     def __hash__(self):
         return hash(self.chapter_identifier)
 
+    @override
     def __eq__(self, other: object) -> bool:
         if hasattr(other, 'chapter_identifier'):
             return other.chapter_identifier == self.chapter_identifier

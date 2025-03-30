@@ -6,7 +6,7 @@ from datetime import datetime, timedelta, timezone
 from inspect import isabstract
 from itertools import groupby
 from operator import attrgetter
-from typing import TYPE_CHECKING, ClassVar, LiteralString, Optional, TypeVar, cast
+from typing import TYPE_CHECKING, ClassVar, LiteralString, Optional, TypeVar, cast, override
 
 import psycopg
 import pydantic
@@ -93,18 +93,22 @@ class BaseChapter(abc.ABC):
         """
         raise NotImplementedError
 
+    @override
     def __str__(self) -> str:
         return f'{self.manga_title} {self.chapter_number} / {self.chapter_identifier}'
 
+    @override
     def __hash__(self) -> int:
         return hash(self.chapter_identifier)
 
+    @override
     def __eq__(self, other: object) -> bool:
         if isinstance(other, BaseChapter):
             return other.chapter_identifier == self.chapter_identifier
         else:
             return self.chapter_identifier == other
 
+    @override
     def __ne__(self, other: object) -> bool:
         return not self.__eq__(other)
 
@@ -146,61 +150,74 @@ class BaseChapterSimple(BaseChapter):
 
         self._group_id = group_id
 
+    @override
     @property
     def chapter_title(self) -> str | None:
         return self._chapter_title
 
+    @override
     @property
     def chapter_number(self) -> int:
         return self._chapter_number
 
+    @override
     @property
     def volume(self) -> int | None:
         return self._volume
 
+    @override
     @property
     def decimal(self) -> int | None:
         return self._decimal
 
+    @override
     @property
     def release_date(self) -> datetime:
         return self._release_date
 
+    @override
     @property
     def chapter_identifier(self) -> str:
         return self._chapter_identifier
 
+    @override
     @property
     def title_id(self) -> str:
         return self._title_id
 
+    @override
     @property
     def manga_title(self) -> str | None:
         return self._manga_title
 
+    @override
     @property
     def manga_url(self) -> str | None:
         return self._manga_url
 
+    @override
     @property
     def group(self) -> str | None:
         return self._group
 
+    # Does not work when setter is defined
+    @override  # type: ignore[explicit-override]
     @property
     def group_id(self) -> int:
         if self._group_id is None:
             raise ValueError(f'Group id is None. Expected it to be int {self}')
-
         return self._group_id
 
     @group_id.setter
     def group_id(self, value: int) -> None:
         self._group_id = value
 
+    @override
     @property
     def title(self) -> str:
         return self.chapter_title or f'{"Volume " + str(self.volume) + ", " if self.volume is not None else ""}Chapter {self.chapter_number}{"" if not self.decimal else "." + str(self.decimal)}'
 
+    @override
     def __repr__(self) -> str:
         return f'{self._chapter_title} {self._chapter_identifier} - {self._title_id}'
 
@@ -238,6 +255,7 @@ class BaseScraper(abc.ABC):
     CONFIG: ServiceConfig = NotImplemented
     '''Service configuration values'''
 
+    @override
     def __init_subclass__(cls, **kwargs: dict):
         # Ignore for abstract classes
         if isabstract(cls):
@@ -268,7 +286,7 @@ class BaseScraper(abc.ABC):
     def dbutil(self) -> 'DbUtil':
         return self._dbutil
 
-    def set_checked(self, service_id: int, is_manga: bool = False) -> None:
+    def set_checked(self, service_id: int, is_manga: bool = False) -> None:  # noqa: ARG002
         with self.conn.cursor() as cursor:
             now = utcnow()
             disabled_until = now + self.min_update_interval()
@@ -314,13 +332,12 @@ class BaseScraper(abc.ABC):
         sql: LiteralString = '''
             INSERT INTO services (service_id, service_name, url, disabled, last_check, chapter_url_format, manga_url_format, disabled_until) 
             VALUES (%s, %s, %s, FALSE, NULL, %s, %s, NULL) RETURNING service_id'''
-        with self.conn.transaction():
-            with self.conn.cursor() as cur:
-                cur.execute(sql, (self.ID, self.NAME, self.URL, self.CHAPTER_URL_FORMAT, self.MANGA_URL_FORMAT))
-                row = cur.fetchone()
-                if not row:
-                    raise ValueError('Row is None after service insert')
-                return row['service_id']
+        with self.conn.transaction(), self.conn.cursor() as cur:
+            cur.execute(sql, (self.ID, self.NAME, self.URL, self.CHAPTER_URL_FORMAT, self.MANGA_URL_FORMAT))
+            row = cur.fetchone()
+            if not row:
+                raise ValueError('Row is None after service insert')
+            return row['service_id']
 
     @staticmethod
     def titles_dict_to_manga_service(
@@ -431,20 +448,22 @@ class BaseScraper(abc.ABC):
 
 
 class BaseScraperWhole(BaseScraper, ABC):
+
+    @override
     def add_service(self) -> int | None:
         service_id = super().add_service()
         if not service_id:
             return None
-        with self.conn.transaction():
-            with self.conn.cursor() as cur:
-                sql = (
-                    'INSERT INTO service_whole (service_id, feed_url, last_check, next_update, last_id) ' 
-                    'VALUES (%s, %s, NULL, NULL, NULL)'
-                )
-                cur.execute(sql, (service_id, self.FEED_URL))
+        with self.conn.transaction(), self.conn.cursor() as cur:
+            sql = (
+                'INSERT INTO service_whole (service_id, feed_url, last_check, next_update, last_id) ' 
+                'VALUES (%s, %s, NULL, NULL, NULL)'
+            )
+            cur.execute(sql, (service_id, self.FEED_URL))
 
         return service_id
 
+    @override
     def set_checked(self, service_id: int, is_manga: bool = False) -> None:
         """
         Sets the service and service_whole as checked based on the min_update_interval

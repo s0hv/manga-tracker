@@ -1,5 +1,6 @@
 import json
 import logging
+from typing import override
 
 import requests
 from pydantic import Field
@@ -59,6 +60,7 @@ class WebhookNotifier(NotifierBase):
 
         return data
 
+    @override
     def send_notification(self, chapters: list[NotificationChapter], options: NotificationOptions, input_fields: list[InputField]) -> tuple[int, bool]:
         inputs = EmbedInputs.from_input_list(input_fields)
 

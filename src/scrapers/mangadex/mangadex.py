@@ -3,7 +3,7 @@ import re
 from collections.abc import Iterable, Sequence
 from datetime import datetime, timedelta
 from json.decoder import JSONDecodeError
-from typing import cast
+from typing import cast, override
 
 from psycopg import Connection
 from psycopg.rows import DictRow
@@ -82,6 +82,7 @@ class Chapter(BaseChapterSimple):
         )
         self._mangadex_group = group
 
+    @override
     @property
     def group(self) -> str | None:
         return self._mangadex_group.attributes.name if self._mangadex_group else None
@@ -90,6 +91,7 @@ class Chapter(BaseChapterSimple):
     def mangadex_group(self) -> MangadexData[ScanlationGroupAttributes] | None:
         return self._mangadex_group
 
+    @override
     @property
     def title(self) -> str:
         return self.chapter_title or f'{"Volume " + str(self.volume) + ", " if self.volume is not None else ""}Chapter {self.chapter_number}{"" if not self.decimal else "." + str(self.decimal)}'
@@ -400,6 +402,7 @@ class MangaDex(BaseScraperWhole):
             chapter_ids=chapter_ids
         )
 
+    @override
     def scrape_series(self, title_id: str, service_id: int, manga_id: int, feed_url: str | None) -> set[int] | None:
         if feed_url is None:
             raise ValueError('feed_url cannot be None')
@@ -407,6 +410,7 @@ class MangaDex(BaseScraperWhole):
         retval = self.do_update(service_id, feed_url, title_id, limit=300)
         return retval if retval is None else retval.chapter_ids
 
+    @override
     def scrape_service(self, service_id: int, feed_url: str,
                        last_update: datetime | None, title_id: str | None = None) -> ScrapeServiceRetVal | None:
         return self.do_update(service_id, feed_url)

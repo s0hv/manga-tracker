@@ -1,4 +1,5 @@
 import logging
+from typing import override
 
 import pydantic_extra_types.color as pydantic_color
 from discord_webhook import DiscordEmbed, DiscordWebhook
@@ -60,6 +61,7 @@ class DiscordEmbedWebhookNotifier(NotifierBase):
 
         return embed
 
+    @override
     def send_notification(self, chapters: list[NotificationChapter], options: NotificationOptions, input_fields: list[InputField]) -> tuple[int, bool]:
         groups = self.get_chapters_grouped(chapters, options)
 

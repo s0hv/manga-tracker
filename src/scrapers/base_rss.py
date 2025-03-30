@@ -5,7 +5,7 @@ from calendar import timegm
 from collections.abc import Iterable
 from datetime import datetime, timedelta
 from re import Pattern
-from typing import Any
+from typing import Any, override
 
 import feedparser
 
@@ -57,46 +57,57 @@ class RSSChapter(BaseChapterSimple):
         else:
             self._release_date = release_date if release_date else utcnow()
 
+    @override
     @property
     def chapter_title(self) -> str | None:
         return self._chapter_title
 
+    @override
     @property
     def chapter_number(self) -> int:
         return self._chapter_number
 
+    @override
     @property
     def volume(self) -> int | None:
         return self._volume
 
+    @override
     @property
     def decimal(self) -> int | None:
         return self._decimal
 
+    @override
     @property
     def release_date(self) -> datetime:
         return self._release_date
 
+    @override
     @property
     def chapter_identifier(self) -> str:
         return self._chapter_identifier
 
+    @override
     @property
     def title_id(self) -> str:
         return self._title_id
 
+    @override
     @property
     def manga_title(self) -> str | None:
         return self._manga_title
 
+    @override
     @property
     def manga_url(self) -> str | None:
         return self._manga_url
 
+    @override
     @property
     def group(self) -> str | None:
         return self._group
 
+    @override
     @property
     def title(self) -> str:
         return self.chapter_title or f'{"Volume " + str(self.volume) + ", " if self.volume is not None else ""}Chapter {self.chapter_number}{"" if not self.decimal else "." + str(self.decimal)}'
@@ -106,6 +117,7 @@ class BaseRSS(BaseScraperWhole, ABC):
     TITLE_REGEX: Pattern = NotImplemented
     Chapter: type[RSSChapter] = RSSChapter
 
+    @override
     def __init_subclass__(cls, **kwargs: dict):
         if cls.TITLE_REGEX is None:
             raise NotImplementedError('Service does not have a title regex to parse entries')
@@ -172,6 +184,7 @@ class BaseRSS(BaseScraperWhole, ABC):
         """
         raise NotImplementedError
 
+    @abstractmethod
     def skip_entry(self, entry: dict) -> bool:
         """
         Whether to skip the given entry
@@ -234,9 +247,11 @@ class BaseRSS(BaseScraperWhole, ABC):
 
         return titles
 
+    @override
     def min_update_interval(self) -> timedelta:
         return self.UPDATE_INTERVAL
 
+    @override
     def scrape_series(self, title_id: str, service_id: int, manga_id: int,
                       feed_url: str | None = None) -> set[int] | None:
         pass
@@ -258,6 +273,7 @@ class BaseRSS(BaseScraperWhole, ABC):
 
         return self.handle_adding_chapters(entries, service_id) or ScrapeServiceRetVal()
 
+    @override
     def scrape_service(self, service_id: int, feed_url: str,
                        last_update: datetime | None,
                        title_id: str | None = None) -> ScrapeServiceRetVal | None:

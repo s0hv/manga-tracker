@@ -1,10 +1,10 @@
 from typing import LiteralString
 
-from elasticsearch import Elasticsearch
-from elasticsearch.helpers import bulk
 from psycopg import Cursor
 from psycopg.rows import DictRow
 
+from elasticsearch import Elasticsearch
+from elasticsearch.helpers import bulk
 from src.elasticsearch.configuration import INDEX_BODY, INDEX_NAME
 from src.elasticsearch.methods import ElasticMethods
 
@@ -43,18 +43,17 @@ GROUP BY m.manga_id, ms.manga_id
 
 
 if __name__ == '__main__':
+    from src import setup_logging
     from src.elasticsearch.configuration import get_client
     from src.scheduler import UpdateScheduler
-    from src import setup_logging
 
     setup_logging.setup()
     scheduler = UpdateScheduler()
-    with scheduler.conn() as conn:
-        with conn.cursor() as cur:
-            es = get_client()
-            esm = ElasticMethods(es)
+    with scheduler.conn() as conn, conn.cursor() as cur:
+        es = get_client()
+        esm = ElasticMethods(es)
 
-            reindex(es, cur)
+        reindex(es, cur)
 
     es.close()
     scheduler.pool.close()

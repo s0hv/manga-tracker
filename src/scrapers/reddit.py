@@ -4,7 +4,7 @@ import time
 import typing
 from calendar import timegm
 from datetime import datetime, timedelta
-from typing import Any
+from typing import Any, override
 
 import feedparser
 from lxml import etree
@@ -42,6 +42,7 @@ class Chapter(BaseChapterSimple):
             group_id=group_id
         )
 
+    @override
     @property
     def title(self) -> str:
         return self.chapter_title or f'Chapter {self.chapter_number}{"" if not self.decimal else "." + str(self.decimal)}'
@@ -121,6 +122,7 @@ class Reddit(BaseScraper):
 
         return chapters
 
+    @override
     def scrape_series(self, title_id: str, service_id: int, manga_id: int, feed_url: str | None) -> set[int] | None:
         if feed_url is None:
             raise ValueError('feed_url cannot be None')
@@ -155,5 +157,6 @@ class Reddit(BaseScraper):
         self.dbutil.update_latest_chapter(tuple(c for c in get_latest_chapters(chapter_rows).values()))
         return {row.chapter_id for row in inserted}
 
+    @override
     def scrape_service(self, service_id: int, feed_url: str, last_update: datetime | None, title_id: str | None = None) -> None:
         return None

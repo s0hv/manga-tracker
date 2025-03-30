@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from typing import override
 
 from psycopg import Connection
 from psycopg.rows import DictRow
@@ -16,13 +17,16 @@ class DummyScraper(BaseScraper):
     NAME = 'Testing scraper'
     CONFIG = ServiceConfig(service_id=ID)
 
+    @override
     def min_update_interval(self) -> timedelta:
         return timedelta(0)
 
+    @override
     def scrape_series(self, title_id: str, service_id: int, manga_id: int,
                       feed_url: str | None = None):
         pass
 
+    @override
     def scrape_service(self, service_id: int, feed_url: str,
                        last_update: datetime | None,
                        title_id: str | None = None):

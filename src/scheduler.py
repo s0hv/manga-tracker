@@ -9,7 +9,7 @@ from contextlib import contextmanager
 from datetime import datetime, timedelta
 from itertools import groupby
 from operator import attrgetter
-from typing import LiteralString, Self, TypedDict, cast
+from typing import LiteralString, Self, TypedDict, cast, override
 
 import psycopg
 import psycopg.rows
@@ -42,6 +42,8 @@ class MangaServiceInfo(TypedDict):
 
 
 class LoggingCursor(Cursor[DictRow]):
+
+    @override
     def execute(
             self,
             query: LiteralString | bytes | SQL | Composed,

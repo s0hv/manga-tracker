@@ -1,6 +1,6 @@
 from collections.abc import Iterable
 from datetime import datetime, timedelta
-from typing import TYPE_CHECKING, Self
+from typing import TYPE_CHECKING, Self, override
 
 from psycopg import Connection
 from psycopg.rows import DictRow
@@ -101,6 +101,7 @@ class MangaServiceWithId(MangaService):
     manga_id: int
 
     @classmethod
+    @override
     def from_manga_service(cls, manga_service: MangaService) -> Self:
         return cls.model_validate(manga_service.model_dump())
 

@@ -2,6 +2,7 @@ import logging
 import re
 from datetime import datetime, timedelta
 from enum import Enum
+from typing import override
 
 import psycopg
 import requests
@@ -52,18 +53,22 @@ class TitleWrapper:
     def language(self) -> str:
         return mangaplus_pb2.Title.Language.Name(self._title.language)
 
+    @override
     def __str__(self) -> str:
         return f'{self.name} / {self.title_id}'
 
+    @override
     def __hash__(self):
         return hash(self.title_id)
 
+    @override
     def __eq__(self, other: object):
         if isinstance(other, TitleWrapper):
             return other.title_id == self.title_id
         else:
             return self.title_id == other
 
+    @override
     def __ne__(self, other: object):
         return not self.__eq__(other)
 
@@ -179,6 +184,7 @@ class ChapterWrapper(BaseChapter):
         self._manga_title = manga_title
         self._group_id = group_id
 
+    @override
     @property
     def chapter_title(self) -> str | None:
         return self._chapter.sub_title
@@ -187,18 +193,22 @@ class ChapterWrapper(BaseChapter):
     def name(self) -> str:
         return self._chapter.name
 
+    @override
     @property
     def chapter_number(self) -> int:
         return self._chapter_number
 
+    @override
     @property
     def volume(self) -> None:
         return None
 
+    @override
     @property
     def decimal(self) -> int | None:
         return self._chapter_decimal
 
+    @override
     @property
     def release_date(self) -> datetime:
         if self._chapter.start_timestamp:
@@ -206,26 +216,33 @@ class ChapterWrapper(BaseChapter):
 
         return utcnow()
 
+    @override
     @property
     def chapter_identifier(self) -> str:
         return str(self._chapter.chapter_id)
 
+    @override
     @property
     def title_id(self) -> str:
         return str(self._chapter.title_id)
 
+    @override
     @property
     def manga_title(self) -> str:
         return self._manga_title
 
+    @override
     @property
     def manga_url(self) -> str:
         return MangaPlus.MANGA_URL.format(self.title_id)
 
+    @override
     @property
     def group(self) -> str:
         return MangaPlus.GROUP
 
+    # Does not work when setter is defined
+    @override  # type: ignore[explicit-override]
     @property
     def group_id(self) -> int:
         if self._group_id is None:
@@ -236,6 +253,7 @@ class ChapterWrapper(BaseChapter):
     def group_id(self, value: int) -> None:
         self._group_id = value
 
+    @override
     @property
     def title(self) -> str:
         return self.chapter_title or ''
@@ -256,6 +274,7 @@ class MangaPlus(BaseScraperWhole):
     MANGA_URL_FORMAT = 'https://mangaplus.shueisha.co.jp/titles/{}'
     GROUP = 'Shueisha'
 
+    @override
     def min_update_interval(self) -> timedelta:
         return random_timedelta(timedelta(minutes=10), timedelta(minutes=20))
 
@@ -306,6 +325,7 @@ class MangaPlus(BaseScraperWhole):
 
         return all_titles
 
+    @override
     def scrape_service(self, service_id: int, feed_url: str,
                        last_update: datetime | None, title_id: str | None = None) -> ScrapeServiceRetVal | None:
         self.dbutil.update_service_whole(service_id, timedelta(days=1) + self.min_update_interval())
@@ -338,6 +358,7 @@ class MangaPlus(BaseScraperWhole):
         # Does not add chapters. Only adds new manga
         return None
 
+    @override
     def scrape_series(self, title_id: str, service_id: int, manga_id: int,
                       feed_url: str | None = None) -> set[int] | None:
         parsed = self.parse_series(title_id)
@@ -399,19 +420,22 @@ class MangaPlus(BaseScraperWhole):
                 disabled = True
                 completed = True
         # Disable one shots
-        elif series.update_timing == UpdateTiming.NOT_REGULARLY.value and chapters:
-            if self.ONESHOT_REGEX.match(chapters[0].name) or self.AWARD_REGEX.match(chapters[0].name):
-                logger.info(f'One shot, award or creators chapter found for {self.NAME} title {series.title.name} / {series.title.title_id}. Disabling it.')
-                next_update = None
-                disabled = True
-                completed = True
+        elif (series.update_timing == UpdateTiming.NOT_REGULARLY.value and
+              chapters and
+              (self.ONESHOT_REGEX.match(chapters[0].name) or self.AWARD_REGEX.match(
+                  chapters[0].name))
+        ):
+            logger.info(
+                f'One shot, award or creators chapter found for {self.NAME} title {series.title.name} / {series.title.title_id}. Disabling it.')
+            next_update = None
+            disabled = True
+            completed = True
 
         ReleaseSchedule = mangaplus_pb2.TitleLabels.ReleaseSchedule
-        if series.release_schedule:
-            if series.release_schedule in (ReleaseSchedule.COMPLETED, ReleaseSchedule.DISABLED):
-                next_update = None
-                disabled = True
-                completed = False
+        if series.release_schedule and series.release_schedule in (ReleaseSchedule.COMPLETED, ReleaseSchedule.DISABLED):
+            next_update = None
+            disabled = True
+            completed = False
 
         newest_chapter = None
         for c in chapters:
@@ -432,39 +456,39 @@ class MangaPlus(BaseScraperWhole):
 
             logger.info(f'No new chapters for {self.NAME} title {series.title.name} / {series.title.title_id} in 60 days. Disabling it.')
 
-        with self.conn.transaction():
-            with self.conn.cursor() as cursor:
-                inserted = self.dbutil.add_chapters(new_chapters, fetch=True)
+        with self.conn.transaction(), self.conn.cursor() as cursor:
+            inserted = self.dbutil.add_chapters(new_chapters, fetch=True)
 
-                sql = 'UPDATE manga_service SET last_check=%s, next_update=%s, disabled=%s WHERE manga_id=%s AND service_id=%s'
-                cursor.execute(sql, [now, next_update, disabled, manga_id, service_id])
-                if newest_chapter:
-                    self.dbutil.update_latest_chapter(((manga_id, newest_chapter.chapter_number, newest_chapter.release_date),), cur=cursor)
+            sql = 'UPDATE manga_service SET last_check=%s, next_update=%s, disabled=%s WHERE manga_id=%s AND service_id=%s'
+            cursor.execute(sql, [now, next_update, disabled, manga_id, service_id])
+            if newest_chapter:
+                self.dbutil.update_latest_chapter(((manga_id, newest_chapter.chapter_number, newest_chapter.release_date),), cur=cursor)
 
-                if completed:
-                    sql = 'INSERT INTO manga_info (manga_id, status) VALUES (%s, %s) ON CONFLICT (manga_id) DO UPDATE SET status=EXCLUDED.status'
-                    cursor.execute(sql, (manga_id, Status.COMPLETED))
+            if completed:
+                sql = 'INSERT INTO manga_info (manga_id, status) VALUES (%s, %s) ON CONFLICT (manga_id) DO UPDATE SET status=EXCLUDED.status'
+                cursor.execute(sql, (manga_id, Status.COMPLETED))
 
-                # Add manga authors if necessary
-                authors = series.title.author.split(' / ')
-                author = AuthorPartial(name=authors[0])
-                artist = None
-                if len(authors) > 1:
-                    # Sometimes artist name starts with art by
-                    art_by = 'art by '
-                    if authors[1].lower().startswith(art_by):
-                        artist = AuthorPartial(name=authors[1][len(art_by):])
-                    else:
-                        artist = AuthorPartial(name=authors[1])
-                self.dbutil.add_manga_author_artist_if_not_exist(
-                    manga_id,
-                    author,
-                    artist,
-                    cur=cursor
-                )
+            # Add manga authors if necessary
+            authors = series.title.author.split(' / ')
+            author = AuthorPartial(name=authors[0])
+            artist = None
+            if len(authors) > 1:
+                # Sometimes artist name starts with art by
+                art_by = 'art by '
+                if authors[1].lower().startswith(art_by):
+                    artist = AuthorPartial(name=authors[1][len(art_by):])
+                else:
+                    artist = AuthorPartial(name=authors[1])
+            self.dbutil.add_manga_author_artist_if_not_exist(
+                manga_id,
+                author,
+                artist,
+                cur=cursor
+            )
 
         return {c.chapter_id for c in inserted}
 
+    @override
     def set_checked(self, service_id: int, is_manga: bool = False) -> None:
         """
         Mangaplus new series checks should only be done seldom

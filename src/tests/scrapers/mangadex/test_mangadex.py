@@ -2,6 +2,7 @@ import json
 import logging
 import os
 import unittest
+from typing import override
 from unittest.mock import Mock, patch
 
 import pytest
@@ -128,10 +129,12 @@ class MangadexTests(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsser
         with open(os.path.join(api_path, 'manga.json'), encoding='utf-8') as f:
             self.manga_data = json.load(f)
 
+    @override
     def setUp(self) -> None:
         super().setUp()
         self.mangadex = MangaDex(self.conn, self.dbutil)
 
+    @override
     def delete_chapters(self, service_id: int = MangaDex.ID):
         super().delete_chapters(service_id)
 
