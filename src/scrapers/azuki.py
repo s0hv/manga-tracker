@@ -16,7 +16,7 @@ from src.utils.utilities import utctoday
 
 logger = logging.getLogger('debug')
 
-chapter_regex = re.compile(r'^Chapter (?P<chapter_number>\d+)((-\d+)| ?(?P<special_chapter>ex\d*|\.?[A-z]|extra *\d*))?(\.(?P<chapter_decimal>\d+))?( – (?P<chapter_title>.+?))?$', re.I)
+chapter_regex = re.compile(r'^Chapter (?P<chapter_number>\d+)((-\d+)| ?(?P<special_chapter>ex\d*|\.?[A-z]|extra *\d*))?(\.(?P<chapter_decimal>\d+))?( – (?P<chapter_title>.+?))?$', re.I)  # noqa: RUF001 the dash is used for a reason here
 ignore_chapter_regex = re.compile(r'^\s*chapter announcement\s*$', re.I)
 
 

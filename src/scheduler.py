@@ -416,8 +416,8 @@ class UpdateScheduler:
                        GREATEST(MIN(ms.next_update), s.disabled_until),
                        (
                            SELECT MIN(GREATEST(sw.next_update, s2.disabled_until))
-                           FROM service_whole sw 
-                               INNER JOIN services s2 ON s2.service_id = sw.service_id 
+                           FROM service_whole sw
+                               INNER JOIN services s2 ON s2.service_id = sw.service_id
                            WHERE s2.disabled=FALSE
                        )
                    ) as update

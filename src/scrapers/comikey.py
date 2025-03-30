@@ -14,7 +14,7 @@ class Comikey(BaseRSS):
     FEED_URL = 'https://comikey.com/sapi/feed.rss'
     CHAPTER_FEED_URL = 'https://comikey.com/sapi/comics/{}/feed.rss'
     TITLE_REGEX = re.compile(r'^(?:(?P<manga_title>.+?) )?(?:chapter|episode|\w+) (?P<chapter_number>\d+)(\.(?P<decimal>\d+))?(?:: (?P<chapter_title>.+?))?$', re.I)
-    id_cache: dict[str, str] = {}
+    id_cache: dict[str, str] = {}  # noqa: RUF012 The dictionary should not be replaced
     NAME = 'Comikey'
 
     @override
