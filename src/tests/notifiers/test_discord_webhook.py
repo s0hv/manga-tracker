@@ -62,7 +62,7 @@ class TestDiscordWebhook(unittest.TestCase):
         embed_inputs = EmbedInputs.from_input_list(fields)
 
         # Make sure all fields were set
-        assert len(embed_inputs.dict(exclude_defaults=True, exclude_unset=True)) == len(fields)
+        assert len(embed_inputs.model_dump(exclude_defaults=True, exclude_unset=True)) == len(fields)
 
     def test_embed_fields_create_overrides(self):
         override1 = 1
@@ -96,9 +96,9 @@ class TestDiscordWebhook(unittest.TestCase):
             assert overrides[override2].__getattribute__(o.name) == o.value
 
         # Make sure all base fields were used
-        assert len(overrides[override1].dict(exclude_defaults=True, exclude_unset=True)) == len(base_fields)
+        assert len(overrides[override1].model_dump(exclude_defaults=True, exclude_unset=True)) == len(base_fields)
 
-        assert len(overrides[override2].dict(exclude_defaults=True, exclude_unset=True)) == len(base_fields)
+        assert len(overrides[override2].model_dump(exclude_defaults=True, exclude_unset=True)) == len(base_fields)
 
     def test_embed_fields_create_with_required_fields(self):
         fields = [
@@ -108,7 +108,7 @@ class TestDiscordWebhook(unittest.TestCase):
         embed_inputs = EmbedInputs.from_input_list(fields)
 
         # Make sure all fields were set
-        assert len(embed_inputs.dict(exclude_defaults=True, exclude_unset=True)) == len(fields)
+        assert len(embed_inputs.model_dump(exclude_defaults=True, exclude_unset=True)) == len(fields)
 
     def test_get_chapter_embed(self):
         notifier = DiscordEmbedWebhookNotifier()
