@@ -13,7 +13,10 @@ class Comikey(BaseRSS):
     URL = 'https://comikey.com'
     FEED_URL = 'https://comikey.com/sapi/feed.rss'
     CHAPTER_FEED_URL = 'https://comikey.com/sapi/comics/{}/feed.rss'
-    TITLE_REGEX = re.compile(r'^(?:(?P<manga_title>.+?) )?(?:chapter|episode|\w+) (?P<chapter_number>\d+)(\.(?P<decimal>\d+))?(?:: (?P<chapter_title>.+?))?$', re.I)
+    TITLE_REGEX = re.compile(
+        r'^(?:(?P<manga_title>.+?) )?(?:chapter|episode|\w+) (?P<chapter_number>\d+)(\.(?P<decimal>\d+))?(?:: (?P<chapter_title>.+?))?$',
+        re.I,
+    )
     id_cache: dict[str, str] = {}  # noqa: RUF012 The dictionary should not be replaced
     NAME = 'Comikey'
 
@@ -53,7 +56,10 @@ class Comikey(BaseRSS):
     def skip_entry(self, entry: dict) -> bool:
         chapter_id = self.get_chapter_id(entry).strip('/').split('/')[-1]
         # Skip non english chapters for now
-        return re.match(r'^(capitulo-(espanol|portugues)|bab-bahasa)(-|\d)+$', chapter_id, re.I) is not None
+        return (
+            re.match(r'^(capitulo-(espanol|portugues)|bab-bahasa)(-|\d)+$', chapter_id, re.I)
+            is not None
+        )
 
     @override
     def get_group(self, entry: dict) -> str | None:
@@ -73,11 +79,11 @@ class Comikey(BaseRSS):
         return match.group(1)
 
     @override
-    def scrape_series(self, title_id: str, service_id: int, manga_id: int,
-                      feed_url: str | None = None) -> set[int] | None:
+    def scrape_series(
+        self, title_id: str, service_id: int, manga_id: int, feed_url: str | None = None
+    ) -> set[int] | None:
         retval = self.add_from_feed_url(
-            service_id,
-            self.CHAPTER_FEED_URL.format(title_id.split('/')[1])
+            service_id, self.CHAPTER_FEED_URL.format(title_id.split('/')[1])
         )
 
         return retval if retval is None else retval.chapter_ids

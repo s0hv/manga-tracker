@@ -9,7 +9,12 @@ if TYPE_CHECKING:
 
 class ChapterMapper:
     @staticmethod
-    def base_chapter_to_db(base: 'BaseChapter', manga_id: int | None, service_id: int, strip_chapter_prefix: bool = False) -> Chapter:
+    def base_chapter_to_db(
+        base: 'BaseChapter',
+        manga_id: int | None,
+        service_id: int,
+        strip_chapter_prefix: bool = False,
+    ) -> Chapter:
         return Chapter(
             chapter_id=None,
             manga_id=manga_id,
@@ -20,5 +25,5 @@ class ChapterMapper:
             release_date=base.release_date,
             chapter_identifier=base.chapter_identifier,
             group=base.group,
-            group_id=base.group_id
+            group_id=base.group_id,
         )

@@ -33,12 +33,18 @@ logger = logging.getLogger('debug')
 
 
 class Chapter(BaseChapterSimple):
-    def __init__(self, chapter_number: str | None, chapter_identifier: str,
-                 manga_id: str, release_date: datetime, chapter_title: str | None,
-                 volume: str | None = None,
-                 group: MangadexData[ScanlationGroupAttributes] | None = None,
-                 manga_title: str | None = None,
-                 group_id: int | None = None):
+    def __init__(
+        self,
+        chapter_number: str | None,
+        chapter_identifier: str,
+        manga_id: str,
+        release_date: datetime,
+        chapter_title: str | None,
+        volume: str | None = None,
+        group: MangadexData[ScanlationGroupAttributes] | None = None,
+        manga_title: str | None = None,
+        group_id: int | None = None,
+    ):
         if not chapter_number:
             _chapter_number = 0
             _decimal = None
@@ -50,12 +56,13 @@ class Chapter(BaseChapterSimple):
                 chapter_title = f'Chapter {chapter_number}'
         else:
             try:
-
                 # Split chapter number to decimal part and integer part
                 n = list(map(int, chapter_number.split('.')))
             except ValueError:
                 if chapter_number.lower() not in ('prologue', 'special'):
-                    logger.warning(f'Failed to parse chapter number {chapter_number} for {manga_id}')
+                    logger.warning(
+                        f'Failed to parse chapter number {chapter_number} for {manga_id}'
+                    )
                 _chapter_number = 0
                 _decimal = None
             else:
@@ -78,7 +85,7 @@ class Chapter(BaseChapterSimple):
             release_date=release_date,
             manga_title=manga_title,
             group=None,
-            group_id=group_id
+            group_id=group_id,
         )
         self._mangadex_group = group
 
@@ -94,7 +101,10 @@ class Chapter(BaseChapterSimple):
     @override
     @property
     def title(self) -> str:
-        return self.chapter_title or f'{"Volume " + str(self.volume) + ", " if self.volume is not None else ""}Chapter {self.chapter_number}{"" if not self.decimal else "." + str(self.decimal)}'
+        return (
+            self.chapter_title
+            or f'{"Volume " + str(self.volume) + ", " if self.volume is not None else ""}Chapter {self.chapter_number}{"" if not self.decimal else "." + str(self.decimal)}'
+        )
 
 
 class MangaDex(BaseScraperWhole):
@@ -119,15 +129,17 @@ class MangaDex(BaseScraperWhole):
             try:
                 # Mypy thinks attrs is of type DataT which makes no sense as DataT is a TypeVar
                 attrs: ChapterAttributes = chapter.attributes
-                chapters.append(Chapter(
-                    attrs.chapter,
-                    chapter.id,
-                    chapter.manga_id,
-                    attrs.readable_at,
-                    attrs.title,
-                    attrs.volume,
-                    chapter.group
-                ))
+                chapters.append(
+                    Chapter(
+                        attrs.chapter,
+                        chapter.id,
+                        chapter.manga_id,
+                        attrs.readable_at,
+                        attrs.title,
+                        attrs.volume,
+                        chapter.group,
+                    )
+                )
             except Exception:
                 logger.exception(f'Failed to parse chapter {chapter}')
                 continue
@@ -152,10 +164,13 @@ class MangaDex(BaseScraperWhole):
                 )
 
             manga_infos.append(
-                MangaInfo(manga_id=manga_id,
-                          cover=cover,
-                          status=manga.attributes.status.to_int(),
-                          **links.model_dump()))
+                MangaInfo(
+                    manga_id=manga_id,
+                    cover=cover,
+                    status=manga.attributes.status.to_int(),
+                    **links.model_dump(),
+                )
+            )
 
         self.dbutil.update_manga_infos(manga_infos, update_last_check=False)
         self.dbutil.update_manga_titles([
@@ -261,15 +276,17 @@ class MangaDex(BaseScraperWhole):
         missing_group = map_chapters(entries)
 
         # Find groups with duplicate name
-        existing_not_mangadex = self.dbutil.find_existing_groups(
-            [c.group for c in missing_group if c.group]
-        )
+        existing_not_mangadex = self.dbutil.find_existing_groups([
+            c.group for c in missing_group if c.group
+        ])
 
         # Set mangadex id for existing groups
         do_mangadex_id_update: dict[str | None, Group] = {}
         for group in existing_not_mangadex:
             if group.mangadex_id is not None:
-                logger.warning(f'Duplicate group name found {group.name} with different id {group.mangadex_id}. Will be treated as the same group')
+                logger.warning(
+                    f'Duplicate group name found {group.name} with different id {group.mangadex_id}. Will be treated as the same group'
+                )
 
             do_mangadex_id_update[group.name] = group
 
@@ -292,7 +309,8 @@ class MangaDex(BaseScraperWhole):
         if missing_group:
             for group in self.dbutil.add_new_groups([
                 GroupPartial(name=c.mangadex_group.attributes.name, mangadex_id=c.mangadex_group.id)
-                for c in missing_group if c.mangadex_group
+                for c in missing_group
+                if c.mangadex_group
             ]):
                 existing[cast(str, group.mangadex_id)] = group.group_id
 
@@ -300,7 +318,9 @@ class MangaDex(BaseScraperWhole):
 
         # If no groups were found use No group
         if missing_group:
-            logger.error('Failed to add group to some chapters. Using "No group". %s', missing_group)
+            logger.error(
+                'Failed to add group to some chapters. Using "No group". %s', missing_group
+            )
             for chapter in missing_group:
                 chapter.group_id = NO_GROUP
                 valid_chapters.append(chapter)
@@ -312,10 +332,14 @@ class MangaDex(BaseScraperWhole):
 
         return valid_chapters
 
-    def fetch_chapters(self, api_url: str, title_id: str | None = None, limit: int = 100) -> list[Chapter] | None:
+    def fetch_chapters(
+        self, api_url: str, title_id: str | None = None, limit: int = 100
+    ) -> list[Chapter] | None:
         self.api.base_url = api_url
         try:
-            result = self.api.get_chapters({'readableAt': 'desc'}, manga_id=title_id, languages=['en'], limit=limit)
+            result = self.api.get_chapters(
+                {'readableAt': 'desc'}, manga_id=title_id, languages=['en'], limit=limit
+            )
             return list(self.parse_feed(result))
         except JSONDecodeError:
             logger.exception('Failed to parse mangadex response')
@@ -324,7 +348,9 @@ class MangaDex(BaseScraperWhole):
             logger.exception(f'Failed to parse mangadex result {e}')
             return None
 
-    def do_update(self, service_id: int, feed_url: str, title_id: str | None = None, limit: int = 100) -> ScrapeServiceRetVal | None:
+    def do_update(
+        self, service_id: int, feed_url: str, title_id: str | None = None, limit: int = 100
+    ) -> ScrapeServiceRetVal | None:
         """
         Handles fetching the chapter feed and adding the results to the database
         and other required operations
@@ -377,16 +403,16 @@ class MangaDex(BaseScraperWhole):
         # Sometimes manga cannot be fetched and this array is empty.
         # For example with content ratings
         if not manga_ids:
-            return ScrapeServiceRetVal(
-                chapter_ids=chapter_ids
-            )
+            return ScrapeServiceRetVal(chapter_ids=chapter_ids)
 
         # Update titles and manga infos for new chapters
         try:
             format_args = self.dbutil.get_format_args(manga_ids)
             sql = f'SELECT manga_id, title_id FROM manga_service WHERE manga_id IN ({format_args})'
-            mangadex2db = {row['title_id']: row['manga_id'] for row in
-                           self.dbutil.execute(sql, list(manga_ids))}
+            mangadex2db = {
+                row['title_id']: row['manga_id']
+                for row in self.dbutil.execute(sql, list(manga_ids))
+            }
             db2result: dict[int, MangaResult] = {}
 
             for mangadex_id, manga_result in manga_infos.items():
@@ -397,13 +423,12 @@ class MangaDex(BaseScraperWhole):
         except Exception:
             logger.exception('Failed to add manga infos')
 
-        return ScrapeServiceRetVal(
-            manga_ids=manga_ids,
-            chapter_ids=chapter_ids
-        )
+        return ScrapeServiceRetVal(manga_ids=manga_ids, chapter_ids=chapter_ids)
 
     @override
-    def scrape_series(self, title_id: str, service_id: int, manga_id: int, feed_url: str | None) -> set[int] | None:
+    def scrape_series(
+        self, title_id: str, service_id: int, manga_id: int, feed_url: str | None
+    ) -> set[int] | None:
         if feed_url is None:
             raise ValueError('feed_url cannot be None')
 
@@ -411,8 +436,13 @@ class MangaDex(BaseScraperWhole):
         return retval if retval is None else retval.chapter_ids
 
     @override
-    def scrape_service(self, service_id: int, feed_url: str,
-                       last_update: datetime | None, title_id: str | None = None) -> ScrapeServiceRetVal | None:
+    def scrape_service(
+        self,
+        service_id: int,
+        feed_url: str,
+        last_update: datetime | None,
+        title_id: str | None = None,
+    ) -> ScrapeServiceRetVal | None:
         return self.do_update(service_id, feed_url)
 
     def fetch_manga_infos(self, title_ids: list[str]) -> dict[str, MangaResult]:

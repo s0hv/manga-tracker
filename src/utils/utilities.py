@@ -19,10 +19,10 @@ logger = logging.getLogger('debug')
 type FeedType = FeedParserDict[str, bool | list | FeedParserDict | dict]
 
 chapter_regex = re.compile(r'(\d+)(\.\d+)?')
+# fmt: off
 universal_chapter_regex = \
     re.compile(r'(?P<manga_title>.+?)(?: -)? +'
                r'(?:(?:Volume|Vol) (?P<volume_number>\d+),? ?)?'  # Try to match volume number
-
                # Check for chapter number if one exists
                r'(?:'
                    r'((Chapter) ?(?P<chapter>\d+)(?:\.(?P<decimal>\d))?,?)|'  # Match chapter number in the format of Chapter x.y
@@ -33,6 +33,7 @@ universal_chapter_regex = \
                # Match title if one exists
                r'(?P<chapter_title>.+?)?$',
                re.IGNORECASE)
+# fmt: on
 
 
 def match_title(s: str) -> dict[str, str] | None:
@@ -62,8 +63,8 @@ def parse_chapter_number(chapter_number: str) -> tuple[str | None, str | None]:
 def round_seconds(sec: float, accuracy: int) -> int:
     left = sec % accuracy
     sec -= left
-    if left > accuracy//2:
-        return int(sec)+accuracy
+    if left > accuracy // 2:
+        return int(sec) + accuracy
     return int(sec)
 
 
@@ -127,6 +128,7 @@ def inject_service_values(dbutil: 'DbUtil') -> None:
     """
     configs = dbutil.get_service_configs()
     from src.scrapers import SCRAPERS_ID
+
     for config in configs:
         Service = SCRAPERS_ID.get(config.service_id)
         if Service is not None:

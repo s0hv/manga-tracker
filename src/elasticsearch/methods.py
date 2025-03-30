@@ -17,7 +17,6 @@ class TitleUpdate(TypedDict):
 
 
 class ElasticMethods:
-
     def __init__(self, es: Elasticsearch):
         self._es = es
 
@@ -28,17 +27,24 @@ class ElasticMethods:
     def update_manga_title(self, manga_id: int, title: str) -> None:
         self.es.update(index=INDEX_NAME, id=str(manga_id), body={'title': title})
 
-    def bulk_upsert(self, documents: Iterable, operation: str='update') -> None:
-        logger.debug('Bulk upsert returned %s', bulk(
-            self.es,
-            ({
-                '_index': INDEX_NAME,
-                '_op_type': operation,
-                '_id': doc.pop('_id'),
-                # bulk update needs to be wrapped inside doc for some reason
-                '_source': doc if operation != 'update' else {'doc': doc}
-            } for doc in documents),
-            index=INDEX_NAME))
+    def bulk_upsert(self, documents: Iterable, operation: str = 'update') -> None:
+        logger.debug(
+            'Bulk upsert returned %s',
+            bulk(
+                self.es,
+                (
+                    {
+                        '_index':   INDEX_NAME,
+                        '_op_type': operation,
+                        '_id':      doc.pop('_id'),
+                        # bulk update needs to be wrapped inside doc for some reason
+                        '_source':  doc if operation != 'update' else {'doc': doc},
+                    }
+                    for doc in documents
+                ),
+                index=INDEX_NAME,
+            ),
+        )
 
     @staticmethod
     def format_aliases(rows: Iterable[dict]):

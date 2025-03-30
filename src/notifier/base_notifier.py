@@ -13,6 +13,7 @@ TEmbedInputs = TypeVar('TEmbedInputs')
 
 Overrides = dict[int, TEmbedInputs]
 
+
 class BaseEmbedInputs(BaseModel):
     @classmethod
     def from_input_list(cls, input_fields: list[InputField]) -> Self:
@@ -20,7 +21,9 @@ class BaseEmbedInputs(BaseModel):
         return cls(**d)
 
     @classmethod
-    def overrides(cls: type[TEmbedInputs], input_fields: list[InputField]) -> Overrides[TEmbedInputs]:
+    def overrides(
+        cls: type[TEmbedInputs], input_fields: list[InputField]
+    ) -> Overrides[TEmbedInputs]:
         manga_ids: set[int] = {i.override_id for i in input_fields if i.override_id is not None}
 
         if not manga_ids:
@@ -47,7 +50,7 @@ class NotificationMangaService(BaseModel):
     def to_dict(self, prefix: str = 'PLATFORM_') -> dict[str, str | None]:
         return {
             prefix + 'NAME': self.name,
-            prefix + 'URL': self.url
+            prefix + 'URL':  self.url
         }
 
 
@@ -63,7 +66,7 @@ class NotificationManga(BaseModel):
         return {
             prefix + 'TITLE': self.name,
             prefix + 'COVER': self.cover,
-            prefix + 'URL': self.url
+            prefix + 'URL':   self.url,
         }
 
 
@@ -77,14 +80,14 @@ class NotificationChapter(BaseModel):
 
     def to_dict(self) -> dict[str, Any]:
         return {
-            'TITLE': self.title,
+            'TITLE':          self.title,
             'CHAPTER_NUMBER': self.chapter_number,
-            'RELEASE_DATE': self.release_date,
+            'RELEASE_DATE':   self.release_date,
             'UNIX_TIMESTAMP': int(self.release_date.timestamp()),
-            'URL': self.url,
-            'GROUP': self.group,
+            'URL':            self.url,
+            'GROUP':          self.group,
             **self.manga.to_dict(),
-            **self.manga.service.to_dict()
+            **self.manga.service.to_dict(),
         }
 
 
@@ -102,14 +105,18 @@ def get_chapter_number(chapter: NotificationChapter) -> float:
 
 class NotifierBase(ABC):
     @abstractmethod
-    def send_notification(self, chapters: list[NotificationChapter],
-                          options: NotificationOptions,
-                          input_fields: list[InputField]
-                          ) -> tuple[int, bool]:
+    def send_notification(
+        self,
+        chapters: list[NotificationChapter],
+        options: NotificationOptions,
+        input_fields: list[InputField],
+    ) -> tuple[int, bool]:
         raise NotImplementedError
 
     @staticmethod
-    def get_chapters_grouped(chapters: list[NotificationChapter], options: NotificationOptions) -> list[list[NotificationChapter]]:
+    def get_chapters_grouped(
+        chapters: list[NotificationChapter], options: NotificationOptions
+    ) -> list[list[NotificationChapter]]:
         groups: list[list[NotificationChapter]]
 
         if options.group_by_manga:

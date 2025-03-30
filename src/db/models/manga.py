@@ -74,6 +74,7 @@ class MangaServicePartial(BaseModel):
     @property
     def Scraper(self) -> type['BaseScraper']:
         from src.scrapers import SCRAPERS_ID
+
         return SCRAPERS_ID[self.service_id]
 
     def scrape_series(self, conn: Connection[DictRow], dbutil: 'DbUtil') -> set[int] | None:
@@ -88,7 +89,6 @@ class MangaServicePartialWithId(MangaServicePartial):
 
 
 class MangaService(Manga, MangaServicePartial):
-
     @classmethod
     def from_partial(cls, manga_service_partial: MangaServicePartial) -> Self:
         return cls.model_validate(manga_service_partial.model_dump())
@@ -98,6 +98,7 @@ class MangaServiceWithId(MangaService):
     """
     Manga service object but with guaranteed manga_id
     """
+
     manga_id: int
 
     @classmethod

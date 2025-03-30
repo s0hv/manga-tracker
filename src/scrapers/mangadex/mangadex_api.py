@@ -17,12 +17,14 @@ SortDirection = Literal['asc', 'desc']
 DataT = TypeVar('DataT')
 MAX_LIMIT = 100
 
+
 class SortColumns(TypedDict, total=False):
     createdAt: SortDirection
     updatedAt: SortDirection
     publishAt: SortDirection
     volume: SortDirection
     chapter: SortDirection
+    readableAt: SortDirection
 
 
 class MangadexResultStatus(Enum):
@@ -57,10 +59,10 @@ class Status(Enum):
 
     def to_int(self) -> int:
         d: dict[Status, int] = {
-            self.ongoing: MangaStatus.ONGOING.value,        # type: ignore[dict-item]
-            self.completed: MangaStatus.COMPLETED.value,    # type: ignore[dict-item]
-            self.hiatus: MangaStatus.HIATUS.value,          # type: ignore[dict-item]
-            self.cancelled: MangaStatus.DROPPED.value,      # type: ignore[dict-item]
+            self.ongoing:   MangaStatus.ONGOING.value,    # type: ignore[dict-item]
+            self.completed: MangaStatus.COMPLETED.value,  # type: ignore[dict-item]
+            self.hiatus:    MangaStatus.HIATUS.value,     # type: ignore[dict-item]
+            self.cancelled: MangaStatus.DROPPED.value,    # type: ignore[dict-item]
         }
 
         return d[self]
@@ -267,12 +269,16 @@ GenericMangadexResults = TypeVar('GenericMangadexResults', bound=MangadexData)
 
 
 # noinspection PyPep8Naming
-def request_to_model[TModel: BaseModel](r: requests.Response, Model: type[TModel], continue_on_error: bool = False) -> Iterable[TModel]:
+def request_to_model[TModel: BaseModel](
+    r: requests.Response, Model: type[TModel], continue_on_error: bool = False
+) -> Iterable[TModel]:
     for result in handle_response(r)['data']:
         try:
             yield Model(**result)
         except ValidationError:
-            logger.warning(f'Failed to parse result for model {Model.__name__} {result}', exc_info=True)
+            logger.warning(
+                f'Failed to parse result for model {Model.__name__} {result}', exc_info=True
+            )
         except Exception as e:
             logger.exception(f'Unexpected error when parsing model {Model.__name__} {result}')
             if continue_on_error:
@@ -295,8 +301,13 @@ class MangadexAPI:
 
     @sleep_and_retry
     @api_rate_limiter
-    def get_manga(self, manga_ids: str | list[str], include_authors: bool = True,
-                  include_artists: bool = True, include_cover: bool = True) -> Iterable[MangaResult]:
+    def get_manga(
+        self,
+        manga_ids: str | list[str],
+        include_authors: bool = True,
+        include_artists: bool = True,
+        include_cover: bool = True,
+    ) -> Iterable[MangaResult]:
         if isinstance(manga_ids, str):
             manga_ids = [manga_ids]
         if len(manga_ids) > 100:
@@ -323,10 +334,17 @@ class MangadexAPI:
 
     @sleep_and_retry
     @api_rate_limiter
-    def get_chapters(self, sort_by: SortColumns, *, languages: list[str],
-                     manga_id: str | None = None, limit: int = MAX_LIMIT,
-                     include_groups: bool | None = True, offset: int | None = None,
-                     include_future_updates: bool=True) -> Iterable[ChapterResult]:
+    def get_chapters(
+        self,
+        sort_by: SortColumns,
+        *,
+        languages: list[str],
+        manga_id: str | None = None,
+        limit: int = MAX_LIMIT,
+        include_groups: bool | None = True,
+        offset: int | None = None,
+        include_future_updates: bool = True,
+    ) -> Iterable[ChapterResult]:
         params = []
         order = []
         for k, v in sort_by.items():
@@ -358,14 +376,16 @@ class MangadexAPI:
             its = [request_to_model(r, ChapterResult)]
 
             if data['total'] > data['offset'] + data['limit']:
-                its.append(self.get_chapters(
-                    sort_by=sort_by,
-                    languages=languages,
-                    manga_id=manga_id,
-                    limit=limit - MAX_LIMIT,
-                    include_groups=include_groups,
-                    offset=(offset or 0) + MAX_LIMIT
-                ))
+                its.append(
+                    self.get_chapters(
+                        sort_by=sort_by,
+                        languages=languages,
+                        manga_id=manga_id,
+                        limit=limit - MAX_LIMIT,
+                        include_groups=include_groups,
+                        offset=(offset or 0) + MAX_LIMIT,
+                    )
+                )
 
             return chain(*its)
         else:

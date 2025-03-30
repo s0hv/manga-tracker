@@ -38,7 +38,7 @@ ignore = [
     "UP017",
     "C401",
     "SIM108",
-    "SIM300"
+    "SIM300",
 ]
 
 [lint.flake8-annotations]
@@ -49,11 +49,12 @@ suppress-dummy-args = true
 [lint.flake8-quotes]
 docstring-quotes = "double"
 inline-quotes = "single"
-multiline-quotes = "single"
+multiline-quotes = "double" # Reired for the formatter
 
 [format]
 quote-style = "single"
 indent-style = "space"
 docstring-code-format = true
+preview = true
 
 exclude = ["src/**/protobuf/**"]

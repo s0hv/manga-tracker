@@ -8,11 +8,11 @@ type ColorType = str | int | tuple[int]
 
 class LoggingFormatter(logging.Formatter):
     def __init__(
-            self,
-            fmt: str | None = None,
-            datefmt: str | None = None,
-            style: Literal['%', '{', '$'] = '%',
-            override_colors: dict | None = None,
+        self,
+        fmt: str | None = None,
+        datefmt: str | None = None,
+        style: Literal['%', '{', '$'] = '%',
+        override_colors: dict | None = None,
     ):
         super().__init__(fmt, datefmt, style)
 
@@ -23,7 +23,7 @@ class LoggingFormatter(logging.Formatter):
             logging.WARNING:  {'fg': 'YELLOW'},
             logging.ERROR:    {'fg': 'red'},
             logging.CRITICAL: {'fg': 'RED', 'style': 'negative'},
-            'EXCEPTION':      {'fg': 'RED'}
+            'EXCEPTION':      {'fg': 'RED'},
         }  # Style for exception traceback
 
         if override_colors:
@@ -31,7 +31,7 @@ class LoggingFormatter(logging.Formatter):
 
     @staticmethod
     def get_color(
-            *, fg: ColorType | None = None, bg: ColorType | None = None, style: str | None = None
+        *, fg: ColorType | None = None, bg: ColorType | None = None, style: str | None = None
     ) -> str | None:
         color = get_color('', fg=fg, bg=bg, style=style)
         if color:
