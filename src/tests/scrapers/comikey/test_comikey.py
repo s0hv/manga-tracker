@@ -11,7 +11,6 @@ from requests import PreparedRequest
 from src.constants import NO_GROUP
 from src.db.models.chapter import Chapter
 from src.db.models.manga import MangaService
-from src.scrapers.base_rss import RSSChapter
 from src.scrapers.comikey import Comikey
 from src.tests.testing_utils import BaseTestClasses, ChapterTestModel, mock_feedparse
 from src.utils.dbutils import DbUtil
@@ -159,7 +158,7 @@ class ComikeyTest(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsserti
     def setUp(self) -> None:
         super().setUp()
         self.comikey = Comikey(self._conn, self.dbutil)
-        self.comikey.get_group_id = lambda *_, **__: NO_GROUP  # type: ignore
+        self.comikey.get_group_id = lambda *_, **__: NO_GROUP  # type: ignore[method-assign]
         self.comikey.id_cache.clear()
 
     def redirect(self, request: PreparedRequest) -> tuple[int, dict[str, str], bytes | None]:
@@ -190,7 +189,7 @@ class ComikeyTest(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsserti
         assert len(Comikey.id_cache) == 2
 
         assert chapters is not None
-        self.assertAllChaptersEqual(cast(list[RSSChapter], chapters), correct_chapters)
+        self.assertAllChaptersEqual(chapters, correct_chapters)
 
     @responses.activate
     @patch('feedparser.parse', wraps=mock_feedparse(test_manga_feed))

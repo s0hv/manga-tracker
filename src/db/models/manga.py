@@ -24,7 +24,7 @@ class Manga(BaseModel):
 
 
 class MangaWithId(Manga):
-    manga_id: int
+    manga_id: int  # type: ignore[mutable-override]
 
 
 class MangaForNotifications(BaseModel):
@@ -85,7 +85,7 @@ class MangaServicePartial(BaseModel):
 
 
 class MangaServicePartialWithId(MangaServicePartial):
-    manga_id: int
+    manga_id: int  # type: ignore[mutable-override]
 
 
 class MangaService(Manga, MangaServicePartial):
@@ -99,7 +99,7 @@ class MangaServiceWithId(MangaService):
     Manga service object but with guaranteed manga_id
     """
 
-    manga_id: int
+    manga_id: int  # type: ignore[mutable-override]
 
     @classmethod
     @override

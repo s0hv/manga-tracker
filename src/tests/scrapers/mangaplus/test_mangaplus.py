@@ -1,7 +1,7 @@
 import os
 import unittest
 from datetime import timedelta
-from typing import cast, override
+from typing import override
 
 import pytest
 import requests
@@ -9,11 +9,7 @@ import responses
 
 from src.db.models.chapter import Chapter
 from src.db.models.manga import MangaServiceWithId
-from src.scrapers.mangaplus.mangaplus import (
-    MangaPlus,
-    ResponseWrapper,
-    TitleDetailViewWrapper,
-)
+from src.scrapers.mangaplus.mangaplus import MangaPlus
 from src.scrapers.mangaplus.protobuf import mangaplus_pb2
 from src.tests.testing_utils import BaseTestClasses, spy_on
 from src.utils.utilities import utcfromtimestamp, utcnow
@@ -108,7 +104,6 @@ class TestMangaPlusParser(BaseTestClasses.DatabaseTestCase):
         ms, chapter_ids = self.setup_with_data(self.request_data_ongoing)
 
         assert chapter_ids is not None
-        chapter_ids = cast(set[int], chapter_ids)
         assert len(chapter_ids) == 14
         assert len(responses.calls) == 1
 
@@ -121,7 +116,6 @@ class TestMangaPlusParser(BaseTestClasses.DatabaseTestCase):
                 break
 
         assert last_chapter is not None
-        last_chapter = cast(Chapter, last_chapter)
 
         correct_chapter = Chapter(
             manga_id=ms.manga_id,
@@ -144,7 +138,6 @@ class TestMangaPlusParser(BaseTestClasses.DatabaseTestCase):
         ms, chapter_ids = self.setup_with_data(self.request_data_existing)
 
         assert chapter_ids is not None
-        chapter_ids = cast(set[int], chapter_ids)
         assert len(chapter_ids) == 2
         assert len(responses.calls) == 1
         self.assertMangaServiceDisabled(ms.service_id, ms.title_id)  # It is completed
@@ -154,7 +147,6 @@ class TestMangaPlusParser(BaseTestClasses.DatabaseTestCase):
         ms, chapter_ids = self.setup_with_data(self.request_data_complete)
 
         assert chapter_ids is not None
-        chapter_ids = cast(set[int], chapter_ids)
         assert len(chapter_ids) == 5
         assert len(responses.calls) == 1
 
@@ -228,7 +220,6 @@ class TestMangaPlusParser(BaseTestClasses.DatabaseTestCase):
         ms, chapter_ids = self.setup_with_data(self.request_data_otherschedule)
 
         assert chapter_ids is not None
-        chapter_ids = cast(set[int], chapter_ids)
         assert len(chapter_ids) == 1
         assert len(responses.calls) == 1
 
@@ -253,7 +244,6 @@ class TestMangaPlusParser(BaseTestClasses.DatabaseTestCase):
         ms, chapter_ids = self.setup_with_data(self.request_data_oneshot)
 
         assert chapter_ids is not None
-        chapter_ids = cast(set[int], chapter_ids)
         assert len(chapter_ids) == 1
         assert len(responses.calls) == 1
 
@@ -279,7 +269,6 @@ class TestMangaPlusParser(BaseTestClasses.DatabaseTestCase):
         ms, chapter_ids = self.setup_with_data(self.request_data_award)
 
         assert chapter_ids is not None
-        chapter_ids = cast(set[int], chapter_ids)
         assert len(chapter_ids) == 1
         assert len(responses.calls) == 1
 
@@ -305,7 +294,6 @@ class TestMangaPlusParser(BaseTestClasses.DatabaseTestCase):
         ms, chapter_ids = self.setup_with_data(self.request_data_creators)
 
         assert chapter_ids is not None
-        chapter_ids = cast(set[int], chapter_ids)
         assert len(chapter_ids) == 1
         assert len(responses.calls) == 1
 
@@ -331,7 +319,6 @@ class TestMangaPlusParser(BaseTestClasses.DatabaseTestCase):
         ms, chapter_ids = self.setup_with_data(self.request_data_hiatus)
 
         assert chapter_ids is not None
-        chapter_ids = cast(set[int], chapter_ids)
         assert len(chapter_ids) == 8
         assert len(responses.calls) == 1
 
@@ -352,7 +339,6 @@ class TestMangaPlusParser(BaseTestClasses.DatabaseTestCase):
         assert len(responses.calls) == 1
 
         assert resp is not None
-        resp = cast(ResponseWrapper, resp)
 
         assert resp.error_result is None
         assert resp.all_titles_view is None
@@ -361,7 +347,6 @@ class TestMangaPlusParser(BaseTestClasses.DatabaseTestCase):
 
         detail = resp.title_detail_view
         assert detail is not None
-        detail = cast(TitleDetailViewWrapper, detail)
 
         UpdateTiming = mangaplus_pb2.TitleDetailView.UpdateTiming
         assert detail.release_schedule == mangaplus_pb2.TitleLabels.ReleaseSchedule.WEEKLY
@@ -439,7 +424,6 @@ class TestMangaPlusParser(BaseTestClasses.DatabaseTestCase):
         ms, chapter_ids = self.setup_with_data(self.request_data_notfound)
 
         assert chapter_ids is not None
-        chapter_ids = cast(set[int], chapter_ids)
         assert len(chapter_ids) == 0
         assert len(responses.calls) == 1
 
@@ -460,7 +444,6 @@ class TestMangaPlusParser(BaseTestClasses.DatabaseTestCase):
 
         found = self.dbutil.get_manga_service(MangaPlus.ID, '100056')
         assert found is not None
-        found = cast(MangaServiceWithId, found)
         assert found.title == 'SPY x FAMILY'
         assert found.disabled is False
         assert found.release_interval is None
