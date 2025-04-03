@@ -37,6 +37,4 @@ dev = [
 
 [tool.uv]
 no-binary-package = ["psycopg"]
-required-version = "~=0.6.10"
-
-
+required-version = "~=0.6.12"

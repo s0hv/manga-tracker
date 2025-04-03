@@ -236,7 +236,7 @@ class BaseRSS(BaseScraperWhole, ABC):
             if 'chapter_title' not in kwargs:
                 kwargs['chapter_title'] = self.get_chapter_title(entry)
 
-            if self.MANGA_URL_FORMAT is None or self.MANGA_URL_FORMAT == NotImplemented:
+            if self.MANGA_URL_FORMAT == NotImplemented:
                 kwargs['manga_url'] = None
             else:
                 kwargs['manga_url'] = self.MANGA_URL_FORMAT.format(kwargs['title_id'])

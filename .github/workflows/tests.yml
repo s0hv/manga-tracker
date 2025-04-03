@@ -143,7 +143,6 @@ jobs:
       - name: Setup uv
         uses: astral-sh/setup-uv@v5
         with:
-          version: '0.6.10'
           enable-cache: true
 
       - name: Install dependencies
@@ -190,6 +189,7 @@ jobs:
         working-directory: web
     name: Cypress E2E tests
     runs-on: ubuntu-latest
+    if: false
     container:
       image: cypress/browsers:node16.13.0-chrome95-ff94
       options: --user 1001

@@ -466,7 +466,7 @@ def save_chapters_snapshot(chapters: list[BaseChapter], filename: str):
     chs = list(map(ChapterTestModel.from_chapter, chapters))
 
     with open(filename, 'w', encoding='utf-8') as f:
-        f.write(ChapterSnapshot(data=chs).json(ensure_ascii=False, indent=2))
+        f.write(ChapterSnapshot(data=chs).model_dump_json(indent=2))
 
 
 def load_chapters_snapshot(filename: str) -> list[ChapterTestModel]:
