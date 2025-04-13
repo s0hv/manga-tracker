@@ -45,8 +45,10 @@ function PartialManga(props) {
         </a>
         <Grid
           container
-          justifyContent='space-between'
           direction='column'
+          sx={{
+            justifyContent: 'space-between'
+          }}
         >
           <MangaInfo mangaData={manga} showId={showId} />
           <SourceList>

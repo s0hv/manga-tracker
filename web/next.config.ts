@@ -1,16 +1,12 @@
-export default async (phase, { defaultConfig }) => {
+import type { NextConfig } from 'next';
+
+export default async (phase: string, { defaultConfig }: { defaultConfig: NextConfig }) => {
   /** @type {import('next').NextConfig} */
-  const conf = {
-    webpack(config) {
-      if (config.resolve.fallback) {
-        config.resolve.fallback.fs = false;
-      }
-      return defaultConfig.webpack ? defaultConfig.webpack(config) : config;
-    },
+  const conf: NextConfig = {
     poweredByHeader: false,
     reactStrictMode: true,
     images: {
-      domains: ['uploads.mangadex.org'],
+      remotePatterns: [new URL('https://uploads.mangadex.org/**')],
       deviceSizes: [300, 600, 960],
       imageSizes: [128, 192, 256, 512],
     },
@@ -29,19 +25,11 @@ export default async (phase, { defaultConfig }) => {
     compiler: {
       emotion: true,
     },
-    modularizeImports: {
-      '@mui/material': {
-        transform: '@mui/material/{{member}}',
-      },
-      '@mui/icons-material': {
-        transform: '@mui/icons-material/{{member}}',
-      },
-    },
-    swcMinify: false,
     transpilePackages: [
       'frappe-charts',
       'react-frappe-charts',
       'swagger-jsdoc',
+      '@uiw/react-codemirror',
     ],
   };
 

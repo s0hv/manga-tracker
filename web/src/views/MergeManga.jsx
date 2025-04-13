@@ -1,20 +1,20 @@
 import {
+  Box,
   Button,
   Container,
-  Grid,
-  Paper,
-  Typography,
-  RadioGroup,
   FormControl,
   FormControlLabel,
   FormLabel,
+  Grid,
+  Paper,
   Radio,
+  RadioGroup,
+  Typography,
 } from '@mui/material';
 import { ArrowRightAlt } from '@mui/icons-material';
 
 import { styled } from '@mui/material/styles';
-import React, { useState, useCallback } from 'react';
-/** @jsxImportSource @emotion/react */
+import React, { useCallback, useState } from 'react';
 import Search from '../components/MangaSearch';
 import PartialManga from '../components/PartialManga';
 import { useCSRF } from '../utils/csrf';
@@ -118,16 +118,12 @@ function MergeManga() {
       .finally(() => setRadio('all'));
   };
 
-  const renderItem = useCallback((renderProps, { title }, index, props) => (
-    <li {...renderProps}>
-      <div
-        {...props}
-        // eslint-disable-next-line react/no-unknown-property
-        css={{ width: '100%' }}
-      >
+  const renderItem = useCallback(({ key, ...renderProps }, { title }) => (
+    <Box key={key} component='li' {...renderProps}>
+      <Box sx={{ width: '100%' }}>
         {title}
-      </div>
-    </li>
+      </Box>
+    </Box>
   ), []);
 
   return (
@@ -207,8 +203,7 @@ function MergeManga() {
           </>
         )}
         <Typography
-          color={result.error ? 'error' : 'initial'}
-          sx={{ mt: 2 }}
+          sx={{ mt: 2, color: result.error ? 'error' : 'initial' }}
           aria-label='merge result'
         >
           {result.message || null}

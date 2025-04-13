@@ -18,7 +18,7 @@ export type DeleteNotificationButtonProps = {
   fieldName?: string
 } & IconButtonProps
 const DeleteNotificationButton: FC<DeleteNotificationButtonProps> = ({ fieldName = 'notificationId', ...buttonProps }) => {
-  const { mutateAsync } = useMutation<DeleteReturn, unknown, [string, string]>(([csrf, notificationId]) => deleteNotification(csrf, notificationId));
+  const { mutateAsync } = useMutation<DeleteReturn, unknown, [string, string]>({ mutationFn: ([csrf, notificationId]) => deleteNotification(csrf, notificationId) });
   const queryClient = useQueryClient();
   const { input } = useField(fieldName);
   const csrf = useCSRF();
@@ -34,12 +34,12 @@ const DeleteNotificationButton: FC<DeleteNotificationButtonProps> = ({ fieldName
     })
       .then(() => {
         if (!input.value) {
-          return queryClient.invalidateQueries(QueryKeys.NotificationsList);
+          return queryClient.invalidateQueries({ queryKey: QueryKeys.NotificationsList });
         }
         return mutateAsync([csrf, input.value])
           .then(() => {
             enqueueSnackbar('Notification deleted', { variant: 'success' });
-            return queryClient.invalidateQueries(QueryKeys.NotificationsList);
+            return queryClient.invalidateQueries({ queryKey: QueryKeys.NotificationsList });
           })
           .catch(() => {
             enqueueSnackbar('Failed to delete notification', { variant: 'error' });

@@ -1,9 +1,11 @@
 import { Button } from '@mui/material';
 import React from 'react';
-import PropTypes from 'prop-types';
 
-
-const SaveButton = ({ submitting, hasValidationErrors }) => (
+export type SaveButtonProps = {
+  submitting?: boolean
+  hasValidationErrors?: boolean
+}
+const SaveButton = ({ submitting, hasValidationErrors }: SaveButtonProps) => (
   <Button
     type='submit'
     variant='contained'
@@ -14,9 +16,5 @@ const SaveButton = ({ submitting, hasValidationErrors }) => (
     Save
   </Button>
 );
-SaveButton.propTypes = {
-  submitting: PropTypes.bool,
-  hasValidationErrors: PropTypes.bool,
-};
 
 export default SaveButton;

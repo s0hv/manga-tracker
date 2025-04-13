@@ -7,21 +7,13 @@ import {
   Link,
   List,
   ListItem,
+  ListItemButton,
   ListItemText,
   Typography,
 } from '@mui/material';
-import { styled } from '@mui/material/styles';
 import PropTypes from 'prop-types';
 import { useUser } from '../utils/useUser';
 
-
-const ListItemStyled = styled(ListItem)(({ theme }) => ({
-  borderRadius: theme.shape.borderRadius,
-  backgroundColor: theme.vars.palette.primary.main,
-  '&:hover': {
-    backgroundColor: theme.vars.palette.primary.dark,
-  },
-}));
 
 function MangaSourceList(props) {
   const {
@@ -72,14 +64,20 @@ function MangaSourceList(props) {
       sx={{ width: '100%', maxWidth: '360px' }}
       className={`${classesProp.join(' ')}`}
     >
-      <ListItemStyled
-        button
+      <ListItemButton
         onClick={handleClick}
         aria-label={`${open ? 'close' : 'open'} follows`}
+        sx={{
+          borderRadius: 1,
+          backgroundColor: 'primary.main',
+          '&:hover': {
+            backgroundColor: 'primary.dark',
+          },
+        }}
       >
         <ListItemText primary='Manga sources' sx={{ color: 'primary.contrastText' }} />
         {open ? <ExpandLess /> : <ExpandMore />}
-      </ListItemStyled>
+      </ListItemButton>
       <Collapse in={open} timeout='auto' unmountOnExit>
         <List component='div' disablePadding aria-hidden={!open}>
           {items.map((item, index) => renderItem(item, index))}

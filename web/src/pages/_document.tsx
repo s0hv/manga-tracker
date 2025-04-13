@@ -1,37 +1,33 @@
 // https://github.com/mui/material-ui/blob/34d8f6ac1f6e969e2cedabc844fc8a9896569ca5/examples/material-next-ts/pages/_document.tsx
 /* eslint-disable */
 import * as React from 'react';
-import Document, {
+import {
   type DocumentContext,
-  type DocumentProps,
   Head,
   Html,
   Main,
   NextScript,
 } from 'next/document';
-import { getInitColorSchemeScript } from '@mui/material/styles';
-import type { EmotionJSX } from '@emotion/react/types/jsx-namespace';
-import createEmotionServer from '@emotion/server/create-instance';
+import InitColorSchemeScript from '@mui/material/InitColorSchemeScript';
 import { roboto, theme } from '../utils/theme';
-import createEmotionCache from '../utils/createEmotionCache';
+import {
+  documentGetInitialProps,
+  DocumentHeadTags,
+  type DocumentHeadTagsProps,
+} from '@mui/material-nextjs/v15-pagesRouter';
 
-
-interface MyDocumentProps extends DocumentProps {
-  emotionStyleTags: EmotionJSX.Element[];
-}
-
-export default function MyDocument({ emotionStyleTags }: MyDocumentProps) {
+export default function MyDocument(props: DocumentHeadTagsProps) {
   return (
     <Html lang="en" className={roboto.className}>
       <Head>
         {/* PWA primary color */}
-        <meta name="theme-color" content={(theme as any).colorSchemes.dark.palette.primary.main} />
+        <meta name="theme-color" content={theme.colorSchemes.dark?.palette.primary.main} />
         <link rel="shortcut icon" href="/favicon.ico" />
         <meta name="emotion-insertion-point" content="" />
-        {emotionStyleTags}
+        <DocumentHeadTags {...props} />
       </Head>
       <body>
-        {getInitColorSchemeScript({ defaultMode: 'system' })}
+        <InitColorSchemeScript defaultMode='system' attribute='class' />
         <Main />
         <NextScript />
       </body>
@@ -39,61 +35,7 @@ export default function MyDocument({ emotionStyleTags }: MyDocumentProps) {
   );
 }
 
-// `getInitialProps` belongs to `_document` (instead of `_app`),
-// it's compatible with static-site generation (SSG).
 MyDocument.getInitialProps = async (ctx: DocumentContext) => {
-  // Resolution order
-  //
-  // On the server:
-  // 1. app.getInitialProps
-  // 2. page.getInitialProps
-  // 3. document.getInitialProps
-  // 4. app.render
-  // 5. page.render
-  // 6. document.render
-  //
-  // On the server with error:
-  // 1. document.getInitialProps
-  // 2. app.render
-  // 3. page.render
-  // 4. document.render
-  //
-  // On the client
-  // 1. app.getInitialProps
-  // 2. page.getInitialProps
-  // 3. app.render
-  // 4. page.render
-
-  const originalRenderPage = ctx.renderPage;
-
-  // You can consider sharing the same Emotion cache between all the SSR requests to speed up performance.
-  // However, be aware that it can have global side effects.
-  const cache = createEmotionCache();
-  const { extractCriticalToChunks } = createEmotionServer(cache);
-
-  ctx.renderPage = () =>
-    originalRenderPage({
-      enhanceApp: (App: any) =>
-        function EnhanceApp(props) {
-          return <App emotionCache={cache} {...props} />;
-        },
-    });
-
-  const initialProps = await Document.getInitialProps(ctx);
-  // This is important. It prevents Emotion to render invalid HTML.
-  // See https://github.com/mui/material-ui/issues/26561#issuecomment-855286153
-  const emotionStyles = extractCriticalToChunks(initialProps.html);
-  const emotionStyleTags = emotionStyles.styles.map((style) => (
-    <style
-      data-emotion={`${style.key} ${style.ids.join(' ')}`}
-      key={style.key}
-      // eslint-disable-next-line react/no-danger
-      dangerouslySetInnerHTML={{ __html: style.css }}
-    />
-  ));
-
-  return {
-    ...initialProps,
-    emotionStyleTags,
-  };
+  const finalProps = await documentGetInitialProps(ctx);
+  return finalProps;
 };

@@ -1,4 +1,9 @@
-import type { Adapter, AdapterSession, AdapterUser } from 'next-auth/adapters';
+import type {
+  Adapter,
+  AdapterAccount,
+  AdapterSession,
+  AdapterUser,
+} from 'next-auth/adapters';
 import { LRUCache as LRU } from 'lru-cache';
 import type { JSONValue } from 'postgres';
 import type { DatabaseHelpers } from '@/db/helpers';
@@ -121,7 +126,7 @@ export const PostgresAdapter = (db: DatabaseHelpers, options: StoreOptions = {})
       sessionCache.delete(sessionId);
     },
 
-    createUser(user) {
+    createUser(user: Omit<AdapterUser, 'id'>) {
       return db.one<{ userUuid: string }>`INSERT INTO users (username, email, pwhash, is_credentials_account) VALUES (${user.name}, ${user.email}, NULL, FALSE) RETURNING user_uuid`
         .then(({ userUuid }) => getUser(userUuid, true));
     },
@@ -162,11 +167,14 @@ export const PostgresAdapter = (db: DatabaseHelpers, options: StoreOptions = {})
       return db.none`UPDATE users SET last_active=CURRENT_TIMESTAMP WHERE user_uuid=${userId}`;
     },
 
-    linkAccount(account) {
-      return db.none`INSERT INTO account ${db.sql(account, 'type', 'provider', 'providerAccountId', 'refresh_token', 'access_token', 'expires_at', 'token_type', 'scope', 'id_token', 'session_state', 'userId')}`;
+    linkAccount(account: any) {
+      return db.none`INSERT INTO account ${db.sql(account as AdapterAccount, 'type', 'provider', 'providerAccountId', 'refresh_token', 'access_token', 'expires_at', 'token_type', 'scope', 'id_token', 'session_state', 'userId')}`;
     },
 
-    unlinkAccount({ providerAccountId, provider }) {
+    unlinkAccount({ providerAccountId, provider }: Pick<
+      AdapterAccount,
+      'provider' | 'providerAccountId'
+    >) {
       return db.none`DELETE FROM account WHERE provider=${provider} AND provider_account_id=${providerAccountId}`;
     },
 
@@ -218,7 +226,7 @@ export const PostgresAdapter = (db: DatabaseHelpers, options: StoreOptions = {})
           return sess;
         });
     },
-  };
+  } satisfies PostgresAdapter;
 
   let clearInterval: null | NodeJS.Timer;
   if (!Number.isFinite(options.clearInterval)) {

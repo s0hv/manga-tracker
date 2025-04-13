@@ -2,7 +2,7 @@ import { useSnackbar } from 'notistack';
 import React, { ReactElement, useCallback } from 'react';
 import { Checkbox, Container, Paper, TableContainer } from '@mui/material';
 import { format, formatDistanceToNowStrict } from 'date-fns';
-import enLocale from 'date-fns/locale/en-GB';
+import { enGB } from 'date-fns/locale';
 
 import {
   defaultOnSaveRow,
@@ -60,14 +60,14 @@ function Services(props: ServicesProps): ReactElement {
       enableEditing: false,
       sortingFn: 'datetime',
       cell: ({ row }) => (row.original.lastCheck ?
-        `${format(row.original.lastCheck, 'MMM do, HH:mm', { locale: enLocale })} - ${formatDistanceToNowStrict(row.original.lastCheck, { addSuffix: true })}` :
+        `${format(row.original.lastCheck, 'MMM do, HH:mm', { locale: enGB })} - ${formatDistanceToNowStrict(row.original.lastCheck, { addSuffix: true })}` :
         'Never'),
     }),
     columnHelper.accessor('nextUpdate', {
       header: 'Next update',
       sortingFn: 'datetime',
       cell: ({ row }) => (row.original.nextUpdate ?
-        `${format(row.original.nextUpdate, 'MMM do, HH:mm', { locale: enLocale })} - ${formatDistanceToNowStrict(row.original.nextUpdate, { addSuffix: true })}` :
+        `${format(row.original.nextUpdate, 'MMM do, HH:mm', { locale: enGB })} - ${formatDistanceToNowStrict(row.original.nextUpdate, { addSuffix: true })}` :
         'ASAP'),
       EditCell: (ctx) => (
         <EditableDateTimePicker

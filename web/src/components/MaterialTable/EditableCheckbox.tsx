@@ -34,9 +34,12 @@ const EditableCheckbox = <TData extends RowData>(props: PropsWithChildren<Editab
     <Checkbox
       checked={value}
       {...checkboxProps}
-      inputProps={{
-        'aria-label': ariaLabel,
-        ...checkboxProps.inputProps,
+      slotProps={{
+        ...checkboxProps.slotProps,
+        input: {
+          'aria-label': ariaLabel,
+          ...checkboxProps.slotProps?.input,
+        },
       }}
       onChange={handleChange}
     />

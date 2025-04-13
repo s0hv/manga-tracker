@@ -1,11 +1,14 @@
 import { TextField, type TextFieldProps } from 'mui-rff';
 import React from 'react';
 
-const NameInput = (textFieldProps: Partial<TextFieldProps>) => (
+export type NameInputProps = Omit<TextFieldProps, 'name' | 'label'>;
+export const NameInput = (textFieldProps: NameInputProps) => (
   <TextField
     margin='normal'
     variant='standard'
-    inputProps={{ sx: { fontSize: 30 }}}
+    slotProps={{
+      htmlInput: { sx: { fontSize: 30 }},
+    }}
     sx={{ mb: 5 }}
     {...textFieldProps}
     name='name'

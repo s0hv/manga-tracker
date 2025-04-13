@@ -2,7 +2,6 @@ import {
   Accordion as AccordionMui,
   AccordionDetails,
   AccordionSummary as AccordionSummaryMui,
-  Box,
   Typography,
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
@@ -11,12 +10,12 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import type { FC, PropsWithChildren } from 'react';
 
 
-const FlexBox = styled(Box)({
+const FlexBox = styled('div')({
   display: 'flex',
   justifyContent: 'space-between',
 });
 
-const RightSideBox = styled(Box)(({ theme }) => ({
+const RightSideBox = styled('div')(({ theme }) => ({
   marginTop: theme.spacing(2),
   minWidth: '15%',
   display: 'flex',

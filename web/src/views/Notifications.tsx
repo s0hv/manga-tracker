@@ -1,22 +1,21 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
-  Container,
-  Select,
-  Box,
-  MenuItem,
   Button,
-  InputLabel,
+  Container,
   FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
-import { useState, useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import dynamic from 'next/dynamic';
-import { useSnackbar } from 'notistack';
 import { getNotifications } from '../api/notifications';
 import { NotificationTypes, QueryKeys } from '../utils/constants';
-import { defaultDataForType } from '../components/notifications/defaultDatas';
+import { defaultDataForType } from '@/components/notifications/defaultDatas';
+import type { NotificationData } from '@/types/api/notifications';
 
-const ResponsiveBox = styled(Box)(({ theme }) => ({
+const ResponsiveBox = styled('div')(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
@@ -40,23 +39,18 @@ const NotificationComponents = {
 const queryKey = QueryKeys.NotificationsList;
 
 const Notifications = () => {
-  const { enqueueSnackbar } = useSnackbar();
-  const onError = useCallback((err) => {
-    console.error(err);
-    enqueueSnackbar('Failed to load notifications', { variant: 'error' });
-  }, [enqueueSnackbar]);
-
-  const { data: notificationData, isLoading } = useQuery(queryKey, getNotifications, {
-    onError,
+  const { data: notificationData, isLoading } = useQuery({
+    queryKey,
+    queryFn: getNotifications,
   });
-  const [notifType, setNotifType] = useState(NotificationTypes.DiscordWebhook);
+  const [notifType, setNotifType] = useState<number>(NotificationTypes.DiscordWebhook);
   const queryClient = useQueryClient();
 
   const addNewNotification = useCallback(() => {
-    queryClient.setQueryData(queryKey, [defaultDataForType[notifType], ...notificationData]);
-  }, [notifType, notificationData, queryClient]);
+    queryClient.setQueryData<Partial<NotificationData>[]>(queryKey, prev => [defaultDataForType[notifType], ...(prev ?? [])]);
+  }, [notifType, queryClient]);
 
-  const defaultExpanded = useMemo(() => notificationData?.length < 3, [notificationData?.length]);
+  const defaultExpanded = useMemo(() => (notificationData?.length ?? 0) < 3, [notificationData?.length]);
 
   return (
     <Container sx={{
@@ -69,7 +63,7 @@ const Notifications = () => {
           <Select
             labelId='selectLabelId'
             value={notifType}
-            onChange={e => setNotifType(e.target.value)}
+            onChange={e => setNotifType(e.target.value as number)}
             label='Notification type to create'
             sx={{ m: 1 }}
           >
@@ -88,7 +82,7 @@ const Notifications = () => {
         </Button>
       </ResponsiveBox>
       {!isLoading && Array.isArray(notificationData) && notificationData.map(notif => {
-        const Component = NotificationComponents[notif.notificationType];
+        const Component = NotificationComponents[notif.notificationType as keyof typeof NotificationComponents];
         if (!Component) return <span>Invalid notification type {notif.notificationType}</span>;
         return (
           <Component
