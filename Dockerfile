@@ -3,7 +3,7 @@ FROM node:20-bullseye
 RUN npm install -g pnpm@^8
 
 WORKDIR /app
-ENV NODE_ENV production
+ENV NODE_ENV=production
 COPY package.json pnpm-lock.yaml  migrations-config.json Procfile ./
 COPY ./migrations ./migrations
 COPY ./web ./web
