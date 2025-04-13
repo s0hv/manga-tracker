@@ -243,7 +243,7 @@ jobs:
         run: cd .. && pnpm migrate:up && pnpm migrate:test
 
       - name: Persist Next.js build cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ${{ github.workspace }}/web/.next/cache
           # Generate a new cache whenever packages or source files change.
