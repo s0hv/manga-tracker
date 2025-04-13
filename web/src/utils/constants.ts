@@ -8,4 +8,5 @@ export const QueryKeys = {
   MangaServices: 'admin-manga-service',
   Services: ['services'],
   NotificationFollows: ['notification-follows'],
+  LatestChapters: 'latest-chapters',
 } as const;

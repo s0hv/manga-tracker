@@ -11,6 +11,7 @@ import type { DefaultExcept, PartialExcept } from '@/types/utility';
 import { NO_GROUP } from '../utils/constants.js';
 import { db } from './helpers';
 import { generateUpdate } from './utils';
+import type { SortBy } from '@/types/db/common';
 
 export const getChapterReleases = (mangaId: MangaId) => {
   return db.manyOrNone<ChapterReleaseDates>`SELECT extract(EPOCH FROM date_trunc('day', release_date))::float8 as "timestamp", CAST(count(release_date) as int) count 
@@ -75,7 +76,7 @@ export const addChapter = ({
     .then(row => row?.chapterId);
 };
 
-export const defaultSort = [
+export const defaultSort: SortBy[] = [
   {
     col: 'chapter_number',
     desc: true,
@@ -87,7 +88,7 @@ export const defaultSort = [
   },
 ];
 
-export const getChapters = (mangaId: MangaId, limit: number, offset: number, sortBy = defaultSort) => {
+export const getChapters = (mangaId: MangaId, limit: number, offset: number, sortBy: SortBy[] = defaultSort) => {
   sortBy = sortBy.length > 0 ? sortBy : defaultSort;
   const sorting: PendingQuery<any> = sortBy
     .map((sort) => db.sql`${db.sql(sort.col)}${sort.desc ? db.sql` DESC` : db.sql``}${sort.nullsLast ? db.sql` NULLS LAST` : db.sql``}`)
@@ -123,9 +124,10 @@ export const getChapters = (mangaId: MangaId, limit: number, offset: number, sor
     .then(row => {
       if (!row || !row.exists) return Promise.resolve(null);
 
+      console.log(row);
       return Promise.resolve({
         count: row.count,
-        chapters: camelcaseKeys(row.chapters),
+        chapters: row.chapters ? camelcaseKeys(row.chapters) : [],
       });
     });
 };

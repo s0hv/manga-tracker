@@ -3,12 +3,14 @@ import {
   DateTimePicker,
   DateTimePickerProps,
 } from '@mui/x-date-pickers/DateTimePicker';
+import { PickerValidDate } from '@mui/x-date-pickers/models';
 
 import { processCellEdit } from './useEditable';
 import { MaterialCellContext } from './types';
 
-export interface EditableDateTimePickerProps<TInputDate> extends Partial<DateTimePickerProps<TInputDate>> {
-  ctx: MaterialCellContext<any, TInputDate>
+export interface EditableDateTimePickerProps extends Partial<Omit<DateTimePickerProps, 'value'>> {
+  ctx: MaterialCellContext<any, PickerValidDate>
+  value: PickerValidDate | null | undefined
 }
 
 /**
@@ -16,7 +18,7 @@ export interface EditableDateTimePickerProps<TInputDate> extends Partial<DateTim
  * @param {Object} props Props given to the component
  * @param {Date?} props.value Initial date that the component will be set to
  */
-export default function EditableDateTimePicker<TInputDate>(props: EditableDateTimePickerProps<TInputDate>): React.ReactElement {
+export default function EditableDateTimePicker(props: EditableDateTimePickerProps): React.ReactElement {
   const {
     value,
     ctx: { table, cell },
@@ -25,10 +27,10 @@ export default function EditableDateTimePicker<TInputDate>(props: EditableDateTi
   } = props;
 
   // Undefined date is treated as current date. null is treated as no date
-  const [date, setDate] = React.useState<TInputDate | null>(value || null);
+  const [date, setDate] = React.useState<PickerValidDate | null>(value ?? null);
 
-  const handleChange = (newDate: TInputDate | null): void => {
-    processCellEdit(newDate as TInputDate, table.getState().rowEditState, cell);
+  const handleChange = (newDate: PickerValidDate | null): void => {
+    processCellEdit(newDate as PickerValidDate, table.getState().rowEditState, cell);
     setDate(newDate);
   };
 

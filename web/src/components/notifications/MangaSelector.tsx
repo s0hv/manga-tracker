@@ -80,9 +80,9 @@ const MangaSelector: FC<MangaSelectorProps> = ({
       });
   }, []);
 
-  const { data } = useQuery(['search-notif', query], doSearch, {
-    placeholderData: () => [],
-    keepPreviousData: true,
+  const { data } = useQuery({
+    queryKey: ['search-notif', query],
+    queryFn: doSearch,
   });
 
   const onInputChange = useCallback((e: SyntheticEvent, value: string | null) => {

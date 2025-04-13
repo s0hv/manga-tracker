@@ -1,7 +1,7 @@
 import {
   body,
+  type CustomValidator,
   matchedData,
-  type Meta,
   param,
   type ValidationChain,
 } from 'express-validator';
@@ -60,11 +60,11 @@ export default (app: Application) => {
   });
 
   /**
-   * @param {import('express-validator').ValidationChain} field
-   * @returns {import('express-validator').ValidationChain}
+   * @param {ValidationChain} field
+   * @returns {ValidationChain}
    */
-  const ifNotUseFollows = (field: ValidationChain) => field
-    .if((_: any, { req }: Meta) => req.body.useFollows !== true);
+  const ifNotUseFollows = (field: ValidationChain): ValidationChain => field
+    .if(((_, { req }) => req.body.useFollows !== true) satisfies CustomValidator);
 
   /**
    *  @openapi

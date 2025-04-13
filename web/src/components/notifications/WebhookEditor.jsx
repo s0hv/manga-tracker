@@ -1,33 +1,33 @@
 import CodeMirror from '@uiw/react-codemirror';
 import { json } from '@codemirror/lang-json';
-import { Form, Field } from 'react-final-form';
+import { Field, Form } from 'react-final-form';
 import {
-  Paper,
   Box,
-  FormLabel,
-  FormHelperText,
   FormControl,
+  FormHelperText,
+  FormLabel,
+  Paper,
 } from '@mui/material';
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { useSnackbar } from 'notistack';
 import { TextField } from 'mui-rff';
 import { ConfirmProvider } from 'material-ui-confirm';
 
 import { NotificationTypes } from '../../utils/constants';
 import {
-  FlexLayout,
-  RightSide,
   CollapsableLayout,
+  FlexLayout,
   NotificationTypeText,
+  RightSide,
 } from './Layout';
 import CSRFInput from '../utils/CSRFInput';
-import SaveButton from './SaveButton';
+import SaveButton from './SaveButton.js';
 import NameInput from './NameInput';
 import MangaSelector from './MangaSelector';
 import DeleteNotificationButton from './DeleteNotificationButton';
-import NotificationsForm from './NotificationsForm';
+import NotificationsForm from './NotificationsForm.js';
 import { postNotifications } from '../../api/notifications';
-import NotificationIdField from './NotificationIdField';
+import NotificationIdField from './NotificationIdField.js';
 import {
   buildNotificationData,
   mapNotificationFields,

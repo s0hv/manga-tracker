@@ -50,14 +50,17 @@ export const MangaServiceTable: FunctionComponent<MangaServiceTableProps> = (pro
     sx,
   } = props;
 
-  const { data: mangaServices, isFetching: mangaLoading, refetch } = useQuery([QueryKeys.MangaServices, mangaId],
-    { queryFn: (ctx: QueryFunctionContext<[string, MangaId]>) => getMangaServices(ctx.queryKey[1]), initialData: []});
-  const { data: services, isFetching: servicesLoading } = useQuery<ServiceForApi[], unknown, Record<number, ServiceForApi>>(QueryKeys.Services,
-    {
-      queryFn: getServices,
-      select: data => data.reduce((prev, service) => ({ ...prev, [service.serviceId]: service }), {}),
-      initialData: [],
-    });
+  const { data: mangaServices, isFetching: mangaLoading, refetch } = useQuery({
+    queryKey: [QueryKeys.MangaServices, mangaId],
+    queryFn: (ctx: QueryFunctionContext<[string, MangaId]>) => getMangaServices(ctx.queryKey[1]),
+    initialData: [],
+  });
+  const { data: services, isFetching: servicesLoading } = useQuery<ServiceForApi[], unknown, Record<number, ServiceForApi>>({
+    queryKey: QueryKeys.Services,
+    queryFn: getServices,
+    select: data => data.reduce((prev, service) => ({ ...prev, [service.serviceId]: service }), {}),
+    initialData: [],
+  });
 
   const loading = mangaLoading || servicesLoading;
   const { enqueueSnackbar } = useSnackbar();

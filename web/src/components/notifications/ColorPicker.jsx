@@ -1,8 +1,8 @@
 import { HexColorPicker } from 'react-colorful';
-import { useState, useRef, useCallback } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { TextField } from 'mui-rff';
 import { Box, InputAdornment, Popper } from '@mui/material';
-import { useForm, useField } from 'react-final-form';
+import { useField, useForm } from 'react-final-form';
 import PropTypes from 'prop-types';
 
 
@@ -50,11 +50,13 @@ const ColorPicker = ({
         onBlur={onBlur}
         onChange={onInputChange}
         inputRef={anchorEl}
-        InputProps={{
-          startAdornment: (
-            <InputAdornment position='start' onClick={() => setOpen(true)}>
-              <Box style={{ backgroundColor: color.value, width: '1em', height: '1em' }} />
-            </InputAdornment>),
+        slotProps={{
+          input: {
+            startAdornment: (
+              <InputAdornment position='start' onClick={() => setOpen(true)}>
+                <Box style={{ backgroundColor: color.value, width: '1em', height: '1em' }} />
+              </InputAdornment>),
+          },
         }}
       />
       <Popper

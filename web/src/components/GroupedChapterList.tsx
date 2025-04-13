@@ -113,6 +113,7 @@ export type GroupedChapterListProps = {
   groupToString: (group: string, arr: ChapterRelease[]) => string
   GroupComponent: React.ComponentType<GroupComponentProps>
   ChapterComponent: React.ComponentType<ChapterComponentProps>
+  loading?: boolean
   skeletons?: number
 }
 
@@ -122,6 +123,7 @@ export const GroupedChapterList: FC<GroupedChapterListProps> = ({
   groupToString = (group) => group,
   GroupComponent,
   ChapterComponent,
+  loading = false,
   skeletons,
 }) => {
   const [groupedChapters, setGroupedChapters] = useState<Group<ChapterRelease>[]>([]);
@@ -137,7 +139,7 @@ export const GroupedChapterList: FC<GroupedChapterListProps> = ({
 
   return (
     <Container maxWidth='lg' disableGutters>
-      {groupedChapters.length === 0 && skeletons && skeletonArray.map((_, i) => (
+      {loading && skeletons && skeletonArray.map((_, i) => (
         // eslint-disable-next-line react/no-array-index-key
         <ChapterGroupBase groupString={<Skeleton width='75%' />} key={`${i}`}>
           <div style={{ display: 'flex' }}>
@@ -152,7 +154,7 @@ export const GroupedChapterList: FC<GroupedChapterListProps> = ({
           </div>
         </ChapterGroupBase>
       ))}
-      {groupedChapters.map((group, idx) => (
+      {!loading && groupedChapters.map((group, idx) => (
         <GroupComponent
           groupString={groupToString(group.group, group.arr)}
           group={group.group}

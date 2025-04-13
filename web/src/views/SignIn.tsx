@@ -216,7 +216,7 @@ export default function SignIn({ providers, error: errorType }: SignInProps): Re
                     Sign In
                   </Button>
                   <Grid container>
-                    <Grid item>
+                    <Grid>
                       <Link href='#' variant='body2'>
                         To sign up login with your service of choice.
                         Creating traditional email + password accounts is not possible.

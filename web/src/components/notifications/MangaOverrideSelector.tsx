@@ -72,18 +72,19 @@ const MangaOverrideSelector: FC<MangaOverrideSelectorProps> = ({
   const { input: selectedManga } = useField('manga');
 
   const useFollows = typeof useFollowsInput.value === 'boolean' ? useFollowsInput.value : false;
-  const renderOption = useCallback((props: object, option: NotificationFollow) => {
+  const renderOption = useCallback((props: any, option: NotificationFollow) => {
     return (
       // eslint-disable-next-line jsx-a11y/role-supports-aria-props
-      <li {...props} aria-selected={overrides.has(option.mangaId) ? 'true' : 'false'}>
+      <li {...props} key={props.key as string} aria-selected={overrides.has(option.mangaId) ? 'true' : 'false'}>
         {getOptionLabelNoService(option)}
       </li>
     );
   }, [overrides]);
 
-  const { data } = useQuery(QueryKeys.NotificationFollows, getNotificationFollows, {
+  const { data } = useQuery({
+    queryKey: QueryKeys.NotificationFollows,
+    queryFn: getNotificationFollows,
     placeholderData: () => [],
-    keepPreviousData: true,
     staleTime: 1000*30,
   });
 

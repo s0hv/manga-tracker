@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { IconButton, InputBase, Popper } from '@mui/material';
+import { Box, IconButton, InputBase, Popper } from '@mui/material';
 import { alpha, styled } from '@mui/material/styles';
 import Autocomplete from '@mui/material/Autocomplete';
 import PropTypes from 'prop-types';
@@ -122,10 +122,10 @@ export default function MangaSearch(props) {
     };
   }, [value, throttleFetch]);
 
-  const defaultRenderListOption = useCallback((renderProps, option) => (
-    <li {...renderProps}>
+  const defaultRenderListOption = useCallback(({ key, ...renderProps }, option) => (
+    <Box key={key} component='li' {...renderProps}>
       <ListItem>{option.title}</ListItem>
-    </li>
+    </Box>
   ), []);
 
   const renderListOption = renderItem || defaultRenderListOption;
@@ -146,7 +146,9 @@ export default function MangaSearch(props) {
       id={id}
       value={null}
       onChange={handleValueChange}
-      PopperComponent={BottomEndPopper}
+      slots={{
+        popper: BottomEndPopper,
+      }}
       onInputChange={handleChange}
       inputValue={value}
       freeSolo

@@ -14,7 +14,7 @@ import {
   restoreMocks,
   silenceConsole,
 } from '../utils';
-import Notifications from '../../src/views/Notifications';
+import Notifications from '@/views/Notifications';
 
 const Root = ({ children }: PropsWithChildren) => (
   <QueryClientProvider client={queryClient}>

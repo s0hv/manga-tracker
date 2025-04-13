@@ -89,7 +89,7 @@ export default function nextauth(req: NextApiRequest & Request, res: NextApiResp
         async authorize(credentials) {
           if (!credentials) return null;
 
-          const ratelimit = await limiterSlowBruteByIP.get(req.ip);
+          const ratelimit = await limiterSlowBruteByIP.get(req.ip ?? '');
 
           if (ratelimit !== null && ratelimit.remainingPoints <= 0) {
             throw new Error('Ratelimited. Try again later');
@@ -98,7 +98,7 @@ export default function nextauth(req: NextApiRequest & Request, res: NextApiResp
           return authenticate(credentials.email, credentials.password)
             .then(user => {
               if (!user) {
-                return limiterSlowBruteByIP.consume(req.ip)
+                return limiterSlowBruteByIP.consume(req.ip ?? '')
                   .then(() => null)
                   .catch(() => null);
               }

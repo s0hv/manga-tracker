@@ -1,29 +1,31 @@
-import { query, param } from 'express-validator';
+import { param, query } from 'express-validator';
 
+import type { Application, Request, Response } from 'express-serve-static-core';
 import { db } from '@/db/helpers';
 import { handleError } from '@/db/utils';
 import { getChapters } from '@/db/chapter';
 import { getOptionalNumberParam } from '../utils/utilities';
 import {
-  mangaIdValidation,
-  hadValidationError,
-  validateAdminUser,
   databaseIdValidation,
+  hadValidationError,
   handleValidationErrors,
+  mangaIdValidation,
+  validateAdminUser,
 } from '../utils/validators';
 import { getFullManga, getMangaForElastic } from '@/db/manga';
-import { updateManga, deleteManga } from '@/db/elasticsearch/manga';
+import { deleteManga, updateManga } from '@/db/elasticsearch/manga';
 import { dbLogger } from '../utils/logging.js';
+import type { SortBy } from '@/types/db/common';
 
 const BASE_URL = '/api/manga';
 
-export default app => {
+export default (app: Application) => {
   app.post('/api/manga/merge', [
     validateAdminUser(),
     databaseIdValidation(query('base')),
     databaseIdValidation(query('toMerge')),
     databaseIdValidation(query('service')).optional(),
-  ], (req, res) => {
+  ], (req: Request, res: Response) => {
     if (hadValidationError(req, res)) return;
 
     if (req.query.base === req.query.toMerge) {
@@ -31,24 +33,35 @@ export default app => {
       return;
     }
 
-    return db.oneOrNone`SELECT * FROM merge_manga(${req.query.base}, ${req.query.toMerge}, ${req.query.service || null})`
+    const {
+      base,
+      toMerge,
+      service = null,
+    } = req.query as {
+      base: string,
+      toMerge: string,
+      service?: string | null,
+    };
+
+    db.oneOrNone`SELECT * FROM merge_manga(${base}, ${toMerge}, ${service as string || null})`
       .then(row => {
         if (!row) {
-          return res.status(500).json({ error: 'No modifications done' });
+          res.status(500).json({ error: 'No modifications done' });
+          return;
         }
 
         // Delete old manga only if full merge
         if (!req.query.service) {
-          deleteManga(req.query.toMerge)
+          deleteManga(toMerge)
             .then(() => dbLogger.info('Deleted manga %s from elasticsearch', req.query.toMerge))
             .catch(err => dbLogger.error(err, 'Failed to delete manga from elasticsearch'));
         } else {
-          getMangaForElastic(req.query.toMerge)
+          getMangaForElastic(toMerge)
             .then(manga => updateManga(manga.mangaId, manga))
             .catch(err => dbLogger.error(err, 'Failed to update merged manga to elasticsearch'));
         }
 
-        return getMangaForElastic(req.query.base)
+        return getMangaForElastic(base)
           .then(manga => updateManga(manga.mangaId, manga)
             .catch(err => dbLogger.error(err, 'Failed to update elasticsearch')))
           .finally(() => res.status(200).json(row));
@@ -90,7 +103,7 @@ export default app => {
   app.get('/api/manga/:mangaId', [
     mangaIdValidation(param('mangaId')),
     handleValidationErrors,
-  ], (req, res) => {
+  ], (req: Request, res: Response) => {
     getFullManga(req.params.mangaId)
       .then(manga => {
         if (!manga) {
@@ -202,7 +215,7 @@ export default app => {
       .isIn(['asc', 'desc'])
       .withMessage('Sorting direction must be one of "asc" or "desc"'),
     handleValidationErrors,
-  ], (req, res) => {
+  ], (req: Request, res: Response) => {
     const mangaId = Number(req.params.mangaId);
     let limit;
     let offset;
@@ -219,7 +232,7 @@ export default app => {
       return;
     }
 
-    const sortBy = [];
+    const sortBy: SortBy[] = [];
     const isDesc = req.query.sort === 'desc';
 
     if (req.query.sortBy === 'chapter_number') {
@@ -234,7 +247,7 @@ export default app => {
       });
     } else if (req.query.sortBy) {
       sortBy.push({
-        col: req.query.sortBy,
+        col: req.query.sortBy as string,
         desc: isDesc,
         nullsLast: isDesc,
       });

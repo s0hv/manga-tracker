@@ -69,12 +69,13 @@ function TopBar() {
     window.sessionStorage.setItem('previousPage', router.asPath);
   }, [router.asPath]);
 
-  const handleThemeChange = (): Theme => {
+  const handleThemeChange = useCallback((): Theme => {
     const currentMode = mode === 'system' ? systemMode : mode;
     const val = currentMode === 'light' ? 'dark' : 'light';
+    console.log(val);
     setMode(val);
     return val;
-  };
+  }, [mode, setMode, systemMode]);
 
   return (
     <Root>

@@ -63,7 +63,13 @@ function Follows(props: FollowProps) {
     const followedServices = follow.followedServices;
 
     return (
-      <Grid item xs={12/columnsXs} md={12/columnsMd} key={follow.mangaId}>
+      <Grid
+        key={follow.mangaId}
+        size={{
+          xs: 12/columnsXs,
+          md: 12/columnsMd,
+        }}
+      >
         <Typography
           sx={{ pt: 2, pl: 2 }}
           variant='h4'

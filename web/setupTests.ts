@@ -56,7 +56,7 @@ Token.prototype.secretSync = () => 'secret';
 
 vi.mock('next');
 vi.mock('next/router');
-vi.mock('@next/font/google', () => {
+vi.mock('next/font/google', () => {
   return {
     Roboto: vi.fn().mockReturnValue({ style: { fontFamily: 'test' }}),
   };
@@ -92,7 +92,7 @@ vi.mock('@mui/material/styles', async () => {
               ...theme,
             };
 
-            cachedTheme.vars = (theme as any).colorSchemes.dark;
+            cachedTheme.vars = theme.colorSchemes.dark;
             cachedTheme.getColorSchemeSelector = () => 'test';
           }
           obj.theme = cachedTheme;

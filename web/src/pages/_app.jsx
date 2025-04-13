@@ -1,8 +1,5 @@
 import { CssBaseline } from '@mui/material';
-import {
-  StyledEngineProvider,
-  Experimental_CssVarsProvider as CssVarsProvider,
-} from '@mui/material/styles';
+import { StyledEngineProvider, ThemeProvider, } from '@mui/material/styles';
 import { DefaultSeo } from 'next-seo';
 import { CacheProvider } from '@emotion/react';
 import NextNProgress from 'nextjs-progressbar';
@@ -10,6 +7,7 @@ import NextNProgress from 'nextjs-progressbar';
 import Head from 'next/head';
 import { SnackbarProvider } from 'notistack';
 import React, { useEffect } from 'react';
+import { AppCacheProvider } from '@mui/material-nextjs/v15-pagesRouter';
 
 import Root from '../components/Root';
 
@@ -23,7 +21,9 @@ import createEmotionCache from '../utils/createEmotionCache';
 const clientSideEmotionCache = createEmotionCache();
 
 
-function MainApp({ Component, pageProps = {}, emotionCache = clientSideEmotionCache, props }) {
+function MainApp(allProps) {
+  const { Component, pageProps = {}, emotionCache = clientSideEmotionCache, props } = allProps;
+
   const [user, setUser] = React.useState(props.user);
   const [csrf, setCsrf] = React.useState(props._csrf);
 
@@ -55,31 +55,33 @@ function MainApp({ Component, pageProps = {}, emotionCache = clientSideEmotionCa
           <Component {...pageProps} />
         </main>
       ) : (
-        <CacheProvider value={emotionCache}>
-          <StyledEngineProvider injectFirst>
-            <CssVarsProvider theme={theme} defaultMode='system'>
-              <NextNProgress />
-              <CssBaseline />
-              {pageProps.staticPage ? (
-                <main>
-                  <Component {...pageProps} />
-                </main>
-              ) : (
-                <SnackbarProvider>
-                  <UserProvider value={user}>
-                    <CSRFProvider value={csrf}>
-                      <Root {...props}>
-                        <main>
-                          <Component {...pageProps} />
-                        </main>
-                      </Root>
-                    </CSRFProvider>
-                  </UserProvider>
-                </SnackbarProvider>
-              )}
-            </CssVarsProvider>
-          </StyledEngineProvider>
-        </CacheProvider>
+        <AppCacheProvider {...allProps}>
+          <CacheProvider value={emotionCache}>
+            <StyledEngineProvider injectFirst>
+              <ThemeProvider theme={theme} defaultMode='system'>
+                <NextNProgress />
+                <CssBaseline />
+                {pageProps.staticPage ? (
+                  <main>
+                    <Component {...pageProps} />
+                  </main>
+                ) : (
+                  <SnackbarProvider>
+                    <UserProvider value={user}>
+                      <CSRFProvider value={csrf}>
+                        <Root {...props}>
+                          <main>
+                            <Component {...pageProps} />
+                          </main>
+                        </Root>
+                      </CSRFProvider>
+                    </UserProvider>
+                  </SnackbarProvider>
+                )}
+              </ThemeProvider>
+            </StyledEngineProvider>
+          </CacheProvider>
+        </AppCacheProvider>
       )}
     </>
   );

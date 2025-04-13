@@ -62,7 +62,7 @@ export default (app: Express) => {
           res.status(401).json({ error: 'Invalid password' });
           return;
         }
-        // Force refetch afater update
+        // Force refetch after update
         app.sessionStore.deleteUserFromCache(req.user!.id);
         res.json({ message: 'success' });
       })

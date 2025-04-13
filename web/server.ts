@@ -43,10 +43,10 @@ export default nextApp.prepare()
     };
     if (isDev) {
       // unsafe-eval required for fast refresh
-      directives.scriptSrc = "'self' 'unsafe-eval' 'sha256-6k13i7If3TvAai1sXmN5y2hfMfidi1GAP6UXk1irAMM='";
+      directives.scriptSrc = "'self' 'unsafe-eval' 'sha256-bNSwnlUSaw2xmSzuYfrGARS7W41eM5ASRo8PpkcVmCs='";
     } else {
       // sha is for script injected by getInitColorSchemeScript inside _document.tsx
-      directives.scriptSrc = "'self' 'sha256-6k13i7If3TvAai1sXmN5y2hfMfidi1GAP6UXk1irAMM='";
+      directives.scriptSrc = "'self' 'sha256-bNSwnlUSaw2xmSzuYfrGARS7W41eM5ASRo8PpkcVmCs='";
     }
 
     server.use(helmet({
