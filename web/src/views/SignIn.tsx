@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import {
   Alert,
   Avatar,
+  Box,
   Button,
   Container,
   Divider,
@@ -10,30 +11,25 @@ import {
   Typography,
 } from '@mui/material';
 import NextLink from 'next/link';
-import { LockOutlined as LockOutlinedIcon } from '@mui/icons-material';
-import { styled, useColorScheme } from '@mui/material/styles';
-import { Form } from 'react-final-form';
-import { Checkboxes, TextField } from 'mui-rff';
+import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
+import { useColorScheme } from '@mui/material/styles';
+import { CheckboxElement, TextFieldElement } from 'react-hook-form-mui';
 import type {
   BuiltInProviderType,
   OAuthProviderButtonStyles,
 } from 'next-auth/providers';
 import type { ClientSafeProvider, LiteralUnion } from 'next-auth/react/types';
 import { signIn } from 'next-auth/react';
+import { type SubmitHandler, useForm } from 'react-hook-form';
 import type { DefaultExcept } from '@/types/utility';
 
 import styles from './SignIn.module.css';
 
-const Root = styled('div')(({ theme }) => ({
-  marginTop: theme.spacing(8),
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'center',
-}));
-
-const SignInForm = styled('form')(({ theme }) => ({
-  marginTop: theme.spacing(1),
-}));
+type SignInFormValues = {
+  email: string
+  password: string
+  rememberme?: boolean
+}
 
 // https://github.com/nextauthjs/next-auth/blob/f6bb16b264f43a0afdbc6c26a2db6cd5c8e6030d/packages/core/src/types.ts#L294
 export type SignInPageErrorParam =
@@ -134,9 +130,30 @@ export default function SignIn({ providers, error: errorType }: SignInProps): Re
     (signinErrors[errorType.toLowerCase() as Lowercase<SignInPageErrorParam>] ??
       signinErrors.default);
 
+  const { control, handleSubmit } = useForm<SignInFormValues>();
+
+  const onSignIn = useCallback<SubmitHandler<SignInFormValues>>(values => {
+    const previousPage = window.sessionStorage.getItem('previousPage') ?? undefined;
+    return signIn(
+      'credentials',
+      {
+        email: values.email,
+        password: values.password,
+        callbackUrl: previousPage,
+        rememberme: values.rememberme,
+      }
+    );
+  }, []);
+
   return (
     <Container component='main' maxWidth='xs' className={styles.container}>
-      <Root>
+      <Box sx={{
+        marginTop: 8,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+      }}
+      >
         <Avatar sx={{ m: 1, backgroundColor: 'secondary.main' }}>
           <LockOutlinedIcon />
         </Avatar>
@@ -169,66 +186,64 @@ export default function SignIn({ providers, error: errorType }: SignInProps): Re
         {hasCredentials && (
           <>
             <Divider flexItem variant='middle'>OR</Divider>
-            <Form onSubmit={(values) => {
-              const previousPage = window.sessionStorage.getItem('previousPage') ?? undefined;
-              return signIn('credentials', { email: values.email, password: values.password, callbackUrl: previousPage, rememberme: values.rememberme });
-            }}
+            <Box
+              component='form'
+              sx={{ mt: 1 }}
+              onSubmit={handleSubmit(onSignIn)}
             >
-              {({ handleSubmit }) => (
-                <SignInForm
-                  onSubmit={handleSubmit}
-                >
-                  <TextField
-                    variant='outlined'
-                    margin='normal'
-                    required
-                    fullWidth
-                    id='email'
-                    label='Email Address'
-                    name='email'
-                    type='email'
-                    autoComplete='email'
-                  />
-                  <TextField
-                    variant='outlined'
-                    margin='normal'
-                    required
-                    fullWidth
-                    name='password'
-                    label='Password'
-                    type='password'
-                    id='password'
-                    autoComplete='current-password'
-                  />
-                  <Checkboxes
-                    name='rememberme'
-                    id='rememberme'
-                    color='primary'
-                    data={{ label: 'Remember me', value: 'true' }}
-                  />
-                  <Button
-                    type='submit'
-                    fullWidth
-                    variant='contained'
-                    color='primary'
-                    sx={{ mt: 3, mb: 2 }}
-                  >
-                    Sign In
-                  </Button>
-                  <Grid container>
-                    <Grid>
-                      <Link href='#' variant='body2'>
-                        To sign up login with your service of choice.
-                        Creating traditional email + password accounts is not possible.
-                      </Link>
-                    </Grid>
-                  </Grid>
-                </SignInForm>
-              )}
-            </Form>
+              <TextFieldElement
+                control={control}
+                variant='outlined'
+                margin='normal'
+                required
+                fullWidth
+                id='email'
+                label='Email Address'
+                name='email'
+                type='email'
+                autoComplete='email'
+              />
+              <TextFieldElement
+                control={control}
+                variant='outlined'
+                margin='normal'
+                required
+                fullWidth
+                name='password'
+                label='Password'
+                type='password'
+                id='password'
+                autoComplete='current-password'
+              />
+              <CheckboxElement
+                control={control}
+                name='rememberme'
+                id='rememberme'
+                color='primary'
+                label='Remember me'
+                value='true'
+              />
+              <Button
+                type='submit'
+                fullWidth
+                variant='contained'
+                color='primary'
+                sx={{ mt: 3, mb: 2 }}
+              >
+                Sign In
+              </Button>
+              <Grid container>
+                <Grid>
+                  <Link href='#' variant='body2'>
+                    To sign up login with your service of choice.
+                    Creating traditional email + password accounts is not possible.
+                  </Link>
+                </Grid>
+              </Grid>
+            </Box>
           </>
         )}
-      </Root>
+      </Box>
     </Container>
   );
 }

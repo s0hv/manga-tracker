@@ -5,12 +5,12 @@ import fetchMock from 'fetch-mock';
 import { ConfirmProvider } from 'material-ui-confirm';
 import { vi } from 'vitest';
 
-import { Form, Field } from 'react-final-form';
+import { FormContainer } from 'react-hook-form-mui';
 import {
-  queryClient,
-  mockNotistackHooks,
-  expectSuccessSnackbar,
   expectErrorSnackbar,
+  expectSuccessSnackbar,
+  mockNotistackHooks,
+  queryClient,
   silenceConsole,
 } from '../../utils';
 import DeleteNotificationButton
@@ -19,15 +19,14 @@ import DeleteNotificationButton
 const Root = ({ notificationId, children }) => (
   <QueryClientProvider client={queryClient}>
     <ConfirmProvider>
-      <Form
-        onSubmit={vi.fn()}
-        render={() => (
-          <form>
-            <Field name='notificationId' initialValue={notificationId} render={() => 'test'} />
-            {children}
-          </form>
-        )}
-      />
+      <FormContainer
+        onSuccess={vi.fn()}
+        defaultValues={{
+          notificationId,
+        }}
+      >
+        {children}
+      </FormContainer>
     </ConfirmProvider>
   </QueryClientProvider>
 );

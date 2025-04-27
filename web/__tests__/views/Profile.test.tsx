@@ -13,7 +13,7 @@ import {
   restoreMocks,
   silenceConsole,
 } from '../utils';
-import Profile from '../../src/views/Profile';
+import Profile from '@/views/Profile';
 
 beforeEach(() => mockNotistackHooks());
 

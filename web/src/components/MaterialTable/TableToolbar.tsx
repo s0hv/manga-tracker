@@ -7,7 +7,7 @@ import React, {
 
 import PropTypes from 'prop-types';
 import { IconButton, Toolbar, Tooltip, Typography } from '@mui/material';
-import { Add as AddIcon } from '@mui/icons-material';
+import AddIcon from '@mui/icons-material/Add';
 
 
 export type DialogComponentProps = {

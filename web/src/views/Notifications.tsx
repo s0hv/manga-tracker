@@ -54,7 +54,10 @@ const Notifications = () => {
 
   return (
     <Container sx={{
-      width: 'min-content',
+      width: {
+        md: 'min-content',
+        lg: '1100px',
+      },
     }}
     >
       <ResponsiveBox>

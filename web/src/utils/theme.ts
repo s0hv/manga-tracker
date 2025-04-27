@@ -8,7 +8,6 @@ export const roboto = Roboto({
   weight: ['300', '400', '500', '700'],
   subsets: ['latin'],
   display: 'swap',
-  variable: '--font-roboto',
   fallback: ['Helvetica', 'Arial', 'sans-serif'],
 });
 
@@ -39,7 +38,7 @@ export const theme = responsiveFontSizes(createTheme({
     },
   },
   typography: {
-    fontFamily: 'var(--font-roboto)',
+    fontFamily: roboto.style.fontFamily,
   },
 }));
 

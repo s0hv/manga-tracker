@@ -3,8 +3,7 @@ import { Checkbox, Paper, SxProps, TableContainer } from '@mui/material';
 import { useSnackbar } from 'notistack';
 import { type QueryFunctionContext, useQuery } from '@tanstack/react-query';
 
-import { Select, type SelectData, TextField } from 'mui-rff';
-import { useCSRF } from '@/webUtils/csrf';
+import { SelectElement, TextFieldElement } from 'react-hook-form-mui';
 import {
   AddRowFormTemplate,
   defaultOnSaveRow,
@@ -21,7 +20,7 @@ import {
 import { QueryKeys } from '@/webUtils/constants';
 import type { MangaId } from '@/types/dbTypes';
 import { getServices } from '../../api/services';
-import type { MangaService } from '@/types/api/manga';
+import type { MangaService, MangaServiceCreateData } from '@/types/api/manga';
 import type {
   MaterialCellContext,
   MaterialColumnDef,
@@ -30,10 +29,15 @@ import type {
 import { createColumnHelper } from '../MaterialTable/utilities';
 import type { ServiceForApi } from '@/types/api/services';
 import type { DialogComponentProps } from '../MaterialTable/TableToolbar';
+import type { SelectOption } from '@/types/utility';
 
 export type MangaServiceTableProps = {
   mangaId: MangaId
   sx?: SxProps
+}
+
+type MangaServiceForm = MangaServiceCreateData & {
+  serviceId: string
 }
 
 const columnHelper = createColumnHelper<MangaService>();
@@ -64,7 +68,6 @@ export const MangaServiceTable: FunctionComponent<MangaServiceTableProps> = (pro
 
   const loading = mangaLoading || servicesLoading;
   const { enqueueSnackbar } = useSnackbar();
-  const csrf = useCSRF();
 
   const onSaveRow = useCallback((state: Partial<MangaService>, ctx: MaterialCellContext<MangaService, unknown>) => {
     const keys = Object.keys(state);
@@ -73,10 +76,10 @@ export const MangaServiceTable: FunctionComponent<MangaServiceTableProps> = (pro
     const { row } = ctx;
     defaultOnSaveRow(state, ctx);
 
-    updateMangaService(csrf, row.original.mangaId, row.original.serviceId, state)
+    updateMangaService(row.original.mangaId, row.original.serviceId, state)
       .then(() => enqueueSnackbar('Updated manga service', { variant: 'success' }))
       .catch((e) => enqueueSnackbar(`'Failed to update manga service. ${e}`, { variant: 'error' }));
-  }, [csrf, enqueueSnackbar]);
+  }, [enqueueSnackbar]);
 
   const columns = useMemo((): MaterialColumnDef<MangaService, any>[] => [
     columnHelper.accessor('serviceId', {
@@ -123,7 +126,7 @@ export const MangaServiceTable: FunctionComponent<MangaServiceTableProps> = (pro
 
   // Table layout
   const fields = useMemo(() => {
-    const data: SelectData[] = Object
+    const options: SelectOption[] = Object
       .values(services)
       .map(s => ({
         label: s.name,
@@ -132,30 +135,35 @@ export const MangaServiceTable: FunctionComponent<MangaServiceTableProps> = (pro
       }));
 
     return [
-      <Select
+      <SelectElement
         name='serviceId'
         key='serviceId'
         label='Service'
-        SelectDisplayProps={{ 'aria-label': 'Service select' }}
-        data={data}
+        aria-label='Service select'
+        valueKey='value'
+        options={options}
         required
+        sx={{ width: '100%' }}
+        fullWidth
       />,
-      <TextField
+      <TextFieldElement
         name='titleId'
         key='titleId'
         label='Title id'
         required
+        fullWidth
       />,
-      <TextField
+      <TextFieldElement
         name='feedUrl'
         key='feedUrl'
         label='Feed URL'
+        fullWidth
       />,
     ];
   }, [services, mangaServices]);
 
-  const onCreateRow = useCallback((form: any) => {
-    return createMangaService(csrf, mangaId, form.serviceId, form)
+  const onCreateRow = useCallback((form: MangaServiceForm) => {
+    return createMangaService(mangaId, form.serviceId, form)
       .then(() => refetch())
       .then(() => {
         enqueueSnackbar(
@@ -164,14 +172,14 @@ export const MangaServiceTable: FunctionComponent<MangaServiceTableProps> = (pro
         );
       })
       .catch(err => enqueueSnackbar(err.message, { variant: 'error' }));
-  }, [csrf, mangaId, refetch, enqueueSnackbar]);
+  }, [mangaId, refetch, enqueueSnackbar]);
 
-  // The component is memoized with useMemo. I don't see a problem
+  // The component is memoized with useMemo. I don't see a problem.
   // eslint-disable-next-line react/no-unstable-nested-components
   const CreateDialog = useMemo(() => ({ open, onClose }: DialogComponentProps) => (
     <AddRowFormTemplate
       fields={fields}
-      onSubmit={onCreateRow}
+      onSuccess={onCreateRow}
       onClose={onClose}
       open={open}
     />

@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { QueryClientProvider } from '@tanstack/react-query';
 import fetchMock from 'fetch-mock';
 import { ConfirmProvider } from 'material-ui-confirm';
-import { Form } from 'react-final-form';
+import { FormContainer } from 'react-hook-form-mui';
 import type { FC, PropsWithChildren } from 'react';
 import { vi } from 'vitest';
 
@@ -19,14 +19,15 @@ const overrideName = 'overrideId';
 const Root: FC<PropsWithChildren<{ selectedManga?: NotificationFollow[] }>> = ({ selectedManga, children }) => (
   <QueryClientProvider client={queryClient}>
     <ConfirmProvider>
-      <Form
-        onSubmit={vi.fn()}
-        initialValues={{
+      <FormContainer
+        onSuccess={vi.fn()}
+        defaultValues={{
           [inputName]: selectedManga,
           [overrideName]: null,
         }}
-        render={() => children}
-      />
+      >
+        {children}
+      </FormContainer>
     </ConfirmProvider>
   </QueryClientProvider>
 );

@@ -1,9 +1,7 @@
 import React, { useCallback } from 'react';
-import {
-  Brightness3 as MoonIcon,
-  Home as HomeIcon,
-  WbSunny as SunIcon,
-} from '@mui/icons-material';
+import MoonIcon from '@mui/icons-material/Brightness3';
+import HomeIcon from '@mui/icons-material/Home';
+import SunIcon from '@mui/icons-material/WbSunny';
 import { AppBar, Button, IconButton, Toolbar, Typography } from '@mui/material';
 import { styled, useColorScheme } from '@mui/material/styles';
 import NextLink from 'next/link';

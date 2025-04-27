@@ -1,5 +1,5 @@
 import { styled } from '@mui/material/styles';
-import { DoubleArrow as DoubleArrowIcon } from '@mui/icons-material';
+import DoubleArrowIcon from '@mui/icons-material/DoubleArrow';
 
 import React, { useCallback } from 'react';
 import {
@@ -7,12 +7,11 @@ import {
   List,
   ListItem,
   ListItemText,
-  Typography,
   Tooltip,
+  Typography,
 } from '@mui/material';
 
 import PropTypes from 'prop-types';
-import { useCSRF } from '../utils/csrf';
 import { useUser } from '../utils/useUser';
 import { updateMangaTitle } from '../api/admin/manga';
 
@@ -34,7 +33,6 @@ const MangaAliases = (props) => {
 
   const { isAdmin } = useUser();
   const autoHideDuration = 8000;
-  const csrf = useCSRF();
 
   const onAliasPromote = useCallback((title) => {
     confirm({
@@ -42,7 +40,7 @@ const MangaAliases = (props) => {
       confirmationText: 'Yes',
       cancellationText: 'No',
     }).then(() => {
-      updateMangaTitle(csrf, mangaId, title)
+      updateMangaTitle(mangaId, title)
         .then(json => {
           enqueueSnackbar(
             `Set "${title}" as the main title. ${json.message}`,
@@ -57,7 +55,7 @@ const MangaAliases = (props) => {
         ));
     })
       .catch(() => {});
-  }, [enqueueSnackbar, mangaId, onTitleUpdate, confirm, csrf]);
+  }, [enqueueSnackbar, mangaId, onTitleUpdate, confirm]);
 
   if (!aliases || aliases.length === 0) return null;
 

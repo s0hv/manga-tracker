@@ -1,6 +1,5 @@
 import express, { type NextFunction } from 'express';
 import next_ from 'next';
-import csrf from 'csurf';
 import helmet from 'helmet';
 import pinoHttp from 'pino-http';
 import cookieParser from 'cookie-parser';
@@ -57,6 +56,9 @@ export default nextApp.prepare()
       crossOriginResourcePolicy: false,
       crossOriginEmbedderPolicy: false,
       hsts: !isDev && !isCypress,
+      referrerPolicy: {
+        policy: 'strict-origin',
+      },
     }));
     if (reverseProxy) server.set('trust proxy', process.env.TRUST_PROXY);
 
@@ -93,14 +95,22 @@ export default nextApp.prepare()
     })); */
 
     // cookie: true is vulnerable and should not be used
-    const csrfMiddleware = csrf({ cookie: false });
     server.use((req, res, next) => {
       if (req.originalUrl.startsWith('/api/auth/') || req.originalUrl.startsWith('/_next/static/')) return next();
 
-      // CSRF won't work for non-logged-in users as sessions are only created when
-      // logging in. This shouldn't be a problem since all methods that require
-      // CSRF protection also require signing in (except for next auth paths).
-      csrfMiddleware(req, res, next);
+      // https://lucia-auth.com/sessions/cookies/#csrf-protection
+      if (req.method !== 'GET') {
+        const origin = req.header('Origin');
+        // You can also compare it against the Host or X-Forwarded-Host header.
+        if (origin === null || origin !== process.env.BASE_URL) {
+          res.status(403).json({
+            error: csrfMissing,
+          });
+          return;
+        }
+      }
+
+      next();
     });
 
     if (!isTest && !isCypress) {

@@ -1,19 +1,16 @@
 import { IconButton, Menu, MenuItem } from '@mui/material';
-import {
-  AccountCircle,
-  Bookmarks as BookmarksIcon,
-  Brightness3 as MoonIcon,
-  ExitToApp as ExitToAppIcon,
-  Notifications as NotificationsIcon,
-  Person as PersonIcon,
-  ViewList as ViewListIcon,
-  WbSunny as SunIcon,
-} from '@mui/icons-material';
+import AccountCircle from '@mui/icons-material/AccountCircle';
+import BookmarksIcon from '@mui/icons-material/Bookmarks';
+import MoonIcon from '@mui/icons-material/Brightness3';
+import ExitToAppIcon from '@mui/icons-material/ExitToApp';
+import NotificationsIcon from '@mui/icons-material/Notifications';
+import PersonIcon from '@mui/icons-material/Person';
+import ViewListIcon from '@mui/icons-material/ViewList';
+import SunIcon from '@mui/icons-material/WbSunny';
 import React, { type FC, useCallback } from 'react';
 import { styled, useColorScheme } from '@mui/material/styles';
 import { signOut } from 'next-auth/react';
 import { updateUserTheme } from '../../api/user';
-import { useCSRF } from '@/webUtils/csrf';
 import type { Theme } from '@/types/dbTypes';
 import { LinkComponent } from '@/components/TopBar/LinkComponent';
 import { useUser } from '@/webUtils/useUser';
@@ -46,7 +43,6 @@ export const UserMenu: FC<UserMenuProps> = ({ handleThemeChange }) => {
   const open = Boolean(anchorEl);
   const { mode, systemMode } = useColorScheme();
   const nextMode = (mode === 'system' ? systemMode : mode) === 'light' ? 'dark' : 'light';
-  const csrf = useCSRF();
   const { user } = useUser();
 
   const handleClick = useCallback((event?: React.MouseEvent<HTMLButtonElement>) => {
@@ -61,9 +57,9 @@ export const UserMenu: FC<UserMenuProps> = ({ handleThemeChange }) => {
     handleClose();
     const val = handleThemeChange();
 
-    updateUserTheme(csrf, val)
+    updateUserTheme(val)
       .catch(console.error);
-  }, [csrf, handleClose, handleThemeChange]);
+  }, [handleClose, handleThemeChange]);
 
   return (
     <ProfileIconContainer>

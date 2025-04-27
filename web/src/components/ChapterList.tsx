@@ -8,7 +8,6 @@ import React, {
 import { Link, Paper, TableContainer } from '@mui/material';
 import { useSnackbar } from 'notistack';
 import type { SortingState, TableOptions } from '@tanstack/react-table';
-import { useCSRF } from '../utils/csrf';
 
 import { defaultOnSaveRow, MaterialTable } from './MaterialTable';
 import { defaultDateFormat } from '../utils/utilities';
@@ -69,7 +68,6 @@ function ChapterList(props: ChapterListProps): ReactElement {
   const [count, setCount] = useState<number>(initialChapters?.length || 0);
   const [loading, setLoading] = useState<boolean>(false);
   const { enqueueSnackbar } = useSnackbar();
-  const csrf = useCSRF();
 
   useEffect(() => setChapters(initialChapters || []), [initialChapters]);
 
@@ -100,23 +98,23 @@ function ChapterList(props: ChapterListProps): ReactElement {
 
     defaultOnSaveRow(state, ctx);
 
-    updateChapter(csrf, ctx.row.original.chapterId, state)
+    updateChapter(ctx.row.original.chapterId, state)
       .then(handleResponse)
       .catch(err => {
         enqueueSnackbar(err.message, { variant: 'error' });
       });
-  }, [csrf, handleResponse, enqueueSnackbar]);
+  }, [handleResponse, enqueueSnackbar]);
 
   const onDeleteRow = useCallback<RowChangeAction<MangaChapterWithUrl>>(({ row }) => {
     const id = row.original.chapterId;
     setChapters(chapters.filter(c => c.chapterId !== id));
 
-    deleteChapter(csrf, id)
+    deleteChapter(id)
       .then(handleResponse)
       .catch(err => {
         enqueueSnackbar(err.message, { variant: 'error' });
       });
-  }, [chapters, csrf, handleResponse, enqueueSnackbar]);
+  }, [chapters, handleResponse, enqueueSnackbar]);
 
   const columns = useMemo<MaterialColumnDef<MangaChapterWithUrl, any>[]>(() => [
     columnHelper.accessor('chapterNumber', {

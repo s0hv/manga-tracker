@@ -5,9 +5,11 @@ import {
   Typography,
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
-import { Checkboxes } from 'mui-rff';
+import { CheckboxElement } from 'react-hook-form-mui';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import type { FC, PropsWithChildren } from 'react';
+import type { Control } from 'react-hook-form';
+import type { FormValues } from '@/components/notifications/types';
 
 
 const FlexBox = styled('div')({
@@ -23,20 +25,22 @@ const RightSideBox = styled('div')(({ theme }) => ({
   rowGap: '5px',
 }));
 
-export const RightSide: FC<PropsWithChildren<{ disabled: boolean }>> = ({ children, disabled }) => (
+export const RightSide = <T extends FormValues>({ children, disabled, control }: PropsWithChildren<{ disabled?: boolean, control: Control<T> }>) => (
   <RightSideBox>
-    <Checkboxes
+    <CheckboxElement
+      control={control as unknown as Control<FormValues>}
       name='disabled'
       color='primary'
-      data={{ label: 'Disabled', value: undefined }}
-      fieldProps={{ defaultValue: false }}
+      label='Disabled'
+      value={false}
       disabled={disabled}
     />
-    <Checkboxes
+    <CheckboxElement
+      control={control as unknown as Control<FormValues>}
       name='groupByManga'
       color='primary'
-      data={{ label: 'Group by manga', value: undefined }}
-      fieldProps={{ defaultValue: false }}
+      label='Group by manga'
+      value={false}
       disabled={disabled}
     />
     {children}

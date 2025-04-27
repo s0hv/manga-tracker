@@ -1,11 +1,9 @@
 import React, { useCallback, useMemo } from 'react';
 import { IconButton, Input } from '@mui/material';
-import {
-  Cancel as CancelIcon,
-  Delete as DeleteIcon,
-  Edit as EditIcon,
-  Save as SaveIcon,
-} from '@mui/icons-material';
+import CancelIcon from '@mui/icons-material/Cancel';
+import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
+import SaveIcon from '@mui/icons-material/Save';
 
 import { flexRender, RowData } from '@tanstack/react-table';
 import type {
