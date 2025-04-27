@@ -1,5 +1,4 @@
 import { handleError, handleResponse } from './utilities';
-import { csrfHeader } from '../utils/csrf';
 import { snakeCase } from '../utils/utilities';
 import type {
   ChapterRelease,
@@ -48,16 +47,14 @@ export const getLatestChapters =
 
 /**
  * Updates a chapter with the given data
- * @param {string} csrf CSRF token
  * @param {Number|string} chapterId Id of the chapter to be updated
  * @param {object} data Update data
  */
-export const updateChapter = (csrf: string, chapterId: number | string, data: object) => fetch(`/api/chapter/${chapterId}`,
+export const updateChapter = (chapterId: number | string, data: object) => fetch(`/api/chapter/${chapterId}`,
   {
     method: 'post',
     headers: {
       'Content-Type': 'application/json',
-      ...csrfHeader(csrf),
     },
     body: JSON.stringify(data),
   })
@@ -66,13 +63,11 @@ export const updateChapter = (csrf: string, chapterId: number | string, data: ob
 
 /**
  * Deletes a chapter with the given id
- * @param {string} csrf CSRF token
  * @param {Number|string} chapterId Id of the chapter to delete
  */
-export const deleteChapter = (csrf: string, chapterId: number | string) => fetch(`/api/chapter/${chapterId}`,
+export const deleteChapter = (chapterId: number | string) => fetch(`/api/chapter/${chapterId}`,
   {
     method: 'delete',
-    headers: csrfHeader(csrf),
   })
   .then(handleResponse<{message: string}>)
   .catch(handleError);
@@ -80,8 +75,8 @@ export const deleteChapter = (csrf: string, chapterId: number | string) => fetch
 /**
  * Gets the chapter releases for a manga
  * @param {Number|string} mangaId Id of the manga to get releases for
- * @return {Promise<any>}
+ * @return {Promise<ChapterReleaseDates[]>}
  */
-export const getMangaReleases = (mangaId: MangaId) => fetch(`/api/chapter/releases/${mangaId}`)
+export const getMangaReleases = (mangaId: MangaId): Promise<ChapterReleaseDates[]> => fetch(`/api/chapter/releases/${mangaId}`)
   .then(handleResponse<ChapterReleaseDates[]>)
   .catch(handleError);

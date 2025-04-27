@@ -36,6 +36,7 @@
     "types/*.ts"
   ],
   "exclude": [
+    "__tests__/**",
     "node_modules",
     "setupTests.ts",
     "vitest.config.ts",

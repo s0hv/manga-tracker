@@ -11,13 +11,12 @@ import {
   RadioGroup,
   Typography,
 } from '@mui/material';
-import { ArrowRightAlt } from '@mui/icons-material';
+import ArrowRightAlt from '@mui/icons-material/ArrowRightAlt';
 
 import { styled } from '@mui/material/styles';
 import React, { useCallback, useState } from 'react';
 import Search from '../components/MangaSearch';
 import PartialManga from '../components/PartialManga';
-import { useCSRF } from '../utils/csrf';
 import { getManga, postMergeManga } from '../api/manga';
 
 
@@ -85,8 +84,6 @@ const ServicesList = ({ services, value, setValue }) => {
 
 
 function MergeManga() {
-  const csrf = useCSRF();
-
   const [manga1, setManga1] = useState({});
   const [manga2, setManga2] = useState({});
   const [result, setResult] = useState({});
@@ -109,7 +106,7 @@ function MergeManga() {
     if (!isValid) return;
 
     const service = radio === 'all' ? undefined : radio;
-    return postMergeManga(csrf, manga1.manga.mangaId, manga2.manga.mangaId, service)
+    return postMergeManga(manga1.manga.mangaId, manga2.manga.mangaId, service)
       .then(json => {
         setResult({ message: `Moved ${json.aliasCount} alias(es) and ${json.chapterCount} chapter(s)` });
         setManga2({});

@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react';
-import SaveButton from '../../../src/components/notifications/SaveButton.js';
+import SaveButton from '../../../src/components/notifications/SaveButton';
 
 
 describe('SaveButton', () => {

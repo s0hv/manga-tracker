@@ -1,27 +1,29 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useField } from 'react-final-form';
 import { IconButton } from '@mui/material';
-import { Delete as DeleteIcon } from '@mui/icons-material';
+import DeleteIcon from '@mui/icons-material/Delete';
 import { type FC, useCallback } from 'react';
 import { useConfirm } from 'material-ui-confirm';
 import { useSnackbar } from 'notistack';
-import PropTypes from 'prop-types';
 import type { IconButtonProps } from '@mui/material/IconButton/IconButton';
+import { type Control, useWatch } from 'react-hook-form';
 
 import { deleteNotification } from '../../api/notifications';
 import { QueryKeys } from '@/webUtils/constants';
-import { useCSRF } from '@/webUtils/csrf';
 
 type DeleteReturn = Awaited<ReturnType<typeof deleteNotification>>
 
 export type DeleteNotificationButtonProps = {
+  control?: Control<any>
   fieldName?: string
 } & IconButtonProps
-const DeleteNotificationButton: FC<DeleteNotificationButtonProps> = ({ fieldName = 'notificationId', ...buttonProps }) => {
-  const { mutateAsync } = useMutation<DeleteReturn, unknown, [string, string]>({ mutationFn: ([csrf, notificationId]) => deleteNotification(csrf, notificationId) });
+const DeleteNotificationButton: FC<DeleteNotificationButtonProps> = ({
+  control,
+  fieldName = 'notificationId',
+  ...buttonProps
+}) => {
+  const { mutateAsync } = useMutation<DeleteReturn, unknown, [number]>({ mutationFn: ([notificationId]) => deleteNotification(notificationId) });
   const queryClient = useQueryClient();
-  const { input } = useField(fieldName);
-  const csrf = useCSRF();
+  const notificationId = useWatch({ name: fieldName, control }) as number;
   const confirm = useConfirm();
   const { enqueueSnackbar } = useSnackbar();
 
@@ -33,10 +35,10 @@ const DeleteNotificationButton: FC<DeleteNotificationButtonProps> = ({ fieldName
       cancellationText: 'No',
     })
       .then(() => {
-        if (!input.value) {
+        if (!notificationId) {
           return queryClient.invalidateQueries({ queryKey: QueryKeys.NotificationsList });
         }
-        return mutateAsync([csrf, input.value])
+        return mutateAsync([notificationId])
           .then(() => {
             enqueueSnackbar('Notification deleted', { variant: 'success' });
             return queryClient.invalidateQueries({ queryKey: QueryKeys.NotificationsList });
@@ -46,16 +48,13 @@ const DeleteNotificationButton: FC<DeleteNotificationButtonProps> = ({ fieldName
           });
       })
       .catch(() => {});
-  }, [confirm, csrf, enqueueSnackbar, input.value, mutateAsync, queryClient]);
+  }, [confirm, enqueueSnackbar, notificationId, mutateAsync, queryClient]);
 
   return (
     <IconButton onClick={deleteClicked} aria-label='Delete notification' {...buttonProps}>
       <DeleteIcon />
     </IconButton>
   );
-};
-DeleteNotificationButton.propTypes = {
-  fieldName: PropTypes.string,
 };
 
 export default DeleteNotificationButton;

@@ -2,7 +2,7 @@ import React from 'react';
 
 import { Container, IconButton, Paper, Typography } from '@mui/material';
 import { styled } from '@mui/material/styles';
-import { RssFeed as RssFeedIcon } from '@mui/icons-material';
+import RssFeedIcon from '@mui/icons-material/RssFeed';
 import PropTypes from 'prop-types';
 
 import FollowsComponent, { type FollowProps } from '../components/Follows';

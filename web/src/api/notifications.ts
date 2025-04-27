@@ -1,5 +1,4 @@
 import { handleError, handleResponse } from './utilities';
-import { csrfHeader } from '../utils/csrf';
 import type { DatabaseId } from '@/types/dbTypes';
 import type {
   NotificationData,
@@ -17,12 +16,11 @@ export const getNotifications: () => Promise<NotificationData[]> =
 /**
  * Updates or creates a new notification
  */
-export const postNotifications: (csrf: string, body: any) => Promise<NotificationData> =
-  (csrf, body) => fetch(`/api/notifications`, {
+export const postNotifications: (body: any) => Promise<NotificationData> =
+  (body) => fetch(`/api/notifications`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      ...csrfHeader(csrf),
     },
     body: JSON.stringify(body),
   })
@@ -32,12 +30,11 @@ export const postNotifications: (csrf: string, body: any) => Promise<Notificatio
 /**
  * Updates or creates a new notification override
  */
-export const postNotificationOverride: (csrf: string, body: any) => Promise<NotificationData> =
-  (csrf, body) => fetch(`/api/notifications/override`, {
+export const postNotificationOverride: (body: any) => Promise<NotificationData> =
+  (body) => fetch(`/api/notifications/override`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      ...csrfHeader(csrf),
     },
     body: JSON.stringify(body),
   })
@@ -47,12 +44,9 @@ export const postNotificationOverride: (csrf: string, body: any) => Promise<Noti
 /**
  * Deletes a notification
  */
-export const deleteNotification: (csrf: string, notificationId: DatabaseId) => Promise<{ status: string }> =
-  (csrf, notificationId) => fetch(`/api/notifications/${notificationId}`, {
+export const deleteNotification: (notificationId: DatabaseId) => Promise<{ status: string }> =
+  (notificationId) => fetch(`/api/notifications/${notificationId}`, {
     method: 'DELETE',
-    headers: {
-      ...csrfHeader(csrf),
-    },
   })
     .then(handleResponse<{ status: string }>)
     .catch(handleError);

@@ -1,11 +1,15 @@
 import { Box, Paper } from '@mui/material';
-import { Form, FormRenderProps, useField } from 'react-final-form';
 import dynamic from 'next/dynamic';
-import React, { FC, useCallback, useMemo, useState } from 'react';
-import { TextField } from 'mui-rff';
+import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
+import { TextFieldElement, useWatch } from 'react-hook-form-mui';
+import {
+  type Control,
+  type FormState,
+  type SubmitHandler,
+  useForm,
+} from 'react-hook-form';
 import { useSnackbar } from 'notistack';
 import { ConfirmProvider } from 'material-ui-confirm';
-import type { FormApi } from 'final-form';
 
 import ColorPicker from './ColorPicker';
 import MangaSelector from './MangaSelector';
@@ -24,9 +28,8 @@ import {
   NotificationTypeText,
   RightSide,
 } from './Layout';
-import NameInput from './NameInput';
+import { NameInput } from './NameInput';
 import NotificationsForm from './NotificationsForm';
-import NotificationIdField from './NotificationIdField';
 import {
   buildNotificationData,
   mapNotificationFields,
@@ -37,31 +40,36 @@ import type {
   NotificationField,
 } from '@/types/api/notifications';
 import type { FormValues } from '@/components/notifications/types';
-import { useCSRF } from '@/webUtils/csrf';
 import {
   ChangeOverride,
+  type MangaOverrideSelectorProps,
 } from '@/components/notifications/MangaOverrideSelector';
+import {
+  FormContextRefProvider,
+  useFormContextRefValue,
+} from '@/components/hooks/useFormContextRef';
 
-const MangaOverrideSelector = dynamic(() => import('./MangaOverrideSelector'));
+type FieldTypes = {
+  username: string | undefined | null,
+  embed_title: string | undefined | null,
+  message: string | undefined | null,
+  url: string | undefined | null,
+  avatar_url: string | undefined | null,
+  embed_content: string | undefined | null,
+  footer: string | undefined | null,
+  thumbnail: string | undefined | null,
+  color: string | undefined | null
+}
+interface DiscordFormData extends FormValues, FieldTypes {}
+
+const MangaOverrideSelector = dynamic(() => import('./MangaOverrideSelector')) as unknown as FC<MangaOverrideSelectorProps<DiscordFormData>>;
 
 export type DiscordWebhookEditorProps = {
   notificationData: NotificationData
   defaultExpanded: boolean
 }
 
-type FieldTypes = {
-  username?: string,
-  embed_title: string,
-  message?: string,
-  url?: string,
-  avatar_url?: string,
-  embed_content: string,
-  footer?: string,
-  thumbnail?: string,
-  color?: string
-}
-
-const getFields = (values: FormValues<FieldTypes>) => [
+const getFields = (values: DiscordFormData) => [
   { name: 'username', value: values.username },
   { name: 'embed_title', value: values.embed_title },
   { name: 'message', value: values.message },
@@ -74,14 +82,14 @@ const getFields = (values: FormValues<FieldTypes>) => [
 ].filter(f => (f.value?.length || 0) > 0);
 
 
-const getNotificationFields = (override: number | null, notificationData: NotificationData): NotificationField[] => {
-  if (override === null) return notificationData.fields;
+const getNotificationFields = (override: number | null | undefined, notificationData: NotificationData): NotificationField[] => {
+  if (override == null) return notificationData.fields;
 
   const fields = notificationData.overrides[override];
   return fields || [];
 };
 
-const getInitialValues = (notificationData: NotificationData, notificationFields: NotificationField[]): Partial<FormValues<FieldTypes>> => ({
+const getInitialValues = (notificationData: NotificationData, notificationFields: NotificationField[]): Partial<DiscordFormData> => ({
   notificationId: notificationData.notificationId,
   destination: notificationData.destination,
   disabled: notificationData.disabled,
@@ -89,7 +97,7 @@ const getInitialValues = (notificationData: NotificationData, notificationFields
   name: notificationData.name,
   useFollows: notificationData.useFollows,
   manga: notificationData.manga,
-  ...mapNotificationFields(notificationFields),
+  ...mapNotificationFields<FieldTypes>(notificationFields),
 });
 
 const mapOverrides = (notificationData: NotificationData) => new Set(Object.keys(notificationData.overrides).map(v => Number(v)));
@@ -99,22 +107,38 @@ type FormComponentProps = {
   overrides: Set<number>
   fieldRequired: MappedNotificationField<boolean>
   changeOverride: ChangeOverride
+  onSubmit: (e?: React.BaseSyntheticEvent) => Promise<void>
+  control: Control<DiscordFormData>
+  formState: FormState<DiscordFormData>
 }
 
-const FormComponent: FC<FormComponentProps & FormRenderProps<FormValues<FieldTypes>, Partial<FormValues<FieldTypes>>>> = (
-  { defaultExpanded, overrides, fieldRequired, changeOverride, handleSubmit, submitting, hasValidationErrors }
+const FormComponent: FC<FormComponentProps> = (
+  {
+    defaultExpanded,
+    overrides,
+    fieldRequired,
+    changeOverride,
+    onSubmit,
+    control,
+    formState,
+  }
 ) => {
-  const { input: override } = useField('overrideId');
-  const isOverride = typeof override.value === 'number';
+  const {
+    isSubmitting,
+    isValid,
+  } = formState;
+
+  const override = useWatch({ name: 'overrideId', control });
+  const isOverride = typeof override === 'number';
 
   return (
-    <NotificationsForm onSubmit={handleSubmit}>
+    <NotificationsForm onSubmit={onSubmit} noValidate>
       <FlexLayout>
         <NotificationTypeText>Discord webhook</NotificationTypeText>
-        <DeleteNotificationButton disabled={isOverride} />
+        <DeleteNotificationButton disabled={isOverride} control={control} />
       </FlexLayout>
 
-      <NameInput disabled={isOverride} />
+      <NameInput disabled={isOverride} control={control} />
 
       <CollapsableLayout defaultExpanded={defaultExpanded}>
         <FlexLayout>
@@ -122,21 +146,22 @@ const FormComponent: FC<FormComponentProps & FormRenderProps<FormValues<FieldTyp
             mr: 4,
           }}
           >
-            <NotificationIdField />
 
-            <TextField
+            <TextFieldElement
               variant='outlined'
               margin='normal'
-              required
               name='destination'
+              control={control}
               label='Webhook url'
               disabled={isOverride}
+              required
+              fullWidth
             />
 
             <MangaSelector
+              control={control}
               name='manga'
               label='Manga updates to notify on'
-              useFollowsName='useFollows'
               sx={{
                 mt: 2,
                 mb: 1,
@@ -147,9 +172,9 @@ const FormComponent: FC<FormComponentProps & FormRenderProps<FormValues<FieldTyp
             />
 
             <MangaOverrideSelector
+              control={control}
               name='overrideId'
               label='Manga override'
-              useFollowsName='useFollows'
               overrides={overrides}
               changeOverride={changeOverride}
               sx={{
@@ -160,71 +185,83 @@ const FormComponent: FC<FormComponentProps & FormRenderProps<FormValues<FieldTyp
               }}
             />
 
-            <TextField
+            <TextFieldElement
               variant='outlined'
               margin='normal'
               autoComplete='off'
               required={!isOverride && fieldRequired.username}
               name='username'
+              control={control}
               label='Webhook username'
+              fullWidth
             />
-            <TextField
+            <TextFieldElement
               variant='outlined'
               margin='normal'
-              fullWidth
               required={!isOverride && fieldRequired.embed_title}
               name='embed_title'
+              control={control}
               label='Embed title'
+              fullWidth
             />
-            <TextField
+            <TextFieldElement
               variant='outlined'
               margin='normal'
               multiline
               required={!isOverride && fieldRequired.message}
               name='message'
+              control={control}
               label='Message'
+              fullWidth
             />
-            <TextField
+            <TextFieldElement
               variant='outlined'
               margin='normal'
-              fullWidth
               required={!isOverride && fieldRequired.url}
               name='url'
+              control={control}
               label='Embed url'
+              fullWidth
             />
-            <TextField
+            <TextFieldElement
               variant='outlined'
               margin='normal'
               required={!isOverride && fieldRequired.avatar_url}
               name='avatar_url'
+              control={control}
               label='Webhook user avatar url'
+              fullWidth
             />
-            <TextField
+            <TextFieldElement
               variant='outlined'
               margin='normal'
-              fullWidth
-              multiline
               required={!isOverride && fieldRequired.embed_content}
               name='embed_content'
+              control={control}
               label='Embed content'
+              fullWidth
+              multiline
             />
-            <TextField
+            <TextFieldElement
               variant='outlined'
               margin='normal'
-              fullWidth
               required={!isOverride && fieldRequired.footer}
               name='footer'
+              control={control}
               label='Footer content'
+              fullWidth
             />
-            <TextField
+            <TextFieldElement
               variant='outlined'
               margin='normal'
-              fullWidth
               required={!isOverride && fieldRequired.thumbnail}
               name='thumbnail'
+              control={control}
               label='Embed thumbnail'
+              fullWidth
             />
-            <ColorPicker
+            <ColorPicker<DiscordFormData>
+              control={control}
               sx={{
                 mt: 2,
               }}
@@ -233,11 +270,11 @@ const FormComponent: FC<FormComponentProps & FormRenderProps<FormValues<FieldTyp
             />
 
             <SaveButton
-              submitting={submitting}
-              hasValidationErrors={hasValidationErrors}
+              submitting={isSubmitting}
+              hasValidationErrors={!isValid}
             />
           </Box>
-          <RightSide disabled={isOverride}>
+          <RightSide disabled={isOverride} control={control}>
             <div style={{ height: '10%' }} />
             <Box sx={{
               minWidth: 'min-content',
@@ -268,17 +305,21 @@ const DiscordWebhookEditor: React.FC<DiscordWebhookEditorProps> = ({
   const { enqueueSnackbar } = useSnackbar();
   const [notificationData, setNotificationData] = useState<NotificationData>(notificationDataProp);
   const [overrides, setOverrides] = useState<Set<number>>(mapOverrides(notificationData));
-  const csrf = useCSRF();
+  const [newFormData, setNewFormData] = useState<{
+    notificationData?: NotificationData
+    overrideId: number | null
+  }>({ overrideId: null });
+
   const notificationFields = useMemo<NotificationField[]>(() => getNotificationFields(null, notificationData),
     [notificationData]);
 
-  const initialValues: Partial<FormValues<FieldTypes>> = useMemo(() => getInitialValues(notificationData, notificationFields),
+  const initialValues: Partial<DiscordFormData> = useMemo(() => getInitialValues(notificationData, notificationFields),
     [notificationData, notificationFields]);
 
-  const fieldRequired = useMemo(() => {
-    const mapped = mapNotificationFields(notificationData.fields, 'optional');
-    Object.keys(mapped)
-      .forEach(key => {
+  const fieldRequired = useMemo<Record<keyof FieldTypes, boolean>>(() => {
+    const mapped = mapNotificationFields<FieldTypes, 'optional'>(notificationData.fields, 'optional');
+    (Object.keys(mapped) as Array<keyof FieldTypes>)
+      .forEach((key) => {
         mapped[key] = !mapped[key];
       });
 
@@ -286,7 +327,25 @@ const DiscordWebhookEditor: React.FC<DiscordWebhookEditorProps> = ({
   },
   [notificationData.fields]);
 
-  const onSubmit = useCallback((values: FormValues<FieldTypes>, form: FormApi<any, Partial<FormValues<FieldTypes>>>) => {
+  const methods = useForm<DiscordFormData>({
+    defaultValues: initialValues,
+    mode: 'onBlur',
+  });
+  const {
+    control,
+    reset,
+    setValue,
+    handleSubmit,
+    formState,
+    trigger,
+    register,
+  } = methods;
+
+  formState.errors;
+
+  const formRef = useFormContextRefValue({ setValue, control });
+
+  const onSubmit = useCallback<SubmitHandler<DiscordFormData>>((values: DiscordFormData) => {
     const isOverride = typeof values.overrideId === 'number';
 
     let resp: Promise<NotificationData>;
@@ -299,8 +358,7 @@ const DiscordWebhookEditor: React.FC<DiscordWebhookEditorProps> = ({
         fields: getFields(values),
       };
 
-      // csrf token can't be in the form here as it gets reset when changing override
-      resp = postNotificationOverride(csrf, data);
+      resp = postNotificationOverride(data);
     } else {
       const data = {
         ...buildNotificationData(values),
@@ -308,29 +366,54 @@ const DiscordWebhookEditor: React.FC<DiscordWebhookEditorProps> = ({
         fields: getFields(values),
       };
 
-      // csrf token can't be in the form here as it gets reset when changing override
-      resp = postNotifications(csrf, data);
+      resp = postNotifications(data);
     }
 
-    resp
+    return resp
       .then((newData) => {
-        form.restart(getInitialValues(newData, getNotificationFields(values.overrideId, newData)));
-        form.change('overrideId', values.overrideId);
         setNotificationData(newData);
+        setNewFormData({
+          notificationData: newData,
+          overrideId: values.overrideId,
+        });
         setOverrides(mapOverrides(newData));
         const msg = isOverride ? 'Notification override saved' : 'Notification saved';
         enqueueSnackbar(msg, { variant: 'success' });
       })
-      .catch(() => {
+      .catch(err => {
         const msg = isOverride ? 'Failed to create/update notification override' : 'Failed to create/update notification';
         enqueueSnackbar(msg, { variant: 'error' });
+        throw err;
       });
-  }, [csrf, enqueueSnackbar]);
+  }, [enqueueSnackbar]);
 
-  const [subscription] = useState({ submitting: true, hasValidationErrors: true, dirty: true });
-  const changeOverride = useCallback<ChangeOverride>((form: FormApi, overrideId: number | null) => {
-    form.restart(getInitialValues(notificationData, getNotificationFields(overrideId, notificationData)));
-  }, [notificationData]);
+  const changeOverride = useCallback<ChangeOverride>((overrideId: number | null) => {
+    reset({
+      ...(overrideId !== null ? Object.fromEntries(Object.keys(fieldRequired).map(key => [key, null])) : {}),
+      ...getInitialValues(notificationData, getNotificationFields(overrideId, notificationData)),
+      overrideId,
+    });
+
+    if (overrideId === null) {
+      (Object.entries(fieldRequired) as Array<[keyof FieldTypes, boolean]>)
+        .forEach(([name, required]) => register(name, { required }));
+    } else {
+      (Object.keys(fieldRequired) as Array<keyof FieldTypes>)
+        .forEach(name => register(name, { required: false }));
+    }
+
+    trigger();
+  }, [notificationData, register, reset, trigger, fieldRequired]);
+
+  // Form reset is recommended to be done in the useEffect
+  useEffect(() => {
+    const newData = newFormData.notificationData;
+    if (!newData) return;
+
+    console.log(getInitialValues(newData, getNotificationFields(newFormData.overrideId, newData)));
+    reset(getInitialValues(newData, getNotificationFields(newFormData.overrideId, newData)));
+    setValue('overrideId', newFormData.overrideId);
+  }, [newFormData, reset, setValue]);
 
   return (
     <Paper>
@@ -341,20 +424,17 @@ const DiscordWebhookEditor: React.FC<DiscordWebhookEditorProps> = ({
       }}
       >
         <ConfirmProvider>
-          <Form
-            onSubmit={onSubmit}
-            initialValues={initialValues}
-            subscription={subscription}
-            render={(props) => (
-              <FormComponent
-                defaultExpanded={defaultExpanded}
-                changeOverride={changeOverride}
-                overrides={overrides}
-                fieldRequired={fieldRequired}
-                {...props}
-              />
-            )}
-          />
+          <FormContextRefProvider value={formRef}>
+            <FormComponent
+              defaultExpanded={defaultExpanded}
+              changeOverride={changeOverride}
+              overrides={overrides}
+              fieldRequired={fieldRequired}
+              onSubmit={handleSubmit(onSubmit)}
+              control={control}
+              formState={formState}
+            />
+          </FormContextRefProvider>
         </ConfirmProvider>
       </Box>
     </Paper>

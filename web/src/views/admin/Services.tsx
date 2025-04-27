@@ -10,7 +10,6 @@ import {
   EditableDateTimePicker,
   MaterialTable,
 } from '../../components/MaterialTable';
-import { useCSRF } from '@/webUtils/csrf';
 import { editService } from '../../api/admin/service';
 import type {
   MaterialCellContext,
@@ -34,7 +33,6 @@ function Services(props: ServicesProps): ReactElement {
   } = props;
 
   const { enqueueSnackbar } = useSnackbar();
-  const csrf = useCSRF();
 
   // Format date strings back to dates for sorting
   const data = React.useMemo((): ServiceForAdmin[] => {
@@ -112,12 +110,12 @@ function Services(props: ServicesProps): ReactElement {
       },
     };
 
-    editService(csrf, row.original.id, body)
+    editService(row.original.id, body)
       .then(() => {
         enqueueSnackbar('Service edited successfully', { variant: 'success' });
       })
       .catch(err => enqueueSnackbar(err.message, { variant: 'error' }));
-  }, [csrf, enqueueSnackbar]);
+  }, [enqueueSnackbar]);
 
   return (
     <Container maxWidth='lg' style={{ minWidth: '950px' }}>

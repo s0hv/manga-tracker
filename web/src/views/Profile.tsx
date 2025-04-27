@@ -1,0 +1,276 @@
+import { useSnackbar } from 'notistack';
+import React, {
+  type FC,
+  type FormEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+} from 'react';
+import {
+  Box,
+  Button,
+  Container,
+  Divider,
+  LinearProgress,
+  Paper,
+  Typography,
+} from '@mui/material';
+import { TextFieldElement } from 'react-hook-form-mui';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useConfirm } from 'material-ui-confirm';
+import { signOut } from 'next-auth/react';
+import {
+  type DefaultValues,
+  FormProvider,
+  type SubmitHandler,
+  useForm,
+} from 'react-hook-form';
+import { deleteAccount, updateUserProfile } from '../api/user';
+
+const zodSchema = z.object({
+  username: z.string().min(1),
+  email: z.string().optional(),
+  password: z.string().optional(),
+  newPassword: z.string().optional(),
+  repeatPassword: z.string().optional(),
+})
+  .superRefine((data, ctx) => {
+    if ((data.newPassword ?? '') !== (data.repeatPassword ?? '')) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['repeatPassword'],
+        message: 'Passwords must match',
+      });
+    }
+
+    const passwordValid = !data.newPassword || (data.password?.length ?? 0) > 0;
+    if (!passwordValid) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['password'],
+        message: 'Password is required when changing password',
+      });
+    }
+  });
+type ProfileFormValues = z.infer<typeof zodSchema>;
+
+const resolver = zodResolver(zodSchema);
+
+type ProfileUser = {
+  username: string
+  email: string
+  isCredentialsAccount?: boolean
+}
+type ProfileProps = {
+  user?: ProfileUser
+}
+const Profile: FC<ProfileProps> = (props) => {
+  const {
+    user = {} as Partial<ProfileUser>,
+  } = props;
+
+  const isCredentialsAccount = Boolean(user.isCredentialsAccount);
+  const { enqueueSnackbar } = useSnackbar();
+  const confirm = useConfirm();
+
+  const initialValues = useMemo<DefaultValues<ProfileFormValues>>(() => ({
+    username: user.username,
+    email: user.email,
+  }), [user]);
+
+  const {
+    formState,
+    control,
+    trigger,
+    ...methods
+  } = useForm<ProfileFormValues>({
+    resolver,
+    defaultValues: initialValues,
+    mode: 'onBlur',
+  });
+
+  const onSubmit = useCallback<SubmitHandler<ProfileFormValues>>((values) => updateUserProfile(values)
+    .then(() => {
+      enqueueSnackbar('Profile updated successfully', { variant: 'success' });
+    })
+    .catch(err => {
+      enqueueSnackbar(err.message, { variant: 'error' });
+      return { error: err.message };
+    }), [enqueueSnackbar]);
+
+
+
+  const { isSubmitting, isValid, isValidating } = formState;
+
+  // Trigger validation on mount and after every blur
+  useEffect(() => {
+    if (!isValidating && !isValid) trigger();
+  }, [trigger, isValid, isValidating]);
+
+  const deleteAccountDialog = useCallback(() => {
+    const confirmationKeyword = user.username || 'I understand';
+    confirm(({
+      content: (
+        <Typography sx={{ mb: 2 }} color='textSecondary'>
+          This action is permanent and irreversible.<br /> Type {`"${confirmationKeyword}"`} to acknowledge this.
+        </Typography>),
+      title: 'Delete account permanently?',
+      confirmationKeyword,
+      confirmationText: `Delete account`,
+    }))
+      .then(() => {
+        deleteAccount()
+          .then(() => signOut())
+          .catch(() => {
+            enqueueSnackbar('Failed to delete account due to an unknown error', {
+              variant: 'error',
+            });
+          });
+      });
+  }, [confirm, enqueueSnackbar, user.username]);
+
+  const requestDataDialog = useCallback((event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    confirm({
+      title: 'Request for collected personal data',
+      description: (
+        `
+          You are about to download a copy of the data stored of you on this service.
+          The data package might contain sensitive data so take the necessary precautions while handling it.
+          After proceeding it is on your responsibity to take care of proper handling of the provided data.
+        `
+      ),
+      confirmationText: 'Proceed',
+    })
+      .then(() => {
+        (event.target as HTMLFormElement).submit();
+      });
+  }, [confirm]);
+
+  return (
+    <Container maxWidth='lg'>
+      <Paper sx={{ minWidth: '300px', minHeight: '400px', p: 2 }}>
+        <Container component='main' maxWidth='xs'>
+          <FormProvider
+            formState={formState}
+            control={control}
+            trigger={trigger}
+            {...methods}
+          >
+            <Box
+              component='form'
+              noValidate
+              id='profileEditForm'
+              onSubmit={methods.handleSubmit(onSubmit)}
+              sx={{
+                width: '100%',
+                paddingTop: 8,
+                paddingBottom: 4,
+              }}
+            >
+              <TextFieldElement<ProfileFormValues>
+                variant='outlined'
+                margin='normal'
+                fullWidth
+                id='username'
+                name='username'
+                label='Username'
+                autoFocus
+                control={control}
+              />
+              <TextFieldElement<ProfileFormValues>
+                variant='outlined'
+                name='email'
+                margin='normal'
+                fullWidth
+                disabled
+                label='Email Address'
+                control={control}
+                helperText={`Changing email is not possible ${isCredentialsAccount ? 'for a credentials based account' : 'when using third parties for login'}`}
+              />
+              {isCredentialsAccount && (
+              <>
+                <TextFieldElement<ProfileFormValues>
+                  variant='outlined'
+                  margin='normal'
+                  fullWidth
+                  name='password'
+                  label='Password'
+                  type='password'
+                  id='current-password'
+                  autoComplete='current-password'
+                  control={control}
+                />
+                <TextFieldElement<ProfileFormValues>
+                  variant='outlined'
+                  margin='normal'
+                  fullWidth
+                  name='newPassword'
+                  label='New password'
+                  type='password'
+                  id='new-password'
+                  autoComplete='new-password'
+                  control={control}
+                />
+                <TextFieldElement<ProfileFormValues>
+                  variant='outlined'
+                  margin='normal'
+                  fullWidth
+                  name='repeatPassword'
+                  label='New password again'
+                  type='password'
+                  id='repeat-password'
+                  autoComplete='new-password'
+                  control={control}
+                />
+              </>
+              )}
+              <Button
+                type='submit'
+                fullWidth
+                disabled={isSubmitting || !isValid}
+                variant='contained'
+                color='primary'
+                sx={{ mt: 3, mb: 2 }}
+              >
+                Update profile
+              </Button>
+              {isSubmitting && <LinearProgress variant='query' />}
+              {/* TODO Add alert on success or error */}
+            </Box>
+          </FormProvider>
+
+          <Divider sx={{ mt: 5, mb: 5 }} />
+
+          <form
+            onSubmit={requestDataDialog}
+            method='POST'
+            action='/api/user/dataRequest'
+          >
+            <Button
+              fullWidth
+              type='submit'
+              variant='contained'
+              color='primary'
+              sx={{ mt: 3, mb: 2 }}
+            >
+              Download a copy of personal data
+            </Button>
+          </form>
+          <Button
+            fullWidth
+            variant='contained'
+            color='error'
+            onClick={deleteAccountDialog}
+            sx={{ mt: 3, mb: 2 }}
+          >
+            Delete account
+          </Button>
+        </Container>
+      </Paper>
+    </Container>
+  );
+};
+
+export default Profile;

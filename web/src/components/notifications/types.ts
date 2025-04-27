@@ -1,11 +1,10 @@
 import type { NotificationData } from '@/types/api/notifications';
 
-export type FormValues<Fields> = Omit<NotificationData,
+export interface FormValues extends Omit<NotificationData,
   | 'fields'
   | 'overrides'
   | 'notificationType'
   | 'timesRun'
-  | 'timesFailed'> & Fields & {
-  _csrf: string,
+  | 'timesFailed'> {
   overrideId: number | null
 }

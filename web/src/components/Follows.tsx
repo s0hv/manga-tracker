@@ -12,7 +12,6 @@ import {
 } from '@mui/material';
 import Image from 'next/image';
 import NextLink from 'next/link';
-import { useCSRF } from '../utils/csrf';
 
 import { defaultDateDistanceToNow, followUnfollow } from '../utils/utilities';
 import { nextImageFix } from '../utils/theme';
@@ -55,7 +54,6 @@ function Follows(props: FollowProps) {
     follows = [],
   } = props;
 
-  const csrf = useCSRF();
   const columnsXs = 1;
   const columnsMd = 2;
 
@@ -116,14 +114,14 @@ function Follows(props: FollowProps) {
             <List sx={{ overflow: 'auto', maxHeight: '250px' }} aria-label='manga services'>
               <ListItem key='all_services' disableGutters sx={followServiceItem}>
                 <ListItemText primary='All services' sx={serviceNameText} />
-                <Button variant='contained' color='primary' onClick={followUnfollow(csrf, follow.mangaId, null)}>
+                <Button variant='contained' color='primary' onClick={followUnfollow(follow.mangaId, null)}>
                   {followedServices.indexOf(null) < 0 ? 'Follow' : 'Unfollow'}
                 </Button>
               </ListItem>
               {follow.services.map((service) => (
                 <ListItem key={service.serviceId} sx={followServiceItem} disableGutters>
                   <ListItemText primary={service.serviceName} sx={serviceNameText} />
-                  <Button variant='contained' color='primary' onClick={followUnfollow(csrf, follow.mangaId, service.serviceId)}>
+                  <Button variant='contained' color='primary' onClick={followUnfollow(follow.mangaId, service.serviceId)}>
                     {followedServices.indexOf(service.serviceId) < 0 ? 'Follow' : 'Unfollow'}
                   </Button>
                 </ListItem>

@@ -4,7 +4,7 @@ import { alpha, styled } from '@mui/material/styles';
 import Autocomplete from '@mui/material/Autocomplete';
 import PropTypes from 'prop-types';
 
-import { Search as SearchIcon } from '@mui/icons-material';
+import SearchIcon from '@mui/icons-material/Search';
 
 import throttle from 'lodash.throttle';
 import { useRouter } from 'next/router';

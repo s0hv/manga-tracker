@@ -1,5 +1,5 @@
 import { CssBaseline } from '@mui/material';
-import { StyledEngineProvider, ThemeProvider, } from '@mui/material/styles';
+import { StyledEngineProvider, ThemeProvider } from '@mui/material/styles';
 import { DefaultSeo } from 'next-seo';
 import { CacheProvider } from '@emotion/react';
 import NextNProgress from 'nextjs-progressbar';
@@ -11,7 +11,6 @@ import { AppCacheProvider } from '@mui/material-nextjs/v15-pagesRouter';
 
 import Root from '../components/Root';
 
-import { csrfProps, CSRFProvider } from '../utils/csrf';
 import { UserProvider } from '../utils/useUser';
 import { theme } from '../utils/theme';
 import createEmotionCache from '../utils/createEmotionCache';
@@ -25,10 +24,8 @@ function MainApp(allProps) {
   const { Component, pageProps = {}, emotionCache = clientSideEmotionCache, props } = allProps;
 
   const [user, setUser] = React.useState(props.user);
-  const [csrf, setCsrf] = React.useState(props._csrf);
 
   useEffect(() => setUser(props.user), [props.user]);
-  useEffect(() => setCsrf(props._csrf), [props._csrf]);
   // Clear previous page on page load/refresh
   useEffect(() => window.sessionStorage.removeItem('previousPage'), []);
 
@@ -68,13 +65,11 @@ function MainApp(allProps) {
                 ) : (
                   <SnackbarProvider>
                     <UserProvider value={user}>
-                      <CSRFProvider value={csrf}>
-                        <Root {...props}>
-                          <main>
-                            <Component {...pageProps} />
-                          </main>
-                        </Root>
-                      </CSRFProvider>
+                      <Root {...props}>
+                        <main>
+                          <Component {...pageProps} />
+                        </main>
+                      </Root>
                     </UserProvider>
                   </SnackbarProvider>
                 )}
@@ -104,7 +99,6 @@ MainApp.getInitialProps = async function getInitialProps({ ctx: { req, res }}) {
     props: {
       user: getUserData(req.user),
       statusCode: res?.statusCode || 200,
-      ...csrfProps({ req }).props,
     },
   };
 };

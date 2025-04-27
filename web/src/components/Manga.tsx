@@ -10,15 +10,12 @@ import {
   Typography,
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
-import {
-  Edit as EditIcon,
-  Settings as SettingsIcon,
-} from '@mui/icons-material';
+import EditIcon from '@mui/icons-material/Edit';
+import SettingsIcon from '@mui/icons-material/Settings';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { useCSRF } from '../utils/csrf';
 import { useUser } from '../utils/useUser';
 import { followUnfollow } from '../utils/utilities';
 import ChapterList from './ChapterList';
@@ -103,7 +100,6 @@ function Manga(props: MangaProps): React.ReactElement {
   const [releaseData, setReleaseData] = useState<ChapterReleaseDates[]>([]);
   const [activeTab, setActiveTab] = useState<number>(0);
   const changeTab = useCallback((e: any, newVal: number) => setActiveTab(newVal), []);
-  const csrf = useCSRF();
 
   useEffect(() => {
     getMangaReleases(manga.mangaId)
@@ -169,7 +165,7 @@ function Manga(props: MangaProps): React.ReactElement {
               classesProp={[classes.sourceList]}
               items={services}
               userFollows={userFollows}
-              followUnfollow={(serviceId: DatabaseId | null) => followUnfollow(csrf, manga.mangaId, serviceId)}
+              followUnfollow={(serviceId: DatabaseId | null) => followUnfollow(manga.mangaId, serviceId)}
             />
           </Grid>
         </DetailsContainer>
@@ -177,7 +173,7 @@ function Manga(props: MangaProps): React.ReactElement {
           <Button
             variant='contained'
             color='primary'
-            onClick={followUnfollow(csrf, manga.mangaId, null)}
+            onClick={followUnfollow(manga.mangaId, null)}
             sx={{ mt: 2, mb: 2 }}
             aria-label={`${userFollows.indexOf(null) < 0 ? 'follow' : 'unfollow'} all releases`}
           >
