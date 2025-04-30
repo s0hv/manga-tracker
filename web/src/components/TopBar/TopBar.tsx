@@ -70,7 +70,6 @@ function TopBar() {
   const handleThemeChange = useCallback((): Theme => {
     const currentMode = mode === 'system' ? systemMode : mode;
     const val = currentMode === 'light' ? 'dark' : 'light';
-    console.log(val);
     setMode(val);
     return val;
   }, [mode, setMode, systemMode]);

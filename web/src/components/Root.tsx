@@ -84,7 +84,9 @@ export default function Layout(props: PropsWithChildren<RootProps>): ReturnType<
   // Should not be the biggest problem since the default theme is system theme.
   useEffect(() => {
     setMode(user?.theme || 'system');
-  }, [user, setMode]);
+    // setMode changes when theme is changed
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   if (statusCode !== 200) {
     // Typescript doesn't like it without them
