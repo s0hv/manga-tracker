@@ -81,7 +81,7 @@ function ChapterList(props: ChapterListProps): ReactElement {
 
       const mangaData = serviceMangaData[chapter.serviceId];
       if (mangaData) {
-        newChapter.url = formatChapterUrl(mangaData.urlFormat, chapter.chapterIdentifier, mangaData.titleId);
+        newChapter.url = formatChapterUrl(mangaData.urlFormat, chapter.chapterIdentifier, mangaData.titleId)!;
       }
 
       return newChapter;

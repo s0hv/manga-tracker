@@ -124,7 +124,6 @@ export const getChapters = (mangaId: MangaId, limit: number, offset: number, sor
     .then(row => {
       if (!row || !row.exists) return Promise.resolve(null);
 
-      console.log(row);
       return Promise.resolve({
         count: row.count,
         chapters: row.chapters ? camelcaseKeys(row.chapters) : [],

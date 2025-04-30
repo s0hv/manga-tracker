@@ -1,6 +1,6 @@
 import { Server } from 'http';
 import { type AddressInfo } from 'net';
-import { vi } from 'vitest';
+import { expect, vi } from 'vitest';
 
 vi.mock('@/db/auth', async () => {
   const auth = await vi.importActual<typeof import('@/db/auth')>('@/db/auth');

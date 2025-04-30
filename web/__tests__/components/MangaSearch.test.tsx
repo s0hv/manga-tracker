@@ -2,9 +2,9 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import fetchMock from 'fetch-mock';
-import { vi } from 'vitest';
+import { describe, expect, vi, it, beforeEach } from 'vitest';
 
-import MangaSearch from '../../src/components/MangaSearch';
+import MangaSearch from '@/components/MangaSearch';
 
 fetchMock.config.overwriteRoutes = true;
 
@@ -43,7 +43,7 @@ describe('Search should render correctly', () => {
 
     const user = userEvent.setup();
     // Simulate text changes and test that the quicksearch endpoint wasn't called
-    await user.type(input, 'test search', { delay: 1 });
+    await user.type(input, 'test search');
     expect(searchFn).toHaveBeenCalled();
 
     const listItems = screen.getAllByRole('option');
@@ -67,7 +67,7 @@ describe('Search should behave correctly with user input', () => {
 
     const user = userEvent.setup();
     // Simulate text changes and test that the quicksearch endpoint wasn't called
-    await user.type(input, 'a{backspace}b{backspace}c', { delay: 10 });
+    await user.type(input, 'a{backspace}b{backspace}c');
 
     expect(searchFn).toHaveBeenCalledTimes(0);
     expect(screen.queryAllByRole('option')).toHaveLength(0);
@@ -85,7 +85,7 @@ describe('Search should behave correctly with user input', () => {
 
     const user = userEvent.setup();
     // Simulate text changes
-    await user.type(input, 'ab', { delay: 1 });
+    await user.type(input, 'ab');
     expect(searchFn).toHaveBeenCalledTimes(1);
   });
 
@@ -102,7 +102,7 @@ describe('Search should behave correctly with user input', () => {
 
     // Simulate text changes and test that the quicksearch endpoint
     // was called only once
-    await user.type(input, 'abcd', { delay: 1 });
+    await user.type(input, 'abcd');
 
     expect(searchFn).toHaveBeenCalledTimes(1);
     expect(fetchMock.called('glob:/api/quicksearch?query=*', { query: {

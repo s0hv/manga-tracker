@@ -11,7 +11,7 @@ import {
   Typography,
 } from '@mui/material';
 
-import PropTypes from 'prop-types';
+import type { ConfirmOptions } from 'material-ui-confirm';
 import { useUser } from '../utils/useUser';
 import { updateMangaTitle } from '../api/admin/manga';
 
@@ -21,7 +21,15 @@ const Root = styled('div')(({ theme }) => ({
   width: 'max-content',
 }));
 
-const MangaAliases = (props) => {
+export type MangaAliasesProps = {
+  aliases?: string[] | undefined
+  mangaId?: number
+  onTitleUpdate?: () => void
+  enqueueSnackbar?: (message: string, options?: any) => void
+  confirm?: (options?: ConfirmOptions) => Promise<void>
+  allowEdits?: boolean
+}
+const MangaAliases = (props: MangaAliasesProps) => {
   const {
     aliases,
     mangaId,
@@ -34,7 +42,12 @@ const MangaAliases = (props) => {
   const { isAdmin } = useUser();
   const autoHideDuration = 8000;
 
-  const onAliasPromote = useCallback((title) => {
+  const onAliasPromote = useCallback((title: string) => {
+    if (!mangaId || !confirm || !enqueueSnackbar || !onTitleUpdate) {
+      console.error('Missing required props for MangaAliases');
+      return;
+    }
+
     confirm({
       description: `Do you want to set "${title}" as the main title for this manga?`,
       confirmationText: 'Yes',
@@ -82,15 +95,6 @@ const MangaAliases = (props) => {
       </List>
     </Root>
   );
-};
-
-MangaAliases.propTypes = {
-  aliases: PropTypes.arrayOf(PropTypes.string),
-  mangaId: PropTypes.number,
-  onTitleUpdate: PropTypes.func,
-  enqueueSnackbar: PropTypes.func,
-  confirm: PropTypes.func,
-  allowEdits: PropTypes.bool,
 };
 
 export default MangaAliases;

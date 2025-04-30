@@ -1,4 +1,4 @@
-import { vi } from 'vitest';
+import { describe, expect, vi, it, afterEach } from 'vitest';
 import type { AdapterSession } from 'next-auth/adapters';
 import { faker } from '@faker-js/faker';
 import { PostgresAdapter } from '@/db/postgres-adapter';

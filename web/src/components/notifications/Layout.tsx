@@ -32,7 +32,6 @@ export const RightSide = <T extends FormValues>({ children, disabled, control }:
       name='disabled'
       color='primary'
       label='Disabled'
-      value={false}
       disabled={disabled}
     />
     <CheckboxElement
@@ -40,7 +39,6 @@ export const RightSide = <T extends FormValues>({ children, disabled, control }:
       name='groupByManga'
       color='primary'
       label='Group by manga'
-      value={false}
       disabled={disabled}
     />
     {children}

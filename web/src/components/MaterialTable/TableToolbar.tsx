@@ -5,7 +5,6 @@ import React, {
   useState,
 } from 'react';
 
-import PropTypes from 'prop-types';
 import { IconButton, Toolbar, Tooltip, Typography } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 
@@ -52,9 +51,3 @@ export const TableToolbar: FunctionComponent<TableToolbarProps> = props => {
   );
 };
 
-TableToolbar.propTypes = {
-  title: PropTypes.string,
-  DialogComponent: PropTypes.func,
-  creatable: PropTypes.bool,
-  addButtonLabel: PropTypes.string,
-};

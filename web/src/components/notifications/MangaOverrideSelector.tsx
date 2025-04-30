@@ -62,7 +62,6 @@ const MangaOverrideSelector = <TFieldValues extends FormValues = FormValues>({
   });
 
   const onValueChange = useCallback((_: any, v: NotificationFollow | null) => {
-    console.log(formState.dirtyFields);
     // Use formState directly because we do not want to subscribe to changes
     const dirtyCount = Object.entries(formState.dirtyFields).filter(([field, dirty]) => (field !== name && !allowedChangeFields.has(field)) && dirty).length;
     const overrideId = v?.mangaId ?? null;

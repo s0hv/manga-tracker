@@ -25,7 +25,7 @@ export type PostgresAdapter = RequiredExcept<Adapter, 'createVerificationToken' 
 
   userCache: LRU<string, AdapterUser>,
   sessionCache: LRU<string, AdapterSession>
-  clearInterval: null | NodeJS.Timer
+  clearInterval: null | NodeJS.Timeout
 };
 
 export interface CacheOptions {
@@ -228,7 +228,7 @@ export const PostgresAdapter = (db: DatabaseHelpers, options: StoreOptions = {})
     },
   } satisfies PostgresAdapter;
 
-  let clearInterval: null | NodeJS.Timer;
+  let clearInterval: null | NodeJS.Timeout;
   if (!Number.isFinite(options.clearInterval)) {
     clearInterval = null;
   } else {

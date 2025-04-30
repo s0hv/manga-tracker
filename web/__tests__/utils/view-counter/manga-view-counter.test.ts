@@ -1,4 +1,6 @@
 import type { AdapterSession } from 'next-auth/adapters';
+import { describe, expect, it } from 'vitest';
+
 import { getMangaPartial } from '@/db/manga';
 import { mangaView, onSessionExpire } from '@/serverUtils/view-counter';
 

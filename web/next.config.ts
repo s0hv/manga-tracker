@@ -1,6 +1,6 @@
 import type { NextConfig } from 'next';
 
-export default async (phase: string, { defaultConfig }: { defaultConfig: NextConfig }) => {
+export default async () => {
   /** @type {import('next').NextConfig} */
   const conf: NextConfig = {
     poweredByHeader: false,

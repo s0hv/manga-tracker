@@ -3,7 +3,6 @@ import React, {
   type FC,
   type FormEvent,
   useCallback,
-  useEffect,
   useMemo,
 } from 'react';
 import {
@@ -82,7 +81,6 @@ const Profile: FC<ProfileProps> = (props) => {
   const {
     formState,
     control,
-    trigger,
     ...methods
   } = useForm<ProfileFormValues>({
     resolver,
@@ -101,12 +99,7 @@ const Profile: FC<ProfileProps> = (props) => {
 
 
 
-  const { isSubmitting, isValid, isValidating } = formState;
-
-  // Trigger validation on mount and after every blur
-  useEffect(() => {
-    if (!isValidating && !isValid) trigger();
-  }, [trigger, isValid, isValidating]);
+  const { isSubmitting, isValid } = formState;
 
   const deleteAccountDialog = useCallback(() => {
     const confirmationKeyword = user.username || 'I understand';
@@ -155,7 +148,6 @@ const Profile: FC<ProfileProps> = (props) => {
           <FormProvider
             formState={formState}
             control={control}
-            trigger={trigger}
             {...methods}
           >
             <Box
@@ -212,6 +204,9 @@ const Profile: FC<ProfileProps> = (props) => {
                   id='new-password'
                   autoComplete='new-password'
                   control={control}
+                  rules={{
+                    deps: ['password'],
+                  }}
                 />
                 <TextFieldElement<ProfileFormValues>
                   variant='outlined'
@@ -223,6 +218,9 @@ const Profile: FC<ProfileProps> = (props) => {
                   id='repeat-password'
                   autoComplete='new-password'
                   control={control}
+                  rules={{
+                    deps: ['newPassword'],
+                  }}
                 />
               </>
               )}

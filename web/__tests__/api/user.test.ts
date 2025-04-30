@@ -1,4 +1,13 @@
-import request, { SuperAgentTest } from 'supertest';
+import request, { type Agent } from 'supertest';
+import {
+  describe,
+  expect,
+  beforeAll,
+  afterAll,
+  it,
+  beforeEach,
+} from 'vitest';
+
 import { insertFollow } from '@/db/follows';
 import { csrfMissing } from '@/serverUtils/constants';
 import { mangaIdError, type TestUser, userUnauthorized } from '../constants';
@@ -385,8 +394,8 @@ describe('POST /api/user/profile', () => {
       .expect(expectErrorMessage('Nothing to change'));
   });
 
-  async function checkAndResetPassword(agent: SuperAgentTest, newPassword: string, user: TestUser) {
-    // Make sure password doesn't work anymore
+  async function checkAndResetPassword(agent: Agent, newPassword: string, user: TestUser) {
+    // Make sure the password doesn't work anymore
     await agent
       .post('/api/profile')
       .csrf()

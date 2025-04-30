@@ -131,7 +131,7 @@ export async function getFollows(userId: DatabaseId): Promise<Follow[]> {
     .catch(err => {
       // integer overflow
       if (err.code === NUMERIC_VALUE_OUT_OF_RANGE || err.code === INVALID_TEXT_REPRESENTATION) {
-        return new Promise((resolve, reject) => reject(HttpError(404, 'Integer out of range')));
+        return new Promise((resolve, reject) => reject(HttpError(400, 'Integer out of range')));
       }
       console.error(err);
       return new Promise((resolve, reject) => reject(HttpError(500)));

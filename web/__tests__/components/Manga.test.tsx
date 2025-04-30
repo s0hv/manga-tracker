@@ -11,7 +11,7 @@ import fetchMock, {
   type MockOptionsMethodDelete,
   type MockOptionsMethodPut,
 } from 'fetch-mock';
-import { vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import userEvent from '@testing-library/user-event';
 import {

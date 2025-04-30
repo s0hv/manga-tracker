@@ -1,7 +1,8 @@
 import request from 'supertest';
+import { describe, beforeAll, afterAll, it } from 'vitest';
 
 import initServer from '../initServer';
-import stopServer from '../stopServer';
+import stopServer from '../stopServer.js';
 import { expectErrorMessage } from '../utils';
 
 let httpServer;

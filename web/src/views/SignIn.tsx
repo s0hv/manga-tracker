@@ -66,7 +66,7 @@ const signinErrors: Record<
 };
 
 export type SignInProps = {
-  providers: Partial<Record<LiteralUnion<BuiltInProviderType>, ClientSafeProvider>> | null
+  providers?: Partial<Record<LiteralUnion<BuiltInProviderType>, ClientSafeProvider>> | null
   error?: SignInPageErrorParam | null
 }
 

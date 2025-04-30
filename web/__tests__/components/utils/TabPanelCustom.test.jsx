@@ -1,5 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
+import { describe, expect, it } from 'vitest';
+
 import { TabPanelCustom } from '../../../src/components/utils/TabPanelCustom';
 
 const testId = 'testId';

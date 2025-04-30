@@ -1,11 +1,11 @@
 import React from 'react';
 import { Grid, Typography } from '@mui/material';
 import { styled } from '@mui/material/styles';
-import PropTypes from 'prop-types';
 
 import MangaSourceList from './MangaSourceList';
 import MangaInfo from './MangaInfo';
 import { MangaCover } from './MangaCover';
+import type { FullMangaData } from '@/types/api/manga';
 
 const DetailsContainer = styled('div')({
   display: 'flex',
@@ -24,7 +24,10 @@ const SourceList = styled('div')(({ theme }) => ({
   marginLeft: theme.spacing(3),
 }));
 
-function PartialManga(props) {
+export type PartialMangaProps = Partial<Pick<FullMangaData, 'manga' | 'services'>> & {
+  showId?: boolean,
+}
+function PartialManga(props: PartialMangaProps) {
   const {
     showId = false,
     manga,
@@ -47,7 +50,7 @@ function PartialManga(props) {
           container
           direction='column'
           sx={{
-            justifyContent: 'space-between'
+            justifyContent: 'space-between',
           }}
         >
           <MangaInfo mangaData={manga} showId={showId} />
@@ -62,11 +65,5 @@ function PartialManga(props) {
     </div>
   );
 }
-
-PartialManga.propTypes = {
-  showId: PropTypes.bool,
-  manga: PropTypes.object,
-  services: PropTypes.arrayOf(PropTypes.object),
-};
 
 export default PartialManga;
