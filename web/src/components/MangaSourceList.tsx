@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { MouseEventHandler } from 'react';
 import ExpandMore from '@mui/icons-material/ExpandMore';
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import {
@@ -11,11 +11,18 @@ import {
   ListItemText,
   Typography,
 } from '@mui/material';
-import PropTypes from 'prop-types';
 import { useUser } from '../utils/useUser';
+import type { MangaServiceData } from '@/types/api/manga';
 
 
-function MangaSourceList(props) {
+export type MangaSourceListProps = {
+  items?: MangaServiceData[]
+  followUnfollow?: (serviceId: number | null) => (undefined | MouseEventHandler<HTMLButtonElement>)
+  userFollows?: (number | null)[]
+  classesProp?: string[]
+  openByDefault?: boolean
+}
+function MangaSourceList(props: MangaSourceListProps) {
   const {
     items = [],
     followUnfollow = (_) => undefined,
@@ -30,7 +37,7 @@ function MangaSourceList(props) {
     setOpen(!open);
   };
 
-  function renderItem(item) {
+  function renderItem(item: MangaServiceData) {
     const followText = userFollows.indexOf(item.serviceId) < 0 ? 'Follow' : 'Unfollow';
     return (
       <ListItem key={item.serviceId} sx={{ pl: 4, display: 'flex', justifyContent: 'space-between' }}>
@@ -80,19 +87,11 @@ function MangaSourceList(props) {
       </ListItemButton>
       <Collapse in={open} timeout='auto' unmountOnExit>
         <List component='div' disablePadding aria-hidden={!open}>
-          {items.map((item, index) => renderItem(item, index))}
+          {items.map((item) => renderItem(item))}
         </List>
       </Collapse>
     </List>
   );
 }
-
-MangaSourceList.propTypes = {
-  items: PropTypes.arrayOf(PropTypes.object),
-  followUnfollow: PropTypes.func,
-  userFollows: PropTypes.arrayOf(PropTypes.number),
-  classesProp: PropTypes.arrayOf(PropTypes.string),
-  openByDefault: PropTypes.bool,
-};
 
 export default MangaSourceList;

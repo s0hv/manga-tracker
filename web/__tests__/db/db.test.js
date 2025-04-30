@@ -1,3 +1,5 @@
+import { describe, expect, it } from 'vitest';
+
 import { getLatestReleases, getUserFollows } from '../../server/db/db';
 import { normalUser } from '../utils';
 

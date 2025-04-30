@@ -15,8 +15,8 @@ import ArrowRightAlt from '@mui/icons-material/ArrowRightAlt';
 
 import { styled } from '@mui/material/styles';
 import React, { useCallback, useState } from 'react';
-import Search from '../components/MangaSearch';
-import PartialManga from '../components/PartialManga';
+import Search from '../components/MangaSearch.js';
+import PartialManga from '../components/PartialManga.js';
 import { getManga, postMergeManga } from '../api/manga';
 
 

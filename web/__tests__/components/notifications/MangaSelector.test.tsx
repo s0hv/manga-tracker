@@ -5,7 +5,7 @@ import fetchMock from 'fetch-mock';
 import { ConfirmProvider } from 'material-ui-confirm';
 import { FormContainer } from 'react-hook-form-mui';
 import type { FC, PropsWithChildren } from 'react';
-import { vi } from 'vitest';
+import { describe, expect, vi, beforeEach, it } from 'vitest';
 
 import { mockNotistackHooks, queryClient } from '../../utils';
 import MangaSelector, {
@@ -13,7 +13,7 @@ import MangaSelector, {
 } from '@/components/notifications/MangaSelector';
 import type { NotificationFollow } from '@/types/api/notifications';
 
-const inputName = 'test';
+const inputName = 'manga';
 const overrideName = 'overrideId';
 
 const Root: FC<PropsWithChildren<{ selectedManga?: NotificationFollow[] }>> = ({ selectedManga, children }) => (
@@ -56,7 +56,7 @@ describe('MangaSelector', () => {
 
   const Rendered: FC<RenderProps> = ({ selectedManga, ...selectorProps }) => (
     <Root selectedManga={selectedManga}>
-      <MangaSelector name={inputName} label={testLabel} useFollowsName='useFollows' overrideName={overrideName} {...selectorProps} />
+      <MangaSelector name={inputName} label={testLabel} overrideName={overrideName} {...selectorProps} />
     </Root>
   );
 

@@ -1,4 +1,4 @@
-import { Button, MenuItem, Typography } from '@mui/material';
+import { Button, Typography } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import React, { FunctionComponent, useCallback, useMemo } from 'react';
 import { SelectElement } from 'react-hook-form-mui';
@@ -50,6 +50,11 @@ interface FormData {
   status: MangaStatus
 }
 
+const statusOptions = enumValues(MangaStatus)
+  .map(value => ({
+    value,
+    label: statusToString(value),
+  }));
 
 const EditableMangaInfo: FunctionComponent<MangaInfoProps> = ({ mangaData }) => {
   const latestRelease = mangaData.latestRelease ?
@@ -121,16 +126,21 @@ const EditableMangaInfo: FunctionComponent<MangaInfoProps> = ({ mangaData }) => 
           <td>
             <SelectElement
               name='status'
-              aria-labelledby='status-label'
+              slotProps={{
+                select: {
+                  labelId: 'status-label',
+                },
+              }}
+              fullWidth
               variant='standard'
               transform={{
-                output: asNumber,
+                output: (e) => asNumber(e.target.value),
               }}
               control={control}
               sx={{ ml: 0.5 }}
-            >
-              {enumValues(MangaStatus).map(status => <MenuItem value={status} key={status}>{statusToString(status)}</MenuItem>)}
-            </SelectElement>
+              options={statusOptions}
+              valueKey='value'
+            />
           </td>
         </tr>
         <tr>

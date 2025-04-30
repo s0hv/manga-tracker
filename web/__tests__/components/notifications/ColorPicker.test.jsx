@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { FormContainer } from 'react-hook-form-mui';
 import ColorPicker from '../../../src/components/notifications/ColorPicker';

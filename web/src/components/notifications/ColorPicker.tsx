@@ -18,7 +18,7 @@ import { Box, InputAdornment, Popper, type SxProps } from '@mui/material';
 
 type HexColorPickerProps = ComponentProps<typeof HexColorPicker>
 export type ColorPickerProps<T extends FieldValues> = Omit<HexColorPickerProps, 'onChange' | 'color'> & {
-  control: Control<T>
+  control?: Control<T>
   name: FieldPathByValue<T, string | undefined | null>
   label: string
   sx?: SxProps

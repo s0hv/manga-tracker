@@ -1,9 +1,17 @@
 import { Manga, Cover } from 'mangadex-full-api';
-import { vi } from 'vitest';
-import { mangadexLimiter, redis } from '../../server/utils/ratelimits';
+import {
+  describe,
+  expect,
+  vi,
+  afterAll,
+  it,
+  beforeEach,
+  afterEach,
+} from 'vitest';
+import { mangadexLimiter, redis } from '@/serverUtils/ratelimits';
 import { spyOnDb } from '../dbutils';
 
-const { fetchExtraInfo } = await vi.importActual('@/db/mangadex');
+const { fetchExtraInfo } = await vi.importActual<typeof import('@/db/mangadex')>('@/db/mangadex');
 
 afterAll(async () => {
   redis.disconnect();
@@ -12,9 +20,9 @@ afterAll(async () => {
 describe('mangadex API works correctly', () => {
   beforeEach(() => {
     vi.spyOn(Manga, 'get')
-      .mockImplementation(async () => ({ mainCover: {}}));
+      .mockImplementation(async () => ({ mainCover: {}} as unknown as any));
     vi.spyOn(Cover, 'get')
-      .mockImplementation(async () => ({ imageSource: 'test' }));
+      .mockImplementation(async () => ({ imageSource: 'test' } as unknown as any));
   });
   afterEach(async () => {
     vi.restoreAllMocks();
@@ -25,7 +33,7 @@ describe('mangadex API works correctly', () => {
   it('Does a database update on success', async () => {
     const dbSpy = spyOnDb('none');
 
-    await fetchExtraInfo(1, 2);
+    await fetchExtraInfo('1', 2);
 
     expect(dbSpy).toHaveBeenCalledTimes(2);
   });
@@ -36,7 +44,7 @@ describe('mangadex API works correctly', () => {
       .rejects
       .toHaveProperty('msBeforeNext');
 
-    await fetchExtraInfo(1, 2);
+    await fetchExtraInfo('1', 2);
 
     expect(dbSpy).toHaveBeenCalledTimes(1);
   });
@@ -47,7 +55,7 @@ describe('mangadex API works correctly', () => {
       .mockImplementation(async () => { throw err });
     const dbSpy = spyOnDb('none');
 
-    await fetchExtraInfo(1, 2);
+    await fetchExtraInfo('1', 2);
 
     expect(dbSpy).toHaveBeenCalledTimes(1);
     expect(spy).toHaveBeenCalled();

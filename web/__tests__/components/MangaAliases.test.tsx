@@ -1,9 +1,10 @@
 import React from 'react';
-import { render, screen, within, fireEvent, act } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
+import { userEvent } from '@testing-library/user-event';
 import fetchMock from 'fetch-mock';
-import { vi } from 'vitest';
+import { describe, expect, vi, it } from 'vitest';
 
-import MangaAliases from '../../src/components/MangaAliases';
+import MangaAliases from '@/components/MangaAliases';
 import { adminUser, withUser, normalUser } from '../utils';
 
 describe('MangaAliases renders correctly', () => {
@@ -81,6 +82,7 @@ describe('MangaAliases should promote alias correctly', () => {
       mockRoute,
       { body: { title: aliases[0] }}
     );
+    const user = userEvent.setup();
 
     render(
       await withUser(
@@ -99,11 +101,9 @@ describe('MangaAliases should promote alias correctly', () => {
     expect(screen.getByText(aliases[0])).toBeTruthy();
     expect(screen.getByText(aliases[1])).toBeTruthy();
 
-    const row = within(screen.getByText(aliases[0]).closest('li'));
+    const row = within(screen.getByText(aliases[0]).closest('li')!);
 
-    await act(async () => {
-      fireEvent.click(row.getByLabelText('Set alias as main title'));
-    });
+    await user.click(row.getByLabelText('Set alias as main title'));
 
     expect(confirm).toHaveBeenCalledTimes(1);
     expect(mockRoute).toHaveBeenCalledTimes(1);
@@ -120,6 +120,7 @@ describe('MangaAliases should promote alias correctly', () => {
     const onTitleUpdate = vi.fn();
     const confirm = vi.fn(() => Promise.reject());
     const enqueueSnackbar = vi.fn();
+    const user = userEvent.setup();
 
     render(
       await withUser(
@@ -135,11 +136,9 @@ describe('MangaAliases should promote alias correctly', () => {
       )
     );
 
-    const row = within(screen.getByText(aliases[0]).closest('li'));
+    const row = within(screen.getByText(aliases[0]).closest('li')!);
 
-    await act(async () => {
-      fireEvent.click(row.getByLabelText('Set alias as main title'));
-    });
+    await user.click(row.getByLabelText('Set alias as main title'));
 
     expect(confirm).toHaveBeenCalledTimes(1);
     expect(enqueueSnackbar).toHaveBeenCalledTimes(0);

@@ -1,6 +1,8 @@
 import React from 'react';
 import { render, screen, within } from '@testing-library/react';
-import PartialManga from '../../src/components/PartialManga';
+import { describe, expect, it } from 'vitest';
+
+import PartialManga from '../../src/components/PartialManga.js';
 import { emptyFullManga as emptyManga, fullManga as manga } from '../constants';
 
 import { mockUTCDates } from '../utils';

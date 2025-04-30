@@ -1,11 +1,12 @@
 import request from 'supertest';
 import { parse, toSeconds } from 'iso8601-duration';
+import { describe, expect, beforeAll, afterAll, it } from 'vitest';
 
 import { csrfMissing } from '../../../server/utils/constants';
 
 import { userForbidden, userUnauthorized, isCI } from '../../constants';
 import initServer from '../../initServer';
-import stopServer from '../../stopServer';
+import stopServer from '../../stopServer.js';
 import {
   adminUser,
   normalUser,

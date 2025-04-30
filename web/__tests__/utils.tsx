@@ -1,9 +1,14 @@
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { fireEvent, screen, within } from '@testing-library/react';
+import {
+  screen,
+  within,
+  BoundFunctions,
+  queries,
+} from '@testing-library/react';
 import cookie from 'cookie';
 import signature from 'cookie-signature';
-import enLocale from 'date-fns/locale/en-GB';
+import { enGB as enLocale } from 'date-fns/locale';
 import jestOpenAPI from 'jest-openapi';
 import React, { isValidElement } from 'react';
 import type { Response } from 'supertest';
@@ -14,9 +19,8 @@ import type {
   NextFunction,
   Request as ExpressRequest,
 } from 'express-serve-static-core';
-import userEvent from '@testing-library/user-event';
-import type { Screen } from '@testing-library/react/types';
-import { Mock, SpyInstance, vi } from 'vitest';
+import { type UserEvent } from '@testing-library/user-event';
+import { expect, Mock, MockInstance, vi } from 'vitest';
 
 import { UserProvider } from '@/webUtils/useUser';
 import { getOpenapiSpecification } from '../swagger';
@@ -100,11 +104,11 @@ export function getSnackbarMessage() {
   return enqueueSnackbarMock.mock.calls[enqueueSnackbarMock.mock.calls.length-1][0];
 }
 
-export async function muiSelectValue(user: ReturnType<typeof userEvent.setup>, container: Screen, selectName: string | RegExp, value: string | RegExp) {
-  await user.click(container.getByLabelText(selectName));
+export async function muiSelectValue(user: UserEvent, container: BoundFunctions<typeof queries>, selectName: string | RegExp, value: string | RegExp) {
+  await user.click(container.getByRole('combobox', { name: selectName }));
   const listbox = within(screen.getByRole('listbox'));
 
-  fireEvent.click(listbox.getByText(value));
+  await user.click(listbox.getByRole('option', { name: value }));
 }
 
 export function mockUTCDates() {
@@ -177,22 +181,22 @@ export const withUser: WithUser = (async (userObject: TestUser, cb: React.ReactE
   });
 
   try {
-    await cb();
+    await (cb as () => Promise<any>)();
   } finally {
     // Restore the original function
     getSessionAndUser.mockImplementation((await vi.importActual<typeof import('@/db/auth')>('@/db/auth')).getSessionAndUser);
   }
 }) as WithUser;
 
-export function getCookie(agent: request.SuperAgentTest, name: string) {
+export function getCookie(agent: request.Agent, name: string) {
   return agent.jar.getCookie(name, { path: '/' } as any);
 }
 
-export const getSessionToken = (agent: request.SuperAgentTest) => {
+export const getSessionToken = (agent: request.Agent) => {
   return getCookie(agent, 'next-auth.session-token')?.value;
 };
 
-export function deleteCookie(agent: request.SuperAgentTest, name: string) {
+export function deleteCookie(agent: request.Agent, name: string) {
   const c = getCookie(agent, name);
   expect(cookie).toBeDefined();
   c!.expiration_date = 0;
@@ -235,23 +239,6 @@ export function unsignCookie(value: string) {
     value = decodeURIComponent(value);
   }
   return signature.unsign(value.slice(2), 'secret');
-}
-
-export function getCookieFromRes(res: Response, cookieName: string) {
-  if (!res.headers['set-cookie']) return;
-  return res.headers['set-cookie']
-    .map((c: string) => cookie.parse(c))
-    .find((c: Record<string, string>) => c[cookieName] !== undefined);
-}
-
-export function expectCookieDeleted(cookieName: string) {
-  return (res: Response) => {
-    expect(res.headers['set-cookie']).toBeArray();
-    const found = getCookieFromRes(res, cookieName);
-
-    expect(found).toBeDefined();
-    expect(new Date(found.Expires).getTime()).toBe(0);
-  };
 }
 
 export function decodeAuthToken(tokenValue: string): [string, string, string] {
@@ -321,7 +308,10 @@ export const expectErrorMessage: ExpectErrorMessage = (value, param, message='In
 };
 
 export async function configureJestOpenAPI() {
+  // Must add global expect so that jest-openapi can add its custom matchers
+  (global as any).expect = expect;
   jestOpenAPI(await getOpenapiSpecification());
+  delete (global as any).expect;
 }
 
 const counters: Record<string, number> = {};
@@ -387,10 +377,10 @@ export const mockDbForErrors = <T, >(fn: () => Promise<T>): Promise<T> => {
 };
 
 type SilenceConsole = {
-  (): SpyInstance[],
+  (): MockInstance[],
   <T>(callback: Promise<T>): Promise<T>
 }
-export const silenceConsole: SilenceConsole = (<T, >(callback?: Promise<T>): Promise<T> | SpyInstance[] => {
+export const silenceConsole: SilenceConsole = (<T, >(callback?: Promise<T>): Promise<T> | MockInstance[] => {
   if (process.env.KEEP_CONSOLE) {
     return callback || [];
   }
@@ -412,4 +402,4 @@ export const silenceConsole: SilenceConsole = (<T, >(callback?: Promise<T>): Pro
   return spies;
 }) as SilenceConsole;
 
-export const restoreMocks = (spies: SpyInstance[]) => spies.forEach(spy => spy.mockRestore());
+export const restoreMocks = (spies: MockInstance[]) => spies.forEach(spy => spy.mockRestore());

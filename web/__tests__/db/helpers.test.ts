@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { db } from '@/db/helpers';
 import { NoResultsError, TooManyResultsError } from '@/db/errors';
 

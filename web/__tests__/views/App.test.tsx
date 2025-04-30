@@ -1,8 +1,9 @@
 import React from 'react';
 import fetchMock from 'fetch-mock';
-import { type Mock, vi } from 'vitest';
+import { describe, expect, it, type Mock, vi } from 'vitest';
 
 import { act, render, screen } from '@testing-library/react';
+import { QueryClientProvider } from '@tanstack/react-query';
 import {
   generateNSchemas,
   LatestChapter,
@@ -11,7 +12,7 @@ import {
 } from '../schemas';
 
 import App from '@/views/App';
-import { normalUser } from '../utils';
+import { normalUser, queryClient } from '../utils';
 import type { ServiceForApi } from '@/types/api/services';
 import type { ChapterRelease } from '@/types/api/chapter';
 import { UserProvider } from '@/webUtils/useUser';
@@ -54,7 +55,7 @@ describe('Chapter list should allow editing', () => {
   it('Renders correctly', async () => {
     const [chapterMock, serviceMock, chapters] = mockChapters();
     await act(async () => {
-      render(<App />);
+      render(<QueryClientProvider client={queryClient}><App /></QueryClientProvider>);
     });
 
     expect(chapterMock).toHaveBeenCalledOnce();
@@ -78,7 +79,13 @@ describe('Chapter list should allow editing', () => {
   it('Renders correctly with user', async () => {
     mockChapters();
     await act(async () => {
-      render(<UserProvider value={normalUser}><App /></UserProvider>);
+      render(
+        <QueryClientProvider client={queryClient}>
+          <UserProvider value={normalUser}>
+            <App />
+          </UserProvider>
+        </QueryClientProvider>
+      );
     });
 
     expect(fetchMock.called('/api/chapter/latest', { query: { useFollows: 'true' }})).toBeTrue();

@@ -139,7 +139,6 @@ export const MangaServiceTable: FunctionComponent<MangaServiceTableProps> = (pro
         name='serviceId'
         key='serviceId'
         label='Service'
-        aria-label='Service select'
         valueKey='value'
         options={options}
         required

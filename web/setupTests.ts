@@ -1,20 +1,23 @@
-import matchers from '@testing-library/jest-dom/matchers';
-import { vi } from 'vitest';
+import '@testing-library/jest-dom/vitest';
+import { vi, expect, afterEach } from 'vitest';
 import { config } from 'dotenv';
+import { cleanup } from '@testing-library/react';
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import * as extendedMatchers from 'jest-extended';
 
-import request from 'supertest';
-import { csrfToken } from './__tests__/constants';
+import request, { type Test as TestType } from 'supertest';
 import { theme } from '@/webUtils/theme';
 
 
-expect.extend(matchers);
 expect.extend(extendedMatchers);
 
 config({ path: '../.env' });
+
+afterEach(() => {
+  cleanup();
+});
 
 // Don't want API calls to 3rd party services during tests
 vi.mock('@/db/mangadex', () => ({
@@ -24,23 +27,21 @@ vi.mock('@/db/mangadex', () => ({
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
-const Test = request.Test;
+const Test = request.Test as TestType & { prototype: any };
 
 /**
  * Helper function to add csrf token to request
  * @memberOf supertest.Test
- * @return {supertest.Test}
  */
-Test.prototype.csrf = function csrf() {
-  return this.set('X-CSRF-Token', csrfToken);
+Test.prototype.csrf = function csrf(): TestType {
+  return this.set('Origin', '/');
 };
 
 /**
  * Helper function to check if response matches OpenAPI spec
  * @memberOf supertest.Test
- * @return {supertest.Test}
  */
-Test.prototype.satisfiesApiSpec = function satisfiesApiSpec() {
+Test.prototype.satisfiesApiSpec = function satisfiesApiSpec(): TestType {
   return this.expect((res: any) => expect(res).toSatisfyApiSpec());
 };
 

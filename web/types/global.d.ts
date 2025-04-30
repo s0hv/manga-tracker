@@ -33,7 +33,7 @@ declare module 'express-validator' {
 }
 
 declare module 'supertest' {
-  interface Test extends superagent.SuperAgentRequest {
+  interface Test {
     csrf(): Test
     satisfiesApiSpec(): Test
   }

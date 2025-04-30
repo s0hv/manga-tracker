@@ -71,7 +71,6 @@ const WebhookEditor = ({ notificationData, defaultExpanded = false }: WebhookEdi
 
   const { enqueueSnackbar } = useSnackbar();
 
-  console.log(initialValues);
   const {
     handleSubmit,
     setValue,
@@ -113,7 +112,7 @@ const WebhookEditor = ({ notificationData, defaultExpanded = false }: WebhookEdi
       ],
     };
 
-    return postNotifications('', data)
+    return postNotifications(data)
       .then(({ notificationId }) => {
         if (notificationId) {
           setValue('notificationId', notificationId);

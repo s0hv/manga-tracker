@@ -31,7 +31,6 @@ import {
   TableSortLabel,
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
-import PropTypes from 'prop-types';
 
 import { noop } from '@/webUtils/utilities';
 
@@ -291,35 +290,10 @@ const MaterialTable = <TData, >(props: MaterialTableProps<TData>): ReactElement 
   );
 };
 
-const propTypes = {
-  title: PropTypes.string,
-  data: PropTypes.arrayOf(PropTypes.object).isRequired,
-  columns: PropTypes.arrayOf(PropTypes.object).isRequired,
-  sortable: PropTypes.bool,
-  editable: PropTypes.bool,
-  deletable: PropTypes.bool,
-  creatable: PropTypes.bool,
-  pagination: PropTypes.bool,
-  rowsPerPage: PropTypes.number,
-  onSaveRow: PropTypes.func,
-  onDeleteRow: PropTypes.func,
-  id: PropTypes.string,
-  fetchData: PropTypes.func,
-  rowCount: PropTypes.number,
-  loading: PropTypes.bool,
-  CreateDialog: PropTypes.func,
-  toolbarProps: PropTypes.object,
-  hooks: PropTypes.arrayOf(PropTypes.func),
-  tableOptions: PropTypes.object,
-};
-
 const MaterialTableWrapper = <TData, >(props: PropsWithChildren<MaterialTableProps<TData>>): ReactElement => (
   <ConfirmProvider>
     <MaterialTable {...props} />
   </ConfirmProvider>
 );
-
-MaterialTableWrapper.propTypes = propTypes;
-MaterialTable.propTypes = propTypes;
 
 export { MaterialTableWrapper as MaterialTable };

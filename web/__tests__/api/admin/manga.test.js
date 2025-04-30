@@ -1,23 +1,24 @@
 import request from 'supertest';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {
   deleteScheduledRun,
   scheduleMangaRun,
 } from '../../../server/db/admin/management';
-import { getMangaPartial, getAliases } from '../../../server/db/manga';
+import { getAliases, getMangaPartial } from '../../../server/db/manga';
 
 import { userForbidden, userUnauthorized } from '../../constants';
 import initServer from '../../initServer';
-import stopServer from '../../stopServer';
+import stopServer from '../../stopServer.js';
 import {
   adminUser,
+  expectErrorMessage,
   normalUser,
   withUser,
-  expectErrorMessage,
 } from '../../utils';
-import { createMangaService, createManga } from '../../dbutils';
+import { createManga, createMangaService } from '../../dbutils';
 import {
-  apiRequiresAdminUserPostTests,
   apiRequiresAdminUserGetTests,
+  apiRequiresAdminUserPostTests,
 } from '../utilities';
 import { getMangaServices } from '../../../server/db/admin/manga';
 

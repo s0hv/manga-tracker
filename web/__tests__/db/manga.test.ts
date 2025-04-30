@@ -1,5 +1,6 @@
-import { getFollows, getAliases } from '../../server/db/manga';
-import { HttpError } from '../../server/utils/errors';
+import { describe, expect, it } from 'vitest';
+import { getAliases, getFollows } from '@/db/manga';
+import { HttpError } from '@/serverUtils/errors';
 import { normalUser, testManga } from '../utils';
 
 
@@ -19,6 +20,7 @@ describe('getFollows(userId)', () => {
 
   it('Throws 404 when userId not defined', () => {
     expect.assertions(1);
+    // @ts-expect-error
     return expect(getFollows())
       .rejects
       .toEqual(HttpError(404));

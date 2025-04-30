@@ -6,11 +6,11 @@ import {
 import { useQuery } from '@tanstack/react-query';
 import { type SyntheticEvent, useCallback, useEffect, useState } from 'react';
 import { AutocompleteProps, Box } from '@mui/material';
-import type {
-  Control,
-  FieldPath,
-  FieldPathByValue,
-  Validate,
+import {
+  type Control,
+  type FieldPath,
+  type FieldPathByValue,
+  type Validate,
 } from 'react-hook-form';
 import { quickSearch } from '../../api/manga';
 import type { NotificationFollow } from '@/types/api/notifications';
@@ -25,7 +25,7 @@ import type { FormValues } from '@/components/notifications/types';
 
 type AutocompleteType = AutocompleteProps<NotificationFollow, true, false, false>;
 export type MangaSelectorProps<TFieldValues extends FormValues = FormValues> = {
-  control: Control<TFieldValues>,
+  control?: Control<TFieldValues>,
   name: FieldPathByValue<TFieldValues, NotificationFollow[] | null>,
   label: string,
   disabled?: boolean,
@@ -48,12 +48,10 @@ const MangaSelector = <TFieldValues extends FormValues = FormValues>({
   const useFollows = useWatch({ name: 'useFollows', control });
 
   const [override, setOverride] = useState(overrideInput);
-  const [values, setValues] = useState(mangaInput || []);
 
   useEffect(() => {
     if (override !== overrideInput) {
       setOverride(overrideInput);
-      setValues(mangaInput || []);
     }
   }, [mangaInput, overrideInput, override]);
 
@@ -86,14 +84,13 @@ const MangaSelector = <TFieldValues extends FormValues = FormValues>({
     queryFn: doSearch,
   });
 
-  const onInputChange = useCallback((e: SyntheticEvent, value: string | null) => {
+  const onInputChange = useCallback((_: SyntheticEvent, value: string | null) => {
     if (typeof value === 'string') {
       setQuery(value);
     }
   }, []);
 
-  const onValueChange = useCallback((_: any, v: NotificationFollow[]) => {
-    setValues(v);
+  const onValueChange = useCallback((_: any) => {
     setQuery(query);
   }, [query]);
 
@@ -119,11 +116,14 @@ const MangaSelector = <TFieldValues extends FormValues = FormValues>({
         control={control}
         label={label}
         name={name}
-        options={data || noData}
+        options={data ?? noData}
         rules={{ validate: hasError as Validate<any, any> }}
+        transform={{
+          input: (v) => (v ?? []) as NotificationFollow[],
+        }}
+        multiple
         autocompleteProps={{
           limitTags: 3,
-          value: values,
           inputValue: query,
           onInputChange: onInputChange,
           onChange: onValueChange,
@@ -133,7 +133,6 @@ const MangaSelector = <TFieldValues extends FormValues = FormValues>({
           isOptionEqualToValue: optionEquals,
           disableCloseOnSelect: true,
           clearOnBlur: false,
-          multiple: true,
           fullWidth: false,
           disabled: autocompleteDisabled,
           ...autocompleteProps,

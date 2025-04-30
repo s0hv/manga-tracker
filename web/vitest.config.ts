@@ -5,6 +5,24 @@ import * as path from 'path';
 export default defineConfig({
   plugins: [react()],
   test: {
+    workspace: [
+      {
+        extends: true,
+        test: {
+          name: 'react',
+          include: ['__tests__/**/*.test.{tsx,jsx}'],
+          environment: 'jsdom',
+        },
+      },
+      {
+        extends: true,
+        test: {
+          name: 'node',
+          include: ['__tests__/**/*.test.{ts,js}'],
+          environment: 'node',
+        },
+      },
+    ],
     root: '.',
     alias: {
       '@/components': path.resolve(__dirname, './src/components'),
@@ -15,15 +33,9 @@ export default defineConfig({
       '@/types': path.resolve(__dirname, './types'),
       '@/common': path.resolve(__dirname, './common'),
     },
-    globals: true,
     setupFiles: ['./setupTests.ts'],
     globalSetup: './__tests__/globalSetup.ts',
-    include: ['__tests__/**/*.test.{ts,tsx,js,jsx}'],
     clearMocks: true,
-    environmentMatchGlobs: [
-      ['__tests__/**/*.test.{jsx,tsx}', 'jsdom'],
-      ['__tests__/**/*.test.{js,ts}', 'node'],
-    ],
     reporters: ['default'],
     silent: false,
     coverage: {

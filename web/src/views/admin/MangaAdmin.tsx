@@ -13,7 +13,6 @@ import { styled } from '@mui/material/styles';
 import SubdirectoryArrowLeftIcon
   from '@mui/icons-material/SubdirectoryArrowLeft';
 import { useConfirm } from 'material-ui-confirm';
-import PropTypes from 'prop-types';
 
 import { SelectElement } from 'react-hook-form-mui';
 import Link from 'next/link';
@@ -72,7 +71,7 @@ const columnHelper = createColumnHelper<ScheduledRun>();
 
 export type MangaAdminProps = {
   mangaData: FullMangaData,
-  serviceConfigs: ServiceConfig[]
+  serviceConfigs: Pick<ServiceConfig, 'scheduledRunsEnabled' | 'serviceId'>[]
 }
 
 function MangaAdmin(props: MangaAdminProps) {
@@ -270,14 +269,5 @@ function MangaAdmin(props: MangaAdminProps) {
     </Container>
   );
 }
-
-MangaAdmin.propTypes = {
-  mangaData: PropTypes.shape({
-    manga: PropTypes.object.isRequired,
-    services: PropTypes.arrayOf(PropTypes.object),
-    aliases: PropTypes.arrayOf(PropTypes.string),
-  }).isRequired,
-  serviceConfigs: PropTypes.arrayOf(PropTypes.object).isRequired,
-};
 
 export default MangaAdmin;

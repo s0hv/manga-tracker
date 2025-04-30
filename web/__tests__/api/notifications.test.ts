@@ -1,6 +1,13 @@
 import request from 'supertest';
-import { csrfMissing } from '@/serverUtils/constants';
+import {
+  describe,
+  expect,
+  beforeAll,
+  afterAll,
+  it,
+} from 'vitest';
 
+import { csrfMissing } from '@/serverUtils/constants';
 import initServer from '../initServer';
 import stopServer from '../stopServer';
 import {

@@ -1,4 +1,5 @@
 import { createTheme, responsiveFontSizes } from '@mui/material/styles';
+import type {} from '@mui/material/themeCssVarsAugmentation';
 
 import { blue } from '@mui/material/colors';
 import { Roboto } from 'next/font/google';

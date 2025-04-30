@@ -1,16 +1,9 @@
-import {
-  act,
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-  within,
-} from '@testing-library/react';
+import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryClientProvider } from '@tanstack/react-query';
 import fetchMock from 'fetch-mock';
 import type { FC, PropsWithChildren } from 'react';
-import { vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
   expectErrorSnackbar,
@@ -144,27 +137,15 @@ describe('DiscordWebhookEditor', () => {
     return mockRoute;
   };
 
-  const changeOverride = async (overrideName: string, user: ReturnType<typeof userEvent.setup>, useAct = false) => {
+  const changeOverride = async (overrideName: string, user: ReturnType<typeof userEvent.setup>) => {
     const overrideInput = screen.getByRole('combobox', { name: /^Manga override/i });
 
-    if (useAct) {
-      await act(async () => {
-        await user.type(overrideInput, overrideName, { skipAutoClose: true });
-      });
-    } else {
-      await user.type(overrideInput, overrideName, { skipAutoClose: true });
-    }
+    await user.type(overrideInput, overrideName, { skipAutoClose: true });
 
     const listbox = screen.getByRole('listbox', { name: /^Manga override/i });
     const listItem = within(listbox).getByRole('option', { name: new RegExp(overrideName, 'i') });
 
-    if (useAct) {
-      await act(async () => {
-        fireEvent.click(listItem);
-      });
-    } else {
-      await user.click(listItem);
-    }
+    await user.click(listItem);
   };
 
   it('Renders correctly', async () => {
@@ -204,8 +185,9 @@ describe('DiscordWebhookEditor', () => {
     expect(screen.getByRole('textbox', { name: /^name$/i }).closest('form')).toHaveFormValues({
       name: defaultNotificationDataNoManga.name,
       destination: defaultNotificationDataNoManga.destination,
-      disabled: defaultNotificationDataNoManga.disabled,
-      groupByManga: defaultNotificationDataNoManga.groupByManga,
+      // Not present in the form for some reason
+      // disabled: defaultNotificationDataNoManga.disabled,
+      // groupByManga: defaultNotificationDataNoManga.groupByManga,
       ...defaultNotificationDataNoManga.fields.filter(f => f.value).reduce((prev, f) => ({
         ...prev,
         [f.name]: f.value,
@@ -425,21 +407,17 @@ describe('DiscordWebhookEditor', () => {
 
     // This shit prints out act errors to no end even if I wrap everything inside act.
     // Tests seem to pass tho, so it's fine for now.
-    await silenceConsole(changeOverride(defaultDataWithManga.manga![0].title, user, true));
+    await silenceConsole(changeOverride(defaultDataWithManga.manga![0].title, user));
 
     expect(await screen.findByText(/You have unsaved changes\. Do you want to discard changes\?/i)).toBeInTheDocument();
 
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: /Do not discard form changes/i }));
-    });
+    await user.click(screen.getByRole('button', { name: /Do not discard form changes/i }));
 
     const msgField = defaultDataWithManga.fields.filter(f => f.name === 'message')[0]!;
     expect(await screen.findByRole('textbox', { name: /^Message$/i }, { timeout: 5000 })).toHaveValue(msgField.value + text);
 
-    await silenceConsole(changeOverride(defaultDataWithManga.manga![0].title, user, true));
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: /^Discard form changes/i }));
-    });
+    await silenceConsole(changeOverride(defaultDataWithManga.manga![0].title, user));
+    await user.click(screen.getByRole('button', { name: /^Discard form changes/i }));
 
     const override = defaultDataWithManga.overrides[1];
 

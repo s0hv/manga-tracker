@@ -1,5 +1,7 @@
 import React from 'react';
 import { render, screen, within } from '@testing-library/react';
+import { describe, expect, it } from 'vitest';
+
 import Follows from '../../src/components/Follows';
 import { mockUTCDates } from '../utils';
 

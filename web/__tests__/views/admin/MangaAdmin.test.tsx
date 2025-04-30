@@ -1,6 +1,6 @@
 import { act, render, screen, within } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { vi } from 'vitest';
+import userEvent, { type UserEvent } from '@testing-library/user-event';
+import { describe, expect, vi, it, beforeEach } from 'vitest';
 
 import fetchMock from 'fetch-mock';
 import React from 'react';
@@ -36,7 +36,7 @@ describe('Manga admin page should render correctly', () => {
     await act(async () => {
       render(
         <QueryClientProvider client={queryClient}>
-          <MangaAdmin mangaData={{ manga: {}}} serviceConfigs={[]} />
+          <MangaAdmin mangaData={{ manga: { mangaId: 0, title: '', status: 0 }, services: []}} serviceConfigs={[]} />
         </QueryClientProvider>
       );
     });
@@ -130,11 +130,11 @@ describe('Manga admin page should handle data fetching correctly', () => {
     }
   };
 
-  const submitForm = async (user) => {
+  const submitForm = async (user: UserEvent) => {
     await user.click(screen.getByRole('button', { name: 'Create row' }));
   };
 
-  const deleteRow = async (user) => {
+  const deleteRow = async (user: UserEvent) => {
     await user.click(screen.getByRole('button', { name: 'Confirm delete row' }));
   };
 
@@ -165,7 +165,7 @@ describe('Manga admin page should handle data fetching correctly', () => {
     await user.click(screen.getByLabelText('add scheduled run'));
 
     const form = within(screen.getByRole('presentation', { name: 'Create item form' }));
-    await muiSelectValue(user, form, 'Service select', serviceName);
+    await muiSelectValue(user, form, 'Service', serviceName);
 
     await submitForm(user);
 
@@ -183,7 +183,7 @@ describe('Manga admin page should handle data fetching correctly', () => {
 
     await renderPage();
 
-    const rowElement = screen.getByText(serviceName).closest('tr');
+    const rowElement = screen.getByText(serviceName).closest('tr')!;
     const row = within(rowElement);
 
     const user = userEvent.setup();
@@ -206,7 +206,7 @@ describe('Manga admin page should handle data fetching correctly', () => {
 
     await renderPage();
 
-    const rowElement = screen.getByText(serviceName).closest('tr');
+    const rowElement = screen.getByText(serviceName).closest('tr')!;
     const row = within(rowElement);
 
     const user = userEvent.setup();
@@ -222,7 +222,7 @@ describe('Manga admin page should handle data fetching correctly', () => {
     await user.click(screen.getByLabelText('add scheduled run'));
 
     const form = within(screen.getByRole('presentation', { name: 'Create item form' }));
-    await muiSelectValue(user, form, 'Service select', serviceName);
+    await muiSelectValue(user, form, 'Service', serviceName);
 
     await submitForm(user);
     expect(enqueueSnackbarMock).toHaveBeenCalledTimes(2);

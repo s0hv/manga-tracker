@@ -1,4 +1,5 @@
-export const formatChapterTitle = ({ title, chapterNumber, chapterDecimal }) => {
+type FormatChapterTitleOpts = { title: string, chapterNumber: number, chapterDecimal?: number | null }
+export const formatChapterTitle = ({ title, chapterNumber, chapterDecimal }: FormatChapterTitleOpts) => {
   const prefix = `Chapter ${chapterNumber}${chapterDecimal ? '.' + chapterDecimal : ''}`;
   if (title === undefined || /chapter \d(\.\d+)?/i.test(title)) {
     return prefix;
@@ -12,9 +13,8 @@ export const formatChapterTitle = ({ title, chapterNumber, chapterDecimal }) => 
  * @param {string?} chapterUrlFormat
  * @param {string} chapterIdentifier
  * @param {string} titleId
- * @returns {*|undefined}
  */
-export const formatChapterUrl = (chapterUrlFormat, chapterIdentifier, titleId='') => (chapterUrlFormat ?
+export const formatChapterUrl = (chapterUrlFormat: string | undefined, chapterIdentifier: string, titleId: string=''): string | undefined => (chapterUrlFormat ?
   chapterUrlFormat.replace('{}', chapterIdentifier).replace('{title_id}', titleId) :
   undefined
 );

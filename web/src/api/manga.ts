@@ -34,7 +34,7 @@ export const postMergeManga = (baseManga: DatabaseId, toMerge: DatabaseId, servi
 
 type QuickSearch = {
   (query: string, withServices: true): Promise<SearchedMangaWithService[]>,
-  (query: string, withServices: false): Promise<SearchedManga[]>,
+  (query: string, withServices?: false): Promise<SearchedManga[]>,
 }
 
 /**

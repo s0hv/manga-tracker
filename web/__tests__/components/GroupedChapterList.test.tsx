@@ -1,18 +1,19 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
+  type ChapterComponentProps,
   ChapterGroupWithCover,
   ChapterWithLink,
+  type GroupComponentProps,
   GroupedChapterList,
-} from '../../src/components/GroupedChapterList';
+} from '@/components/GroupedChapterList';
 import { testChapterUrlFormat } from '../constants';
-import {
-  formatChapterTitle,
-  formatChapterUrl,
-} from '../../src/utils/formatting';
+import { formatChapterTitle, formatChapterUrl } from '@/webUtils/formatting';
 import { generateNSchemas, LatestChapter, setupFaker } from '../schemas';
+import type { ChapterRelease } from '@/types/api/chapter';
+import type { ServiceForApi } from '@/types/api/services';
 
 
 describe('ChapterGroupWithCover', () => {
@@ -28,6 +29,7 @@ describe('ChapterGroupWithCover', () => {
     const mangaId = 1;
     render(
       <Component
+        mangaId={mangaId}
         group={mangaId}
         groupString={groupString}
       >
@@ -45,10 +47,14 @@ describe('ChapterGroupWithCover', () => {
 });
 
 describe('ChapterWithLink', () => {
-  const services = {
+  const services: Record<number, ServiceForApi> = {
     1: {
       name: 'Test service',
       chapterUrlFormat: testChapterUrlFormat,
+      serviceId: 1,
+      disabled: false,
+      url: '',
+      mangaUrlFormat: '',
     },
   };
 
@@ -56,11 +62,20 @@ describe('ChapterWithLink', () => {
     const Component = ChapterWithLink(services);
     const serviceId = 1;
     const service = services[serviceId];
-    const chapter = {
+    const chapter: ChapterRelease = {
       serviceId,
       chapterIdentifier: 'chapterIdentifierTest',
       title: 'Test title',
       chapterNumber: 10,
+
+      chapterDecimal: null,
+      chapterId: 0,
+      cover: '',
+      group: '',
+      manga: '',
+      mangaId: 0,
+      releaseDate: new Date(),
+      titleId: '',
     };
 
     render(
@@ -91,7 +106,7 @@ describe('GroupedChapterList', () => {
   const groupB = 2;
   const groupC = 3;
 
-  const generateChaptersWithMangaId = (mangaId, count) => generateNSchemas(LatestChapter, count)
+  const generateChaptersWithMangaId = (mangaId: number, count: number) => generateNSchemas<ChapterRelease>(LatestChapter, count)
     .map(chapter => {
       chapter.mangaId = mangaId;
       return chapter;
@@ -101,10 +116,10 @@ describe('GroupedChapterList', () => {
     const nGroups = 5;
     const groupToString = vi.fn().mockImplementation(group => group);
 
-    const GroupComponent = ({ children }) => <div>{children}</div>;
+    const GroupComponent = ({ children }: GroupComponentProps) => <div>{children}</div>;
     const GroupComponentMock = vi.fn().mockImplementation(GroupComponent);
 
-    const ChapterComponent = ({ title }) => <h5>{title}</h5>;
+    const ChapterComponent = ({ chapter: { title }}: ChapterComponentProps) => <h5>{title}</h5>;
     const ChapterComponentMock = vi.fn().mockImplementation(ChapterComponent);
 
     const chaptersA1 = generateChaptersWithMangaId(groupA, 2);
@@ -113,7 +128,7 @@ describe('GroupedChapterList', () => {
     const chaptersA2 = generateChaptersWithMangaId(groupA, 1);
     const chaptersC2 = generateChaptersWithMangaId(groupC, 1);
 
-    const chapters = [
+    const chapters: ChapterRelease[] = [
       ...chaptersA1,
       ...chaptersB,
       ...chaptersC1,

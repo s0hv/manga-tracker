@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
+import { describe, expect, it } from 'vitest';
 
 import MangaInfo from '../../src/components/MangaInfo';
 import { mockUTCDates, silenceConsole, restoreMocks } from '../utils';
@@ -76,6 +77,7 @@ describe('MangaInfo should render correctly', () => {
 
   it('Should throw TypeError when mangaData not given', () => {
     const spies = silenceConsole();
+    // @ts-expect-error
     expect(() => render(<MangaInfo />)).toThrow(TypeError);
     restoreMocks(spies);
   });

@@ -1,12 +1,12 @@
 import { format, formatDistanceToNowStrict } from 'date-fns';
 import { enGB } from 'date-fns/locale';
 import throttle from 'lodash.throttle';
-import type { MouseEvent, MouseEventHandler } from 'react';
+import type { MouseEvent } from 'react';
 import type { DatabaseId, MangaId } from '@/types/dbTypes';
 import type { NotificationField } from '@/types/api/notifications';
 import type { FormValues } from '@/components/notifications/types';
 
-export const followUnfollow = (mangaId: MangaId, serviceId: DatabaseId | null): MouseEventHandler => {
+export const followUnfollow = (mangaId: MangaId, serviceId: DatabaseId | null) => {
   const url = serviceId ? `/api/user/follows?mangaId=${mangaId}&serviceId=${serviceId}` :
     `/api/user/follows?mangaId=${mangaId}`;
   return throttle((event: MouseEvent) => {
@@ -182,6 +182,7 @@ export const statusToString = (status: number | string) => {
       return 'Dropped';
     case 3:
       return 'Hiatus';
+    case 0:
     default:
       return 'Ongoing';
   }

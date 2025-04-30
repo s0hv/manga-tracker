@@ -29,7 +29,7 @@ export type ChapterComponentProps = {
 
 export type GroupComponentProps = PropsWithChildren<{
   groupString: string | React.ReactNode
-  group: string
+  group: DatabaseId
   mangaId: DatabaseId
 }>
 
@@ -46,7 +46,7 @@ export const ChapterGroupBase: FC<Omit<GroupComponentProps, 'group' | 'mangaId'>
   </Paper>
 );
 
-export const ChapterGroupWithCover = (mangaToCover: Record<string, string>): FC<GroupComponentProps> => (
+export const ChapterGroupWithCover = (mangaToCover: Record<DatabaseId, string>): FC<GroupComponentProps> => (
   { mangaId, group, groupString, children }
 ) => (
   <ChapterGroupBase groupString={groupString}>

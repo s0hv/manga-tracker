@@ -3,6 +3,7 @@ import { render, screen } from '@testing-library/react';
 import { SnackbarProvider } from 'notistack';
 import fetchMock from 'fetch-mock';
 import userEvent from '@testing-library/user-event';
+import { beforeEach, describe, expect, it } from 'vitest';
 
 import {
   expectErrorSnackbar,
@@ -72,7 +73,7 @@ describe('EditableMangaInfo should render correctly', () => {
     ).toBeInTheDocument();
 
     expect(screen.getByRole('row', { name: /latest chapter: \d+/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /publication status \w+/i })).toBeInTheDocument();
+    expect(screen.getByRole('combobox', { name: /publication status/i })).toBeInTheDocument();
   });
 
   it('Should render correctly with null data', () => {
@@ -91,7 +92,7 @@ describe('EditableMangaInfo should render correctly', () => {
     ).toBeInTheDocument();
 
     expect(screen.getByRole('row', { name: /latest chapter: unknown/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /publication status \w+/i })).toBeInTheDocument();
+    expect(screen.getByRole('combobox', { name: /publication status/i })).toBeInTheDocument();
   });
 
   it('Should throw TypeError when mangaData not given', () => {

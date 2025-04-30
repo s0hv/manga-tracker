@@ -1,8 +1,9 @@
 import React from 'react';
-import { render, screen, act, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import fetchMock from 'fetch-mock';
-import { vi } from 'vitest';
+import { describe, expect, vi, it, beforeEach } from 'vitest';
 
+import { userEvent, type UserEvent } from '@testing-library/user-event';
 import {
   mockNotistackHooks,
   expectErrorSnackbar,
@@ -15,39 +16,34 @@ beforeEach(() => mockNotistackHooks());
 describe.skip('Sign in page functionality', () => {
   const replaceMock = vi.fn();
 
-  delete window.location;
-  window.location = { replace: replaceMock };
+  delete (window as any).location;
+  (window as any).location = { replace: replaceMock };
 
   beforeEach(() => {
     fetchMock.reset();
     replaceMock.mockReset();
   });
 
-  const editInput = (target, value) => {
-    fireEvent.change(target, { target: { value }});
-  };
-
-  const prepareSignIn = () => {
+  const prepareSignIn = async (user: UserEvent) => {
     render(<SignIn />);
 
     const email = 'test@test.com';
     const emailInput = screen.getByLabelText(/email address/i);
-    editInput(emailInput, email);
+    await user.type(emailInput, email);
 
     const password = 'test_password12345';
     const passwordInput = screen.getByLabelText(/password/i);
-    editInput(passwordInput, password);
+    await user.type(passwordInput, password);
 
     return { email, password };
   };
 
   it('Should call login api on login', async () => {
     fetchMock.post('/api/login', 200);
-    prepareSignIn();
+    const user = userEvent.setup();
+    await prepareSignIn(user);
 
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: /sign in/i }));
-    });
+    await user.click(screen.getByRole('button', { name: /sign in/i }));
 
     expect(fetchMock.calls('/api/login')).toHaveLength(1);
     expect(replaceMock).toHaveBeenCalledTimes(1);
@@ -55,11 +51,10 @@ describe.skip('Sign in page functionality', () => {
 
   it('Should show snackbar on error', async () => {
     fetchMock.post('/api/login', { status: 400 });
-    prepareSignIn();
+    const user = userEvent.setup();
+    await prepareSignIn(user);
 
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: /sign in/i }));
-    });
+    await user.click(screen.getByRole('button', { name: /sign in/i }));
 
     expectErrorSnackbar();
     expect(getSnackbarMessage()).toMatchInlineSnapshot(`"Server returned status 400 Bad Request"`);
@@ -68,7 +63,8 @@ describe.skip('Sign in page functionality', () => {
   });
 
   it('Should include correct body in request without remember me', async () => {
-    const { email, password } = prepareSignIn();
+    const user = userEvent.setup();
+    const { email, password } = await prepareSignIn(user);
     const opts = { body: { email, password }};
     fetchMock.post(
       '/api/login',
@@ -76,16 +72,15 @@ describe.skip('Sign in page functionality', () => {
       opts
     );
 
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: /sign in/i }));
-    });
+    await user.click(screen.getByRole('button', { name: /sign in/i }));
 
     expect(fetchMock.calls('/api/login', opts)).toHaveLength(1);
     expect(replaceMock).toHaveBeenCalledTimes(1);
   });
 
   it('Should include correct body in request with remember me', async () => {
-    const { email, password } = prepareSignIn();
+    const user = userEvent.setup();
+    const { email, password } = await prepareSignIn(user);
     const opts = { body: { email, password, rememberme: true }};
     fetchMock.post(
       '/api/login',
@@ -93,11 +88,8 @@ describe.skip('Sign in page functionality', () => {
       opts
     );
 
-    fireEvent.click(screen.getByLabelText(/remember me/i));
-
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: /sign in/i }));
-    });
+    await user.click(screen.getByLabelText(/remember me/i));
+    await user.click(screen.getByRole('button', { name: /sign in/i }));
 
     expect(fetchMock.calls('/api/login', opts)).toHaveLength(1);
     expect(replaceMock).toHaveBeenCalledTimes(1);

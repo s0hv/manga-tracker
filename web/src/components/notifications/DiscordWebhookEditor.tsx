@@ -380,10 +380,9 @@ const DiscordWebhookEditor: React.FC<DiscordWebhookEditorProps> = ({
         const msg = isOverride ? 'Notification override saved' : 'Notification saved';
         enqueueSnackbar(msg, { variant: 'success' });
       })
-      .catch(err => {
+      .catch(() => {
         const msg = isOverride ? 'Failed to create/update notification override' : 'Failed to create/update notification';
         enqueueSnackbar(msg, { variant: 'error' });
-        throw err;
       });
   }, [enqueueSnackbar]);
 
@@ -410,7 +409,6 @@ const DiscordWebhookEditor: React.FC<DiscordWebhookEditorProps> = ({
     const newData = newFormData.notificationData;
     if (!newData) return;
 
-    console.log(getInitialValues(newData, getNotificationFields(newFormData.overrideId, newData)));
     reset(getInitialValues(newData, getNotificationFields(newFormData.overrideId, newData)));
     setValue('overrideId', newFormData.overrideId);
   }, [newFormData, reset, setValue]);

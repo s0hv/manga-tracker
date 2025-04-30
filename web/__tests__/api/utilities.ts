@@ -1,4 +1,6 @@
 import request, { type Test } from 'supertest';
+import { it } from 'vitest';
+
 import {
   expectErrorMessage,
   mockDbForErrors,

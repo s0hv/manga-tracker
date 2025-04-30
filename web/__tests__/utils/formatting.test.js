@@ -1,7 +1,8 @@
+import { describe, expect, it } from 'vitest';
 import {
   formatChapterTitle,
   formatChapterUrl,
-} from '../../src/utils/formatting';
+} from '../../src/utils/formatting.js';
 
 describe('formatChapterTitle', () => {
   it('Should format correctly without decimal', () => {
