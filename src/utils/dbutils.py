@@ -1020,8 +1020,8 @@ class DbUtil:
         if not entries:
             return []
 
-        if len(entries) > 300:
-            logger.warning('Over 300 entries passed to get_only_latest_entries')
+        if len(entries) > 500:
+            logger.warning('Over 500 entries passed to get_only_latest_entries for service %', service_id)
 
         args: tuple = tuple(c.chapter_identifier for c in entries)
         format_args = ','.join(('%s',) * len(args))
