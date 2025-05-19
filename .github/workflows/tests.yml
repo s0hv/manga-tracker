@@ -252,7 +252,7 @@ jobs:
           restore-keys: |
             nextjs-${{ hashFiles('pnpm-lock.yaml') }}-
 
-      - uses: cypress-io/github-action@v5.8.1
+      - uses: cypress-io/github-action@v6.9.2
         with:
           browser: chrome
           working-directory: ./web
