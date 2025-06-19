@@ -33,7 +33,7 @@ fi
 
 
 echo "Upgrading requirements" |& tee -a "$filename"
-$unbuffer poetry install |& tee -a "$filename"
+$unbuffer uv sync --frozen |& tee -a "$filename"
 if [ "${PIPESTATUS[0]}" -ne 0 ]
   then
     echo -e >&2 "${RED}Failed to install requirements. Manual fixes required${NC}" |& tee -a "$filename"
