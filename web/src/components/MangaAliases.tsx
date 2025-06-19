@@ -1,7 +1,5 @@
-import { styled } from '@mui/material/styles';
-import DoubleArrowIcon from '@mui/icons-material/DoubleArrow';
-
 import React, { useCallback } from 'react';
+import DoubleArrowIcon from '@mui/icons-material/DoubleArrow';
 import {
   IconButton,
   List,
@@ -10,10 +8,12 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
-
+import { styled } from '@mui/material/styles';
 import type { ConfirmOptions } from 'material-ui-confirm';
-import { useUser } from '../utils/useUser';
+import type { EnqueueSnackbar } from 'notistack';
+
 import { updateMangaTitle } from '../api/admin/manga';
+import { useUser } from '../utils/useUser';
 
 const Root = styled('div')(({ theme }) => ({
   margin: theme.spacing(1),
@@ -25,10 +25,10 @@ export type MangaAliasesProps = {
   aliases?: string[] | undefined
   mangaId?: number
   onTitleUpdate?: () => void
-  enqueueSnackbar?: (message: string, options?: any) => void
+  enqueueSnackbar?: EnqueueSnackbar
   confirm?: (options?: ConfirmOptions) => Promise<void>
   allowEdits?: boolean
-}
+};
 const MangaAliases = (props: MangaAliasesProps) => {
   const {
     aliases,
@@ -36,7 +36,7 @@ const MangaAliases = (props: MangaAliasesProps) => {
     onTitleUpdate,
     enqueueSnackbar,
     confirm,
-    allowEdits=false,
+    allowEdits = false,
   } = props;
 
   const { isAdmin } = useUser();
