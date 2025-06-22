@@ -1,7 +1,6 @@
 import json
 import logging
 import os
-import unittest
 from typing import override
 from unittest.mock import Mock, patch
 
@@ -313,4 +312,4 @@ def test_special_chapter_parsing_invalid_string(caplog: pytest.LogCaptureFixture
 
 
 if __name__ == '__main__':
-    unittest.main()
+    pytest.main()

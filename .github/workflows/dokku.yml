@@ -18,7 +18,7 @@ jobs:
     steps:
       - id: setvar
         run: |
-          if [[ "${{ secrets.DOKKU_HOST }}" != "" ]]; \
+          if [[ "${{ secrets.DOKKU_REMOTE_URL }}" != "" ]]; \
           then
             echo "Dokku host defined."
             echo "::set-output name=use_dokku::true"
@@ -41,9 +41,8 @@ jobs:
           fetch-depth: 0
       - id: deploy
         name: Deploy to dokku
-        uses: idoberko2/dokku-deploy-github-action@v1
+        uses: dokku/github-action@v1
         with:
-          git-push-flags: --force
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-          dokku-host: ${{ secrets.DOKKU_HOST }}
-          app-name: ${{ secrets.DOKKU_APP }}
+          git_push_flags: --force
+          ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
+          git_remote_url: ${{ secrets.DOKKU_REMOTE_URL }}

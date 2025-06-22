@@ -1,14 +1,12 @@
 from collections.abc import Sequence
 from math import ceil
-from typing import Any, Literal, TypeVar, overload
+from typing import Any, Literal, overload
 
 import psycopg
 
-T = TypeVar('T')
-
 
 @overload
-def execute_values(
+def execute_values[T](
     cur: psycopg.Cursor[T],
     sql: str,
     values: Sequence[Sequence[Any]],
@@ -21,7 +19,7 @@ def execute_values(
 
 
 @overload
-def execute_values(
+def execute_values[T](
     cur: psycopg.Cursor[T],
     sql: str,
     values: Sequence[Sequence[Any]],
@@ -34,7 +32,7 @@ def execute_values(
 
 
 @overload
-def execute_values(
+def execute_values[T](
     cur: psycopg.Cursor[T],
     sql: str,
     values: Sequence[Sequence[Any]],
@@ -46,14 +44,14 @@ def execute_values(
 ) -> list[T] | None: ...
 
 
-def execute_values(
+def execute_values[T](
     cur: psycopg.Cursor[T],
     sql: str,
     values: Sequence[Sequence[Any]],
     *,
     cols_count: int | None = None,
     template: str | None = None,
-    page_size=100,
+    page_size: int = 100,
     fetch: bool | Literal[True] | Literal[False] = False,
 ) -> list[T] | None:
     """

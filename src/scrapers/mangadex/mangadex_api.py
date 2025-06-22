@@ -68,7 +68,7 @@ class Status(Enum):
         return d[self]
 
 
-class MangadexData(BaseModel, Generic[DataT]):
+class MangadexData(BaseModel, Generic[DataT]):  # noqa: UP046
     id: str
     attributes: DataT
     relationships: list[Relationship] | None = None
@@ -390,34 +390,3 @@ class MangadexAPI:
             return chain(*its)
         else:
             return request_to_model(r, ChapterResult)
-
-    # Commented out as it's not required after reference expansion was introduced
-    # def fetch_chunked(self, api_path: str, ids: List[str], model: Type[GenericMangadexResults]) -> Dict[str, GenericMangadexResults]:
-    #     if not ids:
-    #         return {}
-    #
-    #     chunk_size = 100
-    #     ids = list(set(ids))
-    #     results: Dict[str, GenericMangadexResults] = {}
-    #
-    #     # Inner function to get rate limits for each request
-    #     @sleep_and_retry
-    #     @api_rate_limiter
-    #     def fetch_data(chunk):
-    #         r = requests.get(f'{self.base_url}/{api_path}?limit={len(chunk)}&{self.join_array(chunk, "ids")}')
-    #         for m in request_to_model(r, model):
-    #             results[m.data.id] = m
-    #
-    #     for i in range(0, len(ids), chunk_size):
-    #         fetch_data(ids[i:i + chunk_size])
-    #
-    #     return results
-    #
-    # def get_authors(self, author_ids: List[str]) -> Dict[str, AuthorResult]:
-    #     return self.fetch_chunked('author', author_ids, AuthorResult)
-    #
-    # def get_covers(self, cover_ids: List[str]) -> Dict[str, CoverResult]:
-    #     return self.fetch_chunked('cover', cover_ids, CoverResult)
-    #
-    # def get_scanlation_groups(self, group_ids: List[str]) -> Dict[str, ScanlationGroupResult]:
-    #     return self.fetch_chunked('group', group_ids, ScanlationGroupResult)
