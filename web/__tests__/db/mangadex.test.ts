@@ -1,15 +1,17 @@
-import { Manga, Cover } from 'mangadex-full-api';
+import { Cover, Manga } from 'mangadex-full-api';
 import {
+  afterAll,
+  afterEach,
+  beforeEach,
   describe,
   expect,
-  vi,
-  afterAll,
   it,
-  beforeEach,
-  afterEach,
+  vi,
 } from 'vitest';
-import { mangadexLimiter, redis } from '@/serverUtils/ratelimits';
+
 import { spyOnDb } from '../dbutils';
+import { mangadexLimiter, redis } from '@/serverUtils/ratelimits';
+
 
 const { fetchExtraInfo } = await vi.importActual<typeof import('@/db/mangadex')>('@/db/mangadex');
 

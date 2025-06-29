@@ -1,21 +1,22 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { IconButton } from '@mui/material';
-import DeleteIcon from '@mui/icons-material/Delete';
 import { type FC, useCallback } from 'react';
+import DeleteIcon from '@mui/icons-material/Delete';
+import { IconButton } from '@mui/material';
+import type { IconButtonProps } from '@mui/material/IconButton/IconButton';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useConfirm } from 'material-ui-confirm';
 import { useSnackbar } from 'notistack';
-import type { IconButtonProps } from '@mui/material/IconButton/IconButton';
 import { type Control, useWatch } from 'react-hook-form';
 
-import { deleteNotification } from '../../api/notifications';
 import { QueryKeys } from '@/webUtils/constants';
 
-type DeleteReturn = Awaited<ReturnType<typeof deleteNotification>>
+import { deleteNotification } from '../../api/notifications';
+
+type DeleteReturn = Awaited<ReturnType<typeof deleteNotification>>;
 
 export type DeleteNotificationButtonProps = {
   control?: Control<any>
   fieldName?: string
-} & IconButtonProps
+} & IconButtonProps;
 const DeleteNotificationButton: FC<DeleteNotificationButtonProps> = ({
   control,
   fieldName = 'notificationId',

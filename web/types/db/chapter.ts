@@ -8,4 +8,4 @@ export type Chapter = {
   group: number
   serviceId: number
   chapterIdentifier: string
-}
+};

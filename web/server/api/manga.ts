@@ -1,9 +1,15 @@
+import type { Application, Request, Response } from 'express-serve-static-core';
 import { param, query } from 'express-validator';
 
-import type { Application, Request, Response } from 'express-serve-static-core';
-import { db } from '@/db/helpers';
-import { handleError } from '@/db/utils';
 import { getChapters } from '@/db/chapter';
+import { deleteManga, updateManga } from '@/db/elasticsearch/manga';
+import { db } from '@/db/helpers';
+import { getFullManga, getMangaForElastic } from '@/db/manga';
+import { handleError } from '@/db/utils';
+import type { SortBy } from '@/types/db/common';
+
+
+import { dbLogger } from '../utils/logging.js';
 import { getOptionalNumberParam } from '../utils/utilities';
 import {
   databaseIdValidation,
@@ -12,10 +18,6 @@ import {
   mangaIdValidation,
   validateAdminUser,
 } from '../utils/validators';
-import { getFullManga, getMangaForElastic } from '@/db/manga';
-import { deleteManga, updateManga } from '@/db/elasticsearch/manga';
-import { dbLogger } from '../utils/logging.js';
-import type { SortBy } from '@/types/db/common';
 
 const BASE_URL = '/api/manga';
 
@@ -38,9 +40,9 @@ export default (app: Application) => {
       toMerge,
       service = null,
     } = req.query as {
-      base: string,
-      toMerge: string,
-      service?: string | null,
+      base: string
+      toMerge: string
+      service?: string | null
     };
 
     db.oneOrNone`SELECT * FROM merge_manga(${base}, ${toMerge}, ${service as string || null})`

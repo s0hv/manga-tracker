@@ -1,21 +1,22 @@
 import React from 'react';
-import fetchMock from 'fetch-mock';
-import { describe, expect, it, type Mock, vi } from 'vitest';
-
-import { act, render, screen } from '@testing-library/react';
 import { QueryClientProvider } from '@tanstack/react-query';
+import { act, render, screen } from '@testing-library/react';
+import fetchMock from 'fetch-mock';
+import { type Mock, describe, expect, it, vi } from 'vitest';
+
+import { normalUser, queryClient } from '../utils';
+import type { ChapterRelease } from '@/types/api/chapter';
+import type { ServiceForApi } from '@/types/api/services';
+import App from '@/views/App';
+import { UserProvider } from '@/webUtils/useUser';
+
+
 import {
   generateNSchemas,
   LatestChapter,
   Service,
   setupFaker,
 } from '../schemas';
-
-import App from '@/views/App';
-import { normalUser, queryClient } from '../utils';
-import type { ServiceForApi } from '@/types/api/services';
-import type { ChapterRelease } from '@/types/api/chapter';
-import { UserProvider } from '@/webUtils/useUser';
 
 setupFaker();
 

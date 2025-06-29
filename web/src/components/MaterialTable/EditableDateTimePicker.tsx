@@ -5,8 +5,9 @@ import {
 } from '@mui/x-date-pickers/DateTimePicker';
 import { PickerValidDate } from '@mui/x-date-pickers/models';
 
-import { processCellEdit } from './useEditable';
+
 import { MaterialCellContext } from './types';
+import { processCellEdit } from './useEditable';
 
 export interface EditableDateTimePickerProps extends Partial<Omit<DateTimePickerProps, 'value'>> {
   ctx: MaterialCellContext<any, PickerValidDate>

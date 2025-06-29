@@ -1,22 +1,25 @@
-import {
-  body,
-  type CustomValidator,
-  matchedData,
-  param,
-  type ValidationChain,
-} from 'express-validator';
 import type { Application, Request, Response } from 'express-serve-static-core';
 import {
+  type CustomValidator,
+  type ValidationChain,
+  body,
+  matchedData,
+  param,
+} from 'express-validator';
+
+import {
+  type UpdateUserNotification,
+  type UpsertNotificationOverride,
   createUserNotification,
   deleteUserNotification,
   getUserNotifications,
   listNotificationFollows,
-  type UpdateUserNotification,
   updateUserNotification,
   upsertNotificationOverride,
-  type UpsertNotificationOverride,
 } from '@/db/notifications';
 import { handleError } from '@/db/utils';
+
+
 import {
   databaseIdValidation,
   handleValidationErrors,
@@ -24,7 +27,6 @@ import {
   serviceIdValidation,
   validateUser,
 } from '../utils/validators';
-
 
 export default (app: Application) => {
   /**

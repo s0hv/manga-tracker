@@ -1,10 +1,11 @@
-import { describe, expect, vi, it, afterEach } from 'vitest';
-import type { AdapterSession } from 'next-auth/adapters';
 import { faker } from '@faker-js/faker';
-import { PostgresAdapter } from '@/db/postgres-adapter';
-import { db } from '@/db/helpers';
+import type { AdapterSession } from 'next-auth/adapters';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+
 import { spyOnDb } from '../dbutils';
 import { mockUTCDates, normalUser } from '../utils';
+import { db } from '@/db/helpers';
+import { PostgresAdapter } from '@/db/postgres-adapter';
 import { SessionData } from '@/types/dbTypes';
 
 
@@ -66,7 +67,7 @@ describe('PostgresAdapter', () => {
       const adapter = PostgresAdapter(db);
       const sid = faker.datatype.uuid();
       const session = { test: 1, data: 'data' };
-      const expires = new Date(Date.now() + 60*60*60);
+      const expires = new Date(Date.now() + 60 * 60 * 60);
 
       // Delete existing session and add new one
       await db.sql`DELETE FROM sessions WHERE session_id=${sid}`;
@@ -100,7 +101,7 @@ describe('PostgresAdapter', () => {
         data: { test: 1, data: 'data' },
       };
 
-      adapter.sessionCache.set(sid, session, { ttl: 60*60*60 });
+      adapter.sessionCache.set(sid, session, { ttl: 60 * 60 * 60 });
 
       await expect(adapter.getSession(sid))
         .resolves
@@ -126,7 +127,7 @@ describe('PostgresAdapter', () => {
   describe('Setting sessions', () => {
     const session = {
       userId: normalUser.id,
-      expires: new Date(Date.now() + 60*60*60),
+      expires: new Date(Date.now() + 60 * 60 * 60),
       data: {
         test: 1,
         data: 'data',
@@ -218,7 +219,7 @@ describe('PostgresAdapter', () => {
           vi.useRealTimers();
         }));
 
-      vi.advanceTimersByTime(sessionClearInterval+10);
+      vi.advanceTimersByTime(sessionClearInterval + 10);
       await promise;
 
       expect(dbSpy).toHaveBeenCalled();
@@ -233,7 +234,7 @@ describe('PostgresAdapter', () => {
       const adapter = PostgresAdapter(db, { clearInterval: sessionClearInterval });
       const sessionSpy = vi.spyOn(adapter, 'clearOldSessions');
 
-      vi.advanceTimersByTime(sessionClearInterval+10);
+      vi.advanceTimersByTime(sessionClearInterval + 10);
       clearInterval(adapter.clearInterval!);
       vi.runAllTimers();
       // postgres.js does not like fake timers

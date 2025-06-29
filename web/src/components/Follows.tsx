@@ -1,5 +1,4 @@
 import React from 'react';
-import { styled } from '@mui/material/styles';
 import {
   Button,
   Container,
@@ -10,12 +9,14 @@ import {
   Paper,
   Typography,
 } from '@mui/material';
+import { styled } from '@mui/material/styles';
 import Image from 'next/image';
 import NextLink from 'next/link';
 
-import { defaultDateDistanceToNow, followUnfollow } from '../utils/utilities';
-import { nextImageFix } from '../utils/theme';
 import type { Follow } from '@/types/db/follows';
+
+import { nextImageFix } from '../utils/theme';
+import { defaultDateDistanceToNow, followUnfollow } from '../utils/utilities';
 
 
 const FollowContent = styled('div')({
@@ -45,8 +46,8 @@ const followServiceItem = { display: 'flex', justifyContent: 'space-between' };
 const mangaLinkStyles = { display: 'flex', height: '100%', position: 'relative' } satisfies React.CSSProperties;
 
 export type FollowProps = {
-  follows?: Follow[];
-}
+  follows?: Follow[]
+};
 
 
 function Follows(props: FollowProps) {
@@ -64,8 +65,8 @@ function Follows(props: FollowProps) {
       <Grid
         key={follow.mangaId}
         size={{
-          xs: 12/columnsXs,
-          md: 12/columnsMd,
+          xs: 12 / columnsXs,
+          md: 12 / columnsMd,
         }}
       >
         <Typography
@@ -118,7 +119,7 @@ function Follows(props: FollowProps) {
                   {followedServices.indexOf(null) < 0 ? 'Follow' : 'Unfollow'}
                 </Button>
               </ListItem>
-              {follow.services.map((service) => (
+              {follow.services.map(service => (
                 <ListItem key={service.serviceId} sx={followServiceItem} disableGutters>
                   <ListItemText primary={service.serviceName} sx={serviceNameText} />
                   <Button variant='contained' color='primary' onClick={followUnfollow(follow.mangaId, service.serviceId)}>

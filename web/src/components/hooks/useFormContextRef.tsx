@@ -1,6 +1,6 @@
 import {
+  type RefObject,
   createContext,
-  type MutableRefObject,
   ProviderProps,
   useContext,
   useEffect,
@@ -8,8 +8,9 @@ import {
 } from 'react';
 import type { FieldValues, UseFormReturn } from 'react-hook-form';
 
+
 type FormContextRef<TFieldValues extends FieldValues = FieldValues, TContext = any, TTransformedValues = TFieldValues> =
-  MutableRefObject<Partial<UseFormReturn<TFieldValues, TContext, TTransformedValues>>>;
+  RefObject<Partial<UseFormReturn<TFieldValues, TContext, TTransformedValues>>>;
 
 const FormContextRef = createContext<FormContextRef | undefined>(undefined);
 export const FormContextRefProvider = <TFieldValues extends FieldValues = FieldValues, TContext = any, TTransformedValues = TFieldValues>(
@@ -18,7 +19,7 @@ export const FormContextRefProvider = <TFieldValues extends FieldValues = FieldV
   <FormContextRef.Provider value={value as FormContextRef}>
     {children}
   </FormContextRef.Provider>
-  );
+);
 
 export const useFormContextRefValue = <TFieldValues extends FieldValues = FieldValues, TContext = any, TTransformedValues = TFieldValues>(
   methods: Partial<UseFormReturn<TFieldValues, TContext, TTransformedValues>>

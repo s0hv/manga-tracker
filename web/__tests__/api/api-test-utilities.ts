@@ -8,9 +8,10 @@ import {
   withUser,
 } from '../utils';
 import { csrfMissing } from '@/serverUtils/constants';
+
 import {
-  ISE,
   type TestUser,
+  ISE,
   userForbidden,
   userUnauthorized,
 } from '../constants';
@@ -70,6 +71,7 @@ export const apiRequiresUserGetTests = (ref: HttpServerReference, url: string, a
 export const apiRequiresAdminUserGetTests = (ref: HttpServerReference, url: string) => {
   apiRequiresUserGetTests(ref, url);
 
+  // eslint-disable-next-line vitest/no-identical-title
   it('returns forbidden for non admin', async () => {
     await withUser(normalUser, async () => {
       await request(ref.httpServer)
@@ -87,11 +89,11 @@ export const expectISEOnDbError = (
   {
     method = 'get',
     user = normalUser,
-    custom = (_) => _,
+    custom = _ => _,
   }: {
-    method?: Method,
-    user?: TestUser,
-    custom?: (test: Test) => Test,
+    method?: Method
+    user?: TestUser
+    custom?: (test: Test) => Test
   } = {}
 ) => {
   it('returns 500 when database throws an error', async () => {

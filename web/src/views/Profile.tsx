@@ -1,4 +1,3 @@
-import { useSnackbar } from 'notistack';
 import React, {
   type FC,
   type FormEvent,
@@ -14,17 +13,20 @@ import {
   Paper,
   Typography,
 } from '@mui/material';
-import { TextFieldElement } from 'react-hook-form-mui';
-import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useConfirm } from 'material-ui-confirm';
 import { signOut } from 'next-auth/react';
+import { useSnackbar } from 'notistack';
 import {
   type DefaultValues,
-  FormProvider,
   type SubmitHandler,
+  FormProvider,
   useForm,
 } from 'react-hook-form';
+import { TextFieldElement } from 'react-hook-form-mui';
+import { z } from 'zod/v4';
+
+
 import { deleteAccount, updateUserProfile } from '../api/user';
 
 const zodSchema = z.object({
@@ -34,21 +36,24 @@ const zodSchema = z.object({
   newPassword: z.string().optional(),
   repeatPassword: z.string().optional(),
 })
-  .superRefine((data, ctx) => {
+  .check(ctx => {
+    const data = ctx.value;
     if ((data.newPassword ?? '') !== (data.repeatPassword ?? '')) {
-      ctx.addIssue({
+      ctx.issues.push({
         code: 'custom',
         path: ['repeatPassword'],
         message: 'Passwords must match',
+        input: data.repeatPassword,
       });
     }
 
     const passwordValid = !data.newPassword || (data.password?.length ?? 0) > 0;
     if (!passwordValid) {
-      ctx.addIssue({
+      ctx.issues.push({
         code: 'custom',
         path: ['password'],
         message: 'Password is required when changing password',
+        input: data.password,
       });
     }
   });
@@ -60,13 +65,13 @@ type ProfileUser = {
   username: string
   email: string
   isCredentialsAccount?: boolean
-}
+};
 type ProfileProps = {
   user?: ProfileUser
-}
-const Profile: FC<ProfileProps> = (props) => {
+};
+const Profile: FC<ProfileProps> = props => {
   const {
-    user = {} as Partial<ProfileUser>,
+    user = ({} as Partial<ProfileUser>),
   } = props;
 
   const isCredentialsAccount = Boolean(user.isCredentialsAccount);
@@ -88,7 +93,7 @@ const Profile: FC<ProfileProps> = (props) => {
     mode: 'onBlur',
   });
 
-  const onSubmit = useCallback<SubmitHandler<ProfileFormValues>>((values) => updateUserProfile(values)
+  const onSubmit = useCallback<SubmitHandler<ProfileFormValues>>(values => updateUserProfile(values)
     .then(() => {
       enqueueSnackbar('Profile updated successfully', { variant: 'success' });
     })
@@ -98,7 +103,6 @@ const Profile: FC<ProfileProps> = (props) => {
     }), [enqueueSnackbar]);
 
 
-
   const { isSubmitting, isValid } = formState;
 
   const deleteAccountDialog = useCallback(() => {
@@ -106,8 +110,14 @@ const Profile: FC<ProfileProps> = (props) => {
     confirm(({
       content: (
         <Typography sx={{ mb: 2 }} color='textSecondary'>
-          This action is permanent and irreversible.<br /> Type {`"${confirmationKeyword}"`} to acknowledge this.
-        </Typography>),
+          This action is permanent and irreversible.
+          <br />
+          {' '}
+          Type
+          {` "${confirmationKeyword}" `}
+          to acknowledge this.
+        </Typography>
+      ),
       title: 'Delete account permanently?',
       confirmationKeyword,
       confirmationText: `Delete account`,
@@ -161,7 +171,7 @@ const Profile: FC<ProfileProps> = (props) => {
                 paddingBottom: 4,
               }}
             >
-              <TextFieldElement<ProfileFormValues>
+              <TextFieldElement
                 variant='outlined'
                 margin='normal'
                 fullWidth
@@ -171,7 +181,8 @@ const Profile: FC<ProfileProps> = (props) => {
                 autoFocus
                 control={control}
               />
-              <TextFieldElement<ProfileFormValues>
+
+              <TextFieldElement
                 variant='outlined'
                 name='email'
                 margin='normal'
@@ -181,48 +192,51 @@ const Profile: FC<ProfileProps> = (props) => {
                 control={control}
                 helperText={`Changing email is not possible ${isCredentialsAccount ? 'for a credentials based account' : 'when using third parties for login'}`}
               />
+
               {isCredentialsAccount && (
-              <>
-                <TextFieldElement<ProfileFormValues>
-                  variant='outlined'
-                  margin='normal'
-                  fullWidth
-                  name='password'
-                  label='Password'
-                  type='password'
-                  id='current-password'
-                  autoComplete='current-password'
-                  control={control}
-                />
-                <TextFieldElement<ProfileFormValues>
-                  variant='outlined'
-                  margin='normal'
-                  fullWidth
-                  name='newPassword'
-                  label='New password'
-                  type='password'
-                  id='new-password'
-                  autoComplete='new-password'
-                  control={control}
-                  rules={{
-                    deps: ['password'],
-                  }}
-                />
-                <TextFieldElement<ProfileFormValues>
-                  variant='outlined'
-                  margin='normal'
-                  fullWidth
-                  name='repeatPassword'
-                  label='New password again'
-                  type='password'
-                  id='repeat-password'
-                  autoComplete='new-password'
-                  control={control}
-                  rules={{
-                    deps: ['newPassword'],
-                  }}
-                />
-              </>
+                <>
+                  <TextFieldElement
+                    variant='outlined'
+                    margin='normal'
+                    fullWidth
+                    name='password'
+                    label='Password'
+                    type='password'
+                    id='current-password'
+                    autoComplete='current-password'
+                    control={control}
+                  />
+
+                  <TextFieldElement
+                    variant='outlined'
+                    margin='normal'
+                    fullWidth
+                    name='newPassword'
+                    label='New password'
+                    type='password'
+                    id='new-password'
+                    autoComplete='new-password'
+                    control={control}
+                    rules={{
+                      deps: ['password'],
+                    }}
+                  />
+
+                  <TextFieldElement
+                    variant='outlined'
+                    margin='normal'
+                    fullWidth
+                    name='repeatPassword'
+                    label='New password again'
+                    type='password'
+                    id='repeat-password'
+                    autoComplete='new-password'
+                    control={control}
+                    rules={{
+                      deps: ['newPassword'],
+                    }}
+                  />
+                </>
               )}
               <Button
                 type='submit'

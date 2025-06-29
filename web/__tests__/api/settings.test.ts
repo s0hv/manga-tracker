@@ -1,11 +1,11 @@
 import request from 'supertest';
-import { describe, beforeAll, afterAll, it } from 'vitest';
+import { afterAll, beforeAll, describe, it } from 'vitest';
 
-import { csrfMissing } from '@/serverUtils/constants';
 
 import initServer from '../initServer';
 import stopServer from '../stopServer';
 import { expectErrorMessage, normalUser, withUser } from '../utils';
+import { csrfMissing } from '@/serverUtils/constants';
 
 let httpServer: any;
 

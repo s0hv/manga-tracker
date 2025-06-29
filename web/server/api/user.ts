@@ -1,8 +1,13 @@
-import { body } from 'express-validator';
 import type { Express, Request, Response } from 'express-serve-static-core';
+import { body } from 'express-validator';
 
 import { deleteFollow, insertFollow } from '@/db/follows';
+import { db } from '@/db/helpers';
+import { getUserNotifications } from '@/db/notifications';
 import { handleError } from '@/db/utils';
+import type { DatabaseId, MangaId } from '@/types/dbTypes';
+
+
 import {
   hadValidationError,
   handleValidationErrors,
@@ -11,9 +16,6 @@ import {
   serviceIdValidation,
   validateUser,
 } from '../utils/validators';
-import { db } from '@/db/helpers';
-import type { DatabaseId, MangaId } from '@/types/dbTypes';
-import { getUserNotifications } from '@/db/notifications';
 
 
 const MAX_USERNAME_LENGTH = 100;

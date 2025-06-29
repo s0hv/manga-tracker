@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 
-export const TabPanelCustom = (props) => {
+
+export const TabPanelCustom = props => {
   const {
     children,
     value,

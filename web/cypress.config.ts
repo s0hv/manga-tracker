@@ -1,7 +1,8 @@
 import { defineConfig } from 'cypress';
-import { redis } from './dist/server/utils/ratelimits';
-import { db } from './dist/server/db/helpers';
+
 import type { CreatedUser } from './cypress/types';
+import { db } from './dist/server/db/helpers';
+import { redis } from './dist/server/utils/ratelimits';
 
 export default defineConfig({
   video: false,

@@ -1,9 +1,12 @@
 import type { Express, Request, Response } from 'express-serve-static-core';
 import { query } from 'express-validator';
-import { handleValidationErrors, validateUser } from '../utils/validators';
+
 import { db } from '@/db/helpers';
 import { handleError } from '@/db/utils';
 import type { Theme } from '@/types/dbTypes';
+
+
+import { handleValidationErrors, validateUser } from '../utils/validators';
 
 
 export default (app: Express) => {

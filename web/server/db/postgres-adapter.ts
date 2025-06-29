@@ -1,18 +1,18 @@
+import { LRUCache as LRU } from 'lru-cache';
 import type {
   Adapter,
   AdapterAccount,
   AdapterSession,
   AdapterUser,
 } from 'next-auth/adapters';
-import { LRUCache as LRU } from 'lru-cache';
 import type { JSONValue } from 'postgres';
-import type { DatabaseHelpers } from '@/db/helpers';
 
+import { userSelect } from '@/db/auth';
+import type { DatabaseHelpers } from '@/db/helpers';
+import { generateUpdate } from '@/db/utils';
+import { dbLogger, sessionLogger } from '@/serverUtils/logging';
 import { createSingleton } from '@/serverUtils/utilities';
 import { onSessionExpire } from '@/serverUtils/view-counter';
-import { dbLogger, sessionLogger } from '@/serverUtils/logging';
-import { userSelect } from '@/db/auth';
-import { generateUpdate } from '@/db/utils';
 import type { RequiredExcept } from '@/types/utility';
 
 
@@ -23,7 +23,7 @@ export type PostgresAdapter = RequiredExcept<Adapter, 'createVerificationToken' 
   clearOldSessions: () => Promise<void>
   updateUserLastActivity: (userId: string) => Promise<void>
 
-  userCache: LRU<string, AdapterUser>,
+  userCache: LRU<string, AdapterUser>
   sessionCache: LRU<string, AdapterSession>
   clearInterval: null | NodeJS.Timeout
 };
@@ -69,9 +69,9 @@ export const PostgresAdapter = (db: DatabaseHelpers, options: StoreOptions = {})
   };
 
   type GetUser = {
-    (id: string, expectExists: true, noCache?: boolean): Promise<AdapterUser>,
-    (id: string, expectExists?: false, noCache?: boolean): Promise<AdapterUser | null>,
-  }
+    (id: string, expectExists: true, noCache?: boolean): Promise<AdapterUser>
+    (id: string, expectExists?: false, noCache?: boolean): Promise<AdapterUser | null>
+  };
 
   const getUser: GetUser = (async (id: string, expectExists = false, noCache = false) => {
     if (!noCache) {

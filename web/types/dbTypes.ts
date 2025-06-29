@@ -3,12 +3,12 @@ import type { DefaultUser } from 'next-auth';
 export type Theme = 'system' | 'light' | 'dark';
 
 export interface SessionUser extends DefaultUser {
-  username: string,
-  uuid: string,
-  userId: number,
-  theme: Theme,
-  admin: boolean,
-  isCredentialsAccount: boolean,
+  username: string
+  uuid: string
+  userId: number
+  theme: Theme
+  admin: boolean
+  isCredentialsAccount: boolean
 }
 
 export interface SessionData {
@@ -30,15 +30,15 @@ export interface PostgresInterval {
 }
 
 export enum MangaStatus {
-    ONGOING = 0,
-    COMPLETED = 1,
-    DROPPED = 2,
-    HIATUS = 3,
+  ONGOING = 0,
+  COMPLETED = 1,
+  DROPPED = 2,
+  HIATUS = 3
 }
 
 export enum NotificationType {
   DiscordWebhook = 1,
-  GenericWebhook = 2,
+  GenericWebhook = 2
 }
 
 export type MangaId = number | string;

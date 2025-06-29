@@ -1,8 +1,8 @@
 import React from 'react';
-
+import RssFeedIcon from '@mui/icons-material/RssFeed';
 import { Container, IconButton, Paper, Typography } from '@mui/material';
 import { styled } from '@mui/material/styles';
-import RssFeedIcon from '@mui/icons-material/RssFeed';
+
 
 import FollowsComponent, { type FollowProps } from '../components/Follows';
 import { useUser } from '../utils/useUser';

@@ -6,8 +6,10 @@ import {
   SelectProps,
 } from '@mui/material';
 import type { RowData } from '@tanstack/react-table';
-import { processCellEdit } from './useEditable';
+
+
 import { MaterialCellContext } from './types';
+import { processCellEdit } from './useEditable';
 
 
 export interface EditableSelectProps<TData extends RowData, TValue extends number | string> extends Omit<SelectProps<number | string>, 'onChange'> {
@@ -36,7 +38,7 @@ export const EditableSelect = <TData, TValue extends number | string>(props: Edi
     const val = event.target.value;
 
     // Set the value to the visible text
-    const textVal = items.find((item) => item.value === val)?.text;
+    const textVal = items.find(item => item.value === val)?.text;
     processCellEdit(textVal, ctx.table.getState().rowEditState, ctx.cell);
     setValue(val as TValue);
     if (typeof onChange === 'function') {

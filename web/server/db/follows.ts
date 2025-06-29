@@ -1,5 +1,6 @@
-import { db } from './helpers';
 import type { DatabaseId, MangaId } from '@/types/dbTypes';
+
+import { db } from './helpers';
 
 export const insertFollow = (userId: DatabaseId, mangaId: MangaId, serviceId: DatabaseId | null) => {
   return db.sql`INSERT INTO user_follows ${db.sql({ userId, mangaId, serviceId })} ON CONFLICT DO NOTHING`

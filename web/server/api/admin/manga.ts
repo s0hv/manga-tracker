@@ -1,5 +1,11 @@
 import express from 'express';
 import { body, param } from 'express-validator';
+
+import {
+  deleteScheduledRun,
+  getScheduledRuns,
+  scheduleMangaRun,
+} from '@/db/admin/management';
 import {
   createMangaService,
   getMangaServices,
@@ -7,12 +13,13 @@ import {
   updateMangaService,
   updateMangaTitle,
 } from '@/db/admin/manga';
+import { updateManga } from '@/db/elasticsearch/manga';
+import { NoResultsError } from '@/db/errors';
+import { getMangaForElastic } from '@/db/manga';
 import { handleError } from '@/db/utils';
-import {
-  deleteScheduledRun,
-  getScheduledRuns,
-  scheduleMangaRun,
-} from '@/db/admin/management';
+import { MangaStatus } from '@/types/dbTypes';
+
+
 import {
   databaseIdValidation,
   handleValidationErrors,
@@ -20,10 +27,6 @@ import {
   serviceIdValidation,
   validateAdminUser,
 } from '../../utils/validators';
-import { getMangaForElastic } from '@/db/manga';
-import { updateManga } from '@/db/elasticsearch/manga';
-import { MangaStatus } from '@/types/dbTypes';
-import { NoResultsError } from '@/db/errors';
 
 export default () => {
   const router = express.Router();
@@ -82,9 +85,9 @@ export default () => {
         getMangaForElastic(req.params.mangaId)
           .then(manga => updateManga(manga.mangaId, manga))
           .finally(() => {
-            const msg = row ?
-              `Replaced old alias with current title "${row.title}"` :
-              `Alias not found. Scrapping old title`;
+            const msg = row
+              ? `Replaced old alias with current title "${row.title}"`
+              : `Alias not found. Scrapping old title`;
             res.json({ message: msg });
           });
       })

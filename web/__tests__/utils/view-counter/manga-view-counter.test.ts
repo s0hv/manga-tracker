@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { getMangaPartial } from '@/db/manga';
 import { mangaView, onSessionExpire } from '@/serverUtils/view-counter';
 
+
 describe('mangaView increments manga views correctly', () => {
   it('Does nothing when session is not defined', () => {
     expect(mangaView(null, {})).toBeUndefined();
@@ -57,6 +58,6 @@ describe('onSessionExpire should work correctly', () => {
 
     const updatedManga = await getMangaPartial(mangaId);
     expect(originalViews).not.toStrictEqual(updatedManga.views);
-    expect(originalViews+1).toStrictEqual(updatedManga.views);
+    expect(originalViews + 1).toStrictEqual(updatedManga.views);
   });
 });

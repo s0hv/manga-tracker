@@ -1,13 +1,10 @@
 import '@testing-library/jest-dom/vitest';
-import { vi, expect, afterEach } from 'vitest';
-import { config } from 'dotenv';
 import { cleanup } from '@testing-library/react';
-
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
+import { config } from 'dotenv';
 import * as extendedMatchers from 'jest-extended';
-
 import request, { type Test as TestType } from 'supertest';
+import { afterEach, expect, vi } from 'vitest';
+
 import { theme } from '@/webUtils/theme';
 
 

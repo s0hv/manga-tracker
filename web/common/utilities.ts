@@ -1,8 +1,7 @@
-
 export type Group<T> = {
   group: string
   arr: T[]
-}
+};
 
 export type GetKey<T> = (value: T) => string;
 interface GroupByOptions<B extends boolean = boolean, C extends boolean = boolean> {
@@ -13,8 +12,8 @@ interface GroupByOptions<B extends boolean = boolean, C extends boolean = boolea
 type GroupBy = {
   <T, B extends true = true, C extends false = false>(arr: T[], getKeyOrKey: keyof T | GetKey<T>, options?: GroupByOptions<B, C>): Group<T>[]
   <T, B extends false = false, C extends false = false>(arr: T[], getKeyOrKey: keyof T | GetKey<T>, options?: GroupByOptions<B, C>): T[][]
-  <T, B extends false = false, C extends true = true>(arr: T[], getKeyOrKey: keyof T | GetKey<T>, options?: GroupByOptions<B, C>): {[key: string]: T[]}
-}
+  <T, B extends false = false, C extends true = true>(arr: T[], getKeyOrKey: keyof T | GetKey<T>, options?: GroupByOptions<B, C>): {[key: string]: T[] }
+};
 
 /**
  *
@@ -25,13 +24,13 @@ type GroupBy = {
  * meaning the same key can be grouped multiple times
  * @param options.returnAsDict If true returns the grouped values as a dictionary. Ignored if keepOrder is true.
  */
-export const groupBy: GroupBy = <T, >(
+export const groupBy: GroupBy = <T>(
   arr: T[],
   getKeyOrKey: keyof T | GetKey<T>,
   { keepOrder = true, returnAsDict = false } = {} as GroupByOptions<true, false>
   // By adding "| T" to the return type somehow fixes overload errors WTF???
-  // GJ typescript
-): Group<T>[] | T[][] | T | {[key: string]: T[]} => {
+  // GJ TypeScript
+): Group<T>[] | T[][] | T | {[key: string]: T[] } => {
   if (!Array.isArray(arr)) {
     throw new TypeError('Input must be an array');
   }
@@ -43,9 +42,9 @@ export const groupBy: GroupBy = <T, >(
   let getKey: GetKey<T>;
   if (typeof getKeyOrKey === 'string') {
     const _key = getKeyOrKey;
-    getKey = (o) => (o as any)[_key];
+    getKey = (o: T) => o[_key] as string;
   } else {
-    getKey = getKeyOrKey as any;
+    getKey = getKeyOrKey as GetKey<T>;
   }
 
   if (keepOrder) {
@@ -56,7 +55,7 @@ export const groupBy: GroupBy = <T, >(
     };
 
     let currentGroupKey: string;
-    arr.forEach((o) => {
+    arr.forEach(o => {
       const key = getKey(o);
       if (key !== currentGroupKey) {
         if (currentGroup.arr.length > 0) {
@@ -85,13 +84,13 @@ export const groupBy: GroupBy = <T, >(
   const order: Set<string> = new Set();
   const group: Record<string, T[]> = {};
 
-  arr.forEach((o) => {
+  arr.forEach(o => {
     const key = getKey(o);
-    // If group made add to that
+    // If a new group made, add to that
     if (order.has(key)) {
       group[key].push(o);
     } else {
-      // No group yet. Create new group and add group key to order
+      // No group yet. Create a new group and add the group key to order
       group[key] = [o];
       order.add(key);
     }
@@ -102,6 +101,6 @@ export const groupBy: GroupBy = <T, >(
   }
 
   const retVal: T[][] = [];
-  order.forEach((groupKey) => retVal.push(group[groupKey]));
+  order.forEach(groupKey => retVal.push(group[groupKey]));
   return retVal;
 };

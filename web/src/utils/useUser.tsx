@@ -1,13 +1,14 @@
 import { createContext, useContext, useMemo } from 'react';
+
 import type { Theme } from '@/types/dbTypes';
 
 export type FrontendUser = {
-  uuid: string,
-  username: string | null,
-  theme: Theme,
-  admin: boolean,
-  isCredentialsAccount: boolean,
-}
+  uuid: string
+  username: string | null
+  theme: Theme
+  admin: boolean
+  isCredentialsAccount: boolean
+};
 
 const UserContext = createContext<FrontendUser | undefined>(undefined);
 export const UserProvider = UserContext.Provider;

@@ -6,4 +6,4 @@ export type Manga = {
   estimatedRelease: Date | null
   latestChapter: number | null
   views: number
-}
+};

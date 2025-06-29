@@ -4,12 +4,13 @@ import HomeIcon from '@mui/icons-material/Home';
 import SunIcon from '@mui/icons-material/WbSunny';
 import { AppBar, Button, IconButton, Toolbar, Typography } from '@mui/material';
 import { styled, useColorScheme } from '@mui/material/styles';
-import NextLink from 'next/link';
 import dynamic from 'next/dynamic';
+import NextLink from 'next/link';
 import { useRouter } from 'next/router';
 
-import { useUser } from '@/webUtils/useUser';
 import { Theme } from '@/types/dbTypes';
+import { useUser } from '@/webUtils/useUser';
+
 import { LinkComponent } from './LinkComponent';
 
 const MangaSearch = dynamic(() => import('../MangaSearch'));
@@ -103,21 +104,21 @@ function TopBar() {
             <UserMenu handleThemeChange={handleThemeChange} />
           )
           ) || (
-          <React.Fragment>
-            <NextLink href='/login' prefetch={false}>
-              <Button variant='outlined' sx={{ position: 'relative', ml: 3, mr: 1, float: 'right' }} onClick={onAuthChange}>
-                Login
-              </Button>
-            </NextLink>
-            <IconButton
-              aria-label='Switch theme'
-              onClick={handleThemeChange}
-              color='inherit'
-              size='large'
-            >
-              {mode === 'light' ? <SunIcon /> : <MoonIcon />}
-            </IconButton>
-          </React.Fragment>
+            <React.Fragment>
+              <NextLink href='/login' prefetch={false}>
+                <Button variant='outlined' sx={{ position: 'relative', ml: 3, mr: 1, float: 'right' }} onClick={onAuthChange}>
+                  Login
+                </Button>
+              </NextLink>
+              <IconButton
+                aria-label='Switch theme'
+                onClick={handleThemeChange}
+                color='inherit'
+                size='large'
+              >
+                {mode === 'light' ? <SunIcon /> : <MoonIcon />}
+              </IconButton>
+            </React.Fragment>
           )}
         </Toolbar>
       </AppBar>

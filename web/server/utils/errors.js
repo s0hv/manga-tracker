@@ -8,7 +8,7 @@ export const HttpError = (statusCode, message) => {
   return err;
 };
 
-export const RenderError = (statusCode) => {
+export const RenderError = statusCode => {
   throw HttpError(statusCode);
 };
 

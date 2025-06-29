@@ -1,4 +1,5 @@
 import React, { useCallback } from 'react';
+import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import {
   Alert,
   Avatar,
@@ -10,17 +11,17 @@ import {
   Link,
   Typography,
 } from '@mui/material';
-import NextLink from 'next/link';
-import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import { useColorScheme } from '@mui/material/styles';
-import { CheckboxElement, TextFieldElement } from 'react-hook-form-mui';
+import NextLink from 'next/link';
 import type {
   BuiltInProviderType,
   OAuthProviderButtonStyles,
 } from 'next-auth/providers';
-import type { ClientSafeProvider, LiteralUnion } from 'next-auth/react/types';
 import { signIn } from 'next-auth/react';
+import type { ClientSafeProvider, LiteralUnion } from 'next-auth/react/types';
 import { type SubmitHandler, useForm } from 'react-hook-form';
+import { CheckboxElement, TextFieldElement } from 'react-hook-form-mui';
+
 import type { DefaultExcept } from '@/types/utility';
 
 import styles from './SignIn.module.css';
@@ -29,7 +30,7 @@ type SignInFormValues = {
   email: string
   password: string
   rememberme?: boolean
-}
+};
 
 // https://github.com/nextauthjs/next-auth/blob/f6bb16b264f43a0afdbc6c26a2db6cd5c8e6030d/packages/core/src/types.ts#L294
 export type SignInPageErrorParam =
@@ -42,7 +43,7 @@ export type SignInPageErrorParam =
   | 'OAuthAccountNotLinked'
   | 'EmailSignin'
   | 'CredentialsSignin'
-  | 'SessionRequired'
+  | 'SessionRequired';
 
 // This plus more from
 // https://github.com/nextauthjs/next-auth/blob/f6bb16b264f43a0afdbc6c26a2db6cd5c8e6030d/packages/core/src/lib/pages/signin.tsx#L7
@@ -68,9 +69,9 @@ const signinErrors: Record<
 export type SignInProps = {
   providers?: Partial<Record<LiteralUnion<BuiltInProviderType>, ClientSafeProvider>> | null
   error?: SignInPageErrorParam | null
-}
+};
 
-type OptionalLogoStyles = DefaultExcept<OAuthProviderButtonStyles, 'logoDark' | 'logo'>
+type OptionalLogoStyles = DefaultExcept<OAuthProviderButtonStyles, 'logoDark' | 'logo'>;
 const providerStyles: Partial<Record<LiteralUnion<BuiltInProviderType>, OptionalLogoStyles>> = {
   discord: {
     logo: 'https://authjs.dev/img/providers/discord.svg',
@@ -126,9 +127,9 @@ export default function SignIn({ providers, error: errorType }: SignInProps): Re
   const currentMode = mode === 'system' ? systemMode : (mode ?? 'dark');
 
   const error =
-    errorType &&
-    (signinErrors[errorType.toLowerCase() as Lowercase<SignInPageErrorParam>] ??
-      signinErrors.default);
+    errorType
+    && (signinErrors[errorType.toLowerCase() as Lowercase<SignInPageErrorParam>]
+      ?? signinErrors.default);
 
   const { control, handleSubmit } = useForm<SignInFormValues>();
 
@@ -162,8 +163,15 @@ export default function SignIn({ providers, error: errorType }: SignInProps): Re
         </Typography>
         {error && <Alert severity='error'>{error}</Alert>}
         <Typography sx={{ mb: 3 }}>
-          An account is created when signing in if it does not already exist.<br />
-          By signing up you accept the <NextLink href='/terms'>Terms</NextLink> and the <NextLink href='/privacy_policy'>Privacy Policy</NextLink>
+          An account is created when signing in if it does not already exist.
+          <br />
+          By signing up you accept the
+          {' '}
+          <NextLink href='/terms'>Terms</NextLink>
+          {' '}
+          and the
+          {' '}
+          <NextLink href='/privacy_policy'>Privacy Policy</NextLink>
         </Typography>
         {Object.values(providers || {}).filter<ClientSafeProvider>(renderProvider).map(provider => {
           const providerStyle = getStyles(providerStyles[provider.id], currentMode === 'dark');

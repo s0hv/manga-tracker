@@ -1,3 +1,5 @@
+import type { FC, PropsWithChildren } from 'react';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import {
   Accordion as AccordionMui,
   AccordionDetails,
@@ -5,10 +7,9 @@ import {
   Typography,
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
-import { CheckboxElement } from 'react-hook-form-mui';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import type { FC, PropsWithChildren } from 'react';
 import type { Control } from 'react-hook-form';
+import { CheckboxElement } from 'react-hook-form-mui';
+
 import type { FormValues } from '@/components/notifications/types';
 
 

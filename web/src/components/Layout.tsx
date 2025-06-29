@@ -1,19 +1,20 @@
-import React, { type PropsWithChildren, useEffect, useState } from 'react';
+import React, { type PropsWithChildren, FC, useEffect, useState } from 'react';
+import GitHubIcon from '@mui/icons-material/GitHub';
 import {
+  type TypographyProps,
   Divider,
   IconButton,
   Link,
   Typography,
-  type TypographyProps,
 } from '@mui/material';
 import { styled, useColorScheme } from '@mui/material/styles';
-import GitHubIcon from '@mui/icons-material/GitHub';
-import NextLink from 'next/link';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import NextLink from 'next/link';
+
+import type { FrontendUser } from '@/webUtils/useUser';
 
 import TopBar from './TopBar';
-import type { FrontendUser } from '@/webUtils/useUser';
 
 
 const Root = styled('div')({
@@ -60,10 +61,10 @@ function Copyright(props: TypographyProps) {
 }
 
 export type RootProps = {
-  statusCode?: number,
+  statusCode?: number
   user?: FrontendUser
-}
-export default function Layout(props: PropsWithChildren<RootProps>): ReturnType<React.FC<any>> {
+};
+export const Layout: FC<PropsWithChildren<RootProps>> = props => {
   const {
     statusCode,
     user,
@@ -89,9 +90,7 @@ export default function Layout(props: PropsWithChildren<RootProps>): ReturnType<
   }, [user]);
 
   if (statusCode !== 200) {
-    // Typescript doesn't like it without them
-    // eslint-disable-next-line react/jsx-no-useless-fragment
-    return <>{children}</>;
+    return children;
   }
 
   return (
@@ -133,4 +132,4 @@ export default function Layout(props: PropsWithChildren<RootProps>): ReturnType<
       <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>
   );
-}
+};

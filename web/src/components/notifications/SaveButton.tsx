@@ -1,10 +1,11 @@
-import { Button } from '@mui/material';
 import React from 'react';
+import { Button } from '@mui/material';
+
 
 export type SaveButtonProps = {
   submitting?: boolean
   hasValidationErrors?: boolean
-}
+};
 const SaveButton = ({ submitting, hasValidationErrors }: SaveButtonProps) => (
   <Button
     type='submit'

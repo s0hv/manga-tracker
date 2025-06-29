@@ -1,11 +1,11 @@
-import { useQuery } from '@tanstack/react-query';
 import { useCallback, useMemo, useState } from 'react';
 import {
-  Autocomplete,
   type AutocompleteProps,
+  Autocomplete,
   Box,
   TextField,
 } from '@mui/material';
+import { useQuery } from '@tanstack/react-query';
 import { useConfirm } from 'material-ui-confirm';
 import {
   type Control,
@@ -14,23 +14,26 @@ import {
   useFormState,
   useWatch,
 } from 'react-hook-form';
-import type { NotificationFollow } from '@/types/api/notifications';
-import { QueryKeys } from '@/webUtils/constants';
-import { getNotificationFollows } from '../../api/notifications';
+
+import type { FormValues } from '@/components/notifications/types';
 import {
   getOptionLabelNoService,
   noData,
   optionEquals,
 } from '@/components/notifications/utilities';
-import type { FormValues } from '@/components/notifications/types';
+import type { NotificationFollow } from '@/types/api/notifications';
+import { QueryKeys } from '@/webUtils/constants';
+
+
+import { getNotificationFollows } from '../../api/notifications';
 
 
 export type ChangeOverride = (overrideId: number | null) => void;
 type AutocompleteType = AutocompleteProps<NotificationFollow, false, false, false>;
 export type MangaOverrideSelectorProps<TFieldValues extends FormValues = FormValues> = {
   control: Control<TFieldValues>
-  name: FieldPathByValue<TFieldValues, number | null>,
-  label: string,
+  name: FieldPathByValue<TFieldValues, number | null>
+  label: string
   overrides: Set<number>
   changeOverride: ChangeOverride
 } & Omit<AutocompleteType, 'label' | 'options' | 'renderInput' | 'name'>;
@@ -94,7 +97,6 @@ const MangaOverrideSelector = <TFieldValues extends FormValues = FormValues>({
   const useFollows = typeof useFollowsInput === 'boolean' ? useFollowsInput : false;
   const renderOption = useCallback<NonNullable<AutocompleteType['renderOption']>>((props, option) => {
     return (
-      // eslint-disable-next-line jsx-a11y/role-supports-aria-props
       <li {...props} key={props.key as string} aria-selected={overrides.has(option.mangaId) ? 'true' : 'false'}>
         {getOptionLabelNoService(option)}
       </li>
@@ -105,7 +107,7 @@ const MangaOverrideSelector = <TFieldValues extends FormValues = FormValues>({
     queryKey: QueryKeys.NotificationFollows,
     queryFn: getNotificationFollows,
     placeholderData: () => [],
-    staleTime: 1000*30,
+    staleTime: 1000 * 30,
   });
 
   const options = useMemo<NotificationFollow[]>(() => {
@@ -113,7 +115,7 @@ const MangaOverrideSelector = <TFieldValues extends FormValues = FormValues>({
     const foundManga: Set<number> = new Set();
     const filteredData: NotificationFollow[] = [];
 
-    for (let i=0; i < actualData.length; i++) {
+    for (let i = 0; i < actualData.length; i++) {
       const row = actualData[i];
       if (!foundManga.has(row.mangaId)) {
         filteredData.push(row);
@@ -133,7 +135,7 @@ const MangaOverrideSelector = <TFieldValues extends FormValues = FormValues>({
       <Autocomplete<NotificationFollow, false, false, false>
         value={value as NotificationFollow | null}
         options={options || noData as NotificationFollow[]}
-        renderInput={(params) => <TextField {...params} label={label} />}
+        renderInput={params => <TextField {...params} label={label} />}
         renderOption={renderOption}
         onChange={onValueChange}
         getOptionLabel={getOptionLabelNoService}

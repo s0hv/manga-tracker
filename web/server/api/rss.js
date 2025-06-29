@@ -1,5 +1,7 @@
 import RSS from 'rss';
+
 import { getLatestReleases } from '@/db/db';
+
 
 function createFeed(rows) {
   const feed = new RSS({

@@ -7,7 +7,7 @@ import { describe, expect, vi, it } from 'vitest';
 import MergeManga from '../../src/views/MergeManga';
 import { fullManga, emptyFullManga } from '../constants';
 
-vi.mock('lodash.throttle', () => ({ default: (_) => _ }));
+vi.mock('es-toolkit', () => ({ throttle: (_) => _ }));
 
 describe('Merge manga page should render correctly', () => {
   const mockResult = [

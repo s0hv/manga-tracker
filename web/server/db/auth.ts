@@ -5,8 +5,9 @@ import type {
 } from 'express-serve-static-core';
 import type { AdapterUser } from 'next-auth/adapters';
 
-import { db } from './helpers';
 import { cookiePrefix } from '@/serverUtils/constants';
+
+import { db } from './helpers';
 
 export const userSelect = db.sql`
   u.user_uuid as id,

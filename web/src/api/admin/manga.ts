@@ -1,11 +1,12 @@
-import { handleError, handleResponse } from '../utilities';
-import type { DatabaseId, MangaId, MangaStatus } from '@/types/dbTypes';
 import type {
   MangaService,
   MangaServiceCreateData,
   MangaServiceUpdateData,
   ScheduledRun,
 } from '@/types/api/manga';
+import type { DatabaseId, MangaId, MangaStatus } from '@/types/dbTypes';
+
+import { handleError, handleResponse } from '../utilities';
 
 export const getScheduledRuns = (mangaId: MangaId) => fetch(`/api/admin/manga/${mangaId}/scheduledRuns`)
   .then(handleResponse<ScheduledRun[]>)
@@ -46,7 +47,7 @@ export const updateMangaTitle = (mangaId: MangaId, title: string) => fetch(`/api
 
 export type MangaInfo = {
   status: MangaStatus
-}
+};
 
 export const updateMangaInfo = (mangaId: MangaId, info: MangaInfo) => fetch(`/api/admin/manga/${mangaId}/info`,
   {

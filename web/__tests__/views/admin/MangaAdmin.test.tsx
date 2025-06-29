@@ -1,22 +1,23 @@
-import { act, render, screen, within } from '@testing-library/react';
-import userEvent, { type UserEvent } from '@testing-library/user-event';
-import { describe, expect, vi, it, beforeEach } from 'vitest';
-
-import fetchMock from 'fetch-mock';
 import React from 'react';
 import { QueryClientProvider } from '@tanstack/react-query';
+import { act, render, screen, within } from '@testing-library/react';
+import userEvent, { type UserEvent } from '@testing-library/user-event';
+import fetchMock from 'fetch-mock';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
 
 import {
+  adminUser,
   enqueueSnackbarMock,
   expectErrorSnackbar,
   expectSuccessSnackbar,
   mockNotistackHooks,
   mockUTCDates,
   muiSelectValue,
-  withUser,
-  adminUser,
   queryClient,
+  withUser,
 } from '../../utils';
+
 import MangaAdmin from '../../../src/views/admin/MangaAdmin';
 import { fullManga } from '../../constants';
 

@@ -58,7 +58,7 @@ export const mangaSearch = (query: string, count: number, withServices = false) 
   });
 };
 
-export const updateManga = (id: number|string, data: MangaForElastic) => {
+export const updateManga = (id: number | string, data: MangaForElastic) => {
   return client.update({
     index,
     id: id.toString(),
@@ -68,7 +68,7 @@ export const updateManga = (id: number|string, data: MangaForElastic) => {
   });
 };
 
-export const deleteManga = (id: number|string) => {
+export const deleteManga = (id: number | string) => {
   return client.delete({
     index,
     id: id.toString(),

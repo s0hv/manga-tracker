@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
+
+import { normalUser, testManga } from '../utils';
 import { getAliases, getFollows } from '@/db/manga';
 import { HttpError } from '@/serverUtils/errors';
-import { normalUser, testManga } from '../utils';
 
 
 describe('getFollows(userId)', () => {

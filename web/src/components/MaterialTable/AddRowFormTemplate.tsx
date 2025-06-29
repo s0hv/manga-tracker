@@ -1,19 +1,19 @@
 import { type ReactNode, useCallback } from 'react';
 import {
+  type SxProps,
   Box,
   Button,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
-  type SxProps,
 } from '@mui/material';
 import {
   type FieldValues,
-  FormProvider,
   type SubmitHandler,
-  useForm,
   type UseFormProps,
+  FormProvider,
+  useForm,
 } from 'react-hook-form';
 
 
@@ -22,13 +22,13 @@ export const defaultSx: SxProps = {
 };
 
 export type AddRowFormTemplateProps<TFieldValues extends FieldValues = FieldValues> = {
-  fields: ReactNode[],
+  fields: ReactNode[]
   onSuccess: SubmitHandler<TFieldValues>
-  onClose: () => unknown,
-  open: boolean,
-  closeOnSubmit?: boolean,
-  title?: string,
-  sx?: SxProps,
+  onClose: () => unknown
+  open: boolean
+  closeOnSubmit?: boolean
+  title?: string
+  sx?: SxProps
 } & UseFormProps<TFieldValues>;
 
 export const AddRowFormTemplate = <TFieldValues extends FieldValues = FieldValues>(
@@ -45,7 +45,7 @@ export const AddRowFormTemplate = <TFieldValues extends FieldValues = FieldValue
     ...formProps
   } = props;
 
-  const onSubmitInner = useCallback<SubmitHandler<TFieldValues>>(async (data) => {
+  const onSubmitInner = useCallback<SubmitHandler<TFieldValues>>(async data => {
     await onSuccess(data);
     if (closeOnSubmit) {
       onClose();

@@ -1,8 +1,8 @@
 import React, { FunctionComponent, PropsWithChildren } from 'react';
 import { render, screen } from '@testing-library/react';
-import { SnackbarProvider } from 'notistack';
-import fetchMock from 'fetch-mock';
 import userEvent from '@testing-library/user-event';
+import fetchMock from 'fetch-mock';
+import { SnackbarProvider } from 'notistack';
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import {
@@ -14,12 +14,13 @@ import {
   restoreMocks,
   silenceConsole,
 } from '../utils';
+import { statusToString } from '@/webUtils/utilities';
+
 import EditableMangaInfo from '../../src/components/EditableMangaInfo';
 import {
   defaultDateDistanceFormat,
   defaultDateFormatRegex,
 } from '../constants';
-import { statusToString } from '@/webUtils/utilities';
 
 const Root: FunctionComponent<PropsWithChildren> = ({ children }) => (
   <SnackbarProvider>

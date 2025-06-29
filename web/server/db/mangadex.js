@@ -1,8 +1,9 @@
-import { Manga, Cover } from 'mangadex-full-api';
+import { Cover, Manga } from 'mangadex-full-api';
 
-import { mangadexLimiter } from '../utils/ratelimits';
-import { db } from './helpers';
 import { dbLogger } from '../utils/logging.js';
+import { mangadexLimiter } from '../utils/ratelimits';
+
+import { db } from './helpers';
 
 export const MANGADEX_ID = 2; // Id of the mangadex service in the database
 

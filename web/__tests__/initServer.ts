@@ -1,5 +1,6 @@
 import { Server } from 'http';
 import { type AddressInfo } from 'net';
+
 import { expect, vi } from 'vitest';
 
 vi.mock('@/db/auth', async () => {

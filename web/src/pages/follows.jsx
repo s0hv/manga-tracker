@@ -1,11 +1,12 @@
 import React from 'react';
+
 import { NextSeo } from 'next-seo';
 
+import { getFollows } from '../../server/db/manga';
+import { jsonSerializable } from '../utils/utilities';
 import withError from '../utils/withError';
 import Follows from '../views/Follows';
-import { jsonSerializable } from '../utils/utilities';
 
-import { getFollows } from '../../server/db/manga';
 
 const MangaPage = function MangaPage(props) {
   const {

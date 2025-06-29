@@ -38,7 +38,7 @@ export const getResponseData = async <T = any>(json: any): Promise<T> => {
 type HandleResponse = {
   <T = any>(res: Response): Promise<T>
   (res: Response): Promise<void>
-}
+};
 
 /**
  * Handles checking if request was successful and if it was returns the json body

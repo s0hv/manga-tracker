@@ -1,9 +1,10 @@
-import { handleError, handleResponse } from './utilities';
-import type { DatabaseId } from '@/types/dbTypes';
 import type {
   NotificationData,
   NotificationFollow,
 } from '@/types/api/notifications';
+import type { DatabaseId } from '@/types/dbTypes';
+
+import { handleError, handleResponse } from './utilities';
 
 /**
  * Fetches user notifications
@@ -17,7 +18,7 @@ export const getNotifications: () => Promise<NotificationData[]> =
  * Updates or creates a new notification
  */
 export const postNotifications: (body: any) => Promise<NotificationData> =
-  (body) => fetch(`/api/notifications`, {
+  body => fetch(`/api/notifications`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -31,7 +32,7 @@ export const postNotifications: (body: any) => Promise<NotificationData> =
  * Updates or creates a new notification override
  */
 export const postNotificationOverride: (body: any) => Promise<NotificationData> =
-  (body) => fetch(`/api/notifications/override`, {
+  body => fetch(`/api/notifications/override`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -45,7 +46,7 @@ export const postNotificationOverride: (body: any) => Promise<NotificationData> 
  * Deletes a notification
  */
 export const deleteNotification: (notificationId: DatabaseId) => Promise<{ status: string }> =
-  (notificationId) => fetch(`/api/notifications/${notificationId}`, {
+  notificationId => fetch(`/api/notifications/${notificationId}`, {
     method: 'DELETE',
   })
     .then(handleResponse<{ status: string }>)

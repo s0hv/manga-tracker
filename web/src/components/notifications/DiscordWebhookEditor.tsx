@@ -1,65 +1,68 @@
-import { Box, Paper } from '@mui/material';
-import dynamic from 'next/dynamic';
 import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
-import { TextFieldElement, useWatch } from 'react-hook-form-mui';
+import { Box, Paper } from '@mui/material';
+import { ConfirmProvider } from 'material-ui-confirm';
+import dynamic from 'next/dynamic';
+import { useSnackbar } from 'notistack';
 import {
   type Control,
   type FormState,
   type SubmitHandler,
   useForm,
 } from 'react-hook-form';
-import { useSnackbar } from 'notistack';
-import { ConfirmProvider } from 'material-ui-confirm';
+import { TextFieldElement, useWatch } from 'react-hook-form-mui';
 
-import ColorPicker from './ColorPicker';
-import MangaSelector from './MangaSelector';
+import {
+  FormContextRefProvider,
+  useFormContextRefValue,
+} from '@/components/hooks/useFormContextRef';
+import {
+  type MangaOverrideSelectorProps,
+  ChangeOverride,
+} from '@/components/notifications/MangaOverrideSelector';
+import type { FormValues } from '@/components/notifications/types';
+import type {
+  NotificationData,
+  NotificationField,
+} from '@/types/api/notifications';
 import { NotificationTypes } from '@/webUtils/constants';
+import {
+  type MappedNotificationField,
+  buildNotificationData,
+  mapNotificationFields,
+} from '@/webUtils/utilities';
+
+
 import {
   postNotificationOverride,
   postNotifications,
 } from '../../api/notifications';
+
+import ColorPicker from './ColorPicker';
+import DefaultHelpTexts from './DefaultHelpTexts';
 import DeleteNotificationButton from './DeleteNotificationButton';
 import FormatHelpText from './FormatHelpText';
-import DefaultHelpTexts from './DefaultHelpTexts';
-import SaveButton from './SaveButton';
 import {
   CollapsableLayout,
   FlexLayout,
   NotificationTypeText,
   RightSide,
 } from './Layout';
+import MangaSelector from './MangaSelector';
 import { NameInput } from './NameInput';
 import NotificationsForm from './NotificationsForm';
-import {
-  buildNotificationData,
-  mapNotificationFields,
-  type MappedNotificationField,
-} from '@/webUtils/utilities';
-import type {
-  NotificationData,
-  NotificationField,
-} from '@/types/api/notifications';
-import type { FormValues } from '@/components/notifications/types';
-import {
-  ChangeOverride,
-  type MangaOverrideSelectorProps,
-} from '@/components/notifications/MangaOverrideSelector';
-import {
-  FormContextRefProvider,
-  useFormContextRefValue,
-} from '@/components/hooks/useFormContextRef';
+import SaveButton from './SaveButton';
 
 type FieldTypes = {
-  username: string | undefined | null,
-  embed_title: string | undefined | null,
-  message: string | undefined | null,
-  url: string | undefined | null,
-  avatar_url: string | undefined | null,
-  embed_content: string | undefined | null,
-  footer: string | undefined | null,
-  thumbnail: string | undefined | null,
+  username: string | undefined | null
+  embed_title: string | undefined | null
+  message: string | undefined | null
+  url: string | undefined | null
+  avatar_url: string | undefined | null
+  embed_content: string | undefined | null
+  footer: string | undefined | null
+  thumbnail: string | undefined | null
   color: string | undefined | null
-}
+};
 interface DiscordFormData extends FormValues, FieldTypes {}
 
 const MangaOverrideSelector = dynamic(() => import('./MangaOverrideSelector')) as unknown as FC<MangaOverrideSelectorProps<DiscordFormData>>;
@@ -67,7 +70,7 @@ const MangaOverrideSelector = dynamic(() => import('./MangaOverrideSelector')) a
 export type DiscordWebhookEditorProps = {
   notificationData: NotificationData
   defaultExpanded: boolean
-}
+};
 
 const getFields = (values: DiscordFormData) => [
   { name: 'username', value: values.username },
@@ -110,7 +113,7 @@ type FormComponentProps = {
   onSubmit: (e?: React.BaseSyntheticEvent) => Promise<void>
   control: Control<DiscordFormData>
   formState: FormState<DiscordFormData>
-}
+};
 
 const FormComponent: FC<FormComponentProps> = (
   {
@@ -280,11 +283,16 @@ const FormComponent: FC<FormComponentProps> = (
               minWidth: 'min-content',
             }}
             >
-              Formatting help<br /><br />
+              Formatting help
+              <br />
+              <br />
               <DefaultHelpTexts />
               <br />
-              {/* eslint-disable-next-line react/no-unescaped-entities */}
-              Only the following formatting is available for "Username" and "Message" <br /><br />
+              { }
+              Only the following formatting is available for "Username" and "Message"
+              {' '}
+              <br />
+              <br />
               <FormatHelpText
                 name='$MANGA_TITLES'
                 description='Comma separated list of all unique manga titles contained in the notification'
@@ -319,7 +327,7 @@ const DiscordWebhookEditor: React.FC<DiscordWebhookEditorProps> = ({
   const fieldRequired = useMemo<Record<keyof FieldTypes, boolean>>(() => {
     const mapped = mapNotificationFields<FieldTypes, 'optional'>(notificationData.fields, 'optional');
     (Object.keys(mapped) as Array<keyof FieldTypes>)
-      .forEach((key) => {
+      .forEach(key => {
         mapped[key] = !mapped[key];
       });
 
@@ -340,8 +348,6 @@ const DiscordWebhookEditor: React.FC<DiscordWebhookEditorProps> = ({
     trigger,
     register,
   } = methods;
-
-  formState.errors;
 
   const formRef = useFormContextRefValue({ setValue, control });
 
@@ -370,7 +376,7 @@ const DiscordWebhookEditor: React.FC<DiscordWebhookEditorProps> = ({
     }
 
     return resp
-      .then((newData) => {
+      .then(newData => {
         setNotificationData(newData);
         setNewFormData({
           notificationData: newData,

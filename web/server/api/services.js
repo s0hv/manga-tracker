@@ -1,5 +1,5 @@
-import { handleError } from '@/db/utils';
 import { getServicesForApi } from '@/db/services/serviceInfo';
+import { handleError } from '@/db/utils';
 
 
 export default app => {
