@@ -5,6 +5,7 @@ import React, {
   useMemo,
   useState,
 } from 'react';
+import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import {
   Container,
   IconButton,
@@ -14,24 +15,26 @@ import {
   Typography,
 } from '@mui/material';
 
-import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import { type GetKey, type Group, groupBy } from '@/common/utilities';
-import { formatChapterTitle, formatChapterUrl } from '../utils/formatting';
-import { MangaCover } from './MangaCover';
-import type { ServiceForApi } from '@/types/api/services';
 import type { ChapterRelease } from '@/types/api/chapter';
-import { defaultDateFormat } from '@/webUtils/utilities';
+import type { ServiceForApi } from '@/types/api/services';
 import type { DatabaseId } from '@/types/dbTypes';
+import { defaultDateFormat } from '@/webUtils/utilities';
+
+
+import { formatChapterTitle, formatChapterUrl } from '../utils/formatting';
+
+import { MangaCover } from './MangaCover';
 
 export type ChapterComponentProps = {
   chapter: ChapterRelease
-}
+};
 
 export type GroupComponentProps = PropsWithChildren<{
   groupString: string | React.ReactNode
   group: DatabaseId
   mangaId: DatabaseId
-}>
+}>;
 
 export const ChapterGroupBase: FC<Omit<GroupComponentProps, 'group' | 'mangaId'>> = ({ groupString, children }) => (
   <Paper sx={{
@@ -115,12 +118,12 @@ export type GroupedChapterListProps = {
   ChapterComponent: React.ComponentType<ChapterComponentProps>
   loading?: boolean
   skeletons?: number
-}
+};
 
 export const GroupedChapterList: FC<GroupedChapterListProps> = ({
   chapters,
   groupKey,
-  groupToString = (group) => group,
+  groupToString = group => group,
   GroupComponent,
   ChapterComponent,
   loading = false,
@@ -140,7 +143,7 @@ export const GroupedChapterList: FC<GroupedChapterListProps> = ({
   return (
     <Container maxWidth='lg' disableGutters>
       {loading && skeletons && skeletonArray.map((_, i) => (
-        // eslint-disable-next-line react/no-array-index-key
+
         <ChapterGroupBase groupString={<Skeleton width='75%' />} key={`${i}`}>
           <div style={{ display: 'flex' }}>
             <div>
@@ -159,11 +162,11 @@ export const GroupedChapterList: FC<GroupedChapterListProps> = ({
           groupString={groupToString(group.group, group.arr)}
           group={group.group}
           mangaId={group.arr[0].mangaId}
-          /* eslint-disable-next-line react/no-array-index-key */
+
           key={`${idx}`}
         >
           <ol style={{ listStyleType: 'none' }}>
-            {group.arr.map((chapter) => (
+            {group.arr.map(chapter => (
               <ChapterComponent key={chapter.chapterId} chapter={chapter} />
             ))}
           </ol>

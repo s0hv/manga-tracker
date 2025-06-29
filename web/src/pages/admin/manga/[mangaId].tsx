@@ -1,23 +1,25 @@
+import React from 'react';
 import { ConfirmProvider } from 'material-ui-confirm';
 import { NextSeo } from 'next-seo';
-import React from 'react';
-import withError from '../../../utils/withError';
-import Manga from '@/views/admin/MangaAdmin';
-import { jsonSerializable } from '@/webUtils/utilities';
 
-import { getFullManga } from '@/db/manga';
-import { getServiceConfigs } from '@/db/services';
-import type { GetServerSidePropsExpress } from '@/types/nextjs';
-import type { ServiceConfig } from '@/types/api/services';
-import type { FullMangaData } from '@/types/api/manga';
 import {
   DefaultLocalizationProvider,
 } from '@/components/DefaultLocalizationProvider';
+import { getFullManga } from '@/db/manga';
+import { getServiceConfigs } from '@/db/services';
+import type { FullMangaData } from '@/types/api/manga';
+import type { ServiceConfig } from '@/types/api/services';
+import type { GetServerSidePropsExpress } from '@/types/nextjs';
+import Manga from '@/views/admin/MangaAdmin';
+import { jsonSerializable } from '@/webUtils/utilities';
+
+
+import withError from '../../../utils/withError';
 
 type MangaPageProps = {
   manga: FullMangaData & { title: string }
   serviceConfigs: ServiceConfig[]
-}
+};
 
 function MangaPage(props: MangaPageProps) {
   const {

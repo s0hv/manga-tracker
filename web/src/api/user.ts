@@ -1,10 +1,9 @@
-import { handleError, handleResponse } from './utilities';
 import type { Theme } from '@/types/dbTypes';
 
+import { handleError, handleResponse } from './utilities';
+
 export const updateUserTheme = (theme: Theme) => fetch(`/api/settings/theme?value=${theme}`,
-  {
-    method: 'post',
-  })
+  { method: 'post' })
   .then(handleResponse)
   .catch(handleError);
 
@@ -14,7 +13,7 @@ export type UpdateProfileType = {
   password?: string
   newPassword?: string
   repeatPassword?: string
-}
+};
 
 export const updateUserProfile = (body: UpdateProfileType) => fetch('/api/profile',
   {

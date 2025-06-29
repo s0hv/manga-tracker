@@ -1,10 +1,11 @@
-import { db } from '../helpers';
-import type { DatabaseId, MangaId, MangaInfoUpdate } from '@/types/dbTypes';
 import type {
   MangaService,
   MangaServiceCreateData,
   MangaServiceUpdateData,
 } from '@/types/api/manga';
+import type { DatabaseId, MangaId, MangaInfoUpdate } from '@/types/dbTypes';
+
+import { db } from '../helpers';
 import { generateUpdate } from '../utils';
 
 export const updateMangaTitle = (mangaId: MangaId, newTitle: string) => {

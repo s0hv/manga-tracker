@@ -1,5 +1,6 @@
-import { db } from './helpers';
 import type { DatabaseId, MangaId } from '@/types/dbTypes';
+
+import { db } from './helpers';
 
 export function getLatestReleases(serviceId?: DatabaseId, mangaId?: MangaId, userUUID?: string) {
   const joins = [];

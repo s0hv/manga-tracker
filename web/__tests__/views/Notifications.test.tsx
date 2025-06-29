@@ -1,10 +1,10 @@
-import { act, render, screen } from '@testing-library/react';
+import type { PropsWithChildren } from 'react';
 import { QueryClientProvider } from '@tanstack/react-query';
+import { act, render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import fetchMock from 'fetch-mock';
 import { SnackbarProvider } from 'notistack';
-import { describe, expect, vi, it, beforeEach } from 'vitest';
-import type { PropsWithChildren } from 'react';
-import userEvent from '@testing-library/user-event';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { mockNotistackHooks, muiSelectValue, queryClient } from '../utils';
 import Notifications from '@/views/Notifications';

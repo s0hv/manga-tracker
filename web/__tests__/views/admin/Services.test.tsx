@@ -1,9 +1,9 @@
 import React from 'react';
 import { act, render, screen, within } from '@testing-library/react';
-import { describe, expect, beforeEach, it } from 'vitest';
-
-import fetchMock from 'fetch-mock';
 import userEvent from '@testing-library/user-event';
+import fetchMock from 'fetch-mock';
+import { beforeEach, describe, expect, it } from 'vitest';
+
 import {
   expectErrorSnackbar,
   expectNoSnackbar,
@@ -14,8 +14,10 @@ import {
   mockUTCDates,
   withRoot,
 } from '../../utils';
-import Services from '../../../src/views/admin/Services';
 import { ServiceForAdminSerialized } from '@/types/api/services';
+
+
+import Services from '../../../src/views/admin/Services';
 
 const services: ServiceForAdminSerialized[] = [
   {

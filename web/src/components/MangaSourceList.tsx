@@ -1,6 +1,6 @@
 import React, { MouseEventHandler } from 'react';
-import ExpandMore from '@mui/icons-material/ExpandMore';
 import ExpandLess from '@mui/icons-material/ExpandLess';
+import ExpandMore from '@mui/icons-material/ExpandMore';
 import {
   Button,
   Collapse,
@@ -11,8 +11,10 @@ import {
   ListItemText,
   Typography,
 } from '@mui/material';
-import { useUser } from '../utils/useUser';
+
 import type { MangaServiceData } from '@/types/api/manga';
+
+import { useUser } from '../utils/useUser';
 
 
 export type MangaSourceListProps = {
@@ -21,11 +23,11 @@ export type MangaSourceListProps = {
   userFollows?: (number | null)[]
   classesProp?: string[]
   openByDefault?: boolean
-}
+};
 function MangaSourceList(props: MangaSourceListProps) {
   const {
     items = [],
-    followUnfollow = (_) => undefined,
+    followUnfollow = _ => undefined,
     userFollows = [],
     classesProp = [],
     openByDefault = false,
@@ -87,7 +89,7 @@ function MangaSourceList(props: MangaSourceListProps) {
       </ListItemButton>
       <Collapse in={open} timeout='auto' unmountOnExit>
         <List component='div' disablePadding aria-hidden={!open}>
-          {items.map((item) => renderItem(item))}
+          {items.map(item => renderItem(item))}
         </List>
       </Collapse>
     </List>

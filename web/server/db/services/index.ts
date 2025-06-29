@@ -1,9 +1,9 @@
+import type { Service, ServiceConfig, ServiceWhole } from '@/types/db/services';
+import type { DatabaseId } from '@/types/dbTypes';
+import type { PartialExcept } from '@/types/utility';
+
 import { db } from '../helpers';
 import { generateUpdate } from '../utils';
-
-import type { DatabaseId } from '@/types/dbTypes';
-import type { Service, ServiceConfig, ServiceWhole } from '@/types/db/services';
-import type { PartialExcept } from '@/types/utility';
 
 
 export const getService = (serviceId: DatabaseId) => db.oneOrNone<Service>`SELECT * FROM services WHERE service_id=${serviceId}`;
@@ -14,8 +14,8 @@ export const getServiceConfig = (serviceId: DatabaseId) => db.oneOrNone<ServiceC
 
 export const getServiceFull = (serviceId: DatabaseId) => {
   const retVal: {
-    service?: Service | null,
-    serviceWhole?: ServiceWhole | null,
+    service?: Service | null
+    serviceWhole?: ServiceWhole | null
     serviceConfig?: ServiceConfig | null
   } = {};
 

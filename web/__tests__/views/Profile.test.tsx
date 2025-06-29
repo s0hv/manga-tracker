@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent, { type UserEvent } from '@testing-library/user-event';
 import fetchMock from 'fetch-mock';
-import { describe, expect, beforeEach, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 
 import {
   convertToOauthUser,

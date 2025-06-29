@@ -1,6 +1,7 @@
-import { db } from '../helpers';
-import type { DatabaseId, MangaId } from '@/types/dbTypes';
 import type { ScheduledRun } from '@/types/api/manga';
+import type { DatabaseId, MangaId } from '@/types/dbTypes';
+
+import { db } from '../helpers';
 
 export const scheduleMangaRun = (mangaId: MangaId, serviceId: DatabaseId, userId: DatabaseId) => {
   return db.one`INSERT INTO scheduled_runs (manga_id, service_id, created_by) 

@@ -1,13 +1,15 @@
+import type { FC } from 'react';
 import type { GetServerSidePropsContext } from 'next';
 import { getProviders } from 'next-auth/react';
-import type { FC } from 'react';
 import { NextSeo } from 'next-seo';
+
+
 import SignIn, {
   type SignInPageErrorParam,
   type SignInProps,
 } from '../views/SignIn';
 
-const SignInPage: FC<SignInProps> = (props) => {
+const SignInPage: FC<SignInProps> = props => {
   return (
     <>
       <NextSeo

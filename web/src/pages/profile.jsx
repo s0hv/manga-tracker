@@ -1,8 +1,9 @@
-import { NextSeo } from 'next-seo';
 import { ConfirmProvider } from 'material-ui-confirm';
+import { NextSeo } from 'next-seo';
+
 import ProfileView from '../views/Profile';
 
-const Profile = (props) => (
+const Profile = props => (
   <>
     <NextSeo
       title='Edit profile'

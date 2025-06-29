@@ -2,21 +2,22 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
-import Root from '@/components/Root';
+import { Layout } from '@/components/Layout';
+
 
 const dummyLabel = 'test label';
 const DummyComponent = () => <div aria-label={dummyLabel} />;
 
-describe('Root component should render correctly', () => {
+describe('Layout component should render correctly', () => {
   it('Should render with empty input', () => {
-    render(<Root><DummyComponent /></Root>);
+    render(<Layout><DummyComponent /></Layout>);
 
     expect(screen.getByLabelText(dummyLabel)).toBeInTheDocument();
     expect(screen.queryByRole('contentinfo')).not.toBeInTheDocument();
   });
 
   it('Should render with empty input and correct status code', () => {
-    render(<Root statusCode={200}><DummyComponent /></Root>);
+    render(<Layout statusCode={200}><DummyComponent /></Layout>);
 
     const currentYear = new Date().getFullYear();
 
@@ -39,9 +40,9 @@ describe('Root component should render correctly', () => {
 
   it('Should only return children on non 200 status code', () => {
     render(
-      <Root statusCode={400}>
+      <Layout statusCode={400}>
         <DummyComponent />
-      </Root>
+      </Layout>
     );
 
     expect(screen.getByLabelText(dummyLabel)).toBeInTheDocument();

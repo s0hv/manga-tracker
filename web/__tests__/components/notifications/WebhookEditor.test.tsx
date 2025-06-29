@@ -1,23 +1,27 @@
+import type { PropsWithChildren } from 'react';
+import { QueryClientProvider } from '@tanstack/react-query';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { QueryClientProvider } from '@tanstack/react-query';
 import fetchMock from 'fetch-mock';
-import { describe, expect, vi, it, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
-  queryClient,
-  mockNotistackHooks,
-  expectSuccessSnackbar,
   expectErrorSnackbar,
+  expectSuccessSnackbar,
+  mockNotistackHooks,
+  queryClient,
 } from '../../utils';
-import WebhookEditor from '../../../src/components/notifications/WebhookEditor';
-import { NotificationTypes } from '../../../src/utils/constants';
-import {
-  defaultDataForType,
-} from '../../../src/components/notifications/defaultDatas';
+import { defaultDataForType } from '@/components/notifications/defaultDatas';
+import WebhookEditor from '@/components/notifications/WebhookEditor';
+import type {
+  NotificationData,
+  NotificationField,
+} from '@/types/api/notifications';
+import { NotificationTypes } from '@/webUtils/constants';
 
+vi.mock('@uiw/react-codemirror');
 
-const Root = ({ children }) => (
+const Root = ({ children }: PropsWithChildren) => (
   <QueryClientProvider client={queryClient}>
     {children}
   </QueryClientProvider>
@@ -25,21 +29,27 @@ const Root = ({ children }) => (
 
 beforeEach(async () => {
   await mockNotistackHooks();
-  vi.mock('@uiw/react-codemirror');
   fetchMock.reset();
   queryClient.clear();
 });
 
 const defaultWebhookData = defaultDataForType[NotificationTypes.Webhook];
-const defaultNotificationDataNoManga = {
+const defaultNotificationDataNoManga: NotificationData = {
   ...defaultWebhookData,
   notificationId: 1,
   destination: 'destination',
   useFollows: true,
+  timesRun: null,
+  timesFailed: null,
+  disabled: false,
+  groupByManga: false,
+  name: '',
+  manga: null,
+  overrides: {},
 };
 
 describe('WebhookEditor', () => {
-  const Rendered = ({ notificationData, defaultExpanded = true }) => (
+  const Rendered = ({ notificationData, defaultExpanded = true }: { notificationData: NotificationData, defaultExpanded?: boolean }) => (
     <Root>
       <WebhookEditor
         notificationData={notificationData}
@@ -75,7 +85,7 @@ describe('WebhookEditor', () => {
     expect(screen.getByRole('textbox', { name: /^name$/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /^delete notification/i })).toBeInTheDocument();
 
-    expect(screen.queryByRole(/^webhook json format$/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole('textbox', { name: /^webhook json format$/i })).not.toBeInTheDocument();
     expect(screen.queryByRole('textbox', { name: /^Webhook url/i })).not.toBeInTheDocument();
     expect(screen.queryByRole('combobox', { name: /^Manga updates to notify on/i })).not.toBeInTheDocument();
     expect(screen.queryByRole('checkbox', { name: /^use follows/i })).not.toBeInTheDocument();
@@ -106,18 +116,19 @@ describe('WebhookEditor', () => {
 
     expect(mockRoute).toHaveBeenCalledOnce();
 
-    const sort = (a, b) => ((a.name < b.name) ? 1 : -1);
-    const response = JSON.parse(fetchMock.lastCall('/api/notifications')[1].body);
+    const sort = (a: NotificationData, b: NotificationData) => ((a.name < b.name) ? 1 : -1);
+    const response = JSON.parse(fetchMock.lastCall('/api/notifications')?.[1]?.body as string);
     response.fields.sort(sort);
 
-    const data = { ...defaultNotificationDataNoManga };
+    const data: Partial<NotificationData> = { ...defaultNotificationDataNoManga };
     delete data.timesFailed;
     delete data.timesRun;
     delete data.manga;
-    data.fields = data.fields.map(f => ({
+    delete data.overrides;
+    data.fields = data.fields!.map(f => ({
       name: f.name,
       value: f.value,
-    }));
+    } as NotificationField));
 
     expect(response).toEqual(
       expect.objectContaining(data)

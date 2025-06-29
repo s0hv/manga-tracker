@@ -1,6 +1,10 @@
-import NextAuth, { type NextAuthOptions } from 'next-auth';
-import type { Request, Response } from 'express-serve-static-core';
 import { randomUUID } from 'crypto';
+
+import { setCookie } from 'cookies-next';
+import type { Request, Response } from 'express-serve-static-core';
+import type { NextApiRequest, NextApiResponse } from 'next';
+import NextAuth, { type NextAuthOptions } from 'next-auth';
+import { decode, encode } from 'next-auth/jwt';
 import type {
   OAuthConfig,
   OAuthUserConfig,
@@ -9,16 +13,13 @@ import type {
 import CredentialsProvider from 'next-auth/providers/credentials';
 import DiscordProvider from 'next-auth/providers/discord';
 import GoogleProvider from 'next-auth/providers/google';
-import type { NextApiRequest, NextApiResponse } from 'next';
-import { decode, encode } from 'next-auth/jwt';
-import { setCookie } from 'cookies-next';
 
-import { getSingletonPostgresAdapter } from '@/db/postgres-adapter';
-import { db } from '@/db/helpers';
 import { authenticate } from '@/db/auth';
-import { limiterSlowBruteByIP } from '@/serverUtils/ratelimits';
-import { logger, userLogger } from '@/serverUtils/logging';
+import { db } from '@/db/helpers';
+import { getSingletonPostgresAdapter } from '@/db/postgres-adapter';
 import { cookiePrefix, isSecure } from '@/serverUtils/constants';
+import { logger, userLogger } from '@/serverUtils/logging';
+import { limiterSlowBruteByIP } from '@/serverUtils/ratelimits';
 
 
 const authOptionsBase = {
@@ -36,9 +37,9 @@ const authOptionsBase = {
 
 const isCredentialsRequest = (req: NextApiRequest): boolean | undefined => {
   return (
-    req.query.nextauth?.includes('callback') &&
-    req.query.nextauth?.includes('credentials') &&
-    req.method === 'POST'
+    req.query.nextauth?.includes('callback')
+    && req.query.nextauth?.includes('credentials')
+    && req.method === 'POST'
   );
 };
 
@@ -46,7 +47,7 @@ const extraProviders: Provider[] = [
 
 ];
 
-type Providers = 'Discord' | 'Google'
+type Providers = 'Discord' | 'Google';
 const Providers: Record<Providers, (options: OAuthUserConfig<any>) => OAuthConfig<any>> = {
   Discord: DiscordProvider,
   Google: GoogleProvider,
@@ -105,7 +106,7 @@ export default function nextauth(req: NextApiRequest & Request, res: NextApiResp
 
               return user;
             })
-            .catch((err) => {
+            .catch(err => {
               userLogger.error(err, 'Failed to authenticate user');
               throw new Error('Unknown error occurred');
             });

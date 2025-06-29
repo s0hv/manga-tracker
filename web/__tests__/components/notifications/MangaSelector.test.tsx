@@ -1,11 +1,11 @@
+import type { FC, PropsWithChildren } from 'react';
+import { QueryClientProvider } from '@tanstack/react-query';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { QueryClientProvider } from '@tanstack/react-query';
 import fetchMock from 'fetch-mock';
 import { ConfirmProvider } from 'material-ui-confirm';
 import { FormContainer } from 'react-hook-form-mui';
-import type { FC, PropsWithChildren } from 'react';
-import { describe, expect, vi, beforeEach, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { mockNotistackHooks, queryClient } from '../../utils';
 import MangaSelector, {
@@ -45,22 +45,23 @@ beforeEach(async () => {
 
 type RenderProps = {
   selectedManga?: NotificationFollow[]
-} & Omit<MangaSelectorProps,
+} & Omit<
+  MangaSelectorProps,
   | 'name'
   | 'label'
   | 'useFollowsName'
->
+>;
 
 describe('MangaSelector', () => {
   const testLabel = 'Search for manga';
 
   const Rendered: FC<RenderProps> = ({ selectedManga, ...selectorProps }) => (
     <Root selectedManga={selectedManga}>
-      <MangaSelector name={inputName} label={testLabel} overrideName={overrideName} {...selectorProps} />
+      <MangaSelector name={inputName} label={testLabel} {...selectorProps} />
     </Root>
   );
 
-  const formatMangaName = ({ title, serviceName }: { title: string, serviceName: string | null}) => (
+  const formatMangaName = ({ title, serviceName }: { title: string, serviceName: string | null }) => (
     `${title} | ${serviceName || 'All services'}`
   );
 

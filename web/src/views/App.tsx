@@ -1,17 +1,20 @@
 import React, { useMemo, useState } from 'react';
-import dynamic from 'next/dynamic';
 import { Container, Typography } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
-import { getLatestChapters } from '../api/chapter';
-import { getServices } from '../api/services';
+import dynamic from 'next/dynamic';
+
 import {
   ChapterGroupWithCover,
   ChapterWithLink,
 } from '@/components/GroupedChapterList';
 import type { ChapterRelease } from '@/types/api/chapter';
 import type { ServiceForApi } from '@/types/api/services';
-import { useUser } from '@/webUtils/useUser';
 import { QueryKeys } from '@/webUtils/constants';
+import { useUser } from '@/webUtils/useUser';
+
+
+import { getLatestChapters } from '../api/chapter';
+import { getServices } from '../api/services';
 
 const GroupedChapterList = dynamic(import('../components/GroupedChapterList'));
 
@@ -55,7 +58,6 @@ function App() {
   const GroupComponent = useMemo(() => ChapterGroupWithCover(mangaToCover || {}),
     [mangaToCover]);
 
-  // eslint-disable-next-line react/no-unstable-nested-components
   const ChapterComponent = useMemo(() => ChapterWithLink(services || {}), [services]);
 
   return (

@@ -1,8 +1,8 @@
+import type { FC, PropsWithChildren } from 'react';
+import { QueryClientProvider } from '@tanstack/react-query';
 import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { QueryClientProvider } from '@tanstack/react-query';
 import fetchMock from 'fetch-mock';
-import type { FC, PropsWithChildren } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
@@ -12,14 +12,15 @@ import {
   queryClient,
   silenceConsole,
 } from '../../utils';
-import DiscordWebhookEditor
-  from '../../../src/components/notifications/DiscordWebhookEditor';
+import type { UpsertNotificationOverride } from '@/db/notifications';
 import type {
   NotificationData,
   NotificationFieldData,
   NotificationFollow,
 } from '@/types/api/notifications';
-import type { UpsertNotificationOverride } from '@/db/notifications';
+
+import DiscordWebhookEditor
+  from '../../../src/components/notifications/DiscordWebhookEditor';
 
 const Root: FC<PropsWithChildren> = ({ children }) => (
   <QueryClientProvider client={queryClient}>
@@ -114,7 +115,7 @@ const defaultDataWithManga: NotificationData = {
 };
 
 describe('DiscordWebhookEditor', () => {
-  const Rendered = ({ notificationData, defaultExpanded = true }: { notificationData: NotificationData, defaultExpanded?: boolean}) => (
+  const Rendered = ({ notificationData, defaultExpanded = true }: { notificationData: NotificationData, defaultExpanded?: boolean }) => (
     <Root>
       <DiscordWebhookEditor
         notificationData={notificationData}
@@ -312,7 +313,7 @@ describe('DiscordWebhookEditor', () => {
     await user.click(screen.getByRole('button', { name: /^save$/i }));
 
     expectErrorSnackbar('Failed to create/update notification override');
-  }, 10*1000);
+  }, 10 * 1000);
 
   it('should reload form when changing override', async () => {
     const mock = notificationFollowsMock([{
@@ -383,7 +384,7 @@ describe('DiscordWebhookEditor', () => {
       overrideId: overrideId,
       fields: fields,
     });
-  }, 30*1000);
+  }, 30 * 1000);
 
   it('Warns of unsaved changes when changing to an override', async () => {
     notificationFollowsMock();
@@ -441,5 +442,5 @@ describe('DiscordWebhookEditor', () => {
     expect(screen.getByRole('button', { name: /^delete notification/i })).toBeDisabled();
 
     expect(mockRoute).not.toHaveBeenCalled();
-  }, 30*1000);
+  }, 30 * 1000);
 });

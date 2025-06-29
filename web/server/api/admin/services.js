@@ -1,16 +1,18 @@
 import { body, matchedData, param } from 'express-validator';
 
-import { handleError } from '@/db/utils';
 import {
   updateService,
-  updateServiceWhole,
   updateServiceConfig,
+  updateServiceWhole,
 } from '@/db/services';
+import { handleError } from '@/db/utils';
+
+
 import {
-  validateAdminUser,
   handleValidationErrors,
-  serviceIdValidation,
   isISO8601Duration,
+  serviceIdValidation,
+  validateAdminUser,
 } from '../../utils/validators';
 
 export default app => {

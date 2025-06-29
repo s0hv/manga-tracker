@@ -4,16 +4,18 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
   type ChapterComponentProps,
+  type GroupComponentProps,
   ChapterGroupWithCover,
   ChapterWithLink,
-  type GroupComponentProps,
   GroupedChapterList,
 } from '@/components/GroupedChapterList';
-import { testChapterUrlFormat } from '../constants';
-import { formatChapterTitle, formatChapterUrl } from '@/webUtils/formatting';
-import { generateNSchemas, LatestChapter, setupFaker } from '../schemas';
 import type { ChapterRelease } from '@/types/api/chapter';
 import type { ServiceForApi } from '@/types/api/services';
+import { formatChapterTitle, formatChapterUrl } from '@/webUtils/formatting';
+
+
+import { testChapterUrlFormat } from '../constants';
+import { generateNSchemas, LatestChapter, setupFaker } from '../schemas';
 
 
 describe('ChapterGroupWithCover', () => {
@@ -42,7 +44,7 @@ describe('ChapterGroupWithCover', () => {
     expect(cover).toBeInTheDocument();
     expect(cover).toHaveAttribute('src', `${mangaToCover[mangaId]}.256.jpg`);
 
-    expect(screen.getByRole('heading', { name: groupString }));
+    expect(screen.getByRole('heading', { name: groupString })).toBeInTheDocument();
   });
 });
 
@@ -136,13 +138,15 @@ describe('GroupedChapterList', () => {
       ...chaptersC2,
     ];
 
-    render(<GroupedChapterList
-      chapters={chapters}
-      groupKey='mangaId'
-      groupToString={groupToString}
-      GroupComponent={GroupComponentMock}
-      ChapterComponent={ChapterComponentMock}
-    />);
+    render(
+      <GroupedChapterList
+        chapters={chapters}
+        groupKey='mangaId'
+        groupToString={groupToString}
+        GroupComponent={GroupComponentMock}
+        ChapterComponent={ChapterComponentMock}
+      />
+    );
 
     // This component does not really render anything of its own so these tests
     // should be fine as they assert that the given components are rendered

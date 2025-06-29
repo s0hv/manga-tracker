@@ -1,13 +1,12 @@
 import request from 'supertest';
 import {
+  afterAll,
+  beforeAll,
   describe,
   expect,
-  beforeAll,
-  afterAll,
   it,
 } from 'vitest';
 
-import { csrfMissing } from '@/serverUtils/constants';
 import initServer from '../initServer';
 import stopServer from '../stopServer';
 import {
@@ -18,16 +17,19 @@ import {
   silenceConsole,
   withUser,
 } from '../utils';
+import { apiRequiresUserGetTests, apiRequiresUserPostTests } from './api-test-utilities';
 import { db } from '@/db/helpers';
 import {
-  createUserNotification,
   type DbNotificationData,
-  getUserNotifications,
   type UpsertNotificationOverride,
+  createUserNotification,
+  getUserNotifications,
   upsertNotificationOverride,
 } from '@/db/notifications';
+import { csrfMissing } from '@/serverUtils/constants';
 import { NotificationTypes } from '@/webUtils/constants';
-import { apiRequiresUserGetTests, apiRequiresUserPostTests } from './utilities';
+
+
 import { invalidValue } from '../constants';
 
 let httpServer: any;

@@ -1,20 +1,21 @@
-import { body as validateBody, query, matchedData } from 'express-validator';
+import { body as validateBody, matchedData, query } from 'express-validator';
 
-import { NoColumnsError } from '@/db/errors';
 import {
-  editChapter,
   deleteChapter,
+  editChapter,
   getChapterReleases,
   getLatestChapters,
 } from '@/db/chapter';
+import { NoColumnsError } from '@/db/errors';
+import { handleError } from '@/db/utils';
+
+
+import { dbLogger } from '../utils/logging.js';
 import {
-  validateAdminUser,
   handleValidationErrors,
   userValidator,
+  validateAdminUser,
 } from '../utils/validators';
-import { handleError } from '@/db/utils';
-import { dbLogger } from '../utils/logging.js';
-
 
 const BASE_URL = '/api/chapter';
 
@@ -125,7 +126,7 @@ export default app => {
       .bail()
       .optional()
       .toBoolean()
-      .if((val) => val === true)
+      .if(val => val === true)
       .custom(userValidator),
     handleValidationErrors,
   ], (req, res) => {

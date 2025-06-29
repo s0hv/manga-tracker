@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { db } from '@/db/helpers';
+
 import { NoResultsError, TooManyResultsError } from '@/db/errors';
+import { db } from '@/db/helpers';
+
 
 describe('one`query`', () => {
   it('throws error when more than one row returned', async () => {

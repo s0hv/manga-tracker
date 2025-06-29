@@ -1,5 +1,6 @@
 import type { RowData } from '@tanstack/react-table';
 import { useConfirm } from 'material-ui-confirm';
+
 import type {
   AfterRowEdit,
   RowChangeAction,

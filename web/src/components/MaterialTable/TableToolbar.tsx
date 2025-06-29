@@ -4,22 +4,21 @@ import React, {
   useCallback,
   useState,
 } from 'react';
-
-import { IconButton, Toolbar, Tooltip, Typography } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
+import { IconButton, Toolbar, Tooltip, Typography } from '@mui/material';
 
 
 export type DialogComponentProps = {
   open: boolean
   onClose: () => void
-}
+};
 
 export type TableToolbarProps = {
   title?: string
   DialogComponent?: ComponentType<DialogComponentProps>
   creatable?: boolean
   addButtonLabel?: string
-}
+};
 
 
 export const TableToolbar: FunctionComponent<TableToolbarProps> = props => {

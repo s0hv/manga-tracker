@@ -6,22 +6,24 @@ const level = process.env.LEVEL;
 
 // If the PRETTY environment variable is defined use it to determine whether to pretty print or not
 // Otherwise pretty print in development
-const pretty = process.env.PRETTY ?
-  /^(y|yes|true|on)$/i.test(process.env.PRETTY) :
-  isDev;
+const pretty = process.env.PRETTY
+  ? /^(y|yes|true|on)$/i.test(process.env.PRETTY)
+  : isDev;
 
 export const logger = pino(
   {
     level: level || 'debug',
-    transport: pretty ? {
-      target: 'pino-pretty',
-      options:
-      {
-        colorize: true,
-        translateTime: 'SYS:HH:MM:ss.l',
-        ignore: 'hostname,ns',
-      },
-    } : undefined,
+    transport: pretty
+      ? {
+        target: 'pino-pretty',
+        options:
+          {
+            colorize: true,
+            translateTime: 'SYS:HH:MM:ss.l',
+            ignore: 'hostname,ns',
+          },
+      }
+      : undefined,
     name: 'logger',
   }
 );

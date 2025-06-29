@@ -1,16 +1,12 @@
 import request, { type Agent } from 'supertest';
 import {
+  afterAll,
+  beforeAll,
+  beforeEach,
   describe,
   expect,
-  beforeAll,
-  afterAll,
   it,
-  beforeEach,
 } from 'vitest';
-
-import { insertFollow } from '@/db/follows';
-import { csrfMissing } from '@/serverUtils/constants';
-import { mangaIdError, type TestUser, userUnauthorized } from '../constants';
 
 import initServer from '../initServer';
 import stopServer from '../stopServer';
@@ -24,9 +20,14 @@ import {
   oauthUser,
   withUser,
 } from '../utils';
-import { redis } from '@/serverUtils/ratelimits';
-import { apiRequiresUserPostTests } from './utilities';
+import { apiRequiresUserPostTests } from './api-test-utilities';
+import { insertFollow } from '@/db/follows';
 import { db } from '@/db/helpers';
+import { csrfMissing } from '@/serverUtils/constants';
+import { redis } from '@/serverUtils/ratelimits';
+
+
+import { type TestUser, mangaIdError, userUnauthorized } from '../constants';
 
 let httpServer: any;
 const serverReference = {

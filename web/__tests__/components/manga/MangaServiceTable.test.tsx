@@ -1,11 +1,10 @@
 import React, { FunctionComponent } from 'react';
-import { describe, expect, beforeEach, it } from 'vitest';
-
-import { act, render, screen, waitFor, within } from '@testing-library/react';
-import { SnackbarProvider } from 'notistack';
-import fetchMock from 'fetch-mock';
-import userEvent from '@testing-library/user-event';
 import { QueryClientProvider } from '@tanstack/react-query';
+import { act, render, screen, waitFor, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import fetchMock from 'fetch-mock';
+import { SnackbarProvider } from 'notistack';
+import { beforeEach, describe, expect, it } from 'vitest';
 
 import {
   expectErrorSnackbar,
@@ -20,15 +19,16 @@ import {
   withRoot,
 } from '../../utils';
 import { MangaServiceTable } from '@/components/manga/MangaServiceTable';
+import { MangaService } from '@/types/api/manga';
+import { ServiceForApi } from '@/types/api/services';
 import { defaultDateFormat } from '@/webUtils/utilities';
+
 import {
   generateNSchemas,
   MangaService as MangaServiceSchema,
   Service,
   setupFaker,
 } from '../../schemas';
-import { MangaService } from '@/types/api/manga';
-import { ServiceForApi } from '@/types/api/services';
 
 const mangaId = 1;
 

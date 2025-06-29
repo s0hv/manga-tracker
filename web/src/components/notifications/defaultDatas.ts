@@ -1,10 +1,7 @@
-import { NotificationTypes } from '@/webUtils/constants';
 import { NotificationData } from '@/types/api/notifications';
+import { NotificationTypes } from '@/webUtils/constants';
 
-type DefaultValuesType = {
-  [key: number]: Partial<NotificationData>
-}
-export const defaultDataForType: DefaultValuesType = {
+export const defaultDataForType = {
   [NotificationTypes.DiscordWebhook]: {
     useFollows: false,
     notificationType: NotificationTypes.DiscordWebhook,
@@ -57,4 +54,4 @@ export const defaultDataForType: DefaultValuesType = {
       },
     ],
   },
-};
+} as const satisfies Record<number, Partial<NotificationData>>;

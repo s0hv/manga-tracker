@@ -1,26 +1,27 @@
 import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import {
-  deleteScheduledRun,
-  scheduleMangaRun,
-} from '../../../server/db/admin/management';
-import { getAliases, getMangaPartial } from '../../../server/db/manga';
 
-import { userForbidden, userUnauthorized } from '../../constants';
+import { createManga, createMangaService } from '../../dbutils';
 import initServer from '../../initServer';
-import stopServer from '../../stopServer.js';
 import {
   adminUser,
   expectErrorMessage,
   normalUser,
   withUser,
 } from '../../utils';
-import { createManga, createMangaService } from '../../dbutils';
 import {
   apiRequiresAdminUserGetTests,
   apiRequiresAdminUserPostTests,
-} from '../utilities';
+} from '../api-test-utilities';
+
+import {
+  deleteScheduledRun,
+  scheduleMangaRun,
+} from '../../../server/db/admin/management';
 import { getMangaServices } from '../../../server/db/admin/manga';
+import { getAliases, getMangaPartial } from '../../../server/db/manga';
+import { userForbidden, userUnauthorized } from '../../constants';
+import stopServer from '../../stopServer.js';
 
 let httpServer;
 const serverReference = {
@@ -219,15 +220,14 @@ describe('GET /api/admin/manga/:mangaId/scheduledRuns', () => {
     });
   });
 
-  /** Does not do this at the moment
-  it('Returns 404 when resource does not exist', async () => {
+  // Does not do this at the moment
+  it.skip('Returns 404 when resource does not exist', async () => {
     await withUser(adminUser, async () => {
       await request(httpServer)
         .get(url)
         .expect(404);
     });
   });
-  */
 });
 
 
@@ -423,10 +423,10 @@ describe('GET /api/admin/manga/:mangaId/services', () => {
 
 describe('POST /api/admin/manga/:mangaId/services/:serviceId', () => {
   const serviceId = 1;
-  const getUrl = (mangaId) => `/api/admin/manga/${mangaId}/services/${serviceId}`;
+  const getUrl = mangaId => `/api/admin/manga/${mangaId}/services/${serviceId}`;
   const url = getUrl(1);
 
-  const getMangaService = (mangaId) => getMangaServices(mangaId)
+  const getMangaService = mangaId => getMangaServices(mangaId)
     .then(ms => ms.filter(m => m.serviceId === serviceId)[0]);
 
 
@@ -550,10 +550,10 @@ describe('POST /api/admin/manga/:mangaId/services/:serviceId', () => {
 
 describe('POST /api/admin/manga/:mangaId/services/:serviceId/create', () => {
   const serviceId = 1;
-  const getUrl = (mangaId) => `/api/admin/manga/${mangaId}/services/${serviceId}/create`;
+  const getUrl = mangaId => `/api/admin/manga/${mangaId}/services/${serviceId}/create`;
   const url = getUrl(1);
 
-  const getMangaService = (mangaId) => getMangaServices(mangaId)
+  const getMangaService = mangaId => getMangaServices(mangaId)
     .then(ms => ms.filter(m => m.serviceId === serviceId)[0]);
 
   apiRequiresAdminUserPostTests(serverReference, url);

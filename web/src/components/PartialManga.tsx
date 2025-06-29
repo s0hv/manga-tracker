@@ -2,10 +2,12 @@ import React from 'react';
 import { Grid, Typography } from '@mui/material';
 import { styled } from '@mui/material/styles';
 
-import MangaSourceList from './MangaSourceList';
-import MangaInfo from './MangaInfo';
-import { MangaCover } from './MangaCover';
 import type { FullMangaData } from '@/types/api/manga';
+
+
+import { MangaCover } from './MangaCover';
+import MangaInfo from './MangaInfo';
+import MangaSourceList from './MangaSourceList';
 
 const DetailsContainer = styled('div')({
   display: 'flex',
@@ -25,8 +27,8 @@ const SourceList = styled('div')(({ theme }) => ({
 }));
 
 export type PartialMangaProps = Partial<Pick<FullMangaData, 'manga' | 'services'>> & {
-  showId?: boolean,
-}
+  showId?: boolean
+};
 function PartialManga(props: PartialMangaProps) {
   const {
     showId = false,

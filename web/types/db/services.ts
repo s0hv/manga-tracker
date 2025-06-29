@@ -10,7 +10,7 @@ export type Service = {
   disabledUntil: Date | null
   mangaUrlFormat: string
   scheduledRunsDisabledUntil: Date | null
-}
+};
 
 export type ServiceWhole = {
   serviceId: number
@@ -18,7 +18,7 @@ export type ServiceWhole = {
   lastCheck: Date | null
   nextUpdate: Date | null
   lastId: string | null
-}
+};
 
 export type ServiceConfig = {
   serviceId: number
@@ -26,4 +26,4 @@ export type ServiceConfig = {
   scheduledRunLimit: number
   scheduledRunsEnabled: boolean
   scheduledRunInterval: PostgresInterval
-}
+};

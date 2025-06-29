@@ -1,6 +1,7 @@
 import { NextSeo } from 'next-seo';
-import MergeManga from '../../views/MergeManga';
+
 import withError from '../../utils/withError';
+import MergeManga from '../../views/MergeManga';
 
 export async function getServerSideProps({ req }) {
   if (!(req.user && req.user.admin)) {
@@ -13,7 +14,7 @@ export async function getServerSideProps({ req }) {
 }
 
 const MergeView = withError(MergeManga);
-const MergeMangaPage = (props) => (
+const MergeMangaPage = props => (
   <>
     <NextSeo
       title='Merge manga'

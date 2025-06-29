@@ -1,3 +1,6 @@
+import React, { useCallback, useState } from 'react';
+
+import ArrowRightAlt from '@mui/icons-material/ArrowRightAlt';
 import {
   Box,
   Button,
@@ -11,13 +14,11 @@ import {
   RadioGroup,
   Typography,
 } from '@mui/material';
-import ArrowRightAlt from '@mui/icons-material/ArrowRightAlt';
-
 import { styled } from '@mui/material/styles';
-import React, { useCallback, useState } from 'react';
+
+import { getManga, postMergeManga } from '../api/manga';
 import Search from '../components/MangaSearch.js';
 import PartialManga from '../components/PartialManga.js';
-import { getManga, postMergeManga } from '../api/manga';
 
 
 const RootContainer = styled(Container)(({ theme }) => ({
@@ -67,7 +68,7 @@ const ServicesList = ({ services, value, setValue }) => {
   return (
     <FormControl component='fieldset'>
       <FormLabel component='legend'>Services</FormLabel>
-      <RadioGroup aria-label='merge services' value={value} onChange={(e) => setValue(e.target.value)}>
+      <RadioGroup aria-label='merge services' value={value} onChange={e => setValue(e.target.value)}>
         <FormControlLabel control={<Radio />} label='All services' value='all' />
         {services.map(service => (
           <FormControlLabel

@@ -1,14 +1,16 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
+import { type UserEvent, userEvent } from '@testing-library/user-event';
 import fetchMock from 'fetch-mock';
-import { describe, expect, vi, it, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { userEvent, type UserEvent } from '@testing-library/user-event';
+
 import {
-  mockNotistackHooks,
   expectErrorSnackbar,
   getSnackbarMessage,
+  mockNotistackHooks,
 } from '../utils';
+
 import SignIn from '../../src/views/SignIn';
 
 beforeEach(() => mockNotistackHooks());

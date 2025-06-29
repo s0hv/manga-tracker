@@ -1,9 +1,18 @@
 import React from 'react';
-import fetchMock from 'fetch-mock';
+import { Checkbox } from '@mui/material';
 import { act, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { Checkbox } from '@mui/material';
-import { describe, expect, vi, it, test } from 'vitest';
+import fetchMock from 'fetch-mock';
+import { describe, expect, it, test, vi } from 'vitest';
+
+import { mockUTCDates, restoreMocks, silenceConsole, withRoot } from '../utils';
+import type {
+  MaterialTableProps,
+} from '@/components/MaterialTable/MaterialTable';
+import { MaterialColumnDef } from '@/components/MaterialTable/types';
+import { createColumnHelper } from '@/components/MaterialTable/utilities';
+import { defaultDateFormat } from '@/webUtils/utilities';
+
 
 import {
   defaultOnSaveRow,
@@ -11,14 +20,7 @@ import {
   EditableDateTimePicker,
   MaterialTable,
 } from '../../src/components/MaterialTable';
-import { mockUTCDates, restoreMocks, silenceConsole, withRoot } from '../utils';
 import { defaultDateFormatRegex } from '../constants';
-import { defaultDateFormat } from '@/webUtils/utilities';
-import { MaterialColumnDef } from '@/components/MaterialTable/types';
-import { createColumnHelper } from '@/components/MaterialTable/utilities';
-import type {
-  MaterialTableProps,
-} from '@/components/MaterialTable/MaterialTable';
 
 fetchMock.config.overwriteRoutes = true;
 
@@ -27,7 +29,7 @@ type TestData = {
   editableString: string
   editableTime: Date
   editableCheckbox: boolean
-}
+};
 
 const columnHelper = createColumnHelper<TestData>();
 
@@ -43,7 +45,7 @@ const columns: MaterialColumnDef<TestData, any>[] = [
     header: 'Editable time',
     sortingFn: 'datetime',
     cell: ({ row }) => defaultDateFormat(row.original.editableTime),
-    EditCell: (ctx) => (
+    EditCell: ctx => (
       <EditableDateTimePicker
         ampm={false}
         value={ctx.row.original.editableTime}
@@ -55,7 +57,7 @@ const columns: MaterialColumnDef<TestData, any>[] = [
     header: 'Editable checkbox',
     sortingFn: 'basic',
     cell: ({ row }) => <Checkbox checked={row.original.editableCheckbox} disabled />,
-    EditCell: (ctx) => (
+    EditCell: ctx => (
       <EditableCheckbox
         checked={ctx.row.original.editableCheckbox}
         ctx={ctx}
@@ -157,7 +159,7 @@ describe('It should render correctly', () => {
 
     // Make sure sort buttons exist
     columns.forEach(col => {
-      expect(screen.getByRole('button', { name: col.header as string }));
+      expect(screen.getByRole('button', { name: col.header as string })).toBeInTheDocument();
     });
 
     // Data rows + header row
@@ -176,7 +178,7 @@ describe('It should render correctly', () => {
         expect(row.getByRole('cell', { name: values.id })).toBeInTheDocument();
         expect(row.getByRole('cell', { name: values.editableString })).toBeInTheDocument();
         expect(row.getByRole('cell', { name: new RegExp(defaultDateFormatRegex, 'i') })).toBeInTheDocument();
-        expect(row.getByRole('checkbox', { checked: values.editableCheckbox }));
+        expect(row.getByRole('checkbox', { checked: values.editableCheckbox })).toBeInTheDocument();
       });
 
     // Test pagination element
@@ -198,7 +200,7 @@ describe('It should render correctly', () => {
       />
     );
 
-    expect(screen.getByRole('progressbar', { name: /loading icon/i }));
+    expect(screen.getByRole('progressbar', { name: /loading icon/i })).toBeInTheDocument();
     // No skeletons should be visible
     expect(screen.getAllByRole('row', { hidden: true })).toHaveLength(data.length + 1);
   });
@@ -213,7 +215,7 @@ describe('It should render correctly', () => {
       />
     );
 
-    expect(screen.getByRole('progressbar', { name: /loading icon/i }));
+    expect(screen.getByRole('progressbar', { name: /loading icon/i })).toBeInTheDocument();
     expect(screen.getAllByRole('row')).toHaveLength(1);
 
     // Skeletons should be rendered

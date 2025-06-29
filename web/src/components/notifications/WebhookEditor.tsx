@@ -1,5 +1,4 @@
-import CodeMirror from '@uiw/react-codemirror';
-import { json } from '@codemirror/lang-json';
+import React, { useCallback, useMemo } from 'react';
 import {
   Box,
   FormControl,
@@ -7,33 +6,36 @@ import {
   FormLabel,
   Paper,
 } from '@mui/material';
-import React, { useCallback, useMemo } from 'react';
-import { useSnackbar } from 'notistack';
-import { TextFieldElement } from 'react-hook-form-mui';
-import { type SubmitHandler, useController, useForm } from 'react-hook-form';
+import { json } from '@codemirror/lang-json';
+import CodeMirror from '@uiw/react-codemirror';
 import { ConfirmProvider } from 'material-ui-confirm';
+import { useSnackbar } from 'notistack';
+import { type SubmitHandler, useController, useForm } from 'react-hook-form';
+import { TextFieldElement } from 'react-hook-form-mui';
 
+import type { FormValues } from '@/components/notifications/types';
+import type { NotificationData } from '@/types/api/notifications';
 import { NotificationTypes } from '@/webUtils/constants';
+import {
+  buildNotificationData,
+  mapNotificationFields,
+} from '@/webUtils/utilities';
+
+import { postNotifications } from '../../api/notifications';
+
+import DefaultHelpTexts from './DefaultHelpTexts';
+import DeleteNotificationButton from './DeleteNotificationButton';
 import {
   CollapsableLayout,
   FlexLayout,
   NotificationTypeText,
   RightSide,
 } from './Layout';
-import SaveButton from './SaveButton';
-import { NameInput } from './NameInput';
 import MangaSelector from './MangaSelector';
-import DeleteNotificationButton from './DeleteNotificationButton';
-import NotificationsForm from './NotificationsForm';
-import { postNotifications } from '../../api/notifications';
+import { NameInput } from './NameInput';
 import NotificationIdField from './NotificationIdField';
-import {
-  buildNotificationData,
-  mapNotificationFields,
-} from '@/webUtils/utilities';
-import DefaultHelpTexts from './DefaultHelpTexts';
-import type { NotificationData } from '@/types/api/notifications';
-import type { FormValues } from '@/components/notifications/types';
+import NotificationsForm from './NotificationsForm';
+import SaveButton from './SaveButton';
 
 
 const validateJson = (value: string): string | undefined => {
@@ -59,9 +61,9 @@ interface JsonFormValues extends FormValues {
 }
 
 export type WebhookEditorProps = {
-  notificationData: NotificationData,
-  defaultExpanded?: boolean,
-}
+  notificationData: NotificationData
+  defaultExpanded?: boolean
+};
 const WebhookEditor = ({ notificationData, defaultExpanded = false }: WebhookEditorProps) => {
   const initialValues = useMemo<JsonFormValues>(() => ({
     ...notificationData,
@@ -94,7 +96,7 @@ const WebhookEditor = ({ notificationData, defaultExpanded = false }: WebhookEdi
     error: jsonError,
   } = fieldState;
 
-  const onSubmit = useCallback<SubmitHandler<JsonFormValues>>((values) => {
+  const onSubmit = useCallback<SubmitHandler<JsonFormValues>>(values => {
     const error = validateJson(values.json);
     if (error) {
       setError('json', {
@@ -111,6 +113,8 @@ const WebhookEditor = ({ notificationData, defaultExpanded = false }: WebhookEdi
         { name: 'json', value: values.json },
       ],
     };
+
+    console.log(data);
 
     return postNotifications(data)
       .then(({ notificationId }) => {
@@ -190,7 +194,9 @@ const WebhookEditor = ({ notificationData, defaultExpanded = false }: WebhookEdi
               </Box>
               <RightSide control={control}>
                 <div style={{ minHeight: '5%' }} />
-                Formatting help<br /><br />
+                Formatting help
+                <br />
+                <br />
                 <DefaultHelpTexts />
               </RightSide>
             </FlexLayout>

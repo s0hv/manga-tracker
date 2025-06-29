@@ -1,19 +1,19 @@
-import {
-  AutocompleteElement,
-  CheckboxElement,
-  useWatch,
-} from 'react-hook-form-mui';
-import { useQuery } from '@tanstack/react-query';
-import { type SyntheticEvent, useCallback, useEffect, useState } from 'react';
+import { type SyntheticEvent, useCallback, useState } from 'react';
 import { AutocompleteProps, Box } from '@mui/material';
+import { useQuery } from '@tanstack/react-query';
 import {
   type Control,
   type FieldPath,
   type FieldPathByValue,
   type Validate,
 } from 'react-hook-form';
-import { quickSearch } from '../../api/manga';
-import type { NotificationFollow } from '@/types/api/notifications';
+import {
+  AutocompleteElement,
+  CheckboxElement,
+  useWatch,
+} from 'react-hook-form-mui';
+
+import type { FormValues } from '@/components/notifications/types';
 import {
   getOptionLabel,
   groupByKey,
@@ -21,15 +21,17 @@ import {
   optionEquals,
   showAll,
 } from '@/components/notifications/utilities';
-import type { FormValues } from '@/components/notifications/types';
+import type { NotificationFollow } from '@/types/api/notifications';
+
+
+import { quickSearch } from '../../api/manga';
 
 type AutocompleteType = AutocompleteProps<NotificationFollow, true, false, false>;
 export type MangaSelectorProps<TFieldValues extends FormValues = FormValues> = {
-  control?: Control<TFieldValues>,
-  name: FieldPathByValue<TFieldValues, NotificationFollow[] | null>,
-  label: string,
-  disabled?: boolean,
-  overrideName?: FieldPathByValue<TFieldValues, number | null>,
+  control?: Control<TFieldValues>
+  name: FieldPathByValue<TFieldValues, NotificationFollow[] | null>
+  label: string
+  disabled?: boolean
 } & Omit<AutocompleteType, 'label' | 'options' | 'renderInput' | 'name'>;
 
 const MangaSelector = <TFieldValues extends FormValues = FormValues>({
@@ -37,25 +39,14 @@ const MangaSelector = <TFieldValues extends FormValues = FormValues>({
   name,
   label,
   disabled,
-  overrideName = 'overrideId' as FieldPathByValue<TFieldValues, number | null>,
   ...autocompleteProps
 }: MangaSelectorProps<TFieldValues>) => {
   const control = controlUntyped as unknown as Control<FormValues>;
 
   const [query, setQuery] = useState('');
-  const mangaInput = useWatch({ name, control }) as NotificationFollow[] | null;
-  const overrideInput = useWatch({ name: overrideName, control }) as number | null;
   const useFollows = useWatch({ name: 'useFollows', control });
 
-  const [override, setOverride] = useState(overrideInput);
-
-  useEffect(() => {
-    if (override !== overrideInput) {
-      setOverride(overrideInput);
-    }
-  }, [mangaInput, overrideInput, override]);
-
-  const doSearch = useCallback(async ({ queryKey }: { queryKey: string[]}): Promise<NotificationFollow[]> => {
+  const doSearch = useCallback(async ({ queryKey }: { queryKey: string[] }): Promise<NotificationFollow[]> => {
     const searchQuery = queryKey[1]?.trim();
     if (searchQuery?.length < 2) return [];
 
@@ -119,7 +110,7 @@ const MangaSelector = <TFieldValues extends FormValues = FormValues>({
         options={data ?? noData}
         rules={{ validate: hasError as Validate<any, any> }}
         transform={{
-          input: (v) => (v ?? []) as NotificationFollow[],
+          input: v => (v ?? []) as NotificationFollow[],
         }}
         multiple
         autocompleteProps={{

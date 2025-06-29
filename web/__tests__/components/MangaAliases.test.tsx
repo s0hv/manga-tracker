@@ -2,10 +2,10 @@ import React from 'react';
 import { render, screen, within } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import fetchMock from 'fetch-mock';
-import { describe, expect, vi, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
+import { adminUser, normalUser, withUser } from '../utils';
 import MangaAliases from '@/components/MangaAliases';
-import { adminUser, withUser, normalUser } from '../utils';
 
 describe('MangaAliases renders correctly', () => {
   it('Should render correctly without aliases', () => {

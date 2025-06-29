@@ -2,11 +2,13 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
+
+import { mockUTCDates, restoreMocks, silenceConsole } from '../utils';
+
 import MangaInfo from '../../src/components/MangaInfo';
-import { mockUTCDates, silenceConsole, restoreMocks } from '../utils';
 import {
-  defaultDateFormatRegex,
   defaultDateDistanceFormat,
+  defaultDateFormatRegex,
 } from '../constants';
 
 describe('MangaInfo should render correctly', () => {

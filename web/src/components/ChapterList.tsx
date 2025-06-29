@@ -6,11 +6,13 @@ import React, {
   useState,
 } from 'react';
 import { Link, Paper, TableContainer } from '@mui/material';
-import { useSnackbar } from 'notistack';
 import type { SortingState, TableOptions } from '@tanstack/react-table';
+import { useSnackbar } from 'notistack';
 
-import { defaultOnSaveRow, MaterialTable } from './MaterialTable';
-import { defaultDateFormat } from '../utils/utilities';
+import type { MangaChapter } from '@/types/api/chapter';
+import type { MangaId } from '@/types/dbTypes';
+
+
 import {
   deleteChapter,
   getChapters,
@@ -18,15 +20,16 @@ import {
   updateChapter,
 } from '../api/chapter';
 import { formatChapterUrl } from '../utils/formatting';
-import { createColumnHelper } from './MaterialTable/utilities';
-import type { MangaChapter } from '@/types/api/chapter';
+import { defaultDateFormat } from '../utils/utilities';
+
+import { defaultOnSaveRow, MaterialTable } from './MaterialTable';
 import type {
   AfterRowEdit,
   MaterialCellContext,
   MaterialColumnDef,
   RowChangeAction,
 } from './MaterialTable/types';
-import type { MangaId } from '@/types/dbTypes';
+import { createColumnHelper } from './MaterialTable/utilities';
 
 
 interface MangaChapterWithUrl extends MangaChapter {
@@ -47,14 +50,14 @@ const TitleCell = ({ row }: MaterialCellContext<MangaChapterWithUrl, any>) => (
 export type ServiceMangaData = {
   urlFormat: string
   titleId: string
-}
+};
 
 export type ChapterListProps = {
   chapters?: MangaChapterWithUrl[]
   editable?: boolean
   serviceMangaData?: Record<number, ServiceMangaData>
   mangaId: MangaId
-}
+};
 
 function ChapterList(props: ChapterListProps): ReactElement {
   const {
@@ -71,7 +74,7 @@ function ChapterList(props: ChapterListProps): ReactElement {
 
   useEffect(() => setChapters(initialChapters || []), [initialChapters]);
 
-  const formatChapters = useCallback<(chapters: MangaChapter[]) => MangaChapterWithUrl[]>((chs) => {
+  const formatChapters = useCallback<(chapters: MangaChapter[]) => MangaChapterWithUrl[]>(chs => {
     if (!chs) return [];
 
     return chs.map(chapter => {
@@ -147,11 +150,11 @@ function ChapterList(props: ChapterListProps): ReactElement {
     }),
   ], []);
 
-  const getRowId = useCallback<(row: MangaChapterWithUrl) => string>((row) => row.chapterId.toString(), []);
+  const getRowId = useCallback<(row: MangaChapterWithUrl) => string>(row => row.chapterId.toString(), []);
 
   const fetchData = useCallback((pageIndex: number, pageSize: number, sortBy?: SortingState) => {
     setLoading(true);
-    const offset = pageIndex*pageSize;
+    const offset = pageIndex * pageSize;
 
     getChapters(mangaId, pageSize, offset, sortBy as SortBy<MangaChapter>[])
       .then(json => {

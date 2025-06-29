@@ -18,7 +18,9 @@ export const extractFields = (result, fields, idPrefix, customFieldFormatter) =>
 
       if (customFieldFormatter) {
         const formatted = customFieldFormatter(hit.fields);
-        Object.keys(formatted).forEach(k => { o[k] = formatted[k] });
+        Object.keys(formatted).forEach(k => {
+          o[k] = formatted[k];
+        });
       }
     }
 

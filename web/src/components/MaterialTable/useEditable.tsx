@@ -1,11 +1,13 @@
 import React, { useCallback, useMemo } from 'react';
-import { IconButton, Input } from '@mui/material';
 import CancelIcon from '@mui/icons-material/Cancel';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import SaveIcon from '@mui/icons-material/Save';
-
+import { IconButton, Input } from '@mui/material';
 import { flexRender, RowData } from '@tanstack/react-table';
+
+import { noop } from '@/webUtils/utilities';
+
 import type {
   MaterialCell,
   MaterialCellContext,
@@ -13,7 +15,6 @@ import type {
   MaterialTableInstance,
 } from './types';
 import { makeMaterialStateUpdater } from './utilities';
-import { noop } from '@/webUtils/utilities';
 
 const editColumn = '__edit';
 const deleteColumn = '__delete';
@@ -61,17 +62,19 @@ function DefaultEditCell({ column, getValue, table, cell }: MaterialCellContext<
 
 export const defaultSetEditingRow = ({ table, row }: MaterialCellContext<any, any>, isEditing: boolean) => {
   const updater = makeMaterialStateUpdater('editing', table);
-  updater((editing) => ({
+  updater(editing => ({
     ...editing,
     [row.id]: isEditing,
   }));
 
   const rowStateUpdater = makeMaterialStateUpdater('rowEditState', table);
 
-  rowStateUpdater((rowEditState) => (isEditing ? {
-    ...rowEditState,
-    [row.id]: {},
-  } : rowEditState));
+  rowStateUpdater(rowEditState => (isEditing
+    ? {
+      ...rowEditState,
+      [row.id]: {},
+    }
+    : rowEditState));
 };
 
 export const useEditColumn = <TData extends RowData>(columns: MaterialColumnDef<TData>[]): MaterialColumnDef<TData, unknown>[] => {
@@ -152,40 +155,42 @@ export const useEditColumn = <TData extends RowData>(columns: MaterialColumnDef<
 
           return (
             <div className={classes.editCell}>
-              {!(table.getState().editing[row.id]) ? (
-                <IconButton
-                  onClick={() => setEditingRow(ctx, true)}
-                  name='edit'
-                  aria-label='edit row'
-                  size='large'
-                >
-                  <EditIcon />
-                </IconButton>
-              ) : (
-                <>
+              {!(table.getState().editing[row.id])
+                ? (
                   <IconButton
-                    name='save'
-                    onClick={() => onSaveEdit(ctx)}
-                    aria-label='save row'
+                    onClick={() => setEditingRow(ctx, true)}
+                    name='edit'
+                    aria-label='edit row'
                     size='large'
                   >
-                    <SaveIcon />
+                    <EditIcon />
                   </IconButton>
-                  <IconButton
-                    name='cancel'
-                    onClick={() => onCancelEdit(ctx)}
-                    aria-label='cancel edit'
-                    size='large'
-                  >
-                    <CancelIcon />
-                  </IconButton>
-                </>
-              )}
+                )
+                : (
+                  <>
+                    <IconButton
+                      name='save'
+                      onClick={() => onSaveEdit(ctx)}
+                      aria-label='save row'
+                      size='large'
+                    >
+                      <SaveIcon />
+                    </IconButton>
+                    <IconButton
+                      name='cancel'
+                      onClick={() => onCancelEdit(ctx)}
+                      aria-label='cancel edit'
+                      size='large'
+                    >
+                      <CancelIcon />
+                    </IconButton>
+                  </>
+                )}
             </div>
           );
         },
       },
-      ...columns.map((col) => ({
+      ...columns.map(col => ({
         OriginalCell: col.cell,
         EditCell: col.EditCell || DefaultEditCell,
         ...col,
@@ -193,9 +198,9 @@ export const useEditColumn = <TData extends RowData>(columns: MaterialColumnDef<
           const { table, column, row, cell } = ctx;
 
           return (
-            ((col.enableEditing ?? true) && table.getState().editing[row.id]) ?
-              flexRender(column.columnDef.EditCell, ctx) :
-              flexRender(column.columnDef.OriginalCell ?? cell.renderValue(), ctx)
+            ((col.enableEditing ?? true) && table.getState().editing[row.id])
+              ? flexRender(column.columnDef.EditCell, ctx)
+              : flexRender(column.columnDef.OriginalCell ?? cell.renderValue(), ctx)
           );
         },
       })),
@@ -233,7 +238,7 @@ function useStuff<TData extends RowData>(table: MaterialTableInstance<TData>) {
       [editColumn]: enableEditing,
       [deleteColumn]: enableDeleting,
     };
-    table.setColumnVisibility((state) => ({
+    table.setColumnVisibility(state => ({
       ...state,
       ...newColumns,
     }));

@@ -1,3 +1,5 @@
+import { expect } from 'vitest';
+
 import { authTokenExists, sessionExists } from './dbutils';
 import { getCookie } from './utils';
 

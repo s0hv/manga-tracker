@@ -1,8 +1,7 @@
 import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
-import { csrfMissing } from '@/serverUtils/constants';
-import { userForbidden, userUnauthorized } from '../constants';
+
 import initServer from '../initServer';
 import stopServer from '../stopServer';
 import {
@@ -12,8 +11,11 @@ import {
   normalUser,
   withUser,
 } from '../utils';
-import { expectISEOnDbError } from './utilities';
+import { expectISEOnDbError } from './api-test-utilities';
 import { addChapter } from '@/db/chapter';
+import { csrfMissing } from '@/serverUtils/constants';
+
+import { userForbidden, userUnauthorized } from '../constants';
 
 
 let httpServer: any;
@@ -38,7 +40,7 @@ describe('POST /api/chapter/:chapterId', () => {
   expectISEOnDbError(serverReference, '/api/chapter/1', {
     user: adminUser,
     method: 'post',
-    custom: (req) => req
+    custom: req => req
       .csrf()
       .send({
         title: 'test',
@@ -232,7 +234,7 @@ describe('DELETE /api/chapter/:chapterId', () => {
   expectISEOnDbError(serverReference, '/api/chapter/1', {
     user: adminUser,
     method: 'delete',
-    custom: (req) => req.csrf(),
+    custom: req => req.csrf(),
   });
 
   it('Returns 403 without CSRF token', async () => {

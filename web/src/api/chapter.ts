@@ -1,5 +1,3 @@
-import { handleError, handleResponse } from './utilities';
-import { snakeCase } from '../utils/utilities';
 import type {
   ChapterRelease,
   ChapterReleaseDates,
@@ -8,10 +6,14 @@ import type {
 } from '@/types/api/chapter';
 import type { MangaId } from '@/types/dbTypes';
 
+import { snakeCase } from '../utils/utilities';
+
+import { handleError, handleResponse } from './utilities';
+
 export type SortBy<T> = {
-  id: keyof T,
+  id: keyof T
   desc?: boolean
-}
+};
 /**
  * Fetches chapters for a manga
  * @param {Number|string} mangaId id of the manga to fetch chapters for
@@ -19,21 +21,26 @@ export type SortBy<T> = {
  * @param {Number|string} offset current offset
  * @param {Object[]} sortBy A list of objects containing the row name and sorting directions
  */
-export const getChapters =
-  (mangaId: MangaId, limit: number | string, offset: number | string, sortBy: SortBy<MangaChapter>[] = []): Promise<MangaChapterResponse> => {
-    const orderBy = sortBy.length > 0 ?
-      `&sortBy=${snakeCase(sortBy[0].id)}&sort=${sortBy[0].desc ? 'desc' : 'asc'}` : '';
-    return fetch(`/api/manga/${mangaId}/chapters?limit=${limit}&offset=${offset}${orderBy}`)
-      .then(handleResponse<MangaChapterResponse>)
-      .then(res => {
-        res.chapters.forEach(ch => {
-          ch.releaseDate = new Date(ch.releaseDate);
-        });
+export const getChapters = (
+  mangaId: MangaId,
+  limit: number | string,
+  offset: number | string,
+  sortBy: SortBy<MangaChapter>[] = []
+): Promise<MangaChapterResponse> => {
+  const orderBy = sortBy.length > 0
+    ? `&sortBy=${snakeCase(sortBy[0].id)}&sort=${sortBy[0].desc ? 'desc' : 'asc'}`
+    : '';
+  return fetch(`/api/manga/${mangaId}/chapters?limit=${limit}&offset=${offset}${orderBy}`)
+    .then(handleResponse<MangaChapterResponse>)
+    .then(res => {
+      res.chapters.forEach(ch => {
+        ch.releaseDate = new Date(ch.releaseDate);
+      });
 
-        return res;
-      })
-      .catch(handleError);
-  };
+      return res;
+    })
+    .catch(handleError);
+};
 
 /**
  * Fetches the latest chapters
@@ -58,7 +65,7 @@ export const updateChapter = (chapterId: number | string, data: object) => fetch
     },
     body: JSON.stringify(data),
   })
-  .then(handleResponse<{message: string}>)
+  .then(handleResponse<{ message: string }>)
   .catch(handleError);
 
 /**
@@ -69,7 +76,7 @@ export const deleteChapter = (chapterId: number | string) => fetch(`/api/chapter
   {
     method: 'delete',
   })
-  .then(handleResponse<{message: string}>)
+  .then(handleResponse<{ message: string }>)
   .catch(handleError);
 
 /**

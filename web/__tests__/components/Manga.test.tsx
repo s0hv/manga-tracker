@@ -1,11 +1,12 @@
 import React from 'react';
 import {
-  act,
   type ByRoleMatcher,
   type ByRoleOptions,
+  act,
   render,
   screen,
 } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import fetchMock, {
   type MockOptions,
   type MockOptionsMethodDelete,
@@ -13,7 +14,6 @@ import fetchMock, {
 } from 'fetch-mock';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import userEvent from '@testing-library/user-event';
 import {
   adminUser,
   mockNotistackHooks,
@@ -22,10 +22,11 @@ import {
   withUser,
 } from '../utils';
 import Manga from '@/components/Manga';
+
 import { emptyFullManga as emptyManga, fullManga as manga } from '../constants';
 
-vi.mock('lodash.throttle', () => ({
-  default: (_: any) => _,
+vi.mock('es-toolkit', () => ({
+  throttle: (_: any) => _,
 }));
 
 describe('Manga page should render correctly', async () => {

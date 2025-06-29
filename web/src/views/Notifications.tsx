@@ -1,4 +1,4 @@
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useCallback, useMemo, useState } from 'react';
 import {
   Button,
   Container,
@@ -8,12 +8,14 @@ import {
   Select,
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
-import { useCallback, useMemo, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import dynamic from 'next/dynamic';
-import { getNotifications } from '../api/notifications';
-import { NotificationTypes, QueryKeys } from '../utils/constants';
+
 import { defaultDataForType } from '@/components/notifications/defaultDatas';
 import type { NotificationData } from '@/types/api/notifications';
+
+import { getNotifications } from '../api/notifications';
+import { NotificationTypes, QueryKeys } from '../utils/constants';
 
 const ResponsiveBox = styled('div')(({ theme }) => ({
   display: 'flex',

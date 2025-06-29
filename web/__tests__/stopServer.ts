@@ -1,5 +1,6 @@
-import { vi } from 'vitest';
 import { Server } from 'http';
+
+import { vi } from 'vitest';
 
 export default async function stopServer(httpServer: Server) {
   if (httpServer) {

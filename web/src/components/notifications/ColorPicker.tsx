@@ -1,22 +1,23 @@
-import { HexColorPicker } from 'react-colorful';
 import {
   type ChangeEvent,
-  ComponentProps,
   type FocusEvent,
+  ComponentProps,
   useCallback,
   useRef,
   useState,
 } from 'react';
-import { TextFieldElement } from 'react-hook-form-mui';
+import { type SxProps, Box, InputAdornment, Popper } from '@mui/material';
+import { HexColorPicker } from 'react-colorful';
 import {
   type Control,
-  FieldPathByValue,
   type FieldValues,
+  FieldPathByValue,
   useController,
 } from 'react-hook-form';
-import { Box, InputAdornment, Popper, type SxProps } from '@mui/material';
+import { TextFieldElement } from 'react-hook-form-mui';
 
-type HexColorPickerProps = ComponentProps<typeof HexColorPicker>
+
+type HexColorPickerProps = ComponentProps<typeof HexColorPicker>;
 export type ColorPickerProps<T extends FieldValues> = Omit<HexColorPickerProps, 'onChange' | 'color'> & {
   control?: Control<T>
   name: FieldPathByValue<T, string | undefined | null>
@@ -83,7 +84,8 @@ const ColorPicker = <T extends FieldValues>({
             startAdornment: (
               <InputAdornment position='start' onClick={() => setOpen(true)}>
                 <Box style={{ backgroundColor: color ?? undefined, width: '1em', height: '1em' }} />
-              </InputAdornment>),
+              </InputAdornment>
+            ),
           },
         }}
       />

@@ -6,4 +6,4 @@ export type User = {
   userUuid: string
   theme: Theme
   admin: boolean
-}
+};

@@ -1,23 +1,23 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import SearchIcon from '@mui/icons-material/Search';
 import {
   type AutocompleteProps,
+  type InputBaseClasses,
+  type PopperProps,
   Box,
   IconButton,
   InputBase,
-  type InputBaseClasses,
   Popper,
-  type PopperProps,
 } from '@mui/material';
-import { alpha, styled } from '@mui/material/styles';
 import Autocomplete from '@mui/material/Autocomplete';
-
-import SearchIcon from '@mui/icons-material/Search';
-
+import { alpha, styled } from '@mui/material/styles';
 import { throttle } from 'es-toolkit';
 import { useRouter } from 'next/router';
-import { quickSearch } from '../api/manga';
-import type { SearchedManga } from '@/types/api/manga';
+
 import { showAll } from '@/components/notifications/utilities';
+import type { SearchedManga } from '@/types/api/manga';
+
+import { quickSearch } from '../api/manga';
 
 type RenderListOption = NonNullable<AutocompleteProps<SearchedManga, false, false, true>['renderOption']>;
 
@@ -66,16 +66,16 @@ const ListItem = styled('div')({
 
 
 export type MangaSearchProps = {
-  placeholder?: string,
-  renderItem?: RenderListOption,
-  inputClasses?: Partial<InputBaseClasses>,
-  popperProps?: PopperProps,
-  clearOnClick?: boolean,
-  ariaLabel?: string,
-  onChange?: (manga: SearchedManga) => Promise<unknown> | unknown,
-  id?: string,
+  placeholder?: string
+  renderItem?: RenderListOption
+  inputClasses?: Partial<InputBaseClasses>
+  popperProps?: PopperProps
+  clearOnClick?: boolean
+  ariaLabel?: string
+  onChange?: (manga: SearchedManga) => Promise<unknown> | unknown
+  id?: string
   searchThrottleTimeout?: number
-}
+};
 export default function MangaSearch(props: MangaSearchProps) {
   const {
     placeholder = 'Search…',
@@ -123,7 +123,7 @@ export default function MangaSearch(props: MangaSearchProps) {
   }, [clearOnClick, onChange, options]);
 
   const throttleFetch = useMemo(
-    () => throttle((query: string, cb: (manga: SearchedManga[])=> void) => {
+    () => throttle((query: string, cb: (manga: SearchedManga[]) => void) => {
       quickSearch(query)
         .then(js => cb(js));
     }, searchThrottleTimeout, { edges: ['leading']}),
@@ -137,7 +137,7 @@ export default function MangaSearch(props: MangaSearchProps) {
       return undefined;
     }
 
-    throttleFetch(value, (results) => {
+    throttleFetch(value, results => {
       if (active) {
         setOptions(results || []);
       }
@@ -183,7 +183,7 @@ export default function MangaSearch(props: MangaSearchProps) {
       classes={{
         popper: classes.popper,
       }}
-      renderInput={(params) => (
+      renderInput={params => (
         <InputBase
           inputProps={{
             ...params.inputProps,

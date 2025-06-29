@@ -1,7 +1,8 @@
 import React, { useMemo } from 'react';
-import ReactFrappeChart from 'react-frappe-charts';
+
 import { Typography } from '@mui/material';
 import { styled } from '@mui/material/styles';
+import ReactFrappeChart from 'react-frappe-charts';
 
 import { groupByYear } from '../utils/utilities';
 
@@ -24,7 +25,7 @@ const YearContainer = styled('div')({
   },
 });
 
-const ReleaseHeatmap = (props) => {
+const ReleaseHeatmap = props => {
   const {
     title = 'Release frequency',
     id = 'release-heatmap',
