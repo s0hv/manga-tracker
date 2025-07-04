@@ -114,8 +114,6 @@ const WebhookEditor = ({ notificationData, defaultExpanded = false }: WebhookEdi
       ],
     };
 
-    console.log(data);
-
     return postNotifications(data)
       .then(({ notificationId }) => {
         if (notificationId) {

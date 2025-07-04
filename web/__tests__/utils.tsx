@@ -9,7 +9,6 @@ import {
   within,
 } from '@testing-library/react';
 import { type UserEvent } from '@testing-library/user-event';
-import cookie from 'cookie';
 import signature from 'cookie-signature';
 import { enGB as enLocale } from 'date-fns/locale';
 import type {
@@ -203,7 +202,7 @@ export const getSessionToken = (agent: request.Agent) => {
 
 export function deleteCookie(agent: request.Agent, name: string) {
   const c = getCookie(agent, name);
-  expect(cookie).toBeDefined();
+  expect(c).toBeDefined();
   c!.expiration_date = 0;
   agent.jar.setCookie(c!);
 }
@@ -295,7 +294,7 @@ export const expectErrorMessage: ExpectErrorMessage = (value, param, message = '
     if (Array.isArray(errors)) {
       if (param) {
         // Only get errors related to the given parameter
-        errors = errors.filter(err => err.param === param);
+        errors = errors.filter(err => err.path === param);
       }
       expect(errors).toHaveLength(1);
       error = errors[0];
@@ -305,7 +304,7 @@ export const expectErrorMessage: ExpectErrorMessage = (value, param, message = '
 
     expect(error.msg).toMatch(message);
     if (typeof param === 'string') {
-      expect(error.param).toEqual(param);
+      expect(error.path).toEqual(param);
     }
 
     expect(error.value).toEqual(value);

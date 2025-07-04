@@ -65,7 +65,7 @@ describe('PostgresAdapter', () => {
     it('Returns session when found from database and saves it to cache', async () => {
       const spy = spyOnDb('oneOrNone');
       const adapter = PostgresAdapter(db);
-      const sid = faker.datatype.uuid();
+      const sid = faker.string.uuid();
       const session = { test: 1, data: 'data' };
       const expires = new Date(Date.now() + 60 * 60 * 60);
 
@@ -93,7 +93,7 @@ describe('PostgresAdapter', () => {
     it('Returns session without database calls when it is in cache', async () => {
       const spy = spyOnDb();
       const adapter = PostgresAdapter(db);
-      const sid = faker.datatype.uuid();
+      const sid = faker.string.uuid();
       const session: AdapterSession = {
         expires: new Date(),
         sessionToken: sid,
@@ -114,7 +114,7 @@ describe('PostgresAdapter', () => {
       const error = new Error('test');
       const spy = spyOnDb('oneOrNone').mockImplementation(async () => { throw error });
       const adapter = PostgresAdapter(db);
-      const sid = faker.datatype.uuid();
+      const sid = faker.string.uuid();
 
       await expect(adapter.getSession(sid))
         .rejects
@@ -137,7 +137,7 @@ describe('PostgresAdapter', () => {
     it('Saves new session to database and cache', async () => {
       const spy = spyOnDb();
       const adapter = PostgresAdapter(db);
-      const sid = faker.datatype.uuid();
+      const sid = faker.string.uuid();
       await adapter.deleteSession(sid);
 
       const expected: AdapterSession = { ...session, sessionToken: sid };
@@ -155,7 +155,7 @@ describe('PostgresAdapter', () => {
       const error = new Error('test');
       const spy = spyOnDb('one').mockImplementation(async () => { throw error });
       const adapter = PostgresAdapter(db);
-      const sid = faker.datatype.uuid();
+      const sid = faker.string.uuid();
       await adapter.deleteSession(sid);
 
       await expect(adapter.createSession({ ...session, sessionToken: sid }))

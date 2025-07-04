@@ -62,9 +62,12 @@ components:
           type: string
           description: The error message
           example: Error message
-        param:
+        path:
           type: string
           description: Name of the parameter that caused the error
+        type:
+          type: string
+          description: What caused the error
         value:
           description: The value of the param
         location:
@@ -75,7 +78,7 @@ components:
 
       required:
         - msg
-        - param
+        - path
         - location
 
     databaseId:
