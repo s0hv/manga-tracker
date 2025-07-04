@@ -158,8 +158,6 @@ export const editChapter = async ({
     // group,
   };
 
-
-  console.log(db, db.any);
   return db.any`UPDATE chapters SET ${generateUpdate(chapter, db.sql)} WHERE chapter_id=${chapterId}`;
 };
 

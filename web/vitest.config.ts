@@ -6,7 +6,7 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   plugins: [react()],
   test: {
-    workspace: [
+    projects: [
       {
         extends: true,
         test: {

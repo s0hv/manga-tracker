@@ -1,3 +1,4 @@
+import type { Application, Request, Response } from 'express-serve-static-core';
 import { body, matchedData, param } from 'express-validator';
 
 import {
@@ -6,7 +7,7 @@ import {
   updateServiceWhole,
 } from '@/db/services';
 import { handleError } from '@/db/utils';
-
+import type { Service, ServiceConfig, ServiceWhole } from '@/types/db/services';
 
 import {
   handleValidationErrors,
@@ -15,7 +16,7 @@ import {
   validateAdminUser,
 } from '../../utils/validators';
 
-export default app => {
+export default (app: Application) => {
   const validateService = [
     body('service')
       .isObject()
@@ -58,14 +59,18 @@ export default app => {
     serviceIdValidation(param('serviceId')),
     ...validateService,
     handleValidationErrors,
-  ], (req, res) => {
+  ], (req: Request, res: Response) => {
     const {
       service,
       serviceWhole,
       serviceConfig,
-    } = matchedData(req, { includeOptionals: false, onlyValidData: true });
+    } = matchedData<{
+      service?: Service
+      serviceWhole?: ServiceWhole
+      serviceConfig?: ServiceConfig
+    }>(req, { includeOptionals: false, onlyValidData: true });
 
-    const serviceId = req.params.serviceId;
+    const serviceId = Number(req.params.serviceId);
 
     const serviceArgsExist = service && Object.keys(service).length !== 0;
     const serviceWholeArgsExist = serviceWhole && Object.keys(serviceWhole).length !== 0;
