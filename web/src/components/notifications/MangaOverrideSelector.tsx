@@ -76,13 +76,14 @@ const MangaOverrideSelector = <TFieldValues extends FormValues = FormValues>({
         confirmationButtonProps: { 'aria-label': 'Discard form changes' },
         cancellationButtonProps: { 'aria-label': 'Do not discard form changes' },
       })
-        .then(() => {
+        .then(reason => {
+          if (!reason.confirmed) return;
+
           setValue(v);
           onChange(overrideId);
           onBlur();
           changeOverride(overrideId);
-        })
-        .catch(() => {});
+        });
     } else {
       setValue(v);
       onChange(overrideId);

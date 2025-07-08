@@ -1,5 +1,5 @@
 import type { RowData } from '@tanstack/react-table';
-import { useConfirm } from 'material-ui-confirm';
+import { confirm } from 'material-ui-confirm';
 
 import type {
   AfterRowEdit,
@@ -16,7 +16,7 @@ declare module '@tanstack/table-core' {
     onCancelRow?: AfterRowEdit<TData>
     onDeleteRow?: RowChangeAction<TData>
     onEditRow?: RowChangeAction<TData>
-    confirm: ReturnType<typeof useConfirm>
+    confirm: typeof confirm
 
     setEditingRow?: (ctx: MaterialCellContext<TData, unknown>, isEditing: boolean) => void
   }

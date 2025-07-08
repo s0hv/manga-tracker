@@ -35,7 +35,9 @@ const DeleteNotificationButton: FC<DeleteNotificationButtonProps> = ({
       confirmationText: 'Yes',
       cancellationText: 'No',
     })
-      .then(() => {
+      .then(reason => {
+        if (!reason.confirmed) return;
+
         if (!notificationId) {
           return queryClient.invalidateQueries({ queryKey: QueryKeys.NotificationsList });
         }
@@ -47,8 +49,7 @@ const DeleteNotificationButton: FC<DeleteNotificationButtonProps> = ({
           .catch(() => {
             enqueueSnackbar('Failed to delete notification', { variant: 'error' });
           });
-      })
-      .catch(() => {});
+      });
   }, [confirm, enqueueSnackbar, notificationId, mutateAsync, queryClient]);
 
   return (

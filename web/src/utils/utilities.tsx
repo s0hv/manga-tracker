@@ -226,8 +226,8 @@ export const buildNotificationData = (values: FormValues) => ({
 });
 
 
-export type MappedNotificationField<TValue, TKey extends Record<string, unknown> | 'generic' = 'generic'> = TKey extends 'generic' ?
-  {
+export type MappedNotificationField<TValue, TKey extends Record<string, unknown> | 'generic' = 'generic'> = TKey extends 'generic'
+  ? {
     [key: string]: TValue
   } : {
     [key in keyof TKey]: TValue;

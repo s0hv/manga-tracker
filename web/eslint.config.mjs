@@ -91,12 +91,7 @@ export default tseslint.config(
       },
       'import/resolver': {
         typescript: {
-          project: [
-            './tsconfig.json',
-            './__tests__/tsconfig.json',
-            './cypress/tsconfig.json',
-            './tsconfig.server.json',
-          ],
+          project: './tsconfig.json',
         },
       },
     },

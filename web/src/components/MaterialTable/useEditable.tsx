@@ -132,11 +132,12 @@ export const useEditColumn = <TData extends RowData>(columns: MaterialColumnDef<
       confirmationText: 'Delete',
       confirmationButtonProps: { 'aria-label': 'Confirm delete row' },
     })
-      .then(() => {
-        setEditingRow(ctx, false);
-        onDeleteRow(ctx);
-      })
-      .catch(() => {});
+      .then(reason => {
+        if (reason.confirmed) {
+          setEditingRow(ctx, false);
+          onDeleteRow(ctx);
+        }
+      });
   }, []);
 
   return useMemo(() => {
