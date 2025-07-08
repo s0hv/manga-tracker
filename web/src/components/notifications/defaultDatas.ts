@@ -1,5 +1,5 @@
 import { NotificationData } from '@/types/api/notifications';
-import { NotificationTypes } from '@/webUtils/constants';
+import { type NotificationType, NotificationTypes } from '@/webUtils/constants';
 
 export const defaultDataForType = {
   [NotificationTypes.DiscordWebhook]: {
@@ -54,4 +54,4 @@ export const defaultDataForType = {
       },
     ],
   },
-} as const satisfies Record<number, Partial<NotificationData>>;
+} as const satisfies Record<NotificationType, Partial<NotificationData>>;

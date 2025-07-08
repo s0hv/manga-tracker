@@ -1,5 +1,5 @@
 // import { RedocStandalone } from 'redoc';
-import { getOpenapiSpecification } from '../../swagger';
+import { getOpenapiSpecification } from '../../swagger/index';
 
 
 export default function Swagger({ spec }) {

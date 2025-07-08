@@ -17,8 +17,8 @@ import {
 import { styled } from '@mui/material/styles';
 
 import { getManga, postMergeManga } from '../api/manga';
-import Search from '../components/MangaSearch.js';
-import PartialManga from '../components/PartialManga.js';
+import Search from '../components/MangaSearch';
+import PartialManga from '../components/PartialManga';
 
 
 const RootContainer = styled(Container)(({ theme }) => ({

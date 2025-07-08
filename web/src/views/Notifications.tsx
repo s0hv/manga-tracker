@@ -15,7 +15,11 @@ import { defaultDataForType } from '@/components/notifications/defaultDatas';
 import type { NotificationData } from '@/types/api/notifications';
 
 import { getNotifications } from '../api/notifications';
-import { NotificationTypes, QueryKeys } from '../utils/constants';
+import {
+  type NotificationType,
+  NotificationTypes,
+  QueryKeys,
+} from '../utils/constants';
 
 const ResponsiveBox = styled('div')(({ theme }) => ({
   display: 'flex',
@@ -45,7 +49,7 @@ const Notifications = () => {
     queryKey,
     queryFn: getNotifications,
   });
-  const [notifType, setNotifType] = useState<number>(NotificationTypes.DiscordWebhook);
+  const [notifType, setNotifType] = useState<NotificationType>(NotificationTypes.DiscordWebhook);
   const queryClient = useQueryClient();
 
   const addNewNotification = useCallback(() => {
@@ -68,7 +72,7 @@ const Notifications = () => {
           <Select
             labelId='selectLabelId'
             value={notifType}
-            onChange={e => setNotifType(e.target.value as number)}
+            onChange={e => setNotifType(e.target.value as NotificationType)}
             label='Notification type to create'
             sx={{ m: 1 }}
           >

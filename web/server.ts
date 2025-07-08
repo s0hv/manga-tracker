@@ -23,7 +23,7 @@ import {
   servicesApi,
   settingsApi,
   userApi,
-} from './server/api/index.js';
+} from './server/api/index';
 
 // Turn off when not using this app with a reverse proxy like heroku
 const reverseProxy = !!process.env.TRUST_PROXY;
@@ -179,12 +179,12 @@ export default nextApp.prepare()
       }});
     });
 
-    server.get('/manga/:mangaId(\\d+)', (req, res) => handle(req, res));
+    server.get('/manga/:mangaId', (req, res) => handle(req, res));
 
     // next auth
-    server.all('/api/auth/*', (req, res) => handle(req, res));
+    server.all('/api/auth/*splat', (req, res) => handle(req, res));
 
-    server.get('*', (req, res) => handle(req, res));
+    server.get('*splat', (req, res) => handle(req, res));
 
     // Error handlers
     server.use((err: any, req: express.Request, res: express.Response, next: NextFunction) => {

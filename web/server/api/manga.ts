@@ -198,7 +198,7 @@ export default (app: Application) => {
    *        404:
    *          $ref: '#/components/responses/notFound'
    */
-  app.get(`${BASE_URL}/:mangaId(\\d+)/chapters`, [
+  app.get(`${BASE_URL}/:mangaId/chapters`, [
     mangaIdValidation(param('mangaId')),
     query('limit').isInt({ min: 0, max: 200 }).optional().withMessage('Limit must be an integer between 0 and 200'),
     query('offset').isInt({ min: 0 }).optional().withMessage('Offset must be a positive integer'),

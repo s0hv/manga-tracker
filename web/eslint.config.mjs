@@ -187,7 +187,6 @@ export default tseslint.config(
           'eslint.config.mjs',
           'cypress/**',
           './cypress/support/e2e.ts',
-          'loader.js',
         ]}],
 
       // Disabled rules
