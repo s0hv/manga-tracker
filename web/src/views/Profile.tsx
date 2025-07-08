@@ -122,8 +122,10 @@ const Profile: FC<ProfileProps> = props => {
       confirmationKeyword,
       confirmationText: `Delete account`,
     }))
-      .then(() => {
-        deleteAccount()
+      .then(({ confirmed }) => {
+        if (!confirmed) return;
+
+        return deleteAccount()
           .then(() => signOut())
           .catch(() => {
             enqueueSnackbar('Failed to delete account due to an unknown error', {
@@ -146,7 +148,8 @@ const Profile: FC<ProfileProps> = props => {
       ),
       confirmationText: 'Proceed',
     })
-      .then(() => {
+      .then(({ confirmed }) => {
+        if (!confirmed) return;
         (event.target as HTMLFormElement).submit();
       });
   }, [confirm]);

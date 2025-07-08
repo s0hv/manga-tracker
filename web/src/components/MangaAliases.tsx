@@ -9,7 +9,7 @@ import {
   Typography,
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
-import type { ConfirmOptions } from 'material-ui-confirm';
+import type { confirm } from 'material-ui-confirm';
 import type { EnqueueSnackbar } from 'notistack';
 
 
@@ -27,7 +27,7 @@ export type MangaAliasesProps = {
   mangaId?: number
   onTitleUpdate?: () => void
   enqueueSnackbar?: EnqueueSnackbar
-  confirm?: (options?: ConfirmOptions) => Promise<void>
+  confirm?: typeof confirm
   allowEdits?: boolean
 };
 const MangaAliases = (props: MangaAliasesProps) => {
@@ -53,8 +53,10 @@ const MangaAliases = (props: MangaAliasesProps) => {
       description: `Do you want to set "${title}" as the main title for this manga?`,
       confirmationText: 'Yes',
       cancellationText: 'No',
-    }).then(() => {
-      updateMangaTitle(mangaId, title)
+    }).then(({ confirmed }) => {
+      if (!confirmed) return;
+
+      return updateMangaTitle(mangaId, title)
         .then(json => {
           enqueueSnackbar(
             `Set "${title}" as the main title. ${json.message}`,
@@ -62,13 +64,11 @@ const MangaAliases = (props: MangaAliasesProps) => {
           );
           onTitleUpdate();
         })
-
         .catch(err => enqueueSnackbar(
           `Failed to set title. ${err}`,
           { variant: 'error', autoHideDuration }
         ));
-    })
-      .catch(() => {});
+    });
   }, [enqueueSnackbar, mangaId, onTitleUpdate, confirm]);
 
   if (!aliases || aliases.length === 0) return null;
