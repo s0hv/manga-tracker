@@ -314,7 +314,7 @@ export const expectErrorMessage: ExpectErrorMessage = (value, param, message = '
 export async function configureJestOpenAPI() {
   // Must add global expect so that jest-openapi can add its custom matchers
   (global as any).expect = expect;
-  jestOpenAPI(await getOpenapiSpecification());
+  jestOpenAPI(await getOpenapiSpecification() as any);
   delete (global as any).expect;
 }
 

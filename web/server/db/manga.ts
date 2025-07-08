@@ -14,7 +14,7 @@ import { HttpError } from '../utils/errors.js';
 import { mangadexLogger } from '../utils/logging.js';
 
 import { db } from './helpers';
-import { fetchExtraInfo, MANGADEX_ID } from './mangadex.js';
+import { fetchExtraInfo, MANGADEX_ID } from './mangadex';
 
 const links = {
   al: 'https://anilist.co/manga/',

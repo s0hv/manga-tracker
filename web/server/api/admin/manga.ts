@@ -32,10 +32,10 @@ export default () => {
   const router = express.Router();
   router.use([validateAdminUser()]);
 
-  router.use('/:mangaId(\\d+)/scheduledRuns', [
+  router.use('/:mangaId/scheduledRuns', [
     mangaIdValidation(param('mangaId')),
   ]);
-  router.get('/:mangaId(\\d+)/scheduledRuns', handleValidationErrors, (req, res) => {
+  router.get('/:mangaId/scheduledRuns', handleValidationErrors, (req, res) => {
     getScheduledRuns(req.params.mangaId)
       .then(rows => {
         res.status(200).json({
@@ -45,7 +45,7 @@ export default () => {
       .catch(err => handleError(err, res));
   });
 
-  const scheduleRunUrl = '/:mangaId(\\d+)/scheduledRun/:serviceId(\\d+)';
+  const scheduleRunUrl = '/:mangaId/scheduledRun/:serviceId';
   router.use(scheduleRunUrl, [
     mangaIdValidation(param('mangaId')),
     serviceIdValidation(param('serviceId')),
@@ -74,7 +74,7 @@ export default () => {
         .catch(err => handleError(err, res));
     });
 
-  const updateTitleUrl = '/:mangaId(\\d+)/title';
+  const updateTitleUrl = '/:mangaId/title';
   router.use(updateTitleUrl, [
     mangaIdValidation(param('mangaId')),
     body('title').isString().bail().isLength({ min: 1 }),
@@ -100,7 +100,7 @@ export default () => {
       });
   });
 
-  const updateInfoPath = '/:mangaId(\\d+)/info';
+  const updateInfoPath = '/:mangaId/info';
   router.post(updateInfoPath, ...[
     mangaIdValidation(param('mangaId')),
     body('status').isInt({ min: MangaStatus.ONGOING, max: MangaStatus.HIATUS }).toInt(),
@@ -118,7 +118,7 @@ export default () => {
       .catch(err => handleError(err, res));
   });
 
-  router.get('/:mangaId(\\d+)/services', ...[
+  router.get('/:mangaId/services', ...[
     mangaIdValidation(param('mangaId')),
     handleValidationErrors,
   ], (req, res) => {
@@ -131,7 +131,7 @@ export default () => {
       .catch(err => handleError(err, res));
   });
 
-  router.post('/:mangaId(\\d+)/services/:serviceId(\\d+)', ...[
+  router.post('/:mangaId/services/:serviceId', ...[
     mangaIdValidation(param('mangaId')),
     databaseIdValidation(param('serviceId')),
     body('mangaService')
@@ -154,7 +154,7 @@ export default () => {
       .catch(err => handleError(err, res));
   });
 
-  router.post('/:mangaId(\\d+)/services/:serviceId(\\d+)/create', ...[
+  router.post('/:mangaId/services/:serviceId/create', ...[
     mangaIdValidation(param('mangaId')),
     databaseIdValidation(param('serviceId')),
     body('mangaService')

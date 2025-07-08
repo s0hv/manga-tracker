@@ -1,6 +1,6 @@
 import snakecaseKeys from 'snakecase-keys';
 
-import client from './index.js';
+import client from './index';
 import { MangaForElastic } from '../manga';
 
 export const index = process.env.ES_INDEX || 'manga';

@@ -1,4 +1,10 @@
-import { body as validateBody, matchedData, query } from 'express-validator';
+import type { Express, Request, Response } from 'express-serve-static-core';
+import {
+  body as validateBody,
+  matchedData,
+  param,
+  query,
+} from 'express-validator';
 
 import {
   deleteChapter,
@@ -12,22 +18,24 @@ import { handleError } from '@/db/utils';
 
 import { dbLogger } from '../utils/logging.js';
 import {
-  handleValidationErrors,
+  databaseIdValidation,
+  handleValidationErrors, mangaIdValidation,
   userValidator,
   validateAdminUser,
 } from '../utils/validators';
 
 const BASE_URL = '/api/chapter';
 
-export default app => {
-  app.post(`${BASE_URL}/:chapterId(\\d+)`, [
+export default (app: Express) => {
+  app.post(`${BASE_URL}/:chapterId`, [
     validateAdminUser(),
+    databaseIdValidation(param('chapterId')),
     validateBody('title').isString().optional(),
     validateBody('chapterNumber').isInt().optional(),
     validateBody('chapterDecimal').isInt().optional({ nullable: true }),
     validateBody('group').isString().optional(),
     handleValidationErrors,
-  ], (req, res) => {
+  ], (req: Request, res: Response) => {
     const body = req.body;
     if (!body || Object.keys(body).length === 0) {
       res.status(400).json({ error: 'Empty body' });
@@ -63,10 +71,11 @@ export default app => {
       });
   });
 
-  app.delete(`${BASE_URL}/:chapterId(\\d+)`, [
+  app.delete(`${BASE_URL}/:chapterId`, [
     validateAdminUser(),
+    databaseIdValidation(param('chapterId')),
     handleValidationErrors,
-  ], (req, res) => {
+  ], (req: Request, res: Response) => {
     deleteChapter(Number(req.params.chapterId))
       .then(row => {
         if (row) {
@@ -81,7 +90,10 @@ export default app => {
       });
   });
 
-  app.get(`${BASE_URL}/releases/:mangaId(\\d+)`, (req, res) => {
+  app.get(`${BASE_URL}/releases/:mangaId`, [
+    mangaIdValidation(param('mangaId')),
+    handleValidationErrors,
+  ], (req: Request, res: Response) => {
     const mangaId = Number(req.params.mangaId);
     if (Number.isNaN(mangaId) || !Number.isFinite(mangaId)) {
       res.status(400).json({ error: 'Invalid manga id given' });
@@ -129,7 +141,7 @@ export default app => {
       .if(val => val === true)
       .custom(userValidator),
     handleValidationErrors,
-  ], (req, res) => {
+  ], (req: Request, res: Response) => {
     const data = matchedData(req, { includeOptionals: false });
     getLatestChapters(data.limit, data.offset, data.useFollows ? req.user?.userId : undefined)
       .then(rows => res.status(200).json({ data: rows }))
