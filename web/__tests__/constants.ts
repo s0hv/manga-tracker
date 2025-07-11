@@ -10,6 +10,7 @@ export type TestUser = User & SessionUser & {
 export const userForbidden = 'Forbidden to perform this action';
 export const userUnauthorized = 'User not authenticated';
 export const mangaIdError = 'Manga id must be a positive integer';
+export const serviceIdError = 'Service id must be a positive integer';
 export const invalidValue = 'Invalid value';
 export const ISE = 'Internal server error';
 

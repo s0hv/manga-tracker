@@ -33,6 +33,7 @@ export default defineConfig({
       '@/db': path.resolve(__dirname, './server/db'),
       '@/types': path.resolve(__dirname, './types'),
       '@/common': path.resolve(__dirname, './common'),
+      '@/tests': path.resolve(__dirname, './__tests__'),
     },
     setupFiles: ['./setupTests.ts'],
     globalSetup: './__tests__/globalSetup.ts',

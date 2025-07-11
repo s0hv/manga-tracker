@@ -147,7 +147,7 @@ export default function SignIn({ providers, error: errorType }: SignInProps): Re
   }, []);
 
   return (
-    <Container component='main' maxWidth='xs' className={styles.container}>
+    <Container maxWidth='xs' className={styles.container}>
       <Box sx={{
         marginTop: 8,
         display: 'flex',

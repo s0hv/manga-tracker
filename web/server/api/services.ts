@@ -1,8 +1,10 @@
+import type { Application, Request, Response } from 'express-serve-static-core';
+
 import { getServicesForApi } from '@/db/services/serviceInfo';
 import { handleError } from '@/db/utils';
 
 
-export default app => {
+export default (app: Application) => {
   /**
    *  @openapi
    *  /services:
@@ -23,7 +25,7 @@ export default app => {
    *                required:
    *                  - data
    */
-  app.get('/api/services', (req, res) => {
+  app.get('/api/services', (_: Request, res: Response) => {
     getServicesForApi()
       .then(services => res.json({ data: services }))
       .catch(err => handleError(err, res));

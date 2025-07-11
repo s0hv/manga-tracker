@@ -76,8 +76,12 @@ describe('Account data management', () => {
       cy.get<CreatedUser>('@user')
         .then(user => cy.login(user, true));
 
-      cy.findByRole('alert');
-      cy.findByText(/^sign in failed/i);
+      // Next.js adds another alert element outside the main element so we need to filter that out
+      cy.findByRole('main').within(() => {
+        cy.findByRole('alert').within(() => {
+          cy.findByText(/^sign in failed/i);
+        });
+      });
 
       cy.task('flushRedis');
     });

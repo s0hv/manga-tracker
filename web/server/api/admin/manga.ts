@@ -21,7 +21,6 @@ import { MangaStatus } from '@/types/dbTypes';
 
 
 import {
-  databaseIdValidation,
   handleValidationErrors,
   mangaIdValidation,
   serviceIdValidation,
@@ -133,7 +132,7 @@ export default () => {
 
   router.post('/:mangaId/services/:serviceId', ...[
     mangaIdValidation(param('mangaId')),
-    databaseIdValidation(param('serviceId')),
+    serviceIdValidation(param('serviceId')),
     body('mangaService')
       .isObject({ strict: true }),
     body('mangaService.disabled')
@@ -156,7 +155,7 @@ export default () => {
 
   router.post('/:mangaId/services/:serviceId/create', ...[
     mangaIdValidation(param('mangaId')),
-    databaseIdValidation(param('serviceId')),
+    serviceIdValidation(param('serviceId')),
     body('mangaService')
       .isObject({ strict: true }),
     body('mangaService.titleId')

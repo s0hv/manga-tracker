@@ -26,7 +26,8 @@
       "@/common*": ["common*"],
       "@/serverUtils*": ["server/utils*"],
       "@/db*": ["server/db*"],
-      "@/types*": ["types*"]
+      "@/types*": ["types*"],
+      "@/tests*": ["__tests__*"]
     }
   },
   "include": [

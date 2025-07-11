@@ -157,7 +157,7 @@ const Profile: FC<ProfileProps> = props => {
   return (
     <Container maxWidth='lg'>
       <Paper sx={{ minWidth: '300px', minHeight: '400px', p: 2 }}>
-        <Container component='main' maxWidth='xs'>
+        <Container maxWidth='xs'>
           <FormProvider
             formState={formState}
             control={control}

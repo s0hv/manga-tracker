@@ -24,6 +24,7 @@ import {
 import { deleteManga, updateManga } from '@/db/elasticsearch/manga';
 import { NoResultsError } from '@/db/errors';
 import { getMangaPartial } from '@/db/manga';
+import { mangaIdError } from '@/tests/constants';
 import type { DatabaseId, MangaId } from '@/types/dbTypes';
 
 
@@ -91,14 +92,16 @@ describe('GET /api/manga/:mangaId/chapters', () => {
 
   expectISEOnDbError(serverReference, validUrl);
 
-  it('returns 404 with invalid manga id', async () => {
+  it('returns 400 or 404 with invalid manga id', async () => {
     await request(httpServer)
       .get(`/api/manga/9999999/chapters`)
+      // Valid id, but no manga exists for it
       .expect(404);
 
     await request(httpServer)
       .get(`/api/manga/-1/chapters`)
-      .expect(404);
+      .expect(400)
+      .expect(expectErrorMessage('-1', 'mangaId', mangaIdError));
   });
 
   it('returns 400 with an invalid limit', async () => {
