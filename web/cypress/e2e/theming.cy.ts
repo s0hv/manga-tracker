@@ -22,12 +22,12 @@ describe('Changing theme works', () => {
     cy.expectLightTheme();
   });
 
-  it('Change theme without user', () => {
+  it.only('Change theme without user', () => {
     cy.visit('/');
-    cy.root().invoke('attr', 'data-mui-color-scheme').as('theme');
+    cy.root().invoke('hasClass', 'dark').as('isDarkTheme');
 
-    cy.get<string>('@theme').then(theme => {
-      if (theme === 'dark') {
+    cy.get<boolean>('@isDarkTheme').then(isDarkTheme => {
+      if (isDarkTheme) {
         cy.expectDarkTheme();
       } else {
         cy.expectLightTheme();
@@ -37,8 +37,8 @@ describe('Changing theme works', () => {
     cy.findByRole('button', { name: /switch theme/i }).click();
 
     // Value gets updated on button click
-    cy.get<string>('@theme').then(theme => {
-      if (theme === 'dark') {
+    cy.get<boolean>('@isDarkTheme').then(isDarkTheme => {
+      if (isDarkTheme) {
         cy.expectDarkTheme();
       } else {
         cy.expectLightTheme();

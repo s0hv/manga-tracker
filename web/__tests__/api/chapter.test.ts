@@ -15,7 +15,7 @@ import { expectISEOnDbError } from './api-test-utilities';
 import { addChapter } from '@/db/chapter';
 import { csrfMissing } from '@/serverUtils/constants';
 
-import { userForbidden, userUnauthorized } from '../constants';
+import { mangaIdError, userForbidden, userUnauthorized } from '../constants';
 
 
 let httpServer: any;
@@ -87,7 +87,7 @@ describe('POST /api/chapter/:chapterId', () => {
       await request(httpServer)
         .post('/api/chapter/abc')
         .csrf()
-        .expect(404);
+        .expect(400);
     });
   });
 
@@ -277,7 +277,7 @@ describe('DELETE /api/chapter/:chapterId', () => {
       await request(httpServer)
         .delete('/api/chapter/abc')
         .csrf()
-        .expect(404);
+        .expect(400);
     });
   });
 
@@ -384,34 +384,28 @@ describe('GET /api/chapter/releases/:mangaId', () => {
   expectISEOnDbError(serverReference, `${url}/1`);
 
   it('Should return 404 with invalid manga id', async () => {
+    const field = 'mangaId';
+
     await Promise.all([
       await request(httpServer)
         .get(`${url}/a`)
-        .expect(res => {
-          expect(res.body).toBeEmptyObject();
-        })
-        .expect(404),
+        .expect(expectErrorMessage('a', field, mangaIdError))
+        .expect(400),
 
       await request(httpServer)
         .get(`${url}/-1`)
-        .expect(res => {
-          expect(res.body).toBeEmptyObject();
-        })
-        .expect(404),
+        .expect(expectErrorMessage('-1', field, mangaIdError))
+        .expect(400),
 
       await request(httpServer)
         .get(`${url}/1e10`)
-        .expect(res => {
-          expect(res.body).toBeEmptyObject();
-        })
-        .expect(404),
+        .expect(expectErrorMessage('1e10', field, mangaIdError))
+        .expect(400),
 
       await request(httpServer)
         .get(`${url}/NaN`)
-        .expect(res => {
-          expect(res.body).toBeEmptyObject();
-        })
-        .expect(404),
+        .expect(expectErrorMessage('NaN', field, mangaIdError))
+        .expect(400),
 
       await request(httpServer)
         .get(`${url}/`)

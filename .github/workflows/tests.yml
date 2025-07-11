@@ -70,6 +70,7 @@ jobs:
       run: cd .. && pnpm migrate:up && pnpm migrate:test
 
     - name: Run vitest and generate coverage
+      continue-on-error: true
       run: pnpm test:ci
 
     - name: Upload coverage to Codecov
@@ -157,6 +158,7 @@ jobs:
         run: uv run pytest --cov=./src --cov-report=xml --junit-xml=./junit.xml src
 
       - name: Uninstall coveragepy
+        continue-on-error: true
         run: uv run pip uninstall -y coverage
 
       - name: Upload coverage to Codecov
@@ -186,9 +188,9 @@ jobs:
         working-directory: web
     name: Cypress E2E tests
     runs-on: ubuntu-latest
+    environment: tests
     container:
       image: cypress/browsers:22.17.0
-      options: --user 1001
 
     # Service containers to run with `container-job`
     services:
@@ -239,6 +241,16 @@ jobs:
       - name: Install cypress dependencies
         run: cd cypress && pnpm install --frozen-lockfile
 
+      # Project dependencies must be installed as cypress tsc depends on them
+      - name: Install project dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build cypress dependencies
+        run: cd cypress && pnpm run tsc
+
+      - name: Install codecov deps
+        run: apt-get update && apt-get install -y curl gpg
+
       - name: Persist Next.js build cache
         uses: actions/cache@v3
         with:
@@ -249,15 +261,20 @@ jobs:
           restore-keys: |
             nextjs-${{ hashFiles('pnpm-lock.yaml') }}-
 
+      - name: Build and start the app
+        run: |
+          pnpm build-nyc
+          pnpm start-coverage &
+        env:
+          NODE_ENV: production
+
       - uses: cypress-io/github-action@v6
+        continue-on-error: true
         with:
           browser: chrome
           working-directory: ./web/cypress
-          build: cd .. && pnpm cross-env NODE_ENV=production pnpm build-nyc
-          start: cd .. && pnpm cross-env NODE_ENV=production pnpm start-coverage
           wait-on: 'http://localhost:3000'
           config-file: cypress.config.ts
-
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5

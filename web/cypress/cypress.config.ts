@@ -45,12 +45,15 @@ export default defineConfig({
       return config;
     },
     baseUrl: 'http://localhost:3000',
-    chromeWebSecurity: false,
+    chromeWebSecurity: true,
   },
   env: {
     codeCoverage: {
       url: 'http://localhost:3000/__coverage__',
-      exclude: '**/node_modules/**',
+      exclude: [
+        '**/node_modules/**',
+        './**',
+      ],
     },
   },
 });

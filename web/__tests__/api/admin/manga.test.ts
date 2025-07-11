@@ -1,29 +1,34 @@
 import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
-import { createManga, createMangaService } from '../../dbutils';
-import initServer from '../../initServer';
+import {
+  apiRequiresAdminUserGetTests,
+  apiRequiresAdminUserPostTests,
+} from '../api-test-utilities';
+import { createManga, createMangaService } from '@/tests/dbutils';
+import initServer from '@/tests/initServer';
 import {
   adminUser,
   expectErrorMessage,
   normalUser,
   withUser,
-} from '../../utils';
-import {
-  apiRequiresAdminUserGetTests,
-  apiRequiresAdminUserPostTests,
-} from '../api-test-utilities';
-
+} from '@/tests/utils';
 import {
   deleteScheduledRun,
   scheduleMangaRun,
-} from '../../../server/db/admin/management';
-import { getMangaServices } from '../../../server/db/admin/manga';
-import { getAliases, getMangaPartial } from '../../../server/db/manga';
-import { userForbidden, userUnauthorized } from '../../constants';
-import stopServer from '../../stopServer.js';
+} from '@/db/admin/management';
+import { getMangaServices } from '@/db/admin/manga';
+import { getAliases, getMangaPartial } from '@/db/manga';
+import {
+  mangaIdError,
+  serviceIdError,
+  userForbidden,
+  userUnauthorized,
+} from '@/tests/constants';
+import stopServer from '@/tests/stopServer.js';
 
-let httpServer;
+
+let httpServer: any;
 const serverReference = {
   httpServer,
 };
@@ -42,22 +47,26 @@ describe('POST /api/admin/manga/:mangaId/scheduledRun/:serviceId', () => {
 
   apiRequiresAdminUserPostTests(serverReference, url);
 
-  it('Returns 404 with invalid params', async () => {
+  it('Returns 400 with invalid params', async () => {
     await withUser(adminUser, async () => {
       await request(httpServer)
         .post('/api/admin/manga/1/scheduledRun/abc')
         .csrf()
-        .expect(404);
+        .expect(400)
+        .expect(expectErrorMessage('abc', 'serviceId', serviceIdError));
 
       await request(httpServer)
         .post('/api/admin/manga/1d2/scheduledRun/1')
         .csrf()
-        .expect(404);
+        .expect(400)
+        .expect(expectErrorMessage('1d2', 'mangaId', mangaIdError));
 
       await request(httpServer)
         .post('/api/admin/manga/-1/scheduledRun/-1')
         .csrf()
-        .expect(404);
+        .expect(400)
+        .expect(expectErrorMessage('-1', 'mangaId', mangaIdError))
+        .expect(expectErrorMessage('-1', 'serviceId', serviceIdError));
     });
   });
 
@@ -107,22 +116,26 @@ describe('DELETE /api/admin/manga/:mangaId/scheduledRun/:serviceId', () => {
 
   apiRequiresAdminUserPostTests(serverReference, url);
 
-  it('Returns 404 with invalid params', async () => {
+  it('Returns 400 with invalid params', async () => {
     await withUser(adminUser, async () => {
       await request(httpServer)
         .delete('/api/admin/manga/1/scheduledRun/abc')
         .csrf()
-        .expect(404);
+        .expect(400)
+        .expect(expectErrorMessage('abc', 'serviceId', serviceIdError));
 
       await request(httpServer)
         .delete('/api/admin/manga/1d2/scheduledRun/1')
         .csrf()
-        .expect(404);
+        .expect(400)
+        .expect(expectErrorMessage('1d2', 'mangaId', mangaIdError));
 
       await request(httpServer)
         .delete('/api/admin/manga/-1/scheduledRun/-1')
         .csrf()
-        .expect(404);
+        .expect(400)
+        .expect(expectErrorMessage('-1', 'mangaId', mangaIdError))
+        .expect(expectErrorMessage('-1', 'serviceId', serviceIdError));
     });
   });
 
@@ -148,8 +161,8 @@ describe('DELETE /api/admin/manga/:mangaId/scheduledRun/:serviceId', () => {
 
 describe('GET /api/admin/manga/:mangaId/scheduledRuns', () => {
   const serviceId = 1;
-  let mangaId;
-  let url;
+  let mangaId: number;
+  let url: string;
   beforeAll(async () => {
     mangaId = await createMangaService(serviceId);
     await scheduleMangaRun(mangaId, serviceId, adminUser.userId);
@@ -172,15 +185,17 @@ describe('GET /api/admin/manga/:mangaId/scheduledRuns', () => {
     });
   });
 
-  it('Returns 404 with invalid params', async () => {
+  it('Returns 400 with invalid params', async () => {
     await withUser(adminUser, async () => {
       await request(httpServer)
-        .get('/api/admin/manga/abc/scheduledRun')
-        .expect(404);
+        .get('/api/admin/manga/abc/scheduledRuns')
+        .expect(400)
+        .expect(expectErrorMessage('abc', 'mangaId', mangaIdError));
 
       await request(httpServer)
-        .get('/api/admin/manga/1d2/scheduledRun/1')
-        .expect(404);
+        .get('/api/admin/manga/1e2/scheduledRuns')
+        .expect(400)
+        .expect(expectErrorMessage('1e2', 'mangaId', mangaIdError));
     });
   });
 
@@ -392,15 +407,17 @@ describe('GET /api/admin/manga/:mangaId/services', () => {
 
   apiRequiresAdminUserGetTests(serverReference, url);
 
-  it('Returns 404 with invalid params', async () => {
+  it('Returns 400 with invalid params', async () => {
     await withUser(adminUser, async () => {
       await request(httpServer)
         .get('/api/admin/manga/aaa/services')
-        .expect(404);
+        .expect(400)
+        .expect(expectErrorMessage('aaa', 'mangaId', mangaIdError));
 
       await request(httpServer)
         .get('/api/admin/manga/1e/services')
-        .expect(404);
+        .expect(400)
+        .expect(expectErrorMessage('1e', 'mangaId', mangaIdError));
     });
   });
 
@@ -423,36 +440,42 @@ describe('GET /api/admin/manga/:mangaId/services', () => {
 
 describe('POST /api/admin/manga/:mangaId/services/:serviceId', () => {
   const serviceId = 1;
-  const getUrl = mangaId => `/api/admin/manga/${mangaId}/services/${serviceId}`;
+  const getUrl = (mangaId: number) => `/api/admin/manga/${mangaId}/services/${serviceId}`;
   const url = getUrl(1);
 
-  const getMangaService = mangaId => getMangaServices(mangaId)
+  const getMangaService = (mangaId: number) => getMangaServices(mangaId)
     .then(ms => ms.filter(m => m.serviceId === serviceId)[0]);
 
 
   apiRequiresAdminUserPostTests(serverReference, url);
 
-  it('Returns 404 with invalid params', async () => {
+  it('Returns 400 with invalid params', async () => {
     await withUser(adminUser, async () => {
       await request(httpServer)
         .post('/api/admin/manga/aaa/services/aaa')
         .csrf()
-        .expect(404);
+        .expect(400)
+        .expect(expectErrorMessage('aaa', 'mangaId', mangaIdError))
+        .expect(expectErrorMessage('aaa', 'serviceId', serviceIdError));
 
       await request(httpServer)
         .post('/api/admin/manga/1e/services/1e')
         .csrf()
-        .expect(404);
+        .expect(400)
+        .expect(expectErrorMessage('1e', 'mangaId', mangaIdError))
+        .expect(expectErrorMessage('1e', 'serviceId', serviceIdError));
 
       await request(httpServer)
         .post('/api/admin/manga/1/services/1e')
         .csrf()
-        .expect(404);
+        .expect(400)
+        .expect(expectErrorMessage('1e', 'serviceId', serviceIdError));
 
       await request(httpServer)
         .post('/api/admin/manga/1/services/aaa')
         .csrf()
-        .expect(404);
+        .expect(400)
+        .expect(expectErrorMessage('aaa', 'serviceId', serviceIdError));
     });
   });
 
@@ -469,9 +492,9 @@ describe('POST /api/admin/manga/:mangaId/services/:serviceId', () => {
 
       await Promise.all(values.map(v => request(httpServer)
         .post(url)
-        .send(v)
+        .send(v as object)
         .csrf()
-        .expect(expectErrorMessage(v?.mangaService))));
+        .expect(expectErrorMessage((v as any)?.mangaService))));
     });
   });
 
@@ -550,35 +573,41 @@ describe('POST /api/admin/manga/:mangaId/services/:serviceId', () => {
 
 describe('POST /api/admin/manga/:mangaId/services/:serviceId/create', () => {
   const serviceId = 1;
-  const getUrl = mangaId => `/api/admin/manga/${mangaId}/services/${serviceId}/create`;
+  const getUrl = (mangaId: number) => `/api/admin/manga/${mangaId}/services/${serviceId}/create`;
   const url = getUrl(1);
 
-  const getMangaService = mangaId => getMangaServices(mangaId)
+  const getMangaService = (mangaId: number) => getMangaServices(mangaId)
     .then(ms => ms.filter(m => m.serviceId === serviceId)[0]);
 
   apiRequiresAdminUserPostTests(serverReference, url);
 
-  it('Returns 404 with invalid params', async () => {
+  it('Returns 400 with invalid params', async () => {
     await withUser(adminUser, async () => {
       await request(httpServer)
         .post('/api/admin/manga/aaa/services/aaa/create')
         .csrf()
-        .expect(404);
+        .expect(400)
+        .expect(expectErrorMessage('aaa', 'mangaId', mangaIdError))
+        .expect(expectErrorMessage('aaa', 'serviceId', serviceIdError));
 
       await request(httpServer)
         .post('/api/admin/manga/1e/services/1e/create')
         .csrf()
-        .expect(404);
+        .expect(400)
+        .expect(expectErrorMessage('1e', 'mangaId', mangaIdError))
+        .expect(expectErrorMessage('1e', 'serviceId', serviceIdError));
 
       await request(httpServer)
         .post('/api/admin/manga/1/services/1e/create')
         .csrf()
-        .expect(404);
+        .expect(400)
+        .expect(expectErrorMessage('1e', 'serviceId', serviceIdError));
 
       await request(httpServer)
         .post('/api/admin/manga/1/services/aaa/create')
         .csrf()
-        .expect(404);
+        .expect(400)
+        .expect(expectErrorMessage('aaa', 'serviceId', serviceIdError));
     });
   });
 
@@ -595,10 +624,10 @@ describe('POST /api/admin/manga/:mangaId/services/:serviceId/create', () => {
 
       await Promise.all(values.map(v => request(httpServer)
         .post(url)
-        .send(v)
+        .send(v as object)
         .csrf()
         .expect(400)
-        .expect(expectErrorMessage(v?.mangaService, 'mangaService'))));
+        .expect(expectErrorMessage((v as any)?.mangaService, 'mangaService'))));
     });
   });
 
@@ -609,7 +638,7 @@ describe('POST /api/admin/manga/:mangaId/services/:serviceId/create', () => {
         .send({ mangaService: {}})
         .csrf()
         .expect(400)
-        .expect(expectErrorMessage());
+        .expect(expectErrorMessage(undefined));
     });
   });
 
@@ -628,7 +657,7 @@ describe('POST /api/admin/manga/:mangaId/services/:serviceId/create', () => {
         }})
         .csrf()
         .expect(400)
-        .expect(expectErrorMessage());
+        .expect(expectErrorMessage(undefined));
     });
   });
 

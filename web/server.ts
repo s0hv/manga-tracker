@@ -117,7 +117,8 @@ export default nextApp.prepare()
       if (req.originalUrl.startsWith('/api/auth/') || req.originalUrl.startsWith('/_next/static/')) return next();
 
       // https://lucia-auth.com/sessions/cookies/#csrf-protection
-      if (req.method !== 'GET') {
+      // Cypress does not always send the Origin header, so we skip CSRF checks in that case
+      if (req.method !== 'GET' && !isCypress) {
         const origin = req.header('Origin');
         // You can also compare it against the Host or X-Forwarded-Host header.
         if (origin === null || origin !== process.env.BASE_URL) {

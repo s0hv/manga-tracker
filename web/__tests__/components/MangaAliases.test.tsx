@@ -2,9 +2,10 @@ import React from 'react';
 import { render, screen, within } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import fetchMock from 'fetch-mock';
+import type { ConfirmResult } from 'material-ui-confirm';
 import { describe, expect, it, vi } from 'vitest';
 
-import { adminUser, normalUser, withUser } from '../utils';
+import { adminUser, confirmMock, normalUser, withUser } from '../utils';
 import MangaAliases from '@/components/MangaAliases';
 
 describe('MangaAliases renders correctly', () => {
@@ -73,7 +74,7 @@ describe('MangaAliases should promote alias correctly', () => {
     const aliases = ['Test alias 1', 'Test alias 2'];
     const mangaId = 1;
     const onTitleUpdate = vi.fn();
-    const confirm = vi.fn(() => Promise.resolve());
+    const confirm = confirmMock();
     const enqueueSnackbar = vi.fn();
 
     const mockRoute = vi.fn(() => Promise.resolve({}));
@@ -118,7 +119,7 @@ describe('MangaAliases should promote alias correctly', () => {
     const aliases = ['Test alias 1', 'Test alias 2'];
     const mangaId = 1;
     const onTitleUpdate = vi.fn();
-    const confirm = vi.fn(() => Promise.reject());
+    const confirm = confirmMock(false);
     const enqueueSnackbar = vi.fn();
     const user = userEvent.setup();
 

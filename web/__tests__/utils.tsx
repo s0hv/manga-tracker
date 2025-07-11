@@ -17,6 +17,7 @@ import type {
 } from 'express-serve-static-core';
 import type { MockCall } from 'fetch-mock';
 import jestOpenAPI from 'jest-openapi';
+import type { ConfirmResult } from 'material-ui-confirm';
 import type { Response } from 'supertest';
 import request from 'supertest';
 import { expect, Mock, MockInstance, vi } from 'vitest';
@@ -407,3 +408,7 @@ export const silenceConsole: SilenceConsole = (<T, >(callback?: Promise<T>): Pro
 }) as SilenceConsole;
 
 export const restoreMocks = (spies: MockInstance[]) => spies.forEach(spy => spy.mockRestore());
+
+export const confirmMock = (confirmed: boolean = true) => vi.fn(() => Promise.resolve(
+  { confirmed, reason: confirmed ? 'confirm' : 'cancel' } satisfies ConfirmResult
+));
