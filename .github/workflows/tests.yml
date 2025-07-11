@@ -54,8 +54,6 @@ jobs:
     - run: 'git config --global url."https://".insteadOf ssh://'
 
     - uses: pnpm/action-setup@v4
-      with:
-        version: 10
 
     - uses: actions/setup-node@v4
       with:
@@ -135,8 +133,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
-        with:
-          version: 10
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -227,8 +223,6 @@ jobs:
       - run: 'git config --global url."https://".insteadOf ssh://'
 
       - uses: pnpm/action-setup@v4
-        with:
-          version: 10
 
       - uses: actions/setup-node@v4
         with:
@@ -258,12 +252,11 @@ jobs:
       - uses: cypress-io/github-action@v6
         with:
           browser: chrome
-          working-directory: ./web
-          build: pnpm cross-env NODE_ENV=production pnpm build-nyc
-          start: pnpm cross-env NODE_ENV=production pnpm start-coverage
+          working-directory: ./web/cypress
+          build: cd .. && pnpm cross-env NODE_ENV=production pnpm build-nyc
+          start: cd .. && pnpm cross-env NODE_ENV=production pnpm start-coverage
           wait-on: 'http://localhost:3000'
-          project: cypress
-          config-file: cypress/cypress.config.ts
+          config-file: cypress.config.ts
 
 
       - name: Upload coverage to Codecov
