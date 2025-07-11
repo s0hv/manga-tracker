@@ -22,7 +22,7 @@ WORKDIR ./web
 
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 RUN pnpm build
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile --prod
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm prune --prod
 
 FROM base
 

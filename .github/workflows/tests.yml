@@ -9,6 +9,7 @@ on:
       - 'Procfile'
       - 'Dockerfile'
   pull_request:
+  workflow_dispatch:
 
 jobs:
   js-tests:
@@ -25,7 +26,7 @@ jobs:
       # Label used to access the service container
       postgres:
         # Docker Hub image
-        image: postgres:12.4
+        image: postgres:17.4
         # Provide the password for postgres
         env:
           POSTGRES_PASSWORD: postgres
@@ -108,7 +109,7 @@ jobs:
       # Label used to access the service container
       postgres:
         # Docker Hub image
-        image: postgres:12.4
+        image: postgres:17.4
         # Provide the password for postgres
         env:
           POSTGRES_PASSWORD: postgres
@@ -189,7 +190,6 @@ jobs:
         working-directory: web
     name: Cypress E2E tests
     runs-on: ubuntu-latest
-    if: false
     container:
       image: cypress/browsers:node22.17.0
       options: --user 1001
@@ -199,7 +199,7 @@ jobs:
       # Label used to access the service container
       postgres:
         # Docker Hub image
-        image: postgres:12.4
+        image: postgres:17.4
         # Provide the password for postgres
         env:
           POSTGRES_PASSWORD: postgres
@@ -242,6 +242,9 @@ jobs:
       - name: Initialize database
         run: cd .. && pnpm migrate:up && pnpm migrate:test
 
+      - name: Install cypress dependencies
+        run: cd cypress && pnpm install --frozen-lockfile
+
       - name: Persist Next.js build cache
         uses: actions/cache@v3
         with:
@@ -260,6 +263,7 @@ jobs:
           start: pnpm cross-env NODE_ENV=production pnpm start-coverage
           wait-on: 'http://localhost:3000'
           project: cypress
+          config-file: cypress/cypress.config.ts
 
 
       - name: Upload coverage to Codecov

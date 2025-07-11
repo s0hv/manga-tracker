@@ -9,18 +9,26 @@
     "pnpm": "^10"
   },
   "scripts": {
-    "cypress": "cypress open"
+    "cypress": "cypress open",
+    "tsc": "tsc --project tsconfig.server.json && tsc-alias --project tsconfig.server.json"
   },
   "dependencies": {
     "@cypress/code-coverage": "^3.14.5",
     "@testing-library/cypress": "^10.0.3",
-    "cypress": "12.17.3",
+    "cypress": "14.5.1",
+    "tsc-alias": "^1.8.16",
     "typescript": "^5.8.3"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
       "cypress"
     ]
+  },
+  "nyc": {
+    "exclude": [
+      "**/node_modules/**"
+    ],
+    "excludeAfterRemap": true
   },
   "packageManager": "pnpm@10.12.4+sha512.5ea8b0deed94ed68691c9bad4c955492705c5eeb8a87ef86bc62c74a26b037b08ff9570f108b2e4dbd1dd1a9186fea925e527f141c648e85af45631074680184"
 }
