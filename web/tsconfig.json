@@ -40,7 +40,7 @@
     "node_modules",
     "setupTests.ts",
     "vitest.config.ts",
-    "cypress.config.ts",
+    "cypress/cypress.config.ts",
     "cypress/**"
   ]
 }

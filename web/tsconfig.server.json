@@ -19,6 +19,6 @@
     "vitest.config.ts",
     "setupTests.ts",
     "cypress/**",
-    "cypress.config.ts"
+    "cypress/cypress.config.ts"
   ]
 }

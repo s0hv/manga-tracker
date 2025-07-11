@@ -1,15 +1,29 @@
 {
   "compilerOptions": {
     "target": "es6",
-    "lib": ["es6", "dom", "esnext"],
+    "lib": ["es6", "dom"],
     "types": ["cypress", "@testing-library/cypress", "node"],
-    "module": "ES2020",
     "baseUrl": ".",
+    "module": "esnext",
+    "moduleResolution": "node",
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": false,
+    "sourceMap": true,
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": true,
+    "incremental": true,
+    "esModuleInterop": true,
+    "isolatedModules": true,
     "paths": {
-      "@/types*": ["../types*"]
+      "@/types*": ["../types*"],
+      "@/dist*": ["./dist*"],
+      "@/common*": ["../common*"],
+      "@/serverUtils*": ["../server/utils*"],
+      "@/db*": ["../server/db*"],
     }
   },
-  "include": ["**/*.ts", "../cypress.config.ts", "../types/*.ts", "types.ts"],
+  "include": ["**/*.ts", "./cypress.config.ts", "../types/*.ts", "types.ts"],
   "exclude": [
     "node_modules"
   ]

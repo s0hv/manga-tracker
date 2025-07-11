@@ -1,13 +1,16 @@
 import { defineConfig } from 'cypress';
 
-import type { CreatedUser } from './cypress/types';
 import { db } from './dist/server/db/helpers';
 import { redis } from './dist/server/utils/ratelimits';
+import type { CreatedUser } from './types';
 
 export default defineConfig({
   video: false,
   watchForFileChanges: false,
   e2e: {
+    supportFile: 'support/e2e.{js,jsx,ts,tsx}',
+    specPattern: 'e2e/**/*.cy.{js,jsx,ts,tsx}',
+    downloadsFolder: 'downloads',
     async setupNodeEvents(on, config) {
       await import('@cypress/code-coverage/task').then(({ default: fn }) => fn(on, config));
 

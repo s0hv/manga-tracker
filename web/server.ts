@@ -1,5 +1,6 @@
 import cookieParser from 'cookie-parser';
 import express, { type NextFunction } from 'express';
+import type { Request, Response } from 'express-serve-static-core';
 import helmet from 'helmet';
 import next_ from 'next';
 import pinoHttp from 'pino-http';
@@ -31,6 +32,22 @@ const isCypress = /y|yes|true/.test(process.env.CYPRESS || '');
 
 const nextApp = next_({ dev: isDev });
 const handle = nextApp.getRequestHandler();
+
+const handleNextJs = (req: Request, res: Response) => {
+  // https://stackoverflow.com/a/79604142
+  // Next.js writes to the query property, so we must make it writable for requests passed on to it.
+  Object.defineProperty(
+    req,
+    'query',
+    {
+      ...Object.getOwnPropertyDescriptor(req, 'query'),
+      value: req.query,
+      writable: true,
+    }
+  );
+
+  return handle(req, res);
+};
 
 export default nextApp.prepare()
   .then(async () => {
@@ -153,7 +170,7 @@ export default nextApp.prepare()
     // https://github.com/gotwarlost/istanbul/blob/master/ignoring-code-for-coverage.md
     /* istanbul ignore next */
     if (isCypress && (global as any).__coverage__) {
-      server.get('/__coverage__', (req, res) => {
+      server.get('/__coverage__', (_, res) => {
         res.json({
           coverage: (global as any).__coverage__ || null,
         });
@@ -165,7 +182,7 @@ export default nextApp.prepare()
         res.redirect('/');
         return;
       }
-      return handle(req, res);
+      return handleNextJs(req, res);
     });
 
     server.post('/api/authCheck', (req, res) => {
@@ -179,12 +196,12 @@ export default nextApp.prepare()
       }});
     });
 
-    server.get('/manga/:mangaId', (req, res) => handle(req, res));
+    server.get('/manga/:mangaId', (req, res) => handleNextJs(req, res));
 
     // next auth
-    server.all('/api/auth/*splat', (req, res) => handle(req, res));
+    server.all('/api/auth/*splat', (req, res) => handleNextJs(req, res));
 
-    server.get('*splat', (req, res) => handle(req, res));
+    server.get('*splat', (req, res) => handleNextJs(req, res));
 
     // Error handlers
     server.use((err: any, req: express.Request, res: express.Response, next: NextFunction) => {
