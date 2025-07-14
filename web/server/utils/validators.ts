@@ -12,7 +12,7 @@ import {
 } from 'express-validator';
 import { pattern } from 'iso8601-duration';
 
-import { Forbidden, StatusError, Unauthorized } from './errors.js';
+import { Forbidden, StatusError, Unauthorized } from './errors';
 
 export const databaseIdValidation = (field: ValidationChain): ValidationChain => field
   .isInt({ min: 0 });

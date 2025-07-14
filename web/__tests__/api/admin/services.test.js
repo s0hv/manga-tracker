@@ -4,6 +4,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import { copyService } from '../../dbutils';
 import initServer from '../../initServer';
+import stopServer from '../../stopServer';
 import {
   adminUser,
   expectErrorMessage,
@@ -17,7 +18,6 @@ import {
 import { getServiceFull } from '../../../server/db/services';
 import { csrfMissing } from '../../../server/utils/constants';
 import { isCI, userForbidden, userUnauthorized } from '../../constants';
-import stopServer from '../../stopServer.js';
 
 let httpServer;
 

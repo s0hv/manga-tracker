@@ -7,6 +7,7 @@ import {
 } from '../api-test-utilities';
 import { createManga, createMangaService } from '@/tests/dbutils';
 import initServer from '@/tests/initServer';
+import stopServer from '@/tests/stopServer';
 import {
   adminUser,
   expectErrorMessage,
@@ -25,7 +26,6 @@ import {
   userForbidden,
   userUnauthorized,
 } from '@/tests/constants';
-import stopServer from '@/tests/stopServer.js';
 
 
 let httpServer: any;

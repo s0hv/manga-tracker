@@ -58,6 +58,8 @@ export default nextApp.prepare()
       workerSrc: "'self' blob:", // blob: used by redoc
       formAction: "'self' https://discord.com",
     };
+
+    /* istanbul ignore if */
     if (isDev) {
       // unsafe-eval required for fast refresh
       directives.scriptSrc = "'self' 'unsafe-eval' 'sha256-bNSwnlUSaw2xmSzuYfrGARS7W41eM5ASRo8PpkcVmCs='";
@@ -169,7 +171,7 @@ export default nextApp.prepare()
     server.use('/api/admin/manga', adminMangaApi());
 
     // https://github.com/gotwarlost/istanbul/blob/master/ignoring-code-for-coverage.md
-    /* istanbul ignore next */
+    /* istanbul ignore if */
     if (isCypress && (global as any).__coverage__) {
       server.get('/__coverage__', (_, res) => {
         res.json({

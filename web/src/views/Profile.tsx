@@ -27,6 +27,8 @@ import { TextFieldElement } from 'react-hook-form-mui';
 import { z } from 'zod';
 
 
+import type { SessionUser } from '@/types/dbTypes';
+
 import { deleteAccount, updateUserProfile } from '../api/user';
 
 const zodSchema = z.object({
@@ -61,17 +63,12 @@ type ProfileFormValues = z.infer<typeof zodSchema>;
 
 const resolver = zodResolver(zodSchema);
 
-type ProfileUser = {
-  username: string
-  email: string
-  isCredentialsAccount?: boolean
-};
 type ProfileProps = {
-  user?: ProfileUser
+  user?: SessionUser
 };
 const Profile: FC<ProfileProps> = props => {
   const {
-    user = ({} as Partial<ProfileUser>),
+    user = ({} as Partial<SessionUser>),
   } = props;
 
   const isCredentialsAccount = Boolean(user.isCredentialsAccount);
@@ -80,7 +77,7 @@ const Profile: FC<ProfileProps> = props => {
 
   const initialValues = useMemo<DefaultValues<ProfileFormValues>>(() => ({
     username: user.username,
-    email: user.email,
+    email: user.email as string | undefined,
   }), [user]);
 
   const {

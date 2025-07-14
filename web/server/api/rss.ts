@@ -1,9 +1,10 @@
+import type { Application, Request, Response } from 'express-serve-static-core';
 import RSS from 'rss';
 
-import { getLatestReleases } from '@/db/db';
+import { getLatestReleases, LatestRelease } from '@/db/db';
 
 
-function createFeed(rows) {
+function createFeed(rows: LatestRelease[]) {
   const feed = new RSS({
     title: 'Manga releases',
     description: 'Latest manga releases',
@@ -37,15 +38,15 @@ function createFeed(rows) {
   return feed.xml({ indent: true });
 }
 
-export default app => {
-  app.get('/rss{/:user}', (req, res) => {
+export default (app: Application) => {
+  app.get('/rss{/:user}', (req: Request, res: Response) => {
     const uuid = req.params.user;
     if (uuid && uuid.length !== 32) {
       res.sendStatus(404);
       return;
     }
 
-    getLatestReleases(req.query.serviceId, req.query.mangaId, uuid)
+    getLatestReleases(req.query.serviceId as string, req.query.mangaId as string, uuid)
       .then(rows => {
         if (rows.length === 0) {
           res.sendStatus(404);

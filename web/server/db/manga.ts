@@ -10,8 +10,8 @@ import type { Manga } from '@/types/db/manga';
 import type { DatabaseId, MangaId } from '@/types/dbTypes';
 
 
-import { HttpError } from '../utils/errors.js';
-import { mangadexLogger } from '../utils/logging.js';
+import { HttpError } from '../utils/errors';
+import { mangadexLogger } from '../utils/logging';
 
 import { db } from './helpers';
 import { fetchExtraInfo, MANGADEX_ID } from './mangadex';

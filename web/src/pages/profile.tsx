@@ -1,9 +1,16 @@
 import { ConfirmProvider } from 'material-ui-confirm';
 import { NextSeo } from 'next-seo';
 
+import type { SessionUser } from '@/types/dbTypes';
+import type { GetServerSidePropsExpress } from '@/types/nextjs';
+
 import ProfileView from '../views/Profile';
 
-const Profile = props => (
+type Props = {
+  user: SessionUser
+};
+
+const Profile = (props: Props) => (
   <>
     <NextSeo
       title='Edit profile'
@@ -18,15 +25,15 @@ const Profile = props => (
 
 export default Profile;
 
-export async function getServerSideProps({ req, res }) {
+export const getServerSideProps: GetServerSidePropsExpress<Props> = async ({ req, res }) => {
   if (!req.user || !req.user.userId) {
     res.redirect('/login');
-    return { props: {}};
+    return { props: {} as Props };
   }
 
   return {
     props: {
-      user: req.user,
+      user: req.user!,
     },
   };
-}
+};

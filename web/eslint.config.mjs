@@ -47,7 +47,7 @@ const importOrderBase = {
 export default tseslint.config(
   // ignores must be the only property in the object
   {
-    ignores: ['public/*', '__mocks__/*', 'dist/*', 'instrumented/*', '.*/*'],
+    ignores: ['public/*', '__mocks__/*', '**/dist/*', 'instrumented/*', '.*/*'],
   },
   {
     files: [

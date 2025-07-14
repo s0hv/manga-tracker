@@ -3,7 +3,7 @@ import parseInterval, { type IPostgresInterval } from 'postgres-interval';
 
 import { createSingleton } from '@/serverUtils/utilities';
 
-import { queryLogger } from '../utils/logging.js';
+import { queryLogger } from '../utils/logging';
 
 const isTest = process.env.NODE_ENV === 'test';
 

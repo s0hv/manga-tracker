@@ -3,7 +3,7 @@ import { NextSeo } from 'next-seo';
 
 import { getUserFollows } from '@/db/db';
 import { getFullManga } from '@/db/manga';
-import type { FullMangaData } from '@/types/api/manga.js';
+import type { FullMangaData } from '@/types/api/manga';
 import type { GetServerSidePropsExpress } from '@/types/nextjs';
 import { isInteger } from '@/webUtils/utilities';
 
