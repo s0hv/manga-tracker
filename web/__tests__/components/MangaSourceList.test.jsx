@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import { describe, expect, vi, it } from 'vitest';
 
 import userEvent from '@testing-library/user-event';
-import MangaSourceList from '../../src/components/MangaSourceList.js';
+import MangaSourceList from '../../src/components/MangaSourceList';
 import { normalUser, withUser, silenceConsole, restoreMocks } from '../utils';
 
 const services = [

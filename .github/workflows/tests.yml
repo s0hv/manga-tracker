@@ -19,7 +19,7 @@ jobs:
     name: Web app tests
     runs-on: ubuntu-latest
     environment: tests
-    container: node:20-bullseye
+    container: node:22-bullseye
 
     # Service containers to run with `container-job`
     services:

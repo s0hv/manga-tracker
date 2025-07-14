@@ -9,7 +9,7 @@ import { handleError } from '@/db/utils';
 import type { SortBy } from '@/types/db/common';
 
 
-import { dbLogger } from '../utils/logging.js';
+import { dbLogger } from '../utils/logging';
 import { getOptionalNumberParam } from '../utils/utilities';
 import {
   databaseIdValidation,

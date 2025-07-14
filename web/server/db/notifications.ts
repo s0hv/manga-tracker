@@ -12,7 +12,7 @@ import type {
 import { type DatabaseId, NotificationType } from '@/types/dbTypes';
 
 
-import { BadRequest, NotFound } from '../utils/errors.js';
+import { BadRequest, NotFound } from '../utils/errors';
 
 import { type DatabaseHelpers, createHelpers, db } from './helpers';
 

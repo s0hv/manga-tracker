@@ -2,7 +2,6 @@ import React from 'react';
 import { render, screen, within } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import fetchMock from 'fetch-mock';
-import type { ConfirmResult } from 'material-ui-confirm';
 import { describe, expect, it, vi } from 'vitest';
 
 import { adminUser, confirmMock, normalUser, withUser } from '../utils';

@@ -53,7 +53,7 @@ export default defineConfig({
         '**/.next/**',
         '**/{vitest,jest}.config.*',
         '**/{setupTests,next.config,loader,.eslintrc}rc.{js,cjs,ts}',
-        '**/utils/logging.js', // No need to collect coverage for loggers
+        '**/utils/logging.ts', // No need to collect coverage for loggers
       ],
     },
   },

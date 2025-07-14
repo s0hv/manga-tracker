@@ -9,8 +9,8 @@ import {
 } from 'pg-error-constants';
 
 import type { Db } from '.';
-import { StatusError } from '../utils/errors.js';
-import { dbLogger } from '../utils/logging.js';
+import { StatusError } from '../utils/errors';
+import { dbLogger } from '../utils/logging';
 
 import { NoColumnsError } from './errors';
 

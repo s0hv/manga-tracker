@@ -12,7 +12,7 @@ import type { DatabaseId, MangaId } from '@/types/dbTypes';
 import type { DefaultExcept, PartialExcept } from '@/types/utility';
 
 
-import { NO_GROUP } from '../utils/constants.js';
+import { NO_GROUP } from '../utils/constants';
 
 import { generateUpdate } from './utils';
 

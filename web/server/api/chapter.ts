@@ -16,7 +16,7 @@ import { NoColumnsError } from '@/db/errors';
 import { handleError } from '@/db/utils';
 
 
-import { dbLogger } from '../utils/logging.js';
+import { dbLogger } from '../utils/logging';
 import {
   databaseIdValidation,
   handleValidationErrors, mangaIdValidation,
