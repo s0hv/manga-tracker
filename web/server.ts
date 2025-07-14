@@ -54,7 +54,7 @@ export default nextApp.prepare()
     const server = express();
 
     const directives: any = {
-      imgSrc: "'self' https://uploads.mangadex.org https://authjs.dev data:", // data: used by redoc
+      imgSrc: "'self' https://uploads.mangadex.org https://mangadex.org https://authjs.dev data:", // data: used by redoc
       workerSrc: "'self' blob:", // blob: used by redoc
       formAction: "'self' https://discord.com",
     };
