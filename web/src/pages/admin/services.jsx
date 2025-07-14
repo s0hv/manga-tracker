@@ -1,12 +1,12 @@
 import { NextSeo } from 'next-seo';
 
-import withError from '../../utils/withError';
-import Services from '../../views/admin/Services';
-
 import { getServices } from '../../../server/db/services/serviceInfo';
 import {
   DefaultLocalizationProvider,
 } from '../../components/DefaultLocalizationProvider';
+import withError from '../../utils/withError';
+import Services from '../../views/admin/Services';
+
 
 export async function getServerSideProps({ req }) {
   if (!(req.user && req.user.admin)) {
@@ -37,7 +37,7 @@ export async function getServerSideProps({ req }) {
 }
 
 const ServicesView = withError(Services);
-const ServicesPage = (props) => (
+const ServicesPage = props => (
   <>
     <NextSeo
       title='Services'

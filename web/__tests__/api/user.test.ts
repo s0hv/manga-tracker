@@ -1,7 +1,12 @@
-import request, { SuperAgentTest } from 'supertest';
-import { insertFollow } from '@/db/follows';
-import { csrfMissing } from '@/serverUtils/constants';
-import { mangaIdError, type TestUser, userUnauthorized } from '../constants';
+import request, { type Agent } from 'supertest';
+import {
+  afterAll,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+} from 'vitest';
 
 import initServer from '../initServer';
 import stopServer from '../stopServer';
@@ -15,9 +20,14 @@ import {
   oauthUser,
   withUser,
 } from '../utils';
-import { redis } from '@/serverUtils/ratelimits';
-import { apiRequiresUserPostTests } from './utilities';
+import { apiRequiresUserPostTests } from './api-test-utilities';
+import { insertFollow } from '@/db/follows';
 import { db } from '@/db/helpers';
+import { csrfMissing } from '@/serverUtils/constants';
+import { redis } from '@/serverUtils/ratelimits';
+
+
+import { type TestUser, mangaIdError, userUnauthorized } from '../constants';
 
 let httpServer: any;
 const serverReference = {
@@ -385,8 +395,8 @@ describe('POST /api/user/profile', () => {
       .expect(expectErrorMessage('Nothing to change'));
   });
 
-  async function checkAndResetPassword(agent: SuperAgentTest, newPassword: string, user: TestUser) {
-    // Make sure password doesn't work anymore
+  async function checkAndResetPassword(agent: Agent, newPassword: string, user: TestUser) {
+    // Make sure the password doesn't work anymore
     await agent
       .post('/api/profile')
       .csrf()

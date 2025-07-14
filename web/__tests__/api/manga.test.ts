@@ -1,8 +1,17 @@
 import request from 'supertest';
-import { type Mock, vi } from 'vitest';
-import { csrfMissing } from '@/serverUtils/constants';
-import { userForbidden, userUnauthorized } from '../constants';
+import {
+  type Mock,
+  afterAll,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from 'vitest';
 
+import { apiRequiresAdminUserPostTests, expectISEOnDbError } from './api-test-utilities';
+import { createMangaService } from '../dbutils';
 import initServer from '../initServer';
 import stopServer from '../stopServer';
 import {
@@ -10,15 +19,14 @@ import {
   configureJestOpenAPI,
   expectErrorMessage,
   getErrorMessage,
-  normalUser,
   withUser,
 } from '../utils';
-import { apiRequiresAdminUserPostTests, expectISEOnDbError } from './utilities';
-import type { DatabaseId, MangaId } from '@/types/dbTypes';
-import { createMangaService } from '../dbutils';
 import { deleteManga, updateManga } from '@/db/elasticsearch/manga';
-import { getMangaPartial } from '@/db/manga';
 import { NoResultsError } from '@/db/errors';
+import { getMangaPartial } from '@/db/manga';
+import { mangaIdError } from '@/tests/constants';
+import type { DatabaseId, MangaId } from '@/types/dbTypes';
+
 
 let httpServer: any;
 const serverReference = {
@@ -43,104 +51,6 @@ beforeAll(async () => {
 afterAll(async () => {
   await stopServer(httpServer);
 });
-
-describe('POST /api/manga/merge', () => {
-  it('Returns 403 without CSRF token', async () => {
-    await request(httpServer)
-      .post('/api/manga/merge')
-      .expect(403)
-      .expect(expectErrorMessage(csrfMissing));
-  });
-
-  it('Returns 401 without user authentication', async () => {
-    await request(httpServer)
-      .post('/api/manga/merge')
-      .csrf()
-      .expect(401)
-      .expect(expectErrorMessage(userUnauthorized));
-  });
-
-  it('Returns 403 without admin rights', async () => {
-    await withUser(normalUser, async () => {
-      await request(httpServer)
-        .post('/api/manga/merge')
-        .csrf()
-        .expect(403)
-        .expect(expectErrorMessage(userForbidden));
-    });
-  });
-
-  it('Returns 400 with invalid base id', async () => {
-    await withUser(adminUser, async () => {
-      await request(httpServer)
-        .post('/api/manga/merge?base=-1')
-        .csrf()
-        .expect(400)
-        .expect(expectErrorMessage('-1', 'base'));
-
-      await request(httpServer)
-        .post('/api/manga/merge?base=NaN')
-        .csrf()
-        .expect(400)
-        .expect(expectErrorMessage('NaN', 'base'));
-
-      await request(httpServer)
-        .post('/api/manga/merge?base=abc')
-        .csrf()
-        .expect(400)
-        .expect(expectErrorMessage('abc', 'base'));
-    });
-  });
-
-  it('Returns 400 with invalid toMerge id', async () => {
-    await withUser(adminUser, async () => {
-      await request(httpServer)
-        .post('/api/manga/merge?toMerge=-1')
-        .csrf()
-        .expect(400)
-        .expect(expectErrorMessage('-1', 'toMerge'));
-
-      await request(httpServer)
-        .post('/api/manga/merge?toMerge=NaN')
-        .csrf()
-        .expect(400)
-        .expect(expectErrorMessage('NaN', 'toMerge'));
-
-      await request(httpServer)
-        .post('/api/manga/merge?toMerge=abc')
-        .csrf()
-        .expect(400)
-        .expect(expectErrorMessage('abc', 'toMerge'));
-    });
-  });
-
-  it('Returns 400 when base equals toMerge', async () => {
-    await withUser(adminUser, async () => {
-      await request(httpServer)
-        .post('/api/manga/merge?toMerge=5&base=5')
-        .csrf()
-        .expect(400)
-        .expect(expectErrorMessage('Given ids are equal'));
-    });
-  });
-
-  it('Returns 400 with invalid service id', async () => {
-    await withUser(adminUser, async () => {
-      await request(httpServer)
-        .post('/api/manga/merge?toMerge=1&base=2&service=-1')
-        .csrf()
-        .expect(400)
-        .expect(res => expect(getErrorMessage(res)).toMatchSnapshot());
-
-      await request(httpServer)
-        .post('/api/manga/merge?toMerge=1&base=2&service=abc')
-        .csrf()
-        .expect(400)
-        .expect(res => expect(getErrorMessage(res)).toMatchSnapshot());
-    });
-  });
-});
-
 
 describe('GET /api/manga/:mangaId', () => {
   expectISEOnDbError(serverReference, '/api/manga/1');
@@ -182,14 +92,16 @@ describe('GET /api/manga/:mangaId/chapters', () => {
 
   expectISEOnDbError(serverReference, validUrl);
 
-  it('returns 404 with invalid manga id', async () => {
+  it('returns 400 or 404 with invalid manga id', async () => {
     await request(httpServer)
       .get(`/api/manga/9999999/chapters`)
+      // Valid id, but no manga exists for it
       .expect(404);
 
     await request(httpServer)
       .get(`/api/manga/-1/chapters`)
-      .expect(404);
+      .expect(400)
+      .expect(expectErrorMessage('-1', 'mangaId', mangaIdError));
   });
 
   it('returns 400 with an invalid limit', async () => {
@@ -341,6 +253,76 @@ describe('POST /api/manga/merge', () => {
     esUpdateMock.mockResolvedValue(undefined);
     (deleteManga as Mock).mockImplementation(esDeleteMock);
     (updateManga as Mock).mockImplementation(esUpdateMock);
+  });
+
+  it('Returns 400 with invalid base id', async () => {
+    await withUser(adminUser, async () => {
+      await request(httpServer)
+        .post('/api/manga/merge?base=-1')
+        .csrf()
+        .expect(400)
+        .expect(expectErrorMessage('-1', 'base'));
+
+      await request(httpServer)
+        .post('/api/manga/merge?base=NaN')
+        .csrf()
+        .expect(400)
+        .expect(expectErrorMessage('NaN', 'base'));
+
+      await request(httpServer)
+        .post('/api/manga/merge?base=abc')
+        .csrf()
+        .expect(400)
+        .expect(expectErrorMessage('abc', 'base'));
+    });
+  });
+
+  it('Returns 400 with invalid toMerge id', async () => {
+    await withUser(adminUser, async () => {
+      await request(httpServer)
+        .post('/api/manga/merge?toMerge=-1')
+        .csrf()
+        .expect(400)
+        .expect(expectErrorMessage('-1', 'toMerge'));
+
+      await request(httpServer)
+        .post('/api/manga/merge?toMerge=NaN')
+        .csrf()
+        .expect(400)
+        .expect(expectErrorMessage('NaN', 'toMerge'));
+
+      await request(httpServer)
+        .post('/api/manga/merge?toMerge=abc')
+        .csrf()
+        .expect(400)
+        .expect(expectErrorMessage('abc', 'toMerge'));
+    });
+  });
+
+  it('Returns 400 when base equals toMerge', async () => {
+    await withUser(adminUser, async () => {
+      await request(httpServer)
+        .post('/api/manga/merge?toMerge=5&base=5')
+        .csrf()
+        .expect(400)
+        .expect(expectErrorMessage('Given ids are equal'));
+    });
+  });
+
+  it('Returns 400 with invalid service id', async () => {
+    await withUser(adminUser, async () => {
+      await request(httpServer)
+        .post('/api/manga/merge?toMerge=1&base=2&service=-1')
+        .csrf()
+        .expect(400)
+        .expect(res => expect(getErrorMessage(res)).toMatchSnapshot());
+
+      await request(httpServer)
+        .post('/api/manga/merge?toMerge=1&base=2&service=abc')
+        .csrf()
+        .expect(400)
+        .expect(res => expect(getErrorMessage(res)).toMatchSnapshot());
+    });
   });
 
   it('Returns 400 with invalid params', async () => {

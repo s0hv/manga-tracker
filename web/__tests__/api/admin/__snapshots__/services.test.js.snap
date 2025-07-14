@@ -5,13 +5,15 @@ exports[`POST /api/admin/editService/:serviceId > Returns 400 with invalid servi
   {
     "location": "body",
     "msg": "Value must be a valid ISO 8601 duration",
-    "param": "serviceConfig.checkInterval",
+    "path": "serviceConfig.checkInterval",
+    "type": "field",
     "value": "3Y6M4DT12H30M5S",
   },
   {
     "location": "body",
     "msg": "Value must be a valid ISO 8601 duration",
-    "param": "serviceConfig.scheduledRunInterval",
+    "path": "serviceConfig.scheduledRunInterval",
+    "type": "field",
     "value": "3Y6M4DT12H30M5S",
   },
 ]
@@ -22,13 +24,15 @@ exports[`POST /api/admin/editService/:serviceId > Returns 400 with invalid servi
   {
     "location": "body",
     "msg": "Value must be a valid ISO 8601 duration",
-    "param": "serviceConfig.checkInterval",
+    "path": "serviceConfig.checkInterval",
+    "type": "field",
     "value": "T12H30M5S",
   },
   {
     "location": "body",
     "msg": "Value must be a valid ISO 8601 duration",
-    "param": "serviceConfig.scheduledRunInterval",
+    "path": "serviceConfig.scheduledRunInterval",
+    "type": "field",
     "value": "T12H30M5S",
   },
 ]
@@ -39,7 +43,8 @@ exports[`POST /api/admin/editService/:serviceId > Returns 400 with invalid servi
   {
     "location": "body",
     "msg": "scheduledRunLimit must be between 1 and 100",
-    "param": "serviceConfig.scheduledRunLimit",
+    "path": "serviceConfig.scheduledRunLimit",
+    "type": "field",
     "value": "a",
   },
 ]
@@ -50,7 +55,8 @@ exports[`POST /api/admin/editService/:serviceId > Returns 400 with invalid servi
   {
     "location": "body",
     "msg": "scheduledRunLimit must be between 1 and 100",
-    "param": "serviceConfig.scheduledRunLimit",
+    "path": "serviceConfig.scheduledRunLimit",
+    "type": "field",
     "value": 101,
   },
 ]
@@ -61,7 +67,8 @@ exports[`POST /api/admin/editService/:serviceId > Returns 400 with invalid servi
   {
     "location": "body",
     "msg": "scheduledRunLimit must be between 1 and 100",
-    "param": "serviceConfig.scheduledRunLimit",
+    "path": "serviceConfig.scheduledRunLimit",
+    "type": "field",
     "value": 0,
   },
 ]

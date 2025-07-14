@@ -1,3 +1,4 @@
+import type { TableCellProps } from '@mui/material';
 import type {
   Cell,
   CellContext,
@@ -10,16 +11,6 @@ import type {
   Table,
   TableState,
 } from '@tanstack/react-table';
-import type { TableCellProps } from '@mui/material';
-
-// eslint-disable-next-line import/export, @typescript-eslint/no-empty-interface
-export interface MaterialCellContext<TData extends RowData, TValue> extends Omit<
-  CellContext<TData, TValue>,
-  | 'table'
-  | 'column'
-  | 'cell'
-> {
-}
 
 export type MaterialColumnDef<TData extends RowData, TValue = unknown> = Omit<
   ColumnDef<TData, TValue>,
@@ -31,14 +22,14 @@ export type MaterialColumnDef<TData extends RowData, TValue = unknown> = Omit<
   EditCell?: ColumnDefTemplate<MaterialCellContext<TData, TValue>>
   OriginalCell?: ColumnDefTemplate<MaterialCellContext<TData, TValue>>
   width?: number | string
-}
+};
 
 export type MaterialColumn<TData extends RowData, TValue> = Omit<
   Column<TData, TValue>,
   | 'columnDef'
 > & {
   columnDef: MaterialColumnDef<TData, TValue>
-}
+};
 
 export type MaterialCell<TData extends RowData, TValue> = Omit<
   Cell<TData, TValue>,
@@ -47,7 +38,7 @@ export type MaterialCell<TData extends RowData, TValue> = Omit<
 > & {
   column: MaterialColumn<TData, TValue>
   getContext: () => MaterialCellContext<TData, TValue>
-}
+};
 
 export type MaterialRow<TData extends RowData> = Omit<
   Row<TData>,
@@ -56,7 +47,7 @@ export type MaterialRow<TData extends RowData> = Omit<
 > & {
   getVisibleCells: () => MaterialCell<TData, unknown>[]
   getAllCells: () => MaterialCell<TData, unknown>[]
-}
+};
 
 export type MaterialRowModel<TData extends RowData> = Omit<
   RowModel<TData>,
@@ -64,15 +55,15 @@ export type MaterialRowModel<TData extends RowData> = Omit<
   | 'flatRows'
   | 'rowsById'
 > & {
-    rows: MaterialRow<TData>[];
-    flatRows: MaterialRow<TData>[];
-    rowsById: Record<string, MaterialRow<TData>>;
-}
+  rows: MaterialRow<TData>[]
+  flatRows: MaterialRow<TData>[]
+  rowsById: Record<string, MaterialRow<TData>>
+};
 
 export type MaterialTableState<TData extends RowData> = TableState & {
-  editing: Record<string, boolean>;
+  editing: Record<string, boolean>
   rowEditState: Record<string, TData | undefined>
-}
+};
 
 export type MaterialTableInstance<TData extends RowData> = Omit<
   Table<TData>,
@@ -83,9 +74,9 @@ export type MaterialTableInstance<TData extends RowData> = Omit<
   getRowModel: () => MaterialRowModel<TData>
   getState: () => MaterialTableState<TData>
   getVisibleFlatColumns: () => MaterialColumn<TData, unknown>[]
-}
+};
 
-// eslint-disable-next-line import/export
+
 export interface MaterialCellContext<TData extends RowData, TValue> extends Omit<
   CellContext<TData, TValue>,
   | 'table'
@@ -98,5 +89,5 @@ export interface MaterialCellContext<TData extends RowData, TValue> extends Omit
 }
 
 
-export type AfterRowEdit<TData extends RowData> = (modifiedData: Partial<TData>, ctx: MaterialCellContext<TData, unknown>) => void
-export type RowChangeAction<TData extends RowData> = (ctx: MaterialCellContext<TData, unknown>) => void
+export type AfterRowEdit<TData extends RowData> = (modifiedData: Partial<TData>, ctx: MaterialCellContext<TData, unknown>) => void;
+export type RowChangeAction<TData extends RowData> = (ctx: MaterialCellContext<TData, unknown>) => void;

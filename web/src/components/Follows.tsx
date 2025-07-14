@@ -1,5 +1,4 @@
 import React from 'react';
-import { styled } from '@mui/material/styles';
 import {
   Button,
   Container,
@@ -10,13 +9,14 @@ import {
   Paper,
   Typography,
 } from '@mui/material';
+import { styled } from '@mui/material/styles';
 import Image from 'next/image';
 import NextLink from 'next/link';
-import { useCSRF } from '../utils/csrf';
 
-import { defaultDateDistanceToNow, followUnfollow } from '../utils/utilities';
-import { nextImageFix } from '../utils/theme';
 import type { Follow } from '@/types/db/follows';
+
+import { nextImageFix } from '../utils/theme';
+import { defaultDateDistanceToNow, followUnfollow } from '../utils/utilities';
 
 
 const FollowContent = styled('div')({
@@ -46,8 +46,8 @@ const followServiceItem = { display: 'flex', justifyContent: 'space-between' };
 const mangaLinkStyles = { display: 'flex', height: '100%', position: 'relative' } satisfies React.CSSProperties;
 
 export type FollowProps = {
-  follows?: Follow[];
-}
+  follows?: Follow[]
+};
 
 
 function Follows(props: FollowProps) {
@@ -55,7 +55,6 @@ function Follows(props: FollowProps) {
     follows = [],
   } = props;
 
-  const csrf = useCSRF();
   const columnsXs = 1;
   const columnsMd = 2;
 
@@ -63,7 +62,13 @@ function Follows(props: FollowProps) {
     const followedServices = follow.followedServices;
 
     return (
-      <Grid item xs={12/columnsXs} md={12/columnsMd} key={follow.mangaId}>
+      <Grid
+        key={follow.mangaId}
+        size={{
+          xs: 12 / columnsXs,
+          md: 12 / columnsMd,
+        }}
+      >
         <Typography
           sx={{ pt: 2, pl: 2 }}
           variant='h4'
@@ -110,14 +115,14 @@ function Follows(props: FollowProps) {
             <List sx={{ overflow: 'auto', maxHeight: '250px' }} aria-label='manga services'>
               <ListItem key='all_services' disableGutters sx={followServiceItem}>
                 <ListItemText primary='All services' sx={serviceNameText} />
-                <Button variant='contained' color='primary' onClick={followUnfollow(csrf, follow.mangaId, null)}>
+                <Button variant='contained' color='primary' onClick={followUnfollow(follow.mangaId, null)}>
                   {followedServices.indexOf(null) < 0 ? 'Follow' : 'Unfollow'}
                 </Button>
               </ListItem>
-              {follow.services.map((service) => (
+              {follow.services.map(service => (
                 <ListItem key={service.serviceId} sx={followServiceItem} disableGutters>
                   <ListItemText primary={service.serviceName} sx={serviceNameText} />
-                  <Button variant='contained' color='primary' onClick={followUnfollow(csrf, follow.mangaId, service.serviceId)}>
+                  <Button variant='contained' color='primary' onClick={followUnfollow(follow.mangaId, service.serviceId)}>
                     {followedServices.indexOf(service.serviceId) < 0 ? 'Follow' : 'Unfollow'}
                   </Button>
                 </ListItem>

@@ -1,13 +1,18 @@
-import type { Adapter, AdapterSession, AdapterUser } from 'next-auth/adapters';
 import { LRUCache as LRU } from 'lru-cache';
+import type {
+  Adapter,
+  AdapterAccount,
+  AdapterSession,
+  AdapterUser,
+} from 'next-auth/adapters';
 import type { JSONValue } from 'postgres';
-import type { DatabaseHelpers } from '@/db/helpers';
 
+import { userSelect } from '@/db/auth';
+import type { DatabaseHelpers } from '@/db/helpers';
+import { generateUpdate } from '@/db/utils';
+import { dbLogger, sessionLogger } from '@/serverUtils/logging';
 import { createSingleton } from '@/serverUtils/utilities';
 import { onSessionExpire } from '@/serverUtils/view-counter';
-import { dbLogger, sessionLogger } from '@/serverUtils/logging';
-import { userSelect } from '@/db/auth';
-import { generateUpdate } from '@/db/utils';
 import type { RequiredExcept } from '@/types/utility';
 
 
@@ -18,9 +23,9 @@ export type PostgresAdapter = RequiredExcept<Adapter, 'createVerificationToken' 
   clearOldSessions: () => Promise<void>
   updateUserLastActivity: (userId: string) => Promise<void>
 
-  userCache: LRU<string, AdapterUser>,
+  userCache: LRU<string, AdapterUser>
   sessionCache: LRU<string, AdapterSession>
-  clearInterval: null | NodeJS.Timer
+  clearInterval: null | NodeJS.Timeout
 };
 
 export interface CacheOptions {
@@ -64,9 +69,9 @@ export const PostgresAdapter = (db: DatabaseHelpers, options: StoreOptions = {})
   };
 
   type GetUser = {
-    (id: string, expectExists: true, noCache?: boolean): Promise<AdapterUser>,
-    (id: string, expectExists?: false, noCache?: boolean): Promise<AdapterUser | null>,
-  }
+    (id: string, expectExists: true, noCache?: boolean): Promise<AdapterUser>
+    (id: string, expectExists?: false, noCache?: boolean): Promise<AdapterUser | null>
+  };
 
   const getUser: GetUser = (async (id: string, expectExists = false, noCache = false) => {
     if (!noCache) {
@@ -121,7 +126,7 @@ export const PostgresAdapter = (db: DatabaseHelpers, options: StoreOptions = {})
       sessionCache.delete(sessionId);
     },
 
-    createUser(user) {
+    createUser(user: Omit<AdapterUser, 'id'>) {
       return db.one<{ userUuid: string }>`INSERT INTO users (username, email, pwhash, is_credentials_account) VALUES (${user.name}, ${user.email}, NULL, FALSE) RETURNING user_uuid`
         .then(({ userUuid }) => getUser(userUuid, true));
     },
@@ -162,11 +167,14 @@ export const PostgresAdapter = (db: DatabaseHelpers, options: StoreOptions = {})
       return db.none`UPDATE users SET last_active=CURRENT_TIMESTAMP WHERE user_uuid=${userId}`;
     },
 
-    linkAccount(account) {
-      return db.none`INSERT INTO account ${db.sql(account, 'type', 'provider', 'providerAccountId', 'refresh_token', 'access_token', 'expires_at', 'token_type', 'scope', 'id_token', 'session_state', 'userId')}`;
+    linkAccount(account: any) {
+      return db.none`INSERT INTO account ${db.sql(account as AdapterAccount, 'type', 'provider', 'providerAccountId', 'refresh_token', 'access_token', 'expires_at', 'token_type', 'scope', 'id_token', 'session_state', 'userId')}`;
     },
 
-    unlinkAccount({ providerAccountId, provider }) {
+    unlinkAccount({ providerAccountId, provider }: Pick<
+      AdapterAccount,
+      'provider' | 'providerAccountId'
+    >) {
       return db.none`DELETE FROM account WHERE provider=${provider} AND provider_account_id=${providerAccountId}`;
     },
 
@@ -218,9 +226,9 @@ export const PostgresAdapter = (db: DatabaseHelpers, options: StoreOptions = {})
           return sess;
         });
     },
-  };
+  } satisfies PostgresAdapter;
 
-  let clearInterval: null | NodeJS.Timer;
+  let clearInterval: null | NodeJS.Timeout;
   if (!Number.isFinite(options.clearInterval)) {
     clearInterval = null;
   } else {

@@ -1,11 +1,13 @@
-import { NextSeo } from 'next-seo';
 import React from 'react';
+import { NextSeo } from 'next-seo';
 
 import { getUserFollows } from '@/db/db';
 import { getFullManga } from '@/db/manga';
-import type { FullMangaData } from '@/types/api/manga.js';
+import type { FullMangaData } from '@/types/api/manga';
 import type { GetServerSidePropsExpress } from '@/types/nextjs';
 import { isInteger } from '@/webUtils/utilities';
+
+
 import Manga from '../../components/Manga';
 import withError from '../../utils/withError';
 
@@ -23,10 +25,12 @@ function MangaPage(props: { manga: FullMangaData, follows: number[] }) {
         title={manga.title}
         openGraph={{
           title: manga.title,
-          images: manga.cover ? [{
-            url: manga.cover,
-            alt: `${manga.title} cover art`,
-          }] : undefined,
+          images: manga.cover
+            ? [{
+              url: manga.cover,
+              alt: `${manga.title} cover art`,
+            }]
+            : undefined,
         }}
       />
       <Manga mangaData={{ ...fullManga }} userFollows={follows as any} />

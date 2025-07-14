@@ -1,10 +1,11 @@
-import { vi } from 'vitest';
-import type { AdapterSession } from 'next-auth/adapters';
 import { faker } from '@faker-js/faker';
-import { PostgresAdapter } from '@/db/postgres-adapter';
-import { db } from '@/db/helpers';
+import type { AdapterSession } from 'next-auth/adapters';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+
 import { spyOnDb } from '../dbutils';
 import { mockUTCDates, normalUser } from '../utils';
+import { db } from '@/db/helpers';
+import { PostgresAdapter } from '@/db/postgres-adapter';
 import { SessionData } from '@/types/dbTypes';
 
 
@@ -64,9 +65,9 @@ describe('PostgresAdapter', () => {
     it('Returns session when found from database and saves it to cache', async () => {
       const spy = spyOnDb('oneOrNone');
       const adapter = PostgresAdapter(db);
-      const sid = faker.datatype.uuid();
+      const sid = faker.string.uuid();
       const session = { test: 1, data: 'data' };
-      const expires = new Date(Date.now() + 60*60*60);
+      const expires = new Date(Date.now() + 60 * 60 * 60);
 
       // Delete existing session and add new one
       await db.sql`DELETE FROM sessions WHERE session_id=${sid}`;
@@ -92,7 +93,7 @@ describe('PostgresAdapter', () => {
     it('Returns session without database calls when it is in cache', async () => {
       const spy = spyOnDb();
       const adapter = PostgresAdapter(db);
-      const sid = faker.datatype.uuid();
+      const sid = faker.string.uuid();
       const session: AdapterSession = {
         expires: new Date(),
         sessionToken: sid,
@@ -100,7 +101,7 @@ describe('PostgresAdapter', () => {
         data: { test: 1, data: 'data' },
       };
 
-      adapter.sessionCache.set(sid, session, { ttl: 60*60*60 });
+      adapter.sessionCache.set(sid, session, { ttl: 60 * 60 * 60 });
 
       await expect(adapter.getSession(sid))
         .resolves
@@ -113,7 +114,7 @@ describe('PostgresAdapter', () => {
       const error = new Error('test');
       const spy = spyOnDb('oneOrNone').mockImplementation(async () => { throw error });
       const adapter = PostgresAdapter(db);
-      const sid = faker.datatype.uuid();
+      const sid = faker.string.uuid();
 
       await expect(adapter.getSession(sid))
         .rejects
@@ -126,7 +127,7 @@ describe('PostgresAdapter', () => {
   describe('Setting sessions', () => {
     const session = {
       userId: normalUser.id,
-      expires: new Date(Date.now() + 60*60*60),
+      expires: new Date(Date.now() + 60 * 60 * 60),
       data: {
         test: 1,
         data: 'data',
@@ -136,7 +137,7 @@ describe('PostgresAdapter', () => {
     it('Saves new session to database and cache', async () => {
       const spy = spyOnDb();
       const adapter = PostgresAdapter(db);
-      const sid = faker.datatype.uuid();
+      const sid = faker.string.uuid();
       await adapter.deleteSession(sid);
 
       const expected: AdapterSession = { ...session, sessionToken: sid };
@@ -154,7 +155,7 @@ describe('PostgresAdapter', () => {
       const error = new Error('test');
       const spy = spyOnDb('one').mockImplementation(async () => { throw error });
       const adapter = PostgresAdapter(db);
-      const sid = faker.datatype.uuid();
+      const sid = faker.string.uuid();
       await adapter.deleteSession(sid);
 
       await expect(adapter.createSession({ ...session, sessionToken: sid }))
@@ -218,7 +219,7 @@ describe('PostgresAdapter', () => {
           vi.useRealTimers();
         }));
 
-      vi.advanceTimersByTime(sessionClearInterval+10);
+      vi.advanceTimersByTime(sessionClearInterval + 10);
       await promise;
 
       expect(dbSpy).toHaveBeenCalled();
@@ -233,7 +234,7 @@ describe('PostgresAdapter', () => {
       const adapter = PostgresAdapter(db, { clearInterval: sessionClearInterval });
       const sessionSpy = vi.spyOn(adapter, 'clearOldSessions');
 
-      vi.advanceTimersByTime(sessionClearInterval+10);
+      vi.advanceTimersByTime(sessionClearInterval + 10);
       clearInterval(adapter.clearInterval!);
       vi.runAllTimers();
       // postgres.js does not like fake timers

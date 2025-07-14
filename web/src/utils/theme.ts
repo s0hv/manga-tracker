@@ -1,10 +1,7 @@
-import {
-  experimental_extendTheme as extendTheme,
-  responsiveFontSizes,
-} from '@mui/material/styles';
-
 import { blue } from '@mui/material/colors';
-import { Roboto } from '@next/font/google';
+import { createTheme, responsiveFontSizes } from '@mui/material/styles';
+import type {} from '@mui/material/themeCssVarsAugmentation';
+import { Roboto } from 'next/font/google';
 
 /* istanbul ignore next */
 export const roboto = Roboto({
@@ -14,7 +11,7 @@ export const roboto = Roboto({
   fallback: ['Helvetica', 'Arial', 'sans-serif'],
 });
 
-export const theme = responsiveFontSizes(extendTheme({
+export const theme = responsiveFontSizes(createTheme({
   colorSchemes: {
     light: {
       palette: {
@@ -27,6 +24,9 @@ export const theme = responsiveFontSizes(extendTheme({
         primary: blue,
       },
     },
+  },
+  cssVariables: {
+    colorSchemeSelector: 'class',
   },
   breakpoints: {
     values: {

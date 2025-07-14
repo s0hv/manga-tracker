@@ -1,3 +1,4 @@
+import type { Response } from 'express-serve-static-core';
 import {
   FOREIGN_KEY_VIOLATION,
   IN_FAILED_SQL_TRANSACTION,
@@ -6,12 +7,12 @@ import {
   NUMERIC_VALUE_OUT_OF_RANGE,
   UNIQUE_VIOLATION,
 } from 'pg-error-constants';
-import type { Response } from 'express-serve-static-core';
+
+import type { Db } from '.';
+import { StatusError } from '../utils/errors';
+import { dbLogger } from '../utils/logging';
 
 import { NoColumnsError } from './errors';
-import { dbLogger } from '../utils/logging.js';
-import { StatusError } from '../utils/errors.js';
-import type { Db } from '.';
 
 /**
  * Generate update statement from an object while filtering out undefined values.
@@ -19,7 +20,7 @@ import type { Db } from '.';
  * @param {Object} o Input object
  * @param {Db} sql Database instance
  */
-export const generateUpdate = (o: {[key: string]: any}, sql: Db) => {
+export const generateUpdate = (o: {[key: string]: any }, sql: Db) => {
   const obj = { ...o };
   Object.keys(obj).forEach(key => obj[key] === undefined && delete obj[key]);
 

@@ -22,9 +22,9 @@ export type MaterialColumnHelper<TData extends RowData> = Omit<
   | 'accessor'
   | 'display'
 > & {
-  accessor: <TAccessor extends AccessorFn<TData> | DeepKeys<TData>, TValue extends TAccessor extends AccessorFn<TData, infer TReturn> ? TReturn : TAccessor extends DeepKeys<TData> ? DeepValue<TData, TAccessor> : never>(accessor: TAccessor, column: Omit<MaterialColumnDef<TData, TValue>, 'accessorKey'>) => MaterialColumnDef<TData, TValue>;
-  display: (column: RequiredKeys<Omit<MaterialColumnDef<TData, unknown>, 'accessorKey' | 'accessorFn'>, 'id'>) => MaterialColumnDef<TData, unknown>;
-}
+  accessor: <TAccessor extends AccessorFn<TData> | DeepKeys<TData>, TValue extends TAccessor extends AccessorFn<TData, infer TReturn> ? TReturn : TAccessor extends DeepKeys<TData> ? DeepValue<TData, TAccessor> : never>(accessor: TAccessor, column: Omit<MaterialColumnDef<TData, TValue>, 'accessorKey'>) => MaterialColumnDef<TData, TValue>
+  display: (column: RequiredKeys<Omit<MaterialColumnDef<TData, unknown>, 'accessorKey' | 'accessorFn'>, 'id'>) => MaterialColumnDef<TData, unknown>
+};
 export const createColumnHelper = <TData extends RowData>() => createColumnHelperOriginal<TData>() as MaterialColumnHelper<TData>;
 
 

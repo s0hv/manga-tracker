@@ -1,22 +1,24 @@
+import type { FC, PropsWithChildren } from 'react';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import {
   Accordion as AccordionMui,
   AccordionDetails,
   AccordionSummary as AccordionSummaryMui,
-  Box,
   Typography,
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
-import { Checkboxes } from 'mui-rff';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import type { FC, PropsWithChildren } from 'react';
+import type { Control } from 'react-hook-form';
+import { CheckboxElement } from 'react-hook-form-mui';
+
+import type { FormValues } from '@/components/notifications/types';
 
 
-const FlexBox = styled(Box)({
+const FlexBox = styled('div')({
   display: 'flex',
   justifyContent: 'space-between',
 });
 
-const RightSideBox = styled(Box)(({ theme }) => ({
+const RightSideBox = styled('div')(({ theme }) => ({
   marginTop: theme.spacing(2),
   minWidth: '15%',
   display: 'flex',
@@ -24,20 +26,20 @@ const RightSideBox = styled(Box)(({ theme }) => ({
   rowGap: '5px',
 }));
 
-export const RightSide: FC<PropsWithChildren<{ disabled: boolean }>> = ({ children, disabled }) => (
+export const RightSide = <T extends FormValues>({ children, disabled, control }: PropsWithChildren<{ disabled?: boolean, control: Control<T> }>) => (
   <RightSideBox>
-    <Checkboxes
+    <CheckboxElement
+      control={control as unknown as Control<FormValues>}
       name='disabled'
       color='primary'
-      data={{ label: 'Disabled', value: undefined }}
-      fieldProps={{ defaultValue: false }}
+      label='Disabled'
       disabled={disabled}
     />
-    <Checkboxes
+    <CheckboxElement
+      control={control as unknown as Control<FormValues>}
       name='groupByManga'
       color='primary'
-      data={{ label: 'Group by manga', value: undefined }}
-      fieldProps={{ defaultValue: false }}
+      label='Group by manga'
       disabled={disabled}
     />
     {children}

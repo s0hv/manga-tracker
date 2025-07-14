@@ -1,22 +1,23 @@
-import request from 'supertest';
 import { parse, toSeconds } from 'iso8601-duration';
+import request from 'supertest';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
-import { csrfMissing } from '../../../server/utils/constants';
-
-import { userForbidden, userUnauthorized, isCI } from '../../constants';
+import { copyService } from '../../dbutils';
 import initServer from '../../initServer';
 import stopServer from '../../stopServer';
 import {
   adminUser,
-  normalUser,
-  withUser,
   expectErrorMessage,
   getErrorMessage,
   getIncrementalStringGenerator,
   mockUTCDates,
+  normalUser,
+  withUser,
 } from '../../utils';
+
 import { getServiceFull } from '../../../server/db/services';
-import { copyService } from '../../dbutils';
+import { csrfMissing } from '../../../server/utils/constants';
+import { isCI, userForbidden, userUnauthorized } from '../../constants';
 
 let httpServer;
 
@@ -237,7 +238,7 @@ describe('POST /api/admin/editService/:serviceId', () => {
     });
   });
 
-  const expectUpdateDoneCorrectly = async (data) => {
+  const expectUpdateDoneCorrectly = async data => {
     await withUser(adminUser, async () => {
       await request(httpServer)
         .post(url)

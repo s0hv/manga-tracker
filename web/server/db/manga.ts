@@ -3,14 +3,18 @@ import {
   INVALID_TEXT_REPRESENTATION,
   NUMERIC_VALUE_OUT_OF_RANGE,
 } from 'pg-error-constants';
+
 import type { MangaInfoData } from '@/types/api/manga';
 import type { Follow } from '@/types/db/follows';
 import type { Manga } from '@/types/db/manga';
 import type { DatabaseId, MangaId } from '@/types/dbTypes';
-import { HttpError } from '../utils/errors.js';
-import { mangadexLogger } from '../utils/logging.js';
+
+
+import { HttpError } from '../utils/errors';
+import { mangadexLogger } from '../utils/logging';
+
 import { db } from './helpers';
-import { fetchExtraInfo, MANGADEX_ID } from './mangadex.js';
+import { fetchExtraInfo, MANGADEX_ID } from './mangadex';
 
 const links = {
   al: 'https://anilist.co/manga/',
@@ -34,31 +38,31 @@ export function formatLinks(row: Record<string, string>) {
 }
 
 export type MangaData = {
-  mangaId: number,
-  title: string,
-  releaseInterval?: Date | null,
-  latestRelease?: Date | null,
-  estimatedRelease?: Date | null,
-  latestChapter?: number | null,
-  lastUpdated? : Date | null,
-} & Omit<MangaInfoData, 'lastUpdated'>
+  mangaId: number
+  title: string
+  releaseInterval?: Date | null
+  latestRelease?: Date | null
+  estimatedRelease?: Date | null
+  latestChapter?: number | null
+  lastUpdated?: Date | null
+} & Omit<MangaInfoData, 'lastUpdated'>;
 
 export type FullManga = {
-  services?: object[],
-  chapters?: object[],
+  services?: object[]
+  chapters?: object[]
   aliases?: string[]
   manga: MangaData
-}
+};
 
 type FullMangaUnformatted = {
-  services: any[],
-  chapters?: any[],
-  aliases: string[],
-} & MangaData
+  services: any[]
+  chapters?: any[]
+  aliases: string[]
+} & MangaData;
 
 function formatFullManga(obj: Partial<FullMangaUnformatted>): FullManga {
   const out: FullManga = {
-    manga: {} as any,
+    manga: {} as unknown as MangaData,
   };
 
   if (obj.services) {
@@ -100,7 +104,7 @@ export function getFullManga(mangaId: MangaId): Promise<FullManga | null> {
 
       const mdIdx = row.services.findIndex(v => v.serviceId === MANGADEX_ID);
       // If info doesn't exist or 2 weeks since last update
-      if ((!row.lastUpdated || (Date.now() - (row.lastUpdated as any))/8.64E7 > 14) && mdIdx >= 0) {
+      if ((!row.lastUpdated || (Date.now() - (row.lastUpdated as any)) / 8.64E7 > 14) && mdIdx >= 0) {
         fetchExtraInfo(row.services[mdIdx].titleId, mangaId)
           .catch(mangadexLogger.error);
       }
@@ -131,7 +135,7 @@ export async function getFollows(userId: DatabaseId): Promise<Follow[]> {
     .catch(err => {
       // integer overflow
       if (err.code === NUMERIC_VALUE_OUT_OF_RANGE || err.code === INVALID_TEXT_REPRESENTATION) {
-        return new Promise((resolve, reject) => reject(HttpError(404, 'Integer out of range')));
+        return new Promise((resolve, reject) => reject(HttpError(400, 'Integer out of range')));
       }
       console.error(err);
       return new Promise((resolve, reject) => reject(HttpError(500)));
@@ -148,12 +152,12 @@ export const getMangaPartial = (mangaId: MangaId) => {
 };
 
 export type MangaForElastic = {
-  mangaId: number,
-  title: string,
-  views: number,
-  aliases: { title: string }[],
+  mangaId: number
+  title: string
+  views: number
+  aliases: { title: string }[]
   services: { serviceId: number, serviceName: string }[]
-}
+};
 
 export const getMangaForElastic = (mangaId: MangaId): Promise<MangaForElastic> => {
   return db.one<any>`SELECT

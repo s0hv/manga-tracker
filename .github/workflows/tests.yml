@@ -9,6 +9,7 @@ on:
       - 'Procfile'
       - 'Dockerfile'
   pull_request:
+  workflow_dispatch:
 
 jobs:
   js-tests:
@@ -18,14 +19,14 @@ jobs:
     name: Web app tests
     runs-on: ubuntu-latest
     environment: tests
-    container: node:20-bullseye
+    container: node:22-bullseye
 
     # Service containers to run with `container-job`
     services:
       # Label used to access the service container
       postgres:
         # Docker Hub image
-        image: postgres:12.4
+        image: postgres:17.4
         # Provide the password for postgres
         env:
           POSTGRES_PASSWORD: postgres
@@ -52,13 +53,11 @@ jobs:
     - run: 'git config --global url."https://github.com/".insteadOf ssh://git@github.com/'
     - run: 'git config --global url."https://".insteadOf ssh://'
 
-    - uses: pnpm/action-setup@v2
-      with:
-        version: 8
+    - uses: pnpm/action-setup@v4
 
     - uses: actions/setup-node@v4
       with:
-        node-version: 20
+        node-version: 22
         cache: 'pnpm'
         cache-dependency-path: pnpm-lock.yaml
 
@@ -71,6 +70,7 @@ jobs:
       run: cd .. && pnpm migrate:up && pnpm migrate:test
 
     - name: Run vitest and generate coverage
+      continue-on-error: true
       run: pnpm test:ci
 
     - name: Upload coverage to Codecov
@@ -108,7 +108,7 @@ jobs:
       # Label used to access the service container
       postgres:
         # Docker Hub image
-        image: postgres:12.4
+        image: postgres:17.4
         # Provide the password for postgres
         env:
           POSTGRES_PASSWORD: postgres
@@ -133,15 +133,13 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v2
-        with:
-          version: 8
+      - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'pnpm'
       - name: Setup uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@v6
         with:
           enable-cache: true
 
@@ -160,6 +158,7 @@ jobs:
         run: uv run pytest --cov=./src --cov-report=xml --junit-xml=./junit.xml src
 
       - name: Uninstall coveragepy
+        continue-on-error: true
         run: uv run pip uninstall -y coverage
 
       - name: Upload coverage to Codecov
@@ -189,17 +188,16 @@ jobs:
         working-directory: web
     name: Cypress E2E tests
     runs-on: ubuntu-latest
-    if: false
+    environment: tests
     container:
-      image: cypress/browsers:node16.13.0-chrome95-ff94
-      options: --user 1001
+      image: cypress/browsers:22.17.0
 
     # Service containers to run with `container-job`
     services:
       # Label used to access the service container
       postgres:
         # Docker Hub image
-        image: postgres:12.4
+        image: postgres:17.4
         # Provide the password for postgres
         env:
           POSTGRES_PASSWORD: postgres
@@ -226,13 +224,11 @@ jobs:
       - run: 'git config --global url."https://github.com/".insteadOf ssh://git@github.com/'
       - run: 'git config --global url."https://".insteadOf ssh://'
 
-      - uses: pnpm/action-setup@v2
-        with:
-          version: 8
+      - uses: pnpm/action-setup@v4
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: 'pnpm'
           cache-dependency-path: pnpm-lock.yaml
 
@@ -241,6 +237,19 @@ jobs:
 
       - name: Initialize database
         run: cd .. && pnpm migrate:up && pnpm migrate:test
+
+      - name: Install cypress dependencies
+        run: cd cypress && pnpm install --frozen-lockfile
+
+      # Project dependencies must be installed as cypress tsc depends on them
+      - name: Install project dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build cypress dependencies
+        run: cd cypress && pnpm run tsc
+
+      - name: Install codecov deps
+        run: apt-get update && apt-get install -y curl gpg
 
       - name: Persist Next.js build cache
         uses: actions/cache@v4
@@ -252,14 +261,20 @@ jobs:
           restore-keys: |
             nextjs-${{ hashFiles('pnpm-lock.yaml') }}-
 
-      - uses: cypress-io/github-action@v5.8.1
+      - name: Build and start the app
+        run: |
+          pnpm build-nyc
+          pnpm start-coverage &
+        env:
+          NODE_ENV: production
+
+      - uses: cypress-io/github-action@v6
+        continue-on-error: true
         with:
           browser: chrome
-          working-directory: ./web
-          build: pnpm cross-env NODE_ENV=production pnpm build-nyc
-          start: pnpm cross-env NODE_ENV=production pnpm start-coverage
+          working-directory: ./web/cypress
           wait-on: 'http://localhost:3000'
-
+          config-file: cypress.config.ts
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5

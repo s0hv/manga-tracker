@@ -1,9 +1,8 @@
 import React from 'react';
-
+import RssFeedIcon from '@mui/icons-material/RssFeed';
 import { Container, IconButton, Paper, Typography } from '@mui/material';
 import { styled } from '@mui/material/styles';
-import { RssFeed as RssFeedIcon } from '@mui/icons-material';
-import PropTypes from 'prop-types';
+
 
 import FollowsComponent, { type FollowProps } from '../components/Follows';
 import { useUser } from '../utils/useUser';
@@ -44,10 +43,6 @@ const Follows = (props: FollowProps) => {
       </FollowCard>
     </Container>
   );
-};
-
-Follows.propTypes = {
-  follows: PropTypes.arrayOf(PropTypes.object),
 };
 
 export default Follows;

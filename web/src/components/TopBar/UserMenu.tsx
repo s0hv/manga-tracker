@@ -1,22 +1,21 @@
-import { IconButton, Menu, MenuItem } from '@mui/material';
-import {
-  AccountCircle,
-  Bookmarks as BookmarksIcon,
-  Brightness3 as MoonIcon,
-  ExitToApp as ExitToAppIcon,
-  Notifications as NotificationsIcon,
-  Person as PersonIcon,
-  ViewList as ViewListIcon,
-  WbSunny as SunIcon,
-} from '@mui/icons-material';
 import React, { type FC, useCallback } from 'react';
+import AccountCircle from '@mui/icons-material/AccountCircle';
+import BookmarksIcon from '@mui/icons-material/Bookmarks';
+import MoonIcon from '@mui/icons-material/Brightness3';
+import ExitToAppIcon from '@mui/icons-material/ExitToApp';
+import NotificationsIcon from '@mui/icons-material/Notifications';
+import PersonIcon from '@mui/icons-material/Person';
+import ViewListIcon from '@mui/icons-material/ViewList';
+import SunIcon from '@mui/icons-material/WbSunny';
+import { IconButton, Menu, MenuItem } from '@mui/material';
 import { styled, useColorScheme } from '@mui/material/styles';
 import { signOut } from 'next-auth/react';
-import { updateUserTheme } from '../../api/user';
-import { useCSRF } from '@/webUtils/csrf';
-import type { Theme } from '@/types/dbTypes';
+
 import { LinkComponent } from '@/components/TopBar/LinkComponent';
+import type { Theme } from '@/types/dbTypes';
 import { useUser } from '@/webUtils/useUser';
+
+import { updateUserTheme } from '../../api/user';
 
 const PREFIX = 'TopBar';
 const classes = {
@@ -39,14 +38,13 @@ const signOutMemo = () => signOut();
 
 export type UserMenuProps = {
   handleThemeChange: () => Theme
-}
+};
 
 export const UserMenu: FC<UserMenuProps> = ({ handleThemeChange }) => {
   const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null);
   const open = Boolean(anchorEl);
   const { mode, systemMode } = useColorScheme();
   const nextMode = (mode === 'system' ? systemMode : mode) === 'light' ? 'dark' : 'light';
-  const csrf = useCSRF();
   const { user } = useUser();
 
   const handleClick = useCallback((event?: React.MouseEvent<HTMLButtonElement>) => {
@@ -61,9 +59,9 @@ export const UserMenu: FC<UserMenuProps> = ({ handleThemeChange }) => {
     handleClose();
     const val = handleThemeChange();
 
-    updateUserTheme(csrf, val)
+    updateUserTheme(val)
       .catch(console.error);
-  }, [csrf, handleClose, handleThemeChange]);
+  }, [handleClose, handleThemeChange]);
 
   return (
     <ProfileIconContainer>
@@ -100,12 +98,19 @@ export const UserMenu: FC<UserMenuProps> = ({ handleThemeChange }) => {
           prefetch={false}
           onClick={handleClose}
         >
-          <PersonIcon className={classes.menuItemIcon} /> Profile
+          <PersonIcon className={classes.menuItemIcon} />
+          {' '}
+          Profile
         </LinkComponent>
         <MenuItem onClick={handleUserThemeChange}>
-          {mode === 'dark' ? <SunIcon className={classes.menuItemIcon} /> :
-          <MoonIcon className={classes.menuItemIcon} />}
-          Switch to {nextMode} theme
+          {mode === 'dark'
+            ? <SunIcon className={classes.menuItemIcon} />
+            : <MoonIcon className={classes.menuItemIcon} />}
+          Switch to
+          {' '}
+          {nextMode}
+          {' '}
+          theme
         </MenuItem>
         <LinkComponent
           Component={MenuItem}
@@ -113,7 +118,9 @@ export const UserMenu: FC<UserMenuProps> = ({ handleThemeChange }) => {
           prefetch={false}
           onClick={handleClose}
         >
-          <BookmarksIcon className={classes.menuItemIcon} /> Follows
+          <BookmarksIcon className={classes.menuItemIcon} />
+          {' '}
+          Follows
         </LinkComponent>
         <LinkComponent
           Component={MenuItem}
@@ -121,7 +128,9 @@ export const UserMenu: FC<UserMenuProps> = ({ handleThemeChange }) => {
           prefetch={false}
           onClick={handleClose}
         >
-          <NotificationsIcon className={classes.menuItemIcon} /> Notifications
+          <NotificationsIcon className={classes.menuItemIcon} />
+          {' '}
+          Notifications
         </LinkComponent>
         {user!.admin && (
           <LinkComponent
@@ -130,11 +139,15 @@ export const UserMenu: FC<UserMenuProps> = ({ handleThemeChange }) => {
             prefetch={false}
             onClick={handleClose}
           >
-            <ViewListIcon className={classes.menuItemIcon} /> Services
+            <ViewListIcon className={classes.menuItemIcon} />
+            {' '}
+            Services
           </LinkComponent>
         )}
         <MenuItem onClick={signOutMemo}>
-          <ExitToAppIcon className={classes.menuItemIcon} /> Logout
+          <ExitToAppIcon className={classes.menuItemIcon} />
+          {' '}
+          Logout
         </MenuItem>
       </MenuStyled>
     </ProfileIconContainer>

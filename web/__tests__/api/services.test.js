@@ -1,7 +1,10 @@
 import request from 'supertest';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+
 import initServer from '../initServer';
-import { configureJestOpenAPI } from '../utils';
 import stopServer from '../stopServer';
+import { configureJestOpenAPI } from '../utils';
+
 
 let httpServer;
 

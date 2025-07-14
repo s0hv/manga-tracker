@@ -1,5 +1,30 @@
-import { db } from './helpers';
+import type { MangaData } from '@/types/api/manga';
+import type { Chapter } from '@/types/db/chapter';
+import type { Service } from '@/types/db/services';
 import type { DatabaseId, MangaId } from '@/types/dbTypes';
+
+import { db } from './helpers';
+
+export type LatestRelease = Pick<Chapter,
+  'chapterId'
+  | 'title'
+  | 'chapterNumber'
+  | 'chapterDecimal'
+  | 'releaseDate'
+  | 'chapterIdentifier'
+  | 'group'
+> & Pick<
+  Service,
+  'serviceName'
+  | 'chapterUrlFormat'
+  | 'url'
+> & {
+  mangaTitle: string
+  mangaId: number
+  titleId: string
+  releaseInterval: MangaData['releaseInterval']
+  cover: string | null | undefined
+};
 
 export function getLatestReleases(serviceId?: DatabaseId, mangaId?: MangaId, userUUID?: string) {
   const joins = [];
@@ -18,7 +43,7 @@ export function getLatestReleases(serviceId?: DatabaseId, mangaId?: MangaId, use
     where.push(db.sql`c.service_id=${serviceId}`);
   }
 
-  return db.any`
+  return db.any<LatestRelease>`
         WITH chapters_filtered AS (
             SELECT chapter_id, title, chapter_number, chapter_decimal, release_date, chapter_identifier, c.service_id, c.manga_id, g.name as "group"
             FROM chapters as c

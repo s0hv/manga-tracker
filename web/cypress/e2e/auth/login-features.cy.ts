@@ -28,7 +28,7 @@ describe('Login features', () => {
 
       cy.getCookie(nextAuthSessionCookie)
         .should('not.be.null')
-        .then((cookie) => {
+        .then(cookie => {
           // Expiry should be 30 days. So between 29 and 31 days
           expect(cookie.expiry * 1000).to.be.greaterThan(Date.now() + day * 29);
           expect(cookie.expiry * 1000).to.be.lessThan(Date.now() + day * 31);
@@ -53,7 +53,7 @@ describe('Login features', () => {
 
       cy.getCookie(nextAuthSessionCookie)
         .should('not.be.null')
-        .then((cookie) => {
+        .then(cookie => {
           // Expiry for the cookie is always 30 days. This is because of next-auth maxAge option.
           // The database will have the correct expiry though so it's an ok compromise for now.
           expect(cookie.expiry * 1000).to.be.greaterThan(Date.now() + day * 29);

@@ -1,22 +1,25 @@
-import {
-  body,
-  matchedData,
-  type Meta,
-  param,
-  type ValidationChain,
-} from 'express-validator';
 import type { Application, Request, Response } from 'express-serve-static-core';
 import {
+  type CustomValidator,
+  type ValidationChain,
+  body,
+  matchedData,
+  param,
+} from 'express-validator';
+
+import {
+  type UpdateUserNotification,
+  type UpsertNotificationOverride,
   createUserNotification,
   deleteUserNotification,
   getUserNotifications,
   listNotificationFollows,
-  type UpdateUserNotification,
   updateUserNotification,
   upsertNotificationOverride,
-  type UpsertNotificationOverride,
 } from '@/db/notifications';
 import { handleError } from '@/db/utils';
+
+
 import {
   databaseIdValidation,
   handleValidationErrors,
@@ -24,7 +27,6 @@ import {
   serviceIdValidation,
   validateUser,
 } from '../utils/validators';
-
 
 export default (app: Application) => {
   /**
@@ -60,11 +62,11 @@ export default (app: Application) => {
   });
 
   /**
-   * @param {import('express-validator').ValidationChain} field
-   * @returns {import('express-validator').ValidationChain}
+   * @param {ValidationChain} field
+   * @returns {ValidationChain}
    */
-  const ifNotUseFollows = (field: ValidationChain) => field
-    .if((_: any, { req }: Meta) => req.body.useFollows !== true);
+  const ifNotUseFollows = (field: ValidationChain): ValidationChain => field
+    .if(((_, { req }) => req.body.useFollows !== true) satisfies CustomValidator);
 
   /**
    *  @openapi

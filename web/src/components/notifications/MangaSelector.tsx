@@ -1,18 +1,19 @@
-import { Autocomplete, Checkboxes } from 'mui-rff';
+import { type SyntheticEvent, useCallback, useState } from 'react';
+import { AutocompleteProps, Box } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 import {
-  type FC,
-  type SyntheticEvent,
-  useCallback,
-  useEffect,
-  useState,
-} from 'react';
-import { Box } from '@mui/material';
-import { useField } from 'react-final-form';
-import type { AutocompleteProps } from 'mui-rff/src/Autocomplete';
-import type { FieldValidator } from 'final-form';
-import { quickSearch } from '../../api/manga';
-import type { NotificationFollow } from '@/types/api/notifications';
+  type Control,
+  type FieldPath,
+  type FieldPathByValue,
+  type Validate,
+} from 'react-hook-form';
+import {
+  AutocompleteElement,
+  CheckboxElement,
+  useWatch,
+} from 'react-hook-form-mui';
+
+import type { FormValues } from '@/components/notifications/types';
 import {
   getOptionLabel,
   groupByKey,
@@ -20,50 +21,39 @@ import {
   optionEquals,
   showAll,
 } from '@/components/notifications/utilities';
+import type { NotificationFollow } from '@/types/api/notifications';
+
+
+import { quickSearch } from '../../api/manga';
 
 type AutocompleteType = AutocompleteProps<NotificationFollow, true, false, false>;
-export type MangaSelectorProps = {
-  name: string,
-  label: string,
-  useFollowsName: string,
-  disabled?: boolean,
-  overrideName?: string,
-} & Omit<AutocompleteType,
-  | 'name'
-  | 'label'
-  | 'options'
-  | 'disabled'
->
+export type MangaSelectorProps<TFieldValues extends FormValues = FormValues> = {
+  control?: Control<TFieldValues>
+  name: FieldPathByValue<TFieldValues, NotificationFollow[] | null>
+  label: string
+  disabled?: boolean
+} & Omit<AutocompleteType, 'label' | 'options' | 'renderInput' | 'name'>;
 
-
-const MangaSelector: FC<MangaSelectorProps> = ({
+const MangaSelector = <TFieldValues extends FormValues = FormValues>({
+  control: controlUntyped,
   name,
   label,
-  useFollowsName,
   disabled,
-  overrideName = 'overrideId',
   ...autocompleteProps
-}) => {
-  const [query, setQuery] = useState('');
-  const { input: mangaInput } = useField(name);
-  const { input: overrideInput } = useField(overrideName);
-  const [override, setOverride] = useState(overrideInput.value);
-  const [values, setValues] = useState(mangaInput.value || []);
-  useEffect(() => {
-    if (override !== overrideInput.value) {
-      setOverride(overrideInput.value);
-      setValues(mangaInput.value || []);
-    }
-  }, [mangaInput.value, overrideInput.value, override]);
+}: MangaSelectorProps<TFieldValues>) => {
+  const control = controlUntyped as unknown as Control<FormValues>;
 
-  const doSearch = useCallback(async ({ queryKey }: { queryKey: string[]}): Promise<NotificationFollow[]> => {
+  const [query, setQuery] = useState('');
+  const useFollows = useWatch({ name: 'useFollows', control });
+
+  const doSearch = useCallback(async ({ queryKey }: { queryKey: string[] }): Promise<NotificationFollow[]> => {
     const searchQuery = queryKey[1]?.trim();
     if (searchQuery?.length < 2) return [];
 
     return quickSearch(searchQuery, true)
       .then(rows => {
         if (!rows) return [];
-        return rows.reduce((prev, row) => [
+        return rows.reduce<NotificationFollow[]>((prev, row) => [
           ...prev,
           {
             ...row,
@@ -76,39 +66,36 @@ const MangaSelector: FC<MangaSelectorProps> = ({
               serviceId: Number(serviceId),
               serviceName,
             })),
-        ], [] as NotificationFollow[]);
+        ], []);
       });
   }, []);
 
-  const { data } = useQuery(['search-notif', query], doSearch, {
-    placeholderData: () => [],
-    keepPreviousData: true,
+  const { data } = useQuery({
+    queryKey: ['search-notif', query],
+    queryFn: doSearch,
   });
 
-  const onInputChange = useCallback((e: SyntheticEvent, value: string | null) => {
+  const onInputChange = useCallback((_: SyntheticEvent, value: string | null) => {
     if (typeof value === 'string') {
       setQuery(value);
     }
   }, []);
 
-  const onValueChange = useCallback((_: any, v: NotificationFollow[]) => {
-    setValues(v);
+  const onValueChange = useCallback((_: any) => {
     setQuery(query);
   }, [query]);
 
-  const { input } = useField(useFollowsName);
-
-  const hasError: FieldValidator<NotificationFollow[] | null> = useCallback(
-    (value: NotificationFollow[] | null, allValues?: any) => {
-      const useFollows = allValues ? allValues![useFollowsName] : false;
-      if (useFollows ? false : !((value?.length ?? 0) > 0)) {
+  const hasError = useCallback<Validate<NotificationFollow[] | null, FormValues>>(
+    (value, allValues) => {
+      const currentUseFollows = allValues ? allValues.useFollows : false;
+      if (currentUseFollows ? false : !((value?.length ?? 0) > 0)) {
         return 'Must select at least one manga or use follows';
       }
     },
-    [useFollowsName]
+    []
   );
 
-  const autocompleteDisabled = disabled || (typeof input.value === 'boolean' ? input.value : false);
+  const autocompleteDisabled = disabled || (typeof useFollows === 'boolean' ? useFollows : false);
 
   return (
     <Box sx={{
@@ -116,34 +103,44 @@ const MangaSelector: FC<MangaSelectorProps> = ({
       alignItems: 'center',
     }}
     >
-      <Autocomplete
+      <AutocompleteElement
+        control={control}
         label={label}
         name={name}
-        limitTags={3}
-        options={data || noData}
-        value={values}
-        inputValue={query}
-        onInputChange={onInputChange}
-        onChange={onValueChange}
-        filterOptions={showAll}
-        groupBy={groupByKey}
-        getOptionLabel={getOptionLabel}
-        isOptionEqualToValue={optionEquals}
-        fieldProps={{
-          validate: hasError,
+        options={data ?? noData}
+        rules={{ validate: hasError as Validate<any, any> }}
+        transform={{
+          input: v => (v ?? []) as NotificationFollow[],
         }}
-        disableCloseOnSelect
-        clearOnBlur={false}
         multiple
-        disabled={autocompleteDisabled}
-        {...autocompleteProps}
+        autocompleteProps={{
+          limitTags: 3,
+          inputValue: query,
+          onInputChange: onInputChange,
+          onChange: onValueChange,
+          filterOptions: showAll,
+          groupBy: groupByKey,
+          getOptionLabel: getOptionLabel,
+          isOptionEqualToValue: optionEquals,
+          disableCloseOnSelect: true,
+          clearOnBlur: false,
+          fullWidth: false,
+          disabled: autocompleteDisabled,
+          ...autocompleteProps,
+        }}
       />
       OR
-      <Checkboxes
-        sx={{ ml: 2 }}
-        name={useFollowsName}
+      <CheckboxElement
+        control={control}
+        labelProps={{
+          sx: {
+            ml: 1,
+            flex: 'none',
+          },
+        }}
+        name={'useFollows' as FieldPath<TFieldValues>}
         color='primary'
-        data={{ label: 'Use follows', value: undefined }}
+        label='Use follows'
         disabled={disabled}
       />
     </Box>

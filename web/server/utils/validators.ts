@@ -1,17 +1,18 @@
-import { pattern } from 'iso8601-duration';
-import {
-  body,
-  type CustomValidator,
-  query,
-  type ValidationChain,
-  validationResult,
-} from 'express-validator';
 import type {
   NextFunction,
   Request,
   Response,
 } from 'express-serve-static-core';
-import { Forbidden, StatusError, Unauthorized } from './errors.js';
+import {
+  type CustomValidator,
+  type ValidationChain,
+  body,
+  query,
+  validationResult,
+} from 'express-validator';
+import { pattern } from 'iso8601-duration';
+
+import { Forbidden, StatusError, Unauthorized } from './errors';
 
 export const databaseIdValidation = (field: ValidationChain): ValidationChain => field
   .isInt({ min: 0 });
@@ -81,7 +82,7 @@ export const validateAdminUser = (): ValidationChain => validateUser()
 /**
  * @returns {boolean} true if validation errors occurred. false otherwise
  */
-export const hadValidationError = (req: Request, res: Response, sendAllErrors=true) => {
+export const hadValidationError = (req: Request, res: Response, sendAllErrors = true): boolean => {
   const errorsObj = validationResult(req);
   if (!errorsObj.isEmpty()) {
     const errors = errorsObj.array();
@@ -108,5 +109,5 @@ export const handleValidationErrors = (req: Request, res: Response, next: NextFu
 };
 
 
-export const isISO8601Duration = (chain: ValidationChain): ValidationChain => chain.custom((value) => pattern.test(value))
+export const isISO8601Duration = (chain: ValidationChain): ValidationChain => chain.custom(value => pattern.test(value))
   .withMessage('Value must be a valid ISO 8601 duration');

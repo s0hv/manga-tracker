@@ -1,5 +1,5 @@
-import { Tooltip, Box } from '@mui/material';
-import { Info } from '@mui/icons-material';
+import Info from '@mui/icons-material/Info';
+import { Box, Tooltip } from '@mui/material';
 
 const FormatHelpText = ({ name, description }) => (
   <Box sx={{ display: 'flex' }}>

@@ -1,14 +1,17 @@
-import express, { type NextFunction } from 'express';
-import next_ from 'next';
-import csrf from 'csurf';
-import helmet from 'helmet';
-import pinoHttp from 'pino-http';
 import cookieParser from 'cookie-parser';
+import express, { type NextFunction } from 'express';
+import type { Request, Response } from 'express-serve-static-core';
+import helmet from 'helmet';
+import next_ from 'next';
+import pinoHttp from 'pino-http';
 
-import { csrfMissing, isDev, isTest } from '@/serverUtils/constants';
+import { getSessionAndUser } from '@/db/auth';
 import { db } from '@/db/helpers';
-import { rateLimiter } from '@/serverUtils/ratelimits';
+import { getSingletonPostgresAdapter } from '@/db/postgres-adapter';
+import { csrfMissing, isDev, isTest } from '@/serverUtils/constants';
 import { expressLogger } from '@/serverUtils/logging';
+import { rateLimiter } from '@/serverUtils/ratelimits';
+
 
 import {
   adminMangaApi,
@@ -21,9 +24,7 @@ import {
   servicesApi,
   settingsApi,
   userApi,
-} from './server/api/index.js';
-import { getSingletonPostgresAdapter } from '@/db/postgres-adapter';
-import { getSessionAndUser } from '@/db/auth';
+} from './server/api/index';
 
 // Turn off when not using this app with a reverse proxy like heroku
 const reverseProxy = !!process.env.TRUST_PROXY;
@@ -31,6 +32,22 @@ const isCypress = /y|yes|true/.test(process.env.CYPRESS || '');
 
 const nextApp = next_({ dev: isDev });
 const handle = nextApp.getRequestHandler();
+
+const handleNextJs = (req: Request, res: Response) => {
+  // https://stackoverflow.com/a/79604142
+  // Next.js writes to the query property, so we must make it writable for requests passed on to it.
+  Object.defineProperty(
+    req,
+    'query',
+    {
+      ...Object.getOwnPropertyDescriptor(req, 'query'),
+      value: req.query,
+      writable: true,
+    }
+  );
+
+  return handle(req, res);
+};
 
 export default nextApp.prepare()
   .then(async () => {
@@ -41,12 +58,14 @@ export default nextApp.prepare()
       workerSrc: "'self' blob:", // blob: used by redoc
       formAction: "'self' https://discord.com",
     };
+
+    /* istanbul ignore if */
     if (isDev) {
       // unsafe-eval required for fast refresh
-      directives.scriptSrc = "'self' 'unsafe-eval' 'sha256-6k13i7If3TvAai1sXmN5y2hfMfidi1GAP6UXk1irAMM='";
+      directives.scriptSrc = "'self' 'unsafe-eval' 'sha256-bNSwnlUSaw2xmSzuYfrGARS7W41eM5ASRo8PpkcVmCs='";
     } else {
       // sha is for script injected by getInitColorSchemeScript inside _document.tsx
-      directives.scriptSrc = "'self' 'sha256-6k13i7If3TvAai1sXmN5y2hfMfidi1GAP6UXk1irAMM='";
+      directives.scriptSrc = "'self' 'sha256-bNSwnlUSaw2xmSzuYfrGARS7W41eM5ASRo8PpkcVmCs='";
     }
 
     server.use(helmet({
@@ -57,6 +76,9 @@ export default nextApp.prepare()
       crossOriginResourcePolicy: false,
       crossOriginEmbedderPolicy: false,
       hsts: !isDev && !isCypress,
+      referrerPolicy: {
+        policy: 'strict-origin',
+      },
     }));
     if (reverseProxy) server.set('trust proxy', process.env.TRUST_PROXY);
 
@@ -93,14 +115,23 @@ export default nextApp.prepare()
     })); */
 
     // cookie: true is vulnerable and should not be used
-    const csrfMiddleware = csrf({ cookie: false });
     server.use((req, res, next) => {
       if (req.originalUrl.startsWith('/api/auth/') || req.originalUrl.startsWith('/_next/static/')) return next();
 
-      // CSRF won't work for non-logged-in users as sessions are only created when
-      // logging in. This shouldn't be a problem since all methods that require
-      // CSRF protection also require signing in (except for next auth paths).
-      csrfMiddleware(req, res, next);
+      // https://lucia-auth.com/sessions/cookies/#csrf-protection
+      // Cypress does not always send the Origin header, so we skip CSRF checks in that case
+      if (req.method !== 'GET' && !isCypress) {
+        const origin = req.header('Origin');
+        // You can also compare it against the Host or X-Forwarded-Host header.
+        if (origin === null || origin !== process.env.BASE_URL) {
+          res.status(403).json({
+            error: csrfMissing,
+          });
+          return;
+        }
+      }
+
+      next();
     });
 
     if (!isTest && !isCypress) {
@@ -140,9 +171,9 @@ export default nextApp.prepare()
     server.use('/api/admin/manga', adminMangaApi());
 
     // https://github.com/gotwarlost/istanbul/blob/master/ignoring-code-for-coverage.md
-    /* istanbul ignore next */
+    /* istanbul ignore if */
     if (isCypress && (global as any).__coverage__) {
-      server.get('/__coverage__', (req, res) => {
+      server.get('/__coverage__', (_, res) => {
         res.json({
           coverage: (global as any).__coverage__ || null,
         });
@@ -154,7 +185,7 @@ export default nextApp.prepare()
         res.redirect('/');
         return;
       }
-      return handle(req, res);
+      return handleNextJs(req, res);
     });
 
     server.post('/api/authCheck', (req, res) => {
@@ -168,12 +199,12 @@ export default nextApp.prepare()
       }});
     });
 
-    server.get('/manga/:mangaId(\\d+)', (req, res) => handle(req, res));
+    server.get('/manga/:mangaId', (req, res) => handleNextJs(req, res));
 
     // next auth
-    server.all('/api/auth/*', (req, res) => handle(req, res));
+    server.all('/api/auth/*splat', (req, res) => handleNextJs(req, res));
 
-    server.get('*', (req, res) => handle(req, res));
+    server.get('*splat', (req, res) => handleNextJs(req, res));
 
     // Error handlers
     server.use((err: any, req: express.Request, res: express.Response, next: NextFunction) => {

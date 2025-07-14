@@ -1,20 +1,22 @@
 import React from 'react';
-import fetchMock from 'fetch-mock';
-import { type Mock, vi } from 'vitest';
-
+import { QueryClientProvider } from '@tanstack/react-query';
 import { act, render, screen } from '@testing-library/react';
+import fetchMock from 'fetch-mock';
+import { type Mock, describe, expect, it, vi } from 'vitest';
+
+import { normalUser, queryClient } from '../utils';
+import type { ChapterRelease } from '@/types/api/chapter';
+import type { ServiceForApi } from '@/types/api/services';
+import App from '@/views/App';
+import { UserProvider } from '@/webUtils/useUser';
+
+
 import {
   generateNSchemas,
   LatestChapter,
   Service,
   setupFaker,
 } from '../schemas';
-
-import App from '@/views/App';
-import { normalUser } from '../utils';
-import type { ServiceForApi } from '@/types/api/services';
-import type { ChapterRelease } from '@/types/api/chapter';
-import { UserProvider } from '@/webUtils/useUser';
 
 setupFaker();
 
@@ -54,7 +56,7 @@ describe('Chapter list should allow editing', () => {
   it('Renders correctly', async () => {
     const [chapterMock, serviceMock, chapters] = mockChapters();
     await act(async () => {
-      render(<App />);
+      render(<QueryClientProvider client={queryClient}><App /></QueryClientProvider>);
     });
 
     expect(chapterMock).toHaveBeenCalledOnce();
@@ -72,13 +74,19 @@ describe('Chapter list should allow editing', () => {
 
     const cover = screen.queryByRole('img', { name: chapter.manga });
     expect(cover).toBeInTheDocument();
-    expect(cover).toHaveProperty('src', `${chapter.cover}.256.jpg`);
+    expect(cover).toHaveProperty('src', expect.stringMatching(new RegExp(`.*?${encodeURIComponent(chapter.cover)}.256.jpg`)));
   });
 
   it('Renders correctly with user', async () => {
     mockChapters();
     await act(async () => {
-      render(<UserProvider value={normalUser}><App /></UserProvider>);
+      render(
+        <QueryClientProvider client={queryClient}>
+          <UserProvider value={normalUser}>
+            <App />
+          </UserProvider>
+        </QueryClientProvider>
+      );
     });
 
     expect(fetchMock.called('/api/chapter/latest', { query: { useFollows: 'true' }})).toBeTrue();

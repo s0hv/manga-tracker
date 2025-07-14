@@ -1,5 +1,5 @@
-import { CreatedUser } from '../../types';
 import { nextAuthSessionCookie } from '../../constants';
+import { CreatedUser } from '../../types';
 
 describe('Account data management', () => {
   describe('Request account data', () => {
@@ -13,7 +13,7 @@ describe('Account data management', () => {
         });
 
       cy.get<CreatedUser>('@user')
-        .then((user) => cy.login(user));
+        .then(user => cy.login(user));
 
       // Go to profile page
       cy.findByRole('button', { name: /account of current user/i }).click();
@@ -23,14 +23,14 @@ describe('Account data management', () => {
       cy.intercept({
         pathname: '/api/user/dataRequest',
         method: 'POST',
-      }, (req) => {
+      }, req => {
         req.redirect('/profile');
       }).as('userData');
 
       // Initiate data download
       cy.findByRole('button', { name: /proceed/i }).click();
 
-      cy.wait('@userData').its('request').then((req) => {
+      cy.wait('@userData').its('request').then(req => {
         cy.request(req)
           .then(({ body, headers }) => {
             expect(headers).to.have.property('content-disposition', 'attachment; filename="manga-tracker-user-data.json"');
@@ -51,7 +51,7 @@ describe('Account data management', () => {
         });
 
       cy.get<CreatedUser>('@user')
-        .then((user) => cy.login(user));
+        .then(user => cy.login(user));
 
       // Go to profile page
       cy.findByRole('button', { name: /account of current user/i }).click();
@@ -62,7 +62,7 @@ describe('Account data management', () => {
       cy.findByRole('button', { name: /delete account/i }).should('be.disabled');
 
       cy.get<CreatedUser>('@user')
-        .then((user) => {
+        .then(user => {
           cy.findByText(new RegExp(`Type "${user.username}" to acknowledge this`));
           cy.findByRole('textbox').type(user.username);
         });
@@ -74,10 +74,14 @@ describe('Account data management', () => {
 
       // Trying to log in again with the deleted account should fail
       cy.get<CreatedUser>('@user')
-        .then((user) => cy.login(user, true));
+        .then(user => cy.login(user, true));
 
-      cy.findByRole('alert');
-      cy.findByText(/^sign in failed/i);
+      // Next.js adds another alert element outside the main element so we need to filter that out
+      cy.findByRole('main').within(() => {
+        cy.findByRole('alert').within(() => {
+          cy.findByText(/^sign in failed/i);
+        });
+      });
 
       cy.task('flushRedis');
     });

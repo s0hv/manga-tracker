@@ -1,34 +1,30 @@
-import { CssBaseline } from '@mui/material';
-import {
-  StyledEngineProvider,
-  Experimental_CssVarsProvider as CssVarsProvider,
-} from '@mui/material/styles';
-import { DefaultSeo } from 'next-seo';
-import { CacheProvider } from '@emotion/react';
-import NextNProgress from 'nextjs-progressbar';
-
-import Head from 'next/head';
-import { SnackbarProvider } from 'notistack';
 import React, { useEffect } from 'react';
 
-import Root from '../components/Root';
+import { CssBaseline } from '@mui/material';
+import { StyledEngineProvider, ThemeProvider } from '@mui/material/styles';
+import { AppCacheProvider } from '@mui/material-nextjs/v15-pagesRouter';
+import { CacheProvider } from '@emotion/react';
+import Head from 'next/head';
+import { DefaultSeo } from 'next-seo';
+import NextNProgress from 'nextjs-progressbar';
+import { SnackbarProvider } from 'notistack';
 
-import { csrfProps, CSRFProvider } from '../utils/csrf';
-import { UserProvider } from '../utils/useUser';
-import { theme } from '../utils/theme';
+import { Layout } from '../components/Layout';
 import createEmotionCache from '../utils/createEmotionCache';
+import { theme } from '../utils/theme';
+import { UserProvider } from '../utils/useUser';
 
 
 // Client-side cache, shared for the whole session of the user in the browser.
 const clientSideEmotionCache = createEmotionCache();
 
 
-function MainApp({ Component, pageProps = {}, emotionCache = clientSideEmotionCache, props }) {
+function MainApp(allProps) {
+  const { Component, pageProps = {}, emotionCache = clientSideEmotionCache, props } = allProps;
+
   const [user, setUser] = React.useState(props.user);
-  const [csrf, setCsrf] = React.useState(props._csrf);
 
   useEffect(() => setUser(props.user), [props.user]);
-  useEffect(() => setCsrf(props._csrf), [props._csrf]);
   // Clear previous page on page load/refresh
   useEffect(() => window.sessionStorage.removeItem('previousPage'), []);
 
@@ -50,48 +46,54 @@ function MainApp({ Component, pageProps = {}, emotionCache = clientSideEmotionCa
         }}
       />
 
-      { pageProps.independent ? (
-        <main>
-          <Component {...pageProps} />
-        </main>
-      ) : (
-        <CacheProvider value={emotionCache}>
-          <StyledEngineProvider injectFirst>
-            <CssVarsProvider theme={theme} defaultMode='system'>
-              <NextNProgress />
-              <CssBaseline />
-              {pageProps.staticPage ? (
-                <main>
-                  <Component {...pageProps} />
-                </main>
-              ) : (
-                <SnackbarProvider>
-                  <UserProvider value={user}>
-                    <CSRFProvider value={csrf}>
-                      <Root {...props}>
-                        <main>
-                          <Component {...pageProps} />
-                        </main>
-                      </Root>
-                    </CSRFProvider>
-                  </UserProvider>
-                </SnackbarProvider>
-              )}
-            </CssVarsProvider>
-          </StyledEngineProvider>
-        </CacheProvider>
-      )}
+      { pageProps.independent
+        ? (
+          <main>
+            <Component {...pageProps} />
+          </main>
+        )
+        : (
+          <AppCacheProvider {...allProps}>
+            <CacheProvider value={emotionCache}>
+              <StyledEngineProvider injectFirst>
+                <ThemeProvider theme={theme} defaultMode='system'>
+                  <NextNProgress />
+                  <CssBaseline />
+                  {pageProps.staticPage
+                    ? (
+                      <main>
+                        <Component {...pageProps} />
+                      </main>
+                    )
+                    : (
+                      <SnackbarProvider>
+                        <UserProvider value={user}>
+                          <Layout {...props}>
+                            <main>
+                              <Component {...pageProps} />
+                            </main>
+                          </Layout>
+                        </UserProvider>
+                      </SnackbarProvider>
+                    )}
+                </ThemeProvider>
+              </StyledEngineProvider>
+            </CacheProvider>
+          </AppCacheProvider>
+        )}
     </>
   );
 }
 
-const getUserData = (user) => (user ? ({
-  uuid: user.uuid,
-  username: user.username,
-  theme: user.theme,
-  admin: user.admin,
-  isCredentialsAccount: user.isCredentialsAccount,
-}) : null);
+const getUserData = user => (user
+  ? ({
+    uuid: user.uuid,
+    username: user.username,
+    theme: user.theme,
+    admin: user.admin,
+    isCredentialsAccount: user.isCredentialsAccount,
+  })
+  : null);
 
 MainApp.getInitialProps = async function getInitialProps({ ctx: { req, res }}) {
   if (!req) {
@@ -102,7 +104,6 @@ MainApp.getInitialProps = async function getInitialProps({ ctx: { req, res }}) {
     props: {
       user: getUserData(req.user),
       statusCode: res?.statusCode || 200,
-      ...csrfProps({ req }).props,
     },
   };
 };

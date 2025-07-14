@@ -1,20 +1,20 @@
-import matchers from '@testing-library/jest-dom/matchers';
-import { vi } from 'vitest';
+import '@testing-library/jest-dom/vitest';
+import { cleanup } from '@testing-library/react';
 import { config } from 'dotenv';
-
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
 import * as extendedMatchers from 'jest-extended';
+import request, { type Test as TestType } from 'supertest';
+import { afterEach, expect, vi } from 'vitest';
 
-import request from 'supertest';
-import { csrfToken } from './__tests__/constants';
 import { theme } from '@/webUtils/theme';
 
 
-expect.extend(matchers);
 expect.extend(extendedMatchers);
 
 config({ path: '../.env' });
+
+afterEach(() => {
+  cleanup();
+});
 
 // Don't want API calls to 3rd party services during tests
 vi.mock('@/db/mangadex', () => ({
@@ -24,39 +24,27 @@ vi.mock('@/db/mangadex', () => ({
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
-const Test = request.Test;
+const Test = request.Test as TestType & { prototype: any };
 
 /**
  * Helper function to add csrf token to request
  * @memberOf supertest.Test
- * @return {supertest.Test}
  */
-Test.prototype.csrf = function csrf() {
-  return this.set('X-CSRF-Token', csrfToken);
+Test.prototype.csrf = function csrf(): TestType {
+  return this.set('Origin', '/');
 };
 
 /**
  * Helper function to check if response matches OpenAPI spec
  * @memberOf supertest.Test
- * @return {supertest.Test}
  */
-Test.prototype.satisfiesApiSpec = function satisfiesApiSpec() {
+Test.prototype.satisfiesApiSpec = function satisfiesApiSpec(): TestType {
   return this.expect((res: any) => expect(res).toSatisfyApiSpec());
 };
 
-// Cannot mock csrf using vitest because it does not support require mocks
-// Just manually replace the prototype instead
-
-// eslint-disable-next-line @typescript-eslint/no-var-requires,import/no-extraneous-dependencies
-const Token = require('csrf');
-
-Token.prototype.create = () => csrfToken;
-Token.prototype.verify = (secret: any, token: any) => token === csrfToken;
-Token.prototype.secretSync = () => 'secret';
-
 vi.mock('next');
 vi.mock('next/router');
-vi.mock('@next/font/google', () => {
+vi.mock('next/font/google', () => {
   return {
     Roboto: vi.fn().mockReturnValue({ style: { fontFamily: 'test' }}),
   };
@@ -92,7 +80,7 @@ vi.mock('@mui/material/styles', async () => {
               ...theme,
             };
 
-            cachedTheme.vars = (theme as any).colorSchemes.dark;
+            cachedTheme.vars = theme.colorSchemes.dark;
             cachedTheme.getColorSchemeSelector = () => 'test';
           }
           obj.theme = cachedTheme;

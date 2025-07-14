@@ -1,5 +1,7 @@
 import React from 'react';
 import { render, screen, within } from '@testing-library/react';
+import { describe, expect, it } from 'vitest';
+
 import PartialManga from '../../src/components/PartialManga';
 import { emptyFullManga as emptyManga, fullManga as manga } from '../constants';
 

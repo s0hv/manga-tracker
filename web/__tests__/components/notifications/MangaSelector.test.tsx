@@ -1,11 +1,11 @@
+import type { FC, PropsWithChildren } from 'react';
+import { QueryClientProvider } from '@tanstack/react-query';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { QueryClientProvider } from '@tanstack/react-query';
 import fetchMock from 'fetch-mock';
 import { ConfirmProvider } from 'material-ui-confirm';
-import { Form } from 'react-final-form';
-import type { FC, PropsWithChildren } from 'react';
-import { vi } from 'vitest';
+import { FormContainer } from 'react-hook-form-mui';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { mockNotistackHooks, queryClient } from '../../utils';
 import MangaSelector, {
@@ -13,20 +13,21 @@ import MangaSelector, {
 } from '@/components/notifications/MangaSelector';
 import type { NotificationFollow } from '@/types/api/notifications';
 
-const inputName = 'test';
+const inputName = 'manga';
 const overrideName = 'overrideId';
 
 const Root: FC<PropsWithChildren<{ selectedManga?: NotificationFollow[] }>> = ({ selectedManga, children }) => (
   <QueryClientProvider client={queryClient}>
     <ConfirmProvider>
-      <Form
-        onSubmit={vi.fn()}
-        initialValues={{
+      <FormContainer
+        onSuccess={vi.fn()}
+        defaultValues={{
           [inputName]: selectedManga,
           [overrideName]: null,
         }}
-        render={() => children}
-      />
+      >
+        {children}
+      </FormContainer>
     </ConfirmProvider>
   </QueryClientProvider>
 );
@@ -44,22 +45,23 @@ beforeEach(async () => {
 
 type RenderProps = {
   selectedManga?: NotificationFollow[]
-} & Omit<MangaSelectorProps,
+} & Omit<
+  MangaSelectorProps,
   | 'name'
   | 'label'
   | 'useFollowsName'
->
+>;
 
 describe('MangaSelector', () => {
   const testLabel = 'Search for manga';
 
   const Rendered: FC<RenderProps> = ({ selectedManga, ...selectorProps }) => (
     <Root selectedManga={selectedManga}>
-      <MangaSelector name={inputName} label={testLabel} useFollowsName='useFollows' overrideName={overrideName} {...selectorProps} />
+      <MangaSelector name={inputName} label={testLabel} {...selectorProps} />
     </Root>
   );
 
-  const formatMangaName = ({ title, serviceName }: { title: string, serviceName: string | null}) => (
+  const formatMangaName = ({ title, serviceName }: { title: string, serviceName: string | null }) => (
     `${title} | ${serviceName || 'All services'}`
   );
 

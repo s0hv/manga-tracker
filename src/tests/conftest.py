@@ -5,7 +5,7 @@ import pytest
 from psycopg import Connection
 from psycopg.rows import DictRow
 
-from elasticsearch import Elasticsearch
+from elasticsearch import Elasticsearch, NotFoundError
 
 ELASTIC_INDEX = 'manga_test'
 os.environ['ES_INDEX'] = ELASTIC_INDEX
@@ -28,7 +28,10 @@ def es():
     }])
     yield client
     print(f'Dropping index {ELASTIC_INDEX}')
-    client.indices.delete(index=ELASTIC_INDEX)
+    try:
+        client.indices.delete(index=ELASTIC_INDEX)
+    except NotFoundError:
+        pass
     client.close()
 
 

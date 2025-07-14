@@ -1,5 +1,11 @@
 import express from 'express';
 import { body, param } from 'express-validator';
+
+import {
+  deleteScheduledRun,
+  getScheduledRuns,
+  scheduleMangaRun,
+} from '@/db/admin/management';
 import {
   createMangaService,
   getMangaServices,
@@ -7,32 +13,28 @@ import {
   updateMangaService,
   updateMangaTitle,
 } from '@/db/admin/manga';
+import { updateManga } from '@/db/elasticsearch/manga';
+import { NoResultsError } from '@/db/errors';
+import { getMangaForElastic } from '@/db/manga';
 import { handleError } from '@/db/utils';
+import { MangaStatus } from '@/types/dbTypes';
+
+
 import {
-  deleteScheduledRun,
-  getScheduledRuns,
-  scheduleMangaRun,
-} from '@/db/admin/management';
-import {
-  databaseIdValidation,
   handleValidationErrors,
   mangaIdValidation,
   serviceIdValidation,
   validateAdminUser,
 } from '../../utils/validators';
-import { getMangaForElastic } from '@/db/manga';
-import { updateManga } from '@/db/elasticsearch/manga';
-import { MangaStatus } from '@/types/dbTypes';
-import { NoResultsError } from '@/db/errors';
 
 export default () => {
   const router = express.Router();
   router.use([validateAdminUser()]);
 
-  router.use('/:mangaId(\\d+)/scheduledRuns', [
+  router.use('/:mangaId/scheduledRuns', [
     mangaIdValidation(param('mangaId')),
   ]);
-  router.get('/:mangaId(\\d+)/scheduledRuns', handleValidationErrors, (req, res) => {
+  router.get('/:mangaId/scheduledRuns', handleValidationErrors, (req, res) => {
     getScheduledRuns(req.params.mangaId)
       .then(rows => {
         res.status(200).json({
@@ -42,7 +44,7 @@ export default () => {
       .catch(err => handleError(err, res));
   });
 
-  const scheduleRunUrl = '/:mangaId(\\d+)/scheduledRun/:serviceId(\\d+)';
+  const scheduleRunUrl = '/:mangaId/scheduledRun/:serviceId';
   router.use(scheduleRunUrl, [
     mangaIdValidation(param('mangaId')),
     serviceIdValidation(param('serviceId')),
@@ -71,7 +73,7 @@ export default () => {
         .catch(err => handleError(err, res));
     });
 
-  const updateTitleUrl = '/:mangaId(\\d+)/title';
+  const updateTitleUrl = '/:mangaId/title';
   router.use(updateTitleUrl, [
     mangaIdValidation(param('mangaId')),
     body('title').isString().bail().isLength({ min: 1 }),
@@ -82,9 +84,9 @@ export default () => {
         getMangaForElastic(req.params.mangaId)
           .then(manga => updateManga(manga.mangaId, manga))
           .finally(() => {
-            const msg = row ?
-              `Replaced old alias with current title "${row.title}"` :
-              `Alias not found. Scrapping old title`;
+            const msg = row
+              ? `Replaced old alias with current title "${row.title}"`
+              : `Alias not found. Scrapping old title`;
             res.json({ message: msg });
           });
       })
@@ -97,7 +99,7 @@ export default () => {
       });
   });
 
-  const updateInfoPath = '/:mangaId(\\d+)/info';
+  const updateInfoPath = '/:mangaId/info';
   router.post(updateInfoPath, ...[
     mangaIdValidation(param('mangaId')),
     body('status').isInt({ min: MangaStatus.ONGOING, max: MangaStatus.HIATUS }).toInt(),
@@ -115,7 +117,7 @@ export default () => {
       .catch(err => handleError(err, res));
   });
 
-  router.get('/:mangaId(\\d+)/services', ...[
+  router.get('/:mangaId/services', ...[
     mangaIdValidation(param('mangaId')),
     handleValidationErrors,
   ], (req, res) => {
@@ -128,9 +130,9 @@ export default () => {
       .catch(err => handleError(err, res));
   });
 
-  router.post('/:mangaId(\\d+)/services/:serviceId(\\d+)', ...[
+  router.post('/:mangaId/services/:serviceId', ...[
     mangaIdValidation(param('mangaId')),
-    databaseIdValidation(param('serviceId')),
+    serviceIdValidation(param('serviceId')),
     body('mangaService')
       .isObject({ strict: true }),
     body('mangaService.disabled')
@@ -151,9 +153,9 @@ export default () => {
       .catch(err => handleError(err, res));
   });
 
-  router.post('/:mangaId(\\d+)/services/:serviceId(\\d+)/create', ...[
+  router.post('/:mangaId/services/:serviceId/create', ...[
     mangaIdValidation(param('mangaId')),
-    databaseIdValidation(param('serviceId')),
+    serviceIdValidation(param('serviceId')),
     body('mangaService')
       .isObject({ strict: true }),
     body('mangaService.titleId')

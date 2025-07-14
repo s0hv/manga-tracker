@@ -1,6 +1,7 @@
+import type { ServiceForAdmin, ServiceForApi } from '@/types/api/services';
+
 import { db } from '../helpers';
 
-import type { ServiceForAdmin, ServiceForApi } from '@/types/api/services';
 
 export function getServices(): Promise<ServiceForAdmin[]> {
   return db.many<ServiceForAdmin>`SELECT s.service_id id, service_name, disabled, url, s.last_check, 

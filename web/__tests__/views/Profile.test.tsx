@@ -1,7 +1,8 @@
 import React from 'react';
-import { act, fireEvent, render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { render, screen } from '@testing-library/react';
+import userEvent, { type UserEvent } from '@testing-library/user-event';
 import fetchMock from 'fetch-mock';
+import { beforeEach, describe, expect, it } from 'vitest';
 
 import {
   convertToOauthUser,
@@ -13,7 +14,7 @@ import {
   restoreMocks,
   silenceConsole,
 } from '../utils';
-import Profile from '../../src/views/Profile';
+import Profile from '@/views/Profile';
 
 beforeEach(() => mockNotistackHooks());
 
@@ -74,19 +75,17 @@ describe('Requests should be handled correctly', () => {
     fetchMock.reset();
   });
 
-  const editInput = (target: HTMLElement, value: any) => {
-    fireEvent.change(target, { target: { value }});
+  const editInput = async (user: UserEvent, target: HTMLElement, value: any) => {
+    await user.type(target, value);
   };
 
   it('Should do a post request on submit', async () => {
     fetchMock.post('/api/profile', 200);
     render(<Profile user={normalUser} />);
+    const user = userEvent.setup();
 
-    editInput(screen.getByLabelText(/^Password$/i), normalUser.password);
-
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: /Update profile/i }));
-    });
+    await editInput(user, screen.getByLabelText(/^Password$/i), normalUser.password);
+    await user.click(screen.getByRole('button', { name: /Update profile/i }));
 
     expect(fetchMock.calls('/api/profile')).toHaveLength(1);
     expectSuccessSnackbar();
@@ -100,10 +99,7 @@ describe('Requests should be handled correctly', () => {
     const user = userEvent.setup();
 
     await user.type(screen.getByLabelText(/^New password$/i), 'aaa');
-
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: /Update profile/i }));
-    });
+    await user.click(screen.getByRole('button', { name: /Update profile/i }));
 
     expect(fetchMock.calls('/api/profile')).toHaveLength(0);
   });
@@ -112,12 +108,10 @@ describe('Requests should be handled correctly', () => {
     const errorMessage = 'Invalid password provided';
     fetchMock.post('/api/profile', { status: 401, body: { error: errorMessage }});
     render(<Profile user={normalUser} />);
+    const user = userEvent.setup();
 
-    editInput(screen.getByLabelText(/^Password$/i), 'aaaaa');
-
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: /Update profile/i }));
-    });
+    await editInput(user, screen.getByLabelText(/^Password$/i), 'aaaaa');
+    await user.click(screen.getByRole('button', { name: /Update profile/i }));
 
     expect(fetchMock.calls('/api/profile')).toHaveLength(1);
     expectErrorSnackbar(errorMessage);
@@ -127,13 +121,12 @@ describe('Requests should be handled correctly', () => {
     const errorMessage = 'Unknown fetch error';
     fetchMock.post('/api/profile', { throws: new Error(errorMessage) });
     render(<Profile user={normalUser} />);
+    const user = userEvent.setup();
 
-    editInput(screen.getByLabelText(/^Password$/i), 'aaaaa');
+    await editInput(user, screen.getByLabelText(/^Password$/i), 'aaaaa');
 
     const spies = silenceConsole();
-    await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: /Update profile/i }));
-    });
+    await user.click(screen.getByRole('button', { name: /Update profile/i }));
     restoreMocks(spies);
 
     expect(fetchMock.calls('/api/profile')).toHaveLength(1);

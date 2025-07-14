@@ -1,13 +1,11 @@
+import React from 'react';
+
+import FirstPageIcon from '@mui/icons-material/FirstPage';
+import KeyboardArrowLeft from '@mui/icons-material/KeyboardArrowLeft';
+import KeyboardArrowRight from '@mui/icons-material/KeyboardArrowRight';
+import LastPageIcon from '@mui/icons-material/LastPage';
 import { IconButton } from '@mui/material';
 import { styled } from '@mui/material/styles';
-
-import {
-  FirstPage as FirstPageIcon,
-  LastPage as LastPageIcon,
-  KeyboardArrowLeft,
-  KeyboardArrowRight,
-} from '@mui/icons-material';
-import React from 'react';
 
 const Root = styled('div')(({ theme }) => ({
   flexShrink: 0,
@@ -16,22 +14,22 @@ const Root = styled('div')(({ theme }) => ({
 
 // Big part copied from here
 // https://material-ui.com/components/tables/#custom-pagination-actions
-const TablePaginationActions = (props) => {
+const TablePaginationActions = props => {
   const { count, page, rowsPerPage, onPageChange } = props;
 
-  const handleFirstPageButtonClick = (event) => {
+  const handleFirstPageButtonClick = event => {
     onPageChange(event, 0);
   };
 
-  const handleBackButtonClick = (event) => {
+  const handleBackButtonClick = event => {
     onPageChange(event, page - 1);
   };
 
-  const handleNextButtonClick = (event) => {
+  const handleNextButtonClick = event => {
     onPageChange(event, page + 1);
   };
 
-  const handleLastPageButtonClick = (event) => {
+  const handleLastPageButtonClick = event => {
     onPageChange(event, Math.max(0, Math.ceil(count / rowsPerPage) - 1));
   };
 

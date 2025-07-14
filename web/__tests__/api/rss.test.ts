@@ -1,4 +1,5 @@
 import request, { type Test } from 'supertest';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import initServer from '../initServer';
 import stopServer from '../stopServer';

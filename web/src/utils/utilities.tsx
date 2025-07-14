@@ -1,15 +1,17 @@
+import type { MouseEvent } from 'react';
 import { format, formatDistanceToNowStrict } from 'date-fns';
-import enLocale from 'date-fns/locale/en-GB';
-import throttle from 'lodash.throttle';
-import type { MouseEvent, MouseEventHandler } from 'react';
-import type { DatabaseId, MangaId } from '@/types/dbTypes';
-import type { NotificationField } from '@/types/api/notifications';
-import type { FormValues } from '@/components/notifications/types';
-import { csrfHeader } from './csrf';
+import { enGB } from 'date-fns/locale';
+import { throttle } from 'es-toolkit';
 
-export const followUnfollow = (csrf: string, mangaId: MangaId, serviceId: DatabaseId | null): MouseEventHandler => {
-  const url = serviceId ? `/api/user/follows?mangaId=${mangaId}&serviceId=${serviceId}` :
-    `/api/user/follows?mangaId=${mangaId}`;
+import type { FormValues } from '@/components/notifications/types';
+import type { NotificationField } from '@/types/api/notifications';
+import type { DatabaseId, MangaId } from '@/types/dbTypes';
+
+
+export const followUnfollow = (mangaId: MangaId, serviceId: DatabaseId | null) => {
+  const url = serviceId
+    ? `/api/user/follows?mangaId=${mangaId}&serviceId=${serviceId}`
+    : `/api/user/follows?mangaId=${mangaId}`;
   return throttle((event: MouseEvent) => {
     const target = event.target as HTMLElement;
     switch (target?.textContent?.toLowerCase()) {
@@ -17,7 +19,6 @@ export const followUnfollow = (csrf: string, mangaId: MangaId, serviceId: Databa
         fetch(url,
           {
             method: 'put',
-            headers: csrfHeader(csrf),
           })
           .then(res => {
             if (res.status === 200) {
@@ -32,7 +33,6 @@ export const followUnfollow = (csrf: string, mangaId: MangaId, serviceId: Databa
       case 'unfollow':
         fetch(url, {
           method: 'delete',
-          headers: csrfHeader(csrf),
         })
           .then(res => {
             if (res.status === 200) {
@@ -50,7 +50,7 @@ export const followUnfollow = (csrf: string, mangaId: MangaId, serviceId: Databa
           target.ariaLabel = target.ariaLabel.replace(/unfollow/i, 'follow');
         }
     }
-  }, 200, { trailing: false });
+  }, 200, { edges: ['trailing']});
 };
 
 // This seems to be faster than a custom recursive function according to my measurements
@@ -60,13 +60,13 @@ function dateIsInvalid(date?: Date | null): boolean {
   return !date || Number.isNaN(date.getTime()) || date.getTime() === 0;
 }
 
-export const defaultDateFormat = (date?: Date | null, ifUndefined='Unknown'): string => {
+export const defaultDateFormat = (date?: Date | null, ifUndefined = 'Unknown'): string => {
   if (dateIsInvalid(date)) return ifUndefined;
 
-  return format(date!, 'MMM do yyyy, HH:mm', { locale: enLocale });
+  return format(date!, 'MMM do yyyy, HH:mm', { locale: enGB });
 };
 
-export const defaultDateDistanceToNow = (date?: Date, ifUndefined='Unknown'): string => {
+export const defaultDateDistanceToNow = (date?: Date, ifUndefined = 'Unknown'): string => {
   if (dateIsInvalid(date)) return ifUndefined;
 
   return formatDistanceToNowStrict(date!, { addSuffix: true });
@@ -102,14 +102,14 @@ export const maxBy = (arr, accessor) => cmpBy(arr, accessor, (a, b) => a > b);
 */
 
 export interface GroupedYearData {
-  timestamp: number,
+  timestamp: number
   count: number
 }
 
 export interface GroupedYear {
-  start: Date,
-  end: Date,
-  total: number,
+  start: Date
+  end: Date
+  total: number
   dataPoints: {
     [key: string]: number
   }
@@ -117,7 +117,7 @@ export interface GroupedYear {
 
 export type GroupedYears = {
   [key: string]: GroupedYear | { empty: true }
-}
+};
 
 /**
  * Groups given data on a year by year basis ready for heatmaps
@@ -185,14 +185,15 @@ export const statusToString = (status: number | string) => {
       return 'Dropped';
     case 3:
       return 'Hiatus';
+    case 0:
     default:
       return 'Ongoing';
   }
 };
 
 export const isInteger = (s: any): s is number | string => (
-  Number.isInteger(s) ||
-  /^-?\d+$/.test(s)
+  Number.isInteger(s)
+  || /^-?\d+$/.test(s)
 );
 
 
@@ -209,7 +210,7 @@ export const isInteger = (s: any): s is number | string => (
  */
 export const snakeCase = (s: string) => s.replace(/[A-Z]/g, letter => `_${letter[0].toLowerCase()}`);
 
-export const buildNotificationData = (values: FormValues<any>) => ({
+export const buildNotificationData = (values: FormValues) => ({
   notificationId: values.notificationId,
   useFollows: values.useFollows,
 
@@ -219,15 +220,18 @@ export const buildNotificationData = (values: FormValues<any>) => ({
 
   disabled: values.disabled,
 
-  manga: values.useFollows ?
-    undefined :
-    values.manga.map((m: any) => ({ mangaId: m.mangaId, serviceId: m.serviceId })),
+  manga: values.useFollows
+    ? undefined
+    : values.manga!.map((m: any) => ({ mangaId: m.mangaId, serviceId: m.serviceId })),
 });
 
 
-export type MappedNotificationField<T> = {
-  [key: string]: T
-}
+export type MappedNotificationField<TValue, TKey extends Record<string, unknown> | 'generic' = 'generic'> = TKey extends 'generic'
+  ? {
+    [key: string]: TValue
+  } : {
+    [key in keyof TKey]: TValue;
+  };
 
 /**
  *
@@ -235,13 +239,16 @@ export type MappedNotificationField<T> = {
  * @param property {string} Which property of the field to map
  * @returns {Object}
  */
-export const mapNotificationFields = <K extends keyof NotificationField = 'value'>(fields: NotificationField[], property: K= 'value' as K): MappedNotificationField<NotificationField[K]> => {
-  if (!Array.isArray(fields)) return {};
+export const mapNotificationFields = <
+  T extends Record<string, unknown> = Record<string, unknown>,
+  K extends keyof NotificationField = 'value'
+>(fields: NotificationField[], property: K = 'value' as K): MappedNotificationField<NotificationField[K], T> => {
+  if (!Array.isArray(fields)) return {} as MappedNotificationField<NotificationField[K], T>;
 
-  return fields.reduce((prev, curr) => ({
+  return fields.reduce<MappedNotificationField<NotificationField[K], T>>((prev, curr) => ({
     ...prev,
     [curr.name]: curr[property],
-  }), {});
+  }), {} as MappedNotificationField<NotificationField[K], T>);
 };
 
 

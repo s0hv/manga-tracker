@@ -1,5 +1,8 @@
-import { isInteger, statusToString } from '@/webUtils/utilities';
+import { describe, expect, it } from 'vitest';
+
 import { groupBy } from '@/common/utilities';
+import { isInteger, statusToString } from '@/webUtils/utilities';
+
 
 describe('statusToString', () => {
   it('Returns Ongoing for 0', () => {
@@ -33,7 +36,7 @@ describe('groupBy', () => {
   type Group<T = string> = {
     group: T
     value: number
-  }
+  };
 
   const generateData = <T = string>(group: T, count = 1): Group<T>[] => new Array(count).fill(0)
     .map(() => ({
@@ -76,7 +79,7 @@ describe('groupBy', () => {
 
     let start = 0;
     let idx = 0;
-    grouped.forEach((group) => {
+    grouped.forEach(group => {
       const [groupKey, count] = groupCounts[idx];
       expect([...group.arr]).toEqual(groupedData.slice(start, start + count));
       expect(group).toHaveProperty('group', groupKey);
@@ -151,7 +154,7 @@ describe('groupBy', () => {
       ...generateData({ test: groupA }, 1),
     ];
 
-    const grouped = groupBy(groupedData, (group) => group[groupKeyProperty].test);
+    const grouped = groupBy(groupedData, group => group[groupKeyProperty].test);
     expect(grouped).toHaveLength(3);
   });
 
@@ -163,7 +166,7 @@ describe('groupBy', () => {
       ...generateData({ test: groupC }, 2),
     ];
 
-    const grouped = groupBy(groupedData, (group) => group[groupKeyProperty].test, { keepOrder: false });
+    const grouped = groupBy(groupedData, group => group[groupKeyProperty].test, { keepOrder: false });
     expect(grouped).toHaveLength(2);
   });
 });

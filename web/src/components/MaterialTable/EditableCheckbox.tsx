@@ -1,8 +1,10 @@
 import React, { ChangeEvent, PropsWithChildren } from 'react';
 import { Checkbox, CheckboxProps } from '@mui/material';
 import { RowData } from '@tanstack/react-table';
-import { processCellEdit } from './useEditable';
+
+
 import { MaterialCellContext } from './types';
+import { processCellEdit } from './useEditable';
 
 export interface EditableCheckboxProps<TData extends RowData> extends Omit<CheckboxProps, 'checked'> {
   checked: boolean
@@ -34,9 +36,12 @@ const EditableCheckbox = <TData extends RowData>(props: PropsWithChildren<Editab
     <Checkbox
       checked={value}
       {...checkboxProps}
-      inputProps={{
-        'aria-label': ariaLabel,
-        ...checkboxProps.inputProps,
+      slotProps={{
+        ...checkboxProps.slotProps,
+        input: {
+          'aria-label': ariaLabel,
+          ...checkboxProps.slotProps?.input,
+        },
       }}
       onChange={handleChange}
     />

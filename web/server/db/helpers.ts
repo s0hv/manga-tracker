@@ -1,6 +1,7 @@
 import type { PendingQuery, Row, RowList } from 'postgres';
-import { type Db, sql } from '@/db/index';
+
 import { NoResultsError, TooManyResultsError } from '@/db/errors';
+import { type Db, sql } from '@/db/index';
 
 
 export type RowType = readonly (object | undefined)[];
@@ -19,7 +20,7 @@ export const createHelpers = (sql_: Db) => {
       throw new TooManyResultsError('Over one row found', result);
     }
 
-    return result[0] as any as T || null;
+    return result[0] as unknown as T || null;
   };
 
 
@@ -32,7 +33,7 @@ export const createHelpers = (sql_: Db) => {
       throw new TooManyResultsError('Over one row found', result);
     }
 
-    return result[0] as any as T;
+    return result[0] as unknown as T;
   };
 
   const many = async <T extends Row>(...args: TemplateArgs<T[]>): Promise<RowList<T[]>> => {

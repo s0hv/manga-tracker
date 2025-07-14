@@ -1,10 +1,11 @@
-import { type Mock, vi } from 'vitest';
-import { unsignCookie } from './utils';
+import { type Mock, expect, vi } from 'vitest';
 
+import { unsignCookie } from './utils';
 import { type DatabaseHelpers, db } from '@/db/helpers';
 import type { DatabaseId } from '@/types/dbTypes';
 
-export const sessionExists = async (sessionId: string, encrypted=true) => {
+
+export const sessionExists = async (sessionId: string, encrypted = true) => {
   if (encrypted) {
     sessionId = unsignCookie(sessionId) as string;
   }
@@ -26,8 +27,8 @@ export const authTokenExists = async (tokenValue: string) => {
 };
 
 
-export type SqlMock = Mock<[number, string, any, any]>
-export type SqlHelperMock = Mock<[TemplateStringsArray, ...any]>
+export type SqlMock = Mock<(count: number, query: string) => void>;
+export type SqlHelperMock = Mock<(template: TemplateStringsArray, ...rest: any[]) => Promise<any>>;
 export const spyOnDb = (method: keyof DatabaseHelpers | null = null): SqlHelperMock | SqlMock => {
   if (method === null) {
     const spy: SqlMock = vi.fn();
@@ -46,7 +47,7 @@ export const expectOnlySessionInsert = (spy: SqlMock) => {
   });
 };
 
-export const sessionAssociatedWithUser = async (sessionId: string, encrypted=true) => {
+export const sessionAssociatedWithUser = async (sessionId: string, encrypted = true) => {
   if (encrypted) {
     sessionId = unsignCookie(sessionId) as string; // Type safety asserted on the next line
   }
@@ -54,14 +55,6 @@ export const sessionAssociatedWithUser = async (sessionId: string, encrypted=tru
 
   const row = await db.oneOrNone`SELECT user_id FROM sessions WHERE session_id=${sessionId}`;
   return row !== null && row.userId !== null;
-};
-
-export const authTokenCount = async (uuid: string) => {
-  const row = await db.one`SELECT COUNT(*)
-               FROM auth_tokens INNER JOIN users u ON auth_tokens.user_id = u.user_id
-               WHERE user_uuid=${uuid}`;
-
-  return Number(row.count);
 };
 
 export const userSessionCount = async (uuid: string) => {

@@ -1,7 +1,7 @@
 // import { RedocStandalone } from 'redoc';
-import { getOpenapiSpecification } from '../../swagger';
+import { getOpenapiSpecification } from '../../swagger/index';
 
-// eslint-disable-next-line no-unused-vars
+
 export default function Swagger({ spec }) {
   return <div>Page temporarily disabled</div>;
   // return <RedocStandalone spec={spec} />;

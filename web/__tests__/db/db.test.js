@@ -1,11 +1,14 @@
-import { getLatestReleases, getUserFollows } from '../../server/db/db';
+import { describe, expect, it } from 'vitest';
+
 import { normalUser } from '../utils';
+
+import { getLatestReleases, getUserFollows } from '../../server/db/db';
 
 describe('getLatestReleases()', () => {
   const serviceId = 1;
   const mangaId = 1;
 
-  const expectValidOutput = (res) => {
+  const expectValidOutput = res => {
     expect(res).toBeDefined();
     expect(res).toBeArray();
   };

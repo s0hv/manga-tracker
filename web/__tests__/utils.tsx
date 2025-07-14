@@ -1,29 +1,35 @@
+import React, { isValidElement } from 'react';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { fireEvent, screen, within } from '@testing-library/react';
-import cookie from 'cookie';
-import signature from 'cookie-signature';
-import enLocale from 'date-fns/locale/en-GB';
-import jestOpenAPI from 'jest-openapi';
-import React, { isValidElement } from 'react';
-import type { Response } from 'supertest';
-import request from 'supertest';
 import { QueryClient } from '@tanstack/react-query';
-import type { MockCall } from 'fetch-mock';
+import {
+  BoundFunctions,
+  queries,
+  screen,
+  within,
+} from '@testing-library/react';
+import { type UserEvent } from '@testing-library/user-event';
+import signature from 'cookie-signature';
+import { enGB as enLocale } from 'date-fns/locale';
 import type {
   NextFunction,
   Request as ExpressRequest,
 } from 'express-serve-static-core';
-import userEvent from '@testing-library/user-event';
-import type { Screen } from '@testing-library/react/types';
-import { Mock, SpyInstance, vi } from 'vitest';
+import type { MockCall } from 'fetch-mock';
+import jestOpenAPI from 'jest-openapi';
+import type { ConfirmResult } from 'material-ui-confirm';
+import type { Response } from 'supertest';
+import request from 'supertest';
+import { expect, Mock, MockInstance, vi } from 'vitest';
 
-import { UserProvider } from '@/webUtils/useUser';
-import { getOpenapiSpecification } from '../swagger';
 import type { PostgresAdapter } from '@/db/postgres-adapter';
+import { UserProvider } from '@/webUtils/useUser';
+
+import { getOpenapiSpecification } from '../swagger';
+
 import { TestUser } from './constants';
 
-export { normalUser, adminUser, oauthUser, authTestUser } from './constants';
+export { adminUser, authTestUser, normalUser, oauthUser } from './constants';
 
 // Must be mocked here
 vi.mock('notistack', async () => {
@@ -39,6 +45,9 @@ vi.mock('@/db/helpers', async () => {
   const db = await vi.importActual<typeof import('@/db/helpers')>('@/db/helpers');
   dbMock = {
     ...db,
+    any: vi.fn().mockImplementation(() => {
+      throw new Error('aaaaaaaa');
+    }),
   };
   return dbMock;
 });
@@ -97,14 +106,14 @@ export function expectNoSnackbar() {
 }
 
 export function getSnackbarMessage() {
-  return enqueueSnackbarMock.mock.calls[enqueueSnackbarMock.mock.calls.length-1][0];
+  return enqueueSnackbarMock.mock.calls[enqueueSnackbarMock.mock.calls.length - 1][0];
 }
 
-export async function muiSelectValue(user: ReturnType<typeof userEvent.setup>, container: Screen, selectName: string | RegExp, value: string | RegExp) {
-  await user.click(container.getByLabelText(selectName));
+export async function muiSelectValue(user: UserEvent, container: BoundFunctions<typeof queries>, selectName: string | RegExp, value: string | RegExp) {
+  await user.click(container.getByRole('combobox', { name: selectName }));
   const listbox = within(screen.getByRole('listbox'));
 
-  fireEvent.click(listbox.getByText(value));
+  await user.click(listbox.getByRole('option', { name: value }));
 }
 
 export function mockUTCDates() {
@@ -153,9 +162,9 @@ export function mockUTCDates() {
 }
 
 type WithUser = {
-  (userObject: TestUser, cb: React.ReactElement): Promise<React.ReactElement>,
-  (userObject: TestUser, cb: () => Promise<any>): Promise<void>,
-}
+  (userObject: TestUser, cb: React.ReactElement): Promise<React.ReactElement>
+  (userObject: TestUser, cb: () => Promise<any>): Promise<void>
+};
 
 export const withUser: WithUser = (async (userObject: TestUser, cb: React.ReactElement | (() => Promise<any>)) => {
   if (isValidElement(cb)) {
@@ -177,24 +186,24 @@ export const withUser: WithUser = (async (userObject: TestUser, cb: React.ReactE
   });
 
   try {
-    await cb();
+    await (cb as () => Promise<any>)();
   } finally {
     // Restore the original function
     getSessionAndUser.mockImplementation((await vi.importActual<typeof import('@/db/auth')>('@/db/auth')).getSessionAndUser);
   }
 }) as WithUser;
 
-export function getCookie(agent: request.SuperAgentTest, name: string) {
+export function getCookie(agent: request.Agent, name: string) {
   return agent.jar.getCookie(name, { path: '/' } as any);
 }
 
-export const getSessionToken = (agent: request.SuperAgentTest) => {
+export const getSessionToken = (agent: request.Agent) => {
   return getCookie(agent, 'next-auth.session-token')?.value;
 };
 
-export function deleteCookie(agent: request.SuperAgentTest, name: string) {
+export function deleteCookie(agent: request.Agent, name: string) {
   const c = getCookie(agent, name);
-  expect(cookie).toBeDefined();
+  expect(c).toBeDefined();
   c!.expiration_date = 0;
   agent.jar.setCookie(c!);
 }
@@ -209,7 +218,7 @@ export async function login(app: any, user: TestUser) {
   const token = Date.now().toString();
   await adapter.createSession({
     sessionToken: token,
-    expires: new Date(Date.now() + 24*60*60*1000),
+    expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
     userId: user.id,
   });
 
@@ -235,23 +244,6 @@ export function unsignCookie(value: string) {
     value = decodeURIComponent(value);
   }
   return signature.unsign(value.slice(2), 'secret');
-}
-
-export function getCookieFromRes(res: Response, cookieName: string) {
-  if (!res.headers['set-cookie']) return;
-  return res.headers['set-cookie']
-    .map((c: string) => cookie.parse(c))
-    .find((c: Record<string, string>) => c[cookieName] !== undefined);
-}
-
-export function expectCookieDeleted(cookieName: string) {
-  return (res: Response) => {
-    expect(res.headers['set-cookie']).toBeArray();
-    const found = getCookieFromRes(res, cookieName);
-
-    expect(found).toBeDefined();
-    expect(new Date(found.Expires).getTime()).toBe(0);
-  };
 }
 
 export function decodeAuthToken(tokenValue: string): [string, string, string] {
@@ -284,9 +276,9 @@ export function getErrorMessage(res: Response) {
 type ExpectErrorMessageReturn = (res: Response) => void;
 type ExpectErrorMessage = {
   (value: any, param?: string, message?: string | RegExp): ExpectErrorMessageReturn
-}
+};
 
-export const expectErrorMessage: ExpectErrorMessage = (value, param, message='Invalid value') => {
+export const expectErrorMessage: ExpectErrorMessage = (value, param, message = 'Invalid value') => {
   return (res: Response) => {
     expect(res.ok).toBeFalse();
     expect(res.body).toBeObject();
@@ -303,7 +295,7 @@ export const expectErrorMessage: ExpectErrorMessage = (value, param, message='In
     if (Array.isArray(errors)) {
       if (param) {
         // Only get errors related to the given parameter
-        errors = errors.filter(err => err.param === param);
+        errors = errors.filter(err => err.path === param);
       }
       expect(errors).toHaveLength(1);
       error = errors[0];
@@ -313,7 +305,7 @@ export const expectErrorMessage: ExpectErrorMessage = (value, param, message='In
 
     expect(error.msg).toMatch(message);
     if (typeof param === 'string') {
-      expect(error.param).toEqual(param);
+      expect(error.path).toEqual(param);
     }
 
     expect(error.value).toEqual(value);
@@ -321,7 +313,10 @@ export const expectErrorMessage: ExpectErrorMessage = (value, param, message='In
 };
 
 export async function configureJestOpenAPI() {
-  jestOpenAPI(await getOpenapiSpecification());
+  // Must add global expect so that jest-openapi can add its custom matchers
+  (global as any).expect = expect;
+  jestOpenAPI(await getOpenapiSpecification() as any);
+  delete (global as any).expect;
 }
 
 const counters: Record<string, number> = {};
@@ -354,9 +349,9 @@ export const getRowByColumnValue = (
 
   if (!headerRow) throw new Error('Header row not found');
 
-  const headerComp = typeof header === 'string' ?
-    (v: Element) => v.textContent === header :
-    (v: Element) => header.test(v.textContent || '');
+  const headerComp = typeof header === 'string'
+    ? (v: Element) => v.textContent === header
+    : (v: Element) => header.test(v.textContent || '');
 
   const headerIndex = Array.from(headerRow.cells).findIndex(headerComp);
 
@@ -387,10 +382,10 @@ export const mockDbForErrors = <T, >(fn: () => Promise<T>): Promise<T> => {
 };
 
 type SilenceConsole = {
-  (): SpyInstance[],
+  (): MockInstance[]
   <T>(callback: Promise<T>): Promise<T>
-}
-export const silenceConsole: SilenceConsole = (<T, >(callback?: Promise<T>): Promise<T> | SpyInstance[] => {
+};
+export const silenceConsole: SilenceConsole = (<T, >(callback?: Promise<T>): Promise<T> | MockInstance[] => {
   if (process.env.KEEP_CONSOLE) {
     return callback || [];
   }
@@ -412,4 +407,8 @@ export const silenceConsole: SilenceConsole = (<T, >(callback?: Promise<T>): Pro
   return spies;
 }) as SilenceConsole;
 
-export const restoreMocks = (spies: SpyInstance[]) => spies.forEach(spy => spy.mockRestore());
+export const restoreMocks = (spies: MockInstance[]) => spies.forEach(spy => spy.mockRestore());
+
+export const confirmMock = (confirmed: boolean = true) => vi.fn(() => Promise.resolve(
+  { confirmed, reason: confirmed ? 'confirm' : 'cancel' } satisfies ConfirmResult
+));

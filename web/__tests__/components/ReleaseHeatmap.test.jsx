@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { vi } from 'vitest';
+import { describe, expect, vi, it } from 'vitest';
 
 import ReleaseHeatmap from '../../src/components/ReleaseHeatmap';
 

@@ -1,20 +1,21 @@
+import type {
+  NextFunction,
+  Request,
+  Response,
+} from 'express-serve-static-core';
 import Redis from 'ioredis';
 import {
   type IRateLimiterRedisOptions,
   RateLimiterMemory,
   RateLimiterRedis,
 } from 'rate-limiter-flexible';
-import type {
-  NextFunction,
-  Request,
-  Response,
-} from 'express-serve-static-core';
+
 import { createSingleton } from '@/serverUtils/utilities';
 
 export const redis = createSingleton<Redis>('redisClient', () => new Redis(process.env.REDIS_URL!, {
   enableOfflineQueue: process.env.NODE_ENV !== 'production',
   showFriendlyErrorStack: process.env.NODE_ENV !== 'production',
-  retryStrategy: (times) => {
+  retryStrategy: times => {
     if (times > 3) {
       return null;
     }

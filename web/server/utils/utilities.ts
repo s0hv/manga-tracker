@@ -1,4 +1,4 @@
-export const getOptionalNumberParam = (value: any, defaultValue: number, paramName='Value') => {
+export const getOptionalNumberParam = (value: any, defaultValue: number, paramName = 'Value') => {
   if (value === undefined) {
     return defaultValue;
   }

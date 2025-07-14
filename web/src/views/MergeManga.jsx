@@ -1,24 +1,24 @@
+import React, { useCallback, useState } from 'react';
+
+import ArrowRightAlt from '@mui/icons-material/ArrowRightAlt';
 import {
+  Box,
   Button,
   Container,
-  Grid,
-  Paper,
-  Typography,
-  RadioGroup,
   FormControl,
   FormControlLabel,
   FormLabel,
+  Grid,
+  Paper,
   Radio,
+  RadioGroup,
+  Typography,
 } from '@mui/material';
-import { ArrowRightAlt } from '@mui/icons-material';
-
 import { styled } from '@mui/material/styles';
-import React, { useState, useCallback } from 'react';
-/** @jsxImportSource @emotion/react */
+
+import { getManga, postMergeManga } from '../api/manga';
 import Search from '../components/MangaSearch';
 import PartialManga from '../components/PartialManga';
-import { useCSRF } from '../utils/csrf';
-import { getManga, postMergeManga } from '../api/manga';
 
 
 const RootContainer = styled(Container)(({ theme }) => ({
@@ -68,7 +68,7 @@ const ServicesList = ({ services, value, setValue }) => {
   return (
     <FormControl component='fieldset'>
       <FormLabel component='legend'>Services</FormLabel>
-      <RadioGroup aria-label='merge services' value={value} onChange={(e) => setValue(e.target.value)}>
+      <RadioGroup aria-label='merge services' value={value} onChange={e => setValue(e.target.value)}>
         <FormControlLabel control={<Radio />} label='All services' value='all' />
         {services.map(service => (
           <FormControlLabel
@@ -85,8 +85,6 @@ const ServicesList = ({ services, value, setValue }) => {
 
 
 function MergeManga() {
-  const csrf = useCSRF();
-
   const [manga1, setManga1] = useState({});
   const [manga2, setManga2] = useState({});
   const [result, setResult] = useState({});
@@ -109,7 +107,7 @@ function MergeManga() {
     if (!isValid) return;
 
     const service = radio === 'all' ? undefined : radio;
-    return postMergeManga(csrf, manga1.manga.mangaId, manga2.manga.mangaId, service)
+    return postMergeManga(manga1.manga.mangaId, manga2.manga.mangaId, service)
       .then(json => {
         setResult({ message: `Moved ${json.aliasCount} alias(es) and ${json.chapterCount} chapter(s)` });
         setManga2({});
@@ -118,16 +116,12 @@ function MergeManga() {
       .finally(() => setRadio('all'));
   };
 
-  const renderItem = useCallback((renderProps, { title }, index, props) => (
-    <li {...renderProps}>
-      <div
-        {...props}
-        // eslint-disable-next-line react/no-unknown-property
-        css={{ width: '100%' }}
-      >
+  const renderItem = useCallback(({ key, ...renderProps }, { title }) => (
+    <Box key={key} component='li' {...renderProps}>
+      <Box sx={{ width: '100%' }}>
         {title}
-      </div>
-    </li>
+      </Box>
+    </Box>
   ), []);
 
   return (
@@ -207,8 +201,7 @@ function MergeManga() {
           </>
         )}
         <Typography
-          color={result.error ? 'error' : 'initial'}
-          sx={{ mt: 2 }}
+          sx={{ mt: 2, color: result.error ? 'error' : 'initial' }}
           aria-label='merge result'
         >
           {result.message || null}

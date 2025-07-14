@@ -1,12 +1,13 @@
-import type { AdapterSession } from 'next-auth/adapters';
-import type { Location } from 'express-validator';
 import type { Request as ExpressRequest } from 'express-serve-static-core';
-import '@mui/material/themeCssVarsAugmentation';
-import type { SessionData, SessionUser } from './dbTypes';
+import type { Location } from 'express-validator';
+import type { AdapterSession } from 'next-auth/adapters';
+
 import type { PostgresAdapter } from '@/db/postgres-adapter';
 
+import type { SessionData, SessionUser } from './dbTypes';
+
 declare module 'next-auth/adapters' {
-  // eslint-disable-next-line @typescript-eslint/no-shadow
+
   interface AdapterSession {
     csrfSecret?: string
     data?: SessionData | null
@@ -21,27 +22,27 @@ declare module 'express-serve-static-core' {
   }
 
   interface Express {
-    sessionStore: PostgresAdapter,
+    sessionStore: PostgresAdapter
   }
 }
 
 declare module 'express-validator' {
   interface Meta {
-    req: ExpressRequest,
-    location: Location,
+    req: ExpressRequest
+    location: Location
     path: string
   }
 }
 
 declare module 'supertest' {
-  interface Test extends superagent.SuperAgentRequest {
+  interface Test {
     csrf(): Test
     satisfiesApiSpec(): Test
   }
 }
 
 declare module 'next-auth' {
-  type User = SessionUser
+  type User = SessionUser;
   interface Session {
     data?: SessionData | null
     userId: string

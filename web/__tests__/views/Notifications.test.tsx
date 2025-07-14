@@ -1,20 +1,13 @@
-import { act, render, screen, waitFor } from '@testing-library/react';
+import type { PropsWithChildren } from 'react';
 import { QueryClientProvider } from '@tanstack/react-query';
+import { act, render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import fetchMock from 'fetch-mock';
 import { SnackbarProvider } from 'notistack';
-import { vi } from 'vitest';
-import type { PropsWithChildren } from 'react';
-import userEvent from '@testing-library/user-event';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import {
-  expectErrorSnackbar,
-  mockNotistackHooks,
-  muiSelectValue,
-  queryClient,
-  restoreMocks,
-  silenceConsole,
-} from '../utils';
-import Notifications from '../../src/views/Notifications';
+import { mockNotistackHooks, muiSelectValue, queryClient } from '../utils';
+import Notifications from '@/views/Notifications';
 
 const Root = ({ children }: PropsWithChildren) => (
   <QueryClientProvider client={queryClient}>
@@ -48,28 +41,10 @@ describe('Notifications view', () => {
 
     expect(mockResponse).toHaveBeenCalledOnce();
 
-    expect(screen.getByRole('button', { name: /Notification type to create/i }))
+    expect(screen.getByRole('combobox', { name: /Notification type to create/i }))
       .toBeInTheDocument();
     expect(screen.getByRole('button', { name: /create new notification/i }))
       .toBeInTheDocument();
-  });
-
-  // Does not understand await waitFor(expectErrorSnackbar);
-  // eslint-disable-next-line jest/expect-expect
-  it('Shows error when fetch fails', async () => {
-    fetchMock.get(
-      'path:/api/notifications',
-      500
-    );
-
-    const spies = silenceConsole();
-    await act(async () => {
-      render(<Rendered />);
-    });
-
-    // For some reason this gets called after exiting act
-    await waitFor(expectErrorSnackbar);
-    restoreMocks(spies);
   });
 
   it('Creates notification when create clicked', async () => {

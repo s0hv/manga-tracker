@@ -1,3 +1,6 @@
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import EditIcon from '@mui/icons-material/Edit';
+import SettingsIcon from '@mui/icons-material/Settings';
 import {
   Button,
   Container,
@@ -10,27 +13,23 @@ import {
   Typography,
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
-import {
-  Edit as EditIcon,
-  Settings as SettingsIcon,
-} from '@mui/icons-material';
-import Link from 'next/link';
 import dynamic from 'next/dynamic';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
 
-import { useCSRF } from '../utils/csrf';
+import type { ChapterReleaseDates } from '@/types/api/chapter';
+import type { FullMangaData } from '@/types/api/manga';
+import type { DatabaseId } from '@/types/dbTypes';
+
+import { getMangaReleases } from '../api/chapter';
 import { useUser } from '../utils/useUser';
 import { followUnfollow } from '../utils/utilities';
+
 import ChapterList from './ChapterList';
 import MangaAliases from './MangaAliases';
+import { MangaCover } from './MangaCover';
 import MangaInfo from './MangaInfo';
 import MangaSourceList from './MangaSourceList';
 import { TabPanelCustom } from './utils/TabPanelCustom';
-import { getMangaReleases } from '../api/chapter';
-import { MangaCover } from './MangaCover';
-import type { FullMangaData } from '@/types/api/manga';
-import type { ChapterReleaseDates } from '@/types/api/chapter';
-import type { DatabaseId } from '@/types/dbTypes';
 
 const ReleaseHeatmap = dynamic(() => import('./ReleaseHeatmap'));
 
@@ -87,8 +86,8 @@ const DetailsContainer = styled('div')(({ theme }) => ({
 
 export type MangaProps = {
   mangaData: FullMangaData
-  userFollows?: (number|null)[]
-}
+  userFollows?: (number | null)[]
+};
 
 function Manga(props: MangaProps): React.ReactElement {
   const {
@@ -103,7 +102,6 @@ function Manga(props: MangaProps): React.ReactElement {
   const [releaseData, setReleaseData] = useState<ChapterReleaseDates[]>([]);
   const [activeTab, setActiveTab] = useState<number>(0);
   const changeTab = useCallback((e: any, newVal: number) => setActiveTab(newVal), []);
-  const csrf = useCSRF();
 
   useEffect(() => {
     getMangaReleases(manga.mangaId)
@@ -119,7 +117,13 @@ function Manga(props: MangaProps): React.ReactElement {
 
   const serviceMangaData = useMemo(() => {
     const serviceMap: Record<number, { urlFormat: string, titleId: string }> = {};
-    services.forEach(service => { serviceMap[service.serviceId] = { urlFormat: service.urlFormat, titleId: service.titleId } });
+    services.forEach(service => {
+      serviceMap[service.serviceId] = {
+        urlFormat: service.urlFormat,
+        titleId: service.titleId,
+      };
+    });
+
     return serviceMap;
   }, [services]);
 
@@ -169,7 +173,7 @@ function Manga(props: MangaProps): React.ReactElement {
               classesProp={[classes.sourceList]}
               items={services}
               userFollows={userFollows}
-              followUnfollow={(serviceId: DatabaseId | null) => followUnfollow(csrf, manga.mangaId, serviceId)}
+              followUnfollow={(serviceId: DatabaseId | null) => followUnfollow(manga.mangaId, serviceId)}
             />
           </Grid>
         </DetailsContainer>
@@ -177,7 +181,7 @@ function Manga(props: MangaProps): React.ReactElement {
           <Button
             variant='contained'
             color='primary'
-            onClick={followUnfollow(csrf, manga.mangaId, null)}
+            onClick={followUnfollow(manga.mangaId, null)}
             sx={{ mt: 2, mb: 2 }}
             aria-label={`${userFollows.indexOf(null) < 0 ? 'follow' : 'unfollow'} all releases`}
           >

@@ -1,9 +1,10 @@
 import React from 'react';
+
 import NotFound from '../views/NotFound';
 
 
 export default function withError(Component) {
-  return (props) => {
+  return props => {
     const {
       error,
     } = props;

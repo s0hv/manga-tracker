@@ -1,8 +1,11 @@
-import { render, screen } from '@testing-library/react';
 import React from 'react';
+import { render, screen } from '@testing-library/react';
+import { describe, expect, it } from 'vitest';
+
+
+import { normalUser, withUser } from '../utils';
 
 import Follows from '../../src/views/Follows';
-import { normalUser, withUser } from '../utils';
 
 describe('Follows contains required components', () => {
   it('Contains RSS feed button', async () => {

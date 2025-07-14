@@ -1,7 +1,8 @@
 import { NextSeo } from 'next-seo';
+
 import NotificationsView from '../views/Notifications';
 
-const Notifications = (props) => (
+const Notifications = props => (
   <>
     <NextSeo
       title='New chapter notifications'

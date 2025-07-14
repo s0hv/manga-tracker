@@ -4,12 +4,12 @@
   "private": true,
   "license": "MIT",
   "engines": {
-    "node": "^20",
-    "pnpm": "^8"
+    "node": "^22",
+    "pnpm": "^10"
   },
   "dependencies": {
-    "db-migrate": "^0.11.13",
-    "db-migrate-pg": "^1.2.2"
+    "db-migrate": "^0.11.14",
+    "db-migrate-pg": "^1.5.2"
   },
   "scripts": {
     "deploy": "cd web && pnpm run deploy",
@@ -25,5 +25,6 @@
   "cacheDirectories": [
     "web/.next/cache/",
     "node_modules/"
-  ]
+  ],
+  "packageManager": "pnpm@10.12.4+sha512.5ea8b0deed94ed68691c9bad4c955492705c5eeb8a87ef86bc62c74a26b037b08ff9570f108b2e4dbd1dd1a9186fea925e527f141c648e85af45631074680184"
 }

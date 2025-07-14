@@ -5,7 +5,8 @@ exports[`GET /api/manga/:mangaId/chapters > Returns 400 with invalid sort column
   {
     "location": "query",
     "msg": "Sort column must be one of "chapter_id", "chapter_number", "release_date", "group"",
-    "param": "sortBy",
+    "path": "sortBy",
+    "type": "field",
     "value": "test",
   },
 ]
@@ -16,7 +17,8 @@ exports[`GET /api/manga/:mangaId/chapters > Returns 400 with invalid sort direct
   {
     "location": "query",
     "msg": "Sorting direction must be one of "asc" or "desc"",
-    "param": "sort",
+    "path": "sort",
+    "type": "field",
     "value": "test",
   },
 ]
@@ -27,7 +29,8 @@ exports[`POST /api/manga/merge > Returns 400 with invalid service id 1`] = `
   {
     "location": "query",
     "msg": "Invalid value",
-    "param": "service",
+    "path": "service",
+    "type": "field",
     "value": "-1",
   },
 ]
@@ -38,7 +41,8 @@ exports[`POST /api/manga/merge > Returns 400 with invalid service id 2`] = `
   {
     "location": "query",
     "msg": "Invalid value",
-    "param": "service",
+    "path": "service",
+    "type": "field",
     "value": "abc",
   },
 ]

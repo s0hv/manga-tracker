@@ -1,4 +1,8 @@
+import React, { useCallback, useMemo, useState } from 'react';
+import SubdirectoryArrowLeftIcon
+  from '@mui/icons-material/SubdirectoryArrowLeft';
 import {
+  Box,
   Container,
   Grid,
   IconButton,
@@ -6,56 +10,43 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
-
 import { styled } from '@mui/material/styles';
-
-import {
-  SubdirectoryArrowLeft as SubdirectoryArrowLeftIcon,
-} from '@mui/icons-material';
 import { useConfirm } from 'material-ui-confirm';
-import PropTypes from 'prop-types';
-
-import { Select } from 'mui-rff';
 import Link from 'next/link';
 import { useSnackbar } from 'notistack';
-import React, { useCallback, useMemo, useState } from 'react';
-import MangaAliases from '../../components/MangaAliases';
-import MangaInfo from '../../components/EditableMangaInfo';
+import { SelectElement } from 'react-hook-form-mui';
 
-import {
-  AddRowFormTemplate,
-  EditableSelect,
-  MaterialTable,
-} from '../../components/MaterialTable';
-import { useCSRF } from '@/webUtils/csrf';
-import { getManga } from '../../api/manga';
-import {
-  createScheduledRun,
-  deleteScheduledRun,
-  getScheduledRuns,
-} from '../../api/admin/manga';
-import { MangaCover } from '@/components/MangaCover';
-import type { FullMangaData, ScheduledRun } from '@/types/api/manga';
-import type { ServiceConfig } from '@/types/api/services';
 import { MangaServiceTable } from '@/components/manga/MangaServiceTable';
+import { MangaCover } from '@/components/MangaCover';
+import type {
+  DialogComponentProps,
+} from '@/components/MaterialTable/TableToolbar';
 import type {
   MaterialCellContext,
   MaterialColumnDef,
 } from '@/components/MaterialTable/types';
 import { createColumnHelper } from '@/components/MaterialTable/utilities';
-import type {
-  DialogComponentProps,
-} from '@/components/MaterialTable/TableToolbar';
+import type { FullMangaData, ScheduledRun } from '@/types/api/manga';
+import type { ServiceConfig } from '@/types/api/services';
 
-const formStyles = {
-  minWidth: '150px',
-  paddingTop: '0.5em',
+
+import {
+  createScheduledRun,
+  deleteScheduledRun,
+  getScheduledRuns,
+} from '../../api/admin/manga';
+import { getManga } from '../../api/manga';
+import MangaInfo from '../../components/EditableMangaInfo';
+import MangaAliases from '../../components/MangaAliases';
+import {
+  AddRowFormTemplate,
+  EditableSelect,
+  MaterialTable,
+} from '../../components/MaterialTable';
+
+type AddTableRowForm = {
+  serviceId: string
 };
-
-const TitleBar = styled('div')({
-  display: 'flex',
-  justifyContent: 'space-between',
-});
 
 const MangaTitle = styled(Typography)(({ theme }) => ({
   width: '75%',
@@ -78,9 +69,9 @@ const DetailsContainer = styled('div')(({ theme }) => ({
 const columnHelper = createColumnHelper<ScheduledRun>();
 
 export type MangaAdminProps = {
-  mangaData: FullMangaData,
-  serviceConfigs: ServiceConfig[]
-}
+  mangaData: FullMangaData
+  serviceConfigs: Pick<ServiceConfig, 'scheduledRunsEnabled' | 'serviceId'>[]
+};
 
 function MangaAdmin(props: MangaAdminProps) {
   const {
@@ -97,7 +88,6 @@ function MangaAdmin(props: MangaAdminProps) {
 
   // Hooks
   const { enqueueSnackbar } = useSnackbar();
-  const csrf = useCSRF();
   const confirm = useConfirm();
 
   const [loading, setLoading] = useState(false);
@@ -105,7 +95,7 @@ function MangaAdmin(props: MangaAdminProps) {
   const [aliases, setAliases] = useState(aliasesProp);
   const [mangaTitle, setMangaTitle] = useState(manga.title);
 
-  const formatScheduledRuns = useCallback<(runs: ScheduledRun[]) => ScheduledRun[]>((runs) => runs.map(run => {
+  const formatScheduledRuns = useCallback<(runs: ScheduledRun[]) => ScheduledRun[]>(runs => runs.map(run => {
     const found = services.find(s => s.serviceId === run.serviceId);
     if (!found) {
       return run;
@@ -135,8 +125,8 @@ function MangaAdmin(props: MangaAdminProps) {
       .finally(() => setLoading(false));
   }, [formatScheduledRuns, mangaId]);
 
-  const onCreateRow = useCallback((form: any) => {
-    createScheduledRun(csrf, mangaId, form.serviceId)
+  const onCreateRow = useCallback((form: AddTableRowForm) => {
+    createScheduledRun(mangaId, form.serviceId)
       .then(json => {
         setScheduledUpdates(formatScheduledRuns([...scheduledUpdates, json.inserted]));
         enqueueSnackbar(
@@ -145,11 +135,11 @@ function MangaAdmin(props: MangaAdminProps) {
         );
       })
       .catch(err => enqueueSnackbar(err.message, { variant: 'error' }));
-  }, [mangaId, formatScheduledRuns, scheduledUpdates, enqueueSnackbar, csrf]);
+  }, [mangaId, formatScheduledRuns, scheduledUpdates, enqueueSnackbar]);
 
   const onDeleteRow = useCallback((ctx: MaterialCellContext<ScheduledRun, any>) => {
     const serviceId = ctx.row.original.serviceId;
-    deleteScheduledRun(csrf, mangaId, serviceId)
+    deleteScheduledRun(mangaId, serviceId)
       .then(() => {
         setScheduledUpdates(
           formatScheduledRuns(scheduledUpdates.filter(r => r.serviceId !== serviceId))
@@ -160,25 +150,27 @@ function MangaAdmin(props: MangaAdminProps) {
         );
       })
       .catch(err => enqueueSnackbar(err.message, { variant: 'error' }));
-  }, [enqueueSnackbar, formatScheduledRuns, mangaId, scheduledUpdates, csrf]);
+  }, [enqueueSnackbar, formatScheduledRuns, mangaId, scheduledUpdates]);
 
   // Table layout
   const fields = useMemo(() => {
     const servicesWithRunsEnabled = new Set(
       serviceConfigs.filter(s => s.scheduledRunsEnabled).map(s => s.serviceId)
     );
-    const data = services
+    const options = services
       ?.filter(s => servicesWithRunsEnabled.has(s.serviceId))
       .map(s => ({ value: s.serviceId, label: s.name }));
 
     return [
-      <Select
+      <SelectElement
+        label='Service'
         name='serviceId'
         key='serviceId'
-        label='Service'
-        SelectDisplayProps={{ 'aria-label': 'Service select' }}
-        data={data}
+        aria-label='Service select'
+        options={options}
+        valueKey='value'
         required
+        fullWidth
       />,
     ];
   }, [services, serviceConfigs]);
@@ -188,22 +180,26 @@ function MangaAdmin(props: MangaAdminProps) {
   const CreateDialog = useMemo(() => ({ open, onClose }: DialogComponentProps) => (
     <AddRowFormTemplate
       fields={fields}
-      onSubmit={onCreateRow}
+      onSuccess={onCreateRow}
       onClose={onClose}
       open={open}
-      formStyles={formStyles}
+      sx={{
+        minWidth: '150px',
+        pt: '0.5em',
+        mt: 2,
+      }}
     />
   ), [fields, onCreateRow]);
 
   const columns = useMemo((): MaterialColumnDef<ScheduledRun, any>[] => [
     columnHelper.accessor('name', {
       header: 'Service name',
-      EditCell: (ctx) => (
+      EditCell: ctx => (
         <EditableSelect
           value={ctx.row.original.serviceId}
           items={services.map(s => ({ value: s.serviceId, text: s.name }))}
           ctx={ctx}
-          onChange={(serviceId) => {
+          onChange={serviceId => {
             ctx.table.getState().rowEditState[ctx.row.id]!.serviceId = serviceId;
           }}
         />
@@ -218,7 +214,7 @@ function MangaAdmin(props: MangaAdminProps) {
   return (
     <Container maxWidth='lg' disableGutters>
       <Paper sx={{ p: '1em', minWidth: '400px' }}>
-        <TitleBar>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
           <MangaTitle variant='h4'>{mangaTitle}</MangaTitle>
           <Link href={`/manga/${mangaId}`} passHref>
             <Tooltip title='Go back' aria-label='go back to manga page'>
@@ -227,7 +223,8 @@ function MangaAdmin(props: MangaAdminProps) {
               </IconButton>
             </Tooltip>
           </Link>
-        </TitleBar>
+        </Box>
+
         <DetailsContainer>
           <a href={manga.mal || ''} target='_blank' rel='noreferrer noopener'>
             <MangaCover
@@ -251,7 +248,9 @@ function MangaAdmin(props: MangaAdminProps) {
             />
           </Grid>
         </DetailsContainer>
+
         <MangaServiceTable mangaId={mangaId} sx={{ mb: 4 }} />
+
         <MaterialTable
           data={scheduledUpdates}
           columns={columns}
@@ -269,14 +268,5 @@ function MangaAdmin(props: MangaAdminProps) {
     </Container>
   );
 }
-
-MangaAdmin.propTypes = {
-  mangaData: PropTypes.shape({
-    manga: PropTypes.object.isRequired,
-    services: PropTypes.arrayOf(PropTypes.object),
-    aliases: PropTypes.arrayOf(PropTypes.string),
-  }).isRequired,
-  serviceConfigs: PropTypes.arrayOf(PropTypes.object).isRequired,
-};
 
 export default MangaAdmin;

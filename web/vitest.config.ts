@@ -1,10 +1,29 @@
-import { defineConfig } from 'vitest/config';
-import react from '@vitejs/plugin-react';
 import * as path from 'path';
+
+import react from '@vitejs/plugin-react';
+import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   plugins: [react()],
   test: {
+    projects: [
+      {
+        extends: true,
+        test: {
+          name: 'react',
+          include: ['__tests__/**/*.test.{tsx,jsx}'],
+          environment: 'jsdom',
+        },
+      },
+      {
+        extends: true,
+        test: {
+          name: 'node',
+          include: ['__tests__/**/*.test.{ts,js}'],
+          environment: 'node',
+        },
+      },
+    ],
     root: '.',
     alias: {
       '@/components': path.resolve(__dirname, './src/components'),
@@ -14,16 +33,11 @@ export default defineConfig({
       '@/db': path.resolve(__dirname, './server/db'),
       '@/types': path.resolve(__dirname, './types'),
       '@/common': path.resolve(__dirname, './common'),
+      '@/tests': path.resolve(__dirname, './__tests__'),
     },
-    globals: true,
     setupFiles: ['./setupTests.ts'],
     globalSetup: './__tests__/globalSetup.ts',
-    include: ['__tests__/**/*.test.{ts,tsx,js,jsx}'],
     clearMocks: true,
-    environmentMatchGlobs: [
-      ['__tests__/**/*.test.{jsx,tsx}', 'jsdom'],
-      ['__tests__/**/*.test.{js,ts}', 'node'],
-    ],
     reporters: ['default'],
     silent: false,
     coverage: {
@@ -39,7 +53,7 @@ export default defineConfig({
         '**/.next/**',
         '**/{vitest,jest}.config.*',
         '**/{setupTests,next.config,loader,.eslintrc}rc.{js,cjs,ts}',
-        '**/utils/logging.js', // No need to collect coverage for loggers
+        '**/utils/logging.ts', // No need to collect coverage for loggers
       ],
     },
   },
