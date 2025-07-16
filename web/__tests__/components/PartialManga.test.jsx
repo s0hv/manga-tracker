@@ -21,7 +21,7 @@ describe('Partial manga should render correctly', () => {
     // Find cover
     if (hasCover) {
       const cover = screen.getByAltText(mangaData.title);
-      expect(screen.getByAltText(mangaData.title).getAttribute('src')).toStartWith(mangaData.cover);
+      expect(screen.getByAltText(mangaData.title).getAttribute('src')).toStartWith('/_next/image?url=' + encodeURIComponent(mangaData.cover));
       expect(cover.closest('a').getAttribute('href')).toBe(`/manga/${mangaData.mangaId}`);
     }
 

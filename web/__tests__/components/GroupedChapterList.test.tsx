@@ -20,8 +20,8 @@ import { generateNSchemas, LatestChapter, setupFaker } from '../schemas';
 
 describe('ChapterGroupWithCover', () => {
   const mangaToCover = {
-    1: 'test1',
-    2: 'test2',
+    1: '/test1',
+    2: '/test2',
   };
 
   it('should render correctly', async () => {
@@ -42,7 +42,7 @@ describe('ChapterGroupWithCover', () => {
     expect(screen.getByText(groupChildren)).toBeInTheDocument();
     const cover = screen.getByRole('img', { name: groupString });
     expect(cover).toBeInTheDocument();
-    expect(cover).toHaveAttribute('src', `${mangaToCover[mangaId]}.256.jpg`);
+    expect(cover.getAttribute('src')).toStartWith('/_next/image?url=' + encodeURIComponent(`${mangaToCover[mangaId]}.256.jpg`));
 
     expect(screen.getByRole('heading', { name: groupString })).toBeInTheDocument();
   });

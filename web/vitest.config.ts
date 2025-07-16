@@ -43,6 +43,7 @@ export default defineConfig({
     coverage: {
       reportsDirectory: 'coverage',
       provider: 'istanbul',
+      reportOnFailure: true,
       exclude: [
         'coverage/**',
         'dist/**',

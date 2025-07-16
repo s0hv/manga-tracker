@@ -32,6 +32,6 @@ COPY --from=build /app/web/node_modules /app/web/node_modules
 COPY --from=build /app/node_modules /app/node_modules
 COPY --from=build /app/web/dist /app/web/dist
 COPY --from=build /app/web/.next /app/web/.next
-COPY ./web/package.json ./web/pnpm-lock.yaml /app/web/
+COPY ./web/package.json ./web/pnpm-lock.yaml ./web/next.config.ts /app/web/
 
 CMD ["pnpm", "run", "deploy"]

@@ -30,7 +30,7 @@ const datetimeType: JSONSchema4 = {
 
 const imageType: JSONSchema4 = {
   type: 'string',
-  faker: 'image.image',
+  format: 'coverUrl',
 };
 
 export const LatestChapter: JSONSchema4 = {
@@ -121,6 +121,13 @@ export const setupFaker = (seed = 1) => {
     if (jsf.random.pick([true, false])) {
       url += '/{title_id}';
     }
+
+    return url;
+  });
+
+  jsf.format('coverUrl', () => {
+    const url = new URL(faker.image.url());
+    url.hostname = 'mangadex.org';
 
     return url;
   });
