@@ -71,7 +71,7 @@ describe('Manga page should render correctly', async () => {
 
       const coverImage = screen.getByRole('img', { name: m.manga.title });
       expect(coverImage).toBeInTheDocument();
-      expect(coverImage).toHaveAttribute('src', `${m.manga.cover}.256.jpg`);
+      expect(coverImage.getAttribute('src')).toStartWith('/_next/image?url=' + encodeURIComponent(`${m.manga.cover}.256.jpg`));
     } else {
       expect(screen.queryByRole('link', { name: /myanimelist page of the manga/i })).not.toBeInTheDocument();
       expect(screen.queryByRole('img', { name: m.manga.title })).not.toBeInTheDocument();

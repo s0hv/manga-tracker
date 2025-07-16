@@ -71,6 +71,7 @@ jobs:
 
     - name: Run vitest and generate coverage
       continue-on-error: true
+      id: vitest
       run: pnpm test:ci
 
     - name: Upload coverage to Codecov
@@ -80,6 +81,10 @@ jobs:
         name: Frontend coverage
         fail_ci_if_error: true
         token: ${{ secrets.CODECOV_TOKEN }}
+
+    - name: Fail if vitest tests failed
+      if: steps.vitest.outcome != 'success'
+      run: exit 1
 
     env:
       DB_HOST: postgres
@@ -270,6 +275,8 @@ jobs:
 
       - uses: cypress-io/github-action@v6
         continue-on-error: true
+        name: Run Cypress tests
+        id: cypress-run
         with:
           browser: chrome
           working-directory: ./web/cypress
@@ -283,6 +290,10 @@ jobs:
           name: E2E coverage
           fail_ci_if_error: true
           token: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Fail if Cypress tests failed
+        if: steps.cypress-run.outcome != 'success'
+        run: exit 1
 
     env:
       DB_HOST: postgres

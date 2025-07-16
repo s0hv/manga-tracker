@@ -6,7 +6,10 @@ export default async () => {
     poweredByHeader: false,
     reactStrictMode: true,
     images: {
-      remotePatterns: [new URL('https://uploads.mangadex.org/**')],
+      remotePatterns: [
+        new URL('https://uploads.mangadex.org/**'),
+        new URL('https://mangadex.org/*/**'),
+      ],
       deviceSizes: [300, 600, 960],
       imageSizes: [128, 192, 256, 512],
     },

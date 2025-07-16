@@ -58,7 +58,7 @@ export const ChapterGroupWithCover = (mangaToCover: Record<DatabaseId, string>):
         <a href={`/manga/${mangaId}`} target='_blank' rel='noopener noreferrer'>
           <MangaCover
             url={mangaToCover[group]}
-            alt={groupString}
+            alt={groupString as string}
             maxWidth={96}
           />
         </a>
