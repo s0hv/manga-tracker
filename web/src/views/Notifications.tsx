@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { type FC, useCallback, useMemo, useState } from 'react';
 import {
   Button,
   Container,
@@ -44,7 +44,7 @@ const NotificationComponents = {
 
 const queryKey = QueryKeys.NotificationsList;
 
-const Notifications = () => {
+const Notifications: FC = () => {
   const { data: notificationData, isLoading } = useQuery({
     queryKey,
     queryFn: getNotifications,

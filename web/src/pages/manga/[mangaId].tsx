@@ -1,17 +1,17 @@
 import React from 'react';
 import { NextSeo } from 'next-seo';
 
+import Manga from '@/components/Manga';
 import { getUserFollows } from '@/db/db';
 import { getFullManga } from '@/db/manga';
 import type { FullMangaData } from '@/types/api/manga';
-import type { GetServerSidePropsExpress } from '@/types/nextjs';
+import type { GetServerSidePropsExpress, PageProps } from '@/types/nextjs';
 import { isInteger } from '@/webUtils/utilities';
+import withError from '@/webUtils/withError';
 
+type Props = PageProps<{ manga: FullMangaData, follows: number[] }>;
 
-import Manga from '../../components/Manga';
-import withError from '../../utils/withError';
-
-function MangaPage(props: { manga: FullMangaData, follows: number[] }) {
+function MangaPage(props: Props) {
   const {
     manga: fullManga,
     follows,

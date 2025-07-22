@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   formatChapterTitle,
   formatChapterUrl,
-} from '../../src/utils/formatting';
+} from '@/webUtils/formatting';
 
 describe('formatChapterTitle', () => {
   it('Should format correctly without decimal', () => {

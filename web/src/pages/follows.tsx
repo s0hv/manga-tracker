@@ -1,14 +1,17 @@
 import React from 'react';
-
 import { NextSeo } from 'next-seo';
 
-import { getFollows } from '../../server/db/manga';
-import { jsonSerializable } from '../utils/utilities';
-import withError from '../utils/withError';
-import Follows from '../views/Follows';
+import { getFollows } from '@/db/manga';
+import type { Follow } from '@/types/db/follows';
+import type { GetServerSidePropsExpress, PageProps } from '@/types/nextjs';
+import Follows from '@/views/Follows';
+import { jsonSerializable } from '@/webUtils/utilities';
+import withError from '@/webUtils/withError';
 
 
-const MangaPage = function MangaPage(props) {
+type Props = PageProps<{ follows?: Follow[] }>;
+
+const MangaPage = (props: Props) => {
   const {
     follows,
   } = props;
@@ -31,7 +34,7 @@ const MangaPage = function MangaPage(props) {
 };
 
 
-export async function getServerSideProps({ req }) {
+export const getServerSideProps: GetServerSidePropsExpress<Props> = async ({ req }) => {
   let error;
   let follows;
   try {
@@ -41,7 +44,9 @@ export async function getServerSideProps({ req }) {
   }
 
   if (!follows || error) {
-    return { props: { error: error?.status || 404 }};
+    return { props: {
+      error: (error as { status: number })?.status || 404,
+    }};
   }
 
   return {
@@ -49,5 +54,5 @@ export async function getServerSideProps({ req }) {
       follows: jsonSerializable(follows),
     },
   };
-}
+};
 export default withError(MangaPage);

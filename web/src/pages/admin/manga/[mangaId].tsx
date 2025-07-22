@@ -9,17 +9,17 @@ import { getFullManga } from '@/db/manga';
 import { getServiceConfigs } from '@/db/services';
 import type { FullMangaData } from '@/types/api/manga';
 import type { ServiceConfig } from '@/types/api/services';
-import type { GetServerSidePropsExpress } from '@/types/nextjs';
+import type { GetServerSidePropsExpress, PageProps } from '@/types/nextjs';
 import Manga from '@/views/admin/MangaAdmin';
 import { jsonSerializable } from '@/webUtils/utilities';
 
 
 import withError from '../../../utils/withError';
 
-type MangaPageProps = {
+type MangaPageProps = PageProps<{
   manga: FullMangaData & { title: string }
   serviceConfigs: ServiceConfig[]
-};
+}>;
 
 function MangaPage(props: MangaPageProps) {
   const {

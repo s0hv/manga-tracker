@@ -33,7 +33,6 @@ import { TabPanelCustom } from './utils/TabPanelCustom';
 
 const ReleaseHeatmap = dynamic(() => import('./ReleaseHeatmap'));
 
-
 const verticalBreakpoint = 910;
 
 const TitleBar = styled('div')({

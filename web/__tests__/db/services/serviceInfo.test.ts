@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { getServices } from '../../../server/db/services/serviceInfo';
+import { getServices } from '@/db/services/serviceInfo';
 
 describe('getServices()', () => {
   it('Returns services', async () => {

@@ -1,17 +1,16 @@
-import React from 'react';
 import { render, screen, within } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
-import PartialManga from '../../src/components/PartialManga';
-import { emptyFullManga as emptyManga, fullManga as manga } from '../constants';
-
-import { mockUTCDates } from '../utils';
+import { mockUTCDates } from '@/tests/utils';
+import PartialManga from '@/components/PartialManga';
+import { emptyFullManga as emptyManga, fullManga as manga } from '@/tests/constants';
+import type { FullMangaData } from '@/types/api/manga';
 
 
 describe('Partial manga should render correctly', () => {
   mockUTCDates();
 
-  const assertCorrectRender = (mangaData, hasCover = true) => {
+  const assertCorrectRender = (mangaData: FullMangaData['manga'], hasCover = true) => {
     // Find title
     expect(
       within(screen.getByLabelText('manga title'))
@@ -21,8 +20,8 @@ describe('Partial manga should render correctly', () => {
     // Find cover
     if (hasCover) {
       const cover = screen.getByAltText(mangaData.title);
-      expect(screen.getByAltText(mangaData.title).getAttribute('src')).toStartWith('/_next/image?url=' + encodeURIComponent(mangaData.cover));
-      expect(cover.closest('a').getAttribute('href')).toBe(`/manga/${mangaData.mangaId}`);
+      expect(screen.getByAltText(mangaData.title).getAttribute('src')).toStartWith('/_next/image?url=' + encodeURIComponent(mangaData.cover!));
+      expect(cover.closest('a')!.getAttribute('href')).toBe(`/manga/${mangaData.mangaId}`);
     }
 
     // Find source list
@@ -57,7 +56,7 @@ describe('Partial manga should render correctly', () => {
 
     assertCorrectRender(manga.manga);
 
-    const idRow = within(screen.getByText(/manga id/i).closest('tr'));
+    const idRow = within(screen.getByText(/manga id/i).closest('tr')!);
     expect(
       idRow.getByRole('cell', { name: manga.manga.mangaId.toString() })
     ).toBeTruthy();

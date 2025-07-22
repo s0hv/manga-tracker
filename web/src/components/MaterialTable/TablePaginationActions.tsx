@@ -1,5 +1,4 @@
 import React from 'react';
-
 import FirstPageIcon from '@mui/icons-material/FirstPage';
 import KeyboardArrowLeft from '@mui/icons-material/KeyboardArrowLeft';
 import KeyboardArrowRight from '@mui/icons-material/KeyboardArrowRight';
@@ -14,22 +13,32 @@ const Root = styled('div')(({ theme }) => ({
 
 // Big part copied from here
 // https://material-ui.com/components/tables/#custom-pagination-actions
-const TablePaginationActions = props => {
+export type TablePaginationActionsProps = {
+  count: number
+  page: number
+  rowsPerPage: number
+  onPageChange: (
+    event: React.MouseEvent<HTMLButtonElement>,
+    newPage: number,
+  ) => void
+};
+
+const TablePaginationActions = (props: TablePaginationActionsProps) => {
   const { count, page, rowsPerPage, onPageChange } = props;
 
-  const handleFirstPageButtonClick = event => {
+  const handleFirstPageButtonClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     onPageChange(event, 0);
   };
 
-  const handleBackButtonClick = event => {
+  const handleBackButtonClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     onPageChange(event, page - 1);
   };
 
-  const handleNextButtonClick = event => {
+  const handleNextButtonClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     onPageChange(event, page + 1);
   };
 
-  const handleLastPageButtonClick = event => {
+  const handleLastPageButtonClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     onPageChange(event, Math.max(0, Math.ceil(count / rowsPerPage) - 1));
   };
 

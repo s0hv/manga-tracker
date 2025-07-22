@@ -1,21 +1,21 @@
-import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { describe, expect, vi, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
-import ReleaseHeatmap from '../../src/components/ReleaseHeatmap';
+import ReleaseHeatmap from '@/components/ReleaseHeatmap';
+import type { ChapterReleaseDates } from '@/types/api/chapter';
 
 describe('Release heatmap', () => {
   // https://stackoverflow.com/a/65606342/6046713
   // mock ResizeObserver
   window.ResizeObserver =
-    window.ResizeObserver ||
-    vi.fn().mockImplementation(() => ({
+    window.ResizeObserver
+    || vi.fn().mockImplementation(() => ({
       disconnect: vi.fn(),
       observe: vi.fn(),
       unobserve: vi.fn(),
     }));
 
-  const data = [
+  const data: ChapterReleaseDates[] = [
     { timestamp: 1564088400, count: 3 },
     { timestamp: 1589662800, count: 1 },
     { timestamp: 1590267600, count: 28 },

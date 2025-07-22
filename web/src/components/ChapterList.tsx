@@ -32,7 +32,7 @@ import type {
 import { createColumnHelper } from './MaterialTable/utilities';
 
 
-interface MangaChapterWithUrl extends MangaChapter {
+export interface MangaChapterWithUrl extends MangaChapter {
   url: string
 }
 

@@ -1,21 +1,23 @@
 import { NextSeo } from 'next-seo';
 
+import type { GetServerSidePropsExpress } from '@/types/nextjs';
+
 import NotificationsView from '../views/Notifications';
 
-const Notifications = props => (
+const Notifications = () => (
   <>
     <NextSeo
       title='New chapter notifications'
       nofollow
       noindex
     />
-    <NotificationsView {...props} />
+    <NotificationsView />
   </>
 );
 
 export default Notifications;
 
-export async function getServerSideProps({ req }) {
+export const getServerSideProps: GetServerSidePropsExpress = async ({ req }) => {
   if (!req.user || !req.user.userId) {
     return {
       redirect: {
@@ -24,9 +26,5 @@ export async function getServerSideProps({ req }) {
       }};
   }
 
-  return {
-    props: {
-      user: req.user,
-    },
-  };
-}
+  return { props: {}};
+};

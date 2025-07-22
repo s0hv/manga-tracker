@@ -32,7 +32,9 @@ export type MangaServiceData = {
   titleId: string
   serviceId: number
   name: string
+  /** Chapter url format */
   urlFormat: string
+  /** Manga url format */
   url: string
 };
 

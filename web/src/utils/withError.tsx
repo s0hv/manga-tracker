@@ -3,8 +3,8 @@ import React from 'react';
 import NotFound from '../views/NotFound';
 
 
-export default function withError(Component) {
-  return props => {
+export default function withError<TProps extends { error?: unknown }>(Component: React.ComponentType<TProps>) {
+  return (props: TProps) => {
     const {
       error,
     } = props;
