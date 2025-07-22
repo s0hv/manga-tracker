@@ -62,7 +62,7 @@ export const handleResponse: HandleResponse = async <T = any>(res: Response): Pr
     .then(getResponseData<T>);
 };
 
-export const handleError = async (err: any) => {
+export const handleError = async (err: any): Promise<never> => {
   if (!(err instanceof APIException) && !(err instanceof HTTPException)) {
     console.error('Unhandled error', err);
     throw new Error('Unexpected error occurred');

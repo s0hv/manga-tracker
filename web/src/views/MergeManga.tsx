@@ -1,5 +1,4 @@
-import React, { useCallback, useState } from 'react';
-
+import React, { FC, useCallback, useState } from 'react';
 import ArrowRightAlt from '@mui/icons-material/ArrowRightAlt';
 import {
   Box,
@@ -16,18 +15,20 @@ import {
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 
+import Search, { RenderListOption } from '@/components/MangaSearch';
+import PartialManga from '@/components/PartialManga';
+import type {
+  FullMangaData,
+  SearchedManga,
+  SearchedMangaWithService,
+} from '@/types/api/manga';
+
 import { getManga, postMergeManga } from '../api/manga';
-import Search from '../components/MangaSearch';
-import PartialManga from '../components/PartialManga';
 
-
-const RootContainer = styled(Container)(({ theme }) => ({
-  minHeight: '400px',
-  minWidth: '900px',
-  padding: theme.spacing(2),
-  overflow: 'auto',
-  position: 'relative',
-}));
+type MergeResult = {
+  message?: string
+  error?: boolean
+};
 
 const PREFIX = 'MergeManga';
 const classes = {
@@ -62,7 +63,12 @@ const MergeArrowText = styled(Typography)({
 });
 
 
-const ServicesList = ({ services, value, setValue }) => {
+type ServicesListProps = {
+  services: { name: string, serviceId: number }[] | null
+  value: 'all' | number | string
+  setValue: (value: number | string) => void
+};
+const ServicesList: FC<ServicesListProps> = ({ services, value, setValue }) => {
   if (!services) return null;
 
   return (
@@ -83,23 +89,33 @@ const ServicesList = ({ services, value, setValue }) => {
   );
 };
 
+const renderListOption: RenderListOption<SearchedMangaWithService> =
+  ({ key, ...renderProps }, { title, services: mangaServices }) => (
+    <Box key={key} component='li' {...renderProps}>
+      <Box sx={{ width: '100%' }}>
+        {title} | {Object.values(mangaServices).join(' | ')}
+      </Box>
+    </Box>
+  );
 
 function MergeManga() {
-  const [manga1, setManga1] = useState({});
-  const [manga2, setManga2] = useState({});
-  const [result, setResult] = useState({});
-  const [radio, setRadio] = useState('all');
-  const isValid = manga1.manga?.mangaId && manga2.manga?.mangaId && manga1.manga.mangaId !== manga2.manga.mangaId;
+  const [manga1, setManga1] = useState<FullMangaData | null>(null);
+  const [manga2, setManga2] = useState<FullMangaData | null>(null);
+  const [result, setResult] = useState<MergeResult>({});
+  const [radio, setRadio] = useState<'all' | number | string>('all');
+  const isValid = manga1?.manga.mangaId
+    && manga2?.manga.mangaId
+    && manga1.manga.mangaId !== manga2.manga.mangaId;
 
-  const getMangaData = (mangaId, setManga) => {
+  const getMangaData = (mangaId: number, setManga: (manga: FullMangaData) => void) => {
     getManga(mangaId)
       .then(data => setManga(data));
   };
 
-  const onManga1Select = useCallback(({ mangaId }) => {
+  const onManga1Select = useCallback(({ mangaId }: SearchedManga) => {
     getMangaData(mangaId, setManga1);
   }, []);
-  const onManga2Select = useCallback(({ mangaId }) => {
+  const onManga2Select = useCallback(({ mangaId }: SearchedManga) => {
     getMangaData(mangaId, setManga2);
   }, []);
 
@@ -110,22 +126,24 @@ function MergeManga() {
     return postMergeManga(manga1.manga.mangaId, manga2.manga.mangaId, service)
       .then(json => {
         setResult({ message: `Moved ${json.aliasCount} alias(es) and ${json.chapterCount} chapter(s)` });
-        setManga2({});
+        setManga2(null);
       })
       .catch(err => setResult({ error: true, message: err.message }))
       .finally(() => setRadio('all'));
   };
 
-  const renderItem = useCallback(({ key, ...renderProps }, { title }) => (
-    <Box key={key} component='li' {...renderProps}>
-      <Box sx={{ width: '100%' }}>
-        {title}
-      </Box>
-    </Box>
-  ), []);
-
   return (
-    <RootContainer maxWidth='xl' component={Paper}>
+    <Container
+      maxWidth='xl'
+      component={Paper}
+      sx={{
+        minHeight: '400px',
+        minWidth: '900px',
+        padding: 2,
+        overflow: 'auto',
+        position: 'relative',
+      }}
+    >
       <Grid
         container
         justifyContent='space-between'
@@ -141,11 +159,12 @@ function MergeManga() {
             popperProps={{
               placement: 'bottom-start',
             }}
-            renderItem={renderItem}
+            renderItem={renderListOption}
             ariaLabel='search base manga'
             onChange={onManga1Select}
+            withServices
           />
-          {manga1.manga && (
+          {manga1?.manga && (
             <section aria-label='base manga'>
               <PartialManga manga={manga1.manga} services={manga1.services} showId />
             </section>
@@ -161,11 +180,12 @@ function MergeManga() {
             popperProps={{
               placement: 'bottom-start',
             }}
-            renderItem={renderItem}
+            renderItem={renderListOption}
             ariaLabel='search manga to merge'
             onChange={onManga2Select}
+            withServices
           />
-          {manga2.manga && (
+          {manga2?.manga && (
             <section aria-label='manga to merge'>
               <PartialManga manga={manga2.manga} services={manga2.services} showId />
             </section>
@@ -207,7 +227,7 @@ function MergeManga() {
           {result.message || null}
         </Typography>
       </Grid>
-    </RootContainer>
+    </Container>
   );
 }
 export default MergeManga;

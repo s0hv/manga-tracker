@@ -17,9 +17,9 @@ import { useRouter } from 'next/router';
 import { showAll } from '@/components/notifications/utilities';
 import type { SearchedManga } from '@/types/api/manga';
 
-import { quickSearch } from '../api/manga';
+import { type SearchResultBasedOnServices, quickSearch } from '../api/manga';
 
-type RenderListOption = NonNullable<AutocompleteProps<SearchedManga, false, false, true>['renderOption']>;
+export type RenderListOption<TManga extends SearchedManga = SearchedManga> = NonNullable<AutocompleteProps<TManga, false, false, true>['renderOption']>;
 
 const PREFIX = 'MangaSearch';
 const classes = {
@@ -60,23 +60,26 @@ const StyledAutocomplete = styled(Autocomplete)(({ theme }) => ({
   },
 })) as typeof Autocomplete;
 
-const ListItem = styled('div')({
-  width: '100%',
-});
+const defaultRenderListOption: RenderListOption = ({ key, ...renderProps }, option) => (
+  <Box key={key} component='li' {...renderProps}>
+    <Box sx={{ width: '100%' }}>{option.title}</Box>
+  </Box>
+);
 
 
-export type MangaSearchProps = {
+export type MangaSearchProps<TWithServices extends boolean = false> = {
   placeholder?: string
-  renderItem?: RenderListOption
+  renderItem?: RenderListOption<SearchResultBasedOnServices<TWithServices>>
   inputClasses?: Partial<InputBaseClasses>
-  popperProps?: PopperProps
+  popperProps?: Partial<PopperProps>
   clearOnClick?: boolean
   ariaLabel?: string
-  onChange?: (manga: SearchedManga) => Promise<unknown> | unknown
+  onChange?: (manga: SearchResultBasedOnServices<TWithServices>) => Promise<unknown> | unknown
   id?: string
   searchThrottleTimeout?: number
+  withServices?: TWithServices
 };
-export default function MangaSearch(props: MangaSearchProps) {
+const MangaSearch = <TWithServices extends boolean = false>(props: MangaSearchProps<TWithServices>) => {
   const {
     placeholder = 'Search…',
     renderItem,
@@ -87,10 +90,11 @@ export default function MangaSearch(props: MangaSearchProps) {
     clearOnClick = true,
     onChange: onChangeFunc,
     searchThrottleTimeout = 200,
+    withServices = false,
   } = props;
 
   const [value, setValue] = useState('');
-  const [options, setOptions] = useState<SearchedManga[]>([]);
+  const [options, setOptions] = useState<SearchResultBasedOnServices<TWithServices>[]>([]);
   const router = useRouter();
 
   const onChangeDefault = useCallback(
@@ -103,7 +107,7 @@ export default function MangaSearch(props: MangaSearchProps) {
     setValue(newValue);
   }, []);
 
-  const handleValueChange = useCallback((_: unknown, newValue: string | SearchedManga | null) => {
+  const handleValueChange = useCallback((_: unknown, newValue: string | SearchResultBasedOnServices<TWithServices> | null) => {
     // If no option has been selected on change, use the first option
     if (typeof newValue === 'string') {
       if (options.length === 0) {
@@ -123,11 +127,11 @@ export default function MangaSearch(props: MangaSearchProps) {
   }, [clearOnClick, onChange, options]);
 
   const throttleFetch = useMemo(
-    () => throttle((query: string, cb: (manga: SearchedManga[]) => void) => {
-      quickSearch(query)
-        .then(js => cb(js));
+    () => throttle((query: string, cb: (manga: SearchResultBasedOnServices<TWithServices>[]) => void) => {
+      quickSearch(query, withServices)
+        .then(js => cb(js as SearchResultBasedOnServices<TWithServices>[]));
     }, searchThrottleTimeout, { edges: ['leading']}),
-    [searchThrottleTimeout]
+    [searchThrottleTimeout, withServices]
   );
 
   useEffect(() => {
@@ -139,7 +143,7 @@ export default function MangaSearch(props: MangaSearchProps) {
 
     throttleFetch(value, results => {
       if (active) {
-        setOptions(results || []);
+        setOptions((results ?? []));
       }
     });
 
@@ -148,13 +152,7 @@ export default function MangaSearch(props: MangaSearchProps) {
     };
   }, [value, throttleFetch]);
 
-  const defaultRenderListOption = useCallback<RenderListOption>(({ key, ...renderProps }, option) => (
-    <Box key={key} component='li' {...renderProps}>
-      <ListItem>{option.title}</ListItem>
-    </Box>
-  ), []);
-
-  const renderListOption = renderItem || defaultRenderListOption;
+  const renderListOption = renderItem || defaultRenderListOption as RenderListOption<SearchResultBasedOnServices<TWithServices>>;
 
   const BottomEndPopper = useCallback((pProps: PopperProps) => (
     <Popper {...pProps} placement='bottom-end' {...popperProps}>
@@ -204,4 +202,6 @@ export default function MangaSearch(props: MangaSearchProps) {
       )}
     />
   );
-}
+};
+
+export default MangaSearch;

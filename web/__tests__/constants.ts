@@ -18,6 +18,7 @@ export const csrfToken = 'test-csrf-token';
 
 export const defaultDateFormatRegex = '\\w{3} \\d{1,2}\\w{2} \\d+, \\d{2}:\\d{2}';
 export const defaultDateDistanceFormat = '\\d+ \\w+';
+export const isoDateTimeRegex = /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z/;
 
 export const testChapterUrlFormat = 'https://test-url.com/chapter/{}';
 
@@ -33,7 +34,7 @@ export const fullManga: FullMangaData = {
     latestRelease: '2020-07-05T16:00:00.000Z',
     estimatedRelease: '2020-07-12T16:00:00.000Z',
     latestChapter: 157,
-    cover: '/images/test.png',
+    cover: 'https://uploads.mangadex.org/covers/cfc3d743-bd89-48e2-991f-63e680cc4edf/aec7b5ae-dfce-46a2-bc47-2a1cc8f7fa8b.jpg',
     status: 0,
     artist: 'Boichi',
     author: 'Inagaki Riichiro',
@@ -44,8 +45,8 @@ export const fullManga: FullMangaData = {
     amz: 'https://www.amazon.co.jp/gp/product/B075F8JBQ1',
     ebj: 'https://www.ebookjapan.jp/ebj/413780/',
     engtl: 'https://www.viz.com/dr-stone',
-    raw: 'null',
-    nu: 'https://www.novelupdates.com/series/null',
+    raw: null,
+    nu: null,
     kt: 'https://kitsu.io/manga/38860',
     ap: 'https://www.anime-planet.com/manga/dr-stone',
     al: 'https://anilist.co/manga/98416',

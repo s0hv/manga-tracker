@@ -32,7 +32,7 @@ export const extractFields = <T extends boolean>(
     };
     if (fields) {
       fields.forEach(field => {
-        o[field as string] = (hit.fields[field] as Array<unknown> || [])[0];
+        o[field as string] = (hit.fields[field] as Array<unknown> ?? [])[0];
       });
 
       if (customFieldFormatter) {

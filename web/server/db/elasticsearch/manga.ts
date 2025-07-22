@@ -15,7 +15,7 @@ export type MangaSearchResultFields<
   // Array type is used to hack TypeScript into working correctly with conditional types
   // https://github.com/microsoft/TypeScript/issues/51822#issuecomment-1344612998
   TReturnType = [TWithService] extends [false] ? Partial<unknown> : ServiceFields> = {
-    manga_id: string[]
+    manga_id: number[]
     title: string[]
   } & TReturnType;
 

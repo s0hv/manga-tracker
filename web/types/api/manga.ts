@@ -74,9 +74,15 @@ export type MangaServiceCreateData = Partial<Pick<
 export type SearchedManga = {
   mangaId: number
   title: string
-  serviceId: number
+  score: number
 };
 
 export type SearchedMangaWithService = SearchedManga & {
-  services: Record<number, string> // serviceId, serviceName
+  /** serviceId: serviceName */
+  services: Record<number, string>
+};
+
+export type MergeMangaResult = {
+  aliasCount: number
+  chapterCount: number
 };

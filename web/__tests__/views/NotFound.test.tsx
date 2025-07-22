@@ -3,7 +3,7 @@ import { render } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
 
-import NotFound from '../../src/views/NotFound';
+import NotFound from '@/views/NotFound';
 
 describe('404 page should render correctly', () => {
   it('Should match snapshot', () => {
