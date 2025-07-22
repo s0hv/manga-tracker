@@ -77,13 +77,13 @@ describe('MangaServiceTable should render correctly', () => {
     fetchMock.get('/api/services', services);
 
     await act(async () => {
-      await render(<Component />);
+      render(<Component />);
     });
 
     expectHeadersExist();
 
-    expect(fetchMock.calls(`/api/admin/manga/${mangaId}/services`)).toHaveLength(1);
     expect(fetchMock.calls(`/api/services`)).toHaveLength(1);
+    expect(fetchMock.calls(`/api/admin/manga/${mangaId}/services`)).toHaveLength(1);
 
     await waitForRender();
 

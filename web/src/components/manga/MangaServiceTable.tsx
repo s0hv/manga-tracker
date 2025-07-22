@@ -1,11 +1,10 @@
 import React, { type FunctionComponent, useCallback, useMemo } from 'react';
 import { Checkbox, Paper, SxProps, TableContainer } from '@mui/material';
-import { type QueryFunctionContext, useQuery } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { useSnackbar } from 'notistack';
 import { SelectElement, TextFieldElement } from 'react-hook-form-mui';
 
 import type { MangaService, MangaServiceCreateData } from '@/types/api/manga';
-import type { ServiceForApi } from '@/types/api/services';
 import type { MangaId } from '@/types/dbTypes';
 import type { SelectOption } from '@/types/utility';
 import { QueryKeys } from '@/webUtils/constants';
@@ -17,7 +16,7 @@ import {
   getMangaServices,
   updateMangaService,
 } from '../../api/admin/manga';
-import { getServices } from '../../api/services';
+import { getServicesQueryOptions } from '../../api/services';
 import {
   AddRowFormTemplate,
   defaultOnSaveRow,
@@ -57,14 +56,12 @@ export const MangaServiceTable: FunctionComponent<MangaServiceTableProps> = prop
   } = props;
 
   const { data: mangaServices, isFetching: mangaLoading, refetch } = useQuery({
-    queryKey: [QueryKeys.MangaServices, mangaId],
-    queryFn: (ctx: QueryFunctionContext<[string, MangaId]>) => getMangaServices(ctx.queryKey[1]),
+    queryKey: [QueryKeys.MangaServices, mangaId] as const,
+    queryFn: ({ queryKey }) => getMangaServices(queryKey[1]),
     initialData: [],
   });
-  const { data: services, isFetching: servicesLoading } = useQuery<ServiceForApi[], unknown, Record<number, ServiceForApi>>({
-    queryKey: QueryKeys.Services,
-    queryFn: getServices,
-    select: data => data.reduce((prev, service) => ({ ...prev, [service.serviceId]: service }), {}),
+  const { data: services, isFetching: servicesLoading } = useQuery({
+    ...getServicesQueryOptions,
     initialData: [],
   });
 

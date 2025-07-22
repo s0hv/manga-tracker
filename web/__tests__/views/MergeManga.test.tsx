@@ -1,23 +1,35 @@
 import React from 'react';
-import fetchMock from 'fetch-mock';
 import { render, screen, waitFor, within } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { describe, expect, vi, it } from 'vitest';
+import userEvent, { type UserEvent } from '@testing-library/user-event';
+import fetchMock from 'fetch-mock';
+import { describe, expect, it, vi } from 'vitest';
 
-import MergeManga from '../../src/views/MergeManga';
-import { fullManga, emptyFullManga } from '../constants';
+import { emptyFullManga, fullManga } from '@/tests/constants';
+import type { SearchedMangaWithService } from '@/types/api/manga';
+import MergeManga from '@/views/MergeManga';
 
-vi.mock('es-toolkit', () => ({ throttle: (_) => _ }));
+
+vi.mock('es-toolkit', () => ({ throttle: (_: unknown) => _ }));
 
 describe('Merge manga page should render correctly', () => {
-  const mockResult = [
+  const mockResult: SearchedMangaWithService[] = [
     {
       mangaId: 1,
       title: fullManga.manga.title,
+      score: 10,
+      services: fullManga.services.reduce<Record<number, string>>((prev, service) => ({
+        ...prev,
+        [service.serviceId]: service.name,
+      }), {}),
     },
     {
       mangaId: 2,
       title: emptyFullManga.manga.title,
+      score: 5,
+      services: emptyFullManga.services.reduce<Record<number, string>>((prev, service) => ({
+        ...prev,
+        [service.serviceId]: service.name,
+      }), {}),
     },
   ];
 
@@ -25,17 +37,18 @@ describe('Merge manga page should render correctly', () => {
   fetchMock.mock(`glob:/api/manga/${fullManga.manga.mangaId}`, { data: fullManga });
   fetchMock.mock(`glob:/api/manga/${emptyFullManga.manga.mangaId}`, { data: emptyFullManga });
 
-  const selectItem = async (user, item) => {
-    expect(await screen.findByRole('option', { name: item.title })).toBeInTheDocument();
+  const selectItem = async (user: UserEvent, item: SearchedMangaWithService) => {
+    const optionName = `${item.title} | ${Object.values(item.services).join(' | ')}`;
+    expect(await screen.findByRole('option', { name: optionName })).toBeInTheDocument();
 
-    await user.click(screen.getByRole('option', { name: item.title }));
+    await user.click(screen.getByRole('option', { name: optionName }));
   };
 
-  const triggerSearch = async (user, elem) => {
+  const triggerSearch = async (user: UserEvent, elem: HTMLElement) => {
     await user.type(elem, 'test');
   };
 
-  const selectAndAssert = async (user, item, base = true) => {
+  const selectAndAssert = async (user: UserEvent, item: SearchedMangaWithService, base = true) => {
     const searchLabel = base ? 'search base manga' : 'search manga to merge';
     const searchBase = screen.getByLabelText(searchLabel);
     await triggerSearch(user, searchBase);
@@ -66,7 +79,7 @@ describe('Merge manga page should render correctly', () => {
     expect(screen.getByRole('radio', { name: emptyFullManga.services[0].name })).toBeInTheDocument();
 
     // Merge button
-    expect(screen.getByRole('button', { name: `merge ${mockResult[1].title} into ${mockResult[0].title}` }));
+    expect(screen.getByRole('button', { name: `merge ${mockResult[1].title} into ${mockResult[0].title}` })).toBeInTheDocument();
   });
 
   it('Should not show merge button with same manga', async () => {

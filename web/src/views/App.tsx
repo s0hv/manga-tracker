@@ -8,13 +8,12 @@ import {
   ChapterWithLink,
 } from '@/components/GroupedChapterList';
 import type { ChapterRelease } from '@/types/api/chapter';
-import type { ServiceForApi } from '@/types/api/services';
 import { QueryKeys } from '@/webUtils/constants';
 import { useUser } from '@/webUtils/useUser';
 
 
 import { getLatestChapters } from '../api/chapter';
-import { getServices } from '../api/services';
+import { getServicesQueryOptions } from '../api/services';
 
 const GroupedChapterList = dynamic(import('../components/GroupedChapterList'));
 
@@ -43,17 +42,7 @@ function App() {
   const {
     data: services,
     isFetching: isServicesFetching,
-  } = useQuery({
-    queryKey: QueryKeys.Services,
-    queryFn: getServices,
-    select: data => data.reduce<Record<number, ServiceForApi>>(
-      (prev, service) => ({
-        ...prev,
-        [service.serviceId]: service,
-      }),
-      {}
-    ),
-  });
+  } = useQuery(getServicesQueryOptions);
 
   const GroupComponent = useMemo(() => ChapterGroupWithCover(mangaToCover || {}),
     [mangaToCover]);

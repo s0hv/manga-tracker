@@ -3,6 +3,8 @@ import { type AddressInfo } from 'net';
 
 import { expect, vi } from 'vitest';
 
+import type { MangaSearchResult } from '@/db/elasticsearch/manga';
+
 vi.mock('@/db/auth', async () => {
   const auth = await vi.importActual<typeof import('@/db/auth')>('@/db/auth');
   return {
@@ -17,10 +19,32 @@ export default async function initServer(): Promise<{ httpServer: Server, addr: 
     const { default: Mock } = await import('@elastic/elasticsearch-mock');
     const mock = new Mock();
 
+    const hits: MangaSearchResult<true> = {
+      hits: {
+        total: {
+          value: 10,
+          relation: '',
+        },
+        max_score: 10,
+        hits: [
+          {
+            _id: '1',
+            _score: 10,
+            fields: {
+              manga_id: [1],
+              title: ['Test Manga'],
+              'services.service_name': ['Test Service'],
+              'services.service_id': [1],
+            },
+          },
+        ],
+      },
+    };
+
     mock.add({
       method: ['GET', 'POST'],
       path: ['/_search', '/:index/_search'],
-    }, () => ({ hits: { hits: []}}));
+    }, () => hits);
 
     // https://github.com/elastic/elasticsearch-js-mock/issues/18#issuecomment-900365420
     // Needed as the es client >=@7.14.0 validates whether it is connected to a real ES instance
@@ -28,7 +52,7 @@ export default async function initServer(): Promise<{ httpServer: Server, addr: 
     mock.add({ method: 'GET', path: '/' }, () => ({
       name: 'mocked-es-instance',
       version: {
-        number: '7.12.1',
+        number: '7.17.1',
         build_flavor: 'default',
       },
       tagline: 'You Know, for Search',

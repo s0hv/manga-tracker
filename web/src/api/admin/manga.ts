@@ -61,10 +61,7 @@ export const updateMangaInfo = (mangaId: MangaId, info: MangaInfo) => fetch(`/ap
   .catch(handleError);
 
 
-export const getMangaServices = (mangaId: MangaId) => fetch(`/api/admin/manga/${mangaId}/services`,
-  {
-    method: 'GET',
-  })
+export const getMangaServices = (mangaId: MangaId) => fetch(`/api/admin/manga/${mangaId}/services`)
   .then(handleResponse<MangaService[]>)
   .then(data => data.map(ms => {
     ms.lastCheck = ms.lastCheck ? new Date(ms.lastCheck) : null;
