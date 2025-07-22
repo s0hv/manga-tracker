@@ -3,7 +3,7 @@ export type Follow = {
   cover?: string
   mangaId: number
   latestRelease?: string
-  latestChapter?: string
+  latestChapter?: number
   services: { serviceId: number, serviceName: string, titleId: string, url: string }[]
   followedServices: (number | null)[]
 };

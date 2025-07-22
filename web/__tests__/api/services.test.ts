@@ -6,7 +6,7 @@ import stopServer from '../stopServer';
 import { configureJestOpenAPI } from '../utils';
 
 
-let httpServer;
+let httpServer: any;
 
 beforeAll(async () => {
   ({ httpServer } = await initServer());

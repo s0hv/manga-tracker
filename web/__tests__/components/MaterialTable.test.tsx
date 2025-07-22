@@ -6,6 +6,12 @@ import fetchMock from 'fetch-mock';
 import { describe, expect, it, test, vi } from 'vitest';
 
 import { mockUTCDates, restoreMocks, silenceConsole, withRoot } from '../utils';
+import {
+  defaultOnSaveRow,
+  EditableCheckbox,
+  EditableDateTimePicker,
+  MaterialTable,
+} from '@/components/MaterialTable';
 import type {
   MaterialTableProps,
 } from '@/components/MaterialTable/MaterialTable';
@@ -14,12 +20,6 @@ import { createColumnHelper } from '@/components/MaterialTable/utilities';
 import { defaultDateFormat } from '@/webUtils/utilities';
 
 
-import {
-  defaultOnSaveRow,
-  EditableCheckbox,
-  EditableDateTimePicker,
-  MaterialTable,
-} from '../../src/components/MaterialTable';
 import { defaultDateFormatRegex } from '../constants';
 
 fetchMock.config.overwriteRoutes = true;

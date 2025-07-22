@@ -1,11 +1,12 @@
+import type { PropsWithChildren } from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { FormContainer } from 'react-hook-form-mui';
 import { describe, expect, it, vi } from 'vitest';
 
-import { FormContainer } from 'react-hook-form-mui';
-import ColorPicker from '../../../src/components/notifications/ColorPicker';
+import ColorPicker from '@/components/notifications/ColorPicker';
 
-const Root = ({ children }) => <FormContainer onSuccess={vi.fn()}>{children}</FormContainer>;
+const Root = ({ children }: PropsWithChildren) => <FormContainer onSuccess={vi.fn()}>{children}</FormContainer>;
 
 // https://github.com/omgovich/react-colorful/blob/c7e87161d71be9156b0c149d0e110fa24fd7037d/tests/components.test.js#L36
 // Mock `HTMLElement.getBoundingClientRect` to be able to read element sizes
@@ -26,12 +27,17 @@ Object.defineProperties(HTMLElement.prototype, {
 // Fix to pass `pageX` and `pageY`
 // See https://github.com/testing-library/react-testing-library/issues/268
 class FakeMouseEvent extends MouseEvent {
-  constructor(type, values = {}) {
+  pageX_: number;
+  pageY_: number;
+
+  constructor(type: string, values: any = {}) {
     super(type, { buttons: 1, bubbles: true, ...values });
     Object.assign(this, {
       pageX: values.pageX || 0,
       pageY: values.pageY || 0,
     });
+    this.pageX_ = this.pageX;
+    this.pageY_ = this.pageY;
   }
 
   get pageX() { return this.pageX_ }
@@ -79,7 +85,7 @@ describe('ColorPicker', () => {
 
     const user = userEvent.setup();
 
-    const input = screen.getByRole('textbox', { name: testLabel });
+    const input = screen.getByRole<HTMLInputElement>('textbox', { name: testLabel });
     expect(input).toBeInTheDocument();
 
     await user.click(input);
@@ -103,7 +109,7 @@ describe('ColorPicker', () => {
 
     const user = userEvent.setup();
 
-    const input = screen.getByRole('textbox', { name: testLabel });
+    const input = screen.getByRole<HTMLInputElement>('textbox', { name: testLabel });
     expect(input).toBeInTheDocument();
 
     await user.type(input, 'mlkptyu');
@@ -116,7 +122,7 @@ describe('ColorPicker', () => {
 
     const user = userEvent.setup();
 
-    const input = screen.getByRole('textbox', { name: testLabel });
+    const input = screen.getByRole<HTMLInputElement>('textbox', { name: testLabel });
     expect(input).toBeInTheDocument();
 
     const color = '#FF0AE5';

@@ -1,6 +1,8 @@
+import { FC } from 'react';
+
 import FormatHelpText from './FormatHelpText';
 
-const DefaultHelpTexts = () => (
+const DefaultHelpTexts: FC = () => (
   <>
     <FormatHelpText
       name='$TITLE'

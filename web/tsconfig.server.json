@@ -16,6 +16,7 @@
     "node_modules",
     "src",
     "__tests__/**",
+    "__mocks__/**",
     "vitest.config.ts",
     "setupTests.ts",
     "cypress/**",

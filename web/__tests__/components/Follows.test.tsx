@@ -1,14 +1,14 @@
-import React from 'react';
 import { render, screen, within } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
-import Follows from '../../src/components/Follows';
-import { mockUTCDates } from '../utils';
+import { mockUTCDates } from '@/tests/utils';
+import Follows from '@/components/Follows';
+import type { Follow } from '@/types/db/follows';
 
 mockUTCDates();
 
 describe('Follows page should render correctly', () => {
-  const follows = [
+  const follows: Follow[] = [
     {
       title: 'Dr. STONE',
       cover: '/images/test.png',
@@ -80,7 +80,7 @@ describe('Follows page should render correctly', () => {
     expect(follows.length).toBeGreaterThan(0);
 
     follows.forEach(follow => {
-      const elem = within(screen.getByText(follow.title).parentElement);
+      const elem = within(screen.getByText(follow.title).parentElement!);
 
       if (!follow.latestRelease) {
         expect(elem.getByRole('row', { name: /latest release: unknown/i })).toBeInTheDocument();
@@ -100,7 +100,7 @@ describe('Follows page should render correctly', () => {
         expect(serviceList.getByText(service.serviceName)).toBeInTheDocument();
       });
 
-      expect(serviceList.getAllByRole('button', { name: /(un)?follow/i })).toHaveLength(follow.services.length+1);
+      expect(serviceList.getAllByRole('button', { name: /(un)?follow/i })).toHaveLength(follow.services.length + 1);
     });
   });
 });

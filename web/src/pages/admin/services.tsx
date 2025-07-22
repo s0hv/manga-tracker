@@ -1,14 +1,14 @@
 import { NextSeo } from 'next-seo';
 
-import { getServices } from '../../../server/db/services/serviceInfo';
-import {
-  DefaultLocalizationProvider,
-} from '../../components/DefaultLocalizationProvider';
-import withError from '../../utils/withError';
-import Services from '../../views/admin/Services';
+import { DefaultLocalizationProvider } from '@/components/DefaultLocalizationProvider';
+import { getServices } from '@/db/services/serviceInfo';
+import type { GetServerSidePropsExpress } from '@/types/nextjs';
+import Services, { type ServicesProps } from '@/views/admin/Services';
+import withError from '@/webUtils/withError';
 
+type PageProps = ServicesProps & { error?: unknown };
 
-export async function getServerSideProps({ req }) {
+export const getServerSideProps: GetServerSidePropsExpress<PageProps> = async ({ req }) => {
   if (!(req.user && req.user.admin)) {
     return { props: { error: 404 }};
   }
@@ -24,7 +24,7 @@ export async function getServerSideProps({ req }) {
     req.log.error(err);
     return {
       props: {
-        error: err?.status || 404,
+        error: 404,
       },
     };
   }
@@ -34,10 +34,10 @@ export async function getServerSideProps({ req }) {
       services: rows,
     },
   };
-}
+};
 
-const ServicesView = withError(Services);
-const ServicesPage = props => (
+const ServicesView = withError<PageProps>(Services);
+const ServicesPage = (props: PageProps) => (
   <>
     <NextSeo
       title='Services'

@@ -62,7 +62,7 @@ function Copyright(props: TypographyProps) {
 
 export type RootProps = {
   statusCode?: number
-  user?: FrontendUser
+  user?: FrontendUser | null
 };
 export const Layout: FC<PropsWithChildren<RootProps>> = props => {
   const {

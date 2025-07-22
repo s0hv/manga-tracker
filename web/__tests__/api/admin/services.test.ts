@@ -2,9 +2,9 @@ import { parse, toSeconds } from 'iso8601-duration';
 import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
-import { copyService } from '../../dbutils';
-import initServer from '../../initServer';
-import stopServer from '../../stopServer';
+import { copyService } from '@/tests/dbutils';
+import initServer from '@/tests/initServer';
+import stopServer from '@/tests/stopServer';
 import {
   adminUser,
   expectErrorMessage,
@@ -13,13 +13,13 @@ import {
   mockUTCDates,
   normalUser,
   withUser,
-} from '../../utils';
+} from '@/tests/utils';
+import { getServiceFull } from '@/db/services';
+import { csrfMissing } from '@/serverUtils/constants';
+import { isCI, userForbidden, userUnauthorized } from '@/tests/constants';
+import type { Service, ServiceConfig, ServiceWhole } from '@/types/db/services';
 
-import { getServiceFull } from '../../../server/db/services';
-import { csrfMissing } from '../../../server/utils/constants';
-import { isCI, userForbidden, userUnauthorized } from '../../constants';
-
-let httpServer;
+let httpServer: any;
 
 beforeAll(async () => {
   ({ httpServer } = await initServer());
@@ -238,7 +238,11 @@ describe('POST /api/admin/editService/:serviceId', () => {
     });
   });
 
-  const expectUpdateDoneCorrectly = async data => {
+  const expectUpdateDoneCorrectly = async (data: {
+    service?: Partial<Service> | null
+    serviceWhole?: Partial<ServiceWhole> | null
+    serviceConfig?: Partial<Omit<ServiceConfig, 'checkInterval' | 'scheduledRunInterval'> & { checkInterval: string, scheduledRunInterval: string }> | null
+  }) => {
     await withUser(adminUser, async () => {
       await request(httpServer)
         .post(url)
@@ -253,8 +257,8 @@ describe('POST /api/admin/editService/:serviceId', () => {
       const newServiceId = isCI ? await copyService(serviceId) : serviceId;
 
       const originalService = await getServiceFull(newServiceId);
-      originalService.serviceConfig.checkInterval = toSeconds(originalService.serviceConfig.checkInterval);
-      originalService.serviceConfig.scheduledRunInterval = toSeconds(originalService.serviceConfig.scheduledRunInterval);
+      originalService.serviceConfig!.checkInterval = toSeconds(originalService.serviceConfig!.checkInterval) as any;
+      originalService.serviceConfig!.scheduledRunInterval = toSeconds(originalService.serviceConfig!.scheduledRunInterval) as any;
 
       if (data.service) {
         expect(originalService.service).toMatchObject(data.service);
@@ -265,8 +269,8 @@ describe('POST /api/admin/editService/:serviceId', () => {
       if (data.serviceConfig) {
         expect(originalService.serviceConfig).toMatchObject({
           ...data.serviceConfig,
-          checkInterval: toSeconds(parse(data.serviceConfig.checkInterval)),
-          scheduledRunInterval: toSeconds(parse(data.serviceConfig.scheduledRunInterval)),
+          checkInterval: toSeconds(parse(data.serviceConfig.checkInterval!)),
+          scheduledRunInterval: toSeconds(parse(data.serviceConfig.scheduledRunInterval!)),
         });
       }
     });

@@ -10,7 +10,7 @@ export type FrontendUser = {
   isCredentialsAccount: boolean
 };
 
-const UserContext = createContext<FrontendUser | undefined>(undefined);
+const UserContext = createContext<FrontendUser | undefined | null>(undefined);
 export const UserProvider = UserContext.Provider;
 
 export const useUser = () => {
@@ -18,6 +18,6 @@ export const useUser = () => {
   return useMemo(() => ({
     user,
     isAuthenticated: !!user,
-    isAdmin: user && user.admin,
+    isAdmin: user?.admin,
   }), [user]);
 };

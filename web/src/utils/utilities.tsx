@@ -126,7 +126,7 @@ export type GroupedYears = {
  * @returns {{}|*} Empty object if no data. Otherwise an object of Heatmap compatible data
  * with years as keys. For years in between without data an object { empty: true } is given
  */
-export const groupByYear = (data: GroupedYearData[]): GroupedYears => {
+export const groupByYear = (data: GroupedYearData[] | undefined): GroupedYears => {
   if (data === undefined) return {};
   let minYear: number | undefined;
   let maxYear: number | undefined;

@@ -1,7 +1,17 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, {
+  type FC,
+  type PropsWithChildren,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 
-
-export const TabPanelCustom = props => {
+export type TabPanelCustomProps = {
+  value: number
+  index: number
+  noRerenderOnChange?: boolean
+};
+export const TabPanelCustom: FC<PropsWithChildren<TabPanelCustomProps>> = props => {
   const {
     children,
     value,

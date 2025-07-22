@@ -115,7 +115,7 @@ export function getFullManga(mangaId: MangaId): Promise<FullManga | null> {
 }
 
 
-export async function getFollows(userId: DatabaseId): Promise<Follow[]> {
+export async function getFollows(userId: DatabaseId | undefined): Promise<Follow[]> {
   if (!userId) {
     throw HttpError(404);
   }

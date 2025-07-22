@@ -1,29 +1,32 @@
-import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { describe, expect, vi, it } from 'vitest';
-
 import userEvent from '@testing-library/user-event';
-import MangaSourceList from '../../src/components/MangaSourceList';
-import { normalUser, withUser, silenceConsole, restoreMocks } from '../utils';
+import { describe, expect, it, vi } from 'vitest';
 
-const services = [
+import { normalUser, restoreMocks, silenceConsole, withUser } from '@/tests/utils';
+import MangaSourceList from '@/components/MangaSourceList';
+import type { MangaServiceData } from '@/types/api/manga';
+
+const services: MangaServiceData[] = [
   {
     titleId: '100010',
     serviceId: 1,
     name: 'MANGA Plus',
     url: 'https://mangaplus.shueisha.co.jp/titles/{}',
+    urlFormat: 'https://mangaplus.shueisha.co.jp/chapter/{}',
   },
   {
     titleId: '20882',
     serviceId: 2,
     name: 'MangaDex',
     url: 'https://mangadex.org/title/{}',
+    urlFormat: 'https://mangadex.org/chapter/{}',
   },
   {
     titleId: 'test_series_1',
     serviceId: 3,
     name: 'TestService',
     url: 'https://test.com/manga/{}',
+    urlFormat: 'https://test.com/manga/{}',
   },
 ];
 
@@ -78,6 +81,7 @@ describe('Manga source list', () => {
     const spies = silenceConsole();
     expect(() => render(
       <MangaSourceList
+        // @ts-expect-error Testing invalid input
         items={invalid}
         classesProp={['test-class-1', 'test-class-2']}
       />

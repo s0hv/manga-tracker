@@ -1,10 +1,11 @@
-import React, { useMemo } from 'react';
-
+import React, { type FC, type ReactNode, useMemo } from 'react';
 import { Typography } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import ReactFrappeChart from 'react-frappe-charts';
 
-import { groupByYear } from '../utils/utilities';
+import type { ChapterReleaseDates } from '@/types/api/chapter';
+
+import { type GroupedYear, groupByYear } from '../utils/utilities';
 
 const Root = styled('div')(({ theme }) => ({
   minHeight: '213px',
@@ -25,7 +26,12 @@ const YearContainer = styled('div')({
   },
 });
 
-const ReleaseHeatmap = props => {
+export type ReleaseHeatmapProps = {
+  title?: ReactNode
+  id?: string
+  dataRows: ChapterReleaseDates[] | undefined
+};
+const ReleaseHeatmap: FC<ReleaseHeatmapProps> = props => {
   const {
     title = 'Release frequency',
     id = 'release-heatmap',
@@ -41,11 +47,11 @@ const ReleaseHeatmap = props => {
         {Object.keys(dataGrouped).sort().reverse().map(year => (
           <React.Fragment key={year}>
             <Typography sx={{ mt: 2 }}>
-              {`${year} (${dataGrouped[year].total || 'no'} releases)`}
+              {`${year} (${(dataGrouped[year] as GroupedYear).total ?? 'no'} releases)`}
             </Typography>
-            {!dataGrouped[year].empty && (
+            {!(dataGrouped[year] as { empty: true }).empty && (
               <ReactFrappeChart
-                data={dataGrouped[year]}
+                data={dataGrouped[year] as GroupedYear}
                 type='heatmap'
               />
             )}

@@ -38,6 +38,7 @@
   ],
   "exclude": [
     "__tests__/**",
+    "__mocks__/**",
     "node_modules",
     "setupTests.ts",
     "vitest.config.ts",

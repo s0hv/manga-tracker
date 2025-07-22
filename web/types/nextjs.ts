@@ -18,3 +18,12 @@ export type GetServerSidePropsExpress<
   context: GetServerSidePropsContextExpress<Q, D>
 ) => Promise<GetServerSidePropsResult<P>>;
 
+export type PageProps<TProps = unknown> = TProps & {
+  /** Determines if the page is rendered without the standard wrappers */
+  independent?: boolean
+  /** Static page, no SSR */
+  staticPage?: boolean
+  /** The HTTP status code in case of HTTP errors */
+  error?: number
+};
+

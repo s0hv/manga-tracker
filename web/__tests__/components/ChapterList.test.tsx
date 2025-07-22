@@ -1,24 +1,26 @@
-import React from 'react';
+import { type ReactNode } from 'react';
+import { act, render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import fetchMock from 'fetch-mock';
 import { describe, expect, it, vi } from 'vitest';
 
-import { act, render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 
-import { mockNotistackHooks } from '../utils';
-import ChapterList from '../../src/components/ChapterList';
+import { mockNotistackHooks } from '@/tests/utils';
+import ChapterList, { type MangaChapterWithUrl } from '@/components/ChapterList';
 
 await mockNotistackHooks();
 
 describe('Chapter list should allow editing', () => {
-  const testChapter = {
+  const testChapter: MangaChapterWithUrl = {
     chapterId: 1,
     title: 'Test chapter',
     chapterNumber: 1,
     releaseDate: new Date(1593964800000),
     group: 'Test group',
     serviceId: 1,
-    chapterUrl: 'https://mangaplus.shueisha.co.jp/titles/1007322',
+    url: 'https://mangaplus.shueisha.co.jp/titles/1007322',
+    chapterDecimal: null,
+    chapterIdentifier: 'test-chapter',
   };
 
   const serviceMangaData = {
@@ -27,7 +29,7 @@ describe('Chapter list should allow editing', () => {
 
   const mangaId = 1;
 
-  const mockChapters = (chapters) => {
+  const mockChapters = (chapters: MangaChapterWithUrl[]) => {
     const chaptersMock = vi.fn();
     chaptersMock.mockImplementation(
       () => Promise.resolve({ count: chapters?.length, chapters: chapters })
@@ -87,12 +89,14 @@ describe('Chapter list should allow editing', () => {
     mockChapters(chapters);
 
     await act(async () => {
-      render(<ChapterList
-        chapters={chapters}
-        editable
-        mangaId={mangaId}
-        serviceMangaData={serviceMangaData}
-      />);
+      render(
+        <ChapterList
+          chapters={chapters}
+          editable
+          mangaId={mangaId}
+          serviceMangaData={serviceMangaData}
+        />
+      );
     });
     const user = userEvent.setup();
     await user.click(screen.getByRole('button', { name: /edit row/i }));
@@ -107,7 +111,7 @@ describe('Chapter list should allow editing', () => {
   it('Should update data when chapters prop changes', async () => {
     mockChapters([]);
 
-    let rerender;
+    let rerender: (ui: ReactNode) => void;
     await act(async () => {
       const retVal = render(
         <ChapterList
@@ -120,7 +124,7 @@ describe('Chapter list should allow editing', () => {
     });
     expect(screen.queryByRole('cell')).not.toBeInTheDocument();
 
-    rerender(
+    rerender!(
       <ChapterList
         chapters={[testChapter]}
         mangaId={mangaId}

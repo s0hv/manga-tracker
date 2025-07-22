@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
-import SaveButton from '../../../src/components/notifications/SaveButton';
+import SaveButton from '@/components/notifications/SaveButton';
 
 
 describe('SaveButton', () => {
