@@ -21,10 +21,10 @@ jobs:
           if [[ "${{ secrets.DOKKU_REMOTE_URL }}" != "" ]]; \
           then
             echo "Dokku host defined."
-            echo "{use_dokku}={true}" >> $GITHUB_OUTPUT"
+            echo "use_dokku=true" >> $GITHUB_OUTPUT"
           else
             echo "Dokku host not defined"
-            echo "{use_dokku}={false}" >> $GITHUB_OUTPUT"
+            echo "use_dokku=false" >> $GITHUB_OUTPUT"
           fi
   publish:
     needs: [check-dokku]
