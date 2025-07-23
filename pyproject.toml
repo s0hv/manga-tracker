@@ -12,10 +12,10 @@ dependencies = [
     "discord-webhook~=1.4.1",
     "elasticsearch~=7.17.12",
     "feedparser~=6.0.11",
-    "lxml~=5.3.1",
+    "lxml~=6.0.0",
     "protobuf~=6.30.1",
     "psycopg[c,pool]~=3.2.6",
-    "pydantic~=2.10.6",
+    "pydantic~=2.11.7",
     "pydantic-extra-types~=2.10.3",
     "ratelimit~=2.2.1",
     "requests~=2.32.3",
@@ -24,13 +24,14 @@ dependencies = [
 
 [dependency-groups]
 dev = [
-    "mypy~=1.15.0",
+    "mypy~=1.17.0",
     "mypy-protobuf~=3.6.0",
-    "pytest~=8.3.5",
-    "pytest-cov~=6.0.0",
+    "pytest~=8.4.1",
+    "pytest-cov~=6.2.1",
     "responses~=0.25.7",
-    "ruff>=0.12.0",
+    "ruff~=0.12.0",
     "testing-postgresql @ git+https://github.com/tk0miya/testing.postgresql.git@c81ded4",
+    "types-lxml>=2025.3.30",
     "types-protobuf~=5.29",
     "types-requests~=2.31.0.6",
 ]

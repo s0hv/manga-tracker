@@ -1,5 +1,8 @@
 SET TIME ZONE 'UTC';
 
+-- Reset service sequence
+SELECT setval(pg_get_serial_sequence('services', 'service_id'), MAX(service_id)) FROM services;
+
 -- insert manga
 INSERT INTO manga (manga_id, title, release_interval, latest_release, estimated_release, latest_chapter) VALUES (1, 'Dr. STONE', '0 years 0 mons 7 days 0 hours 0 mins 0.00 secs', '2020-08-02 16:00:00.000000', '2020-08-09 16:00:00.000000', 160);
 INSERT INTO manga (manga_id, title, release_interval, latest_release, estimated_release, latest_chapter) VALUES (2, 'ABCDEFG', '0 years 0 mons 31 days 0 hours 0 mins 0.00 secs', '2020-07-02 16:00:00.000000', '2020-08-02 16:00:00.000000', 1);

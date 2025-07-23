@@ -5,7 +5,7 @@ from calendar import timegm
 from collections.abc import Iterable
 from datetime import datetime, timedelta
 from re import Pattern
-from typing import Any, override
+from typing import Any, cast, override
 
 import feedparser
 
@@ -221,7 +221,7 @@ class BaseRSS(BaseScraperWhole, ABC):
 
                 logger.info(f'Fallback to universal regex successful on {title or entry}')
 
-                kwargs = universal_match
+                kwargs = cast(Any, universal_match)
             else:
                 kwargs = match.groupdict()
 

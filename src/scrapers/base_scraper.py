@@ -481,34 +481,6 @@ class BaseScraper(abc.ABC):
 
         return r
 
-
-class BaseScraperWhole(BaseScraper, ABC):
-    @override
-    def add_service(self) -> int | None:
-        service_id = super().add_service()
-        if not service_id:
-            return None
-        with self.conn.transaction(), self.conn.cursor() as cur:
-            sql = (
-                'INSERT INTO service_whole (service_id, feed_url, last_check, next_update, last_id) '
-                'VALUES (%s, %s, NULL, NULL, NULL)'
-            )
-            cur.execute(sql, (service_id, self.FEED_URL))
-
-        return service_id
-
-    @override
-    def set_checked(self, service_id: int, is_manga: bool = False) -> None:
-        """
-        Sets the service and service_whole as checked based on the min_update_interval
-        defined by the service
-        """
-        try:
-            super().set_checked(service_id)
-            self.dbutil.update_service_whole(service_id, self.min_update_interval())
-        except psycopg.Error:
-            logger.exception(f'Failed to update service {service_id}')
-
     def handle_adding_chapters(
         self, entries: Collection[ScraperChapter], service_id: int
     ) -> ScrapeServiceRetVal | None:
@@ -557,3 +529,31 @@ class BaseScraperWhole(BaseScraper, ABC):
             manga_ids=cast(set[int], manga_ids),
             chapter_ids={row.chapter_id for row in inserted}
         )
+
+
+class BaseScraperWhole(BaseScraper, ABC):
+    @override
+    def add_service(self) -> int | None:
+        service_id = super().add_service()
+        if not service_id:
+            return None
+        with self.conn.transaction(), self.conn.cursor() as cur:
+            sql = (
+                'INSERT INTO service_whole (service_id, feed_url, last_check, next_update, last_id) '
+                'VALUES (%s, %s, NULL, NULL, NULL)'
+            )
+            cur.execute(sql, (service_id, self.FEED_URL))
+
+        return service_id
+
+    @override
+    def set_checked(self, service_id: int, is_manga: bool = False) -> None:
+        """
+        Sets the service and service_whole as checked based on the min_update_interval
+        defined by the service
+        """
+        try:
+            super().set_checked(service_id)
+            self.dbutil.update_service_whole(service_id, self.min_update_interval())
+        except psycopg.Error:
+            logger.exception(f'Failed to update service {service_id}')

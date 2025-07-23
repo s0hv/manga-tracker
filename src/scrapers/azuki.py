@@ -27,7 +27,7 @@ class ParsedChapter(BaseChapterSimple, ABC):
     invalid: bool
 
     @abc.abstractmethod
-    def __init__(self, chapter_element: etree.ElementBase, group_id: int | None = None): ...
+    def __init__(self, chapter_element: etree._Element, group_id: int | None = None): ...
 
     @override
     def __repr__(self) -> str:
@@ -83,7 +83,7 @@ class ParsedChapter(BaseChapterSimple, ABC):
 
 
 class MangaChapter(ParsedChapter):
-    def __init__(self, chapter_element: etree.ElementBase, group_id: int | None = None):
+    def __init__(self, chapter_element: etree._Element, group_id: int | None = None):
         self.invalid = False
 
         title_el = chapter_element.cssselect('a.a-card-link')[0]
@@ -103,7 +103,7 @@ class MangaChapter(ParsedChapter):
             time_el = time_elements[0]
             release_date = datetime.fromisoformat(time_el.attrib['datetime'].replace('Z', '+00:00'))
 
-        title_full = title_el.cssselect('span span')[0].text.strip()
+        title_full = title_el.cssselect('span span')[0].text.strip()  # type: ignore[union-attr]
         result = self.parse_title(title_full)
         if result is None:
             return
@@ -137,15 +137,15 @@ class MangaChapter(ParsedChapter):
 
 
 class ReleaseChapter(ParsedChapter):
-    def __init__(self, chapter_element: etree.ElementBase, group_id: int | None = None):
+    def __init__(self, chapter_element: etree._Element, group_id: int | None = None):
         self.invalid = False
         title_el, chapter_el, date_el = chapter_element.cssselect('td')
 
-        manga_title = title_el.cssselect('cite')[0].text.strip()
+        manga_title = title_el.cssselect('cite')[0].text.strip()  # type: ignore[union-attr]
         title_id = title_el.cssselect('a')[0].attrib['href'].split('/')[-1]
 
         chapter_link = chapter_el.cssselect('a')[0]
-        title = chapter_link.text.strip()
+        title = chapter_link.text.strip()  # type: ignore[union-attr]
         chapter_identifier = chapter_link.attrib['href'].split('/')[-1]
 
         result = self.parse_title(title)
@@ -155,7 +155,7 @@ class ReleaseChapter(ParsedChapter):
         chapter_title, chapter_number, chapter_decimal = result
 
         try:
-            release_date = datetime.strptime(date_el.text.strip(), '%b %d, %Y').replace(
+            release_date = datetime.strptime(date_el.text.strip(), '%b %d, %Y').replace(  # type: ignore[union-attr]
                 tzinfo=timezone.utc
             )
         except ValueError:
@@ -189,7 +189,7 @@ class Azuki(BaseScraperWhole):
 
     @staticmethod
     def parse_chapters[TChapter: ParsedChapter](
-        rows: list[etree.ElementBase], chapter_cls: type[TChapter], group_id: int
+        rows: list[etree._Element], chapter_cls: type[TChapter], group_id: int
     ) -> list[TChapter]:
         chapters = []
         now = utctoday()
@@ -215,7 +215,7 @@ class Azuki(BaseScraperWhole):
         chapters = self.parse_chapters(chapter_rows, MangaChapter, group_id)
 
         try:
-            manga_title = root.cssselect('div.o-series-summary h1')[0].text.strip()
+            manga_title = root.cssselect('div.o-series-summary h1')[0].text.strip()  # type: ignore[union-attr]
         except Exception:
             logger.exception('Failed to extract title from manga page')
         else:
