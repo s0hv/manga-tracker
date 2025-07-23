@@ -87,6 +87,7 @@ jobs:
       run: exit 1
 
     env:
+      GITHUB_ACTIONS: 'true'
       DB_HOST: postgres
       DB_PORT: 5432
       DB_NAME: postgres

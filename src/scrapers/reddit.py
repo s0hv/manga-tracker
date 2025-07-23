@@ -4,7 +4,7 @@ import time
 import typing
 from calendar import timegm
 from datetime import datetime, timedelta
-from typing import Any, override
+from typing import Any, cast, override
 
 import feedparser
 from lxml import etree
@@ -82,7 +82,7 @@ class Reddit(BaseScraper):
             match = Reddit.CHAPTER_REGEX.match(title)
             kwargs: dict[str, Any]
             if not match:
-                m = match_title(title)
+                m = cast(Any, match_title(title))
 
                 if not m:
                     # Special chapter titles that don't have enough information on them

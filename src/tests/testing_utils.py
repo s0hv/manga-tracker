@@ -351,7 +351,7 @@ class BaseTestClasses:
                 assert a.chapter_decimal == b.decimal, f'Chapter decimal numbers not equal for {a.chapter_identifier}'
 
                 if not ignore_date:
-                    assert a.release_date == b.release_date, f'Chapter release dates not equal for {a.chapter_identifier}'
+                    assert a.release_date == b.release_date, f'Chapter release dates not equal for {a.chapter_identifier}, {a.release_date} != {b.release_date}'
 
             else:
                 assert a.chapter_title == b.chapter_title, f'Chapter titles not equal for {a.chapter_identifier}'
