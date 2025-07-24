@@ -38,7 +38,7 @@ export default defineConfig({
     setupFiles: ['./setupTests.ts'],
     globalSetup: './__tests__/globalSetup.ts',
     clearMocks: true,
-    reporters: ['default'],
+    reporters: ['default', 'github-actions'],
     silent: false,
     coverage: {
       reportsDirectory: 'coverage',
