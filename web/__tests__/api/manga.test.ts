@@ -235,6 +235,81 @@ describe('GET /api/manga/:mangaId/chapters', () => {
         }),
     ]);
   });
+
+  it('Returns 400 with invalid services', async () => {
+    const manyInts = '1'.repeat(26).split('');
+    const serviceIdsError = 'Service ids must be positive integers';
+
+    await Promise.all([
+      request(httpServer)
+        .get(`${validUrl}?services=test`)
+        .expect(400)
+        .expect(expectErrorMessage(['test'], 'services', serviceIdsError)),
+
+      request(httpServer)
+        .get(`${validUrl}?services=[]`)
+        .expect(400)
+        .expect(expectErrorMessage(['[]'], 'services', serviceIdsError)),
+
+      request(httpServer)
+        .get(`${validUrl}?services=,`)
+        .expect(400)
+        .expect(expectErrorMessage(['', ''], 'services', serviceIdsError)),
+
+      request(httpServer)
+        .get(`${validUrl}?services=-1,1`)
+        .expect(400)
+        .expect(expectErrorMessage(['-1', '1'], 'services', serviceIdsError)),
+
+      request(httpServer)
+        .get(`${validUrl}?services=1.1,2`)
+        .expect(400)
+        .expect(expectErrorMessage(['1.1', '2'], 'services', serviceIdsError)),
+
+      request(httpServer)
+        .get(`${validUrl}?services=1e10`)
+        .expect(400)
+        .expect(expectErrorMessage(['1e10'], 'services', serviceIdsError)),
+
+      request(httpServer)
+        .get(`${validUrl}?services=${manyInts.join(',')}`)
+        .expect(400)
+        .expect(expectErrorMessage(manyInts, 'services', 'Service ids must be an array of integers of length between 1 and 25')),
+    ]);
+  });
+
+  it('Returns chapters with valid services', async () => {
+    await Promise.all([
+      request(httpServer)
+        .get(`${validUrl}?services=100`)
+        .satisfiesApiSpec()
+        .expect(200)
+        .expect(res => {
+          expect(res.body.data.chapters).toHaveLength(0);
+        }),
+      request(httpServer)
+        .get(`${validUrl}?services=2`)
+        .satisfiesApiSpec()
+        .expect(200)
+        .expect(res => {
+          expect(res.body.data.chapters).toHaveLength(1);
+        }),
+      request(httpServer)
+        .get(`${validUrl}?services=1`)
+        .satisfiesApiSpec()
+        .expect(200)
+        .expect(res => {
+          expect(res.body.data.chapters).toHaveLength(9);
+        }),
+      request(httpServer)
+        .get(`${validUrl}?services=1,2`)
+        .satisfiesApiSpec()
+        .expect(200)
+        .expect(res => {
+          expect(res.body.data.chapters).toHaveLength(10);
+        }),
+    ]);
+  });
 });
 
 describe('POST /api/manga/merge', () => {

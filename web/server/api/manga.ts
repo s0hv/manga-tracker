@@ -1,5 +1,5 @@
 import type { Application, Request, Response } from 'express-serve-static-core';
-import { param, query } from 'express-validator';
+import { matchedData, param, query } from 'express-validator';
 
 import { getChapters } from '@/db/chapter';
 import { deleteManga, updateManga } from '@/db/elasticsearch/manga';
@@ -21,6 +21,15 @@ import {
 } from '../utils/validators';
 
 const BASE_URL = '/api/manga';
+
+type ChaptersQuery = {
+  mangaId: number
+  limit?: number
+  offset?: number
+  sortBy?: string
+  sort?: 'asc' | 'desc'
+  services?: number[]
+};
 
 export default (app: Application) => {
   app.post('/api/manga/merge', [
@@ -200,9 +209,18 @@ export default (app: Application) => {
    *          $ref: '#/components/responses/notFound'
    */
   app.get(`${BASE_URL}/:mangaId/chapters`, [
-    mangaIdValidation(param('mangaId')),
-    query('limit').isInt({ min: 0, max: 200 }).optional().withMessage('Limit must be an integer between 0 and 200'),
-    query('offset').isInt({ min: 0 }).optional().withMessage('Offset must be a positive integer'),
+    mangaIdValidation(param('mangaId'))
+      .toInt(),
+    query('limit')
+      .isInt({ min: 0, max: 200 })
+      .optional()
+      .toInt()
+      .withMessage('Limit must be an integer between 0 and 200'),
+    query('offset')
+      .isInt({ min: 0 })
+      .optional()
+      .toInt()
+      .withMessage('Offset must be a positive integer'),
     query('sortBy')
       .isString()
       .optional()
@@ -217,9 +235,31 @@ export default (app: Application) => {
       .toLowerCase()
       .isIn(['asc', 'desc'])
       .withMessage('Sorting direction must be one of "asc" or "desc"'),
+    query('services')
+      .optional()
+      .customSanitizer(value => value.split(','))
+      .isArray({ min: 1, max: 25 })
+      .toArray()
+      .withMessage('Service ids must be an array of integers of length between 1 and 25')
+      .bail()
+      .custom((value: string[]) => value.every(val => {
+        if (!/^\d+$/.test(val)) {
+          return false;
+        }
+
+        const num = Number(val);
+        if (isNaN(num) || num < 0) {
+          return false;
+        }
+
+        return Number.isInteger(num);
+      }))
+      .customSanitizer((value: string[]) => value.map(Number))
+      .withMessage('Service ids must be positive integers'),
     handleValidationErrors,
   ], (req: Request, res: Response) => {
-    const mangaId = Number(req.params.mangaId);
+    const data = matchedData<ChaptersQuery>(req, { locations: ['params', 'query']});
+    const mangaId = data.mangaId;
     let limit;
     let offset;
 
@@ -236,9 +276,9 @@ export default (app: Application) => {
     }
 
     const sortBy: SortBy[] = [];
-    const isDesc = req.query.sort === 'desc';
+    const isDesc = data.sort === 'desc';
 
-    if (req.query.sortBy === 'chapter_number') {
+    if (data.sortBy === 'chapter_number') {
       sortBy.push({
         col: 'chapter_number',
         desc: isDesc,
@@ -248,15 +288,15 @@ export default (app: Application) => {
         desc: isDesc,
         nullsLast: isDesc,
       });
-    } else if (req.query.sortBy) {
+    } else if (data.sortBy) {
       sortBy.push({
-        col: req.query.sortBy as string,
+        col: data.sortBy,
         desc: isDesc,
         nullsLast: isDesc,
       });
     }
 
-    getChapters(mangaId, limit, offset, sortBy)
+    getChapters(mangaId, limit, offset, sortBy, data.services)
       .then(rows => {
         if (!rows) {
           res.status(404).json({ error: 'No manga found with given id' });

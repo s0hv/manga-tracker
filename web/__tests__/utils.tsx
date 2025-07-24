@@ -1,7 +1,7 @@
-import React, { isValidElement } from 'react';
+import React, { type PropsWithChildren, isValidElement } from 'react';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { QueryClient } from '@tanstack/react-query';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import {
   BoundFunctions,
   queries,
@@ -15,19 +15,21 @@ import type {
   NextFunction,
   Request as ExpressRequest,
 } from 'express-serve-static-core';
-import type { MockCall } from 'fetch-mock';
+import fetchMock, { type MockCall } from 'fetch-mock';
 import jestOpenAPI from 'jest-openapi';
 import type { ConfirmResult } from 'material-ui-confirm';
+import { SnackbarProvider } from 'notistack';
 import type { Response } from 'supertest';
 import request from 'supertest';
 import { expect, Mock, MockInstance, vi } from 'vitest';
 
 import type { PostgresAdapter } from '@/db/postgres-adapter';
+import { ServiceForApi } from '@/types/api/services';
 import { UserProvider } from '@/webUtils/useUser';
 
 import { getOpenapiSpecification } from '../swagger';
 
-import { TestUser } from './constants';
+import { testServices, TestUser } from './constants';
 
 export { adminUser, authTestUser, normalUser, oauthUser } from './constants';
 
@@ -52,14 +54,26 @@ vi.mock('@/db/helpers', async () => {
   return dbMock;
 });
 
-export const queryClient = new QueryClient({
+const getQueryClient = () => new QueryClient({
   defaultOptions: {
     queries: {
       retry: false,
+      staleTime: 0,
+      gcTime: 0,
+      refetchOnMount: 'always',
     },
   },
 });
 
+export const queryClient = getQueryClient();
+
+export const TestRoot = ({ children }: PropsWithChildren) => (
+  <QueryClientProvider client={getQueryClient()}>
+    <SnackbarProvider>
+      {children}
+    </SnackbarProvider>
+  </QueryClientProvider>
+);
 
 export const convertToOauthUser = (u: TestUser): TestUser => ({
   ...u,
@@ -412,3 +426,12 @@ export const restoreMocks = (spies: MockInstance[]) => spies.forEach(spy => spy.
 export const confirmMock = (confirmed: boolean = true) => vi.fn(() => Promise.resolve(
   { confirmed, reason: confirmed ? 'confirm' : 'cancel' } satisfies ConfirmResult
 ));
+
+export const mockServicesEndpoint = () => {
+  const servicesMock = vi.fn();
+  servicesMock.mockImplementation(() => Promise.resolve(testServices satisfies ServiceForApi[]));
+
+  fetchMock.get('path:/api/services', servicesMock, { overwriteRoutes: true });
+
+  return servicesMock;
+};

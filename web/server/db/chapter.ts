@@ -93,7 +93,13 @@ export const defaultSort: SortBy[] = [
   },
 ];
 
-export const getChapters = (mangaId: MangaId, limit: number, offset: number, sortBy: SortBy[] = defaultSort) => {
+export const getChapters = (
+  mangaId: MangaId,
+  limit: number,
+  offset: number,
+  sortBy: SortBy[] = defaultSort,
+  services?: number[]
+) => {
   sortBy = sortBy.length > 0 ? sortBy : defaultSort;
   const sorting = sortBy
     .map(sort => db.sql`${db.sql(sort.col)}${sort.desc ? db.sql` DESC` : db.sql``}${sort.nullsLast ? db.sql` NULLS LAST` : db.sql``}`)
@@ -116,7 +122,7 @@ export const getChapters = (mangaId: MangaId, limit: number, offset: number, sor
                     chapter_identifier
                 FROM chapters
                 INNER JOIN groups g ON g.group_id = chapters.group_id
-                WHERE manga_id=${mangaId}
+                WHERE manga_id=${mangaId} ${services && services.length > 0 ? db.sql`AND chapters.service_id IN ${db.sql(services)}` : db.sql``}
                 ORDER BY ${sorting}
                 LIMIT ${limit} ${offset ? db.sql`OFFSET ${offset}` : db.sql``}
             ) as ch

@@ -1,14 +1,12 @@
-import { type ReactNode } from 'react';
-import { act, render, screen } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import fetchMock from 'fetch-mock';
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, MockInstance, vi } from 'vitest';
 
-
-import { mockNotistackHooks } from '@/tests/utils';
+import { mockServicesEndpoint, TestRoot } from '@/tests/utils';
 import ChapterList, { type MangaChapterWithUrl } from '@/components/ChapterList';
+import { testServices } from '@/tests/constants';
 
-await mockNotistackHooks();
 
 describe('Chapter list should allow editing', () => {
   const testChapter: MangaChapterWithUrl = {
@@ -23,6 +21,8 @@ describe('Chapter list should allow editing', () => {
     chapterIdentifier: 'test-chapter',
   };
 
+  const testService = testServices[0];
+
   const serviceMangaData = {
     [testChapter.serviceId]: { urlFormat: '{}', titleId: 'test' },
   };
@@ -34,12 +34,20 @@ describe('Chapter list should allow editing', () => {
     chaptersMock.mockImplementation(
       () => Promise.resolve({ count: chapters?.length, chapters: chapters })
     );
+
     fetchMock.get(
       `path:/api/manga/${mangaId}/chapters`,
       chaptersMock,
       { overwriteRoutes: true }
     );
-    return chaptersMock;
+
+    const servicesMock = mockServicesEndpoint();
+
+    return [chaptersMock, servicesMock];
+  };
+
+  const waitForChaptersLoaded = async (chaptersMock: MockInstance) => {
+    await waitFor(() => expect(chaptersMock).toHaveBeenCalledTimes(1));
   };
 
   it('Should post correctly', async () => {
@@ -47,7 +55,7 @@ describe('Chapter list should allow editing', () => {
     postMock.mockImplementation(() => Promise.resolve({}));
     fetchMock.post('path:/api/chapter/1', postMock);
     const chapters = [testChapter];
-    mockChapters(chapters);
+    const [chaptersMock] = mockChapters(chapters);
 
     const addedCharacters = 'test';
     const updatedChapter = {
@@ -56,19 +64,22 @@ describe('Chapter list should allow editing', () => {
 
     await act(async () => {
       render(
-        <ChapterList
-          chapters={chapters}
-          mangaId={mangaId}
-          editable
-        />
+        <TestRoot>
+          <ChapterList
+            mangaId={mangaId}
+            editable
+          />
+        </TestRoot>
       );
     });
 
+    await waitForChaptersLoaded(chaptersMock);
+
     const user = userEvent.setup();
-    await user.click(screen.getByRole('button', { name: /edit row/i }));
+    await user.click(await screen.findByRole('button', { name: /edit row/i }));
 
     await user.type(
-      screen.getByLabelText(/title input/i),
+      await screen.findByLabelText(/title input/i),
       addedCharacters
     );
 
@@ -86,18 +97,22 @@ describe('Chapter list should allow editing', () => {
     fetchMock.delete(`path:/api/chapter/${testChapter.chapterId}`, deleteMock);
 
     const chapters = [testChapter];
-    mockChapters(chapters);
+    const [chaptersMock] = mockChapters(chapters);
 
     await act(async () => {
       render(
-        <ChapterList
-          chapters={chapters}
-          editable
-          mangaId={mangaId}
-          serviceMangaData={serviceMangaData}
-        />
+        <TestRoot>
+          <ChapterList
+            editable
+            mangaId={mangaId}
+            serviceMangaData={serviceMangaData}
+          />
+        </TestRoot>
       );
     });
+
+    await waitForChaptersLoaded(chaptersMock);
+
     const user = userEvent.setup();
     await user.click(screen.getByRole('button', { name: /edit row/i }));
 
@@ -106,50 +121,27 @@ describe('Chapter list should allow editing', () => {
     await user.click(screen.getByRole('button', { name: /confirm delete row/i }));
 
     expect(deleteMock).toHaveBeenCalledTimes(1);
-  });
-
-  it('Should update data when chapters prop changes', async () => {
-    mockChapters([]);
-
-    let rerender: (ui: ReactNode) => void;
-    await act(async () => {
-      const retVal = render(
-        <ChapterList
-          chapters={[]}
-          mangaId={mangaId}
-          serviceMangaData={serviceMangaData}
-        />
-      );
-      rerender = retVal.rerender;
-    });
-    expect(screen.queryByRole('cell')).not.toBeInTheDocument();
-
-    rerender!(
-      <ChapterList
-        chapters={[testChapter]}
-        mangaId={mangaId}
-        serviceMangaData={serviceMangaData}
-      />
-    );
-
-    expect(screen.queryByRole('cell', { name: testChapter.title })).toBeInTheDocument();
+    await waitFor(() => expect(chaptersMock).toHaveBeenCalledTimes(2));
   });
 
   it('Should try to fetch chapters', async () => {
     const chapters = [testChapter];
-    const chaptersMock = mockChapters(chapters);
+    const [chaptersMock, servicesMock] = mockChapters(chapters);
 
     await act(async () => {
       render(
-        <ChapterList
-          chapters={[]}
-          mangaId={mangaId}
-          serviceMangaData={serviceMangaData}
-        />
+        <TestRoot>
+          <ChapterList
+            mangaId={mangaId}
+            serviceMangaData={serviceMangaData}
+          />
+        </TestRoot>
       );
     });
 
-    expect(chaptersMock).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(chaptersMock).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(servicesMock).toHaveBeenCalledTimes(1));
     expect(screen.queryByRole('cell', { name: chapters[0].title })).toBeInTheDocument();
+    expect(screen.queryByRole('cell', { name: testService.name })).toBeInTheDocument();
   });
 });

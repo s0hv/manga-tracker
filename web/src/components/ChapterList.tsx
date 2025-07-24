@@ -1,11 +1,20 @@
 import React, {
+  type FC,
+  type SyntheticEvent,
   ReactElement,
   useCallback,
   useEffect,
   useMemo,
   useState,
 } from 'react';
-import { Link, Paper, TableContainer } from '@mui/material';
+import {
+  Autocomplete,
+  Link,
+  Paper,
+  TableContainer,
+  TextField,
+} from '@mui/material';
+import { useQuery } from '@tanstack/react-query';
 import type { SortingState, TableOptions } from '@tanstack/react-table';
 import { useSnackbar } from 'notistack';
 
@@ -15,10 +24,11 @@ import type { MangaId } from '@/types/dbTypes';
 
 import {
   deleteChapter,
-  getChapters,
+  getChaptersQueryOptions,
   SortBy,
   updateChapter,
 } from '../api/chapter';
+import { getServicesQueryOptions } from '../api/services';
 import { formatChapterUrl } from '../utils/formatting';
 import { defaultDateFormat } from '../utils/utilities';
 
@@ -31,6 +41,16 @@ import type {
 } from './MaterialTable/types';
 import { createColumnHelper } from './MaterialTable/utilities';
 
+type ServiceOption = {
+  value: number
+  label: string
+};
+
+type PaginationOptions = {
+  limit: number
+  offset: number
+  sortingState?: SortBy<MangaChapter>[]
+};
 
 export interface MangaChapterWithUrl extends MangaChapter {
   url: string
@@ -47,13 +67,72 @@ const TitleCell = ({ row }: MaterialCellContext<MangaChapterWithUrl, any>) => (
   </Link>
 );
 
+const allSelectedLabel = () => 'All services selected';
+
+type ServiceFilterProps = {
+  serviceMangaData?: Record<number, ServiceMangaData>
+  onChange: (services: number[] | undefined) => void
+};
+const ServiceFilter: FC<ServiceFilterProps> = ({ serviceMangaData, onChange }) => {
+  const { data: services } = useQuery(getServicesQueryOptions);
+
+  const serviceOptions = useMemo(() => {
+    if (!serviceMangaData) return [];
+
+    return Object.keys(serviceMangaData).map(id => ({
+      value: Number(id),
+      label: services?.[Number(id)]?.name ?? `Service ${id}`,
+    }));
+  }, [serviceMangaData, services]);
+
+  const [selectedServices, setSelectedServices] = useState<ServiceOption[]>(serviceOptions);
+
+  useEffect(() => {
+    setSelectedServices(serviceOptions);
+  }, [serviceOptions]);
+
+  const handleChange = useCallback((_: SyntheticEvent, value: ServiceOption[]) => {
+    setSelectedServices(value);
+
+    if (value.length === 0 || value.length === serviceOptions.length) {
+      onChange(undefined);
+      return;
+    }
+
+    onChange(value.map(option => option.value));
+  }, [onChange, serviceOptions.length]);
+
+  const allServicesSelected =
+    selectedServices.length === serviceOptions.length
+    || selectedServices.length === 0;
+
+  return (
+    <Autocomplete
+      options={serviceOptions}
+      value={selectedServices}
+      onChange={handleChange}
+      renderInput={params => <TextField {...params} label='Filter services' />}
+      renderValue={allServicesSelected ? allSelectedLabel : undefined}
+      sx={{
+        width: 'fit-content',
+        minWidth: '200px',
+        mt: 4,
+        mb: '-55px',
+        zIndex: 10,
+        position: 'relative',
+      }}
+      disableClearable
+      multiple
+    />
+  );
+};
+
 export type ServiceMangaData = {
   urlFormat: string
   titleId: string
 };
 
 export type ChapterListProps = {
-  chapters?: MangaChapterWithUrl[]
   editable?: boolean
   serviceMangaData?: Record<number, ServiceMangaData>
   mangaId: MangaId
@@ -61,18 +140,41 @@ export type ChapterListProps = {
 
 function ChapterList(props: ChapterListProps): ReactElement {
   const {
-    chapters: initialChapters,
     editable = false,
     serviceMangaData,
     mangaId,
   } = props;
 
-  const [chapters, setChapters] = useState<MangaChapterWithUrl[]>(initialChapters || []);
-  const [count, setCount] = useState<number>(initialChapters?.length || 0);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [selectedServices, setSelectedServices] = useState<number[] | undefined>(undefined);
+  const [paginationOptions, setPaginationOptions] = useState<PaginationOptions | undefined>(undefined);
   const { enqueueSnackbar } = useSnackbar();
+  const { data: services } = useQuery(getServicesQueryOptions);
 
-  useEffect(() => setChapters(initialChapters || []), [initialChapters]);
+  const {
+    data,
+    isFetching: loading,
+    refetch,
+  } = useQuery({
+    ...getChaptersQueryOptions(
+      mangaId,
+      /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
+      paginationOptions?.limit!,
+      paginationOptions?.offset!,
+      paginationOptions?.sortingState!,
+      /* eslint-enable @typescript-eslint/no-non-null-asserted-optional-chain */
+      selectedServices
+    ),
+    enabled: paginationOptions !== undefined,
+    select: data => {
+      return {
+        chapters: formatChapters(data.chapters ?? []),
+        count: Number(data.count),
+      };
+    },
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
+
+  const { chapters = [], count = 0 } = data ?? {};
 
   const formatChapters = useCallback<(chapters: MangaChapter[]) => MangaChapterWithUrl[]>(chs => {
     if (!chs) return [];
@@ -110,14 +212,14 @@ function ChapterList(props: ChapterListProps): ReactElement {
 
   const onDeleteRow = useCallback<RowChangeAction<MangaChapterWithUrl>>(({ row }) => {
     const id = row.original.chapterId;
-    setChapters(chapters.filter(c => c.chapterId !== id));
 
     deleteChapter(id)
       .then(handleResponse)
       .catch(err => {
         enqueueSnackbar(err.message, { variant: 'error' });
-      });
-  }, [chapters, handleResponse, enqueueSnackbar]);
+      })
+      .finally(refetch);
+  }, [handleResponse, enqueueSnackbar, refetch]);
 
   const columns = useMemo<MaterialColumnDef<MangaChapterWithUrl, any>[]>(() => [
     columnHelper.accessor('chapterNumber', {
@@ -148,26 +250,36 @@ function ChapterList(props: ChapterListProps): ReactElement {
       header: 'Group',
       enableEditing: false,
     }),
-  ], []);
+    columnHelper.accessor('serviceId', {
+      header: 'Service',
+      enableEditing: false,
+      cell: ({ row }) => {
+        const serviceId = row.original.serviceId;
+        return services?.[serviceId]?.name ?? '';
+      },
+    }),
+  ], [services]);
 
   const getRowId = useCallback<(row: MangaChapterWithUrl) => string>(row => row.chapterId.toString(), []);
 
   const fetchData = useCallback((pageIndex: number, pageSize: number, sortBy?: SortingState) => {
-    setLoading(true);
     const offset = pageIndex * pageSize;
 
-    getChapters(mangaId, pageSize, offset, sortBy as SortBy<MangaChapter>[])
-      .then(json => {
-        setChapters(formatChapters(json.chapters || []));
-        setCount(Number(json.count) || 0);
-      })
-      .finally(() => setLoading(false));
-  }, [formatChapters, mangaId]);
+    setPaginationOptions({
+      limit: pageSize,
+      offset,
+      sortingState: sortBy as SortBy<MangaChapter>[],
+    });
+  }, []);
 
   const [tableOptions] = useState<Partial<TableOptions<MangaChapterWithUrl>>>({ getRowId });
 
   return (
     <TableContainer component={Paper}>
+      <ServiceFilter
+        serviceMangaData={serviceMangaData}
+        onChange={setSelectedServices}
+      />
       <MaterialTable
         columns={columns}
         data={chapters}
@@ -181,6 +293,7 @@ function ChapterList(props: ChapterListProps): ReactElement {
         deletable={editable}
         pagination
         tableOptions={tableOptions}
+        sx={{ minWidth: '600px' }}
       />
     </TableContainer>
   );
