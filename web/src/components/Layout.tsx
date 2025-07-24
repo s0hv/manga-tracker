@@ -14,13 +14,15 @@ import NextLink from 'next/link';
 
 import type { FrontendUser } from '@/webUtils/useUser';
 
+import { APIException, HTTPException } from '../api/utilities';
+
 import TopBar from './TopBar';
 
 
 const Root = styled('div')({
   width: '100%',
   overflow: 'auto',
-  minWidth: '400px',
+  minWidth: '300px',
   minHeight: '100vh',
   position: 'relative',
 });
@@ -76,6 +78,14 @@ export const Layout: FC<PropsWithChildren<RootProps>> = props => {
     defaultOptions: {
       queries: {
         refetchOnWindowFocus: false,
+        retry: (failureCount, error) => {
+          if (error instanceof APIException || (error instanceof HTTPException && (error as HTTPException).statusCode >= 400)) {
+            // Do not retry on client errors
+            return false;
+          }
+
+          return failureCount < 3; // Retry up to 3 times for server errors
+        },
       },
     },
   }));

@@ -17,8 +17,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   adminUser,
   mockNotistackHooks,
+  mockServicesEndpoint,
   mockUTCDates,
   normalUser,
+  TestRoot,
   withUser,
 } from '../utils';
 import Manga from '@/components/Manga';
@@ -37,6 +39,7 @@ describe('Manga page should render correctly', async () => {
     fetchMock.reset();
     fetchMock.get('express:/api/manga/:mangaId/chapters', { chapters: []});
     fetchMock.get('express:/api/chapter/releases/:mangaId', []);
+    mockServicesEndpoint();
   });
 
   const follows = [1];
@@ -104,7 +107,7 @@ describe('Manga page should render correctly', async () => {
 
   it('should render correctly', async () => {
     await act(async () => {
-      render(<Manga mangaData={manga} userFollows={follows} />);
+      render(<TestRoot><Manga mangaData={manga} userFollows={follows} /></TestRoot>);
     });
 
     expectTitleExists(manga);
@@ -118,7 +121,9 @@ describe('Manga page should render correctly', async () => {
     await act(async () => {
       render(await withUser(
         normalUser,
-        <Manga mangaData={manga} userFollows={follows} />
+        <TestRoot>
+          <Manga mangaData={manga} userFollows={follows} />
+        </TestRoot>
       ));
     });
 
@@ -133,7 +138,9 @@ describe('Manga page should render correctly', async () => {
     await act(async () => {
       render(await withUser(
         adminUser,
-        <Manga mangaData={manga} userFollows={follows} />
+        <TestRoot>
+          <Manga mangaData={manga} userFollows={follows} />
+        </TestRoot>
       ));
     });
 
@@ -146,7 +153,7 @@ describe('Manga page should render correctly', async () => {
 
   it('should render correctly with little data', async () => {
     await act(async () => {
-      render(<Manga mangaData={emptyManga} />);
+      render(<TestRoot><Manga mangaData={emptyManga} /></TestRoot>);
     });
 
     expectTitleExists(emptyManga);
@@ -174,7 +181,12 @@ describe('Manga page should render correctly', async () => {
 
   it('should call follow and unfollow on click for all services', async () => {
     await act(async () => {
-      render(await withUser(normalUser, <Manga mangaData={manga} userFollows={follows} />));
+      render(await withUser(
+        normalUser,
+        <TestRoot>
+          <Manga mangaData={manga} userFollows={follows} />
+        </TestRoot>
+      ));
     });
 
     mockFollowUnfollow({ query: { mangaId: manga.manga.mangaId }});
@@ -195,7 +207,12 @@ describe('Manga page should render correctly', async () => {
 
   it('should call follow and unfollow on click for a specific service', async () => {
     await act(async () => {
-      render(await withUser(normalUser, <Manga mangaData={manga} userFollows={[manga.services[0].serviceId]} />));
+      render(await withUser(
+        normalUser,
+        <TestRoot>
+          <Manga mangaData={manga} userFollows={[manga.services[0].serviceId]} />
+        </TestRoot>
+      ));
     });
 
     mockFollowUnfollow({ query: { mangaId: manga.manga.mangaId, serviceId: manga.services[0].serviceId }});

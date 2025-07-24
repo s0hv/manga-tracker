@@ -1,4 +1,5 @@
 import type { FullMangaData } from '@/types/api/manga';
+import { ServiceForApi } from '@/types/api/services';
 import type { User } from '@/types/db/user';
 import type { SessionUser } from '@/types/dbTypes';
 
@@ -164,3 +165,22 @@ export const oauthUser: TestUser = {
   email: 'test@oauth.com',
   isCredentialsAccount: false,
 };
+
+export const testServices: ServiceForApi[] = [
+  {
+    serviceId: 1,
+    name: 'MANGA Plus',
+    disabled: false,
+    url: '',
+    chapterUrlFormat: '',
+    mangaUrlFormat: '',
+  },
+  {
+    serviceId: 2,
+    name: 'MangaDex',
+    disabled: false,
+    url: '',
+    chapterUrlFormat: '',
+    mangaUrlFormat: '',
+  },
+];

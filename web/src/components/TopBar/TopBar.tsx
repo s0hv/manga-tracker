@@ -78,7 +78,21 @@ function TopBar() {
   return (
     <Root>
       <AppBar position='sticky'>
-        <Toolbar>
+        <Toolbar sx={{
+          pl: {
+            xs: 1,
+            '@500': 2,
+          },
+          pr: {
+            xs: 1,
+            '@500': 2,
+          },
+          gap: {
+            xs: 1,
+            '@500': 2,
+          },
+        }}
+        >
           <NextLink href='/' prefetch={false} style={{ textDecoration: 'none', color: 'inherit' }}>
             <SiteTitle variant='h6' noWrap>
               Manga tracker

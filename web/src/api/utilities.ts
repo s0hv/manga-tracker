@@ -10,6 +10,10 @@ export class HTTPException extends Error {
     super(msg);
     this.response = res;
   }
+
+  get statusCode(): number {
+    return this.response.status;
+  }
 }
 
 /**

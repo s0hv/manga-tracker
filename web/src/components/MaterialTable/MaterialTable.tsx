@@ -8,6 +8,7 @@ import React, {
   useState,
 } from 'react';
 import {
+  type SxProps,
   CircularProgress,
   Skeleton,
   Table,
@@ -102,6 +103,7 @@ export type MaterialTableProps<TData> = {
   toolbarProps?: TableToolbarProps
   tableOptions?: Partial<TableOptions<TData>>
   initialState?: Partial<MaterialTableState<TData>>
+  sx?: SxProps
 };
 
 /**
@@ -128,6 +130,7 @@ const MaterialTable = <TData, >(props: MaterialTableProps<TData>): ReactElement 
     toolbarProps,
     tableOptions = {},
     initialState = {},
+    sx,
   } = props;
 
   if (data === null || data === undefined) {
@@ -203,7 +206,7 @@ const MaterialTable = <TData, >(props: MaterialTableProps<TData>): ReactElement 
   );
 
   return (
-    <Root id={id}>
+    <Root id={id} sx={sx}>
       <TableToolbar
         title={title}
         DialogComponent={CreateDialog}

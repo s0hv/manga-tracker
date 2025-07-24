@@ -1,3 +1,5 @@
+import { queryOptions } from '@tanstack/react-query';
+
 import type {
   ChapterRelease,
   ChapterReleaseDates,
@@ -16,21 +18,34 @@ export type SortBy<T> = {
 };
 /**
  * Fetches chapters for a manga
- * @param {Number|string} mangaId id of the manga to fetch chapters for
- * @param {Number|string} limit limit of the fetched chapters
- * @param {Number|string} offset current offset
- * @param {Object[]} sortBy A list of objects containing the row name and sorting directions
+ * @param mangaId id of the manga to fetch chapters for
+ * @param limit limit of the fetched chapters
+ * @param offset current offset
+ * @param sortBy A list of objects containing the row name and sorting directions
+ * @param services A list of service ids to filter by
  */
 export const getChapters = (
   mangaId: MangaId,
   limit: number | string,
   offset: number | string,
-  sortBy: SortBy<MangaChapter>[] = []
+  sortBy: SortBy<MangaChapter>[] = [],
+  services?: number[]
 ): Promise<MangaChapterResponse> => {
-  const orderBy = sortBy.length > 0
-    ? `&sortBy=${snakeCase(sortBy[0].id)}&sort=${sortBy[0].desc ? 'desc' : 'asc'}`
-    : '';
-  return fetch(`/api/manga/${mangaId}/chapters?limit=${limit}&offset=${offset}${orderBy}`)
+  const searchParams = new URLSearchParams({
+    limit: limit.toString(),
+    offset: offset.toString(),
+  });
+
+  if (sortBy.length > 0) {
+    searchParams.set('sortBy', snakeCase(sortBy[0].id));
+    searchParams.set('sort', sortBy[0].desc ? 'desc' : 'asc');
+  }
+
+  if (services && services.length > 0) {
+    searchParams.set('services', services.join(','));
+  }
+
+  return fetch(`/api/manga/${mangaId}/chapters?${searchParams.toString()}`)
     .then(handleResponse<MangaChapterResponse>)
     .then(res => {
       res.chapters.forEach(ch => {
@@ -41,6 +56,17 @@ export const getChapters = (
     })
     .catch(handleError);
 };
+
+export const getChaptersQueryOptions = (
+  mangaId: MangaId,
+  limit: number | string,
+  offset: number | string,
+  sortBy: SortBy<MangaChapter>[] = [],
+  services?: number[]
+) => queryOptions({
+  queryKey: ['mangaChapters', mangaId, limit, offset, sortBy, services] as const,
+  queryFn: ({ queryKey: [_, ...params] }) => getChapters(...params),
+});
 
 /**
  * Fetches the latest chapters
