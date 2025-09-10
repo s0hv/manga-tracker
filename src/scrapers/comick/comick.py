@@ -95,7 +95,7 @@ class Comick(BaseScraperWhole):
     NAME = 'Comick'
     FEED_URL = 'https://api.comick.fun'
     UPDATE_INTERVAL = timedelta(minutes=45)
-    CHAPTER_URL_FORMAT = 'https://comick.io/comick/{title_id}/{}'
+    CHAPTER_URL_FORMAT = 'https://comick.io/comic/{title_id}/{}'
     MANGA_URL_FORMAT = 'https://comick.io/comic/{}'
 
     def __init__(self, conn: Connection[DictRow], dbutil: DbUtil | None = None):
