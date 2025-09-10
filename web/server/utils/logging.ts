@@ -19,7 +19,7 @@ export const logger = pino(
         options:
           {
             colorize: true,
-            translateTime: 'SYS:HH:MM:ss.l',
+            translateTime: 'UTC:yyyy-mm-dd HH:MM:ss.l',
             ignore: 'hostname,ns',
           },
       }
