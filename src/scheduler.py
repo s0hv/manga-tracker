@@ -1,4 +1,6 @@
+import inspect
 import logging
+import math
 import os
 import random
 import time
@@ -9,6 +11,7 @@ from contextlib import contextmanager
 from datetime import datetime, timedelta
 from itertools import groupby
 from operator import attrgetter
+from types import FrameType, ModuleType
 from typing import LiteralString, Self, TypedDict, cast, override
 
 import psycopg
@@ -54,11 +57,25 @@ class LoggingCursor(Cursor[DictRow]):
         try:
             return super().execute(query, params, prepare=prepare, binary=binary)
         finally:
-            param_string = '' if not params else f', {params}'
-            if isinstance(query, bytes):
-                db_logger.debug(f'{query.decode("utf-8")}{param_string}')
-            else:
-                db_logger.debug(f'{query}{param_string}')
+            if db_logger.isEnabledFor(logging.DEBUG):
+
+                caller = cast(FrameType, inspect.currentframe()).f_back
+                module = cast(ModuleType, inspect.getmodule(caller)).__name__
+
+                # If the caller was dbutil, try to find the real caller
+                if module.endswith('.dbutils'):
+                    for _ in range(4):
+                        caller = cast(FrameType, caller).f_back
+                        current_module = cast(ModuleType, inspect.getmodule(caller)).__name__
+                        if not current_module.endswith('dbutils'):
+                            module = current_module
+                            break
+
+                param_string = '' if not params else f', {params}'
+                if isinstance(query, bytes):
+                    db_logger.debug(f'{query.decode("utf-8")}{param_string}', extra={'originalmodule': module})
+                else:
+                    db_logger.debug(f'{query}{param_string}', extra={'originalmodule': module})
 
 
 class UpdateScheduler:
@@ -184,7 +201,7 @@ class UpdateScheduler:
 
                         elif res is None:
                             errors += 1
-                            logger.error(f'Failed to scrape series {title_id} {manga_id}')
+                            logger.error(f'Failed to scrape series title_id: {title_id} manga_id: {manga_id} for service {Scraper.NAME}')
 
                         ms = scraper.dbutil.get_manga_service(service_id, title_id)
                         if ms is None:
@@ -214,8 +231,18 @@ class UpdateScheduler:
                                 )
 
                                 next_date: datetime = ms.latest_release + ms.release_interval
-                                if next_date < utcnow():
-                                    next_date = utcnow() + ms.release_interval
+                                now = utcnow()
+
+                                if next_date < now:
+                                    # If the expected update did not happen yet, postpone it slightly.
+                                    # This prevents the same manga from not being updated for a long time
+                                    # in case the update is done a bit later.
+                                    if (next_date - now) < timedelta(days=2):
+                                        next_date = now + max(scraper.min_update_interval(), timedelta(hours=6))
+                                    else:
+                                        # Default to the release interval multiplied until it is after the current time.
+                                        interval_multiplier = math.ceil((now - ms.latest_release) / ms.release_interval)
+                                        next_date = ms.latest_release + ms.release_interval * interval_multiplier
 
                                 scraper.dbutil.update_manga_next_update(
                                     service_id, manga_id, next_date + timedelta(minutes=10)

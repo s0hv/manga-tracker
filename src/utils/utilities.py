@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 
 from feedparser import FeedParserDict
 from psycopg.rows import DictRow
+from pydantic import BaseModel, ValidationError
 
 from src.errors import FeedHttpError, InvalidFeedError
 
@@ -149,3 +150,17 @@ def utcfromtimestamp(t: int | float) -> datetime:
 
 def utctoday() -> datetime:
     return datetime.combine(utcnow(), time(), timezone.utc)
+
+
+# noinspection PyPep8Naming
+def dict_to_model[TModel: BaseModel](
+    result: dict, Model: type[TModel]
+) -> TModel:
+    try:
+        return Model(**result)
+    except ValidationError:
+        logger.warning(f'Failed to parse result for model {Model.__name__} {result}', exc_info=True)
+        raise
+    except Exception as e:
+        logger.exception(f'Unexpected error when parsing model {Model.__name__} {result}')
+        raise e

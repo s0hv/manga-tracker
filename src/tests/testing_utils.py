@@ -4,20 +4,21 @@ import subprocess
 import sys
 import typing
 import unittest
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 from datetime import datetime, timedelta
-from typing import Any, Iterable, TypeVar, Union, override
+from pathlib import Path
+from typing import Any, TypeVar, Union, override
 from unittest import mock
 
 import feedparser
 import psycopg
 import pytest
 import testing.postgresql
+from elasticsearch.client import Elasticsearch
 from psycopg import Connection
 from psycopg.rows import DictRow, dict_row
 from pydantic import BaseModel
 
-from elasticsearch.client import Elasticsearch
 from src.constants import NO_GROUP
 from src.db.models.chapter import Chapter as DbChapter
 from src.db.models.manga import Manga, MangaService, MangaServiceWithId
@@ -29,7 +30,7 @@ from src.utils.utilities import FeedType, utcnow
 
 originalParse = feedparser.parse
 
-DONT_USE_TEMP_DATABASE = bool(os.environ.get('NO_TEMP_DB', False))
+DONT_USE_TEMP_DATABASE = bool(os.environ.get('NO_TEMP_DB', False))  # noqa: PLW1508
 
 Postgresql: testing.postgresql.PostgresqlFactory | None = None
 
@@ -48,8 +49,8 @@ T = TypeVar('T')
 
 
 def run_migrations(conn: Connection[DictRow]) -> None:
-    filepath = os.path.dirname(__file__)
-    root = os.path.join(filepath, '..', '..')
+    filepath = Path(__file__)
+    root = filepath.parent.parent
     env = os.environ.copy()
     env['DB_USER'] = conn.info.user
     env['PGPASSWORD'] = conn.info.password
@@ -126,7 +127,7 @@ def set_db_environ():
     """
     Sets environment variables to match the created temporary database.
     """
-    os.environ['ELASTIC_NODE'] = f"{os.getenv('ELASTIC_TEST_HOST', 'localhost')}:{os.getenv('ELASTIC_TEST_PORT', 9200)}"
+    os.environ['ELASTIC_NODE'] = f"{os.getenv('ELASTIC_TEST_HOST', 'localhost')}:{os.getenv('ELASTIC_TEST_PORT', '9200')}"
 
     if DONT_USE_TEMP_DATABASE:
         return
@@ -135,9 +136,9 @@ def set_db_environ():
     conf = Postgresql.cache.dsn()
     os.environ['DB_HOST'] = conf['host']
     os.environ['DB_NAME'] = conf.get('database', conf.get('dbname'))
-    os.environ["DB_USER"] = conf["user"]
-    os.environ["DB_PASSWORD"] = ""
-    os.environ["DB_PORT"] = str(conf["port"])
+    os.environ['DB_USER'] = conf['user']
+    os.environ['DB_PASSWORD'] = ''
+    os.environ['DB_PORT'] = str(conf['port'])
 
 
 def assert_count_equals(first: Iterable, second: Iterable) -> None:
@@ -469,10 +470,10 @@ class ChapterSnapshot(BaseModel):
 def save_chapters_snapshot(chapters: list[BaseChapter], filename: str):
     chs = list(map(ChapterTestModel.from_chapter, chapters))
 
-    with open(filename, 'w', encoding='utf-8') as f:
+    with Path(filename).open('w', encoding='utf-8') as f:
         f.write(ChapterSnapshot(data=chs).model_dump_json(indent=2))
 
 
-def load_chapters_snapshot(filename: str) -> list[ChapterTestModel]:
-    with open(filename, encoding='utf-8') as f:
+def load_chapters_snapshot(filepath: Path) -> list[ChapterTestModel]:
+    with filepath.open(encoding='utf-8') as f:
         return ChapterSnapshot.model_validate_json(f.read()).data

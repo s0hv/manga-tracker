@@ -1,6 +1,6 @@
 import json
 import logging
-import os
+from pathlib import Path
 from typing import override
 from unittest.mock import Mock, patch
 
@@ -30,7 +30,7 @@ correct_parsed_chapters = sorted([
         release_date='2025-06-20T18:38:12.971Z',
         chapter_identifier='U7pECDbB',
         title_id='XO9lSYgH',
-        manga_title='Reincarnation of the Online Game Addict: I Can’t Use the Overpowered Fists That Made Me the Fist King, so Now I Swing a Club for Eight Hours a Day',
+        manga_title='Reincarnation of the Online Game Addict: I Can’t Use the Overpowered Fists That Made Me the Fist King, so Now I Swing a Club for Eight Hours a Day',  # noqa: RUF001
         group='Asmodeus Scans',
         title='Chapter 2',
         group_id=NO_GROUP),
@@ -88,12 +88,12 @@ class ComickTests(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsserti
 
     @pytest.fixture(autouse=True)
     def load_data(self):
-        api_path = os.path.join(os.path.dirname(__file__), 'api_data')
+        api_path = Path(__file__).parent.joinpath('api_data')
 
-        with open(os.path.join(api_path, 'chapters.json'), encoding='utf-8') as f:
+        with api_path.joinpath('chapters.json').open(encoding='utf-8') as f:
             self.chapters_data = json.load(f)
 
-        with open(os.path.join(api_path, 'manga.json'), encoding='utf-8') as f:
+        with api_path.joinpath('manga.json').open(encoding='utf-8') as f:
             self.manga_data = json.load(f)
 
     @override
@@ -106,11 +106,11 @@ class ComickTests(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsserti
         super().delete_chapters(service_id)
 
     def delete_groups(self):
-        self.conn.execute('''
+        self.conn.execute("""
             DELETE FROM groups
             USING chapters
             WHERE chapters.group_id=groups.group_id AND chapters.service_id=%s
-        ''', (Comick.ID,))
+        """, (Comick.ID,))
 
     def set_up_api(self):
         chapter_params = {
@@ -194,7 +194,7 @@ class ComickTests(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsserti
         # Assert groups added
         assert len({c.group_id for c in chapters}) == group_count
 
-        self.assertMangaWithTitleFound("Reincarnation of the Online Game Addict: I Can’t Use the Overpowered Fists That Made Me the Fist King, so Now I Swing a Club for Eight Hours a Day")
+        self.assertMangaWithTitleFound('Reincarnation of the Online Game Addict: I Can’t Use the Overpowered Fists That Made Me the Fist King, so Now I Swing a Club for Eight Hours a Day')  # noqa: RUF001
 
         retval = self.comick.scrape_service(service_id, self.comick.FEED_URL, None)
         assert retval is not None
@@ -212,7 +212,7 @@ class ComickTests(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsserti
         ms = MangaService(
             service_id=service_id,
             title_id=TITLE_ID,
-            title="Vinland Saga",
+            title='Vinland Saga',
             feed_url=None
         )
         ms = self.dbutil.add_manga_service(ms, add_manga=True)

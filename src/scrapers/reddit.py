@@ -184,6 +184,5 @@ class Reddit(BaseScraper):
         service_id: int,
         feed_url: str,
         last_update: datetime | None,
-        title_id: str | None = None,
     ) -> None:
         return None

@@ -49,7 +49,10 @@ suppress-dummy-args = true
 [lint.flake8-quotes]
 docstring-quotes = "double"
 inline-quotes = "single"
-multiline-quotes = "double" # Reired for the formatter
+multiline-quotes = "double" # Required for the formatter
+
+[lint.flake8-tidy-imports]
+ban-relative-imports = "parents"
 
 [format]
 quote-style = "single"

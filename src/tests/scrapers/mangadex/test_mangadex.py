@@ -1,6 +1,6 @@
 import json
 import logging
-import os
+from pathlib import Path
 from typing import override
 from unittest.mock import Mock, patch
 
@@ -120,14 +120,13 @@ class MangadexTests(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsser
 
     @pytest.fixture(autouse=True)
     def load_data(self):
-        api_path = os.path.join(os.path.dirname(__file__), 'api_data')
+        api_path = Path(__file__).parent.joinpath('api_data')
 
-        with open(os.path.join(api_path, 'chapters.json'), encoding='utf-8') as f:
+        with api_path.joinpath('chapters.json').open(encoding='utf-8') as f:
             self.chapters_data = json.load(f)
 
-        with open(os.path.join(api_path, 'manga.json'), encoding='utf-8') as f:
+        with api_path.joinpath('manga.json').open(encoding='utf-8') as f:
             self.manga_data = json.load(f)
-
     @override
     def setUp(self) -> None:
         super().setUp()
@@ -138,11 +137,11 @@ class MangadexTests(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsser
         super().delete_chapters(service_id)
 
     def delete_groups(self):
-        self.conn.execute('''
+        self.conn.execute("""
             DELETE FROM groups
             USING chapters
             WHERE chapters.group_id=groups.group_id AND chapters.service_id=%s
-        ''', (MangaDex.ID,))
+        """, (MangaDex.ID,))
 
     def set_up_api(self):
         responses.add(responses.GET, f'{self.API_URL}/chapter',

@@ -1,5 +1,5 @@
-import os
 import unittest
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import feedparser
@@ -15,13 +15,13 @@ from src.tests.testing_utils import (
     mock_feedparse,
 )
 
-test_feed = os.path.join(os.path.dirname(__file__), 'test_data.xml')
+test_feed = Path(__file__).parent / 'test_data.xml'
 
 
 class TestRedditScraper(BaseTestClasses.ModelAssertions, BaseTestClasses.DatabaseTestCase):
     @staticmethod
     def read_test_data() -> list[ChapterTestModel]:
-        p = os.path.join(os.path.dirname(__file__), 'chapters.json')
+        p = Path(__file__).parent / 'chapters.json'
         return load_chapters_snapshot(p)
 
     def test_feed_parsed_correctly(self):

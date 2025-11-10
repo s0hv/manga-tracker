@@ -1,10 +1,10 @@
 from typing import LiteralString
 
+from elasticsearch.helpers import bulk
 from psycopg import Cursor
 from psycopg.rows import DictRow
 
 from elasticsearch import Elasticsearch
-from elasticsearch.helpers import bulk
 from src.elasticsearch.configuration import INDEX_MAPPINGS, INDEX_NAME, INDEX_SETTINGS
 from src.elasticsearch.methods import ElasticMethods
 

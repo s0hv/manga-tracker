@@ -285,6 +285,5 @@ class BaseRSS(BaseScraperWhole, ABC):
         service_id: int,
         feed_url: str,
         last_update: datetime | None,
-        title_id: str | None = None,
     ) -> ScrapeServiceRetVal | None:
         return self.add_from_feed_url(service_id, feed_url)

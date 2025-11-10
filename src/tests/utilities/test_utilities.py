@@ -1,6 +1,6 @@
 import json
-import os
 import unittest
+from pathlib import Path
 from typing import override
 
 import pytest
@@ -19,7 +19,7 @@ class TestUtilities(unittest.TestCase):
     @override
     def setUp(self) -> None:
         super().setUp()
-        with open(os.path.join(os.path.dirname(__file__), 'utilities.json'), encoding='utf-8') as f:
+        with Path(__file__).parent.joinpath('utilities.json').open(encoding='utf-8') as f:
             self.test_cases = json.load(f)
 
     def test_regex(self):

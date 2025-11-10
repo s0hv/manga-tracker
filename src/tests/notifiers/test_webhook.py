@@ -111,15 +111,15 @@ class TestWebhook(unittest.TestCase):
 
         c = self.get_notification_chapter()
         d = {
-            "title": "$TITLE",
-            "inner": {
-                "ch": "$CHAPTER_NUMBER"
+            'title': '$TITLE',
+            'inner': {
+                'ch': '$CHAPTER_NUMBER'
             }
         }
         expected = {
-            "title": c.title,
-            "inner": {
-                "ch": c.chapter_number
+            'title': c.title,
+            'inner': {
+                'ch': c.chapter_number
             }
         }
         d = notifier.format_dict(d, c)
@@ -130,8 +130,8 @@ class TestWebhook(unittest.TestCase):
         notifier = WebhookNotifier()
 
         c = self.get_notification_chapter()
-        d: dict = {"test": "a"}
-        d["recursion"] = d
+        d: dict = {'test': 'a'}
+        d['recursion'] = d
 
         with pytest.raises(ValueError, match='Dict recursion exceeded max depth'):
             notifier.format_dict(d, c)

@@ -309,10 +309,11 @@ class MangaPlus(BaseScraperWhole):
         try:
             r = requests.get(MangaPlus.API.format(title_id))
         except requests.RequestException:
-            logger.exception('Failed to fetch series')
+            logger.exception(f'Failed to fetch series {title_id} for Manga Plus.')
             return None
 
         if not r.ok:
+            logger.warning('Failed to fetch series for Manga Plus %s. Status: %s. Headers: %s', title_id, r.status_code, r.headers)
             return None
 
         return ResponseWrapper(r.content)
@@ -339,7 +340,6 @@ class MangaPlus(BaseScraperWhole):
         service_id: int,
         feed_url: str,
         last_update: datetime | None,
-        title_id: str | None = None,
     ) -> ScrapeServiceRetVal | None:
         self.dbutil.update_service_whole(service_id, timedelta(days=1) + self.min_update_interval())
         all_titles = self.get_all_titles(feed_url)

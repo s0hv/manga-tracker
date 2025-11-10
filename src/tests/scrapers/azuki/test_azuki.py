@@ -1,6 +1,6 @@
-import os
 import re
 from datetime import datetime, timezone
+from pathlib import Path
 from unittest.mock import Mock, patch
 
 import pytest
@@ -119,9 +119,9 @@ correct_chapters_releases = [
 ]
 
 
-base_path = os.path.dirname(__file__)
-manga_page_path = os.path.join(base_path, 'manga_page.html')
-releases_page_path = os.path.join(base_path, 'release_page.html')
+base_path = Path(__file__).parent
+manga_page_path = base_path / 'manga_page.html'
+releases_page_path = base_path / 'release_page.html'
 
 
 class AzukiTest(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAssertions):
@@ -131,7 +131,7 @@ class AzukiTest(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAssertion
     @responses.activate
     def test_parse_manga_page(self):
         title_id = 'grand-blue-dreaming'
-        with open(manga_page_path, encoding='utf-8') as f:
+        with manga_page_path.open(encoding='utf-8') as f:
             data = f.read()
         responses.add(responses.GET, Azuki.MANGA_URL_FORMAT.format(title_id), body=data)
 
@@ -142,7 +142,7 @@ class AzukiTest(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAssertion
             c.group_id = group_id
 
         self.delete_chapters(Azuki.ID)
-        chapter_ids = azuki.scrape_series(title_id, Azuki.ID, None)
+        chapter_ids = azuki.scrape_series(title_id, Azuki.ID, 0)
 
         assert chapter_ids
 
@@ -156,7 +156,7 @@ class AzukiTest(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAssertion
     def test_parse_releases_page(self):
         src.scrapers.azuki.utctoday.return_value = get_date('Jun 1, 2022').replace(tzinfo=timezone.utc)  # type: ignore[attr-defined]
 
-        with open(releases_page_path, encoding='utf-8') as f:
+        with releases_page_path.open(encoding='utf-8') as f:
             data = f.read()
         responses.get(Azuki.FEED_URL, body=data)
         resp = responses.get(re.compile(Azuki.MANGA_URL_FORMAT.format('.+')), status=500)
@@ -188,12 +188,12 @@ class AzukiTest(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAssertion
     ('Chapter 75ex1', ('Chapter 75ex1', 75, 5)),
     ('Chapter 75ex', ('Chapter 75ex', 75, 5)),
     ('Chapter 75ex2', ('Chapter 75ex2', 75, 5)),
-    ('Chapter 74ex – Drunken Ping-Pong', ('Drunken Ping-Pong', 74, 5)),
-    ('Chapter 156.2 – Clean Water (2)', ('Clean Water (2)', 156, 2)),
-    ('Chapter 79 – Shorthanded', ('Shorthanded', 79, None)),
+    ('Chapter 74ex – Drunken Ping-Pong', ('Drunken Ping-Pong', 74, 5)),  # noqa: RUF001
+    ('Chapter 156.2 – Clean Water (2)', ('Clean Water (2)', 156, 2)),  # noqa: RUF001
+    ('Chapter 79 – Shorthanded', ('Shorthanded', 79, None)),  # noqa: RUF001
     ('Chapter 79b', ('Chapter 79b', 79, 2)),
     ('Chapter 79d', ('Chapter 79d', 79, 4)),
-    ('Chapter 3b – Special Broadcast: His Unhinged Passions', ('Special Broadcast: His Unhinged Passions', 3, 2)),
+    ('Chapter 3b – Special Broadcast: His Unhinged Passions', ('Special Broadcast: His Unhinged Passions', 3, 2)),  # noqa: RUF001
     ('Chapter 126-127', ('Chapter 126-127', 126, None)),
     ('Chapter 10.b', ('Chapter 10.b', 10, 2)),
     ('Chapter Announcement', None),

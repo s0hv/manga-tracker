@@ -6,16 +6,16 @@ from src.utils.formatter import LoggingFormatter
 
 
 def setup(name: str = 'debug') -> logging.Logger:
-    logger = logging.getLogger(name)
-    logger.setLevel(logging.DEBUG)
-    handler = logging.StreamHandler(sys.stdout)
-    handler.setFormatter(
-        LoggingFormatter(
-            '{color}[{module}][{asctime}] [Thread: {thread}] [{levelname}]:{colorend} {message}',
+    formatter = LoggingFormatter(
+            '{color}[{module}][{asctime}.{msecs:.0f}] [Thread: {thread}] [{levelname}]:{colorend} {message}',
             datefmt='%Y-%m-%d %H:%M:%S',
             style='{',
         )
-    )
+
+    logger = logging.getLogger(name)
+    logger.setLevel(logging.DEBUG)
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setFormatter(formatter)
     logger.addHandler(handler)
 
     db_logger = logging.getLogger('database')
@@ -25,13 +25,11 @@ def setup(name: str = 'debug') -> logging.Logger:
         db_logger.setLevel(logging.WARNING)
 
     handler = logging.StreamHandler(sys.stdout)
-    handler.setFormatter(
-        LoggingFormatter(
-            '{color}[{module}][{asctime}] [Thread: {thread}] [{levelname}]:{colorend} {message}',
-            datefmt='%Y-%m-%d %H:%M:%S',
-            style='{',
-        )
-    )
+    handler.setFormatter(LoggingFormatter(
+        '{color}[{originalmodule}][{asctime}.{msecs:.0f}] [Thread: {thread}] [{levelname}]:{colorend} {message}',
+        datefmt='%Y-%m-%d %H:%M:%S',
+        style='{',
+    ))
     db_logger.addHandler(handler)
 
     discord_webhook_logging = logging.getLogger('webhook')
@@ -41,13 +39,7 @@ def setup(name: str = 'debug') -> logging.Logger:
         discord_webhook_logging.setLevel(logging.WARNING)
 
     handler = logging.StreamHandler(sys.stdout)
-    handler.setFormatter(
-        LoggingFormatter(
-            '{color}[{module}][{asctime}] [Thread: {thread}] [{levelname}]:{colorend} {message}',
-            datefmt='%Y-%m-%d %H:%M:%S',
-            style='{',
-        )
-    )
+    handler.setFormatter(formatter)
     discord_webhook_logging.addHandler(handler)
 
     return logger

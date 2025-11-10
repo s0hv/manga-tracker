@@ -1,37 +1,34 @@
+import contextlib
 import os
 import time
 
 import pytest
+from elasticsearch import Elasticsearch, NotFoundError
 from psycopg import Connection
 from psycopg.rows import DictRow
 
-from elasticsearch import Elasticsearch, NotFoundError
-
-ELASTIC_INDEX = 'manga_test'
-os.environ['ES_INDEX'] = ELASTIC_INDEX
-
-# The environment variable must be set before importing the module
-# ruff: noqa: E402
-from src.elasticsearch.methods import ElasticMethods
 from src.setup_logging import setup
 from src.tests.scrapers.testing_scraper import DummyScraper, DummyScraper2
 from src.tests.testing_utils import Postgresql, create_db, get_conn, start_db, teardown_db
 from src.utils.dbutils import DbUtil
 from src.utils.utilities import inject_service_values
 
+ELASTIC_INDEX = 'manga_test'
+os.environ['ES_INDEX'] = ELASTIC_INDEX
+# The environment variable must be set before importing the module
+from src.elasticsearch.methods import ElasticMethods  # noqa: E402
+
 
 @pytest.fixture(scope='session')
 def es():
     client = Elasticsearch([{
-        "host": os.getenv('ELASTIC_TEST_HOST', 'localhost'),
-        "port": os.getenv('ELASTIC_TEST_PORT', 9200)
+        'host': os.getenv('ELASTIC_TEST_HOST', 'localhost'),
+        'port': os.getenv('ELASTIC_TEST_PORT', '9200')
     }])
     yield client
     print(f'Dropping index {ELASTIC_INDEX}')
-    try:
+    with contextlib.suppress(NotFoundError):
         client.indices.delete(index=ELASTIC_INDEX)
-    except NotFoundError:
-        pass
     client.close()
 
 
@@ -83,7 +80,7 @@ def database(request: pytest.FixtureRequest, es: Elasticsearch) -> None:
 
 
 @pytest.fixture(scope='class')
-def conn(database: None) -> Connection[DictRow]:
+def conn(database: None) -> Connection[DictRow]:  # noqa: ARG001
     return get_conn()
 
 
