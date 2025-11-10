@@ -759,7 +759,7 @@ class DbUtil:
     @optional_generator_transaction
     def find_added_titles(
         self, service_id: int, title_ids: Collection[str], *, cur: CursorType = NotImplemented
-    ) -> Generator[MangaServicePartial]:
+    ) -> Generator[MangaServicePartialWithId]:
         """Find manga_service rows with an existing title_id"""
         if len(title_ids) == 0:
             return None
@@ -768,7 +768,7 @@ class DbUtil:
         sql = f'SELECT * FROM manga_service WHERE service_id=%s AND title_id IN ({format_ids})'
         cur.execute(sql, [service_id, *title_ids])
         for row in cur:
-            yield MangaServicePartial(**row)
+            yield MangaServicePartialWithId(**row)
 
     @OptionalTransaction()
     def find_service_manga(
@@ -1020,33 +1020,38 @@ class DbUtil:
         if not entries:
             return []
 
-        if len(entries) > 500:
-            logger.warning('Over 500 entries passed to get_only_latest_entries for service %', service_id)
-
         args: tuple = tuple(c.chapter_identifier for c in entries)
-        format_args = ','.join(('%s',) * len(args))
+        chunk_size = 300
 
-        if manga_id:
-            sql = (
-                'SELECT chapter_identifier FROM chapters '
-                f'WHERE service_id=%s AND manga_id=%s AND chapter_identifier IN ({format_args})'
-            )
-            args = (service_id, manga_id, *args)
-        else:
-            sql = (
-                'SELECT chapter_identifier FROM chapters '
-                f'WHERE service_id=%s AND chapter_identifier IN ({format_args})'
-            )
-            args = (service_id, *args)
+        entries_set = set(entries)
+        output = set()
 
-        try:
-            cur.execute(sql, args)
+        for idx in range(0, len(args), chunk_size):
+            format_args = ','.join(('%s',) * len(args[idx:idx + chunk_size]))
 
-            return set(entries).difference(set(r['chapter_identifier'] for r in cur))
+            if manga_id:
+                sql = (
+                    'SELECT chapter_identifier FROM chapters '
+                    f'WHERE service_id=%s AND manga_id=%s AND chapter_identifier IN ({format_args})'
+                )
+                args = (service_id, manga_id, *args)
+            else:
+                sql = (
+                    'SELECT chapter_identifier FROM chapters '
+                    f'WHERE service_id=%s AND chapter_identifier IN ({format_args})'
+                )
+                args = (service_id, *args)
 
-        except Exception:
-            logger.exception('Failed to get old chapters')
-            return list(entries)
+            try:
+                cur.execute(sql, args)
+
+                output.update(entries_set.difference(set(r['chapter_identifier'] for r in cur)))
+
+            except Exception:
+                logger.exception('Failed to get old chapters')
+                return list(entries)
+
+        return output
 
     @OptionalTransaction()
     def set_manga_last_checked(

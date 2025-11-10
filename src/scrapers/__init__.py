@@ -4,6 +4,7 @@ from src.scrapers.azuki import Azuki
 from src.scrapers.comick import Comick
 from src.scrapers.comikey import Comikey
 from src.scrapers.cubari import Cubari
+from src.scrapers.kmanga import KManga
 from src.scrapers.mangadex import MangaDex
 from src.scrapers.mangaplus import MangaPlus
 from src.scrapers.reddit import Reddit
@@ -19,6 +20,7 @@ SCRAPERS: dict[str, type['BaseScraper']] = {
     Azuki.URL:     Azuki,
     Comick.URL:    Comick,
     Cubari.URL:    Cubari,
+    KManga.URL:    KManga,
 }
 
 SCRAPERS_ID: dict[int, type['BaseScraper']] = {

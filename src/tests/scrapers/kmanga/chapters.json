@@ -1,0 +1,40 @@
+{
+  "status": "success",
+  "response_code": 0,
+  "error_message": "",
+  "episode_list": [
+    {
+      "episode_id": 358374,
+      "episode_name": "Chapter 1  Nakika and Nagisa",
+      "index": 1,
+      "start_time": "2025-04-01 10:00:00",
+      "title_id": 10639,
+      "comic_volume": null,
+      "single_sale_enabled": 1
+    },
+    {
+      "episode_id": 358375,
+      "episode_name": "Chapter 7(2) WHERE WILL WE GO?",
+      "index": 2,
+      "start_time": "2025-04-01 10:00:00",
+      "title_id": 10639,
+      "comic_volume": 1
+    },
+    {
+      "episode_id": 358376,
+      "episode_name": "Extra The Passion of Hajime Nojima",
+      "index": 3,
+      "start_time": "2025-04-01 10:00:00",
+      "title_id": 10639,
+      "comic_volume": null
+    },
+    {
+      "episode_id": 358377,
+      "episode_name": "#Final Chapter(2) All Out!!",
+      "index": 4,
+      "start_time": "2025-04-01 10:00:00",
+      "title_id": 10639,
+      "comic_volume": null
+    }
+  ]
+}

@@ -27,10 +27,10 @@ class Status(Enum):
 
     def to_int(self) -> int:
         d: dict[Status, int] = {
-            self.ongoing:   MangaStatus.ONGOING.value,  # type: ignore[dict-item]
-            self.completed: MangaStatus.COMPLETED.value,  # type: ignore[dict-item]
-            self.cancelled: MangaStatus.DROPPED.value,  # type: ignore[dict-item]
-            self.hiatus:    MangaStatus.HIATUS.value,  # type: ignore[dict-item]
+            self.ongoing:   MangaStatus.ONGOING.value,
+            self.completed: MangaStatus.COMPLETED.value,
+            self.cancelled: MangaStatus.DROPPED.value,
+            self.hiatus:    MangaStatus.HIATUS.value,
         }
 
         return d[self]

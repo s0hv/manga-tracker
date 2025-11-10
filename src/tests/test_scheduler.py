@@ -44,23 +44,21 @@ class SchedulerRunTest(BaseTestClasses.DatabaseTestCase):
 
     def create_notification(self, user_id: int = TEST_USER_ID, use_follows: bool = False, dest: str | None = None) -> UserNotification:
         sql = 'INSERT INTO user_notifications (notification_type, user_id, use_follows) VALUES (1, %s, %s) RETURNING *'
-        with self.conn.transaction():
-            with self.conn.cursor() as cur:
-                cur.execute(sql, (user_id, use_follows))
-                d = self.dbutil.fetchone_or_throw(cur)
-                sql = 'INSERT INTO notification_options (notification_id, destination) VALUES (%s, %s) RETURNING destination, group_by_manga'
-                cur.execute(sql, (d['notification_id'], dest or self.get_str_id()))
-                return UserNotification(**d, **self.dbutil.fetchone_or_throw(cur))
+        with self.conn.transaction(), self.conn.cursor() as cur:
+            cur.execute(sql, (user_id, use_follows))
+            d = self.dbutil.fetchone_or_throw(cur)
+            sql = 'INSERT INTO notification_options (notification_id, destination) VALUES (%s, %s) RETURNING destination, group_by_manga'
+            cur.execute(sql, (d['notification_id'], dest or self.get_str_id()))
+            return UserNotification(**d, **self.dbutil.fetchone_or_throw(cur))
 
     def create_notification_manga(self, notification_id: int, manga_id: int, service_id: int | None = None) -> PartialNotificationInfo:
         sql = (
             'INSERT INTO notification_manga (notification_id, manga_id, service_id) '
             'VALUES (%s, %s, %s) RETURNING *'
         )
-        with self.conn.transaction():
-            with self.conn.cursor(row_factory=class_row(PartialNotificationInfo)) as cur:
-                cur.execute(sql, (notification_id, manga_id, service_id))
-                return self.dbutil.fetchone_or_throw(cur)
+        with self.conn.transaction(), self.conn.cursor(row_factory=class_row(PartialNotificationInfo)) as cur:
+            cur.execute(sql, (notification_id, manga_id, service_id))
+            return self.dbutil.fetchone_or_throw(cur)
 
     def test_scheduled_runs_without_data(self):
         assert not self.dbutil.get_scheduled_runs()
@@ -316,10 +314,15 @@ class SchedulerScrapeServiceTest(BaseTestClasses.DatabaseTestCase):
         self.scraper1.scrape_series.return_value = None  # type: ignore[union-attr]
         self.scraper1.next_update.return_value = utcnow() + timedelta(hours=1)  # type: ignore[union-attr]
 
+        def get_scraper(*_, **__) -> DummyScraper:
+            return self.scraper1
+
+        get_scraper.NAME = self.scraper1.NAME  # type: ignore[attr-defined]
+
         manga_info = self.create_manga_info(ms1)
         manga_ids, chapter_ids = self.scheduler.scrape_series(
             DummyScraper.ID,
-            lambda *_, **__: self.scraper1,  # type: ignore[arg-type]
+            get_scraper,  # type: ignore[arg-type]
             [manga_info, manga_info, manga_info]
         )
 

@@ -74,13 +74,13 @@ class TestMergeManga(BaseTestClasses.DatabaseTestCase):
         return mi
 
     def create_artist(self, manga_id: int) -> MangaArtist:
-        author = list(self.dbutil.add_authors([AuthorPartial(name=self.get_str_id())]))[0]
+        author = next(iter(self.dbutil.add_authors([AuthorPartial(name=self.get_str_id())])))
         ma = MangaArtist(author_id=author.author_id, manga_id=manga_id)
         self.dbutil.add_manga_artists([ma])
         return ma
 
     def create_author(self, manga_id: int) -> MangaAuthor:
-        author = list(self.dbutil.add_authors([AuthorPartial(name=self.get_str_id())]))[0]
+        author = next(iter(self.dbutil.add_authors([AuthorPartial(name=self.get_str_id())])))
         ma = MangaAuthor(author_id=author.author_id, manga_id=manga_id)
         self.dbutil.add_manga_authors([ma])
         return ma

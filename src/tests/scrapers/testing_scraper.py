@@ -27,9 +27,7 @@ class DummyScraper(BaseScraper):
         pass
 
     @override
-    def scrape_service(self, service_id: int, feed_url: str,
-                       last_update: datetime | None,
-                       title_id: str | None = None):
+    def scrape_service(self, service_id: int, feed_url: str, last_update: datetime | None):
         pass
 
     def __init__(self, conn: Connection[DictRow], dbutil: DbUtil | None = None):

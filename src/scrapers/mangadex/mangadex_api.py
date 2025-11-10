@@ -6,10 +6,11 @@ from itertools import chain
 from typing import Generic, Literal, TypedDict, TypeVar
 
 import requests
-from pydantic import BaseModel, Field, ValidationError, field_validator, model_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 from ratelimit import rate_limited, sleep_and_retry
 
 from src.enums import Status as MangaStatus
+from src.utils.utilities import dict_to_model
 
 logger = logging.getLogger('debug')
 
@@ -59,10 +60,10 @@ class Status(Enum):
 
     def to_int(self) -> int:
         d: dict[Status, int] = {
-            self.ongoing:   MangaStatus.ONGOING.value,    # type: ignore[dict-item]
-            self.completed: MangaStatus.COMPLETED.value,  # type: ignore[dict-item]
-            self.hiatus:    MangaStatus.HIATUS.value,     # type: ignore[dict-item]
-            self.cancelled: MangaStatus.DROPPED.value,    # type: ignore[dict-item]
+            self.ongoing:   MangaStatus.ONGOING.value,
+            self.completed: MangaStatus.COMPLETED.value,
+            self.hiatus:    MangaStatus.HIATUS.value,
+            self.cancelled: MangaStatus.DROPPED.value,
         }
 
         return d[self]
@@ -274,17 +275,10 @@ def request_to_model[TModel: BaseModel](
 ) -> Iterable[TModel]:
     for result in handle_response(r)['data']:
         try:
-            yield Model(**result)
-        except ValidationError:
-            logger.warning(
-                f'Failed to parse result for model {Model.__name__} {result}', exc_info=True
-            )
-        except Exception as e:
-            logger.exception(f'Unexpected error when parsing model {Model.__name__} {result}')
-            if continue_on_error:
-                continue
-
-            raise e
+            yield dict_to_model(result, Model)
+        except Exception:
+            if not continue_on_error:
+                raise
 
 
 api_rate_limiter = rate_limited(5, 1)

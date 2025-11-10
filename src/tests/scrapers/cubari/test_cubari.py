@@ -1,4 +1,4 @@
-import os
+from pathlib import Path
 
 import pytest
 import responses
@@ -9,8 +9,8 @@ from src.tests.testing_utils import BaseTestClasses, ChapterTestModel
 
 TITLE_ID = 'gist/OPM'  # Example title ID for testing fetching manga data
 
-base_path = os.path.dirname(__file__)
-manga_page_path = os.path.join(base_path, 'cubari.html')
+base_path = Path(__file__).parent
+manga_page_path = base_path / 'cubari.html'
 
 correct_parsed_chapters = sorted([
     ChapterTestModel(
@@ -59,17 +59,17 @@ class CubariTests(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsserti
         return Cubari(self.conn, self.dbutil)
 
     def delete_groups(self):
-        self.conn.execute('''
+        self.conn.execute("""
             DELETE FROM groups
             USING chapters
             WHERE chapters.group_id=groups.group_id AND chapters.service_id=%s
-        ''', (Cubari.ID,))
+        """, (Cubari.ID,))
 
     @responses.activate
     def test_parse_manga_page(self):
         self.delete_groups()
 
-        with open(manga_page_path, encoding='utf-8') as f:
+        with manga_page_path.open(encoding='utf-8') as f:
             data = f.read()
         responses.add(responses.GET, Cubari.MANGA_URL_FORMAT.format(TITLE_ID), body=data)
 
@@ -79,7 +79,7 @@ class CubariTests(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsserti
         for c in correct_parsed_chapters:
             c.group_id = group_id
 
-        chapter_ids = cubari.scrape_series(TITLE_ID, Cubari.ID, None)
+        chapter_ids = cubari.scrape_series(TITLE_ID, Cubari.ID, 0)
 
         assert chapter_ids
 

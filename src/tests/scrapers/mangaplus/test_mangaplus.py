@@ -1,6 +1,6 @@
-import os
 import unittest
 from datetime import timedelta
+from pathlib import Path
 from typing import override
 
 import pytest
@@ -43,16 +43,16 @@ class TestMangaPlusParser(BaseTestClasses.DatabaseTestCase):
 
     @staticmethod
     def read_title_detail_data(status: str) -> bytes:
-        file = os.path.dirname(__file__)
+        file = Path(__file__).parent
 
-        with open(os.path.join(file, f'title_detailV3-{status}.dat'), 'rb') as f:
+        with file.joinpath(f'title_detailV3-{status}.dat').open('rb') as f:
             return f.read()
 
     @staticmethod
     def read_all_titles_data() -> bytes:
-        file = os.path.dirname(__file__)
+        file = Path(__file__).parent
 
-        with open(os.path.join(file, 'allV2.dat'), 'rb') as f:
+        with file.joinpath('allV2.dat').open('rb') as f:
             return f.read()
 
     @override
@@ -120,7 +120,7 @@ class TestMangaPlusParser(BaseTestClasses.DatabaseTestCase):
         correct_chapter = Chapter(
             manga_id=ms.manga_id,
             service_id=ms.service_id,
-            title="Ombusman",
+            title='Ombusman',
             chapter_number=124,
             chapter_decimal=None,
             release_date=utcfromtimestamp(1696863600),
@@ -228,7 +228,7 @@ class TestMangaPlusParser(BaseTestClasses.DatabaseTestCase):
         correct = Chapter(
             manga_id=ms.manga_id,
             service_id=ms.service_id,
-            title="Bronze Award: METRA-K",
+            title='Bronze Award: METRA-K',
             chapter_number=0,
             chapter_decimal=None,
             release_date=utcfromtimestamp(1699887600),
@@ -253,7 +253,7 @@ class TestMangaPlusParser(BaseTestClasses.DatabaseTestCase):
         correct_chapter = Chapter(
             manga_id=ms.manga_id,
             service_id=ms.service_id,
-            title="Inside",
+            title='Inside',
             chapter_number=1,
             chapter_decimal=None,
             release_date=utcfromtimestamp(1618326000),
@@ -278,7 +278,7 @@ class TestMangaPlusParser(BaseTestClasses.DatabaseTestCase):
         correct_chapter = Chapter(
             manga_id=ms.manga_id,
             service_id=ms.service_id,
-            title="Apple to Orange",
+            title='Apple to Orange',
             chapter_number=0,
             chapter_decimal=None,
             release_date=utcfromtimestamp(1681743600),
@@ -303,7 +303,7 @@ class TestMangaPlusParser(BaseTestClasses.DatabaseTestCase):
         correct_chapter = Chapter(
             manga_id=ms.manga_id,
             service_id=ms.service_id,
-            title="Hollow Grimoire (One-shot)",
+            title='Hollow Grimoire (One-shot)',
             chapter_number=0,
             chapter_decimal=None,
             release_date=utcfromtimestamp(1708873200),
@@ -366,7 +366,7 @@ class TestMangaPlusParser(BaseTestClasses.DatabaseTestCase):
 
         assert title == title.title_id
         assert title == title
-        assert not title != title.title_id
+        assert title == title.title_id
         assert str(title) == f'{title.name} / {title.title_id}'
 
         chapter = detail.chapters[0]
@@ -379,7 +379,7 @@ class TestMangaPlusParser(BaseTestClasses.DatabaseTestCase):
         assert chapter.chapter_title == 'Chapter 1: The Day of Departure'
         assert chapter.decimal is None
         with pytest.raises(ValueError):
-            chapter.group_id
+            chapter.group_id  # noqa: B018
         assert chapter.manga_title == 'Hunter x Hunter'
         assert chapter.manga_url == 'https://mangaplus.shueisha.co.jp/titles/100015'
         self.assertDatesEqual(chapter.release_date, utcfromtimestamp(1547996400))

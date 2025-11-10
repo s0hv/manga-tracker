@@ -1,0 +1,12 @@
+{
+  "status": "success",
+  "response_code": 0,
+  "error_message": "",
+  "title_list": [
+    {
+      "title_id": 10639,
+      "title_name": "NakiNagi",
+      "latest_free_episode_id": 361528
+    }
+  ]
+}

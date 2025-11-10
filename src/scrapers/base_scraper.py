@@ -6,7 +6,7 @@ from datetime import datetime, timedelta, timezone
 from inspect import isabstract
 from itertools import groupby
 from operator import attrgetter
-from typing import TYPE_CHECKING, ClassVar, LiteralString, Optional, TypeVar, cast, override
+from typing import TYPE_CHECKING, ClassVar, LiteralString, Optional, TypeVar, override
 
 import psycopg
 import pydantic
@@ -331,7 +331,6 @@ class BaseScraper(abc.ABC):
         service_id: int,
         feed_url: str,
         last_update: datetime | None,
-        title_id: str | None = None,
     ) -> ScrapeServiceRetVal | None:
         raise NotImplementedError
 
@@ -401,7 +400,7 @@ class BaseScraper(abc.ABC):
 
         for ms in self.dbutil.find_added_titles(service_id, tuple(titles.keys())):
             # Manga id has been set so it can't be None
-            manga_ids.add(ms.manga_id)  # type: ignore[arg-type]
+            manga_ids.add(ms.manga_id)
             for chapter in titles.pop(ms.title_id):
                 chapters.append(ChapterMapper.base_chapter_to_db(chapter, ms.manga_id, service_id))
 
@@ -482,7 +481,11 @@ class BaseScraper(abc.ABC):
         return r
 
     def handle_adding_chapters(
-        self, entries: Collection[ScraperChapter], service_id: int
+        self,
+        entries: Collection[ScraperChapter],
+        service_id: int,
+        *,
+        strip_chapter_prefix: bool = False,
     ) -> ScrapeServiceRetVal | None:
         """
         Given a list of parsed chapters this method will filter out already added chapters,
@@ -490,6 +493,7 @@ class BaseScraper(abc.ABC):
         Args:
             entries: List of chapters
             service_id: id of the service
+            strip_chapter_prefix: whether to strip the chapter prefix from the chapter title
 
         Returns:
             Updated manga ids or None if update was not done
@@ -506,8 +510,13 @@ class BaseScraper(abc.ABC):
         # Find already added titles
         for ms in self.dbutil.find_added_titles(service_id, tuple(titles.keys())):
             manga_ids.add(ms.manga_id)
+
             for chapter in titles.pop(ms.title_id):
-                chapters.append(ChapterMapper.base_chapter_to_db(chapter, ms.manga_id, service_id))
+                chapters.append(
+                    ChapterMapper.base_chapter_to_db(
+                        chapter, ms.manga_id, service_id, strip_chapter_prefix=strip_chapter_prefix
+                    )
+                )
 
         # Add new manga
         mangas = self.titles_dict_to_manga_service(titles, service_id, True)
@@ -515,7 +524,7 @@ class BaseScraper(abc.ABC):
         self.add_new_manga_with_dupe_check(
             service_id,
             mangas,
-            cast(set[int], manga_ids),
+            manga_ids,
             chapters,
             titles
         )
@@ -526,7 +535,7 @@ class BaseScraper(abc.ABC):
 
         # At this point the set has no None values
         return ScrapeServiceRetVal(
-            manga_ids=cast(set[int], manga_ids),
+            manga_ids=manga_ids,
             chapter_ids={row.chapter_id for row in inserted}
         )
 

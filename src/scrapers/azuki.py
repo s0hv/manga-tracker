@@ -226,7 +226,7 @@ class Azuki(BaseScraperWhole):
 
     @override
     def scrape_series(
-        self, title_id: str, service_id: int, manga_id: int | None, feed_url: str | None = None
+        self, title_id: str, service_id: int, manga_id: int, feed_url: str | None = None
     ) -> set[int] | None:
         group_id = self.dbutil.get_or_create_group(self.NAME).group_id
         chapters = self.get_manga_chapters(title_id, group_id)
@@ -249,7 +249,6 @@ class Azuki(BaseScraperWhole):
         service_id: int,
         feed_url: str,
         last_update: datetime | None,
-        title_id: str | None = None,
     ) -> ScrapeServiceRetVal | None:
         r = self.fetch_url(feed_url)
         if r is None:

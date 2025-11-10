@@ -184,7 +184,7 @@ class Cubari(BaseScraper):
 
     @override
     def scrape_series(
-        self, title_id: str, service_id: int, manga_id: int | None, feed_url: str | None = None
+        self, title_id: str, service_id: int, manga_id: int, feed_url: str | None = None
     ) -> set[int] | None:
         chapters = self.get_manga_chapters(title_id)
 
@@ -206,6 +206,5 @@ class Cubari(BaseScraper):
         service_id: int,
         feed_url: str,
         last_update: datetime | None,
-        title_id: str | None = None,
     ) -> ScrapeServiceRetVal | None:
         raise NotImplementedError(f'{self.NAME} does not support scraping the whole service')

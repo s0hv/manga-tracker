@@ -288,6 +288,5 @@ class Comick(BaseScraperWhole):
         service_id: int,
         feed_url: str,
         last_update: datetime | None,
-        title_id: str | None = None,
     ) -> ScrapeServiceRetVal | None:
         return self.do_update(service_id, feed_url)

@@ -1,7 +1,7 @@
-import os
 import re
 from datetime import datetime
-from typing import cast, override
+from pathlib import Path
+from typing import ClassVar, cast, override
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -16,7 +16,7 @@ from src.tests.testing_utils import BaseTestClasses, ChapterTestModel, mock_feed
 from src.utils.dbutils import DbUtil
 from src.utils.utilities import utcfromtimestamp
 
-base_path = os.path.dirname(__file__)
+base_path = Path(__file__).parent
 
 
 def get_date(s: str) -> datetime:
@@ -132,12 +132,12 @@ correct_chapters_manga_feed = [
 
 
 class ComikeyTest(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAssertions):
-    test_feed = os.path.join(base_path, 'feed.xml')
-    test_manga_feed = os.path.join(base_path, 'manga_feed.xml')
+    test_feed = base_path / 'feed.xml'
+    test_manga_feed = base_path / 'manga_feed.xml'
     manga_url = re.compile(r'https://comikey.com/comics/(\w|-)+')
-    manga_id: int = NotImplemented
+    manga_id: ClassVar[int] = NotImplemented
 
-    redirects = {
+    redirects: ClassVar[dict[str, str]] = {
         'special-name': 'special-name/2',
         'test-title': 'test-title/1'
     }
@@ -148,7 +148,7 @@ class ComikeyTest(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsserti
         request.cls.manga_id = cast(int, dbutil.add_manga_service(MangaService(
             service_id=Comikey.ID,
             title_id='test-title/1',
-            title="Test manga"
+            title='Test manga'
         ), add_manga=True).manga_id)
 
         for c in correct_chapters_manga_feed:
@@ -169,8 +169,8 @@ class ComikeyTest(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsserti
         if not title_id or title_id.isnumeric():
             return 200, {}, None
 
-        redirect_headers = {"location": f"/comics/{self.redirects[title_id]}/"}
-        return 301, redirect_headers, b""
+        redirect_headers = {'location': f'/comics/{self.redirects[title_id]}/'}
+        return 301, redirect_headers, b''
 
     @responses.activate
     @patch('feedparser.parse', wraps=mock_feedparse(test_feed))
