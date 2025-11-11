@@ -3,6 +3,9 @@ coverage:
     project: off
     patch: off
 
+ignore:
+  - src/scripts/*
+
 flags:
   scraper:
     paths:

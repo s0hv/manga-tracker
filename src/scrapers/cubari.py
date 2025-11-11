@@ -11,7 +11,7 @@ from src.scrapers.base_scraper import (
     ScrapeServiceRetVal,
 )
 
-logger = logging.getLogger('debug')
+logger = logging.getLogger(__name__)
 
 chapter_regex = re.compile(
     r'^.+?\s-\s*'

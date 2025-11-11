@@ -29,7 +29,7 @@ from .mangadex_api import (
     ScanlationGroupAttributes,
 )
 
-logger = logging.getLogger('debug')
+logger = logging.getLogger(__name__)
 
 
 class Chapter(BaseChapterSimple):

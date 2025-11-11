@@ -12,7 +12,7 @@ from ratelimit import rate_limited, sleep_and_retry
 from src.enums import Status as MangaStatus
 from src.utils.utilities import dict_to_model
 
-logger = logging.getLogger('debug')
+logger = logging.getLogger(__name__)
 
 SortDirection = Literal['asc', 'desc']
 DataT = TypeVar('DataT')

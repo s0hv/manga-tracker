@@ -8,7 +8,7 @@ from pydantic import Field
 from src.db.models.notifications import InputField, NotificationOptions
 from src.notifier.base_notifier import BaseEmbedInputs, NotificationChapter, NotifierBase
 
-logger = logging.getLogger('debug')
+logger = logging.getLogger(__name__)
 
 
 class EmbedInputs(BaseEmbedInputs):

@@ -2,7 +2,6 @@ import json
 import logging
 from pathlib import Path
 from typing import override
-from unittest.mock import Mock, patch
 
 import pytest
 import responses
@@ -10,7 +9,6 @@ from psycopg.rows import class_row
 from pydantic import TypeAdapter
 from responses import matchers
 
-import src
 from src.constants import NO_GROUP
 from src.db.models.chapter import Chapter
 from src.db.models.groups import Group, GroupPartial
@@ -133,10 +131,10 @@ class ComickTests(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsserti
             responses.GET,
             f'{self.API_URL}/comic/{TITLE_ID}/chapters',
             json=self.manga_data,
-            match=[matchers.query_param_matcher(manga_params)])
+            match=[matchers.query_param_matcher(manga_params)],
+        )
 
     @responses.activate
-    @patch.object(src.scrapers.comick.comick, 'logger', Mock())
     def test_invalid_chapters_result(self):
         responses.add(
             responses.GET,
@@ -144,13 +142,12 @@ class ComickTests(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsserti
             status=500,
             match=[matchers.query_param_matcher(None, strict_match=False)])
 
-        logger = logging.getLogger('comick_test')
-        logger.setLevel(logging.ERROR)
-        src.scrapers.comick.comick.logger = logger
+        logger = logging.getLogger('src.scrapers.comick.comick')
 
-        retval = self.comick.scrape_service(self.comick.ID, self.comick.FEED_URL, None)
-        assert retval is None
-        self.assertLogs(logger, logging.ERROR)
+        with self.caplog.at_level(logging.ERROR, logger=logger.name):
+            retval = self.comick.scrape_service(self.comick.ID, self.comick.FEED_URL, None)
+            assert retval is None
+            self.assertLogs(logger, logging.ERROR)
 
     def test_parse_feed(self):
         adapter = TypeAdapter(list[ChapterResultWithManga])

@@ -33,7 +33,7 @@ from src.scrapers.base_scraper import BaseScraper
 from src.utils.dbutils import DbUtil
 from src.utils.utilities import inject_service_values, utcnow
 
-logger = logging.getLogger('debug')
+logger = logging.getLogger(__name__)
 db_logger = logging.getLogger('database')
 
 
@@ -57,6 +57,8 @@ class LoggingCursor(Cursor[DictRow]):
         try:
             return super().execute(query, params, prepare=prepare, binary=binary)
         finally:
+            # No need to calculate coverage for this, as it's not used in tests
+            # GCOVR_EXCL_START
             if db_logger.isEnabledFor(logging.DEBUG):
 
                 caller = cast(FrameType, inspect.currentframe()).f_back
@@ -76,6 +78,7 @@ class LoggingCursor(Cursor[DictRow]):
                     db_logger.debug(f'{query.decode("utf-8")}{param_string}', extra={'originalmodule': module})
                 else:
                     db_logger.debug(f'{query}{param_string}', extra={'originalmodule': module})
+            # GCOVR_EXCL_STOP
 
 
 class UpdateScheduler:
