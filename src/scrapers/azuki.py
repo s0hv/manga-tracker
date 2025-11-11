@@ -14,7 +14,7 @@ from src.scrapers.base_scraper import (
 )
 from src.utils.utilities import utctoday
 
-logger = logging.getLogger('debug')
+logger = logging.getLogger(__name__)
 
 chapter_regex = re.compile(
     r'^Chapter (?P<chapter_number>\d+)((-\d+)| ?(?P<special_chapter>ex\d*|\.?[A-z]|extra *\d*))?(\.(?P<chapter_decimal>\d+))?( – (?P<chapter_title>.+?))?$',  # noqa: RUF001 the dash is used for a reason here

@@ -13,7 +13,7 @@ from pydantic import BaseModel, ValidateAs
 
 from src.utils.utilities import dict_to_model
 
-logger = logging.getLogger('debug')
+logger = logging.getLogger(__name__)
 
 
 class BirthdayCookie(TypedDict):

@@ -19,7 +19,7 @@ from src.utils.utilities import (
     utcnow,
 )
 
-logger = logging.getLogger('debug')
+logger = logging.getLogger(__name__)
 
 
 class Chapter(BaseChapterSimple):

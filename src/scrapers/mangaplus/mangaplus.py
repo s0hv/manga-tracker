@@ -22,7 +22,7 @@ from src.utils.utilities import random_timedelta, utcfromtimestamp, utcnow
 
 from .protobuf import mangaplus_pb2
 
-logger = logging.getLogger('debug')
+logger = logging.getLogger(__name__)
 
 
 class UpdateTiming(Enum):

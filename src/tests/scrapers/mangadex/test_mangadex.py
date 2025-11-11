@@ -2,14 +2,12 @@ import json
 import logging
 from pathlib import Path
 from typing import override
-from unittest.mock import Mock, patch
 
 import pytest
 import responses
 from psycopg.rows import class_row
 from pydantic import TypeAdapter
 
-import src.scrapers.mangadex.mangadex
 from src.constants import NO_GROUP
 from src.db.models.authors import AuthorPartial
 from src.db.models.chapter import Chapter
@@ -151,16 +149,15 @@ class MangadexTests(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsser
                       json=self.manga_data)
 
     @responses.activate
-    @patch.object(src.scrapers.mangadex.mangadex, 'logger', Mock())
     def test_invalid_chapters_result(self):
         responses.add(responses.GET, f'{self.API_URL}/chapter',
                       status=500)
 
-        logger = logging.getLogger('mangadex_test')
-        logger.setLevel(logging.ERROR)
-        src.scrapers.mangadex.mangadex.logger = logger
+        logger = logging.getLogger('src.scrapers.mangadex.mangadex')
 
-        retVal = self.mangadex.scrape_service(self.mangadex.ID, self.mangadex.FEED_URL, None)
+        with self.caplog.at_level(logging.ERROR, logger=logger.name):
+            retVal = self.mangadex.scrape_service(self.mangadex.ID, self.mangadex.FEED_URL, None)
+
         assert retVal is None
         self.assertLogs(logger, logging.ERROR)
 
@@ -286,25 +283,23 @@ class MangadexTests(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsser
         assert len(all_groups) > len(exist_groups)
 
 
-@patch.object(src.scrapers.mangadex.mangadex, 'logger', Mock())
 def test_special_chapter_parsing_valid_string(caplog: pytest.LogCaptureFixture):
-    logger = logging.getLogger('mangadex_test_chapter_valid')
-    logger.setLevel(logging.WARNING)
-    src.scrapers.mangadex.mangadex.logger = logger
+    logger = logging.getLogger('src.scrapers.mangadex.mangadex')
 
-    chapter = MangaDexChapter('Special', '', '', utcnow(), '', '')
+    with caplog.at_level(logging.WARNING, logger=logger.name):
+        chapter = MangaDexChapter('Special', '', '', utcnow(), '', '')
+
     assert chapter.chapter_number == 0
     assert chapter.decimal is None
     assert not [r for r in caplog.records if r.levelno >= logging.WARNING]
 
 
-@patch.object(src.scrapers.mangadex.mangadex, 'logger', Mock())
 def test_special_chapter_parsing_invalid_string(caplog: pytest.LogCaptureFixture):
-    logger = logging.getLogger('mangadex_test_chapter_invalid')
-    logger.setLevel(logging.WARNING)
-    src.scrapers.mangadex.mangadex.logger = logger
+    logger = logging.getLogger('src.scrapers.mangadex.mangadex')
 
-    chapter = MangaDexChapter('idk how to parse', '', '', utcnow(), '', '')
+    with caplog.at_level(logging.WARNING, logger=logger.name):
+        chapter = MangaDexChapter('idk how to parse', '', '', utcnow(), '', '')
+
     assert chapter.chapter_number == 0
     assert chapter.decimal is None
     assert [r for r in caplog.records if r.levelno == logging.WARNING]

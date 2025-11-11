@@ -19,7 +19,7 @@ from src.utils.dbutils import DbUtil
 
 from .comick_api import ChapterResult, ChapterResultWithManga, ComickAPI
 
-logger = logging.getLogger('debug')
+logger = logging.getLogger(__name__)
 
 
 class Chapter(BaseChapterSimple):

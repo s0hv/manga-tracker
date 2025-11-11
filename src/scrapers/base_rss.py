@@ -17,7 +17,7 @@ from src.scrapers.base_scraper import (
 )
 from src.utils.utilities import is_valid_feed, match_title, utcfromtimestamp, utcnow
 
-logger = logging.getLogger('debug')
+logger = logging.getLogger(__name__)
 
 
 class RSSChapter(BaseChapterSimple):

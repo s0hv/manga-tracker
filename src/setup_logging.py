@@ -5,14 +5,14 @@ import sys
 from src.utils.formatter import LoggingFormatter
 
 
-def setup(name: str = 'debug') -> logging.Logger:
+def setup() -> logging.Logger:
     formatter = LoggingFormatter(
-            '{color}[{module}][{asctime}.{msecs:.0f}] [Thread: {thread}] [{levelname}]:{colorend} {message}',
+            '{color}[{name}][{asctime}.{msecs:03.0f}] [Thread: {thread}] [{levelname}]:{colorend} {message}',
             datefmt='%Y-%m-%d %H:%M:%S',
             style='{',
         )
 
-    logger = logging.getLogger(name)
+    logger = logging.getLogger('src')
     logger.setLevel(logging.DEBUG)
     handler = logging.StreamHandler(sys.stdout)
     handler.setFormatter(formatter)
@@ -26,7 +26,7 @@ def setup(name: str = 'debug') -> logging.Logger:
 
     handler = logging.StreamHandler(sys.stdout)
     handler.setFormatter(LoggingFormatter(
-        '{color}[{originalmodule}][{asctime}.{msecs:.0f}] [Thread: {thread}] [{levelname}]:{colorend} {message}',
+        '{color}[{originalmodule}][{asctime}.{msecs:03.0f}] [Thread: {thread}] [{levelname}]:{colorend} {message}',
         datefmt='%Y-%m-%d %H:%M:%S',
         style='{',
     ))

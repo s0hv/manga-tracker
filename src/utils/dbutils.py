@@ -44,8 +44,8 @@ if TYPE_CHECKING:
     # noinspection PyUnresolvedReferences
     from src.scrapers import base_scraper
 
-logger = logging.getLogger('debug')
-maintenance = logging.getLogger('maintenance')
+logger = logging.getLogger(__name__)
+maintenance = logging.getLogger('src.scripts.maintenance')
 
 BaseChapter = TypeVar('BaseChapter', bound='base_scraper.BaseChapter')
 MangaModel = TypeVar('MangaModel', bound=Manga)

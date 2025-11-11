@@ -15,8 +15,7 @@ if TYPE_CHECKING:
     # noinspection PyUnresolvedReferences
     from src.utils.dbutils import DbUtil
 
-logger = logging.getLogger('debug')
-
+logger = logging.getLogger(__name__)
 type FeedType = FeedParserDict[str, bool | list | FeedParserDict | dict]
 
 chapter_regex = re.compile(r'(\d+)(\.\d+)?')

@@ -12,7 +12,7 @@ from requests.adapters import HTTPAdapter
 
 from src.enums import Status as MangaStatus
 
-logger = logging.getLogger('debug')
+logger = logging.getLogger(__name__)
 
 api_rate_limiter = rate_limited(5, 2)
 

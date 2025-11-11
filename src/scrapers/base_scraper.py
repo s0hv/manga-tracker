@@ -25,7 +25,7 @@ from src.utils.utilities import get_latest_chapters, utcnow
 if TYPE_CHECKING:
     from src.utils.dbutils import DbUtil
 
-logger = logging.getLogger('debug')
+logger = logging.getLogger(__name__)
 
 
 class BaseChapter(abc.ABC):

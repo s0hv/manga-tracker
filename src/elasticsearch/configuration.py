@@ -3,7 +3,7 @@ import os
 
 from elasticsearch import Elasticsearch
 
-logger = logging.getLogger('debug')
+logger = logging.getLogger(__name__)
 
 INDEX_NAME = os.getenv('ES_INDEX', 'manga')
 INDEX_SETTINGS = {

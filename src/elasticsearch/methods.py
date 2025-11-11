@@ -7,7 +7,7 @@ from elasticsearch.helpers import bulk
 from elasticsearch import Elasticsearch
 from src.elasticsearch.configuration import INDEX_NAME
 
-logger = logging.getLogger('debug')
+logger = logging.getLogger(__name__)
 
 
 class TitleUpdate(TypedDict):

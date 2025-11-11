@@ -12,7 +12,7 @@ from src.notifier.base_notifier import (
     Overrides,
 )
 
-logger = logging.getLogger('debug')
+logger = logging.getLogger(__name__)
 
 
 class EmbedInputs(BaseEmbedInputs):

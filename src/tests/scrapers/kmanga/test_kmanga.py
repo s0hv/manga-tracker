@@ -3,12 +3,11 @@ import logging
 from dataclasses import dataclass
 from pathlib import Path
 from typing import override
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 import pytest
 import responses
 
-import src.scrapers.kmanga
 from src.constants import NO_GROUP
 from src.db.models.chapter import Chapter
 from src.scrapers import KManga
@@ -216,22 +215,19 @@ class KMangaTests(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsserti
         self.assertNoLogs('debug', logging.WARNING)
 
     @responses.activate
-    @patch.object(src.scrapers.kmanga.api, 'logger', Mock())
     def test_invalid_latest_updates_response(self):
         api_url = f'{self.API_URL}/web/top/updated/title'
         responses.add(responses.GET, api_url, status=500)
 
-        logger = logging.getLogger('kmanga_scrape_service_test')
-        logger.setLevel(logging.ERROR)
-        src.scrapers.kmanga.api.logger = logger
+        logger = logging.getLogger('src.scrapers.kmanga.api')
 
-        with pytest.raises(ValueError, match=f'Failed to fetch {api_url}'):
+        with (self.caplog.at_level(logging.ERROR, logger=logger.name),
+              pytest.raises(ValueError, match=f'Failed to fetch {api_url}')):
             self.kmanga.scrape_service(self.kmanga.ID, self.kmanga.FEED_URL, None)
 
         self.assertLogs(logger, logging.ERROR)
 
     @responses.activate
-    @patch.object(src.scrapers.kmanga.api, 'logger', Mock())
     def test_skip_when_single_title_errors(self):
         self.delete_chapters()
         self.reset_titles()
@@ -248,17 +244,16 @@ class KMangaTests(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsserti
 
         responses.add(responses.POST, api_url, status=200, json=chapters_response_error)
 
-        logger = logging.getLogger('kmanga_scrape_service_test')
-        logger.setLevel(logging.ERROR)
-        src.scrapers.kmanga.api.logger = logger
+        logger = logging.getLogger('src.scrapers.kmanga.api')
 
-        retval = self.kmanga.scrape_service(self.kmanga.ID, self.kmanga.FEED_URL, None)
+        with self.caplog.at_level(logging.ERROR, logger=logger.name):
+            retval = self.kmanga.scrape_service(self.kmanga.ID, self.kmanga.FEED_URL, None)
 
         assert retval is not None
         assert len(retval.manga_ids) == 0
         assert len(retval.chapter_ids) == 0
 
-        self.assertLogs('debug', logging.WARNING)
+        self.assertLogs('src.scrapers.kmanga', logging.WARNING)
         self.assertLogs(logger, logging.ERROR)
 
     def test_caches_group(self):

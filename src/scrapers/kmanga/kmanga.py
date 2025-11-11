@@ -24,7 +24,7 @@ from src.utils.utilities import utcnow
 
 from .api import KMangaAPI, KMangaEpisode
 
-logger = logging.getLogger('debug')
+logger = logging.getLogger(__name__)
 
 chapter_regex = re.compile(
     r'^\s*#?final chapter\s*'
