@@ -1020,27 +1020,28 @@ class DbUtil:
         if not entries:
             return []
 
-        args: tuple = tuple(c.chapter_identifier for c in entries)
+        chapter_identifiers: tuple = tuple(c.chapter_identifier for c in entries)
         chunk_size = 300
 
         entries_set = set(entries)
         output = set()
 
-        for idx in range(0, len(args), chunk_size):
-            format_args = ','.join(('%s',) * len(args[idx:idx + chunk_size]))
+        for idx in range(0, len(chapter_identifiers), chunk_size):
+            chapter_identifiers_chunk = chapter_identifiers[idx:idx + chunk_size]
+            format_args = ','.join(('%s',) * len(chapter_identifiers_chunk))
 
             if manga_id:
                 sql = (
                     'SELECT chapter_identifier FROM chapters '
                     f'WHERE service_id=%s AND manga_id=%s AND chapter_identifier IN ({format_args})'
                 )
-                args = (service_id, manga_id, *args)
+                args = (service_id, manga_id, *chapter_identifiers_chunk)
             else:
                 sql = (
                     'SELECT chapter_identifier FROM chapters '
                     f'WHERE service_id=%s AND chapter_identifier IN ({format_args})'
                 )
-                args = (service_id, *args)
+                args = (service_id, *chapter_identifiers_chunk)
 
             try:
                 cur.execute(sql, args)

@@ -16,6 +16,7 @@ from src.db.models.manga import (
     MangaWithId,
 )
 from src.db.models.services import Service
+from src.scrapers.base_scraper import BaseChapterSimple
 from src.tests.scrapers.testing_scraper import DummyScraper, DummyScraper2
 from src.tests.testing_utils import BaseTestClasses, Chapter, spy_on
 from src.utils.utilities import utcnow
@@ -878,6 +879,25 @@ class TestUpdateMangaTitle(BaseDbutilTest):
 
         assert self.get_manga_aliases(m1.manga_id) == [m1.title]
         assert self.get_manga_aliases(m2.manga_id) == [m2.title]
+
+    def test_get_only_latest_entries_with_many_parameters(self):
+        with self.conn.cursor() as _cur:
+            cur = spy_on(_cur)
+
+            self.dbutil.get_only_latest_entries(
+                DummyScraper.ID,
+                [BaseChapterSimple(
+                    chapter_title='',
+                    chapter_identifier='1',
+                    title_id='',
+                    chapter_number=0
+                ) for _ in range(1000)],
+                manga_id=1,
+                cur=cur
+            )
+
+            # Get latest entries should chunk the updates
+            assert cur.execute.call_count == 4  # type: ignore[union-attr]
 
 
 if __name__ == '__main__':
