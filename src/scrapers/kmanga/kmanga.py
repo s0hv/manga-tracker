@@ -37,8 +37,9 @@ chapter_regex = re.compile(
     r'(\((?P<chapter_decimal>\d+)\))?\s*'
     r'(?P<chapter_title>.+?)$'
     r'|'
-    # Fallback for chapters like "Lesson10" AND "TRACK 2"
-    r'^\s*\w+?\s*(?P<chapter_number2>\d+)\s*'
+    # Fallback for chapters like "Lesson10", "TRACK 2",
+    # or chapters with special characters such as ＃ at the start.  # noqa: RUF003
+    r'^\s*.+?\s*(?P<chapter_number2>\d+)\s*'
     r'(\((?P<chapter_decimal2>\d+)\))?\s*',
     re.I
 )
@@ -249,6 +250,12 @@ class KManga(BaseScraperWhole):
 
         for title in titles_to_update:
             manga_id = title.manga_id
+
+            logger.info(
+                'Scraping KManga series %s %s',
+                title.title_id,
+                hasattr(title, 'title') and title.title,
+            )
 
             try:
                 scrape_value = self.scrape_series(title.title_id, service_id, manga_id)

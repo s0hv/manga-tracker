@@ -195,7 +195,7 @@ class UpdateScheduler:
                 title_id = info['title_id']
                 manga_id = info['manga_id']
                 feed_url = info['feed_url']
-                logger.info(f'Updating {title_id} on service {service_id}')
+                logger.info(f'Updating {title_id} on service {scraper.NAME}')
                 try:
                     with conn.transaction():
                         if res := scraper.scrape_series(title_id, service_id, manga_id, feed_url):
@@ -208,7 +208,7 @@ class UpdateScheduler:
 
                         ms = scraper.dbutil.get_manga_service(service_id, title_id)
                         if ms is None:
-                            logger.error(f'Manga {title_id} not found on service {service_id}')
+                            logger.error(f'Manga {title_id} not found on service {scraper.NAME}')
                             errors += 1
                             continue
 
@@ -218,7 +218,7 @@ class UpdateScheduler:
                             ms.next_update is None or ms.next_update < utcnow()
                         ):
                             if ms.release_interval is None:
-                                logger.warning(f'Release interval is None for manga {title_id} on service {service_id}. Disabling automatic updates for it.')
+                                logger.warning(f'Release interval is None for manga {title_id} on service {scraper.NAME}. Disabling automatic updates for it.')
                                 scraper.dbutil.execute(
                                     'UPDATE manga_service SET disabled=TRUE WHERE service_id = %s AND manga_id = %s',
                                     (service_id, manga_id),
@@ -252,13 +252,13 @@ class UpdateScheduler:
                                 )
 
                 except psycopg.Error:
-                    logger.exception(f'Database error while updating manga {title_id} on service {service_id}')
+                    logger.exception(f'Database error while updating manga {title_id} on service {scraper.NAME}')
                     scraper.dbutil.update_manga_next_update(
                         service_id, manga_id, scraper.next_update()
                     )
                     errors += 1
                 except Exception:
-                    logger.exception(f'Unknown error while updating manga {title_id} on service {service_id}')
+                    logger.exception(f'Unknown error while updating manga {title_id} on service {scraper.NAME}')
                     scraper.dbutil.update_manga_next_update(
                         service_id, manga_id, scraper.next_update()
                     )
@@ -314,7 +314,7 @@ class UpdateScheduler:
                 # the feed url of the service. Manga url always takes priority
                 feed_url: str = row['feed_url'] or row['service_feed_url']
 
-                logger.info(f'Force updating {title_id} on service {service_id}')
+                logger.info(f'Force updating {title_id} on service {scraper.NAME}')
                 with conn.transaction():
                     try:
                         retval = scraper.scrape_series(
@@ -324,7 +324,7 @@ class UpdateScheduler:
                         logger.exception(f'Database error while scraping {service_id} {scraper.NAME}: {title_id}')
                         return None
                     except Exception:
-                        logger.exception(f'Failed to scrape service {service_id}')
+                        logger.exception(f'Failed to scrape service {scraper.NAME}')
                         return None
 
                     if retval is None:

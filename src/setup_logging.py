@@ -7,7 +7,7 @@ from src.utils.formatter import LoggingFormatter
 
 def setup() -> logging.Logger:
     formatter = LoggingFormatter(
-            '{color}[{name}][{asctime}.{msecs:03.0f}] [Thread: {thread}] [{levelname}]:{colorend} {message}',
+            '{color}[{name:30}][{asctime}.{msecs:03.0f}] [Thread: {thread}] [{levelname}]:{colorend} {message}',
             datefmt='%Y-%m-%d %H:%M:%S',
             style='{',
         )
@@ -26,7 +26,7 @@ def setup() -> logging.Logger:
 
     handler = logging.StreamHandler(sys.stdout)
     handler.setFormatter(LoggingFormatter(
-        '{color}[{originalmodule}][{asctime}.{msecs:03.0f}] [Thread: {thread}] [{levelname}]:{colorend} {message}',
+        '{color}[{originalmodule:30}][{asctime}.{msecs:03.0f}] [Thread: {thread}] [{levelname}]:{colorend} {message}',
         datefmt='%Y-%m-%d %H:%M:%S',
         style='{',
     ))

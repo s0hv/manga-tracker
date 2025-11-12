@@ -13,8 +13,12 @@ class LoggingFormatter(logging.Formatter):
         datefmt: str | None = None,
         style: Literal['%', '{', '$'] = '%',
         override_colors: dict | None = None,
+        *,
+        max_name_length: int = 30,
     ):
         super().__init__(fmt, datefmt, style)
+
+        self.max_name_length = max_name_length
 
         self.colors = {
             logging.NOTSET:   {'fg': 'default'},
@@ -59,6 +63,8 @@ class LoggingFormatter(logging.Formatter):
         if color:
             record.color = color
             record.colorend = '\x1b[0m'
+
+        record.name = record.name[-self.max_name_length:]
 
         s = self.formatMessage(record)
         if record.exc_info and not record.exc_text:

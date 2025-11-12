@@ -315,6 +315,7 @@ def test_hash_params(params: dict | None, expected_hash: str):
         ('TRACK 2 THREATENED MISCARRIAGE(4)', ('TRACK 2 THREATENED MISCARRIAGE(4)', 2, None)),
         ("RULE 8(1) I'LL SHOW YOU DISCIPLINE", ("RULE 8(1) I'LL SHOW YOU DISCIPLINE", 8, 1)),
         ('CHAPTER 208 THOUSAND-YEAR VOYAGE(17)', ('THOUSAND-YEAR VOYAGE(17)', 208, None)),
+        ('＃11', ('＃11', 11, None)),  # noqa: RUF001
     ],
 )
 def test_parse_chapter_title(title: str, correct: tuple[str, int, int | None] | None):
