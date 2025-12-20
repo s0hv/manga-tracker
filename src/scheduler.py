@@ -212,8 +212,10 @@ class UpdateScheduler:
                             errors += 1
                             continue
 
-                        # release_interval actually gets set after this function is called, but it is likely that it has already been set before
-                        # as this feature requires manual configuration. That's why it should be ok to use it here even if it is the old value.
+                        # release_interval actually gets set after this function is called,
+                        # but it is likely that it has already been set before,
+                        # as this feature requires manual configuration. That's why it
+                        # should be ok to use it here even if it is the old value.
                         if not ms.disabled and (
                             ms.next_update is None or ms.next_update < utcnow()
                         ):
@@ -224,7 +226,7 @@ class UpdateScheduler:
                                     (service_id, manga_id),
                                 )
                             else:
-                                # If all ok set latest release and refetch manga_service to get the updated latest_release
+                                # If all ok, set the latest release and refetch manga_service to get the updated latest_release
                                 scraper.dbutil.update_latest_release([manga_id])
                                 ms = scraper.dbutil.get_manga_service(service_id, title_id)
                                 assert ms is not None
@@ -236,21 +238,22 @@ class UpdateScheduler:
                                 next_date: datetime = ms.latest_release + ms.release_interval
                                 now = utcnow()
 
-                                if next_date < now:
+                                if ms.latest_release < now:
                                     # If the expected update did not happen yet, postpone it slightly.
                                     # This prevents the same manga from not being updated for a long time
                                     # in case the update is done a bit later.
-                                    if (next_date - now) < timedelta(days=2):
+                                    if (next_date - now) < timedelta(days=3):
                                         next_date = now + max(scraper.min_update_interval(), timedelta(hours=6))
                                     else:
                                         # Default to the release interval multiplied until it is after the current time.
                                         interval_multiplier = math.ceil((now - ms.latest_release) / ms.release_interval)
                                         next_date = ms.latest_release + ms.release_interval * interval_multiplier
 
+                                logger.info(f'Next update for {title_id} on service {scraper.NAME} is {next_date}')
+
                                 scraper.dbutil.update_manga_next_update(
                                     service_id, manga_id, next_date + timedelta(minutes=10)
                                 )
-
                 except psycopg.Error:
                     logger.exception(f'Database error while updating manga {title_id} on service {scraper.NAME}')
                     scraper.dbutil.update_manga_next_update(
