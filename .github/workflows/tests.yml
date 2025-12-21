@@ -258,7 +258,7 @@ jobs:
         run: apt-get update && apt-get install -y curl gpg
 
       - name: Persist Next.js build cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ${{ github.workspace }}/web/.next/cache
           # Generate a new cache whenever packages or source files change.
