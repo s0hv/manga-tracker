@@ -1,23 +1,22 @@
-import React, { type PropsWithChildren, FC, useEffect, useState } from 'react';
+import React, { type PropsWithChildren, FC, useEffect } from 'react';
 import GitHubIcon from '@mui/icons-material/GitHub';
 import {
+  type SxProps,
   type TypographyProps,
+  Box,
   Divider,
   IconButton,
-  Link,
+  Link as MuiLink,
   Typography,
 } from '@mui/material';
 import { styled, useColorScheme } from '@mui/material/styles';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import NextLink from 'next/link';
 
-import type { FrontendUser } from '@/webUtils/useUser';
+import { type FrontendUser, useUser } from '../store/userStore';
 
-import { APIException, HTTPException } from '../api/utilities';
-
+import { RouteLink } from './common/RouteLink';
 import TopBar from './TopBar';
 
+const footerLinkSx = { mr: 1, color: 'inherit' } as const satisfies SxProps;
 
 const Root = styled('div')({
   width: '100%',
@@ -25,18 +24,19 @@ const Root = styled('div')({
   minWidth: '300px',
   minHeight: '100vh',
   position: 'relative',
+  display: 'flex',
+  flexFlow: 'column',
+  alignItems: 'anchor-center',
+  justifyContent: 'flex-start',
+
+  '& > main': {
+    display: 'flex',
+    width: '100%',
+    flex: 5,
+  },
 });
 
-const FooterContainer = styled('div')(({ theme }) => ({
-  paddingTop: theme.spacing(10),
-  position: 'static',
-  left: 0,
-  overflow: 'auto',
-}));
-
 const FooterStyled = styled('footer')({
-  bottom: '0px',
-  position: 'absolute',
   width: '100%',
 });
 
@@ -52,9 +52,9 @@ function Copyright(props: TypographyProps) {
   return (
     <Typography {...props}>
       {'Copyright © '}
-      <Link color='inherit' href='https://github.com/s0hv'>
+      <MuiLink color='inherit' href='https://github.com/s0hv'>
         s0hv
-      </Link>
+      </MuiLink>
       {' '}
       {new Date().getFullYear()}
       .
@@ -68,27 +68,12 @@ export type RootProps = {
 };
 export const Layout: FC<PropsWithChildren<RootProps>> = props => {
   const {
-    statusCode,
-    user,
     children,
   } = props;
 
-  const { setMode } = useColorScheme();
-  const [queryClient] = useState(() => new QueryClient({
-    defaultOptions: {
-      queries: {
-        refetchOnWindowFocus: false,
-        retry: (failureCount, error) => {
-          if (error instanceof APIException || (error instanceof HTTPException && (error as HTTPException).statusCode >= 400)) {
-            // Do not retry on client errors
-            return false;
-          }
+  const user = useUser();
 
-          return failureCount < 3; // Retry up to 3 times for server errors
-        },
-      },
-    },
-  }));
+  const { setMode } = useColorScheme();
 
   // Change theme when logging in/out.
   // Will not be instant as the useEffect takes a bit to run.
@@ -99,47 +84,39 @@ export const Layout: FC<PropsWithChildren<RootProps>> = props => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
-  if (statusCode !== 200) {
-    return children;
-  }
-
   return (
-    <QueryClientProvider client={queryClient}>
-      <Root>
-        <TopBar />
-        {children}
-        <FooterContainer>
-          <FooterStyled>
-            <Divider variant='middle' />
-            <FooterContent>
-              <Copyright />
-              <div>
-                <NextLink href='/third_party_notices' style={{ marginRight: '8px', color: 'inherit' }}>
-                  Third party notices
-                </NextLink>
-                <NextLink href='/privacy_policy' style={{ marginRight: '8px', color: 'inherit' }}>
-                  Privacy Policy
-                </NextLink>
-                <NextLink href='/terms' style={{ marginRight: '8px', color: 'inherit' }}>
-                  Terms
-                </NextLink>
-                <Link color='inherit' href='https://github.com/s0hv/manga-tracker/blob/master/LICENSE' aria-label='license'>
-                  License
-                </Link>
-                <IconButton
-                  component='a'
-                  href='https://github.com/s0hv/manga-tracker'
-                  aria-label='github repository'
-                  size='large'
-                >
-                  <GitHubIcon />
-                </IconButton>
-              </div>
-            </FooterContent>
-          </FooterStyled>
-        </FooterContainer>
-      </Root>
-      <ReactQueryDevtools initialIsOpen={false} />
-    </QueryClientProvider>
+    <Root>
+      <TopBar />
+      {children}
+      <Box sx={{ flex: 1, minHeight: '2rem' }} />
+      <FooterStyled>
+        <Divider variant='middle' />
+        <FooterContent>
+          <Copyright />
+          <div>
+            <RouteLink to='/third_party_notices' sx={footerLinkSx}>
+              Third party notices
+            </RouteLink>
+            <RouteLink to='/privacy_policy' sx={footerLinkSx}>
+              Privacy Policy
+            </RouteLink>
+            <RouteLink to='/terms' sx={footerLinkSx}>
+              Terms
+            </RouteLink>
+            <MuiLink color='inherit' href='https://github.com/s0hv/manga-tracker/blob/master/LICENSE' aria-label='license'>
+              License
+            </MuiLink>
+            <IconButton
+              component='a'
+              href='https://github.com/s0hv/manga-tracker'
+              aria-label='github repository'
+              size='large'
+            >
+              <GitHubIcon />
+            </IconButton>
+          </div>
+        </FooterContent>
+      </FooterStyled>
+    </Root>
   );
 };

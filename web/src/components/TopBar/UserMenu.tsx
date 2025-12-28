@@ -9,13 +9,12 @@ import ViewListIcon from '@mui/icons-material/ViewList';
 import SunIcon from '@mui/icons-material/WbSunny';
 import { IconButton, Menu, MenuItem } from '@mui/material';
 import { styled, useColorScheme } from '@mui/material/styles';
-import { signOut } from 'next-auth/react';
 
-import { LinkComponent } from '@/components/TopBar/LinkComponent';
+import { updateUserTheme } from '#web/api/user';
+import { useIsUserAdmin } from '#web/store/userStore';
+import { RouteLink } from '@/components/common/RouteLink';
 import type { Theme } from '@/types/dbTypes';
-import { useUser } from '@/webUtils/useUser';
 
-import { updateUserTheme } from '../../api/user';
 
 const PREFIX = 'TopBar';
 const classes = {
@@ -34,7 +33,9 @@ const ProfileIconContainer = styled('div')(({ theme }) => ({
   float: 'right',
 }));
 
-const signOutMemo = () => signOut();
+const signOut = () => {
+  (document.getElementById('logout-form') as HTMLFormElement).submit();
+};
 
 export type UserMenuProps = {
   handleThemeChange: () => Theme
@@ -45,7 +46,7 @@ export const UserMenu: FC<UserMenuProps> = ({ handleThemeChange }) => {
   const open = Boolean(anchorEl);
   const { mode, systemMode } = useColorScheme();
   const nextMode = (mode === 'system' ? systemMode : mode) === 'light' ? 'dark' : 'light';
-  const { user } = useUser();
+  const isUserAdmin = useIsUserAdmin();
 
   const handleClick = useCallback((event?: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event?.currentTarget || null);
@@ -75,6 +76,7 @@ export const UserMenu: FC<UserMenuProps> = ({ handleThemeChange }) => {
       >
         <AccountCircle fontSize='large' />
       </IconButton>
+
       <MenuStyled
         id='menu-appbar'
         disableScrollLock
@@ -92,18 +94,21 @@ export const UserMenu: FC<UserMenuProps> = ({ handleThemeChange }) => {
         open={open}
         onClose={handleClose}
       >
-        <LinkComponent
-          Component={MenuItem}
-          href='/profile'
-          prefetch={false}
+        <RouteLink
+          component={MenuItem}
+          to='/profile'
+          preload='intent'
           onClick={handleClose}
+          sx={{ color: 'inherit' }}
+          underline='none'
         >
           <PersonIcon className={classes.menuItemIcon} />
           {' '}
           Profile
-        </LinkComponent>
+        </RouteLink>
+
         <MenuItem onClick={handleUserThemeChange}>
-          {mode === 'dark'
+          {nextMode === 'light'
             ? <SunIcon className={classes.menuItemIcon} />
             : <MoonIcon className={classes.menuItemIcon} />}
           Switch to
@@ -112,43 +117,60 @@ export const UserMenu: FC<UserMenuProps> = ({ handleThemeChange }) => {
           {' '}
           theme
         </MenuItem>
-        <LinkComponent
-          Component={MenuItem}
-          href='/follows'
-          prefetch={false}
+
+        <RouteLink
+          component={MenuItem}
+          to='/follows'
+          preload='intent'
           onClick={handleClose}
+          sx={{ color: 'inherit' }}
+          underline='none'
         >
           <BookmarksIcon className={classes.menuItemIcon} />
           {' '}
           Follows
-        </LinkComponent>
-        <LinkComponent
-          Component={MenuItem}
-          href='/notifications'
-          prefetch={false}
+        </RouteLink>
+
+        <RouteLink
+          component={MenuItem}
+          to='/notifications'
+          preload='intent'
           onClick={handleClose}
+          sx={{ color: 'inherit' }}
+          underline='none'
         >
           <NotificationsIcon className={classes.menuItemIcon} />
           {' '}
           Notifications
-        </LinkComponent>
-        {user!.admin && (
-          <LinkComponent
-            Component={MenuItem}
-            href='/admin/services'
-            prefetch={false}
+        </RouteLink>
+
+        {isUserAdmin && (
+          <RouteLink
+            component={MenuItem}
+            to='/admin/services'
+            preload='intent'
             onClick={handleClose}
+            sx={{ color: 'inherit' }}
+            underline='none'
           >
             <ViewListIcon className={classes.menuItemIcon} />
             {' '}
             Services
-          </LinkComponent>
+          </RouteLink>
         )}
-        <MenuItem onClick={signOutMemo}>
+
+        <MenuItem onClick={signOut}>
           <ExitToAppIcon className={classes.menuItemIcon} />
           {' '}
           Logout
         </MenuItem>
+
+        <form
+          action='/api/auth/logout'
+          method='post'
+          id='logout-form'
+          style={{ display: 'none' }}
+        />
       </MenuStyled>
     </ProfileIconContainer>
   );

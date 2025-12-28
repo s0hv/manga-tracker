@@ -3,7 +3,7 @@ import type { ServiceForAdmin, ServiceForApi } from '@/types/api/services';
 import { db } from '../helpers';
 
 
-export function getServices(): Promise<ServiceForAdmin[]> {
+export function getServices() {
   return db.many<ServiceForAdmin>`SELECT s.service_id id, service_name, disabled, url, s.last_check, 
                     CASE WHEN sw.service_id IS NULL 
                         THEN (SELECT MIN(ms.next_update) FROM manga_service ms WHERE ms.service_id=s.service_id)
@@ -12,7 +12,7 @@ export function getServices(): Promise<ServiceForAdmin[]> {
                ORDER BY s.service_id`;
 }
 
-export function getServicesForApi(): Promise<ServiceForApi[]> {
+export function getServicesForApi() {
   return db.many<ServiceForApi>`
     SELECT s.service_id, 
            service_name as name, 

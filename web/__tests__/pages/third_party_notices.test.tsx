@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
 
-import ThirdPartyNotices from '../../src/pages/third_party_notices';
+import ThirdPartyNotices from '../../src/routes/(static)/third_party_notices';
 
 describe('ThirdPartyNotices page should render correctly', () => {
   it('Should match snapshot', () => {

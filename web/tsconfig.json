@@ -4,20 +4,21 @@
     "lib": [
       "dom",
       "dom.iterable",
-      "esnext"
+      "ES2022"
     ],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
     "forceConsistentCasingInFileNames": true,
+    "resolvePackageJsonImports": true,
     "noEmit": true,
     "incremental": true,
     "esModuleInterop": true,
-    "module": "esnext",
+    "module": "ESNext",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve",
-    "moduleResolution":"node",
+    "moduleResolution": "bundler",
     "baseUrl": ".",
     "paths": {
       "@/components*": ["src/components*"],
@@ -43,6 +44,8 @@
     "setupTests.ts",
     "vitest.config.ts",
     "cypress/cypress.config.ts",
-    "cypress/**"
+    "cypress/**",
+    "server.ts",
+    "scripts"
   ]
 }

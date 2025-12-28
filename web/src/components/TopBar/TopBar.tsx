@@ -1,20 +1,17 @@
 import React, { useCallback } from 'react';
 import MoonIcon from '@mui/icons-material/Brightness3';
-import HomeIcon from '@mui/icons-material/Home';
 import SunIcon from '@mui/icons-material/WbSunny';
-import { AppBar, Button, IconButton, Toolbar, Typography } from '@mui/material';
+import { AppBar, IconButton, Toolbar, Typography } from '@mui/material';
 import { styled, useColorScheme } from '@mui/material/styles';
-import dynamic from 'next/dynamic';
-import NextLink from 'next/link';
-import { useRouter } from 'next/router';
+import { useRouter } from '@tanstack/react-router';
 
+import { useUser } from '#web/store/userStore';
+import { COOKIES } from '@/common/cookies';
+import { LinkButton } from '@/components/common/LinkButton';
+import { RouteLink } from '@/components/common/RouteLink';
+import MangaSearch from '@/components/MangaSearch';
+import { UserMenu } from '@/components/TopBar/UserMenu';
 import { Theme } from '@/types/dbTypes';
-import { useUser } from '@/webUtils/useUser';
-
-import { LinkComponent } from './LinkComponent';
-
-const MangaSearch = dynamic(() => import('../MangaSearch'));
-const UserMenu = dynamic(() => import('./UserMenu').then(mod => mod.UserMenu));
 
 
 const PREFIX = 'TopBar';
@@ -25,7 +22,6 @@ const classes = {
 
 
 const Root = styled('div')(({ theme }) => ({
-  flexGrow: 1,
   position: 'sticky',
   overflow: 'auto',
   width: '100%',
@@ -55,18 +51,18 @@ const SiteTitle = styled(Typography)(({ theme }) => ({
     display: 'none',
   },
   cursor: 'pointer',
+  alignContent: 'center',
 }));
 
 
 function TopBar() {
   const { mode, setMode, systemMode } = useColorScheme();
-  const { user } = useUser();
+  const user = useUser();
   const router = useRouter();
 
-  const onAuthChange = useCallback(() => {
-    console.log(router.asPath);
-    window.sessionStorage.setItem('previousPage', router.asPath);
-  }, [router.asPath]);
+  const onLoginClick = useCallback(() => {
+    document.cookie = `${COOKIES.redirect}=${encodeURIComponent(router.state.location.pathname)}; Path=/; SameSite=Lax;`;
+  }, [router]);
 
   const handleThemeChange = useCallback((): Theme => {
     const currentMode = mode === 'system' ? systemMode : mode;
@@ -77,7 +73,7 @@ function TopBar() {
 
   return (
     <Root>
-      <AppBar position='sticky'>
+      <AppBar position='sticky' sx={{ height: '64px' }}>
         <Toolbar sx={{
           pl: {
             xs: 1,
@@ -93,47 +89,58 @@ function TopBar() {
           },
         }}
         >
-          <NextLink href='/' prefetch={false} style={{ textDecoration: 'none', color: 'inherit' }}>
+          <RouteLink
+            to='/'
+            sx={{
+              textDecoration: 'none',
+              color: 'inherit',
+              display: 'flex',
+              height: '80%',
+            }}
+          >
+            <img alt='Manga tracker logo' src='/favicon.svg' />
             <SiteTitle variant='h6' noWrap>
               Manga tracker
             </SiteTitle>
-          </NextLink>
-          <LinkComponent
-            Component={IconButton}
-            href='/'
-            prefetch={false}
-            className={classes.titleIcon}
-            aria-label='return to home page'
-            aria-controls='menu-appbar'
-            color='inherit'
-          >
-            <HomeIcon />
-          </LinkComponent>
+          </RouteLink>
+
           <div className={classes.grow} />
+
           <MangaSearch
             id='title-search'
             placeholder='Search manga'
           />
-          {(user && (
-            <UserMenu handleThemeChange={handleThemeChange} />
-          )
-          ) || (
-            <React.Fragment>
-              <NextLink href='/login' prefetch={false}>
-                <Button variant='outlined' sx={{ position: 'relative', ml: 3, mr: 1, float: 'right' }} onClick={onAuthChange}>
+
+          {user
+            ? <UserMenu handleThemeChange={handleThemeChange} />
+            : (
+              <React.Fragment>
+                <LinkButton
+                  to='/login'
+                  preload='intent'
+                  variant='outlined'
+                  color='primary'
+                  onClick={onLoginClick}
+                  sx={{
+                    position: 'relative',
+                    ml: 3,
+                    mr: 1,
+                    float: 'right',
+                  }}
+                >
                   Login
-                </Button>
-              </NextLink>
-              <IconButton
-                aria-label='Switch theme'
-                onClick={handleThemeChange}
-                color='inherit'
-                size='large'
-              >
-                {mode === 'light' ? <SunIcon /> : <MoonIcon />}
-              </IconButton>
-            </React.Fragment>
-          )}
+                </LinkButton>
+
+                <IconButton
+                  aria-label='Switch theme'
+                  onClick={handleThemeChange}
+                  color='inherit'
+                  size='large'
+                >
+                  {mode === 'light' ? <SunIcon /> : <MoonIcon />}
+                </IconButton>
+              </React.Fragment>
+            )}
         </Toolbar>
       </AppBar>
     </Root>

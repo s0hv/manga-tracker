@@ -22,6 +22,7 @@ export const TabPanelCustom: FC<PropsWithChildren<TabPanelCustomProps>> = props 
 
   const [rendered, setRendered] = useState(value === index);
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => setRendered(rendered || value === index),
     [index, rendered, value]);
 

@@ -4,19 +4,19 @@ import { useQuery } from '@tanstack/react-query';
 import { useSnackbar } from 'notistack';
 import { SelectElement, TextFieldElement } from 'react-hook-form-mui';
 
+import {
+  createMangaService,
+  getMangaServicesQueryOptions,
+  updateMangaService,
+} from '#web/api/admin/manga';
+import { getServicesQueryOptions } from '#web/api/services';
 import type { MangaService, MangaServiceCreateData } from '@/types/api/manga';
 import type { MangaId } from '@/types/dbTypes';
 import type { SelectOption } from '@/types/utility';
-import { QueryKeys } from '@/webUtils/constants';
+import { noRows } from '@/webUtils/constants';
 import { defaultDateFormat } from '@/webUtils/utilities';
 
 
-import {
-  createMangaService,
-  getMangaServices,
-  updateMangaService,
-} from '../../api/admin/manga';
-import { getServicesQueryOptions } from '../../api/services';
 import {
   AddRowFormTemplate,
   defaultOnSaveRow,
@@ -55,15 +55,8 @@ export const MangaServiceTable: FunctionComponent<MangaServiceTableProps> = prop
     sx,
   } = props;
 
-  const { data: mangaServices, isFetching: mangaLoading, refetch } = useQuery({
-    queryKey: [QueryKeys.MangaServices, mangaId] as const,
-    queryFn: ({ queryKey }) => getMangaServices(queryKey[1]),
-    initialData: [],
-  });
-  const { data: services, isFetching: servicesLoading } = useQuery({
-    ...getServicesQueryOptions,
-    initialData: [],
-  });
+  const { data: mangaServices, isFetching: mangaLoading, refetch } = useQuery(getMangaServicesQueryOptions(mangaId));
+  const { data: services, isFetching: servicesLoading } = useQuery(getServicesQueryOptions);
 
   const loading = mangaLoading || servicesLoading;
   const { enqueueSnackbar } = useSnackbar();
@@ -83,7 +76,7 @@ export const MangaServiceTable: FunctionComponent<MangaServiceTableProps> = prop
   const columns = useMemo((): MaterialColumnDef<MangaService, any>[] => [
     columnHelper.accessor('serviceId', {
       header: 'Service',
-      cell: ({ getValue }) => services[getValue()]?.name || null,
+      cell: ({ getValue }) => services?.[getValue()]?.name || null,
       enableEditing: false,
     }),
     columnHelper.accessor('disabled', {
@@ -126,11 +119,11 @@ export const MangaServiceTable: FunctionComponent<MangaServiceTableProps> = prop
   // Table layout
   const fields = useMemo(() => {
     const options: SelectOption[] = Object
-      .values(services)
+      .values(services ?? {})
       .map(s => ({
         label: s.name,
         value: s.serviceId,
-        disabled: mangaServices.some(ms => ms.serviceId === s.serviceId),
+        disabled: mangaServices?.some(ms => ms.serviceId === s.serviceId),
       }));
 
     return [
@@ -188,7 +181,7 @@ export const MangaServiceTable: FunctionComponent<MangaServiceTableProps> = prop
       <MaterialTable
         title='Manga services'
         columns={columns}
-        data={loading ? [] : mangaServices}
+        data={mangaServices ?? noRows}
         onSaveRow={onSaveRow}
         rowCount={mangaServices?.length || 3}
         loading={loading}

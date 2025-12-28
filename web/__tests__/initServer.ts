@@ -9,7 +9,7 @@ vi.mock('@/db/auth', async () => {
   const auth = await vi.importActual<typeof import('@/db/auth')>('@/db/auth');
   return {
     ...auth,
-    getSessionAndUser: vi.fn().mockImplementation(auth.getSessionAndUser),
+    getSessionAndUser: vi.fn().mockImplementation(auth.useSessionAndUser),
   };
 });
 
@@ -72,7 +72,7 @@ export default async function initServer(): Promise<{ httpServer: Server, addr: 
   });
 
   process.env.PORT = '0';
-  const httpServer = await import('../server').then(m => m.default) as Server;
+  const httpServer = await import('server').then(m => m.default) as Server;
   expect(httpServer).toBeDefined();
 
   const addr = `http://localhost:${(httpServer.address() as AddressInfo).port}`;

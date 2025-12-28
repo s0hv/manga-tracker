@@ -1,7 +1,6 @@
-import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
+import React, { FC, lazy, useCallback, useEffect, useMemo, useState } from 'react';
 import { Box, Paper } from '@mui/material';
 import { ConfirmProvider } from 'material-ui-confirm';
-import dynamic from 'next/dynamic';
 import { useSnackbar } from 'notistack';
 import {
   type Control,
@@ -11,6 +10,10 @@ import {
 } from 'react-hook-form';
 import { TextFieldElement, useWatch } from 'react-hook-form-mui';
 
+import {
+  postNotificationOverride,
+  postNotifications,
+} from '#web/api/notifications';
 import {
   FormContextRefProvider,
   useFormContextRefValue,
@@ -31,11 +34,6 @@ import {
   mapNotificationFields,
 } from '@/webUtils/utilities';
 
-
-import {
-  postNotificationOverride,
-  postNotifications,
-} from '../../api/notifications';
 
 import ColorPicker from './ColorPicker';
 import DefaultHelpTexts from './DefaultHelpTexts';
@@ -65,7 +63,7 @@ type FieldTypes = {
 };
 interface DiscordFormData extends FormValues, FieldTypes {}
 
-const MangaOverrideSelector = dynamic(() => import('./MangaOverrideSelector')) as unknown as FC<MangaOverrideSelectorProps<DiscordFormData>>;
+const MangaOverrideSelector = lazy<FC<MangaOverrideSelectorProps<DiscordFormData>>>(() => import('./MangaOverrideSelector'));
 
 export type DiscordWebhookEditorProps = {
   notificationData: NotificationData

@@ -1,15 +1,15 @@
 import { type FC, useCallback } from 'react';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { IconButton } from '@mui/material';
-import type { IconButtonProps } from '@mui/material/IconButton/IconButton';
+import type { IconButtonProps } from '@mui/material/IconButton';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useConfirm } from 'material-ui-confirm';
 import { useSnackbar } from 'notistack';
 import { type Control, useWatch } from 'react-hook-form';
 
+import { deleteNotification } from '#web/api/notifications';
 import { QueryKeys } from '@/webUtils/constants';
 
-import { deleteNotification } from '../../api/notifications';
 
 type DeleteReturn = Awaited<ReturnType<typeof deleteNotification>>;
 

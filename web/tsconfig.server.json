@@ -6,11 +6,18 @@
     "target": "es2020",
     "isolatedModules": true,
     "noEmit": false,
+    "resolvePackageJsonImports": true,
     "sourceMap": true,
-    "baseUrl": "."
+    "baseUrl": ".",
+    "rootDir": ".",
   },
   "include": [
-    "**/*.ts"
+    "server.ts",
+    "server/**/*",
+    "server/db/*",
+    "types/**/*",
+    "common/**/*",
+    "src/server.ts"
   ],
   "exclude": [
     "node_modules",

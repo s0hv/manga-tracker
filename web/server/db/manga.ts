@@ -4,10 +4,10 @@ import {
   NUMERIC_VALUE_OUT_OF_RANGE,
 } from 'pg-error-constants';
 
-import type { MangaInfoData } from '@/types/api/manga';
+import type { FullMangaData, MangaInfoData } from '@/types/api/manga';
 import type { Follow } from '@/types/db/follows';
 import type { Manga } from '@/types/db/manga';
-import type { DatabaseId, MangaId } from '@/types/dbTypes';
+import type { DatabaseId, MangaId, PostgresInterval } from '@/types/dbTypes';
 
 
 import { HttpError } from '../utils/errors';
@@ -37,54 +37,44 @@ export function formatLinks(row: Record<string, string>) {
   });
 }
 
-export type MangaData = {
+export interface MangaData extends Omit<MangaInfoData, 'lastUpdated'> {
   mangaId: number
   title: string
-  releaseInterval?: Date | null
+  releaseInterval?: PostgresInterval | null
   latestRelease?: Date | null
   estimatedRelease?: Date | null
   latestChapter?: number | null
   lastUpdated?: Date | null
-} & Omit<MangaInfoData, 'lastUpdated'>;
+}
 
-export type FullManga = {
-  services?: object[]
-  chapters?: object[]
-  aliases?: string[]
-  manga: MangaData
-};
-
-type FullMangaUnformatted = {
+interface FullMangaUnformatted extends MangaData {
   services: any[]
-  chapters?: any[]
   aliases: string[]
-} & MangaData;
+}
 
-function formatFullManga(obj: Partial<FullMangaUnformatted>): FullManga {
-  const out: FullManga = {
+function formatFullManga(obj: FullMangaUnformatted): FullMangaData {
+  const out: FullMangaData = {
     manga: {} as unknown as MangaData,
+    services: [],
+    aliases: [],
   };
 
   if (obj.services) {
     out.services = obj.services;
-    delete obj.services;
-  }
-
-  if (obj.chapters) {
-    out.chapters = obj.chapters;
-    delete obj.chapters;
+    delete (obj as Partial<FullMangaUnformatted>).services;
   }
 
   if (obj.aliases) {
     out.aliases = obj.aliases;
-    delete obj.aliases;
+    delete (obj as Partial<FullMangaUnformatted>).aliases;
   }
-  out.manga = obj as MangaData;
+
+  out.manga = obj as Omit<FullMangaUnformatted, 'services' | 'aliases'>;
 
   return out;
 }
 
-export function getFullManga(mangaId: MangaId): Promise<FullManga | null> {
+export function getFullManga(mangaId: MangaId): Promise<FullMangaData | null> {
   return db.oneOrNone<FullMangaUnformatted>`SELECT manga.manga_id, title, release_interval, latest_release, estimated_release, manga.latest_chapter,
                         array_agg(json_build_object('title_id', ms.title_id, 'service_id', ms.service_id, 'name', s.service_name, 'url_format', chapter_url_format, 'url', s.manga_url_format)) as services,
                         mi.cover, mi.status, mi.last_updated,
@@ -100,7 +90,7 @@ export function getFullManga(mangaId: MangaId): Promise<FullManga | null> {
         return null;
       }
 
-      row = camelcaseKeys(row, { deep: true });
+      row = camelcaseKeys(row as unknown as Record<string, unknown>, { deep: true }) as unknown as FullMangaUnformatted;
 
       const mdIdx = row.services.findIndex(v => v.serviceId === MANGADEX_ID);
       // If info doesn't exist or 2 weeks since last update

@@ -1,3 +1,5 @@
+import { PostgresAdapter } from '@/db/postgres-adapter';
+
 import { faker } from '@faker-js/faker';
 import type { AdapterSession } from 'next-auth/adapters';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -5,7 +7,6 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { spyOnDb } from '../dbutils';
 import { mockUTCDates, normalUser } from '../utils';
 import { db } from '@/db/helpers';
-import { PostgresAdapter } from '@/db/postgres-adapter';
 import { SessionData } from '@/types/dbTypes';
 
 
