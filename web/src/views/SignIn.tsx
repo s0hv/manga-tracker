@@ -1,7 +1,6 @@
 import React, { useCallback } from 'react';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import {
-  Alert,
   Avatar,
   Box,
   Button,
@@ -12,142 +11,83 @@ import {
   Typography,
 } from '@mui/material';
 import { useColorScheme } from '@mui/material/styles';
-import NextLink from 'next/link';
-import type {
-  BuiltInProviderType,
-  OAuthProviderButtonStyles,
-} from 'next-auth/providers';
-import { signIn } from 'next-auth/react';
-import type { ClientSafeProvider, LiteralUnion } from 'next-auth/react/types';
+import { useNavigate } from '@tanstack/react-router';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { CheckboxElement, TextFieldElement } from 'react-hook-form-mui';
 
-import type { DefaultExcept } from '@/types/utility';
+import type { OAuthProvider } from '@/common/auth/providers';
+import { RouteLink } from '@/components/common/RouteLink';
 
-import styles from './SignIn.module.css';
+import { handleError } from '../api/utilities';
+
+import discordLogo from 'src/resources/Discord-Logo-Blurple.svg';
+import discordLogoLight from 'src/resources/Discord-Logo-Light-Blurple.svg';
+
 
 type SignInFormValues = {
   email: string
   password: string
-  rememberme?: boolean
-};
-
-// https://github.com/nextauthjs/next-auth/blob/f6bb16b264f43a0afdbc6c26a2db6cd5c8e6030d/packages/core/src/types.ts#L294
-export type SignInPageErrorParam =
-  | 'Signin'
-  | 'OAuthSignin'
-  | 'OAuthCallback'
-  | 'OAuthCreateAccount'
-  | 'EmailCreateAccount'
-  | 'Callback'
-  | 'OAuthAccountNotLinked'
-  | 'EmailSignin'
-  | 'CredentialsSignin'
-  | 'SessionRequired';
-
-// This plus more from
-// https://github.com/nextauthjs/next-auth/blob/f6bb16b264f43a0afdbc6c26a2db6cd5c8e6030d/packages/core/src/lib/pages/signin.tsx#L7
-const signinErrors: Record<
-  Lowercase<SignInPageErrorParam | 'default'>,
-  string
-> = {
-  default: 'Unable to sign in.',
-  signin: 'Try signing in with a different account.',
-  oauthsignin: 'Try signing in with a different account.',
-  oauthcallback: 'Try signing in with a different account.',
-  oauthcreateaccount: 'Try signing in with a different account.',
-  emailcreateaccount: 'Try signing in with a different account.',
-  callback: 'Try signing in with a different account.',
-  oauthaccountnotlinked:
-    'To confirm your identity, sign in with the same account you used originally.',
-  emailsignin: 'The e-mail could not be sent.',
-  credentialssignin:
-    'Sign in failed. Check the details you provided are correct.',
-  sessionrequired: 'Please sign in to access this page.',
+  rememberMe?: boolean
 };
 
 export type SignInProps = {
-  providers?: Partial<Record<LiteralUnion<BuiltInProviderType>, ClientSafeProvider>> | null
-  error?: SignInPageErrorParam | null
+  providers?: OAuthProvider[] | null
 };
 
-type OptionalLogoStyles = DefaultExcept<OAuthProviderButtonStyles, 'logoDark' | 'logo'>;
-const providerStyles: Partial<Record<LiteralUnion<BuiltInProviderType>, OptionalLogoStyles>> = {
+type ProviderStyle = {
+  logo: string
+  logoDark: string
+  bg: string
+  bgDark: string
+};
+
+const providerStyles = {
   discord: {
-    logo: 'https://authjs.dev/img/providers/discord.svg',
-    logoDark: 'https://authjs.dev/img/providers/discord-dark.svg',
-    bg: '#fff',
-    text: '#7289DA',
-    bgDark: '#7289DA',
-    textDark: '#fff',
+    logo: discordLogo,
+    logoDark: discordLogoLight,
+    bg: '#e0e3ff',
+    bgDark: '#5865f2',
   },
-  google: {
-    logo: 'https://authjs.dev/img/providers/google.svg',
-    logoDark: 'https://authjs.dev/img/providers/google.svg',
-    bg: '#fff',
-    text: '#000',
-    bgDark: '#fff',
-    textDark: '#000',
-  },
-} as const;
+} as const satisfies Record<OAuthProvider, ProviderStyle>;
 
-const renderProvider = (provider?: ClientSafeProvider): provider is ClientSafeProvider => provider !== undefined && provider.type !== 'credentials';
-
-const defaultStyle: OptionalLogoStyles = {
-  bg: '#fff',
-  bgDark: '#000',
-  text: '#000',
-  textDark: '#fff',
-};
-
-const getStyles = (style: OptionalLogoStyles | undefined, darkTheme: boolean) => {
-  if (!style) {
-    style = defaultStyle;
-  }
-
+const getStyles = (style: ProviderStyle, darkTheme: boolean): Pick<ProviderStyle, 'logo' | 'bg'> => {
   if (darkTheme) {
     return {
       bg: style.bgDark,
-      text: style.textDark,
       logo: style.logoDark,
     };
   }
 
   return {
     bg: style.bg,
-    text: style.text,
     logo: style.logo,
   };
 };
 
-export default function SignIn({ providers, error: errorType }: SignInProps): React.ReactElement {
-  const hasCredentials = Boolean(providers?.credentials);
+export default function SignIn({ providers }: SignInProps): React.ReactElement {
   const { mode, systemMode } = useColorScheme();
+  const navigate = useNavigate();
   // Will always be undefined on server
   const currentMode = mode === 'system' ? systemMode : (mode ?? 'dark');
-
-  const error =
-    errorType
-    && (signinErrors[errorType.toLowerCase() as Lowercase<SignInPageErrorParam>]
-      ?? signinErrors.default);
 
   const { control, handleSubmit } = useForm<SignInFormValues>();
 
   const onSignIn = useCallback<SubmitHandler<SignInFormValues>>(values => {
-    const previousPage = window.sessionStorage.getItem('previousPage') ?? undefined;
-    return signIn(
-      'credentials',
-      {
-        email: values.email,
-        password: values.password,
-        callbackUrl: previousPage,
-        rememberme: values.rememberme,
-      }
-    );
-  }, []);
+    return fetch(`/api/auth/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(values),
+    })
+      .then(res => {
+        void navigate({ reloadDocument: true, to: res.headers.get('location') ?? undefined });
+      })
+      .catch(handleError);
+  }, [navigate]);
 
   return (
-    <Container maxWidth='xs' className={styles.container}>
+    <Container maxWidth='xs'>
       <Box sx={{
         marginTop: 8,
         display: 'flex',
@@ -158,99 +98,121 @@ export default function SignIn({ providers, error: errorType }: SignInProps): Re
         <Avatar sx={{ m: 1, backgroundColor: 'secondary.main' }}>
           <LockOutlinedIcon />
         </Avatar>
+
         <Typography component='h1' variant='h5'>
           Sign in
         </Typography>
-        {error && <Alert severity='error'>{error}</Alert>}
+
         <Typography sx={{ mb: 3 }}>
           An account is created when signing in if it does not already exist.
           <br />
           By signing up you accept the
           {' '}
-          <NextLink href='/terms'>Terms</NextLink>
+          <RouteLink to='/terms'>Terms</RouteLink>
           {' '}
           and the
           {' '}
-          <NextLink href='/privacy_policy'>Privacy Policy</NextLink>
+          <RouteLink to='/privacy_policy'>Privacy Policy</RouteLink>
         </Typography>
-        {Object.values(providers || {}).filter<ClientSafeProvider>(renderProvider).map(provider => {
-          const providerStyle = getStyles(providerStyles[provider.id], currentMode === 'dark');
+
+        {providers?.map(provider => {
+          const providerStyle = getStyles(providerStyles[provider], currentMode === 'dark');
+
           return (
-            <div key={provider.id} className={styles.provider}>
-              <button
-                onClick={() => signIn(provider.id)}
+            <Box
+              key={provider}
+              sx={{
+                width: '100%',
+                display: 'flex',
+                justifyContent: 'center',
+                px: 5,
+                pb: '1rem',
+
+                '& > a': {
+                  display: 'flex',
+                  alignItems: 'center',
+                  width: '100%',
+                },
+
+                '& img': {
+                  borderRadius: 2,
+                  px: 3,
+                  py: 2,
+                },
+              }}
+            >
+              <a
+                href='/api/auth/discord'
                 type='button'
-                style={{
-                  '--provider-bg': providerStyle.bg,
-                  '--provider-text': providerStyle.text,
-                } as React.CSSProperties}
               >
-                {providerStyle.logo && <img loading='lazy' height={24} width={24} src={providerStyle.logo} alt={`${provider.name} logo`} />}
-                <span>Sign in with {provider.name}</span>
-              </button>
-            </div>
+                <img
+                  loading='lazy'
+                  src={providerStyle.logo}
+                  alt={`sign in with ${provider}`}
+                  style={{ backgroundColor: providerStyle.bg }}
+                />
+              </a>
+            </Box>
           );
         })}
-        {hasCredentials && (
-          <>
-            <Divider flexItem variant='middle'>OR</Divider>
-            <Box
-              component='form'
-              sx={{ mt: 1 }}
-              onSubmit={handleSubmit(onSignIn)}
-            >
-              <TextFieldElement
-                control={control}
-                variant='outlined'
-                margin='normal'
-                required
-                fullWidth
-                id='email'
-                label='Email Address'
-                name='email'
-                type='email'
-                autoComplete='email'
-              />
-              <TextFieldElement
-                control={control}
-                variant='outlined'
-                margin='normal'
-                required
-                fullWidth
-                name='password'
-                label='Password'
-                type='password'
-                id='password'
-                autoComplete='current-password'
-              />
-              <CheckboxElement
-                control={control}
-                name='rememberme'
-                id='rememberme'
-                color='primary'
-                label='Remember me'
-                value='true'
-              />
-              <Button
-                type='submit'
-                fullWidth
-                variant='contained'
-                color='primary'
-                sx={{ mt: 3, mb: 2 }}
-              >
-                Sign In
-              </Button>
-              <Grid container>
-                <Grid>
-                  <Link href='#' variant='body2'>
-                    To sign up login with your service of choice.
-                    Creating traditional email + password accounts is not possible.
-                  </Link>
-                </Grid>
-              </Grid>
-            </Box>
-          </>
-        )}
+
+        <Divider flexItem variant='middle'>OR</Divider>
+
+        <Box
+          component='form'
+          sx={{ mt: 1 }}
+          onSubmit={handleSubmit(onSignIn)}
+        >
+          <TextFieldElement
+            control={control}
+            variant='outlined'
+            margin='normal'
+            required
+            fullWidth
+            id='email'
+            label='Email Address'
+            name='email'
+            type='email'
+            autoComplete='email'
+          />
+          <TextFieldElement
+            control={control}
+            variant='outlined'
+            margin='normal'
+            required
+            fullWidth
+            name='password'
+            label='Password'
+            type='password'
+            id='password'
+            autoComplete='current-password'
+          />
+          <CheckboxElement
+            control={control}
+            name='rememberMe'
+            id='rememberme'
+            color='primary'
+            label='Remember me'
+            value='true'
+          />
+          <Button
+            type='submit'
+            fullWidth
+            variant='contained'
+            color='primary'
+            sx={{ mt: 3, mb: 2 }}
+          >
+            Sign In
+          </Button>
+          <Grid container>
+            <Grid>
+              <Link href='#' variant='body2'>
+                To sign up login with your service of choice.
+                Creating traditional email + password accounts is not possible.
+              </Link>
+            </Grid>
+          </Grid>
+        </Box>
       </Box>
     </Container>
   );

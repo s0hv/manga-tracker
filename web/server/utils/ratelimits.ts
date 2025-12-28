@@ -15,6 +15,7 @@ import { createSingleton } from '@/serverUtils/utilities';
 export const redis = createSingleton<Redis>('redisClient', () => new Redis(process.env.REDIS_URL!, {
   enableOfflineQueue: process.env.NODE_ENV !== 'production',
   showFriendlyErrorStack: process.env.NODE_ENV !== 'production',
+  lazyConnect: true,
   retryStrategy: times => {
     if (times > 3) {
       return null;
@@ -62,8 +63,9 @@ export const limiterSlowBruteByIP = createSingleton('bruteforceByIp', () => new 
 const rateLimiterRedis = new RateLimiterRedis(rateLimitOpts);
 
 export const rateLimiter = (req: Request, res: Response, next: NextFunction) => {
-  const key = req.session.userId ?? req.ip;
+  const key = req.session?.userId ?? req.ip ?? '';
   const pointsToConsume = req.session?.userId ? 1 : 3;
+
   rateLimiterRedis.consume(key, pointsToConsume)
     .then(() => next())
     .catch(() => {

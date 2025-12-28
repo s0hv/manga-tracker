@@ -1,3 +1,6 @@
+import type { PostgresAdapter } from '@/db/postgres-adapter';
+import { UserProvider } from '@/webUtils/useUser';
+
 import React, { type PropsWithChildren, isValidElement } from 'react';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -23,9 +26,7 @@ import type { Response } from 'supertest';
 import request from 'supertest';
 import { expect, Mock, MockInstance, vi } from 'vitest';
 
-import type { PostgresAdapter } from '@/db/postgres-adapter';
 import { ServiceForApi } from '@/types/api/services';
-import { UserProvider } from '@/webUtils/useUser';
 
 import { getOpenapiSpecification } from '../swagger';
 
@@ -203,7 +204,7 @@ export const withUser: WithUser = (async (userObject: TestUser, cb: React.ReactE
     await (cb as () => Promise<any>)();
   } finally {
     // Restore the original function
-    getSessionAndUser.mockImplementation((await vi.importActual<typeof import('@/db/auth')>('@/db/auth')).getSessionAndUser);
+    getSessionAndUser.mockImplementation((await vi.importActual<typeof import('@/db/auth')>('@/db/auth')).useSessionAndUser);
   }
 }) as WithUser;
 

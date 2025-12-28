@@ -9,8 +9,8 @@ function createFeed(rows: LatestRelease[]) {
     title: 'Manga releases',
     description: 'Latest manga releases',
     id: 'manga-tracker-rss',
-    link: process.env.BASE_URL,
-    feed_url: `${process.env.BASE_URL}/rss`,
+    link: process.env.HOST,
+    feed_url: `${process.env.HOST.toString()}/rss`,
     custom_namespaces: {
       manga: 'test',
     },

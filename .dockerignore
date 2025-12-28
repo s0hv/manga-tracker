@@ -1,0 +1,8 @@
+**/tsconfig.buildinfo
+**/tsconfig.server.buildinfo
+**/node_modules
+web/coverage
+web/instrumented
+web/dist
+web/__*
+**/.env*

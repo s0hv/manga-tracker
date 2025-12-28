@@ -1,15 +1,6 @@
 import { blue } from '@mui/material/colors';
 import { createTheme, responsiveFontSizes } from '@mui/material/styles';
 import type {} from '@mui/material/themeCssVarsAugmentation';
-import { Roboto } from 'next/font/google';
-
-/* istanbul ignore next */
-export const roboto = Roboto({
-  weight: ['300', '400', '500', '700'],
-  subsets: ['latin'],
-  display: 'swap',
-  fallback: ['Helvetica', 'Arial', 'sans-serif'],
-});
 
 export const theme = responsiveFontSizes(createTheme({
   colorSchemes: {
@@ -38,7 +29,7 @@ export const theme = responsiveFontSizes(createTheme({
     },
   },
   typography: {
-    fontFamily: roboto.style.fontFamily,
+    fontFamily: "'Roboto Variable', 'Helvetica', 'Arial', 'sans-serif'",
   },
 }));
 

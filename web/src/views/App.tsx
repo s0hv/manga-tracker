@@ -1,26 +1,23 @@
 import React, { useMemo, useState } from 'react';
 import { Container, Typography } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
-import dynamic from 'next/dynamic';
 
 import {
   ChapterGroupWithCover,
   ChapterWithLink,
+  GroupedChapterList,
 } from '@/components/GroupedChapterList';
 import type { ChapterRelease } from '@/types/api/chapter';
 import { QueryKeys } from '@/webUtils/constants';
-import { useUser } from '@/webUtils/useUser';
-
 
 import { getLatestChapters } from '../api/chapter';
 import { getServicesQueryOptions } from '../api/services';
-
-const GroupedChapterList = dynamic(import('../components/GroupedChapterList'));
+import { useIsUserAuthenticated } from '../store/userStore';
 
 const getGroupName = (_: unknown, chapters: ChapterRelease[]) => chapters[0].manga;
 
 function App() {
-  const { user } = useUser();
+  const isUserAuthenticated = useIsUserAuthenticated();
   const [mangaToCover, setMangaToCover] = useState<Record<string, string> | null>(null);
   const limit = 15;
 
@@ -28,8 +25,8 @@ function App() {
     data: chapters,
     isFetching: isChaptersFetching,
   } = useQuery<ChapterRelease[]>({
-    queryKey: [QueryKeys.LatestChapters, user],
-    queryFn: () => getLatestChapters(limit, 0, Boolean(user))
+    queryKey: [QueryKeys.LatestChapters, isUserAuthenticated],
+    queryFn: () => getLatestChapters(limit, 0, isUserAuthenticated)
       .then(json => {
         setMangaToCover(
           json.reduce((prev, chapter) => ({ ...prev, [chapter.mangaId]: chapter.cover }), {})
@@ -51,7 +48,7 @@ function App() {
 
   return (
     <Container maxWidth='lg' sx={{ minHeight: '50vh' }}>
-      <Typography variant='h4' sx={{ m: 1 }}>Recent Releases {user ? '(for your follows)' : ''}</Typography>
+      <Typography variant='h4' sx={{ m: 1 }}>Recent Releases {isUserAuthenticated ? '(for your follows)' : ''}</Typography>
       <GroupedChapterList
         chapters={chapters}
         groupKey='mangaId'

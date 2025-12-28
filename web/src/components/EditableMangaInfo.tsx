@@ -5,7 +5,8 @@ import { useSnackbar } from 'notistack';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { SelectElement } from 'react-hook-form-mui';
 
-import { MangaStatus, PostgresInterval } from '@/types/dbTypes';
+import type { MangaData, MangaInfoData } from '@/types/api/manga';
+import { MangaStatus } from '@/types/dbTypes';
 
 import { updateMangaInfo } from '../api/admin/manga';
 import { asNumber } from '../utils/formUtils';
@@ -37,14 +38,7 @@ const InfoTable = styled('table')(({ theme }) => ({
 }));
 
 export type MangaInfoProps = {
-  mangaData: {
-    mangaId: number
-    latestRelease?: string | null
-    estimatedRelease?: string | null
-    releaseInterval?: PostgresInterval | null
-    latestChapter?: number | null
-    status: MangaStatus
-  }
+  mangaData: MangaData & Pick<MangaInfoData, 'status'>
 };
 
 interface FormData {

@@ -1,3 +1,5 @@
+import { UserProvider } from '@/webUtils/useUser';
+
 import React from 'react';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { act, render, screen } from '@testing-library/react';
@@ -8,7 +10,6 @@ import { normalUser, queryClient } from '../utils';
 import type { ChapterRelease } from '@/types/api/chapter';
 import type { ServiceForApi } from '@/types/api/services';
 import App from '@/views/App';
-import { UserProvider } from '@/webUtils/useUser';
 
 
 import {

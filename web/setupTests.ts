@@ -54,7 +54,6 @@ vi.mock('date-fns');
 // CssVarsProvider cannot be used as it expects a working DOM
 // which is not fully provided by the testing framework
 vi.mock('@mui/material/styles', async () => {
-  // eslint-disable-next-line @next/next/no-assign-module-variable
   const module = await vi.importActual<typeof import('@mui/material/styles')>('@mui/material/styles');
   let cachedTheme: any = null;
 

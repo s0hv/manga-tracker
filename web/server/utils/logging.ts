@@ -1,6 +1,6 @@
 import pino from 'pino';
 
-import { isDev } from './constants';
+import { IS_NON_PROD } from './constants';
 
 const level = process.env.LEVEL;
 
@@ -8,7 +8,7 @@ const level = process.env.LEVEL;
 // Otherwise pretty print in development
 const pretty = process.env.PRETTY
   ? /^(y|yes|true|on)$/i.test(process.env.PRETTY)
-  : isDev;
+  : IS_NON_PROD;
 
 export const logger = pino(
   {

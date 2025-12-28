@@ -1,8 +1,7 @@
 import type { Request as ExpressRequest } from 'express-serve-static-core';
 import type { Location } from 'express-validator';
-import type { AdapterSession } from 'next-auth/adapters';
 
-import type { PostgresAdapter } from '@/db/postgres-adapter';
+import type { SafeSession } from '@/types/session';
 
 import type { SessionData, SessionUser } from './dbTypes';
 
@@ -17,12 +16,10 @@ declare module 'next-auth/adapters' {
 declare module 'express-serve-static-core' {
   interface Request {
     user: SessionUser | null
-    session: AdapterSession | Record<string, never>
-    sessionStore: PostgresAdapter
-  }
-
-  interface Express {
-    sessionStore: PostgresAdapter
+    session: SafeSession | null
+    isStaticResource?: boolean
+    _nonce?: string
+    getNonce(): string
   }
 }
 

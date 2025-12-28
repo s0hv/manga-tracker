@@ -11,3 +11,5 @@ export const QueryKeys = {
   NotificationFollows: ['notification-follows'],
   LatestChapters: 'latest-chapters',
 } as const;
+
+export const noRows: never[] = [];

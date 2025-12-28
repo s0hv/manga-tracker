@@ -13,6 +13,7 @@ import { useSnackbar } from 'notistack';
 import { type SubmitHandler, useController, useForm } from 'react-hook-form';
 import { TextFieldElement } from 'react-hook-form-mui';
 
+import { postNotifications } from '#web/api/notifications';
 import type { FormValues } from '@/components/notifications/types';
 import type { NotificationData } from '@/types/api/notifications';
 import { NotificationTypes } from '@/webUtils/constants';
@@ -21,7 +22,6 @@ import {
   mapNotificationFields,
 } from '@/webUtils/utilities';
 
-import { postNotifications } from '../../api/notifications';
 
 import DefaultHelpTexts from './DefaultHelpTexts';
 import DeleteNotificationButton from './DeleteNotificationButton';
