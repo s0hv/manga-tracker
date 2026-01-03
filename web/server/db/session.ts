@@ -25,7 +25,7 @@ import type { PartialExcept } from '@/types/utility';
 
 const SESSION_AGE_HOURS = 2;
 
-const sessionCache = createSingleton('sessionCache', () => new LRUCache<string, Session>({
+export const sessionCache = createSingleton('sessionCache', () => new LRUCache<string, Session>({
   max: 50,
   ttl: 7200000, // 2 h in ms
   noDisposeOnSet: true,
@@ -43,19 +43,27 @@ const sessionClearIntervalHandle = createSingleton<SessionClearInterval>('sessio
  * Sets the session clear interval and starts clearing sessions.
  *
  * @param clearIntervalMs the interval to clear sessions in milliseconds
+ * @param clearSessionsFn the function to call to clear sessions. Should only be set for testing purposes.
  */
-export function setSessionClearInterval(clearIntervalMs: number): NodeJS.Timeout | undefined {
+export function setSessionClearInterval(clearIntervalMs: number | null, clearSessionsFn = clearOldSessions): NodeJS.Timeout | undefined {
+  if (clearIntervalMs === null) {
+    if (sessionClearIntervalHandle.handle) {
+      clearInterval(sessionClearIntervalHandle.handle);
+    }
+    return;
+  }
+
   if (!Number.isFinite(clearIntervalMs)) {
     return;
   }
 
-  // Stop old interval if it exists
+  // Stop the old interval if it exists
   if (sessionClearIntervalHandle.handle) {
     clearInterval(sessionClearIntervalHandle.handle);
   }
 
   const handle = setInterval(
-    () => clearOldSessions()
+    () => clearSessionsFn()
       .catch((err: any) => sessionLogger.error(err, 'Failed to clear old sessions')),
     clearIntervalMs
   );
@@ -65,8 +73,18 @@ export function setSessionClearInterval(clearIntervalMs: number): NodeJS.Timeout
   return handle;
 }
 
-export function clearOldSessions() {
-  return db.none`DELETE FROM sessions WHERE expires_at < CURRENT_TIMESTAMP`;
+export async function clearOldSessions() {
+  const data = await db.manyOrNone`DELETE FROM sessions WHERE expires_at < CURRENT_TIMESTAMP RETURNING data, session_id`;
+
+  data.forEach(({ sessionId }) => sessionCache.delete(sessionId));
+
+  for (const session of data) {
+    try {
+      await onSessionExpire(session);
+    } catch (err) {
+      sessionLogger.error(err, 'Failed to count manga views');
+    }
+  }
 }
 
 export async function createSession(userId: number | null): Promise<Pick<SessionWithToken, 'token' | 'expiresAt' | 'sessionId'>> {
@@ -192,9 +210,9 @@ export async function deleteSession(sessionId: string): Promise<void> {
       WHERE session_id = ${sessionId}
       RETURNING session_id, expires_at, user_id, data`;
 
-  if (!session) return;
+  sessionCache.delete(sessionId);
 
-  sessionCache.delete(session.sessionId);
+  if (!session) return;
 
   void onSessionExpire(session)
     .catch((err: unknown) => dbLogger.error(err, 'Failed to count manga views'));

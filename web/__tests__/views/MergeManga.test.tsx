@@ -4,12 +4,14 @@ import userEvent, { type UserEvent } from '@testing-library/user-event';
 import fetchMock from 'fetch-mock';
 import { describe, expect, it, vi } from 'vitest';
 
+import { TestRoot } from '@/tests/utils';
 import { emptyFullManga, fullManga } from '@/tests/constants';
 import type { SearchedMangaWithService } from '@/types/api/manga';
 import MergeManga from '@/views/MergeManga';
 
 
 vi.mock('es-toolkit', () => ({ throttle: (_: unknown) => _ }));
+vi.mock('@tanstack/react-router');
 
 describe('Merge manga page should render correctly', () => {
   const mockResult: SearchedMangaWithService[] = [
@@ -60,7 +62,7 @@ describe('Merge manga page should render correctly', () => {
   };
 
   it('should render correctly with different manga', async () => {
-    render(<MergeManga />);
+    render(<TestRoot><MergeManga /></TestRoot>);
 
     // Make sure manga sections were not rendered
     expect(screen.queryByLabelText('base manga')).not.toBeInTheDocument();
@@ -83,7 +85,7 @@ describe('Merge manga page should render correctly', () => {
   });
 
   it('Should not show merge button with same manga', async () => {
-    render(<MergeManga />);
+    render(<TestRoot><MergeManga /></TestRoot>);
 
     const user = userEvent.setup();
 
@@ -97,7 +99,7 @@ describe('Merge manga page should render correctly', () => {
   });
 
   it('Should not show merge button with one manga', async () => {
-    render(<MergeManga />);
+    render(<TestRoot><MergeManga /></TestRoot>);
     const user = userEvent.setup();
 
     // Search and select manga for both slots
@@ -112,7 +114,7 @@ describe('Merge manga page should render correctly', () => {
     const url = 'glob:/api/manga/merge?*';
     fetchMock.mock(url, { aliasCount: 1, chapterCount: 1 });
 
-    render(<MergeManga />);
+    render(<TestRoot><MergeManga /></TestRoot>);
     const user = userEvent.setup();
 
     // Search and select manga for both slots

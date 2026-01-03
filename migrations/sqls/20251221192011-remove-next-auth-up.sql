@@ -45,6 +45,9 @@ ALTER TABLE sessions
     ALTER COLUMN user_id TYPE INT USING 0;
 
 ALTER TABLE sessions
+  ALTER COLUMN user_id DROP NOT NULL;
+
+ALTER TABLE sessions
   ADD session_secret BYTEA NOT NULL;
 
 ALTER TABLE sessions
@@ -58,7 +61,7 @@ CREATE TABLE auth_token
   user_id    INT                      NOT NULL
     CONSTRAINT fk_auth_token_user_id REFERENCES users
       ON DELETE CASCADE,
-  token      BYTEA                    NOT NULL UNIQUE,
+  token_hash BYTEA                    NOT NULL UNIQUE,
   lookup     TEXT                     NOT NULL,
   expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
   PRIMARY KEY (user_id, lookup)

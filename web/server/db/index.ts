@@ -7,7 +7,7 @@ import { createSingleton } from '@/serverUtils/utilities';
 import { queryLogger } from '../utils/logging';
 
 // This environment variable is set during pre-renders
-const IS_PRERENDER = !!process.env.VITE_USER_NODE_ENV;
+const IS_PRERENDER = process.env.IS_PRERENDER;
 
 const intervalType: PostgresType<IPostgresInterval> = {
   to: 1186,
@@ -38,9 +38,9 @@ export const db: Db = createSingleton<Db>('database', () => postgres<CustomTypes
   password: process.env.PGPASSWORD,
   max: 10,
   idle_timeout: isTest ? 1 : 300,
-  // Fetch types initializes a connection when the object is created,
+  // 'fetch_types' initializes a connection when the object is created,
   // which is not ideal
-  fetch_types: !(isTest || IS_PRERENDER),
+  fetch_types: !IS_PRERENDER,
   connect_timeout: 60,
   transform: {
     undefined: null,

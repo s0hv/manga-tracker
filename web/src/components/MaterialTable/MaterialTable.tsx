@@ -84,6 +84,7 @@ const skeletonCount = new Array(10).fill(0);
 
 export type MaterialTableProps<TData> = {
   title?: string
+  arialLabel?: string
   data: TData[]
   columns: MaterialColumnDef<TData>[]
   sortable?: boolean
@@ -112,6 +113,7 @@ export type MaterialTableProps<TData> = {
 const MaterialTable = <TData, >(props: MaterialTableProps<TData>): ReactElement => {
   const {
     title,
+    arialLabel,
     columns,
     data,
     sortable = false,
@@ -214,7 +216,8 @@ const MaterialTable = <TData, >(props: MaterialTableProps<TData>): ReactElement 
         {...toolbarProps}
       />
       <Table
-        aria-label={title}
+        aria-label={arialLabel ?? title}
+        data-isloading={loading}
       >
         <colgroup>
           {table.getVisibleFlatColumns().map(col => <col width={col.columnDef.width} key={col.id} />)}

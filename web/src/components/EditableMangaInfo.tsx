@@ -129,7 +129,7 @@ const EditableMangaInfo: FunctionComponent<MangaInfoProps> = ({ mangaData }) => 
         <tr>
           <th scope='row'>
             <Typography>
-              <label id='status-label'>Publication status</label>
+              <span id='status-label'>Publication status</span>
               :
             </Typography>
           </th>
@@ -138,7 +138,9 @@ const EditableMangaInfo: FunctionComponent<MangaInfoProps> = ({ mangaData }) => 
               name='status'
               slotProps={{
                 select: {
-                  labelId: 'status-label',
+                  inputProps: {
+                    'aria-label': 'publication status',
+                  },
                 },
               }}
               fullWidth

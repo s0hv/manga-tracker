@@ -1,6 +1,7 @@
 import { type FC, lazy, Suspense, useCallback, useMemo, useState } from 'react';
 import {
-  Button,
+  Box,
+  Button, CircularProgress,
   Container,
   FormControl,
   InputLabel,
@@ -33,6 +34,17 @@ const ResponsiveBox = styled('div')(({ theme }) => ({
   },
 }));
 
+const EditorLoadingFallback = () => (
+  <Box sx={{
+    height: '250px',
+    alignSelf: 'center',
+    alignContent: 'center',
+  }}
+  >
+    <CircularProgress />
+  </Box>
+);
+
 const DiscordWebhookEditor = lazy(() => import('../components/notifications/DiscordWebhookEditor'));
 const WebhookEditor = lazy(() => import('../components/notifications/WebhookEditor'));
 
@@ -63,6 +75,9 @@ const Notifications: FC = () => {
         md: 'min-content',
         lg: '1100px',
       },
+      display: 'flex',
+      flexFlow: 'column',
+      gap: '1rem',
     }}
     >
       <ResponsiveBox>
@@ -93,7 +108,7 @@ const Notifications: FC = () => {
         const Component = NotificationComponents[notif.notificationType as keyof typeof NotificationComponents];
         if (!Component) return <span>Invalid notification type {notif.notificationType}</span>;
         return (
-          <Suspense key={notif.notificationId || `temp-${idx}`}>
+          <Suspense key={notif.notificationId || `temp-${idx}`} fallback={<EditorLoadingFallback />}>
             <Component
               notificationData={notif}
               defaultExpanded={!notif.notificationId || defaultExpanded}

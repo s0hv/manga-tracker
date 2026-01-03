@@ -9,7 +9,7 @@ export const Route = createFileRoute('/(static)/privacy_policy')({
 });
 
 // Generated in part by https://www.gdprprivacynotice.com/
-function PrivacyPolicy() {
+export function PrivacyPolicy() {
   return (
     <Container
       sx={{

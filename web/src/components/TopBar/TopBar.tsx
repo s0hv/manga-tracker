@@ -118,6 +118,7 @@ function TopBar() {
                 <LinkButton
                   to='/login'
                   preload='intent'
+                  preloadDelay={500}
                   variant='outlined'
                   color='primary'
                   onClick={onLoginClick}

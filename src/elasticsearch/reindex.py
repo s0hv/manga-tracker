@@ -1,8 +1,13 @@
+import os
+from collections.abc import Generator
+from contextlib import contextmanager
 from typing import LiteralString
 
+import psycopg
 from elasticsearch.helpers import bulk
-from psycopg import Cursor
+from psycopg import Connection, Cursor
 from psycopg.rows import DictRow
+from psycopg_pool import ConnectionPool
 
 from elasticsearch import Elasticsearch
 from src.elasticsearch.configuration import INDEX_MAPPINGS, INDEX_NAME, INDEX_SETTINGS
@@ -44,15 +49,43 @@ GROUP BY m.manga_id, ms.manga_id
 if __name__ == '__main__':
     from src import setup_logging
     from src.elasticsearch.configuration import get_client
-    from src.scheduler import UpdateScheduler
+
+    config = {
+        'host':        os.environ['DB_HOST'],
+        'dbname':      os.environ['DB_NAME'],
+        'user':        os.environ['DB_USER'],
+        'password':    os.environ['DB_PASSWORD'],
+        'port':        os.environ['DB_PORT'],
+        'row_factory': psycopg.rows.dict_row,
+    }
+
+    pool = ConnectionPool[Connection[DictRow]](
+        connection_class=Connection[DictRow],
+        min_size=1,
+        max_size=1,
+        kwargs=config,
+        open=True,
+    )
+
+    @contextmanager
+    def connection() -> Generator[Connection[DictRow]]:
+        conn_: Connection[DictRow] = pool.getconn()
+        try:
+            yield conn_
+        except Exception:
+            conn_.rollback()
+            raise
+        else:
+            conn_.commit()
+        finally:
+            pool.putconn(conn_)
 
     setup_logging.setup()
-    scheduler = UpdateScheduler()
-    with scheduler.conn() as conn, conn.cursor() as cur:
+    with connection() as conn, conn.cursor() as cur:
         es = get_client()
         esm = ElasticMethods(es)
 
         reindex(es, cur)
 
     es.close()
-    scheduler.pool.close()
+    pool.close()

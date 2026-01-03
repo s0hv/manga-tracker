@@ -234,15 +234,6 @@ describe('GET /api/admin/manga/:mangaId/scheduledRuns', () => {
         });
     });
   });
-
-  // Does not do this at the moment
-  it.skip('Returns 404 when resource does not exist', async () => {
-    await withUser(adminUser, async () => {
-      await request(httpServer)
-        .get(url)
-        .expect(404);
-    });
-  });
 });
 
 

@@ -2,7 +2,12 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
-import { normalUser, restoreMocks, silenceConsole, withUser } from '@/tests/utils';
+import {
+  normalUser,
+  restoreMocks,
+  silenceConsole,
+  TestRoot,
+} from '@/tests/utils';
 import MangaSourceList from '@/components/MangaSourceList';
 import type { MangaServiceData } from '@/types/api/manga';
 
@@ -35,36 +40,36 @@ const follows = [1];
 
 describe('Manga source list', () => {
   it('Should render correctly without input', () => {
-    render(<MangaSourceList />);
+    render(<TestRoot><MangaSourceList /></TestRoot>);
 
     expect(screen.queryByRole('listitem')).not.toBeInTheDocument();
   });
 
   it('Should render correctly with items without user', () => {
     render(
-      <MangaSourceList
-        items={services}
-        classesProp={['test-class-1', 'test-class-2']}
-        openByDefault
-      />
+      <TestRoot>
+        <MangaSourceList
+          items={services}
+          classesProp={['test-class-1', 'test-class-2']}
+          openByDefault
+        />
+      </TestRoot>
     );
 
     expect(screen.queryAllByRole('listitem')).toHaveLength(services.length);
     expect(screen.queryByRole('button', { name: /follow /i })).not.toBeInTheDocument();
   });
 
-  it('Should render correctly with items and user', async () => {
+  it('Should render correctly with items and user', () => {
     render(
-      await withUser(
-        normalUser, (
-          <MangaSourceList
-            items={services}
-            userFollows={follows}
-            classesProp={['test-class-1', 'test-class-2']}
-            openByDefault
-          />
-        )
-      )
+      <TestRoot user={normalUser}>
+        <MangaSourceList
+          items={services}
+          userFollows={follows}
+          classesProp={['test-class-1', 'test-class-2']}
+          openByDefault
+        />
+      </TestRoot>
     );
 
     expect(screen.queryAllByRole('listitem')).toHaveLength(services.length);
@@ -80,11 +85,13 @@ describe('Manga source list', () => {
 
     const spies = silenceConsole();
     expect(() => render(
-      <MangaSourceList
+      <TestRoot>
+        <MangaSourceList
         // @ts-expect-error Testing invalid input
-        items={invalid}
-        classesProp={['test-class-1', 'test-class-2']}
-      />
+          items={invalid}
+          classesProp={['test-class-1', 'test-class-2']}
+        />
+      </TestRoot>
     )).toThrow();
     restoreMocks(spies);
   });
@@ -98,17 +105,15 @@ describe('Manga source list should handle user input', () => {
     createEvent.mockImplementation(() => followUnfollow);
 
     render(
-      await withUser(
-        normalUser, (
-          <MangaSourceList
-            items={services}
-            userFollows={follows}
-            classesProp={['test-class-1', 'test-class-2']}
-            followUnfollow={createEvent}
-            openByDefault
-          />
-        )
-      )
+      <TestRoot user={normalUser}>
+        <MangaSourceList
+          items={services}
+          userFollows={follows}
+          classesProp={['test-class-1', 'test-class-2']}
+          followUnfollow={createEvent}
+          openByDefault
+        />
+      </TestRoot>
     );
 
     expect(createEvent).toHaveBeenCalledTimes(services.length);
@@ -126,15 +131,13 @@ describe('Manga source list should handle user input', () => {
 
   it('Should open and close collapsed list on clicks', async () => {
     render(
-      await withUser(
-        normalUser, (
-          <MangaSourceList
-            items={services}
-            userFollows={follows}
-            classesProp={['test-class-1', 'test-class-2']}
-          />
-        )
-      )
+      <TestRoot user={normalUser}>
+        <MangaSourceList
+          items={services}
+          userFollows={follows}
+          classesProp={['test-class-1', 'test-class-2']}
+        />
+      </TestRoot>
     );
 
     expect(screen.queryByRole('listitem')).not.toBeInTheDocument();

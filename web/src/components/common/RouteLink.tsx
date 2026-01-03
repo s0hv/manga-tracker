@@ -1,12 +1,10 @@
 import { forwardRef } from 'react';
 import { Link as MuiLink, LinkProps as MuiLinkProps } from '@mui/material';
-import { createLink } from '@tanstack/react-router';
-import type { LinkComponent } from '@tanstack/react-router';
+import { type LinkComponent, createLink } from '@tanstack/react-router';
 
 const MuiLinkComponent = forwardRef<HTMLAnchorElement, MuiLinkProps>(
   (props, ref) => <MuiLink ref={ref} {...props} />
 );
-
 
 export const CreatedLink = createLink(MuiLinkComponent);
 

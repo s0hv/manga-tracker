@@ -9,11 +9,13 @@ describe('Release heatmap', () => {
   // mock ResizeObserver
   window.ResizeObserver =
     window.ResizeObserver
-    || vi.fn().mockImplementation(() => ({
-      disconnect: vi.fn(),
-      observe: vi.fn(),
-      unobserve: vi.fn(),
-    }));
+    || vi.fn().mockImplementation(function () {
+      return {
+        disconnect: vi.fn(),
+        observe: vi.fn(),
+        unobserve: vi.fn(),
+      };
+    });
 
   const data: ChapterReleaseDates[] = [
     { timestamp: 1564088400, count: 3 },

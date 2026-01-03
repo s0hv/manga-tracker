@@ -35,6 +35,11 @@ dev = [
     "types-protobuf~=5.29",
     "types-requests~=2.31.0.6",
 ]
+cypress = [
+    "psycopg[binary,pool]~=3.2.12",
+    "elasticsearch~=7.17.12",
+    "ansicolors~=1.1.8",
+]
 
 [tool.uv]
 no-binary-package = ["psycopg"]

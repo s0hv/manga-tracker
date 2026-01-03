@@ -110,7 +110,7 @@ const MangaOverrideSelector = <TFieldValues extends FormValues = FormValues>({
   });
 
   const options = useMemo<NotificationFollow[]>(() => {
-    const actualData: NotificationFollow[] = useFollows ? (data ?? []) : selectedManga!;
+    const actualData: NotificationFollow[] = (useFollows ? data : selectedManga) ?? [];
     const foundManga: Set<number> = new Set();
     const filteredData: NotificationFollow[] = [];
 

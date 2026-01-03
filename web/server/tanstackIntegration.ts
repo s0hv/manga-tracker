@@ -1,3 +1,4 @@
+/* istanbul ignore file */
 import type { Express } from 'express-serve-static-core';
 import { type AdapterMeta, toNodeHandler } from 'srvx/node';
 

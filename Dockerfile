@@ -28,6 +28,10 @@ FROM dhi.io/node:24-alpine3.22 AS runtime-stage
 
 ENV NODE_ENV=production
 
+# Install the sh shell.
+# A shell is required by dokku so it can run commands from the procfile
+COPY --from=build-stage /bin/sh /bin/sh
+
 WORKDIR /app
 
 COPY package.json migrations-config.json Procfile ./
@@ -37,5 +41,6 @@ COPY --from=build-stage /app/web/node_modules /app/web/node_modules
 COPY --from=build-stage /app/node_modules /app/node_modules
 COPY --from=build-stage /app/web/dist /app/web/dist
 COPY ./web/package.json /app/web/
+COPY app.json /app/app.json
 
 CMD ["node", "--enable-source-maps", "web/dist/server.js"]

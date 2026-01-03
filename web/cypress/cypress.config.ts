@@ -1,5 +1,8 @@
+import signature from 'cookie-signature';
 import { defineConfig } from 'cypress';
 
+import { COOKIE_SECRET } from './constants';
+import { parseAuthCookie } from './dist/server/db/auth';
 import { db } from './dist/server/db/helpers';
 import { redis } from './dist/server/utils/ratelimits';
 import type { CreatedUser } from './types';
@@ -14,6 +17,12 @@ export default defineConfig({
     async setupNodeEvents(on, config) {
       await import('@cypress/code-coverage/task').then(({ default: fn }) => fn(on, config));
 
+      function unsignCookie(value: string) {
+        const unsigned = signature.unsign(decodeURIComponent(value).slice(2), COOKIE_SECRET);
+
+        return unsigned as string;
+      }
+
       on('task', {
         flushRedis() {
           return redis.flushall()
@@ -22,14 +31,15 @@ export default defineConfig({
               throw err;
             });
         },
+
         async createUser(): Promise<CreatedUser> {
           const username = Date.now().toString();
           const password = username;
           const email = `${username}@email.com`;
 
           await db.none`
-            INSERT INTO users (username, email, pwhash, email_verified, is_credentials_account, theme) 
-            VALUES (${username}, ${email}, crypt(${password}, gen_salt('bf')), NULL, TRUE, 'dark')`;
+            INSERT INTO users (username, email, pwhash, theme) 
+            VALUES (${username}, ${email}, crypt(${password}, gen_salt('bf')), 'dark')`;
 
           return {
             username,
@@ -37,8 +47,15 @@ export default defineConfig({
             email,
           };
         },
-        getSession(sessionId: string) {
-          return db.oneOrNone`SELECT * FROM sessions WHERE session_id = ${sessionId}`;
+
+        getSession(sessionCookie: string) {
+          const [lookup, _] = unsignCookie(sessionCookie).split('.');
+          return db.oneOrNone`SELECT * FROM sessions WHERE session_id = ${lookup}`;
+        },
+
+        getAuthToken(authTokenCookie: string) {
+          const token = parseAuthCookie(unsignCookie(authTokenCookie));
+          return db.oneOrNone`SELECT * FROM auth_token WHERE lookup=${token.lookup}`;
         },
       });
 
@@ -46,10 +63,12 @@ export default defineConfig({
     },
     baseUrl: 'http://localhost:3000',
     chromeWebSecurity: true,
+    screenshotsFolder: 'screenshots',
   },
   env: {
     codeCoverage: {
       url: 'http://localhost:3000/__coverage__',
+      expectBackendCoverageOnly: false,
       exclude: [
         '**/node_modules/**',
         './**',

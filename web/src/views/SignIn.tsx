@@ -1,6 +1,7 @@
-import React, { useCallback } from 'react';
+import { type ReactElement, useCallback } from 'react';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import {
+  Alert,
   Avatar,
   Box,
   Button,
@@ -12,13 +13,14 @@ import {
 } from '@mui/material';
 import { useColorScheme } from '@mui/material/styles';
 import { useNavigate } from '@tanstack/react-router';
+import { HTTPError } from 'ky';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { CheckboxElement, TextFieldElement } from 'react-hook-form-mui';
 
 import type { OAuthProvider } from '@/common/auth/providers';
 import { RouteLink } from '@/components/common/RouteLink';
 
-import { handleError } from '../api/utilities';
+import { baseKy } from '../api/utilities';
 
 import discordLogo from 'src/resources/Discord-Logo-Blurple.svg';
 import discordLogoLight from 'src/resources/Discord-Logo-Light-Blurple.svg';
@@ -64,27 +66,52 @@ const getStyles = (style: ProviderStyle, darkTheme: boolean): Pick<ProviderStyle
   };
 };
 
-export default function SignIn({ providers }: SignInProps): React.ReactElement {
+export default function SignIn({ providers }: SignInProps): ReactElement {
   const { mode, systemMode } = useColorScheme();
   const navigate = useNavigate();
   // Will always be undefined on server
   const currentMode = mode === 'system' ? systemMode : (mode ?? 'dark');
 
-  const { control, handleSubmit } = useForm<SignInFormValues>();
+  const {
+    control,
+    handleSubmit,
+    setError,
+    formState: { errors },
+  } = useForm<SignInFormValues>();
 
   const onSignIn = useCallback<SubmitHandler<SignInFormValues>>(values => {
-    return fetch(`/api/auth/login`, {
-      method: 'POST',
+    return baseKy.post('auth/login', {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(values),
+      json: values,
+      // TODO this makes an unnecessary fetch to the redirect url. Maybe there's a better way to handle this.
+      redirect: 'follow',
     })
       .then(res => {
-        void navigate({ reloadDocument: true, to: res.headers.get('location') ?? undefined });
+        void navigate({ reloadDocument: true, to: new URL(res.url).pathname });
       })
-      .catch(handleError);
-  }, [navigate]);
+      .catch(err => {
+        if (err instanceof HTTPError) {
+          let errorMessage: string;
+
+          switch (err.response.status) {
+            case 401:
+              errorMessage = 'Invalid login';
+              break;
+
+            case 429:
+              errorMessage = 'Ratelimited';
+              break;
+
+            default:
+              errorMessage = err.response.statusText;
+          }
+
+          setError('root', { message: errorMessage });
+        }
+      });
+  }, [navigate, setError]);
 
   return (
     <Container maxWidth='xs'>
@@ -158,6 +185,8 @@ export default function SignIn({ providers }: SignInProps): React.ReactElement {
 
         <Divider flexItem variant='middle'>OR</Divider>
 
+        {errors.root && <Alert severity='error'>{errors.root.message}</Alert>}
+
         <Box
           component='form'
           sx={{ mt: 1 }}
@@ -175,6 +204,7 @@ export default function SignIn({ providers }: SignInProps): React.ReactElement {
             type='email'
             autoComplete='email'
           />
+
           <TextFieldElement
             control={control}
             variant='outlined'
@@ -187,6 +217,7 @@ export default function SignIn({ providers }: SignInProps): React.ReactElement {
             id='password'
             autoComplete='current-password'
           />
+
           <CheckboxElement
             control={control}
             name='rememberMe'
@@ -195,6 +226,7 @@ export default function SignIn({ providers }: SignInProps): React.ReactElement {
             label='Remember me'
             value='true'
           />
+
           <Button
             type='submit'
             fullWidth
@@ -204,6 +236,7 @@ export default function SignIn({ providers }: SignInProps): React.ReactElement {
           >
             Sign In
           </Button>
+
           <Grid container>
             <Grid>
               <Link href='#' variant='body2'>

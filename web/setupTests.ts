@@ -10,7 +10,14 @@ import { theme } from '@/webUtils/theme';
 
 expect.extend(extendedMatchers);
 
-config({ path: '../.env' });
+if (!process.env.IS_CI) {
+  config({ path: '../.env' });
+}
+process.env.ENVIRONMENT = 'unit-test';
+// Matches COOKIE_SECRET from ./__tests__/constants
+// It cannot be imported because it relies on imports that rely on these mocks.
+process.env.COOKIE_SECRET = 'secret';
+process.env.LOGIN_RETRY_COUNT = '3';
 
 afterEach(() => {
   cleanup();
@@ -31,7 +38,7 @@ const Test = request.Test as TestType & { prototype: any };
  * @memberOf supertest.Test
  */
 Test.prototype.csrf = function csrf(): TestType {
-  return this.set('Origin', '/');
+  return this.set('Origin', 'http://localhost:3000');
 };
 
 /**
@@ -42,13 +49,6 @@ Test.prototype.satisfiesApiSpec = function satisfiesApiSpec(): TestType {
   return this.expect((res: any) => expect(res).toSatisfyApiSpec());
 };
 
-vi.mock('next');
-vi.mock('next/router');
-vi.mock('next/font/google', () => {
-  return {
-    Roboto: vi.fn().mockReturnValue({ style: { fontFamily: 'test' }}),
-  };
-});
 vi.mock('date-fns');
 
 // CssVarsProvider cannot be used as it expects a working DOM

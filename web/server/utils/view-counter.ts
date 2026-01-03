@@ -4,7 +4,7 @@ import { db } from '#server/db/helpers';
 import type { SafeSession } from '@/types/session';
 
 
-export const addMangaView = (session: SafeSession | null, mangaIdStr: string): boolean => {
+export const addMangaView = (session: Pick<SafeSession, 'data'> | null, mangaIdStr: string): boolean => {
   if (!session) {
     return false;
   }
@@ -32,7 +32,7 @@ export const addMangaView = (session: SafeSession | null, mangaIdStr: string): b
 /**
  * Reads manga views from session and adds them to the database
  */
-export const onSessionExpire = (session: SafeSession | null): PendingQuery<Row[]> | Promise<void> => {
+export const onSessionExpire = (session: Pick<SafeSession, 'data'> | null): PendingQuery<Row[]> | Promise<void> => {
   const mangaViews = session?.data?.mangaViews;
   if (!session || !mangaViews || Object.keys(mangaViews).length === 0) {
     return Promise.resolve();

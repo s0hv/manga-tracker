@@ -1,7 +1,7 @@
 import { render, screen, within } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
-import { mockUTCDates } from '@/tests/utils';
+import { getCoverUrl, mockUTCDates, TestRoot } from '@/tests/utils';
 import PartialManga from '@/components/PartialManga';
 import { emptyFullManga as emptyManga, fullManga as manga } from '@/tests/constants';
 import type { FullMangaData } from '@/types/api/manga';
@@ -20,7 +20,7 @@ describe('Partial manga should render correctly', () => {
     // Find cover
     if (hasCover) {
       const cover = screen.getByAltText(mangaData.title);
-      expect(screen.getByAltText(mangaData.title).getAttribute('src')).toStartWith('/_next/image?url=' + encodeURIComponent(mangaData.cover!));
+      expect(screen.getByAltText(mangaData.title)).toHaveAttribute('src', getCoverUrl(mangaData.cover));
       expect(cover.closest('a')!.getAttribute('href')).toBe(`/manga/${mangaData.mangaId}`);
     }
 
@@ -34,25 +34,25 @@ describe('Partial manga should render correctly', () => {
   };
 
   it('Should render correctly with no input', () => {
-    const { container } = render(<PartialManga />);
+    const { container } = render(<TestRoot><PartialManga /></TestRoot>);
 
     expect(container).toBeEmptyDOMElement();
   });
 
   it('Should render correctly with input', () => {
-    render(<PartialManga manga={manga.manga} services={manga.services} />);
+    render(<TestRoot><PartialManga manga={manga.manga} services={manga.services} /></TestRoot>);
 
     assertCorrectRender(manga.manga);
   });
 
   it('Should render correctly with minimal input', () => {
-    render(<PartialManga manga={emptyManga.manga} />);
+    render(<TestRoot><PartialManga manga={emptyManga.manga} /></TestRoot>);
 
     assertCorrectRender(emptyManga.manga, false);
   });
 
   it('Should render correctly when showId is true', () => {
-    render(<PartialManga manga={manga.manga} showId />);
+    render(<TestRoot><PartialManga manga={manga.manga} showId /></TestRoot>);
 
     assertCorrectRender(manga.manga);
 

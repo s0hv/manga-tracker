@@ -2,6 +2,7 @@ import type { QueryClient } from '@tanstack/react-query';
 import { notFound } from '@tanstack/react-router';
 import { createIsomorphicFn } from '@tanstack/react-start';
 
+import { handleErrorInRoute } from '#web/api/utilities';
 import { getFullManga } from '@/db/manga';
 import type { DatabaseId } from '@/types/dbTypes';
 
@@ -18,5 +19,6 @@ export const getFullMangaFn = createIsomorphicFn()
     return manga;
   })
   .client(async (queryClient: QueryClient, mangaId: DatabaseId) => {
-    return queryClient.ensureQueryData(getMangaQueryOptions(mangaId));
+    return queryClient.ensureQueryData(getMangaQueryOptions(mangaId))
+      .catch(handleErrorInRoute);
   });

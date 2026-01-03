@@ -1,17 +1,18 @@
 import { render, screen, within } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { mockUTCDates } from '@/tests/utils';
 import Follows from '@/components/Follows';
 import type { Follow } from '@/types/db/follows';
 
 mockUTCDates();
+vi.mock('@tanstack/react-router');
 
 describe('Follows page should render correctly', () => {
   const follows: Follow[] = [
     {
       title: 'Dr. STONE',
-      cover: '/images/test.png',
+      cover: 'http://localhost/images/test.png',
       mangaId: 1,
       latestChapter: 90,
       latestRelease: '2020-08-20T15:36:07.865Z',
@@ -36,7 +37,7 @@ describe('Follows page should render correctly', () => {
     },
     {
       title: 'Shuumatsu no Valkyrie',
-      cover: '/images/test2.png',
+      cover: 'http://localhost/images/test2.png',
       mangaId: 8,
       services: [
         {
@@ -52,7 +53,7 @@ describe('Follows page should render correctly', () => {
     },
     {
       title: 'Kengan Omega',
-      cover: '/images/test3.png',
+      cover: 'http://localhost/images/test3.png',
       mangaId: 64,
       latestChapter: 10,
       services: [
@@ -82,17 +83,17 @@ describe('Follows page should render correctly', () => {
     follows.forEach(follow => {
       const elem = within(screen.getByText(follow.title).parentElement!);
 
-      if (!follow.latestRelease) {
-        expect(elem.getByRole('row', { name: /latest release: unknown/i })).toBeInTheDocument();
-      } else {
-        expect(elem.getByRole('row', { name: /latest release: \d+ \w+ ago/i })).toBeInTheDocument();
-      }
+      const latestReleaseRegex = follow.latestRelease
+        ? /latest release: \d+ \w+ ago/i
+        : /latest release: unknown/i;
 
-      if (!follow.latestChapter) {
-        expect(elem.getByRole('row', { name: /latest chapter: no chapters/i })).toBeInTheDocument();
-      } else {
-        expect(elem.getByRole('row', { name: /latest chapter: \d+/i })).toBeInTheDocument();
-      }
+      expect(elem.getByRole('row', { name: latestReleaseRegex })).toBeInTheDocument();
+
+      const latestChapterRegex = follow.latestChapter
+        ? /latest chapter: \d+/i
+        : /latest chapter: no chapters/i;
+
+      expect(elem.getByRole('row', { name: latestChapterRegex })).toBeInTheDocument();
 
       const serviceList = within(elem.getByLabelText('manga services'));
       expect(serviceList.getByText(/all services/i)).toBeInTheDocument();

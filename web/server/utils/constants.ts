@@ -2,9 +2,12 @@ import type { CookieOptions } from 'express-serve-static-core';
 
 import type { OAuthProvider } from '@/common/auth/providers';
 
-export const HOST_URL = new URL(process.env.HOST);
+// We can use a fallback here for cypress.
+// It should not be used elsewhere, and env var checks should stop execution
+// if HOST is missing
+export const HOST_URL = new URL(process.env.HOST ?? 'http://localhost:3000');
 export const csrfMissing = 'CSRF error. Modifying requests must come from the same origin.';
-export const IS_PROD = process.env.NODE_ENV === 'production';
+export const IS_PROD = process.env.ENVIRONMENT === 'production';
 export const IS_NON_PROD = !IS_PROD;
 export const IS_DEVELOPMENT = process.env.NODE_ENV === 'development';
 export const isTest = process.env.NODE_ENV === 'test';

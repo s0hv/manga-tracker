@@ -20,7 +20,7 @@ beforeEach(() => mockNotistackHooks());
 
 describe('Profile renders correctly', () => {
   it('Should render correctly without user', () => {
-    expect(() => render(<Profile />)).not.toThrow();
+    expect(() => render(<Profile user={null} />)).not.toThrow();
   });
 
   it('Should render correctly with credentials user', () => {

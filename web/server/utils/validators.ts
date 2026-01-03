@@ -1,6 +1,7 @@
 import type {
   NextFunction,
   Request,
+  RequestHandler,
   Response,
 } from 'express-serve-static-core';
 import {
@@ -11,8 +12,124 @@ import {
   validationResult,
 } from 'express-validator';
 import { pattern } from 'iso8601-duration';
+import { z } from 'zod';
+
+import type { ZodApiError, ZodError } from '#server/models/error';
 
 import { Forbidden, StatusError, Unauthorized } from './errors';
+
+/**
+ * Validates the request body and query params using Zod schemas.
+ *
+ * @param body the schema to validate the request body with
+ * @param params the schema to validate the request params with
+ * @param query the schema to validate the request query params with
+ */
+export const validateRequest = <
+  TParams extends z.ZodType = z.ZodUnknown,
+  TBody extends z.ZodType = z.ZodUnknown,
+  TQuery extends z.ZodType = z.ZodUnknown
+>({
+  body,
+  params,
+  query,
+}: {
+  body?: TBody
+  params?: TParams
+  query?: TQuery
+}): RequestHandler<z.output<TParams>, unknown, z.output<TBody>, z.output<TQuery>> =>
+  async (req, res, next) => {
+    // Parse params
+    if (params) {
+      const parsed = await params.safeParseAsync(req.params);
+
+      if (!parsed.success) {
+        zodErrorResponse(res, parsed.error, 'params');
+        return;
+      }
+
+      req.params = parsed.data;
+    }
+
+    // Parse body
+    if (body) {
+      const parsed = await body.safeParseAsync(req.body);
+
+      if (!parsed.success) {
+        zodErrorResponse(res, parsed.error, 'body');
+
+        return;
+      }
+
+      req.body = parsed.data;
+    }
+
+    // Parse query
+    if (query) {
+      const parsed = await query.safeParseAsync(req.query);
+
+      if (!parsed.success) {
+        zodErrorResponse(res, parsed.error, 'query');
+
+        return;
+      }
+
+      // Patch a custom query value to the request instead of the default getter
+      // https://stackoverflow.com/a/79604142
+      // https://stackoverflow.com/a/79599423
+      Object.defineProperty(
+        req,
+        'query',
+        {
+          ...Object.getOwnPropertyDescriptor(req, 'query'),
+          writable: false,
+          value: parsed.data,
+        }
+      );
+    }
+
+    next();
+  };
+
+
+/**
+ * Generates an error response from the given ZodError.
+ *
+ * @param res the response object
+ * @param error the zod error to generate the response from
+ * @param prefix prefix added to each field name; e.g. `'body'`
+ */
+export function zodErrorResponse<T>(res: Response, error: z.ZodError<T>, prefix: string) {
+  const treeifiedError = z.treeifyError(error);
+
+  res.status(400)
+    .json({
+      error: flattenZodError({}, treeifiedError, prefix),
+    } satisfies ZodApiError)
+    .end();
+}
+
+function flattenZodError<T>(acc: ZodError, error: z.core.$ZodErrorTree<T>, fieldName = ''): ZodError {
+  if (error.errors.length > 0) {
+    acc[fieldName] = error.errors;
+  }
+
+  if ('properties' in error && error.properties) {
+    for (const key of Object.keys(error.properties)) {
+      const nestedError = error.properties[key as keyof T] as z.core.$ZodErrorTree<unknown>;
+
+      if (!nestedError) continue;
+
+      const nestedFieldName = fieldName
+        ? `${fieldName}.${key}`
+        : key;
+
+      flattenZodError(acc, nestedError, nestedFieldName);
+    }
+  }
+
+  return acc;
+}
 
 export const databaseIdValidation = (field: ValidationChain): ValidationChain => field
   .isInt({ min: 0 });
