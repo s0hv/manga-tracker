@@ -2,8 +2,8 @@ import React from 'react';
 import { render } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
+import { PrivacyPolicy } from '#web/routes/(static)/privacy_policy';
 
-import PrivacyPolicy from '../../src/routes/(static)/privacy_policy';
 
 describe('PrivacyPolicy page should render without errors', () => {
   it('Should match snapshot', () => {

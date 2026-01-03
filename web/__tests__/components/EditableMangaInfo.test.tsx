@@ -16,7 +16,9 @@ import {
 } from '../utils';
 import { statusToString } from '@/webUtils/utilities';
 
-import EditableMangaInfo from '../../src/components/EditableMangaInfo';
+import EditableMangaInfo, {
+  type MangaInfoProps,
+} from '../../src/components/EditableMangaInfo';
 import {
   defaultDateDistanceFormat,
   defaultDateFormatRegex,
@@ -30,7 +32,7 @@ const Root: FunctionComponent<PropsWithChildren> = ({ children }) => (
 
 beforeEach(() => mockNotistackHooks());
 
-const mangaData = {
+const mangaData: MangaInfoProps['mangaData'] = {
   mangaId: 1,
   releaseInterval: {
     days: 7,
@@ -39,15 +41,17 @@ const mangaData = {
   estimatedRelease: '2020-07-12T16:00:00.000Z',
   latestChapter: 157,
   status: 0,
+  title: 'test',
 };
 
 
 describe('EditableMangaInfo should render correctly', () => {
   mockUTCDates();
 
-  const nullData = {
+  const nullData: MangaInfoProps['mangaData'] = {
     mangaId: 1,
     status: 0,
+    title: '',
   };
 
   it('Should render correctly with data', () => {

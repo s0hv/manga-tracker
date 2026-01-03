@@ -128,7 +128,6 @@ const WebhookEditor = ({ notificationData, defaultExpanded = false }: WebhookEdi
     <Paper>
       <Box sx={{
         p: 4,
-        m: 2,
       }}
       >
         <NotificationsForm onSubmit={handleSubmit(onSubmit)}>

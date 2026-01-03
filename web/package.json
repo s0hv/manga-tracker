@@ -15,9 +15,9 @@
   "scripts": {
     "start-dev": "node --enable-source-maps -r dotenv/config dist/server.js",
     "dev": "vite dev",
-    "start-coverage": "node --enable-source-maps --import=extensionless/register instrumented/server.js",
-    "start-coverage-dev": "node --enable-source-maps --import=extensionless/register -r dotenv/config instrumented/server.js",
-    "build": "vite build && pnpm build-server",
+    "start-coverage": "node --enable-source-maps instrumented/server.js",
+    "start-coverage-dev": "nyc node --enable-source-maps -r dotenv/config instrumented/server.js",
+    "build": "cross-env IS_PRERENDER=1 vite build && pnpm build-server",
     "build-server": "tsc --project tsconfig.server.json && tsx scripts/esbuild.server.ts",
     "server-dev": "tsx watch --include \"./server/**/*\" --env-file=.env server.ts",
     "deploy": "pnpm start",
@@ -26,11 +26,11 @@
     "tsc": "tsc --project tsconfig.json && tsc --project tsconfig.server.json && tsc --project __tests__/tsconfig.json",
     "test:ci": "vitest run --coverage",
     "coverage": "vitest run --coverage",
-    "lint": "eslint -c eslint.config.mjs --concurrency auto .",
-    "lint:fix": "eslint -c eslint.config.mjs --fix .",
+    "lint": "eslint -c eslint.config.mjs .",
+    "lint:fix": "eslint -c eslint.config.mjs --concurrency 4 --fix .",
     "cypress": "cd cypress && pnpm run tsc && pnpm run cypress",
     "build-start-test": "pnpm build && pnpm start-dev",
-    "build-nyc": "pnpm build && nyc instrument --compact=false dist instrumented"
+    "build-nyc": "pnpm build && tsx scripts/copy-dist-for-nyc.ts && nyc instrument --nycrc-path .nycrc.server.yaml dist instrumented"
   },
   "sideEffects": false,
   "browserslist": {
@@ -42,12 +42,6 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  },
-  "nyc": {
-    "exclude": [
-      "**/node_modules/**"
-    ],
-    "excludeAfterRemap": true
   },
   "dependencies": {
     "@codemirror/autocomplete": "^6.20.0",
@@ -89,6 +83,7 @@
     "helmet": "^8.1.0",
     "ioredis": "^5.6.1",
     "iso8601-duration": "^2.1.2",
+    "ky": "^1.14.2",
     "lru-cache": "^11.1.0",
     "mangadex-full-api": "^6.0.0",
     "material-ui-confirm": "^4.0.0",
@@ -112,7 +107,7 @@
     "swagger-jsdoc": "^6.2.8",
     "vite-tsconfig-paths": "^6.0.3",
     "yaml": "^2.8.0",
-    "zod": "^4.0.8",
+    "zod": "^4.3.3",
     "zustand": "^5.0.9"
   },
   "devDependencies": {
@@ -128,6 +123,7 @@
     "@testing-library/user-event": "^14.6.1",
     "@types/cookie-parser": "^1.4.9",
     "@types/cookie-signature": "^1.1.2",
+    "@types/cookiejar": "^2.1.5",
     "@types/express": "^5.0.3",
     "@types/express-serve-static-core": "^5.0.7",
     "@types/json-schema": "^7.0.15",
@@ -144,7 +140,9 @@
     "@vitejs/plugin-react": "^4.7.0",
     "@vitest/coverage-istanbul": "^3.2.4",
     "@vitest/eslint-plugin": "^1.6.4",
+    "cookie": "^1.1.1",
     "cookie-signature": "^1.2.2",
+    "cookiejar": "^2.1.4",
     "cross-env": "^7.0.3",
     "dotenv": "^17.2.0",
     "esbuild": "^0.27.2",
@@ -168,6 +166,7 @@
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.50.1",
     "vite": "^7.3.0",
+    "vite-plugin-istanbul": "^7.2.1",
     "vitest": "^3.2.4"
   },
   "pnpm": {
@@ -183,5 +182,5 @@
       "cookie@<0.7.0": ">=0.7.0"
     }
   },
-  "packageManager": "pnpm@10.26.1+sha512.664074abc367d2c9324fdc18037097ce0a8f126034160f709928e9e9f95d98714347044e5c3164d65bd5da6c59c6be362b107546292a8eecb7999196e5ce58fa"
+  "packageManager": "pnpm@10.27.0+sha512.72d699da16b1179c14ba9e64dc71c9a40988cbdc65c264cb0e489db7de917f20dcf4d64d8723625f2969ba52d4b7e2a1170682d9ac2a5dcaeaab732b7e16f04a"
 }

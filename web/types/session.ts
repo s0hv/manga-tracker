@@ -3,7 +3,7 @@ export interface Session {
   sessionSecret: Uint8Array // Uint8Array is a byte array
   userId: number | null
   expiresAt: Date
-  data: {
+  data?: {
     mangaViews?: Record<string, number>
   } | null
 }

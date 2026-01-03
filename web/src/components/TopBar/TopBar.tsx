@@ -61,6 +61,7 @@ function TopBar() {
   const router = useRouter();
 
   const onLoginClick = useCallback(() => {
+    console.log(`${COOKIES.redirect}=${encodeURIComponent(router.state.location.pathname)}; Path=/; SameSite=Lax;`);
     document.cookie = `${COOKIES.redirect}=${encodeURIComponent(router.state.location.pathname)}; Path=/; SameSite=Lax;`;
   }, [router]);
 
@@ -118,6 +119,7 @@ function TopBar() {
                 <LinkButton
                   to='/login'
                   preload='intent'
+                  preloadDelay={500}
                   variant='outlined'
                   color='primary'
                   onClick={onLoginClick}

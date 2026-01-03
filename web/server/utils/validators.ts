@@ -1,7 +1,7 @@
 import type {
   NextFunction,
-  Request,
-  Response,
+  Request, RequestHandler,
+  Response, RouteParameters,
 } from 'express-serve-static-core';
 import {
   type CustomValidator,
@@ -11,8 +11,95 @@ import {
   validationResult,
 } from 'express-validator';
 import { pattern } from 'iso8601-duration';
+import { z } from 'zod';
+
+import type { ZodApiError, ZodError } from '#server/models/error';
 
 import { Forbidden, StatusError, Unauthorized } from './errors';
+
+export const validateBody = <
+  TBody extends z.ZodType,
+  Path extends string,
+  P = RouteParameters<Path>
+>(schema: TBody): RequestHandler<P, unknown, z.output<TBody>> =>
+  async (req, res, next) => {
+    const parsed = await schema.safeParseAsync(req.body);
+
+    if (parsed.success) {
+      req.body = parsed.data;
+      next();
+      return;
+    }
+
+    zodErrorResponse(res, parsed.error);
+  };
+
+export const validatePathParams = <
+  TParams extends z.ZodType,
+  TReqBody
+>(schema: TParams): RequestHandler<z.output<TParams>, unknown, TReqBody> =>
+  async (req, res, next) => {
+    const parsed = await schema.safeParseAsync(req.params);
+
+    if (parsed.success) {
+      req.params = parsed.data;
+      next();
+      return;
+    }
+
+    zodErrorResponse(res, parsed.error);
+  };
+
+export const validateQuery = <
+  TQuery extends z.ZodType,
+  TReqBody,
+  Path extends string,
+  P = RouteParameters<Path>
+>(schema: TQuery): RequestHandler<P, unknown, TReqBody> =>
+  async (req: Request<P, unknown, TReqBody, unknown, Record<string, unknown>, z.output<TQuery>>, res, next) => {
+    const parsed = await schema.safeParseAsync(req.query);
+
+    if (parsed.success) {
+      req.parsedQuery = parsed.data;
+      next();
+      return;
+    }
+
+    zodErrorResponse(res, parsed.error);
+  };
+
+
+export function zodErrorResponse<T>(res: Response, error: z.ZodError<T>) {
+  const treeifiedError = z.treeifyError(error);
+
+  res.status(400)
+    .json({
+      error: flattenZodError({}, treeifiedError),
+    } satisfies ZodApiError)
+    .end();
+}
+
+function flattenZodError<T>(acc: ZodError, error: z.core.$ZodErrorTree<T>, fieldName = ''): ZodError {
+  if (error.errors.length > 0) {
+    acc[fieldName] = error.errors;
+  }
+
+  if ('properties' in error && error.properties) {
+    for (const key of Object.keys(error.properties)) {
+      const nestedError = error.properties[key as keyof T] as z.core.$ZodErrorTree<unknown>;
+
+      if (!nestedError) continue;
+
+      const nestedFieldName = fieldName
+        ? `${fieldName}.${key}`
+        : key;
+
+      flattenZodError(acc, nestedError, nestedFieldName);
+    }
+  }
+
+  return acc;
+}
 
 export const databaseIdValidation = (field: ValidationChain): ValidationChain => field
   .isInt({ min: 0 });

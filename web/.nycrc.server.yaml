@@ -1,0 +1,7 @@
+compact: false
+include:
+  - '**/*.js'
+exclude:
+  - 'server/**/*.js'
+  - 'client/assets/**/*.js'
+

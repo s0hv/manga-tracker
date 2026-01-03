@@ -4,21 +4,26 @@ import { userEvent } from '@testing-library/user-event';
 import fetchMock from 'fetch-mock';
 import { describe, expect, it, vi } from 'vitest';
 
-import { adminUser, confirmMock, normalUser, withUser } from '../utils';
+import {
+  adminUser,
+  confirmMock,
+  normalUser,
+  TestRoot,
+} from '../utils';
 import MangaAliases from '@/components/MangaAliases';
 
 describe('MangaAliases renders correctly', () => {
   it('Should render correctly without aliases', () => {
-    const { container, rerender } = render(<MangaAliases />);
+    const { container, rerender } = render(<TestRoot><MangaAliases /></TestRoot>);
     expect(container.childElementCount).toBe(0);
 
-    rerender(<MangaAliases aliases={[]} />);
+    rerender(<TestRoot><MangaAliases aliases={[]} /></TestRoot>);
     expect(container.childElementCount).toBe(0);
   });
 
   it('Should render correctly with aliases', () => {
     const aliases = ['test_1', 'test_2', 'test_3'];
-    render(<MangaAliases aliases={aliases} />);
+    render(<TestRoot><MangaAliases aliases={aliases} /></TestRoot>);
 
     expect(screen.getByText(/^alternative titles$/i)).toBeInTheDocument();
 
@@ -29,13 +34,12 @@ describe('MangaAliases renders correctly', () => {
     expect(screen.getAllByRole('listitem')).toHaveLength(aliases.length);
   });
 
-  it('Should render correctly with editing allowed as admin', async () => {
+  it('Should render correctly with editing allowed as admin', () => {
     const aliases = ['a', 'b', 'c'];
     render(
-      await withUser(
-        adminUser,
+      <TestRoot user={adminUser}>
         <MangaAliases aliases={aliases} allowEdits />
-      )
+      </TestRoot>
     );
 
     const listItems = screen.getAllByRole('listitem');
@@ -48,13 +52,12 @@ describe('MangaAliases renders correctly', () => {
     });
   });
 
-  it('Should not render buttons when allowEdits without admin', async () => {
+  it('Should not render buttons when allowEdits without admin', () => {
     const aliases = ['a', 'b', 'c'];
     render(
-      await withUser(
-        normalUser,
+      <TestRoot user={normalUser}>
         <MangaAliases aliases={aliases} allowEdits />
-      )
+      </TestRoot>
     );
 
     const listItems = screen.getAllByRole('listitem');
@@ -85,8 +88,7 @@ describe('MangaAliases should promote alias correctly', () => {
     const user = userEvent.setup();
 
     render(
-      await withUser(
-        adminUser,
+      <TestRoot user={adminUser}>
         <MangaAliases
           aliases={aliases}
           allowEdits
@@ -95,7 +97,7 @@ describe('MangaAliases should promote alias correctly', () => {
           confirm={confirm}
           enqueueSnackbar={enqueueSnackbar}
         />
-      )
+      </TestRoot>
     );
 
     expect(screen.getByText(aliases[0])).toBeTruthy();
@@ -123,8 +125,7 @@ describe('MangaAliases should promote alias correctly', () => {
     const user = userEvent.setup();
 
     render(
-      await withUser(
-        adminUser,
+      <TestRoot user={adminUser}>
         <MangaAliases
           aliases={aliases}
           allowEdits
@@ -133,7 +134,7 @@ describe('MangaAliases should promote alias correctly', () => {
           confirm={confirm}
           enqueueSnackbar={enqueueSnackbar}
         />
-      )
+      </TestRoot>
     );
 
     const row = within(screen.getByText(aliases[0]).closest('li')!);

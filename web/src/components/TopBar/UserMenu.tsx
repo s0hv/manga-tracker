@@ -148,7 +148,7 @@ export const UserMenu: FC<UserMenuProps> = ({ handleThemeChange }) => {
           <RouteLink
             component={MenuItem}
             to='/admin/services'
-            preload='intent'
+            preload={false}
             onClick={handleClose}
             sx={{ color: 'inherit' }}
             underline='none'

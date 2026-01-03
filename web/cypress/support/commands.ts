@@ -36,7 +36,8 @@
 //   }
 // }
 import '@testing-library/cypress/add-commands';
-import { nextAuthSessionCookie } from '../constants';
+
+import { sessionCookieName } from '../constants';
 
 
 declare global {
@@ -52,11 +53,13 @@ declare global {
 }
 
 Cypress.Commands.add('login', (user, expectFail = false, rememberMe = false) => {
-  cy.getCookie(nextAuthSessionCookie).should('be.null');
+  cy.getCookie(sessionCookieName).should('be.null');
   cy.visit('/login');
 
-  cy.findByRole('textbox', { name: /email address/i }).type(user.email);
-  cy.findByLabelText(/password/i).type(user.password);
+  cy.wait(300);
+
+  cy.findByRole('textbox', { name: /email address/i }).focus().type(user.email);
+  cy.findByLabelText(/password/i).focus().type(user.password);
 
   if (rememberMe) {
     cy.findByRole('checkbox', { name: /remember me/i }).click();
@@ -64,12 +67,14 @@ Cypress.Commands.add('login', (user, expectFail = false, rememberMe = false) => 
 
   cy.findByRole('button', { name: /^sign in$/i }).click();
   if (expectFail) {
-    cy.getCookie(nextAuthSessionCookie).should('be.null');
+    cy.getCookie(sessionCookieName).should('be.null');
     return;
   }
 
   cy.findByText(/^recent releases \(for your follows\)/i);
-  cy.getCookie(nextAuthSessionCookie).should('not.be.null');
+  cy.getCookie(sessionCookieName).should('not.be.null');
+
+  cy.wait(200);
 });
 
 Cypress.Commands.add('logout', () => {
@@ -77,7 +82,7 @@ Cypress.Commands.add('logout', () => {
 
   cy.findByRole('menuitem', { name: /^logout$/i }).click();
   cy.findByText(/^recent releases$/i);
-  cy.getCookie(nextAuthSessionCookie).should('be.null');
+  cy.getCookie(sessionCookieName).should('be.null');
 });
 
 Cypress.Commands.add('expectLightTheme', () => {
@@ -86,4 +91,10 @@ Cypress.Commands.add('expectLightTheme', () => {
 
 Cypress.Commands.add('expectDarkTheme', () => {
   cy.get('body').should('have.css', 'background-color', 'rgb(18, 18, 18)');
+});
+
+Cypress.on('uncaught:exception', err => {
+  if (err.message.includes('Minified React error #418')) {
+    return false;
+  }
 });

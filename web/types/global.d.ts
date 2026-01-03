@@ -14,10 +14,13 @@ declare module 'next-auth/adapters' {
 }
 
 declare module 'express-serve-static-core' {
-  interface Request {
+  interface Request<
+    TQuery = never
+  > {
     user: SessionUser | null
     session: SafeSession | null
     isStaticResource?: boolean
+    parsedQuery?: TQuery
     _nonce?: string
     getNonce(): string
   }

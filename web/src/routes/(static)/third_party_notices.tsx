@@ -8,7 +8,7 @@ export const Route = createFileRoute('/(static)/third_party_notices')({
   context: (): StaticPageContext => ({ isStaticPage: true }),
 });
 
-function ThirdPartyNotices() {
+export function ThirdPartyNotices() {
   return (
     <Container>
       <Box padding={5} paddingLeft={20}>

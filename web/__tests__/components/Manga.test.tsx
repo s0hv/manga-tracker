@@ -15,18 +15,18 @@ import fetchMock, {
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
-  adminUser,
+  adminUser, getCoverUrl,
   mockNotistackHooks,
   mockServicesEndpoint,
   mockUTCDates,
   normalUser,
   TestRoot,
-  withUser,
 } from '../utils';
 import Manga from '@/components/Manga';
 
 import { emptyFullManga as emptyManga, fullManga as manga } from '../constants';
 
+vi.mock('@tanstack/react-router');
 vi.mock('es-toolkit', () => ({
   throttle: (_: any) => _,
 }));
@@ -47,7 +47,7 @@ describe('Manga page should render correctly', async () => {
   /**
    * Based on a condition checks whether an element should or
    * should not exist in the document
-   * @param {boolean} shouldExist Condition, which if true, makes sure that the element exists
+   * @param {boolean} shouldExist if true, makes sure that the element exists
    * @param {import('@testing-library/react').ByRoleMatcher} role The role of the element
    * @param {import('@testing-library/react').ByRoleOptions} options
    */
@@ -66,7 +66,7 @@ describe('Manga page should render correctly', async () => {
   };
 
   const expectMangaInfoExists = (m: any) => {
-    // With cover mal link and the cover should exist. Otherwise they should be hidden
+    // With cover mal link and the cover should exist. Otherwise, they should be hidden
     if (m.manga.cover) {
       const malLink = screen.getByRole('link', { name: /myanimelist page of the manga/i });
       expect(malLink).toBeInTheDocument();
@@ -74,7 +74,7 @@ describe('Manga page should render correctly', async () => {
 
       const coverImage = screen.getByRole('img', { name: m.manga.title });
       expect(coverImage).toBeInTheDocument();
-      expect(coverImage.getAttribute('src')).toStartWith('/_next/image?url=' + encodeURIComponent(`${m.manga.cover}.256.jpg`));
+      expect(coverImage).toHaveAttribute('src', getCoverUrl(m.manga.cover));
     } else {
       expect(screen.queryByRole('link', { name: /myanimelist page of the manga/i })).not.toBeInTheDocument();
       expect(screen.queryByRole('img', { name: m.manga.title })).not.toBeInTheDocument();
@@ -119,12 +119,11 @@ describe('Manga page should render correctly', async () => {
 
   it('should render correctly when logged in', async () => {
     await act(async () => {
-      render(await withUser(
-        normalUser,
-        <TestRoot>
+      render(
+        <TestRoot user={normalUser}>
           <Manga mangaData={manga} userFollows={follows} />
         </TestRoot>
-      ));
+      );
     });
 
     expectTitleExists(manga);
@@ -136,12 +135,11 @@ describe('Manga page should render correctly', async () => {
 
   it('Should render correctly as admin', async () => {
     await act(async () => {
-      render(await withUser(
-        adminUser,
-        <TestRoot>
+      render(
+        <TestRoot user={adminUser}>
           <Manga mangaData={manga} userFollows={follows} />
         </TestRoot>
-      ));
+      );
     });
 
     expectTitleExists(manga);
@@ -181,18 +179,19 @@ describe('Manga page should render correctly', async () => {
 
   it('should call follow and unfollow on click for all services', async () => {
     await act(async () => {
-      render(await withUser(
-        normalUser,
-        <TestRoot>
+      render(
+        <TestRoot user={normalUser}>
           <Manga mangaData={manga} userFollows={follows} />
         </TestRoot>
-      ));
+      );
     });
 
     mockFollowUnfollow({ query: { mangaId: manga.manga.mangaId }});
 
-    const followBtn = screen.getByRole('button', { name: 'follow all releases' });
     const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: 'open follows' }));
+
+    const followBtn = screen.getByRole('button', { name: 'follow all releases' });
 
     await user.click(followBtn);
     expect(followCalls()).toBeArrayOfSize(1);
@@ -207,12 +206,11 @@ describe('Manga page should render correctly', async () => {
 
   it('should call follow and unfollow on click for a specific service', async () => {
     await act(async () => {
-      render(await withUser(
-        normalUser,
-        <TestRoot>
+      render(
+        <TestRoot user={normalUser}>
           <Manga mangaData={manga} userFollows={[manga.services[0].serviceId]} />
         </TestRoot>
-      ));
+      );
     });
 
     mockFollowUnfollow({ query: { mangaId: manga.manga.mangaId, serviceId: manga.services[0].serviceId }});

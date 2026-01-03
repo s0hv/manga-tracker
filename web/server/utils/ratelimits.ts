@@ -52,13 +52,18 @@ export const mangadexLimiter = new RateLimiterMemory({
 
 const accountLoginRetries = Number.parseInt(process.env.LOGIN_RETRY_COUNT || '10', 10);
 
-export const limiterSlowBruteByIP = createSingleton('bruteforceByIp', () => new RateLimiterRedis({
+export const accountLoginLimiter = createSingleton('bruteforceByIp', () => new RateLimiterRedis({
   storeClient: redis,
   keyPrefix: 'login_fail_ip_per_day',
-  points: Number.isFinite(accountLoginRetries) ? accountLoginRetries : 10, // email + password logins are not possible to register so a low limit is fine.
+  // email + password logins are not possible to register, so a low limit is fine.
+  points: Number.isFinite(accountLoginRetries) ? accountLoginRetries : 10,
   duration: 24 * 60 * 60, // 1 day
   blockDuration: 24 * 60 * 60, // 1 day
 }));
+
+export function getLoginRatelimitKey(req: Request) {
+  return req.ip ?? '';
+}
 
 const rateLimiterRedis = new RateLimiterRedis(rateLimitOpts);
 

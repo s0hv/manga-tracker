@@ -5,17 +5,23 @@
   "type": "module",
   "license": "AGPL-3.0",
   "engines": {
-    "node": "^22",
+    "node": "^24",
     "pnpm": "^10"
+  },
+  "imports": {
+    "#server/*": "./dist/server/*.js"
   },
   "scripts": {
     "cypress": "cypress open",
+    "cypress:headless": "cypress run",
     "tsc": "tsc --project tsconfig.server.json && tsc-alias --project tsconfig.server.json"
   },
   "dependencies": {
-    "@cypress/code-coverage": "^3.14.5",
-    "@testing-library/cypress": "^10.0.3",
-    "cypress": "14.5.1",
+    "@cypress/code-coverage": "^3.14.7",
+    "@testing-library/cypress": "^10.1.0",
+    "@types/cookie-signature": "^1.1.2",
+    "cookie-signature": "^1.2.2",
+    "cypress": "15.8.1",
     "tsc-alias": "^1.8.16",
     "typescript": "^5.8.3"
   },
@@ -25,8 +31,7 @@
     ]
   },
   "nyc": {
-    "exclude": ["**/node_modules/**"],
-    "excludeAfterRemap": true,
+    "excludeAfterRemap": false,
     "reporter": [
       "json",
       "lcov",
@@ -34,5 +39,5 @@
     ],
     "report-dir": "../coverage"
   },
-  "packageManager": "pnpm@10.12.4+sha512.5ea8b0deed94ed68691c9bad4c955492705c5eeb8a87ef86bc62c74a26b037b08ff9570f108b2e4dbd1dd1a9186fea925e527f141c648e85af45631074680184"
+  "packageManager": "pnpm@10.27.0+sha512.72d699da16b1179c14ba9e64dc71c9a40988cbdc65c264cb0e489db7de917f20dcf4d64d8723625f2969ba52d4b7e2a1170682d9ac2a5dcaeaab732b7e16f04a"
 }

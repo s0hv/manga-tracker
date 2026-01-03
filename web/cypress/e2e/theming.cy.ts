@@ -10,11 +10,15 @@ describe('Changing theme works', () => {
 
     cy.expectDarkTheme();
 
+    cy.log('@user');
+
     // Switch theme
     cy.findByRole('button', { name: /account of current user/i }).click();
     cy.findByRole('menuitem', { name: /switch to light theme/i }).click();
 
     cy.expectLightTheme();
+
+    cy.wait(100);
 
     cy.logout();
     cy.get<CreatedUser>('@user').then(cy.login);
@@ -22,7 +26,7 @@ describe('Changing theme works', () => {
     cy.expectLightTheme();
   });
 
-  it.only('Change theme without user', () => {
+  it('Change theme without user', () => {
     cy.visit('/');
     cy.root().invoke('hasClass', 'dark').as('isDarkTheme');
 

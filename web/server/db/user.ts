@@ -98,7 +98,7 @@ export const createUser = async ({
   username: string
   email: string
   password: string | null
-  conn: DbHelpers
+  conn?: DbHelpers
 }) => {
   const { userId } = await conn.one<{
     userId: number
@@ -109,12 +109,6 @@ export const createUser = async ({
 
 export const removeUserFromCache = (userId: number) => userCache.delete(userId);
 
-export async function deleteUser(userId: number) {
-  const user = await getUser(userId);
-  if (!user) return null;
-
-  await db.none`DELETE FROM users WHERE user_uuid=${userId}`;
-  userCache.delete(userId);
-
-  return user;
+export function clearUserCache() {
+  userCache.clear();
 }
