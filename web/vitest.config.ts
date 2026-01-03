@@ -1,7 +1,11 @@
-import * as path from 'path';
+import path from 'path';
 
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vitest/config';
+
+const noParallelTestsFiles = [
+  '__tests__/api/auth.test.ts',
+];
 
 export default defineConfig({
   plugins: [react()],
@@ -15,12 +19,25 @@ export default defineConfig({
           environment: 'jsdom',
         },
       },
+
       {
         extends: true,
         test: {
           name: 'node',
           include: ['__tests__/**/*.test.{ts,js}'],
+          exclude: noParallelTestsFiles,
           environment: 'node',
+        },
+      },
+
+      {
+        extends: true,
+        test: {
+          name: 'node-no-parallel',
+          include: noParallelTestsFiles,
+          environment: 'node',
+          fileParallelism: false,
+          maxConcurrency: 1,
         },
       },
     ],
@@ -35,6 +52,9 @@ export default defineConfig({
       '@/common': path.resolve(__dirname, './common'),
       '@/tests': path.resolve(__dirname, './__tests__'),
     },
+    include: [
+      '__tests__',
+    ],
     setupFiles: ['./setupTests.ts'],
     globalSetup: './__tests__/globalSetup.ts',
     clearMocks: true,
@@ -45,8 +65,8 @@ export default defineConfig({
       provider: 'istanbul',
       reportOnFailure: true,
       exclude: [
-        'coverage/**',
-        'dist/**',
+        'coverage',
+        'dist',
         '**/*.d.ts',
         '**/__tests__/**',
         '**/__mocks__/**',

@@ -1,3 +1,4 @@
+/* istanbul ignore file */
 import type { Register } from '@tanstack/react-router';
 import type { RequestHandler } from '@tanstack/react-start/server';
 

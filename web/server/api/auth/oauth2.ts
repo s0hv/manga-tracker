@@ -4,7 +4,7 @@ import { type CallbackHandler, oauthLoginHandler, router } from './common';
 import { discordCallbackHandler } from './discord';
 
 
-const registerProviderRoute = (provider: OAuthProvider, callbackHandler: CallbackHandler) => {
+export const registerProviderRoute = (provider: OAuthProvider, callbackHandler: CallbackHandler) => {
   router.get(`/${provider}`, (req, res) => {
     return oauthLoginHandler(provider, req, res);
   });
@@ -13,5 +13,3 @@ const registerProviderRoute = (provider: OAuthProvider, callbackHandler: Callbac
     return callbackHandler(req, res);
   });
 };
-
-registerProviderRoute('discord', discordCallbackHandler);

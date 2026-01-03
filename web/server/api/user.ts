@@ -1,12 +1,21 @@
 import type { Express, Request, Response } from 'express-serve-static-core';
 import { body } from 'express-validator';
 
+import { clearUserAuthTokens, generateAuthToken } from '@/db/auth';
 import { deleteFollow, insertFollow } from '@/db/follows';
 import { db } from '@/db/helpers';
 import { getUserNotifications } from '@/db/notifications';
-import { clearUserSessions } from '@/db/session';
+import { clearUserSessions, createSession } from '@/db/session';
 import { getUser, removeUserFromCache } from '@/db/user';
 import { handleError } from '@/db/utils';
+import {
+  SECURE_COOKIE_OPTIONS,
+  serverCookieNames,
+} from '@/serverUtils/constants';
+import {
+  clearSecureCookie,
+  setSessionCookie,
+} from '@/serverUtils/requestHelpers';
 import type { DatabaseId, MangaId } from '@/types/dbTypes';
 
 
@@ -57,17 +66,39 @@ export default (app: Express) => {
       return;
     }
 
+    const user = req.user!;
+    const userId = user.userId;
+
     const pwCheck = db.sql` AND pwhash IS NOT NULL AND pwhash=crypt(${password}, pwhash)`;
     db.sql`UPDATE users
                  SET ${cols.reduce((acc, col) => db.sql`${acc}, ${col}`)}
-                 WHERE user_id=${req.user!.userId} ${pw ? pwCheck : db.sql``}`
-      .then(rows => {
+                 WHERE user_id=${userId} ${pw ? pwCheck : db.sql``}`
+      .then(async rows => {
         if (rows.count === 0) {
           res.status(401).json({ error: 'Invalid password' });
           return;
         }
-        // Force refetch after update
-        removeUserFromCache(req.user!.userId);
+        // Force refetching after an update
+        removeUserFromCache(userId);
+
+        // If the password was changed, invalidate all sessions
+        // and generate a new auth token if one existed
+        if (pw) {
+          await clearUserSessions(userId);
+          const session = await createSession(user.userId);
+          setSessionCookie(session, res);
+
+          if (req.signedCookies[serverCookieNames.authToken]) {
+            await clearUserAuthTokens(userId);
+            const { token, expiresAt } = await generateAuthToken(userId, user.userUuid);
+
+            res.cookie(serverCookieNames.authToken, token, {
+              ...SECURE_COOKIE_OPTIONS,
+              expires: expiresAt,
+            });
+          }
+        }
+
         res.json({ message: 'success' });
       })
       .catch(err => handleError(err, res));
@@ -115,6 +146,8 @@ export default (app: Express) => {
     removeUserFromCache(user.userId);
     await db.none`DELETE FROM users WHERE user_id=${user.userId}`;
     await clearUserSessions(user.userId);
+    clearSecureCookie(res, serverCookieNames.authToken);
+    clearSecureCookie(res, serverCookieNames.session);
 
     res.status(200).end();
   });
@@ -134,7 +167,7 @@ export default (app: Express) => {
         INNER JOIN manga m ON uf.manga_id=m.manga_id
         LEFT JOIN services s ON uf.service_id = s.service_id
         WHERE user_id=${user.userId}`,
-      db.any`SELECT * FROM sessions WHERE user_id=${user.userUuid}`,
+      db.any`SELECT expires_at, data FROM sessions WHERE user_id=${user.userId}`,
     ])
       .then(([notifications, userData, accounts, follows, sessions]) => {
         res.setHeader('Content-Disposition', 'attachment; filename="manga-tracker-user-data.json"');

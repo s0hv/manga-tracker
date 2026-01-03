@@ -9,7 +9,6 @@ import type { Follow } from '@/types/db/follows';
 import type { Manga } from '@/types/db/manga';
 import type { DatabaseId, MangaId, PostgresInterval } from '@/types/dbTypes';
 
-
 import { HttpError } from '../utils/errors';
 import { mangadexLogger } from '../utils/logging';
 
@@ -121,14 +120,14 @@ export async function getFollows(userId: DatabaseId | undefined): Promise<Follow
                    LEFT JOIN manga_info mi ON m.manga_id = mi.manga_id
                WHERE user_id=${userId}
                GROUP BY uf.manga_id, m.manga_id, mi.manga_id`
-    .then(rows => camelcaseKeys(rows, { deep: true }))
+    .then(rows => camelcaseKeys<Follow[]>(rows, { deep: true }))
     .catch(err => {
       // integer overflow
       if (err.code === NUMERIC_VALUE_OUT_OF_RANGE || err.code === INVALID_TEXT_REPRESENTATION) {
-        return new Promise((resolve, reject) => reject(HttpError(400, 'Integer out of range')));
+        throw HttpError(400, 'Integer out of range');
       }
       console.error(err);
-      return new Promise((resolve, reject) => reject(HttpError(500)));
+      throw HttpError(500);
     });
 }
 

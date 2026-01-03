@@ -1,8 +1,14 @@
+import { addHours } from 'date-fns';
+import request from 'supertest';
 import { type Mock, expect, vi } from 'vitest';
 
-import { unsignCookie } from './utils';
+import { getAuthTokenCookie, getCookie, unsignCookie } from './utils';
+import { parseAuthCookie } from '@/db/auth';
 import { type DatabaseHelpers, db } from '@/db/helpers';
+import { serverCookieNames } from '@/serverUtils/constants';
+import { hashSecret } from '@/serverUtils/utilities';
 import type { DatabaseId } from '@/types/dbTypes';
+import type { Session } from '@/types/session';
 
 
 export const sessionExists = async (sessionId: string, encrypted = true) => {
@@ -15,29 +21,83 @@ export const sessionExists = async (sessionId: string, encrypted = true) => {
   return !!row;
 };
 
-export const authTokenExists = async (tokenValue: string) => {
-  tokenValue = decodeURIComponent(tokenValue);
-  const [lookup, token, uuidBase64] = tokenValue.split(';', 3);
-  const uuid = Buffer.from(uuidBase64, 'base64').toString('ascii');
+export const createTestSession = async (sessionId: string, userId: number | null = null) => {
+  const sessionSecret = 'testSessionSecret';
+
+  const token = sessionId + '.' + Buffer.from(sessionSecret).toString('base64');
+  const expiresAt = addHours(new Date(), 24);
+
+  const sessionData: Session = {
+    userId,
+    sessionId,
+    expiresAt,
+    data: null,
+    sessionSecret: await hashSecret(sessionSecret),
+  } as const;
+
+  await db.none`INSERT INTO sessions ${db.sql(sessionData)}`;
+
+  return { token, expiresAt, sessionId };
+};
+
+export async function expectSessionRegenerated(agent: request.Agent, oldSess: string) {
+  const sess = getCookie(agent, serverCookieNames.session)!;
+  expect(sess).toBeDefined();
+  expect(sess.value).not.toEqual(oldSess);
+
+  expect(await sessionExists(oldSess)).toBeFalse();
+  return sess;
+}
+
+export async function expectAuthTokenRegenerated(agent: request.Agent, authCookie: string) {
+  const auth = getAuthTokenCookie(agent);
+  expect(auth.value).not.toEqual(authCookie);
+
+  expect(await authTokenExists(authCookie)).toBeFalse();
+  return auth;
+}
+
+export const authTokenExists = async (authCookie: string) => {
+  const authTokenCookie = parseAuthCookie(authCookie)!;
+  expect(authTokenCookie).toBeDefined();
+
+  const tokenHash = await hashSecret(authTokenCookie.token);
+
   const row = await db.oneOrNone`SELECT 1
-               FROM auth_tokens INNER JOIN users u ON auth_tokens.user_id = u.user_id 
-               WHERE user_uuid=${uuid} AND lookup=${lookup} AND hashed_token=encode(digest(${token}, 'sha256'), 'hex')`;
+               FROM auth_token 
+                 INNER JOIN users u ON auth_token.user_id = u.user_id
+               WHERE u.user_uuid=${authTokenCookie.userUUID} AND lookup=${authTokenCookie.lookup} AND token_hash=${tokenHash}`;
 
   return !!row;
 };
 
+export const authTokenCount = async (uuid: string) => {
+  const row = await db.one`SELECT COUNT(*)
+               FROM auth_token INNER JOIN users u ON auth_token.user_id = u.user_id
+               WHERE user_uuid=${uuid}`;
+
+  return Number(row.count);
+};
 
 export type SqlMock = Mock<(count: number, query: string) => void>;
 export type SqlHelperMock = Mock<(template: TemplateStringsArray, ...rest: any[]) => Promise<any>>;
-export const spyOnDb = (method: keyof DatabaseHelpers | null = null): SqlHelperMock | SqlMock => {
+
+export function spyOnDb(method?: null): SqlMock;
+export function spyOnDb(method: keyof DatabaseHelpers): SqlHelperMock;
+export function spyOnDb(method: keyof DatabaseHelpers | null = null): SqlHelperMock | SqlMock {
   if (method === null) {
     const spy: SqlMock = vi.fn();
     db.sql.options.debug = spy;
     return spy;
   }
 
-  return vi.spyOn(db, method) as SqlHelperMock;
-};
+  const spy = vi.spyOn(db, method) as SqlHelperMock;
+  // In case another test mocked this method, clear the spy before returning it
+  spy.mockClear();
+
+  return spy;
+}
+
 
 export const filterTypeSelect = (spy: SqlMock) => spy.mock.calls.filter(c => !/select\s+b.oid,\s+b.typarray\s+from\s+pg_catalog.pg_type\s+a/im.test(c[1].trim()));
 
@@ -47,7 +107,7 @@ export const expectOnlySessionInsert = (spy: SqlMock) => {
   });
 };
 
-export const sessionAssociatedWithUser = async (sessionId: string, encrypted = true) => {
+export const sessionAssociatedWithUser = async (sessionId: string, encrypted = false) => {
   if (encrypted) {
     sessionId = unsignCookie(sessionId) as string; // Type safety asserted on the next line
   }

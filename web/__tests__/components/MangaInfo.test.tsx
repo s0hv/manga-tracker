@@ -22,11 +22,13 @@ describe('MangaInfo should render correctly', () => {
     estimatedRelease: '2020-07-12T16:00:00.000Z',
     latestChapter: 157,
     status: 0,
+    title: '',
   };
 
   const nullData = {
     mangaId: 1,
     status: 0,
+    title: '',
   };
 
   it('Should render correctly with data', () => {

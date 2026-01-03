@@ -4,5 +4,10 @@
 web/coverage
 web/instrumented
 web/dist
+web/cypress
 web/__*
 **/.env*
+web/vitest.config.ts
+web/eslint.config.mjs
+web/.nycrc.server.yaml
+**/.gitignore

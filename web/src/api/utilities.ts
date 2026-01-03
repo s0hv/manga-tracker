@@ -1,4 +1,19 @@
-export class APIException extends Error {}
+import { notFound } from '@tanstack/react-router';
+import ky from 'ky';
+
+export const baseKy = ky.extend({
+  prefixUrl: '/api',
+});
+
+export class APIException extends Error {
+  public readonly statusCode: number;
+
+  constructor(msg: string, statusCode = 400) {
+    super(msg);
+
+    this.statusCode = statusCode;
+  }
+}
 
 export class HTTPException extends Error {
   private response: Response;
@@ -18,25 +33,25 @@ export class HTTPException extends Error {
 
 /**
  * Gets the data from a response and throws an error if the error key is present
- * @param {object} json json response
- * @return {Promise<any>}
+ * @param json json response
+ * @param status status code of the response
  * @throws {APIException} Thrown when errors found
  */
-export const getResponseData = async <T = any>(json: any): Promise<T> => {
+export const getResponseData = async <T = any>(json: any, status: number): Promise<T> => {
   let error = json.error;
   if (!error) {
     return json.data ?? json;
   }
 
   if (error instanceof String) {
-    throw new APIException(error as string);
+    throw new APIException(error as string, status);
   }
 
   if (error instanceof Array) {
     error = error[0];
   }
 
-  throw new APIException(error.msg || error);
+  throw new APIException(error.msg || error, status);
 };
 
 type HandleResponse = {
@@ -63,7 +78,7 @@ export const handleResponse: HandleResponse = async <T = any>(res: Response): Pr
   }
 
   return res.json()
-    .then(getResponseData<T>);
+    .then(data => getResponseData<T>(data, res.status));
 };
 
 export const handleError = async (err: any): Promise<never> => {
@@ -73,3 +88,11 @@ export const handleError = async (err: any): Promise<never> => {
   }
   throw err;
 };
+
+export function handleErrorInRoute(err: unknown): never {
+  if (err instanceof APIException && err.statusCode === 404) {
+    throw notFound();
+  }
+
+  throw err;
+}

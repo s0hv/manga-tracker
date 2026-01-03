@@ -1,5 +1,4 @@
 import React from 'react';
-import { QueryClientProvider } from '@tanstack/react-query';
 import { act, render, screen, within } from '@testing-library/react';
 import userEvent, { type UserEvent } from '@testing-library/user-event';
 import fetchMock from 'fetch-mock';
@@ -15,12 +14,14 @@ import {
   mockUTCDates,
   muiSelectValue,
   queryClient,
-  withUser,
+  TestRoot,
 } from '../../utils';
 
 import MangaAdmin from '../../../src/views/admin/MangaAdmin';
 import { fullManga } from '../../constants';
 
+
+vi.mock('@tanstack/react-router');
 
 beforeEach(async () => {
   await mockNotistackHooks();
@@ -36,9 +37,9 @@ describe('Manga admin page should render correctly', () => {
   it('should render correctly without data', async () => {
     await act(async () => {
       render(
-        <QueryClientProvider client={queryClient}>
+        <TestRoot queryClient={queryClient}>
           <MangaAdmin mangaData={{ manga: { mangaId: 0, title: '', status: 0 }, services: []}} serviceConfigs={[]} />
-        </QueryClientProvider>
+        </TestRoot>
       );
     });
 
@@ -58,12 +59,9 @@ describe('Manga admin page should render correctly', () => {
     // Does not test scheduled runs. They are tested separately
     await act(async () => {
       render(
-        await withUser(
-          adminUser,
-          <QueryClientProvider client={queryClient}>
-            <MangaAdmin mangaData={fullManga} serviceConfigs={[]} />
-          </QueryClientProvider>
-        )
+        <TestRoot queryClient={queryClient} user={adminUser}>
+          <MangaAdmin mangaData={fullManga} serviceConfigs={[]} />
+        </TestRoot>
       );
     });
 
@@ -83,9 +81,9 @@ describe('Manga admin page should render correctly', () => {
   it('should filter out services from add scheduled run menu', async () => {
     await act(async () => {
       render(
-        <QueryClientProvider client={queryClient}>
+        <TestRoot queryClient={queryClient}>
           <MangaAdmin mangaData={fullManga} serviceConfigs={[]} />
-        </QueryClientProvider>
+        </TestRoot>
       );
     });
 
@@ -120,9 +118,9 @@ describe('Manga admin page should handle data fetching correctly', () => {
 
     await act(async () => {
       render(
-        <QueryClientProvider client={queryClient}>
+        <TestRoot queryClient={queryClient}>
           <MangaAdmin mangaData={fullManga} serviceConfigs={serviceConfigs} />
-        </QueryClientProvider>
+        </TestRoot>
       );
     });
 

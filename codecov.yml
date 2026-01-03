@@ -5,6 +5,7 @@ coverage:
 
 ignore:
   - src/scripts/*
+  - web/server/tanstackIntegration*.ts
 
 flags:
   scraper:

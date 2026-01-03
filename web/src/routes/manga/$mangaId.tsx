@@ -33,7 +33,7 @@ export const Route = createFileRoute('/manga/$mangaId')({
 
     return {
       meta: defineMeta({
-        title: 'Follows',
+        title: manga.title,
         openGraph: {
           title: manga.title,
           images: manga.cover

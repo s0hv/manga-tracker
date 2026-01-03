@@ -1,4 +1,4 @@
-import React, { FC, lazy, useCallback, useEffect, useMemo, useState } from 'react';
+import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
 import { Box, Paper } from '@mui/material';
 import { ConfirmProvider } from 'material-ui-confirm';
 import { useSnackbar } from 'notistack';
@@ -18,11 +18,6 @@ import {
   FormContextRefProvider,
   useFormContextRefValue,
 } from '@/components/hooks/useFormContextRef';
-import {
-  type MangaOverrideSelectorProps,
-  ChangeOverride,
-} from '@/components/notifications/MangaOverrideSelector';
-import type { FormValues } from '@/components/notifications/types';
 import type {
   NotificationData,
   NotificationField,
@@ -45,10 +40,12 @@ import {
   NotificationTypeText,
   RightSide,
 } from './Layout';
+import MangaOverrideSelector, { ChangeOverride } from './MangaOverrideSelector';
 import MangaSelector from './MangaSelector';
 import { NameInput } from './NameInput';
 import NotificationsForm from './NotificationsForm';
 import SaveButton from './SaveButton';
+import type { FormValues } from './types';
 
 type FieldTypes = {
   username: string | undefined | null
@@ -62,8 +59,6 @@ type FieldTypes = {
   color: string | undefined | null
 };
 interface DiscordFormData extends FormValues, FieldTypes {}
-
-const MangaOverrideSelector = lazy<FC<MangaOverrideSelectorProps<DiscordFormData>>>(() => import('./MangaOverrideSelector'));
 
 export type DiscordWebhookEditorProps = {
   notificationData: NotificationData
@@ -405,7 +400,7 @@ const DiscordWebhookEditor: React.FC<DiscordWebhookEditorProps> = ({
         .forEach(name => register(name, { required: false }));
     }
 
-    trigger();
+    void trigger();
   }, [notificationData, register, reset, trigger, fieldRequired]);
 
   // Form reset is recommended to be done in the useEffect
@@ -421,7 +416,6 @@ const DiscordWebhookEditor: React.FC<DiscordWebhookEditorProps> = ({
     <Paper>
       <Box sx={{
         p: 4,
-        m: 2,
         minWidth: '800px',
       }}
       >

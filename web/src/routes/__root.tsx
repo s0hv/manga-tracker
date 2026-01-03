@@ -115,23 +115,25 @@ const RootDocument = ({ children }: PropsWithChildren) => {
       <body>
         <InitColorSchemeScript defaultMode='system' attribute='class' nonce={nonce} />
         <Providers>
-          {isStaticPage
-            ? (
-              <main>
-                {children}
-              </main>
-            )
-            : (
-              <SnackbarProvider>
-                <UserStoreProvider user={frontendUser}>
+          {/* User store provider should be before the static page check
+              to prevent user info from disappearing when visiting a static page */}
+          <UserStoreProvider user={frontendUser}>
+            {isStaticPage
+              ? (
+                <main>
+                  {children}
+                </main>
+              )
+              : (
+                <SnackbarProvider>
                   <Layout>
                     <main>
                       {children}
                     </main>
                   </Layout>
-                </UserStoreProvider>
-              </SnackbarProvider>
-            )}
+                </SnackbarProvider>
+              )}
+          </UserStoreProvider>
         </Providers>
 
         <TanStackRouterDevtools position='bottom-right' />

@@ -1,23 +1,18 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
+import { TestRoot } from '@/tests/utils';
 import { Layout } from '@/components/Layout';
 
+vi.mock('@tanstack/react-router');
 
 const dummyLabel = 'test label';
 const DummyComponent = () => <div aria-label={dummyLabel} />;
 
 describe('Layout component should render correctly', () => {
-  it('Should render with empty input', () => {
-    render(<Layout><DummyComponent /></Layout>);
-
-    expect(screen.getByLabelText(dummyLabel)).toBeInTheDocument();
-    expect(screen.queryByRole('contentinfo')).not.toBeInTheDocument();
-  });
-
-  it('Should render with empty input and correct status code', () => {
-    render(<Layout statusCode={200}><DummyComponent /></Layout>);
+  it('Should render correctly', () => {
+    render(<TestRoot><Layout><DummyComponent /></Layout></TestRoot>);
 
     const currentYear = new Date().getFullYear();
 
@@ -36,16 +31,5 @@ describe('Layout component should render correctly', () => {
     const privacy = screen.getByRole<HTMLLinkElement>('link', { name: /^privacy policy$/i });
     expect(privacy).toBeVisible();
     expect(privacy.href).toEndWith('/privacy_policy');
-  });
-
-  it('Should only return children on non 200 status code', () => {
-    render(
-      <Layout statusCode={400}>
-        <DummyComponent />
-      </Layout>
-    );
-
-    expect(screen.getByLabelText(dummyLabel)).toBeInTheDocument();
-    expect(screen.queryByRole('contentinfo')).not.toBeInTheDocument();
   });
 });

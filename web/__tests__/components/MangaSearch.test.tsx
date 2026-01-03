@@ -8,6 +8,7 @@ import MangaSearch from '@/components/MangaSearch';
 
 
 fetchMock.config.overwriteRoutes = true;
+vi.mock('@tanstack/react-router');
 
 beforeEach(() => fetchMock.reset());
 
@@ -87,7 +88,7 @@ describe('Search should behave correctly with user input', () => {
     const user = userEvent.setup();
     // Simulate text changes
     await user.type(input, 'ab');
-    expect(searchFn).toHaveBeenCalledTimes(1);
+    await vi.waitFor(() => expect(searchFn).toHaveBeenCalledTimes(1));
   });
 
   it('Should throttle fast requests', async () => {
@@ -95,7 +96,7 @@ describe('Search should behave correctly with user input', () => {
 
     fetchMock.mock('glob:/api/quicksearch?query=*', searchFn);
 
-    render(<MangaSearch searchThrottleTimeout={1000} />);
+    render(<MangaSearch />);
 
     // Find search input
     const input = screen.getByRole('combobox');
@@ -103,11 +104,12 @@ describe('Search should behave correctly with user input', () => {
 
     // Simulate text changes and test that the quicksearch endpoint
     // was called only once
-    await user.type(input, 'abcd');
+    await user.type(input, 'ab');
+    await user.type(input, 'cd');
 
-    expect(searchFn).toHaveBeenCalledTimes(1);
+    await vi.waitFor(() => expect(searchFn).toHaveBeenCalledTimes(1));
     expect(fetchMock.called('glob:/api/quicksearch?query=*', { query: {
-      query: 'ab',
+      query: 'abcd',
     }})).toBeTrue();
   });
 });

@@ -6,6 +6,7 @@ import type {
 
 import { COOKIES } from '@/common/cookies';
 import { isSecure } from '@/serverUtils/constants';
+import type { AnyRequest } from '@/types/request';
 
 
 export const redirectCookieOptions: CookieOptions = {
@@ -40,7 +41,7 @@ export const clearRedirectCookie = (res: Response) => {
   res.clearCookie(COOKIES.redirect);
 };
 
-export const getRedirectUrl = (req: Request): string => {
+export const getRedirectUrl = (req: AnyRequest): string => {
   const redirect = req.cookies[COOKIES.redirect];
 
   if (!redirect) {

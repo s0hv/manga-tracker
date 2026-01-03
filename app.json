@@ -1,0 +1,14 @@
+{
+  "healthchecks": {
+    "web": [
+      {
+        "type":        "startup",
+        "name":        "web check",
+        "description": "Check if application is healthy",
+        "path":        "/api/health",
+        "attempts": 3,
+        "content": "OK"
+      }
+    ]
+  }
+}

@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, render, screen, within } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import fetchMock from 'fetch-mock';
 import { beforeEach, describe, expect, it } from 'vitest';
@@ -121,9 +121,7 @@ describe('Services page should allow editing', () => {
 
     const user = userEvent.setup();
     await user.click(row.getByRole('button', { name: /edit row/i }));
-    await act(async () => {
-      await user.click(row.getByRole('button', { name: /save row/i }));
-    });
+    await user.click(row.getByRole('button', { name: /save row/i }));
 
     expectNoSnackbar();
   });
@@ -138,9 +136,7 @@ describe('Services page should allow editing', () => {
     const user = userEvent.setup();
     await user.click(row.getByRole('button', { name: /edit row/i }));
     await user.click(screen.getByRole('checkbox', { name: /^disabled$/i }));
-    await act(async () => {
-      await user.click(row.getByRole('button', { name: /save row/i }));
-    });
+    await user.click(row.getByRole('button', { name: /save row/i }));
 
     expectSuccessSnackbar();
 
@@ -162,9 +158,7 @@ describe('Services page should allow editing', () => {
     const user = userEvent.setup();
     await user.click(row.getByRole('button', { name: /edit row/i }));
     await user.click(screen.getByRole('checkbox', { name: /^disabled$/i }));
-    await act(async () => {
-      await user.click(row.getByRole('button', { name: /save row/i }));
-    });
+    await user.click(row.getByRole('button', { name: /save row/i }));
 
     expectErrorSnackbar();
   });

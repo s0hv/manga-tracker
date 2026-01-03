@@ -139,7 +139,7 @@ const MangaSearch = <TWithServices extends boolean = false>(props: MangaSearchPr
     () => throttle((query: string, cb: (manga: SearchResultBasedOnServices<TWithServices>[]) => void) => {
       quickSearch(query, withServices)
         .then(js => cb(js as SearchResultBasedOnServices<TWithServices>[]));
-    }, searchThrottleTimeout, { edges: ['leading']}),
+    }, searchThrottleTimeout, { edges: ['trailing']}),
     [searchThrottleTimeout, withServices]
   );
 

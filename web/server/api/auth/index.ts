@@ -17,22 +17,31 @@ import {
   serverCookieNames,
 } from '@/serverUtils/constants';
 import { sessionLogger } from '@/serverUtils/logging';
-import { limiterSlowBruteByIP } from '@/serverUtils/ratelimits';
+import {
+  accountLoginLimiter,
+  getLoginRatelimitKey,
+} from '@/serverUtils/ratelimits';
 import {
   clearRedirectCookie,
   getRedirectFromHeader,
   getRedirectUrl,
 } from '@/serverUtils/redirect';
-import { setSessionCookie } from '@/serverUtils/requestHelpers';
+import {
+  clearSecureCookie,
+  setSessionCookie,
+} from '@/serverUtils/requestHelpers';
+import { validateRequest } from '@/serverUtils/validators';
 
 import { router } from './common';
+import { discordCallbackHandler } from './discord';
+import { registerProviderRoute } from './oauth2';
 
 router.post('/logout', async (req, res) => {
   const sessionToken = req.signedCookies[serverCookieNames.session];
   const session = await validateSessionToken(sessionToken ?? '');
 
-  res.clearCookie(serverCookieNames.session);
-  res.clearCookie(serverCookieNames.authToken);
+  clearSecureCookie(res, serverCookieNames.session);
+  clearSecureCookie(res, serverCookieNames.authToken);
 
   if (!session) {
     return res.redirect('/');
@@ -40,7 +49,7 @@ router.post('/logout', async (req, res) => {
 
   await deleteSession(session.sessionId);
 
-  // Update user last activity in the background
+  // Update the users last activity in the background
   if (session.userId) {
     void updateUserLastActivity(session.userId);
   }
@@ -50,42 +59,45 @@ router.post('/logout', async (req, res) => {
 
 const LoginForm = z.object({
   email: z.string(),
-  password: z.string().max(72),
-  rememberMe: z.boolean().optional(),
-});
+  /** Password length validated by {@link authenticateUser} */
+  password: z.string(),
+  rememberMe: z.union([z.boolean(), z.literal('true').transform(() => true)]).optional(),
+}).strict();
 
-router.post('/login', async (req, res) => {
-  const form = LoginForm.parse(req.body);
+router.post('/login',
+  validateRequest({ body: LoginForm }),
+  async (req, res) => {
+    const form = req.body;
 
-  const ratelimitKey = req.ip ?? '';
-  await limiterSlowBruteByIP.consume(ratelimitKey);
+    const ratelimitKey = getLoginRatelimitKey(req);
+    await accountLoginLimiter.consume(ratelimitKey);
 
-  const user = await authenticateUser(form.email, form.password);
+    const user = await authenticateUser(form.email, form.password);
 
-  // On successful login, restore rate limit point
-  await limiterSlowBruteByIP.reward(ratelimitKey);
+    // On successful login, restore rate limit point
+    await accountLoginLimiter.reward(ratelimitKey);
 
-  if (form.rememberMe) {
-    const { token, expiresAt } = await generateAuthToken(user.userId, user.userUuid);
-    res.cookie(serverCookieNames.authToken, token, {
-      ...SECURE_COOKIE_OPTIONS,
-      expires: expiresAt,
-    });
-  }
+    if (form.rememberMe) {
+      const { token, expiresAt } = await generateAuthToken(user.userId, user.userUuid);
+      res.cookie(serverCookieNames.authToken, token, {
+        ...SECURE_COOKIE_OPTIONS,
+        expires: expiresAt,
+      });
+    }
 
-  const session = await createSession(user.userId);
-  setSessionCookie(session, res);
+    const session = await createSession(user.userId);
+    setSessionCookie(session, res);
 
-  // Update user last activity in the background
-  void updateUserLastActivity(user.userId);
+    // Update the users last activity in the background
+    void updateUserLastActivity(user.userId);
 
-  clearRedirectCookie(res);
-  res.redirect(getRedirectUrl(req));
-});
+    clearRedirectCookie(res);
+    res.redirect(getRedirectUrl(req));
+  });
 
 // Since this is used for a redirect, it must be a GET request
 router.get('/restore-login', async (req, res) => {
-  // Must have valid referrer
+  // Must be a browser navigation request
   const fetchMode = req.header('sec-fetch-mode')?.toLowerCase();
   const fetchDest = req.header('sec-fetch-dest')?.toLowerCase();
 
@@ -105,7 +117,7 @@ router.get('/restore-login', async (req, res) => {
   }
 
   // We want to clear this asap
-  res.clearCookie(serverCookieNames.authRestore);
+  clearSecureCookie(res, serverCookieNames.authRestore);
 
   // Set the redirect path
   const redirectPath = getRedirectUrl(req);
@@ -115,7 +127,7 @@ router.get('/restore-login', async (req, res) => {
 
   const authToken = req.signedCookies[serverCookieNames.authToken] as string | undefined;
 
-  // If auth token does not exist or session is already active, just redirect back
+  // If the auth token does not exist or the session is already active, just redirect back
   if (!authToken || req.session?.userId) {
     res.end();
     return;
@@ -124,6 +136,8 @@ router.get('/restore-login', async (req, res) => {
   await authenticateByAuthCookie(authToken, req, res);
   res.end();
 });
+
+registerProviderRoute('discord', discordCallbackHandler);
 
 export default function register(app: Application) {
   app.use('/api/auth', router);

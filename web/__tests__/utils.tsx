@@ -1,6 +1,3 @@
-import type { PostgresAdapter } from '@/db/postgres-adapter';
-import { UserProvider } from '@/webUtils/useUser';
-
 import React, { type PropsWithChildren, isValidElement } from 'react';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -12,12 +9,11 @@ import {
   within,
 } from '@testing-library/react';
 import { type UserEvent } from '@testing-library/user-event';
+import { parseSetCookie } from 'cookie';
 import signature from 'cookie-signature';
+import { CookieAccessInfo } from 'cookiejar';
+import { addHours } from 'date-fns';
 import { enGB as enLocale } from 'date-fns/locale';
-import type {
-  NextFunction,
-  Request as ExpressRequest,
-} from 'express-serve-static-core';
 import fetchMock, { type MockCall } from 'fetch-mock';
 import jestOpenAPI from 'jest-openapi';
 import type { ConfirmResult } from 'material-ui-confirm';
@@ -26,11 +22,21 @@ import type { Response } from 'supertest';
 import request from 'supertest';
 import { expect, Mock, MockInstance, vi } from 'vitest';
 
+import { createTestSession } from '@/tests/dbutils';
+import { type FrontendUser, UserStoreProvider } from '#web/store/userStore';
+import type { DbHelpers } from '@/db/helpers';
+import { serverCookieNames } from '@/serverUtils/constants';
 import { ServiceForApi } from '@/types/api/services';
 
 import { getOpenapiSpecification } from '../swagger';
 
-import { testServices, TestUser } from './constants';
+import {
+  authTokenCookieRegex,
+  COOKIE_SECRET,
+  sessionCookieRegex,
+  testServices,
+  TestUser,
+} from './constants';
 
 export { adminUser, authTestUser, normalUser, oauthUser } from './constants';
 
@@ -43,7 +49,12 @@ vi.mock('notistack', async () => {
   };
 });
 
-let dbMock: any;
+
+// eslint-disable-next-line no-var
+var dbMock: {
+  db: DbHelpers
+  any: Mock
+};
 vi.mock('@/db/helpers', async () => {
   const db = await vi.importActual<typeof import('@/db/helpers')>('@/db/helpers');
   dbMock = {
@@ -68,11 +79,18 @@ const getQueryClient = () => new QueryClient({
 
 export const queryClient = getQueryClient();
 
-export const TestRoot = ({ children }: PropsWithChildren) => (
-  <QueryClientProvider client={getQueryClient()}>
-    <SnackbarProvider>
-      {children}
-    </SnackbarProvider>
+type TestRootProps = {
+  queryClient?: QueryClient
+  user?: TestUser | null
+};
+
+export const TestRoot = ({ children, queryClient, user = null }: PropsWithChildren<TestRootProps>) => (
+  <QueryClientProvider client={queryClient ?? getQueryClient()}>
+    <UserStoreProvider user={user ? toFrontendUser(user) : user}>
+      <SnackbarProvider>
+        {children}
+      </SnackbarProvider>
+    </UserStoreProvider>
   </QueryClientProvider>
 );
 
@@ -184,37 +202,69 @@ type WithUser = {
 export const withUser: WithUser = (async (userObject: TestUser, cb: React.ReactElement | (() => Promise<any>)) => {
   if (isValidElement(cb)) {
     return (
-      <UserProvider value={userObject}>
+      <UserStoreProvider user={toFrontendUser(userObject)}>
         {cb}
-      </UserProvider>
+      </UserStoreProvider>
     ) as any;
   }
 
-  const { getSessionAndUser } = (await import('@/db/auth')) as any as { getSessionAndUser: Mock };
+  const { useSessionAndUser } = (await import('@/db/auth'));
+  const useSessionAndUserMock = useSessionAndUser as Mock<typeof useSessionAndUser>;
 
-  getSessionAndUser.mockImplementation((req: ExpressRequest, res: any, next: NextFunction) => {
+  useSessionAndUserMock.mockImplementation(async (req, _, next) => {
     req.session = {
-      userId: userObject.uuid as never,
+      sessionId: 'test',
+      expiresAt: addHours(new Date(), 2),
+      userId: userObject.userId,
+      data: null,
     };
     req.user = userObject;
     next();
   });
 
   try {
-    await (cb as () => Promise<any>)();
+    await cb();
   } finally {
     // Restore the original function
-    getSessionAndUser.mockImplementation((await vi.importActual<typeof import('@/db/auth')>('@/db/auth')).useSessionAndUser);
+    useSessionAndUserMock.mockImplementation((await vi.importActual<typeof import('@/db/auth')>('@/db/auth')).useSessionAndUser);
   }
 }) as WithUser;
 
 export function getCookie(agent: request.Agent, name: string) {
-  return agent.jar.getCookie(name, { path: '/' } as any);
+  return agent.jar.getCookie(name, CookieAccessInfo.All);
 }
 
-export const getSessionToken = (agent: request.Agent) => {
-  return getCookie(agent, 'next-auth.session-token')?.value;
+function getAndAssertCookie(agent: request.Agent, name: string) {
+  const cookie = getCookie(agent, name);
+  expect(cookie).toBeDefined();
+  return cookie!;
+}
+
+export function getSessionCookie(agent: request.Agent) {
+  const cookie = getAndAssertCookie(agent, serverCookieNames.session);
+
+  return {
+    cookie,
+    value: unsignCookie(cookie.value),
+  };
+}
+
+export const getAuthTokenCookie = (agent: request.Agent) => {
+  const cookie = getAndAssertCookie(agent, serverCookieNames.authToken);
+
+  return {
+    cookie,
+    value: unsignCookie(cookie.value),
+  };
 };
+
+export function expectCookieNotPresent(agent: request.Agent, name: string) {
+  expect(getCookie(agent, name)).toBeUndefined();
+}
+
+export function expectCookiePresent(agent: request.Agent, name: string) {
+  expect(getCookie(agent, name)).toBeDefined();
+}
 
 export function deleteCookie(agent: request.Agent, name: string) {
   const c = getCookie(agent, name);
@@ -223,30 +273,50 @@ export function deleteCookie(agent: request.Agent, name: string) {
   agent.jar.setCookie(c!);
 }
 
-export async function login(app: any, user: TestUser) {
+export async function login(app: any, user: TestUser, rememberMe = false) {
   const agent = request.agent(app);
-  const { db } = await import('@/db/helpers');
-  // Stuff breaks if this import is hoisted at the top of the file
-  const { PostgresAdapter } = await import('@/db/postgres-adapter');
-  const adapter: PostgresAdapter = PostgresAdapter(db);
 
-  const token = Date.now().toString();
-  await adapter.createSession({
-    sessionToken: token,
-    expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
-    userId: user.id,
-  });
+  // For oauth based accounts just mock the created session
+  if (!user.isCredentialsAccount) {
+    const sessionId = Date.now().toString();
+    const { token } = await createTestSession(
+      sessionId,
+      user.userId
+    );
 
-  const authCookie = 'next-auth.session-token';
-  agent.jar.setCookie(`${authCookie}=${token}`);
+    const tokenSigned = signCookieValue(token);
+    const sessionCookie = serverCookieNames.session;
+
+    agent.jar.setCookie(`${sessionCookie}=${tokenSigned}`);
+
+    await agent
+      .post('/api/authCheck')
+      .csrf()
+      .expect(200)
+      .expect(res => expect(res.body.user).toBeObject());
+
+    expect(getCookie(agent, sessionCookie)).toBeDefined();
+
+    return agent;
+  }
 
   await agent
-    .post('/api/authCheck')
+    .post('/api/auth/login')
     .csrf()
-    .expect(200)
-    .expect(res => expect(res.body.user).toBeObject());
+    .send({
+      email: user.email,
+      password: user.password,
+      rememberMe,
+    })
+    .expect(302)
+    .expect('set-cookie', sessionCookieRegex)
+    .expect('set-cookie', rememberMe ? authTokenCookieRegex : sessionCookieRegex);
 
-  expect(getCookie(agent, authCookie)).toBeDefined();
+  if (!rememberMe) {
+    expect(getCookie(agent, serverCookieNames.authToken)).toBeUndefined();
+  }
+
+  expect(getCookie(agent, serverCookieNames.session)).toBeDefined();
 
   return agent;
 }
@@ -255,22 +325,32 @@ export const headerNotPresent =
   (header: string) => (res: Response) => expect(res.header[header]).toBeUndefined();
 
 export function unsignCookie(value: string) {
-  if (!value.startsWith('s:')) {
-    value = decodeURIComponent(value);
-  }
-  return signature.unsign(value.slice(2), 'secret');
+  const unsigned = signature.unsign(decodeURIComponent(value).slice(2), COOKIE_SECRET);
+  expect(unsigned).toBeString();
+
+  return unsigned as string;
 }
 
-export function decodeAuthToken(tokenValue: string): [string, string, string] {
-  tokenValue = decodeURIComponent(tokenValue);
-  const [lookup, token, uuidBase64] = tokenValue.split(';', 3);
-  const uuid = Buffer.from(uuidBase64, 'base64').toString('ascii');
-  return [lookup, token, uuid];
+export function signCookieValue(value: string) {
+  return encodeURIComponent(`s:${signature.sign(value, COOKIE_SECRET)}`);
 }
 
-export function encodeAuthToken(lookup: string, token: string, uuid: string): string {
-  const uuidB64 = Buffer.from(uuid, 'ascii').toString('base64');
-  return encodeURIComponent(`${lookup};${token};${uuidB64}`);
+export function getCookieFromRes(res: Response, cookieName: string) {
+  if (!res.headers['set-cookie']) return;
+  expect(res.headers['set-cookie']).toBeArray();
+
+  return (res.headers['set-cookie'] as unknown as string[])
+    .map(setCookie => parseSetCookie(setCookie))
+    .find(cookie => cookie.name === cookieName);
+}
+
+export function expectCookieDeleted(cookieName: string) {
+  return (res: Response) => {
+    const found = getCookieFromRes(res, cookieName);
+
+    expect(found).toBeDefined();
+    expect(found!.expires?.getTime()).toStrictEqual(0);
+  };
 }
 
 export function withRoot(Component: React.ReactElement): React.ReactElement {
@@ -326,6 +406,30 @@ export const expectErrorMessage: ExpectErrorMessage = (value, param, message = '
     expect(error.value).toEqual(value);
   };
 };
+
+
+export function getErrorMessage2(res: Response, param?: string, part: 'body' | 'param' | 'query' = 'body'): string | undefined {
+  expect(res.ok).toBeFalse();
+  expect(res.body).toBeObject();
+  const errors = res.body.error;
+  expect(errors).toBeDefined();
+
+  if (typeof errors === 'string') {
+    return errors;
+  }
+
+  if (typeof errors === 'object') {
+    let errorEntries = Object.entries(errors);
+
+    if (param) {
+      const paramName = `${part}.${param}`;
+      // Only get errors related to the given parameter
+      errorEntries = errorEntries.filter(([key]) => key === paramName);
+    }
+    expect(errorEntries, `Error message for field '${param}' not found in ${part}`).toHaveLength(1);
+    return (errorEntries[0][1] as string[]).join('\n');
+  }
+}
 
 export async function configureJestOpenAPI() {
   // Must add global expect so that jest-openapi can add its custom matchers
@@ -386,8 +490,8 @@ export const mockDbForErrors = <T, >(fn: () => Promise<T>): Promise<T> => {
   dbMock.db = Object.keys(originalDb).reduce((prev, curr) => ({
     ...prev,
     [curr]: vi.fn().mockImplementation(async () => Promise.reject('Mocked error')),
-  }), {});
-  // Leave sql as is since it's an object
+  }), {}) as DbHelpers;
+  // Leave `sql` as is since it's an object
   dbMock.db.sql = sql;
 
   return fn()
@@ -436,3 +540,33 @@ export const mockServicesEndpoint = () => {
 
   return servicesMock;
 };
+
+export function toFrontendUser(user: TestUser): FrontendUser {
+  return {
+    uuid: user.userUuid,
+    username: user.username,
+    theme: user.theme,
+    admin: user.admin,
+  };
+}
+
+export function getCoverUrl(cover: string, size?: 256 | 512 | undefined): string;
+export function getCoverUrl(cover: string | undefined | null, size?: 256 | 512 | undefined): string | undefined;
+export function getCoverUrl(cover: string | undefined | null, size: 256 | 512 | undefined = 256) {
+  if (cover == undefined) {
+    return;
+  }
+
+  const coverUrl = new URL(cover);
+
+  if (coverUrl.hostname !== 'uploads.mangadex.org') {
+    return cover;
+  }
+
+  const [_, __, mangaId, coverId] = coverUrl.pathname.split('/');
+  const sizeParam = size
+    ? `?size=${size}`
+    : '';
+
+  return `/thumbnails/mangadex/${mangaId}/${coverId}${sizeParam}`;
+}

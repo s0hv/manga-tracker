@@ -1,12 +1,5 @@
 import request, { type Agent } from 'supertest';
-import {
-  afterAll,
-  beforeAll,
-  beforeEach,
-  describe,
-  expect,
-  it,
-} from 'vitest';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
 import initServer from '../initServer';
 import stopServer from '../stopServer';
@@ -14,20 +7,31 @@ import {
   adminUser,
   expectErrorMessage,
   getCookie,
-  getSessionToken,
   login,
   normalUser,
   oauthUser,
   withUser,
 } from '../utils';
 import { apiRequiresUserPostTests } from './api-test-utilities';
+import {
+  expectAuthTokenRegenerated,
+  expectSessionRegenerated,
+  spyOnDb,
+} from '@/tests/dbutils';
 import { insertFollow } from '@/db/follows';
 import { db } from '@/db/helpers';
-import { csrfMissing } from '@/serverUtils/constants';
+import { createUser } from '@/db/user';
+import { csrfMissing, serverCookieNames } from '@/serverUtils/constants';
 import { redis } from '@/serverUtils/ratelimits';
 
 
-import { type TestUser, mangaIdError, userUnauthorized } from '../constants';
+import {
+  type TestUser,
+  authTokenCookieRegex,
+  mangaIdError,
+  sessionCookieRegex,
+  userUnauthorized,
+} from '../constants';
 
 let httpServer: any;
 const serverReference = {
@@ -299,6 +303,7 @@ describe('POST /api/user/profile', () => {
 
   it('returns 400 with too long or too short password', async () => {
     await withUser(normalUser, async () => {
+      const spy = spyOnDb();
       const tooLong = 'a'.repeat(73);
       const tooShort = 'abc1234';
 
@@ -323,11 +328,14 @@ describe('POST /api/user/profile', () => {
         })
         .expect(400)
         .expect(expectErrorMessage(tooShort, 'newPassword', 'Password must be between 8 and 72 characters long'));
+
+      expect(spy).not.toHaveBeenCalled();
     });
   });
 
   it('returns 400 if given passwords do not match', async () => {
     await withUser(normalUser, async () => {
+      const spy = spyOnDb();
       const newPassword = 'abcd1234';
       const repeatPassword = 'does not match';
 
@@ -341,22 +349,30 @@ describe('POST /api/user/profile', () => {
         })
         .expect(400)
         .expect(expectErrorMessage(newPassword, 'newPassword', /did not match/));
+
+      expect(spy).not.toHaveBeenCalled();
     });
   });
 
   it('returns 401 when editing email or changing password without giving old password', async () => {
     await withUser(normalUser, async () => {
+      const spy = spyOnDb();
+
       await request(httpServer)
         .post('/api/profile')
         .csrf()
         .send({ newPassword: 'newPass123' })
         .expect(401)
         .expect(expectErrorMessage('Password required for modifying newPassword'));
+
+      expect(spy).not.toHaveBeenCalled();
     });
   });
 
   it('returns 401 when editing all values without password', async () => {
     await withUser(normalUser, async () => {
+      const spy = spyOnDb();
+
       await request(httpServer)
         .post('/api/profile')
         .csrf()
@@ -368,11 +384,15 @@ describe('POST /api/user/profile', () => {
         })
         .expect(401)
         .expect(expectErrorMessage(/Password required for modifying/));
+
+      expect(spy).not.toHaveBeenCalled();
     });
   });
 
-  it('returns 403 when trying to change email to an existing email', async () => {
+  it('returns 403 when trying to change password as an oauth user', async () => {
     const agent = await login(httpServer, oauthUser);
+    const spy = spyOnDb();
+
     await agent
       .post('/api/profile')
       .csrf()
@@ -383,9 +403,11 @@ describe('POST /api/user/profile', () => {
       })
       .expect(403)
       .expect(expectErrorMessage('This action is only available if your account is a traditional email + password account.'));
+
+    expect(spy).not.toHaveBeenCalled();
   });
 
-  it('returns 400 when trying to change password with oauth user', async () => {
+  it('returns 400 when trying to change email and password with normal user', async () => {
     const agent = await login(httpServer, normalUser);
     await agent
       .post('/api/profile')
@@ -419,8 +441,41 @@ describe('POST /api/user/profile', () => {
       .expect(200);
   }
 
-  it('returns 200 when changing password', async () => {
+  it('returns 200 when changing password with remember me', async () => {
+    const agent = await login(httpServer, normalUser, true);
+
+    const oldAuth = getCookie(agent, serverCookieNames.authToken)!;
+    const oldSess = getCookie(agent, serverCookieNames.session)!;
+    expect(oldAuth).toBeDefined();
+    expect(oldSess).toBeDefined();
+
+    const newPassword = 'testPassword12345';
+
+    await agent
+      .post('/api/profile')
+      .csrf()
+      .send({
+        newPassword: newPassword,
+        repeatPassword: newPassword,
+        password: normalUser.password,
+      })
+      .expect(200)
+      .expect('set-cookie', authTokenCookieRegex)
+      .expect('set-cookie', sessionCookieRegex);
+
+    const sess = await expectSessionRegenerated(agent, oldSess.value);
+    const auth = await expectAuthTokenRegenerated(agent, oldAuth.value);
+
+    await checkAndResetPassword(agent, newPassword, normalUser);
+    await expectSessionRegenerated(agent, sess.value);
+    await expectAuthTokenRegenerated(agent, auth.value);
+  });
+
+  it('returns 200 when changing password  without remember me', async () => {
     const agent = await login(httpServer, normalUser);
+
+    const oldSess = getCookie(agent, serverCookieNames.session)!;
+    expect(oldSess).toBeDefined();
 
     const newPassword = 'testPassword12345';
 
@@ -434,13 +489,15 @@ describe('POST /api/user/profile', () => {
       })
       .expect(200);
 
+    const sess = await expectSessionRegenerated(agent, oldSess.value)!;
     await checkAndResetPassword(agent, newPassword, normalUser);
+    await expectSessionRegenerated(agent, sess.value);
   });
 
   it('returns 200 when changing username', async () => {
     const agent = await login(httpServer, normalUser);
 
-    const sess = getCookie(agent, 'sess');
+    const sess = getCookie(agent, serverCookieNames.session);
 
     await agent
       .post('/api/profile')
@@ -448,7 +505,7 @@ describe('POST /api/user/profile', () => {
       .send({ username: 'test ci edited' })
       .expect(200);
 
-    expect(sess?.value).toEqual(getCookie(agent, 'sess')?.value);
+    expect(sess?.value).toEqual(getCookie(agent, serverCookieNames.session)?.value);
   });
 
   it('returns 200 when modifying all values at the same time', async () => {
@@ -475,26 +532,28 @@ describe('POST /api/user/delete', () => {
   const url = '/api/user/delete';
   apiRequiresUserPostTests(serverReference, url);
 
-  it('Sets the deleteUser property of session', async () => {
-    const agent = await login(httpServer, normalUser);
-
-    const now = new Date(Date.now());
+  it('Deletes the user', async () => {
+    const deleteTestUser: TestUser = {
+      ...normalUser,
+      email: 'delete-user-test@email.com',
+    };
+    // First, delete the user if it exists
+    await db.none`DELETE FROM users WHERE email = ${deleteTestUser.email}`;
+    const createdUser = await createUser(deleteTestUser);
+    const agent = await login(httpServer, deleteTestUser);
 
     await agent.post(url)
       .csrf()
-      .expect(200)
-      .expect(res => expect(res.body).toBeObject())
-      .expect(res => expect(res.body.message).toBeString());
+      .expect(200);
 
-    const after = new Date(Date.now());
+    await expect(db.one`SELECT * FROM users WHERE user_id = ${createdUser.userId}`)
+      .rejects.toThrowErrorMatchingInlineSnapshot(`[Error: No rows found]`);
 
-    const sessionToken = getSessionToken(agent);
+    await expect(db.many`SELECT * FROM sessions WHERE user_id = ${createdUser.userId}`)
+      .rejects.toThrowErrorMatchingInlineSnapshot(`[Error: No rows found]`);
 
-    expect(sessionToken).toBeString();
-    const sess = await db.one<{ deleteUser: Date | null }>`SELECT delete_user FROM sessions WHERE session_id=${sessionToken}`;
-    expect(sess.deleteUser).toBeDate();
-    expect(sess.deleteUser).toBeAfter(now);
-    expect(sess.deleteUser).toBeBefore(after);
+    await expect(login(httpServer, deleteTestUser)).rejects
+      .toThrowErrorMatchingInlineSnapshot(`[Error: expected 302 "Found", got 401 "Unauthorized"]`);
   });
 });
 
@@ -523,27 +582,25 @@ describe('POST /api/user/dataRequest', () => {
         joinedAt: expect.any(String),
         admin: oauthUser.admin,
         theme: oauthUser.theme,
-        emailVerified: expect.toBeOneOf([expect.any(Boolean), null]),
-        isCredentialsAccount: oauthUser.isCredentialsAccount,
         lastActive: expect.any(String),
       },
 
       accounts: expect.arrayContaining([
         {
-          id: expect.any(String),
-          type: expect.any(String),
           provider: expect.any(String),
           providerAccountId: expect.any(String),
-          expiresAt: expect.any(Number),
-          tokenType: expect.toBeOneOf([expect.any(String), null]),
-          scope: expect.toBeOneOf([expect.any(String), null]),
-          userId: oauthUser.userUuid,
+          userId: oauthUser.userId,
         },
       ]),
 
       follows: expect.any(Array),
 
-      sessions: expect.arrayContaining([expect.any(Object)]),
+      sessions: expect.arrayContaining([
+        {
+          expiresAt: expect.any(String),
+          data: expect.any(Object),
+        },
+      ]),
     }));
   });
 });

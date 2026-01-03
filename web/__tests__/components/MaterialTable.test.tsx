@@ -1,6 +1,6 @@
 import React from 'react';
 import { Checkbox } from '@mui/material';
-import { act, render, screen, within } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import fetchMock from 'fetch-mock';
 import { describe, expect, it, test, vi } from 'vitest';
@@ -19,8 +19,8 @@ import { MaterialColumnDef } from '@/components/MaterialTable/types';
 import { createColumnHelper } from '@/components/MaterialTable/utilities';
 import { defaultDateFormat } from '@/webUtils/utilities';
 
-
 import { defaultDateFormatRegex } from '../constants';
+
 
 fetchMock.config.overwriteRoutes = true;
 
@@ -238,17 +238,9 @@ describe('Should handle editing', () => {
     expect(row).toBeDefined();
 
     const user = userEvent.setup();
-    await act(async () => {
-      await user.click(
-        row.getByRole('button', { name: /edit row/i })
-      );
-    });
 
-    await act(async () => {
-      await user.click(
-        row.getByRole('button', { name: /save row/i })
-      );
-    });
+    await user.click(row.getByRole('button', { name: /edit row/i }));
+    await user.click(row.getByRole('button', { name: /save row/i }));
 
     expect(onSave).toHaveBeenCalledTimes(1);
     expect(screen.queryByRole('button', { name: /cancel edit/i })).not.toBeInTheDocument();
@@ -268,17 +260,9 @@ describe('Should handle editing', () => {
     expect(row).toBeDefined();
 
     const user = userEvent.setup();
-    await act(async () => {
-      await user.click(
-        row.getByRole('button', { name: /edit row/i })
-      );
-    });
 
-    await act(async () => {
-      await user.click(
-        row.getByRole('button', { name: /cancel edit/i })
-      );
-    });
+    await user.click(row.getByRole('button', { name: /edit row/i }));
+    await user.click(row.getByRole('button', { name: /cancel edit/i }));
 
     expect(onSave).not.toHaveBeenCalled();
     expect(screen.queryByRole('button', { name: /save row/i })).not.toBeInTheDocument();
@@ -301,11 +285,7 @@ describe('Should handle editing', () => {
     expect(row).toBeDefined();
 
     const user = userEvent.setup();
-    await act(async () => {
-      await user.click(
-        row.getByRole('button', { name: /edit row/i })
-      );
-    });
+    await user.click(row.getByRole('button', { name: /edit row/i }));
 
     const _temp = row.getByText(data[0].id).closest('td');
     expect(_temp).toBeInTheDocument();
@@ -328,27 +308,16 @@ describe('Should handle editing', () => {
     expect(row).toBeDefined();
 
     const user = userEvent.setup();
-    await act(async () => {
-      await user.click(
-        row.getByRole('button', { name: /edit row/i })
-      );
-    });
+    await user.click(row.getByRole('button', { name: /edit row/i }));
 
     // Find input and change its value
     const input = row.getByLabelText(/editable string input/i);
 
     const newVal = 'value changed';
 
-    await act(async () => {
-      await user.clear(input);
-      await user.type(input, newVal);
-    });
-
-    await act(async () => {
-      await user.click(
-        row.getByRole('button', { name: /save row/i })
-      );
-    });
+    await user.clear(input);
+    await user.type(input, newVal);
+    await user.click(row.getByRole('button', { name: /save row/i }));
 
     expect(onSave).toHaveBeenCalledTimes(1);
     expect(onSave).toHaveBeenCalledWith({ editableString: newVal }, expect.anything());
@@ -372,21 +341,13 @@ describe('Should handle editing', () => {
     expect(row).toBeDefined();
 
     const user = userEvent.setup();
-    await act(async () => {
-      await user.click(
-        row.getByRole('button', { name: /edit row/i })
-      );
-    });
+    await user.click(row.getByRole('button', { name: /edit row/i }));
 
     // Find checkbox and click it to change it's value
     const checkbox = row.getByRole('checkbox', { checked: dataOriginal.editableCheckbox });
     await user.click(checkbox);
 
-    await act(async () => {
-      await user.click(
-        row.getByRole('button', { name: /save row/i })
-      );
-    });
+    await user.click(row.getByRole('button', { name: /save row/i }));
 
     expect(onSave).toHaveBeenCalledTimes(1);
     expect(onSave).toHaveBeenCalledWith({ editableCheckbox: !dataOriginal.editableCheckbox }, expect.anything());

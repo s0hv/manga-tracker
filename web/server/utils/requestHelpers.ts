@@ -1,6 +1,7 @@
 import type { Response } from 'express-serve-static-core';
 
 import {
+  isSecure,
   SECURE_COOKIE_OPTIONS,
   serverCookieNames,
 } from '@/serverUtils/constants';
@@ -12,3 +13,9 @@ export const setSessionCookie = (session: Pick<SessionWithToken, 'token' | 'expi
     expires: session.expiresAt,
   });
 };
+
+export function clearSecureCookie(res: Response, cookieName: string) {
+  res.clearCookie(cookieName, {
+    secure: isSecure,
+  });
+}

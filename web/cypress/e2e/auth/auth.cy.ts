@@ -6,9 +6,11 @@ describe('Test authentication', () => {
     cy.visit('/');
     cy.findByText(/^recent releases$/i);
 
-    cy.findByRole('button', { name: /login/i }).click();
+    cy.findByRole('link', { name: /login/i }).click();
 
-    cy.findByRole('textbox', { name: /email address/i }).type(normalUser.email);
+    cy.wait(300);
+
+    cy.findByRole('textbox', { name: /email address/i }).focus().type(normalUser.email);
     cy.findByLabelText(/password/i).type(normalUser.password);
     cy.findByRole('button', { name: /^sign in$/i }).click();
     cy.findByText(/^recent releases \(for your follows\)/i);
@@ -19,7 +21,8 @@ describe('Test authentication', () => {
 
     const login = () => {
       cy.visit('/login');
-      cy.findByRole('textbox', { name: /email address/i }).clear().type(normalUser.email);
+      cy.wait(300);
+      cy.findByRole('textbox', { name: /email address/i }).focus().clear().type(normalUser.email);
       cy.findByLabelText(/password/i).type('aaaaaaaaa');
       cy.findByRole('button', { name: /^sign in$/i }).click();
     };
@@ -27,8 +30,9 @@ describe('Test authentication', () => {
     for (let i = 0; i < 2; i++) {
       login();
       if (i === 0) {
-        cy.findByRole('alert');
-        cy.findByText(/^sign in failed/i);
+        cy.findByRole('alert').within(() => {
+          cy.findByText(/Invalid login/i).should('exist');
+        });
       }
     }
 
@@ -43,7 +47,9 @@ describe('Test authentication', () => {
     // 4th time should rate limit
     login();
 
-    cy.url().should('include', '/api/auth/error?error=Ratelimited.%20Try%20again%20later');
+    cy.findByRole('alert').within(() => {
+      cy.findByText(/Ratelimited/i).should('exist');
+    });
 
     cy.task('flushRedis');
   });

@@ -2,16 +2,21 @@
   "extends": "../tsconfig.server.json",
   "compilerOptions": {
     "target": "es5",
-    "module": "ES2015",
-    "outDir": "dist",
+    "module": "esnext",
+    "outDir": "dist"
   },
+  "include": [
+    "../**/*.ts",
+  ],
   "exclude": [
     "node_modules",
-    "../src",
+    "../src/**",
+    "../server/*.ts",
     "../__tests__/**",
     "../__mocks__/**",
     "../cypress/**",
     "../*.ts",
-    "../server/api/**"
+    "../server/api/**",
+    "../scripts/*.ts"
   ]
 }

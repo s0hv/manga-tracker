@@ -20,8 +20,14 @@ import {
 } from '@/serverUtils/constants';
 import { Unauthorized } from '@/serverUtils/errors';
 import { sessionLogger } from '@/serverUtils/logging';
-import { limiterSlowBruteByIP } from '@/serverUtils/ratelimits';
-import { setSessionCookie } from '@/serverUtils/requestHelpers';
+import {
+  accountLoginLimiter,
+  getLoginRatelimitKey,
+} from '@/serverUtils/ratelimits';
+import {
+  clearSecureCookie,
+  setSessionCookie,
+} from '@/serverUtils/requestHelpers';
 import {
   base64toUint8Array,
   constantTimeEqual,
@@ -34,6 +40,7 @@ import type { User } from '@/types/db/user';
 import type { SafeSession } from '@/types/session';
 
 import { db } from './helpers';
+import { clearRedirectCookie } from '@/serverUtils/redirect';
 
 const AUTH_TOKEN_LENGTH = 32;
 const LOOKUP_TOKEN_LENGTH = 10;
@@ -152,17 +159,15 @@ export const regenerateAuthToken = async (
 };
 
 export async function authenticateByAuthCookie(authCookie: string, req: Request, res: Response) {
-  const ratelimit = await limiterSlowBruteByIP.get(req.ip ?? '');
-
-  if (ratelimit !== null && ratelimit.remainingPoints <= 0) {
-    throw new Error('Ratelimited. Try again later');
-  }
+  const ratelimitKey = getLoginRatelimitKey(req);
+  await accountLoginLimiter.consume(ratelimitKey);
 
   // authLogger.debug('Checking auth from db for %s %s', req.originalUrl, req.cookies.auth);
   const authTokenCookie = parseAuthCookie(authCookie);
 
   if (!authTokenCookie) {
-    res.clearCookie(serverCookieNames.authToken);
+    clearSecureCookie(res, serverCookieNames.authToken);
+    clearSecureCookie(res, serverCookieNames.session);
 
     if (req.session) {
       req.session.userId = null;
@@ -172,11 +177,17 @@ export async function authenticateByAuthCookie(authCookie: string, req: Request,
     return;
   }
 
-  const authToken = await getAuthToken(authTokenCookie.userUUID, authTokenCookie.lookup);
+  const authToken = await getAuthToken(authTokenCookie.userUUID, authTokenCookie.lookup)
+    .catch(err => {
+      // We want to handle error gracefully, so the bad token is cleared
+      sessionLogger.error(err, 'Failed to fetch auth token from db');
+      return null;
+    });
 
   if (!authToken) {
     sessionLogger.info('Session not found. Clearing cookie');
-    res.clearCookie(serverCookieNames.authToken);
+    clearSecureCookie(res, serverCookieNames.authToken);
+    clearSecureCookie(res, serverCookieNames.session);
 
     if (req.session) {
       await deleteSession(req.session.sessionId)
@@ -192,13 +203,13 @@ export async function authenticateByAuthCookie(authCookie: string, req: Request,
 
   if (!constantTimeEqual(tokenHash, authToken.tokenHash)) {
     sessionLogger.info('Invalid auth token found for user. Sessions cleared');
-    res.clearCookie(serverCookieNames.authToken);
+    clearSecureCookie(res, serverCookieNames.authToken);
+    clearSecureCookie(res, serverCookieNames.session);
 
     await Promise.all([
       req.session ? deleteSession(req.session.sessionId) : noop(),
       clearUserSessions(authToken.userId),
       clearUserAuthTokens(authToken.userId),
-      limiterSlowBruteByIP.consume(req.ip ?? ''),
     ])
       .finally(() => {
         req.session = null;
@@ -207,6 +218,7 @@ export async function authenticateByAuthCookie(authCookie: string, req: Request,
     return;
   }
 
+  await accountLoginLimiter.reward(ratelimitKey);
   const user = await getUser(authToken.userId, { expectExists: true });
 
   const {
@@ -234,15 +246,15 @@ export async function authenticateByAuthCookie(authCookie: string, req: Request,
   });
 }
 
-function clearUserAuthTokens(userId: number) {
+export function clearUserAuthTokens(userId: number) {
   return db.none`DELETE FROM auth_token WHERE user_id=${userId}`;
 }
 
-function parseAuthCookie(authCookie: string): null | { lookup: string, token: Uint8Array, userUUID: string } {
+export function parseAuthCookie(authCookie: string): null | { lookup: string, token: Uint8Array, userUUID: string } {
   /*
   Try to find the remember me token.
-  If found associate current session with user and regenerate session id (this is important)
-  If something fails or user isn't found we remove possible user id from session and continue
+  If found, associate the current session with the user and regenerate session id (this is important)
+  If something fails or the user isn't found, we remove possible user id from the session and continue
    */
   const [lookup, token, uuidBase64] = authCookie.split('.', 3);
   if (!uuidBase64) {
@@ -262,5 +274,5 @@ function parseAuthCookie(authCookie: string): null | { lookup: string, token: Ui
   };
 }
 
-const formatAuthToken = (lookup: string, token: Uint8Array, userUUID: string) =>
+export const formatAuthToken = (lookup: string, token: Uint8Array, userUUID: string) =>
   `${lookup}.${uint8ArrayToBase64(token)}.${Buffer.from(userUUID).toString('base64')}`;

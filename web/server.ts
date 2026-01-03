@@ -7,6 +7,7 @@ import express, { type NextFunction } from 'express';
 import type { Request, Response } from 'express-serve-static-core';
 import helmet from 'helmet';
 import pinoHttp from 'pino-http';
+import { RateLimiterRes } from 'rate-limiter-flexible';
 import { type AdapterMeta, toNodeHandler } from 'srvx/node';
 
 import {
@@ -79,24 +80,28 @@ setSessionClearInterval(hoursToMilliseconds(2));
 type CSPDirective = string | ((req: Request, res: Response) => string);
 
 const nonceCsp = (req: Request) => {
-  // if (req.isStaticResource) return '';
+  if (req.isStaticResource) return '';
   if (req.originalUrl.startsWith('/api')) return '';
 
   return `'nonce-${req.getNonce()}'`;
 };
 
 const directives: Record<string, CSPDirective[] | null> = {
-  imgSrc: ["'self' https://uploads.mangadex.org https://mangadex.org https://authjs.dev data:"], // data: used by redoc
-  workerSrc: ["'self' blob:"], // blob: used by redoc
+  imgSrc: ["'self' https://mangadex.org data:"], // data: used by redoc
+  workerSrc: ["'self'"],
   formAction: ["'self'", 'https://discord.com'],
-  'upgrade-insecure-requests': IS_DEVELOPMENT ? null : [],
-  scriptSrc: ["'self'", nonceCsp],
+  /* istanbul ignore next */
+  'upgrade-insecure-requests': (IS_DEVELOPMENT || isCypress || process.env.ENVIRONMENT === 'development') ? null : [],
+  /* istanbul ignore next */
+  scriptSrc: isCypress
+    // Cypress testing requires more lenient rules
+    ? ["'self' 'unsafe-inline' 'unsafe-eval'"]
+    : ["'self'", nonceCsp],
 };
 
 
 /* istanbul ignore if */
 if (IS_DEVELOPMENT) {
-  // unsafe-eval required for fast refresh
   directives.connectSrc = ["'self'", 'ws:'];
 }
 
@@ -113,7 +118,7 @@ server.use((req, _, next) => {
   next();
 });
 
-
+/* istanbul ignore if */
 if (IS_DEVELOPMENT) {
   server.use((req, _, next) => {
     req.isStaticResource = req.originalUrl.startsWith('/node_modules') || /\.[jt]sx?$/.test(req.originalUrl);
@@ -159,7 +164,7 @@ server.use((req, res, next) => {
   next();
 });
 
-
+/* istanbul ignore else */
 if (!IS_DEVELOPMENT) {
   server.use(express.static(path.join(dirname, 'client')));
 } else {
@@ -168,6 +173,24 @@ if (!IS_DEVELOPMENT) {
 
 // No need to parse anything extra before we get here
 registerThumbnails(server);
+
+// CSRF checks
+server.use((req, res, next) => {
+  // https://lucia-auth.com/sessions/cookies/#csrf-protection
+  // Cypress does not always send the Origin header, so we skip CSRF checks in that case
+  if (req.method !== 'GET' && !isCypress) {
+    const origin = req.header('Origin');
+    // You can also compare it against the Host or X-Forwarded-Host header.
+    if (origin === null || origin !== HOST_URL.origin) {
+      res.status(403).json({
+        error: csrfMissing,
+      });
+      return;
+    }
+  }
+
+  next();
+});
 
 server.use(express.json());
 server.use(express.urlencoded({ extended: false }));
@@ -199,42 +222,6 @@ server.use((req, res, next) => {
     maxAge: secondsToMilliseconds(20),
   });
   res.redirect('/api/auth/restore-login');
-});
-
-/* server.use(session({
-  name: 'sess',
-  cookie: {
-    maxAge: 7200000,
-    sameSite: 'lax',
-    httpOnly: true,
-    secure: !isDev,
-  },
-  proxy: reverseProxy,
-  secret: isDev ? 'secret' : process.env.SESSION_SECRET!,
-  resave: false,
-  saveUninitialized: false,
-
-  store: store,
-})); */
-
-// cookie: true is vulnerable and should not be used
-server.use((req, res, next) => {
-  if (req.originalUrl.startsWith('/api/auth/') || req.originalUrl.startsWith('/_next/static/')) return next();
-
-  // https://lucia-auth.com/sessions/cookies/#csrf-protection
-  // Cypress does not always send the Origin header, so we skip CSRF checks in that case
-  if (req.method !== 'GET' && !isCypress) {
-    const origin = req.header('Origin');
-    // You can also compare it against the Host or X-Forwarded-Host header.
-    if (origin === null || origin !== HOST_URL.origin) {
-      res.status(403).json({
-        error: csrfMissing,
-      });
-      return;
-    }
-  }
-
-  next();
 });
 
 if (!isTest && !isCypress) {
@@ -305,9 +292,21 @@ server.get('/manga/:mangaId', (req, _, next) => {
   next();
 });
 
-if (IS_DEVELOPMENT) {
+/* istanbul ignore if */
+if (process.env.ENVIRONMENT === 'unit-test') {
+  server.get('/', (_, res) => {
+    res.send('OK');
+  });
+/* istanbul ignore next */
+} else if (IS_DEVELOPMENT) {
   void tanstackIntegration(server);
 } else {
+  // Create the API endpoint after we have successfully imported the tanstack server file.
+  // This way we can ensure that the server boots correctly
+  server.get('/api/health', (_, res) => {
+    res.status(200).send('OK');
+  });
+
   server.get('*splat', async (req, res) => {
     const wrappedHandler: AdapterMeta['__fetchHandler'] = request =>
       tanstackProdHandler.fetch(request, {
@@ -321,29 +320,29 @@ if (IS_DEVELOPMENT) {
     const handler = toNodeHandler(wrappedHandler);
     await handler(req, res);
   });
-
-  // Create the API endpoint after we have successfully imported the tanstack server file.
-  // This way we can ensure that the server boots correctly
-  server.get('/api/health', (_, res) => {
-    res.status(200).send('OK');
-  });
 }
 
 // Error handlers
-server.use((err: any, req: Request, res: Response, next: NextFunction) => {
-  // Handle CSRF errors
-  if (err.code === 'EBADCSRFTOKEN') {
-    res.status(403).json({
-      error: csrfMissing,
-    });
+server.use((err: unknown, req: Request, res: Response, next: NextFunction) => {
+  req.log.error(err, 'Failed to process request');
+
+  if (err instanceof StatusError) {
+    res
+      .status(err.status)
+      .json({ error: err.message })
+      .end();
     return;
   }
 
-  req.log.error(err);
-
-  if (err instanceof StatusError) {
-    res.json({ error: err.message })
-      .status(err.status)
+  if (err instanceof RateLimiterRes) {
+    res
+      .status(429)
+      .setHeader('X-RateLimit-Remaining', err.msBeforeNext)
+      .json({
+        error: {
+          nextValidRequestDate: new Date(Date.now() + err.msBeforeNext),
+        },
+      })
       .end();
     return;
   }

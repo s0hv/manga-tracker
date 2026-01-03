@@ -24,12 +24,9 @@ export type DbNotificationData = Omit<NotificationData, 'fields'> & {
   fields: DbNotificationField[]
 };
 
-type GetUserNotifications = {
-  (userId: DatabaseId): Promise<DbNotificationData[]>
-  (userId: DatabaseId, notificationId: DatabaseId): Promise<DbNotificationData>
-};
-
-export const getUserNotifications: GetUserNotifications = (userId: DatabaseId, notificationId?: DatabaseId) => {
+export function getUserNotifications(userId: DatabaseId): Promise<DbNotificationData[]>;
+export function getUserNotifications(userId: DatabaseId, notificationId: DatabaseId): Promise<DbNotificationData>;
+export function getUserNotifications(userId: DatabaseId, notificationId?: DatabaseId) {
   const hasNotificationId = notificationId !== undefined;
 
   // Not the cleanest sql but the easiest to implement
@@ -65,7 +62,7 @@ export const getUserNotifications: GetUserNotifications = (userId: DatabaseId, n
     WHERE un.user_id=${userId} ${hasNotificationId ? db.sql` AND un.notification_id=${notificationId}` : db.sql``}
     ORDER BY un.created DESC
   `
-    .then(rows => camelcaseKeys(rows, { deep: true }))
+    .then(rows => camelcaseKeys<DbNotificationData[]>(rows, { deep: true }))
     .then(rows => rows.map(row => ({
       ...row,
       fields: row.fields.filter(v => v.overrideId === null),
@@ -77,8 +74,8 @@ export const getUserNotifications: GetUserNotifications = (userId: DatabaseId, n
       }
 
       return rows;
-    }) as any; // This shit don't work without any
-};
+    });
+}
 
 
 const updateUserNotificationFields = (t: DatabaseHelpers, fields: NotificationFieldData[], notificationId: DatabaseId, notificationType: NotificationType) => {

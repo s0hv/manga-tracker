@@ -40,12 +40,23 @@ INSERT INTO manga_info (manga_id, cover, status, bw, mu, mal, amz, ebj, engtl, r
 INSERT INTO manga_info (manga_id, cover, status, bw, mu, mal, amz, ebj, engtl, raw, nu, kt, ap, al, last_updated) VALUES (2, 'https://uploads.mangadex.org/covers/cfc3d743-bd89-48e2-991f-63e680cc4edf/aec7b5ae-dfce-46a2-bc47-2a1cc8f7fa8b.jpg', 0, 'series/114645', '139601', '103897', 'https://www.amazon.co.jp/gp/product/B075F8JBQ1', 'https://www.ebookjapan.jp/ebj/413780/', 'https://www.viz.com/dr-stone', null, null, '38860', 'dr-stone', '98416', '2020-06-28 11:15:55.170446');
 
 -- insert users
-INSERT INTO users (user_id, username, email, pwhash, user_uuid, joined_at, admin, theme, is_credentials_account) VALUES (1, 'test ci admin', 'test-admin@test.com', crypt('te!st-pa#ss)wo(rd123', gen_salt('bf')), '22fc15c9-37b9-4869-af86-b334333dedd8', '2020-07-08 12:00:00.344806', true, 'dark'::theme, true);
-INSERT INTO users (user_id, username, email, pwhash, user_uuid, joined_at, admin, theme, is_credentials_account) VALUES (3, 'test ci', 'test@test.com', crypt('te!st-pa#ss)wo(rd123', gen_salt('bf')), 'cf5eddfd-e0fe-4e6e-b339-70be6f33794d', '2020-07-08 12:00:00.344806', false, 'dark'::theme, true);
-INSERT INTO users (user_id, username, email, pwhash, user_uuid, joined_at, admin, theme, is_credentials_account) VALUES (4, 'test ci auth', 'test_auth@test.com', crypt('te!st-pa#ss)wo(rd123', gen_salt('bf')), 'db598f65-c558-4205-937f-b0f149dda1fa', '2020-07-08 12:00:00.344806', false, 'dark'::theme, true);
+INSERT INTO users (user_id, username, email, pwhash, user_uuid, joined_at, admin, theme)
+VALUES (1, 'test ci admin', 'test-admin@test.com', crypt('te!st-pa#ss)wo(rd123', gen_salt('bf')),
+        '22fc15c9-37b9-4869-af86-b334333dedd8', '2020-07-08 12:00:00.344806', TRUE, 'dark'::THEME);
 
-INSERT INTO users (user_id, username, email, pwhash, user_uuid, joined_at, admin, theme, is_credentials_account) VALUES (5, 'test oauth', 'test@oauth.com', NULL, 'd1e3395a-37fa-4df7-8441-46d2b2689788', '2020-07-08 12:00:00.344806', false, 'dark'::theme, false);
-INSERT INTO account (id, type, provider, provider_account_id, refresh_token, access_token, expires_at, token_type, scope, id_token, session_state, user_id) VALUES (uuid_generate_v4(), 'test', 'test', 'test', 'test', NULL, 100, NULL, 'test', NULL, NULL, 'd1e3395a-37fa-4df7-8441-46d2b2689788');
+INSERT INTO users (user_id, username, email, pwhash, user_uuid, joined_at, admin, theme)
+VALUES (3, 'test ci', 'test@test.com', crypt('te!st-pa#ss)wo(rd123', gen_salt('bf')),
+        'cf5eddfd-e0fe-4e6e-b339-70be6f33794d', '2020-07-08 12:00:00.344806', FALSE, 'dark'::THEME);
+
+INSERT INTO users (user_id, username, email, pwhash, user_uuid, joined_at, admin, theme)
+VALUES (4, 'test ci auth', 'test_auth@test.com', crypt('te!st-pa#ss)wo(rd123', gen_salt('bf')),
+        'db598f65-c558-4205-937f-b0f149dda1fa', '2020-07-08 12:00:00.344806', FALSE, 'dark'::THEME);
+
+INSERT INTO users (user_id, username, email, pwhash, user_uuid, joined_at, admin, theme)
+VALUES (5, 'test oauth', 'test@oauth.com', NULL, 'd1e3395a-37fa-4df7-8441-46d2b2689788', '2020-07-08 12:00:00.344806',
+        FALSE, 'dark'::THEME);
+
+INSERT INTO account (provider, provider_account_id, user_id) VALUES ('test', 'test', 5);
 
 SELECT setval(pg_get_serial_sequence('users', 'user_id'), MAX(user_id)) FROM users;
 

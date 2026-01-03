@@ -19,7 +19,7 @@ jobs:
     name: Web app tests
     runs-on: ubuntu-latest
     environment: tests
-    container: node:22-bullseye
+    container: node:24-bullseye
 
     # Service containers to run with `container-job`
     services:
@@ -57,7 +57,7 @@ jobs:
 
     - uses: actions/setup-node@v6
       with:
-        node-version: 22
+        node-version: 24
         cache: 'pnpm'
         cache-dependency-path: pnpm-lock.yaml
 
@@ -96,6 +96,7 @@ jobs:
       PGPASSWORD: postgres
 
       ELASTIC_NODE: http://localhost:9200
+      HOST: 'http://localhost:3000'
 
       REDIS_URL: redis:6379
       DEBUG: debug,session-*,auth-info
@@ -103,6 +104,8 @@ jobs:
       LEVEL: silent
       SKIP_POSTINSTALL: true
       IS_CI: true
+      DISCORD_CLIENT_ID: test
+      DISCORD_CLIENT_SECRET: test
 
   python-tests:
     name: Scraper tests
@@ -142,7 +145,7 @@ jobs:
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v6
         with:
-          node-version: '22'
+          node-version: '24'
           cache: 'pnpm'
       - name: Setup uv
         uses: astral-sh/setup-uv@v7
@@ -196,7 +199,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: tests
     container:
-      image: cypress/browsers:22.17.0
+      image: cypress/browsers:24.12.0
 
     # Service containers to run with `container-job`
     services:
@@ -210,9 +213,9 @@ jobs:
         # Set health checks to wait until postgres has started
         options: >-
           --health-cmd pg_isready
-          --health-interval 10s
+          --health-interval 5s
           --health-timeout 5s
-          --health-retries 5
+          --health-retries 8
 
       redis:
         # Docker Hub image
@@ -220,9 +223,21 @@ jobs:
         # Set health checks to wait until redis has started
         options: >-
           --health-cmd "redis-cli ping"
-          --health-interval 10s
+          --health-interval 5s
           --health-timeout 5s
-          --health-retries 5
+          --health-retries 8
+
+      elasticsearch:
+        image: docker.elastic.co/elasticsearch/elasticsearch:7.17.28
+        env:
+          discovery.type: single-node
+        options: >-
+          --health-cmd "curl http://localhost:9200/_cluster/health"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+        ports:
+          - 9200:9200
 
     steps:
       - uses: actions/checkout@v5
@@ -234,7 +249,7 @@ jobs:
 
       - uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version: 24
           cache: 'pnpm'
           cache-dependency-path: pnpm-lock.yaml
 
@@ -243,6 +258,22 @@ jobs:
 
       - name: Initialize database
         run: cd .. && pnpm migrate:up && pnpm migrate:test
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+          working-directory: '${{ github.workspace }}'
+
+      - name: Install Elasticsearch deps
+        working-directory: '${{ github.workspace }}'
+        run: uv sync --only-group cypress
+
+      - name: Index elasticsearch
+        working-directory: '${{ github.workspace }}'
+        run: uv run --no-project python -m src.elasticsearch.reindex
+        env:
+          LEVEL: DEBUG
 
       - name: Install cypress dependencies
         run: cd cypress && pnpm install --frozen-lockfile
@@ -257,22 +288,20 @@ jobs:
       - name: Install codecov deps
         run: apt-get update && apt-get install -y curl gpg
 
-      - name: Persist Next.js build cache
-        uses: actions/cache@v4
-        with:
-          path: ${{ github.workspace }}/web/.next/cache
-          # Generate a new cache whenever packages or source files change.
-          key: nextjs-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('**.[jt]s', '**.[jt]sx') }}
-          # If source files changed but packages didn't, rebuild from a prior cache.
-          restore-keys: |
-            nextjs-${{ hashFiles('pnpm-lock.yaml') }}-
-
-      - name: Build and start the app
-        run: |
-          pnpm build-nyc
-          pnpm start-coverage &
+      - name: Build the app
+        run: pnpm build-nyc
         env:
           NODE_ENV: production
+          CYPRESS: true
+          IS_PRERENDER: 1
+          IS_CI: true
+
+      - name: Start the app
+        run: pnpm start-coverage &
+        env:
+          NODE_ENV: production
+          CYPRESS: true
+          IS_CI: true
 
       - uses: cypress-io/github-action@v6
         continue-on-error: true
@@ -292,6 +321,12 @@ jobs:
           fail_ci_if_error: true
           token: ${{ secrets.CODECOV_TOKEN }}
 
+      - uses: actions/upload-artifact@v6
+        with:
+          name: cypress-screenshots
+          path: ./web/cypress/screenshots
+          if-no-files-found: ignore
+
       - name: Fail if Cypress tests failed
         if: steps.cypress-run.outcome != 'success'
         run: exit 1
@@ -303,10 +338,10 @@ jobs:
       DB_NAME_TEST: postgres
       DB_USER: postgres
       PGPASSWORD: postgres
+      DB_PASSWORD: postgres
 
-      ELASTIC_NODE: http://localhost:9200
-      NEXTAUTH_URL: 'http://localhost:3000'
-      NEXTAUTH_SECRET: secret
+      ELASTIC_NODE: http://elasticsearch:9200
+      HOST: 'http://localhost:3000'
 
       REDIS_URL: redis:6379
       DEBUG: debug,session-*,auth-info
@@ -316,6 +351,7 @@ jobs:
       IS_CI: true
       LOGIN_RETRY_COUNT: 3
       CYPRESS: true
-      # need at least one oauth provider or next-auth crashes
+      COOKIE_SECRET: secret
+      ENVIRONMENT: test
       DISCORD_CLIENT_ID: test
       DISCORD_CLIENT_SECRET: test

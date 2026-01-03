@@ -161,7 +161,7 @@ export function defineMeta(meta: Meta) {
   }
 
   if (openGraph) {
-    renderOpenGraph(metaTags, 'og:', openGraph);
+    renderOpenGraph(metaTags, 'og', openGraph);
   }
 
   if (meta.extra) {
