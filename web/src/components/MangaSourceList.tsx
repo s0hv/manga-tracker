@@ -14,7 +14,7 @@ import {
 
 import type { MangaServiceData } from '@/types/api/manga';
 
-import { useUser } from '../utils/useUser';
+import { useIsUserAuthenticated } from '../store/userStore';
 
 
 export type MangaSourceListProps = {
@@ -24,6 +24,7 @@ export type MangaSourceListProps = {
   classesProp?: string[]
   openByDefault?: boolean
 };
+
 function MangaSourceList(props: MangaSourceListProps) {
   const {
     items = [],
@@ -33,7 +34,8 @@ function MangaSourceList(props: MangaSourceListProps) {
     openByDefault = false,
   } = props;
 
-  const { isAuthenticated } = useUser();
+  const isAuthenticated = useIsUserAuthenticated();
+
   const [open, setOpen] = React.useState(openByDefault);
   const handleClick = () => {
     setOpen(!open);

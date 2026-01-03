@@ -1,12 +1,11 @@
 import type { Express, Request, Response } from 'express-serve-static-core';
 import { query } from 'express-validator';
 
-import { db } from '@/db/helpers';
-import { handleError } from '@/db/utils';
+import { db } from '#server/db/helpers';
+import { removeUserFromCache } from '#server/db/user';
+import { handleError } from '#server/db/utils';
+import { handleValidationErrors, validateUser } from '#server/utils/validators';
 import type { Theme } from '@/types/dbTypes';
-
-
-import { handleValidationErrors, validateUser } from '../utils/validators';
 
 
 export default (app: Express) => {
@@ -19,7 +18,7 @@ export default (app: Express) => {
     db.sql`UPDATE users SET theme=${req.query.value as string}::theme WHERE user_id=${req.user!.userId}`
       .execute()
       .then(() => {
-        app.sessionStore.deleteUserFromCache(req.user!.id);
+        removeUserFromCache(req.user!.userId);
         res.status(200).end();
       })
       .catch(err => handleError(err, res));

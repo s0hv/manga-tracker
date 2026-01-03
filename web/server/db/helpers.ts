@@ -7,6 +7,17 @@ import { type Db, sql } from '@/db/index';
 export type RowType = readonly (object | undefined)[];
 type TemplateArgs<T extends RowType = Row[]> = Parameters<typeof sql<T>>;
 
+export type DbHelpers = {
+  one: <T extends Row>(...args: TemplateArgs<T[]>) => Promise<T>
+  oneOrNone: <T extends Row>(...args: TemplateArgs<T[]>) => Promise<T | null>
+  many: <T extends Row>(...args: TemplateArgs<T[]>) => Promise<RowList<T[]>>
+  manyOrNone: <T extends Row>(...args: TemplateArgs<T[]>) => PendingQuery<T[]>
+  any: <T extends Row>(...args: TemplateArgs<T[]>) => PendingQuery<T[]>
+  none: <T extends Row>(...args: TemplateArgs<T[]>) => Promise<void>
+  transaction: <T>(callback: (sql: DbHelpers) => Promise<T>) => Promise<T>
+  sql: Db
+};
+
 export const createHelpers = (sql_: Db) => {
   const customSql = <T extends Row>(...args: TemplateArgs<T[]>): PendingQuery<T[]> => {
     const [template, ...rest] = args;
@@ -60,6 +71,10 @@ export const createHelpers = (sql_: Db) => {
     }
   };
 
+  const transaction = <T>(callback: (tran: DbHelpers) => Promise<T>): Promise<T> => {
+    return sql_.begin(sql => callback(createHelpers(sql))) as Promise<T>;
+  };
+
   return {
     one,
     oneOrNone,
@@ -67,8 +82,9 @@ export const createHelpers = (sql_: Db) => {
     any,
     manyOrNone,
     none,
+    transaction,
     sql: sql_,
-  } as const;
+  } satisfies DbHelpers;
 };
 
 

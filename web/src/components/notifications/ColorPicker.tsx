@@ -91,6 +91,7 @@ const ColorPicker = <T extends FieldValues>({
       />
       <Popper
         open={open}
+        // eslint-disable-next-line react-hooks/refs
         anchorEl={anchorEl.current}
         placement='top-start'
         style={{ zIndex: 500 }}

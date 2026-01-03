@@ -1,4 +1,11 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  lazy,
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import EditIcon from '@mui/icons-material/Edit';
 import SettingsIcon from '@mui/icons-material/Settings';
 import {
@@ -13,15 +20,14 @@ import {
   Typography,
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
-import dynamic from 'next/dynamic';
-import Link from 'next/link';
 
+import { RouteLink } from '@/components/common/RouteLink';
 import type { ChapterReleaseDates } from '@/types/api/chapter';
 import type { FullMangaData } from '@/types/api/manga';
 import type { DatabaseId } from '@/types/dbTypes';
 
 import { getMangaReleases } from '../api/chapter';
-import { useUser } from '../utils/useUser';
+import { useIsUserAdmin, useIsUserAuthenticated } from '../store/userStore';
 import { followUnfollow } from '../utils/utilities';
 
 import ChapterList from './ChapterList';
@@ -31,7 +37,7 @@ import MangaInfo from './MangaInfo';
 import MangaSourceList from './MangaSourceList';
 import { TabPanelCustom } from './utils/TabPanelCustom';
 
-const ReleaseHeatmap = dynamic(() => import('./ReleaseHeatmap'));
+const ReleaseHeatmap = lazy(() => import('./ReleaseHeatmap'));
 
 const verticalBreakpoint = 910;
 
@@ -109,7 +115,8 @@ function Manga(props: MangaProps): React.ReactElement {
       });
   }, [manga.mangaId]);
 
-  const { isAuthenticated, isAdmin } = useUser();
+  const isAuthenticated = useIsUserAuthenticated();
+  const isAdmin = useIsUserAdmin();
 
   const [editing, setEditing] = useState(false);
   const startEditing = useCallback(() => setEditing(!editing), [editing]);
@@ -133,13 +140,13 @@ function Manga(props: MangaProps): React.ReactElement {
           <MangaTitle variant='h4'>{manga.title}</MangaTitle>
           {isAdmin && (
             <TitleBarButtonsContainer>
-              <Link href={`/admin/manga/${manga.mangaId}`} passHref>
+              <RouteLink to='/admin/manga/$mangaId' params={{ mangaId: manga.mangaId.toString() }}>
                 <Tooltip title='Admin page'>
                   <IconButton size='large'>
                     <SettingsIcon />
                   </IconButton>
                 </Tooltip>
-              </Link>
+              </RouteLink>
               <Tooltip title='Edit chapters'>
                 <IconButton onClick={startEditing} size='large'>
                   <EditIcon />
@@ -200,9 +207,9 @@ function Manga(props: MangaProps): React.ReactElement {
           />
         </TabPanelCustom>
         <TabPanelCustom value={activeTab} index={1} noRerenderOnChange>
-          <ReleaseHeatmap
-            dataRows={releaseData}
-          />
+          <Suspense>
+            <ReleaseHeatmap dataRows={releaseData} />
+          </Suspense>
         </TabPanelCustom>
       </Paper>
     </Container>

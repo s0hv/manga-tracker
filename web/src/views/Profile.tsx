@@ -1,9 +1,4 @@
-import React, {
-  type FC,
-  type FormEvent,
-  useCallback,
-  useMemo,
-} from 'react';
+import React, { type FC, type FormEvent, useCallback, useMemo } from 'react';
 import {
   Box,
   Button,
@@ -15,7 +10,6 @@ import {
 } from '@mui/material';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useConfirm } from 'material-ui-confirm';
-import { signOut } from 'next-auth/react';
 import { useSnackbar } from 'notistack';
 import {
   type DefaultValues,
@@ -26,10 +20,8 @@ import {
 import { TextFieldElement } from 'react-hook-form-mui';
 import { z } from 'zod';
 
-
-import type { SessionUser } from '@/types/dbTypes';
-
 import { deleteAccount, updateUserProfile } from '../api/user';
+import type { FrontendUserForProfile } from '../store/userStore';
 
 const zodSchema = z.object({
   username: z.string().min(1),
@@ -50,6 +42,7 @@ const zodSchema = z.object({
     }
 
     const passwordValid = !data.newPassword || (data.password?.length ?? 0) > 0;
+
     if (!passwordValid) {
       ctx.issues.push({
         code: 'custom',
@@ -63,21 +56,22 @@ type ProfileFormValues = z.infer<typeof zodSchema>;
 
 const resolver = zodResolver(zodSchema);
 
+// Empty profile when rendering without data, e.g. for prefetching
+const defaultProfile: Partial<FrontendUserForProfile> = {};
+
 type ProfileProps = {
-  user?: SessionUser
+  user: FrontendUserForProfile | null
 };
 const Profile: FC<ProfileProps> = props => {
-  const {
-    user = ({} as Partial<SessionUser>),
-  } = props;
+  const user = props.user ?? defaultProfile;
 
-  const isCredentialsAccount = Boolean(user.isCredentialsAccount);
+  const { isCredentialsAccount } = user;
   const { enqueueSnackbar } = useSnackbar();
   const confirm = useConfirm();
 
   const initialValues = useMemo<DefaultValues<ProfileFormValues>>(() => ({
-    username: user.username,
-    email: user.email as string | undefined,
+    username: user.username ?? undefined,
+    email: user.email,
   }), [user]);
 
   const {
@@ -122,8 +116,11 @@ const Profile: FC<ProfileProps> = props => {
       .then(({ confirmed }) => {
         if (!confirmed) return;
 
+        // TODO username should be sent to server
         return deleteAccount()
-          .then(() => signOut())
+          .then(() => {
+            window.location.href = '/';
+          })
           .catch(() => {
             enqueueSnackbar('Failed to delete account due to an unknown error', {
               variant: 'error',

@@ -19,7 +19,7 @@ export type TablePaginationActionsProps = {
   rowsPerPage: number
   onPageChange: (
     event: React.MouseEvent<HTMLButtonElement>,
-    newPage: number,
+    newPage: number
   ) => void
 };
 

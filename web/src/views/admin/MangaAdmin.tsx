@@ -12,10 +12,10 @@ import {
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { useConfirm } from 'material-ui-confirm';
-import Link from 'next/link';
 import { useSnackbar } from 'notistack';
 import { SelectElement } from 'react-hook-form-mui';
 
+import { RouteLink } from '@/components/common/RouteLink';
 import { MangaServiceTable } from '@/components/manga/MangaServiceTable';
 import { MangaCover } from '@/components/MangaCover';
 import type {
@@ -216,13 +216,13 @@ function MangaAdmin(props: MangaAdminProps) {
       <Paper sx={{ p: '1em', minWidth: '400px' }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
           <MangaTitle variant='h4'>{mangaTitle}</MangaTitle>
-          <Link href={`/manga/${mangaId}`} passHref>
+          <RouteLink to='/manga/$mangaId' params={{ mangaId: manga.mangaId.toString() }}>
             <Tooltip title='Go back' aria-label='go back to manga page'>
               <IconButton size='large'>
                 <SubdirectoryArrowLeftIcon />
               </IconButton>
             </Tooltip>
-          </Link>
+          </RouteLink>
         </Box>
 
         <DetailsContainer>

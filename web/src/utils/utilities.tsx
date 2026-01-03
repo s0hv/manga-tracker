@@ -191,9 +191,9 @@ export const statusToString = (status: number | string) => {
   }
 };
 
-export const isInteger = (s: any): s is number | string => (
+export const isInteger = (s: unknown): s is number | string => (
   Number.isInteger(s)
-  || /^-?\d+$/.test(s)
+  || /^-?\d+$/.test(typeof s === 'string' ? s : '')
 );
 
 

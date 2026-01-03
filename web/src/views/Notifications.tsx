@@ -1,6 +1,7 @@
-import { type FC, useCallback, useMemo, useState } from 'react';
+import { type FC, lazy, Suspense, useCallback, useMemo, useState } from 'react';
 import {
-  Button,
+  Box,
+  Button, CircularProgress,
   Container,
   FormControl,
   InputLabel,
@@ -9,7 +10,6 @@ import {
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import dynamic from 'next/dynamic';
 
 import { defaultDataForType } from '@/components/notifications/defaultDatas';
 import type { NotificationData } from '@/types/api/notifications';
@@ -34,8 +34,19 @@ const ResponsiveBox = styled('div')(({ theme }) => ({
   },
 }));
 
-const DiscordWebhookEditor = dynamic(() => import('../components/notifications/DiscordWebhookEditor'));
-const WebhookEditor = dynamic(() => import('../components/notifications/WebhookEditor'));
+const EditorLoadingFallback = () => (
+  <Box sx={{
+    height: '250px',
+    alignSelf: 'center',
+    alignContent: 'center',
+  }}
+  >
+    <CircularProgress />
+  </Box>
+);
+
+const DiscordWebhookEditor = lazy(() => import('../components/notifications/DiscordWebhookEditor'));
+const WebhookEditor = lazy(() => import('../components/notifications/WebhookEditor'));
 
 const NotificationComponents = {
   [NotificationTypes.DiscordWebhook]: DiscordWebhookEditor,
@@ -64,6 +75,9 @@ const Notifications: FC = () => {
         md: 'min-content',
         lg: '1100px',
       },
+      display: 'flex',
+      flexFlow: 'column',
+      gap: '1rem',
     }}
     >
       <ResponsiveBox>
@@ -90,15 +104,16 @@ const Notifications: FC = () => {
           Create new notification
         </Button>
       </ResponsiveBox>
-      {!isLoading && Array.isArray(notificationData) && notificationData.map(notif => {
+      {!isLoading && Array.isArray(notificationData) && notificationData.map((notif, idx) => {
         const Component = NotificationComponents[notif.notificationType as keyof typeof NotificationComponents];
         if (!Component) return <span>Invalid notification type {notif.notificationType}</span>;
         return (
-          <Component
-            notificationData={notif}
-            defaultExpanded={!notif.notificationId || defaultExpanded}
-            key={notif.notificationId || 'temp'}
-          />
+          <Suspense key={notif.notificationId || `temp-${idx}`} fallback={<EditorLoadingFallback />}>
+            <Component
+              notificationData={notif}
+              defaultExpanded={!notif.notificationId || defaultExpanded}
+            />
+          </Suspense>
         );
       })}
     </Container>

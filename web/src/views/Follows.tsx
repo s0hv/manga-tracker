@@ -5,7 +5,7 @@ import { styled } from '@mui/material/styles';
 
 
 import FollowsComponent, { type FollowProps } from '../components/Follows';
-import { useUser } from '../utils/useUser';
+import { useUser } from '../store/userStore';
 
 const FollowCard = styled(Paper)(({ theme }) => ({
   height: '100%',
@@ -20,17 +20,17 @@ const TopRow = styled('div')({
 });
 
 const Follows = (props: FollowProps) => {
-  const { user } = useUser();
+  const { uuid: userUuid } = useUser()!;
 
   return (
-    <Container maxWidth='lg'>
+    <Container maxWidth='lg' sx={{ height: '100%' }}>
       <FollowCard>
         <TopRow>
           <Typography variant='h2' sx={{ ml: 2, mt: 2 }}>
             Follows
           </Typography>
           <IconButton
-            href={`/rss/${user!.uuid.replace(/-/g, '')}`}
+            href={`/rss/${userUuid.replace(/-/g, '')}`}
             target='_blank'
             sx={{ alignSelf: 'center', height: '100%' }}
             size='medium'

@@ -1,7 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import SearchIcon from '@mui/icons-material/Search';
 import {
+  type AutocompleteFreeSoloValueMapping,
   type AutocompleteProps,
+  type AutocompleteRenderInputParams, type AutocompleteSlots,
   type InputBaseClasses,
   type PopperProps,
   Box,
@@ -11,8 +13,8 @@ import {
 } from '@mui/material';
 import Autocomplete from '@mui/material/Autocomplete';
 import { alpha, styled } from '@mui/material/styles';
+import { useNavigate } from '@tanstack/react-router';
 import { throttle } from 'es-toolkit';
-import { useRouter } from 'next/router';
 
 import { showAll } from '@/components/notifications/utilities';
 import type { SearchedManga } from '@/types/api/manga';
@@ -28,6 +30,10 @@ const classes = {
   inputInput: `${PREFIX}-inputInput`,
   popper: `${PREFIX}-popper`,
 };
+
+const autocompleteClasses = {
+  popper: classes.popper,
+} as const;
 
 const StyledAutocomplete = styled(Autocomplete)(({ theme }) => ({
   position: 'relative',
@@ -66,6 +72,9 @@ const defaultRenderListOption: RenderListOption = ({ key, ...renderProps }, opti
   </Box>
 );
 
+const getOptionLabel = (option: SearchResultBasedOnServices<boolean> | AutocompleteFreeSoloValueMapping<true>) => (typeof option === 'string' ? option : option.title);
+
+const emptyObject = {};
 
 export type MangaSearchProps<TWithServices extends boolean = false> = {
   placeholder?: string
@@ -83,8 +92,8 @@ const MangaSearch = <TWithServices extends boolean = false>(props: MangaSearchPr
   const {
     placeholder = 'Search…',
     renderItem,
-    inputClasses = {},
-    popperProps = {},
+    inputClasses = emptyObject,
+    popperProps = emptyObject,
     id = 'manga-search',
     ariaLabel = 'manga search',
     clearOnClick = true,
@@ -95,13 +104,13 @@ const MangaSearch = <TWithServices extends boolean = false>(props: MangaSearchPr
 
   const [value, setValue] = useState('');
   const [options, setOptions] = useState<SearchResultBasedOnServices<TWithServices>[]>([]);
-  const router = useRouter();
+  const navigate = useNavigate();
 
   const onChangeDefault = useCallback(
-    (newValue: SearchedManga) => router.push(`/manga/${newValue.mangaId}`),
-    [router]
+    (newValue: SearchedManga) => navigate({ to: `/manga/$mangaId`, params: { mangaId: newValue.mangaId.toString() }}),
+    [navigate]
   );
-  const onChange = onChangeFunc || onChangeDefault;
+  const onChange = onChangeFunc ?? onChangeDefault;
 
   const handleChange = useCallback((_: unknown, newValue: string) => {
     setValue(newValue);
@@ -137,6 +146,7 @@ const MangaSearch = <TWithServices extends boolean = false>(props: MangaSearchPr
   useEffect(() => {
     let active = true;
     if (value.length < 2) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setOptions([]);
       return undefined;
     }
@@ -160,46 +170,48 @@ const MangaSearch = <TWithServices extends boolean = false>(props: MangaSearchPr
     </Popper>
   ), [popperProps]);
 
+  const slots = useMemo<Partial<AutocompleteSlots>>(() => ({
+    popper: BottomEndPopper,
+  }), [BottomEndPopper]);
+
+  const renderInput = useCallback((params: AutocompleteRenderInputParams) => (
+    <InputBase
+      inputProps={{
+        ...params.inputProps,
+        'aria-label': ariaLabel,
+      }}
+      ref={params.InputProps.ref}
+      placeholder={placeholder}
+      classes={{
+        input: classes.inputInput,
+        ...inputClasses,
+      }}
+      endAdornment={(
+        <IconButton size='large'>
+          <SearchIcon />
+        </IconButton>
+      )}
+    />
+  ), [ariaLabel, inputClasses, placeholder]);
+
   return (
     <StyledAutocomplete
       options={options}
       renderOption={renderListOption}
       clearOnBlur={false}
-      getOptionLabel={(option => (typeof option === 'string' ? option : option.title))}
+      getOptionLabel={getOptionLabel}
       filterOptions={showAll} // Always render all options
       id={id}
       value={null}
       onChange={handleValueChange}
-      slots={{
-        popper: BottomEndPopper,
-      }}
+      slots={slots}
       onInputChange={handleChange}
       inputValue={value}
       freeSolo
       openOnFocus
       fullWidth
-      classes={{
-        popper: classes.popper,
-      }}
-      renderInput={params => (
-        <InputBase
-          inputProps={{
-            ...params.inputProps,
-            'aria-label': ariaLabel,
-          }}
-          ref={params.InputProps.ref}
-          placeholder={placeholder}
-          classes={{
-            input: classes.inputInput,
-            ...inputClasses,
-          }}
-          endAdornment={(
-            <IconButton size='large'>
-              <SearchIcon />
-            </IconButton>
-          )}
-        />
-      )}
+      classes={autocompleteClasses}
+      renderInput={renderInput}
     />
   );
 };

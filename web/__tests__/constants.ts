@@ -1,3 +1,4 @@
+import { serverCookieNames } from '@/serverUtils/constants';
 import type { FullMangaData } from '@/types/api/manga';
 import { ServiceForApi } from '@/types/api/services';
 import type { User } from '@/types/db/user';
@@ -7,6 +8,7 @@ export type TestUser = User & SessionUser & {
   joinedAt: Date
   password: string
   email: string
+  uuid: string
 };
 export const userForbidden = 'Forbidden to perform this action';
 export const userUnauthorized = 'User not authenticated';
@@ -15,7 +17,10 @@ export const serviceIdError = 'Service id must be a positive integer';
 export const invalidValue = 'Invalid value';
 export const ISE = 'Internal server error';
 
-export const csrfToken = 'test-csrf-token';
+export const COOKIE_SECRET = 'secret';
+
+export const authTokenCookieRegex = new RegExp(`${serverCookieNames.authToken}=`);
+export const sessionCookieRegex = new RegExp(`${serverCookieNames.session}=`);
 
 export const defaultDateFormatRegex = '\\w{3} \\d{1,2}\\w{2} \\d+, \\d{2}:\\d{2}';
 export const defaultDateDistanceFormat = '\\d+ \\w+';
@@ -114,7 +119,6 @@ export const adminUser: TestUser = {
   userId: 1,
   userUuid: '22fc15c9-37b9-4869-af86-b334333dedd8',
   uuid: '22fc15c9-37b9-4869-af86-b334333dedd8',
-  id: '22fc15c9-37b9-4869-af86-b334333dedd8',
   username: 'test ci admin',
   joinedAt: new Date(Date.now()),
   theme: 'dark',
@@ -128,7 +132,6 @@ export const normalUser: TestUser = {
   userId: 3,
   userUuid: 'cf5eddfd-e0fe-4e6e-b339-70be6f33794d',
   uuid: 'cf5eddfd-e0fe-4e6e-b339-70be6f33794d',
-  id: 'cf5eddfd-e0fe-4e6e-b339-70be6f33794d',
   username: 'test ci',
   joinedAt: new Date(Date.now()),
   theme: 'dark',
@@ -142,7 +145,6 @@ export const authTestUser: TestUser = {
   userId: 3,
   userUuid: 'db598f65-c558-4205-937f-b0f149dda1fa',
   uuid: 'db598f65-c558-4205-937f-b0f149dda1fa',
-  id: 'db598f65-c558-4205-937f-b0f149dda1fa',
   username: 'test ci auth',
   joinedAt: new Date(Date.now()),
   theme: 'dark',
@@ -156,7 +158,6 @@ export const oauthUser: TestUser = {
   userId: 5,
   userUuid: 'd1e3395a-37fa-4df7-8441-46d2b2689788',
   uuid: 'd1e3395a-37fa-4df7-8441-46d2b2689788',
-  id: 'd1e3395a-37fa-4df7-8441-46d2b2689788',
   username: 'test oauth',
   joinedAt: new Date(Date.now()),
   theme: 'dark',

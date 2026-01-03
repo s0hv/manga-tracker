@@ -1,3 +1,5 @@
+import { queryOptions } from '@tanstack/react-query';
+
 import type {
   FullMangaData,
   MergeMangaResult,
@@ -16,6 +18,11 @@ import { handleError, handleResponse } from './utilities';
 export const getManga = (mangaId: DatabaseId): Promise<FullMangaData> => fetch(`/api/manga/${mangaId}`)
   .then(handleResponse<FullMangaData>)
   .catch(handleError);
+
+export const getMangaQueryOptions = (mangaId: DatabaseId) => queryOptions({
+  queryKey: [mangaId],
+  queryFn: ({ queryKey: [mangaIdKey] }) => getManga(mangaIdKey),
+});
 
 /**
  * Does a POST request to merge a manga

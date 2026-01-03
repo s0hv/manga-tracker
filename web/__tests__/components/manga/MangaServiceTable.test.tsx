@@ -102,6 +102,7 @@ describe('MangaServiceTable should render correctly', () => {
         expect(disabled).toBeInTheDocument();
         expect(disabled).toBeDisabled();
         if (mangaService.disabled) {
+          // eslint-disable-next-line vitest/no-conditional-expect
           expect(disabled).toBeChecked();
         }
 
@@ -124,7 +125,7 @@ describe('MangaServiceTable should render correctly', () => {
 
     const spies = silenceConsole();
     await act(async () => {
-      render(<Root><MangaServiceTable mangaId={mangaId} /></Root>);
+      render(<Component />);
     });
     restoreMocks(spies);
 
@@ -153,9 +154,7 @@ describe('MangaServiceTable should allow editing', () => {
 
     const user = userEvent.setup();
     await user.click(screen.getByRole('button', { name: /edit row/i }));
-    await act(async () => {
-      await user.click(screen.getByRole('button', { name: /save row/i }));
-    });
+    await user.click(screen.getByRole('button', { name: /save row/i }));
 
     expectNoSnackbar();
   });
@@ -169,9 +168,7 @@ describe('MangaServiceTable should allow editing', () => {
     const user = userEvent.setup();
     await user.click(screen.getByRole('button', { name: /edit row/i }));
     await user.click(screen.getByRole('checkbox', { name: /^disabled$/i }));
-    await act(async () => {
-      await user.click(screen.getByRole('button', { name: /save row/i }));
-    });
+    await user.click(screen.getByRole('button', { name: /save row/i }));
 
     expectSuccessSnackbar();
 
@@ -191,9 +188,7 @@ describe('MangaServiceTable should allow editing', () => {
     const user = userEvent.setup();
     await user.click(screen.getByRole('button', { name: /edit row/i }));
     await user.click(screen.getByRole('checkbox', { name: /^disabled$/i }));
-    await act(async () => {
-      await user.click(screen.getByRole('button', { name: /save row/i }));
-    });
+    await user.click(screen.getByRole('button', { name: /save row/i }));
 
     expectErrorSnackbar();
   });

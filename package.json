@@ -4,7 +4,7 @@
   "private": true,
   "license": "MIT",
   "engines": {
-    "node": "^22",
+    "node": "^24",
     "pnpm": "^10"
   },
   "dependencies": {
@@ -23,8 +23,7 @@
     "migrate:down": "db-migrate --config migrations-config.json down"
   },
   "cacheDirectories": [
-    "web/.next/cache/",
     "node_modules/"
   ],
-  "packageManager": "pnpm@10.12.4+sha512.5ea8b0deed94ed68691c9bad4c955492705c5eeb8a87ef86bc62c74a26b037b08ff9570f108b2e4dbd1dd1a9186fea925e527f141c648e85af45631074680184"
+  "packageManager": "pnpm@10.27.0+sha512.72d699da16b1179c14ba9e64dc71c9a40988cbdc65c264cb0e489db7de917f20dcf4d64d8723625f2969ba52d4b7e2a1170682d9ac2a5dcaeaab732b7e16f04a"
 }

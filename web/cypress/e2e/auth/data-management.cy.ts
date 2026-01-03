@@ -1,4 +1,4 @@
-import { nextAuthSessionCookie } from '../../constants';
+import { sessionCookieName } from '../../constants';
 import { CreatedUser } from '../../types';
 
 describe('Account data management', () => {
@@ -53,7 +53,7 @@ describe('Account data management', () => {
       cy.get<CreatedUser>('@user')
         .then(user => cy.login(user));
 
-      // Go to profile page
+      // Go to the profile page
       cy.findByRole('button', { name: /account of current user/i }).click();
       cy.findByRole('menuitem', { name: /^profile$/i }).click();
       cy.findByRole('button', { name: /delete account/i }).click();
@@ -69,18 +69,15 @@ describe('Account data management', () => {
 
       cy.findByRole('button', { name: /delete account/i }).click();
 
-      cy.url().should('include', '/login');
-      cy.getCookie(nextAuthSessionCookie).should('be.null');
+      cy.url().should('include', '/');
+      cy.getCookie(sessionCookieName).should('be.null');
 
       // Trying to log in again with the deleted account should fail
       cy.get<CreatedUser>('@user')
         .then(user => cy.login(user, true));
 
-      // Next.js adds another alert element outside the main element so we need to filter that out
-      cy.findByRole('main').within(() => {
-        cy.findByRole('alert').within(() => {
-          cy.findByText(/^sign in failed/i);
-        });
+      cy.findByRole('alert').within(() => {
+        cy.findByText(/^Invalid login/i);
       });
 
       cy.task('flushRedis');

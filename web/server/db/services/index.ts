@@ -94,7 +94,7 @@ export const updateServiceConfig = ({
 /**
  * Get all service configs
  */
-export const getServiceConfigs = (): Promise<ServiceConfig[]> => {
+export const getServiceConfigs = () => {
   return db.many<ServiceConfig>`SELECT * FROM service_config`;
 };
 

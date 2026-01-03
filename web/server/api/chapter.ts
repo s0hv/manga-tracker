@@ -5,6 +5,7 @@ import {
   param,
   query,
 } from 'express-validator';
+import type {} from 'pino-http';
 
 import {
   deleteChapter,

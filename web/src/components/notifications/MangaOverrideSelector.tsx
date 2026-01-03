@@ -15,6 +15,7 @@ import {
   useWatch,
 } from 'react-hook-form';
 
+import { getNotificationFollows } from '#web/api/notifications';
 import type { FormValues } from '@/components/notifications/types';
 import {
   getOptionLabelNoService,
@@ -23,9 +24,6 @@ import {
 } from '@/components/notifications/utilities';
 import type { NotificationFollow } from '@/types/api/notifications';
 import { QueryKeys } from '@/webUtils/constants';
-
-
-import { getNotificationFollows } from '../../api/notifications';
 
 
 export type ChangeOverride = (overrideId: number | null) => void;
@@ -112,7 +110,7 @@ const MangaOverrideSelector = <TFieldValues extends FormValues = FormValues>({
   });
 
   const options = useMemo<NotificationFollow[]>(() => {
-    const actualData: NotificationFollow[] = useFollows ? (data ?? []) : selectedManga!;
+    const actualData: NotificationFollow[] = (useFollows ? data : selectedManga) ?? [];
     const foundManga: Set<number> = new Set();
     const filteredData: NotificationFollow[] = [];
 

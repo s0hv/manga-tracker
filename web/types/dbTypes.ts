@@ -1,13 +1,13 @@
-import type { DefaultUser } from 'next-auth';
-
 export type Theme = 'system' | 'light' | 'dark';
 
-export interface SessionUser extends DefaultUser {
+export interface SessionUser {
   username: string
-  uuid: string
+  userUuid: string
   userId: number
   theme: Theme
   admin: boolean
+  email: string
+  // Calculated property
   isCredentialsAccount: boolean
 }
 
@@ -17,7 +17,7 @@ export interface SessionData {
 
 /**
  * Subset of the interval object returned by postgres-interval.
- * Only contains time related properties
+ * Only contains time-related properties
  */
 export interface PostgresInterval {
   years?: number

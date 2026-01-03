@@ -1,3 +1,9 @@
+import ky from 'ky';
+
+export const baseKy = ky.extend({
+  prefixUrl: '/api',
+});
+
 export class APIException extends Error {}
 
 export class HTTPException extends Error {

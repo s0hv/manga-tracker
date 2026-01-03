@@ -1,9 +1,9 @@
 // @ts-check
 
 import eslint from '@eslint/js';
-import nextPlugin from '@next/eslint-plugin-next';
 import stylistic from '@stylistic/eslint-plugin';
 import vitest from '@vitest/eslint-plugin';
+import { defineConfig } from 'eslint/config';
 import importPlugin from 'eslint-plugin-import';
 import jsxA11y from 'eslint-plugin-jsx-a11y';
 import react from 'eslint-plugin-react';
@@ -19,6 +19,7 @@ const importOrderBase = {
     ['internal'],
     ['parent', 'index'],
     ['sibling'],
+    ['object'],
   ],
   alphabetize: { order: 'asc', caseInsensitive: true },
   pathGroups: [
@@ -34,8 +35,13 @@ const importOrderBase = {
       group: 'external',
       position: 'before',
     },
+    {
+      pattern: '**/*.svg',
+      group: 'object',
+      position: 'after',
+    },
   ],
-  pathGroupsExcludedImportTypes: ['builtin', 'object'],
+  pathGroupsExcludedImportTypes: ['builtin'],
   distinctGroup: false,
   'newlines-between': 'always',
   named: {
@@ -44,7 +50,7 @@ const importOrderBase = {
   },
 };
 
-export default tseslint.config(
+export default defineConfig(
   // ignores must be the only property in the object
   {
     ignores: ['public/*', '__mocks__/*', '**/dist/*', 'instrumented/*', '.*/*'],
@@ -66,8 +72,7 @@ export default tseslint.config(
   tseslint.configs.recommended,
   importPlugin.flatConfigs.recommended,
   stylistic.configs.recommended,
-  nextPlugin.flatConfig.recommended,
-  reactHooks.configs['recommended-latest'],
+  reactHooks.configs.flat.recommended,
   {
     plugins: {
       react,
@@ -100,7 +105,7 @@ export default tseslint.config(
       '@stylistic/semi': ['error', 'always', { omitLastInOneLineBlock: true }],
       '@stylistic/quotes': ['error', 'single', {
         avoidEscape: true,
-        allowTemplateLiterals: true,
+        allowTemplateLiterals: 'always',
       }],
       '@stylistic/indent': ['error', 2],
       '@stylistic/indent-binary-ops': ['error', 2],
@@ -123,6 +128,7 @@ export default tseslint.config(
       }],
       '@typescript-eslint/no-unused-vars': ['error', {
         argsIgnorePattern: '^_',
+        varsIgnorePattern: '^_',
         ignoreRestSiblings: true,
       }],
       '@stylistic/function-paren-newline': ['error', 'consistent'],
@@ -182,17 +188,41 @@ export default tseslint.config(
           '**/__tests__/**',
           '__mocks__/**',
           '**/setupTests.ts',
+          'vite.config.ts',
           'vitest.config.ts',
           'cypress.config.ts',
           'eslint.config.mjs',
           'cypress/**',
           './cypress/support/e2e.ts',
+          'scripts/**',
         ]}],
+      'import/no-unresolved': ['error', { ignore: ['\\.svg$']}],
 
-      // Disabled rules
-      '@next/next/no-img-element': 'off',
+      // No plans on using the compiler in the near future
+      'react-hooks/incompatible-library': 'off',
     },
   },
+
+  {
+    files: ['src/**/*', 'src/*'],
+    rules: {
+      'import/no-restricted-paths': ['error', {
+        zones: [
+          {
+            target: ['./src', './server', './types'],
+            from: ['./__tests__', './__mocks__'],
+            message: 'Do not import test files',
+          },
+          {
+            target: ['./src/!(serverFunctions|middleware)/**/*', './src/**.ts'],
+            from: ['./server'],
+            message: 'Server file imported on the client',
+          },
+        ],
+      }],
+    },
+  },
+
   {
     files: ['__tests__/**/*'],
     plugins: {

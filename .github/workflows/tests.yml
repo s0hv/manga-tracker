@@ -57,7 +57,7 @@ jobs:
 
     - uses: actions/setup-node@v6
       with:
-        node-version: 22
+        node-version: 24
         cache: 'pnpm'
         cache-dependency-path: pnpm-lock.yaml
 
@@ -96,6 +96,7 @@ jobs:
       PGPASSWORD: postgres
 
       ELASTIC_NODE: http://localhost:9200
+      HOST: 'http://localhost:3000'
 
       REDIS_URL: redis:6379
       DEBUG: debug,session-*,auth-info
@@ -103,6 +104,8 @@ jobs:
       LEVEL: silent
       SKIP_POSTINSTALL: true
       IS_CI: true
+      DISCORD_CLIENT_ID: test
+      DISCORD_CLIENT_SECRET: test
 
   python-tests:
     name: Scraper tests
@@ -142,7 +145,7 @@ jobs:
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v6
         with:
-          node-version: '22'
+          node-version: '24'
           cache: 'pnpm'
       - name: Setup uv
         uses: astral-sh/setup-uv@v7
@@ -196,7 +199,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: tests
     container:
-      image: cypress/browsers:22.17.0
+      image: cypress/browsers:24.12.0
 
     # Service containers to run with `container-job`
     services:
@@ -234,7 +237,7 @@ jobs:
 
       - uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version: 24
           cache: 'pnpm'
           cache-dependency-path: pnpm-lock.yaml
 
@@ -257,22 +260,15 @@ jobs:
       - name: Install codecov deps
         run: apt-get update && apt-get install -y curl gpg
 
-      - name: Persist Next.js build cache
-        uses: actions/cache@v4
-        with:
-          path: ${{ github.workspace }}/web/.next/cache
-          # Generate a new cache whenever packages or source files change.
-          key: nextjs-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('**.[jt]s', '**.[jt]sx') }}
-          # If source files changed but packages didn't, rebuild from a prior cache.
-          restore-keys: |
-            nextjs-${{ hashFiles('pnpm-lock.yaml') }}-
-
       - name: Build and start the app
         run: |
           pnpm build-nyc
           pnpm start-coverage &
         env:
           NODE_ENV: production
+          CYPRESS: true
+          IS_PRERENDER: 1
+          IS_CI: true
 
       - uses: cypress-io/github-action@v6
         continue-on-error: true
@@ -305,8 +301,7 @@ jobs:
       PGPASSWORD: postgres
 
       ELASTIC_NODE: http://localhost:9200
-      NEXTAUTH_URL: 'http://localhost:3000'
-      NEXTAUTH_SECRET: secret
+      HOST: 'http://localhost:3000'
 
       REDIS_URL: redis:6379
       DEBUG: debug,session-*,auth-info
@@ -316,6 +311,7 @@ jobs:
       IS_CI: true
       LOGIN_RETRY_COUNT: 3
       CYPRESS: true
-      # need at least one oauth provider or next-auth crashes
+      COOKIE_SECRET: secret
+      ENVIRONMENT: test
       DISCORD_CLIENT_ID: test
       DISCORD_CLIENT_SECRET: test

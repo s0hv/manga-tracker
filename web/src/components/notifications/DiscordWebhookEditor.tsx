@@ -1,7 +1,6 @@
 import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
 import { Box, Paper } from '@mui/material';
 import { ConfirmProvider } from 'material-ui-confirm';
-import dynamic from 'next/dynamic';
 import { useSnackbar } from 'notistack';
 import {
   type Control,
@@ -12,14 +11,13 @@ import {
 import { TextFieldElement, useWatch } from 'react-hook-form-mui';
 
 import {
+  postNotificationOverride,
+  postNotifications,
+} from '#web/api/notifications';
+import {
   FormContextRefProvider,
   useFormContextRefValue,
 } from '@/components/hooks/useFormContextRef';
-import {
-  type MangaOverrideSelectorProps,
-  ChangeOverride,
-} from '@/components/notifications/MangaOverrideSelector';
-import type { FormValues } from '@/components/notifications/types';
 import type {
   NotificationData,
   NotificationField,
@@ -32,11 +30,6 @@ import {
 } from '@/webUtils/utilities';
 
 
-import {
-  postNotificationOverride,
-  postNotifications,
-} from '../../api/notifications';
-
 import ColorPicker from './ColorPicker';
 import DefaultHelpTexts from './DefaultHelpTexts';
 import DeleteNotificationButton from './DeleteNotificationButton';
@@ -47,10 +40,12 @@ import {
   NotificationTypeText,
   RightSide,
 } from './Layout';
+import MangaOverrideSelector, { ChangeOverride } from './MangaOverrideSelector';
 import MangaSelector from './MangaSelector';
 import { NameInput } from './NameInput';
 import NotificationsForm from './NotificationsForm';
 import SaveButton from './SaveButton';
+import type { FormValues } from './types';
 
 type FieldTypes = {
   username: string | undefined | null
@@ -64,8 +59,6 @@ type FieldTypes = {
   color: string | undefined | null
 };
 interface DiscordFormData extends FormValues, FieldTypes {}
-
-const MangaOverrideSelector = dynamic(() => import('./MangaOverrideSelector')) as unknown as FC<MangaOverrideSelectorProps<DiscordFormData>>;
 
 export type DiscordWebhookEditorProps = {
   notificationData: NotificationData
@@ -407,7 +400,7 @@ const DiscordWebhookEditor: React.FC<DiscordWebhookEditorProps> = ({
         .forEach(name => register(name, { required: false }));
     }
 
-    trigger();
+    void trigger();
   }, [notificationData, register, reset, trigger, fieldRequired]);
 
   // Form reset is recommended to be done in the useEffect
@@ -423,7 +416,6 @@ const DiscordWebhookEditor: React.FC<DiscordWebhookEditorProps> = ({
     <Paper>
       <Box sx={{
         p: 4,
-        m: 2,
         minWidth: '800px',
       }}
       >

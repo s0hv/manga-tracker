@@ -4,8 +4,8 @@ export type MangaData = {
   mangaId: number
   title: string
   releaseInterval?: PostgresInterval | null
-  latestRelease?: string | null
-  estimatedRelease?: string | null
+  latestRelease?: string | null | Date
+  estimatedRelease?: string | null | Date
   latestChapter?: number | null
 };
 
@@ -14,7 +14,7 @@ export type MangaInfoData = {
   status: MangaStatus
   artist?: string | null
   author?: string | null
-  lastUpdated?: string | null
+  lastUpdated?: string | null | Date
   bw?: string | null
   mu?: string | null
   mal?: string | null

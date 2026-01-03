@@ -2,6 +2,7 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { getCoverUrl } from '@/tests/utils';
 import {
   type ChapterComponentProps,
   type GroupComponentProps,
@@ -20,8 +21,8 @@ import { generateNSchemas, LatestChapter, setupFaker } from '../schemas';
 
 describe('ChapterGroupWithCover', () => {
   const mangaToCover = {
-    1: '/test1',
-    2: '/test2',
+    1: 'http://localhost/test1',
+    2: 'http://localhost/test2',
   };
 
   it('should render correctly', async () => {
@@ -42,7 +43,7 @@ describe('ChapterGroupWithCover', () => {
     expect(screen.getByText(groupChildren)).toBeInTheDocument();
     const cover = screen.getByRole('img', { name: groupString });
     expect(cover).toBeInTheDocument();
-    expect(cover.getAttribute('src')).toStartWith('/_next/image?url=' + encodeURIComponent(`${mangaToCover[mangaId]}.256.jpg`));
+    expect(cover).toHaveAttribute('src', getCoverUrl(mangaToCover[mangaId]));
 
     expect(screen.getByRole('heading', { name: groupString })).toBeInTheDocument();
   });

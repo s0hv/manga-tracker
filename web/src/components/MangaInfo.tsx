@@ -2,8 +2,8 @@ import React, { FunctionComponent } from 'react';
 import { Typography } from '@mui/material';
 import { styled } from '@mui/material/styles';
 
-import { MangaStatus, PostgresInterval } from '@/types/dbTypes';
 
+import type { MangaData, MangaInfoData } from '@/types/api/manga';
 
 import {
   defaultDateDistanceToNow,
@@ -32,14 +32,7 @@ const InfoTable = styled('table')(({ theme }) => ({
 }));
 
 export type MangaInfoProps = {
-  mangaData: {
-    mangaId: number
-    latestRelease?: string | null
-    estimatedRelease?: string | null
-    releaseInterval?: PostgresInterval | null
-    latestChapter?: number | null
-    status: MangaStatus
-  }
+  mangaData: MangaData & Pick<MangaInfoData, 'status'>
   showId?: boolean
 };
 

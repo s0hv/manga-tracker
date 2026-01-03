@@ -1,5 +1,6 @@
 import React from 'react';
 import {
+  type SxProps,
   Button,
   Container,
   Grid,
@@ -10,9 +11,9 @@ import {
   Typography,
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
-import Image from 'next/image';
-import NextLink from 'next/link';
 
+import { RouteLink } from '@/components/common/RouteLink';
+import { MangaCover } from '@/components/MangaCover';
 import type { Follow } from '@/types/db/follows';
 
 import { nextImageFix } from '../utils/theme';
@@ -43,7 +44,7 @@ const Thumbnail = styled('div')(({ theme }) => ({
 
 const serviceNameText = { mr: 2 };
 const followServiceItem = { display: 'flex', justifyContent: 'space-between' };
-const mangaLinkStyles = { display: 'flex', height: '100%', position: 'relative' } satisfies React.CSSProperties;
+const mangaLinkStyles = { display: 'flex', height: '100%', position: 'relative' } satisfies SxProps;
 
 export type FollowProps = {
   follows?: Follow[]
@@ -58,7 +59,7 @@ function Follows(props: FollowProps) {
   const columnsXs = 1;
   const columnsMd = 2;
 
-  const renderFollow = (follow: Follow, index: number) => {
+  const renderFollow = (follow: Follow) => {
     const followedServices = follow.followedServices;
 
     return (
@@ -78,16 +79,17 @@ function Follows(props: FollowProps) {
         </Typography>
         <FollowContent>
           <Thumbnail>
-            <NextLink href='/manga/[id]' as={`/manga/${follow.mangaId}`} target='_blank' style={mangaLinkStyles}>
-              <Image
-                src={`${follow.cover}.256.jpg`}
+            <RouteLink
+              to='/manga/$mangaId'
+              params={{ mangaId: follow.mangaId.toString() }}
+              target='_blank'
+              sx={mangaLinkStyles}
+            >
+              <MangaCover
+                url={follow.cover}
                 alt={follow.title}
-                fill
-                style={{ objectFit: 'contain' }}
-                sizes='(max-width: 600px) 192px, 256px'
-                priority={index < 2}
               />
-            </NextLink>
+            </RouteLink>
           </Thumbnail>
           <FollowDetails>
             <table>

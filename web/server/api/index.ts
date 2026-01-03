@@ -9,3 +9,4 @@ export { default as userApi } from './user';
 
 export { default as adminServicesApi } from './admin/services';
 export { default as adminMangaApi } from './admin/manga';
+export { default as authHandler } from './auth';

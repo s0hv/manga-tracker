@@ -14,7 +14,7 @@ import type { EnqueueSnackbar } from 'notistack';
 
 
 import { updateMangaTitle } from '../api/admin/manga';
-import { useUser } from '../utils/useUser';
+import { useIsUserAdmin } from '../store/userStore';
 
 const Root = styled('div')(({ theme }) => ({
   margin: theme.spacing(1),
@@ -40,7 +40,7 @@ const MangaAliases = (props: MangaAliasesProps) => {
     allowEdits = false,
   } = props;
 
-  const { isAdmin } = useUser();
+  const isAdmin = useIsUserAdmin();
   const autoHideDuration = 8000;
 
   const onAliasPromote = useCallback((title: string) => {

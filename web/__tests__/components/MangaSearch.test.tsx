@@ -8,6 +8,7 @@ import MangaSearch from '@/components/MangaSearch';
 
 
 fetchMock.config.overwriteRoutes = true;
+vi.mock('@tanstack/react-router');
 
 beforeEach(() => fetchMock.reset());
 

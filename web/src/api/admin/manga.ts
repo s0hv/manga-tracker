@@ -1,3 +1,5 @@
+import { queryOptions } from '@tanstack/react-query';
+
 import type {
   MangaService,
   MangaServiceCreateData,
@@ -7,6 +9,10 @@ import type {
 import type { DatabaseId, MangaId, MangaStatus } from '@/types/dbTypes';
 
 import { handleError, handleResponse } from '../utilities';
+
+export const ADMIN_MANGA_URL = {
+  mangaServices: (mangaId: MangaId) => `/api/admin/manga/${mangaId}/services`,
+} as const;
 
 export const getScheduledRuns = (mangaId: MangaId) => fetch(`/api/admin/manga/${mangaId}/scheduledRuns`)
   .then(handleResponse<ScheduledRun[]>)
@@ -61,7 +67,7 @@ export const updateMangaInfo = (mangaId: MangaId, info: MangaInfo) => fetch(`/ap
   .catch(handleError);
 
 
-export const getMangaServices = (mangaId: MangaId) => fetch(`/api/admin/manga/${mangaId}/services`)
+export const getMangaServices = (mangaId: MangaId) => fetch(ADMIN_MANGA_URL.mangaServices(mangaId))
   .then(handleResponse<MangaService[]>)
   .then(data => data.map(ms => {
     ms.lastCheck = ms.lastCheck ? new Date(ms.lastCheck) : null;
@@ -69,6 +75,11 @@ export const getMangaServices = (mangaId: MangaId) => fetch(`/api/admin/manga/${
     return ms;
   }))
   .catch(handleError);
+
+export const getMangaServicesQueryOptions = (mangaId: MangaId) => queryOptions({
+  queryKey: [ADMIN_MANGA_URL.mangaServices(mangaId)] as const,
+  queryFn: () => getMangaServices(mangaId),
+});
 
 export const updateMangaService = (
   mangaId: MangaId, serviceId: DatabaseId, data: MangaServiceUpdateData

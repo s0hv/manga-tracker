@@ -7,7 +7,7 @@ import { normalUser } from '../utils';
 
 let httpServer: any;
 const BASE_URL = 'http://localhost:3000';
-process.env.BASE_URL = BASE_URL;
+process.env.HOST = BASE_URL;
 
 beforeAll(async () => {
   ({ httpServer } = await initServer());
