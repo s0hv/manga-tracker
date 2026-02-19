@@ -59,12 +59,20 @@ class Chapter(BaseChapterSimple):
                 # Split chapter number to decimal part and integer part
                 n = list(map(int, chapter_number.split('.')))
             except ValueError:
-                if chapter_number.lower() not in ('prologue', 'special'):
+                if chapter_number.lower() in ('prologue', 'special'):
+                    _chapter_number = 0
+                    _decimal = None
+                elif match := re.match(r'(\d+)\.(\d+)([A-z])', chapter_number.lower()):
+                    _chapter_number = int(match.group(1))
+                    _decimal = int(match.group(2))
+                    if not chapter_title:
+                        chapter_title = f'Chapter {chapter_number}'
+                else:
                     logger.warning(
                         f'Failed to parse chapter number {chapter_number} for {manga_id}'
                     )
-                _chapter_number = 0
-                _decimal = None
+                    _chapter_number = 0
+                    _decimal = None
             else:
                 _chapter_number = n[0]
                 _decimal = None if len(n) == 1 else n[1]

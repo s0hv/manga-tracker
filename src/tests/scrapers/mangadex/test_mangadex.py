@@ -90,6 +90,18 @@ correct_parsed_chapters = sorted([
         title_id='4280a53c-817d-4d5c-8276-55dfbd9e4a51',
         group=None,
         title='Chapter 5b',
+        group_id=NO_GROUP),
+
+    ChapterTestModel(
+        chapter_title='Chapter 85.5a',
+        chapter_number=85,
+        volume=None,
+        decimal=5,
+        release_date='2021-03-25T02:58:34+00:00',
+        chapter_identifier='6ed05d43-4c6c-4639-9ee4-3491e415bc2e',
+        title_id='4280a53c-817d-4d5c-8276-55dfbd9e4a51',
+        group=None,
+        title='Chapter 85.5a',
         group_id=NO_GROUP)
 ], key=lambda c: c.chapter_identifier)
 
@@ -183,7 +195,7 @@ class MangadexTests(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsser
         self.delete_chapters()
         self.set_up_api()
         service_id = self.mangadex.ID
-        chapter_count = 6
+        chapter_count = 7
         manga_count = 4
         group_count = 4
         author_count = 4
@@ -271,7 +283,11 @@ class MangadexTests(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsser
         assert not [r for r in self.caplog.records if r.levelno >= logging.WARNING], 'Warnings found'
 
         with self.conn.cursor(row_factory=class_row(Group)) as cur:
-            cur.execute('SELECT g.* FROM groups g INNER JOIN chapters c ON g.group_id = c.group_id WHERE g.group_id != %s AND c.service_id=%s GROUP BY g.group_id', (NO_GROUP, MangaDex.ID))
+            cur.execute(
+                'SELECT g.* FROM groups g '
+                'INNER JOIN chapters c ON g.group_id = c.group_id '
+                'WHERE g.group_id != %s AND c.service_id=%s GROUP BY g.group_id',
+                (NO_GROUP, MangaDex.ID))
             all_groups: list[Group] = cur.fetchall()
             all_groups_dict: dict[str, Group] = {g.name: g for g in all_groups}
 
