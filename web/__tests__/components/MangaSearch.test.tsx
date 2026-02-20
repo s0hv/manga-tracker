@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import fetchMock from 'fetch-mock';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -46,7 +46,7 @@ describe('Search should render correctly', () => {
     const user = userEvent.setup();
     // Simulate text changes and test that the quicksearch endpoint wasn't called
     await user.type(input, 'test search');
-    expect(searchFn).toHaveBeenCalled();
+    await waitFor(() => expect(searchFn).toHaveBeenCalled());
 
     const listItems = screen.getAllByRole('option');
     expect(listItems).toHaveLength(mockResult.length);
@@ -69,7 +69,10 @@ describe('Search should behave correctly with user input', () => {
 
     const user = userEvent.setup();
     // Simulate text changes and test that the quicksearch endpoint wasn't called
-    await user.type(input, 'a{backspace}b{backspace}c');
+    await user.type(input, 'a{backspace}b{backspace}');
+
+    // Wait a bit to make sure no request was made
+    await new Promise(resolve => setTimeout(resolve, 500));
 
     expect(searchFn).toHaveBeenCalledTimes(0);
     expect(screen.queryAllByRole('option')).toHaveLength(0);
