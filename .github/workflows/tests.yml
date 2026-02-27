@@ -303,7 +303,7 @@ jobs:
           CYPRESS: true
           IS_CI: true
 
-      - uses: cypress-io/github-action@v6
+      - uses: cypress-io/github-action@v7
         continue-on-error: true
         name: Run Cypress tests
         id: cypress-run
