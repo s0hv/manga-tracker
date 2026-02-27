@@ -13,6 +13,7 @@ import {
   validateSessionToken,
 } from '@/db/session';
 import {
+  HOST_URL,
   SECURE_COOKIE_OPTIONS,
   serverCookieNames,
 } from '@/serverUtils/constants';
@@ -101,9 +102,37 @@ router.get('/restore-login', async (req, res) => {
   const fetchMode = req.header('sec-fetch-mode')?.toLowerCase();
   const fetchDest = req.header('sec-fetch-dest')?.toLowerCase();
 
+  // Try to parse the referer URL from the headers if it exists
+  let referrerUrl: URL | null = null;
+  const referer = req.header('Referer');
+
+  try {
+    if (referer) {
+      referrerUrl = new URL(referer);
+    }
+  } catch (err) {
+    sessionLogger.error(err, 'Failed to parse referrer url');
+  }
+
+  const isSameOrigin = referrerUrl?.origin === HOST_URL.origin;
+
   // Only allow top level navigations to call this endpoint
-  if (fetchMode !== 'navigate' || fetchDest !== 'document') {
-    sessionLogger.warn('Tried to restore login from a non-navigate request. Sec-Fetch-Mode: %s, Sec-Fetch-Dest: %s', fetchMode, fetchDest);
+  if (
+    // When doing a navigation when the session has expired,
+    // on an open mobile browser tab, for example,
+    // the fetch-mode will be 'cors'. In that case just validate that
+    // the referrer is from the same origin.
+    !(fetchMode === 'cors' && isSameOrigin)
+    && (
+      fetchMode !== 'navigate'
+      || fetchDest !== 'document')
+  ) {
+    sessionLogger.warn(
+      'Tried to restore login from a non-navigate request. Sec-Fetch-Mode: %s, Sec-Fetch-Dest: %s, Origin: %s',
+      fetchMode,
+      fetchDest,
+      req.header('Origin')
+    );
     res.status(400).end();
     return;
   }
