@@ -1,5 +1,6 @@
 /* istanbul ignore file */
 import type { Express } from 'express-serve-static-core';
+import type { NodeHttp1Handler } from 'srvx';
 import { type AdapterMeta, toNodeHandler } from 'srvx/node';
 
 export const tanstackIntegration = async (server: Express) => {
@@ -23,7 +24,7 @@ export const tanstackIntegration = async (server: Express) => {
             nonce: req.getNonce(),
           },
         });
-      const handler = toNodeHandler(wrappedHandler);
+      const handler = toNodeHandler(wrappedHandler) as NodeHttp1Handler;
       await handler(req, res);
     } catch (error) {
       if (typeof error === 'object' && error instanceof Error) {

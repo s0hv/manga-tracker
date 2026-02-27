@@ -8,6 +8,7 @@ import type { Request, Response } from 'express-serve-static-core';
 import helmet from 'helmet';
 import pinoHttp from 'pino-http';
 import { RateLimiterRes } from 'rate-limiter-flexible';
+import type { NodeHttp1Handler } from 'srvx';
 import { type AdapterMeta, toNodeHandler } from 'srvx/node';
 
 import {
@@ -317,7 +318,7 @@ if (process.env.ENVIRONMENT === 'unit-test') {
         },
       });
 
-    const handler = toNodeHandler(wrappedHandler);
+    const handler = toNodeHandler(wrappedHandler) as NodeHttp1Handler;
     await handler(req, res);
   });
 }
