@@ -109,7 +109,7 @@ describe('GroupedChapterList', () => {
   const groupB = 2;
   const groupC = 3;
 
-  const generateChaptersWithMangaId = (mangaId: number, count: number) => generateNSchemas<ChapterRelease>(LatestChapter, count)
+  const generateChaptersWithMangaId = async (mangaId: number, count: number) => (await generateNSchemas<ChapterRelease>(LatestChapter, count))
     .map(chapter => {
       chapter.mangaId = mangaId;
       return chapter;
@@ -125,11 +125,11 @@ describe('GroupedChapterList', () => {
     const ChapterComponent = ({ chapter: { title }}: ChapterComponentProps) => <h5>{title}</h5>;
     const ChapterComponentMock = vi.fn().mockImplementation(ChapterComponent);
 
-    const chaptersA1 = generateChaptersWithMangaId(groupA, 2);
-    const chaptersB = generateChaptersWithMangaId(groupB, 2);
-    const chaptersC1 = generateChaptersWithMangaId(groupC, 1);
-    const chaptersA2 = generateChaptersWithMangaId(groupA, 1);
-    const chaptersC2 = generateChaptersWithMangaId(groupC, 1);
+    const chaptersA1 = await generateChaptersWithMangaId(groupA, 2);
+    const chaptersB = await generateChaptersWithMangaId(groupB, 2);
+    const chaptersC1 = await generateChaptersWithMangaId(groupC, 1);
+    const chaptersA2 = await generateChaptersWithMangaId(groupA, 1);
+    const chaptersC2 = await generateChaptersWithMangaId(groupC, 1);
 
     const chapters: ChapterRelease[] = [
       ...chaptersA1,

@@ -115,7 +115,7 @@ export default (app: Application) => {
   app.get('/api/manga/:mangaId', [
     mangaIdValidation(param('mangaId')),
     handleValidationErrors,
-  ], (req: Request, res: Response) => {
+  ], (req: Request<Record<string, string>>, res: Response) => {
     getFullManga(req.params.mangaId)
       .then(manga => {
         if (!manga) {

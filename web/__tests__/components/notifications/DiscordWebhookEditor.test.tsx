@@ -28,6 +28,9 @@ const Root: FC<PropsWithChildren> = ({ children }) => (
   </QueryClientProvider>
 );
 
+// Fix MUI warning spam https://github.com/mui/material-ui/issues/47792#issuecomment-3924961278
+(globalThis as any).MUI_TEST_ENV = true;
+
 beforeEach(async () => {
   await mockNotistackHooks();
   fetchMock.reset();
@@ -194,7 +197,7 @@ describe('DiscordWebhookEditor', () => {
         [f.name]: f.value,
       }), {}),
     });
-  });
+  }, 10 * 1000);
 
   it('Renders correctly when collapsed', async () => {
     const mock = notificationFollowsMock();

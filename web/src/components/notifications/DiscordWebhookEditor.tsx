@@ -164,6 +164,7 @@ const FormComponent: FC<FormComponentProps> = (
                 mr: 2,
                 flexGrow: 1,
               }}
+              fullWidth
               disabled={isOverride}
             />
 
@@ -176,7 +177,6 @@ const FormComponent: FC<FormComponentProps> = (
               sx={{
                 mt: 2,
                 mb: 1,
-                mr: 2,
                 flexGrow: 1,
               }}
             />
@@ -408,9 +408,12 @@ const DiscordWebhookEditor: React.FC<DiscordWebhookEditorProps> = ({
     const newData = newFormData.notificationData;
     if (!newData) return;
 
-    reset(getInitialValues(newData, getNotificationFields(newFormData.overrideId, newData)));
-    setValue('overrideId', newFormData.overrideId);
-  }, [newFormData, reset, setValue]);
+    reset({
+      ...(newFormData.overrideId !== null ? Object.fromEntries(Object.keys(fieldRequired).map(key => [key, null])) : {}),
+      ...getInitialValues(newData, getNotificationFields(newFormData.overrideId, newData)),
+      overrideId: newFormData.overrideId,
+    });
+  }, [newFormData, reset, setValue, fieldRequired]);
 
   return (
     <Paper>

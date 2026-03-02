@@ -12,6 +12,9 @@ vi.mock('@tanstack/react-router');
 
 beforeEach(() => fetchMock.reset());
 
+// Fix MUI warning spam https://github.com/mui/material-ui/issues/47792#issuecomment-3924961278
+(globalThis as any).MUI_TEST_ENV = true;
+
 describe('Search should render correctly', () => {
   it('without input', () => {
     render(<MangaSearch />);
@@ -46,7 +49,7 @@ describe('Search should render correctly', () => {
     const user = userEvent.setup();
     // Simulate text changes and test that the quicksearch endpoint wasn't called
     await user.type(input, 'test search');
-    await waitFor(() => expect(searchFn).toHaveBeenCalled());
+    await waitFor(() => expect(searchFn).toHaveBeenCalledWith('/api/quicksearch?query=test%20search&withServices=false', undefined, undefined));
 
     const listItems = screen.getAllByRole('option');
     expect(listItems).toHaveLength(mockResult.length);

@@ -43,8 +43,8 @@ const Root: FunctionComponent<any> = ({ children }: React.PropsWithChildren) => 
 const Component: FunctionComponent = () => withRoot(<Root><MangaServiceTable mangaId={mangaId} /></Root>);
 
 setupFaker();
-const mangaServices = generateNSchemas<MangaService>(MangaServiceSchema, 5);
-const services = generateNSchemas<ServiceForApi>(Service, 5);
+const mangaServices = await generateNSchemas<MangaService>(MangaServiceSchema, 5);
+const services = await generateNSchemas<ServiceForApi>(Service, 5);
 mangaServices.forEach((ms, idx) => {
   ms.mangaId = mangaId;
   ms.serviceId = services[idx].serviceId;

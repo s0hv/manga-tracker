@@ -1,8 +1,15 @@
 import { normalUser } from '../../../__tests__/constants';
 
+beforeEach(() => {
+  cy.task('flushRedis');
+});
+
+afterEach(() => {
+  cy.task('flushRedis');
+});
+
 describe('Test authentication', () => {
   it('Logs in with correct email + password', () => {
-    cy.task('flushRedis');
     cy.visit('/');
     cy.findByText(/^recent releases$/i);
 
@@ -17,8 +24,6 @@ describe('Test authentication', () => {
   });
 
   it('Ratelimits after 3 failed login attempts', () => {
-    cy.task('flushRedis');
-
     const login = () => {
       cy.visit('/login');
       cy.wait(300);
@@ -50,8 +55,6 @@ describe('Test authentication', () => {
     cy.findByRole('alert').within(() => {
       cy.findByText(/Ratelimited/i).should('exist');
     });
-
-    cy.task('flushRedis');
   });
 });
 

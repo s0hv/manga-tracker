@@ -1,13 +1,24 @@
 import type { AuthToken } from '@/types/db/auth';
 import type { Session } from '@/types/session';
 
-import { normalUser } from '../../../__tests__/constants';
-import { authTokenCookieName, sessionCookieName } from '../../constants';
+import { adminUser, normalUser } from '../../../__tests__/constants';
+import {
+  authTokenCookieName,
+  MANGA4,
+  sessionCookieName,
+} from '../../constants';
+
+beforeEach(() => {
+  cy.task('flushRedis');
+});
+
+afterEach(() => {
+  cy.task('flushRedis');
+});
 
 describe('Login features', () => {
   describe('Login redirect works', () => {
     it('Redirects back to /manga/1 after logging in', () => {
-      cy.task('flushRedis');
       cy.visit('/manga/1');
 
       cy.wait(500);
@@ -30,7 +41,6 @@ describe('Login features', () => {
     const hour = minute * 60;
 
     it('Remembers user after logging in', () => {
-      cy.task('flushRedis');
       cy.visit('/');
 
       cy.login(normalUser, false, true);
@@ -73,7 +83,6 @@ describe('Login features', () => {
     });
 
     it('Sets 2 hour expiry date without remember me', () => {
-      cy.task('flushRedis');
       cy.visit('/');
 
       cy.login(normalUser);
@@ -99,6 +108,27 @@ describe('Login features', () => {
       // Auth token should not exists here
       cy.getCookie(authTokenCookieName)
         .should('be.null');
+    });
+
+    it.only('Properly refreshes login after session expired on an open page', () => {
+      cy.login(adminUser, false, true);
+
+      // Visit a manga page
+      cy.visit(`/manga/${MANGA4.id}`);
+      cy.findByRole('heading', { name: /^jojo part 2$/i }).should('exist');
+
+      // Clear the session cookie
+      cy.clearCookie(sessionCookieName);
+      cy.wait(100);
+
+      // Navigate to another page
+      cy.findByRole('button', { name: /^admin page$/i }).click();
+
+      // Token should be refreshed and the page should be changed
+      cy.getCookie(sessionCookieName)
+        .should('not.be.null');
+      cy.findByRole('table', { name: /^manga services$/i }).should('exist');
+      cy.findByRole('table', { name: /^scheduled runs$/i }).should('exist');
     });
   });
 });

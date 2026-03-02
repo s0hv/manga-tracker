@@ -39,7 +39,7 @@ function createFeed(rows: LatestRelease[]) {
 }
 
 export default (app: Application) => {
-  app.get('/rss{/:user}', (req: Request, res: Response) => {
+  app.get('/rss{/:user}', (req: Request<Record<string, string>>, res: Response) => {
     const uuid = req.params.user;
     if (uuid && uuid.length !== 32) {
       res.sendStatus(404);

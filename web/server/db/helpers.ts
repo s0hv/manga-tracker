@@ -1,11 +1,12 @@
-import type { PendingQuery, Row, RowList } from 'postgres';
+import type { PendingQuery, Row, RowList, TransactionSql } from 'postgres';
 
 import { NoResultsError, TooManyResultsError } from '@/db/errors';
-import { type Db, sql } from '@/db/index';
+import { type CustomTypes, type Db, sql } from '@/db/index';
 
 
 export type RowType = readonly (object | undefined)[];
 type TemplateArgs<T extends RowType = Row[]> = Parameters<typeof sql<T>>;
+type DbTransaction = TransactionSql<CustomTypes>;
 
 export type DbHelpers = {
   one: <T extends Row>(...args: TemplateArgs<T[]>) => Promise<T>
@@ -14,16 +15,21 @@ export type DbHelpers = {
   manyOrNone: <T extends Row>(...args: TemplateArgs<T[]>) => PendingQuery<T[]>
   any: <T extends Row>(...args: TemplateArgs<T[]>) => PendingQuery<T[]>
   none: <T extends Row>(...args: TemplateArgs<T[]>) => Promise<void>
+  sql: DbTransaction
+};
+
+export type DbHelpersFull = Omit<DbHelpers, 'sql'> & {
   transaction: <T>(callback: (sql: DbHelpers) => Promise<T>) => Promise<T>
   sql: Db
 };
 
-export const createHelpers = (sql_: Db) => {
+export const createHelpersForTransaction = (sql_: TransactionSql<CustomTypes> | Db) => {
   const customSql = <T extends Row>(...args: TemplateArgs<T[]>): PendingQuery<T[]> => {
     const [template, ...rest] = args;
-    return sql_<T[]>(template, ...rest);
+    // Temporary measure until this fix is merged and released
+    // https://github.com/porsager/postgres/pull/1144
+    return (sql_ as Db)<T[]>(template, ...rest);
   };
-
 
   const oneOrNone = async <T extends Row>(...args: TemplateArgs<T[]>): Promise<T | null> => {
     const result = await customSql<T>(...args);
@@ -71,9 +77,6 @@ export const createHelpers = (sql_: Db) => {
     }
   };
 
-  const transaction = <T>(callback: (tran: DbHelpers) => Promise<T>): Promise<T> => {
-    return sql_.begin(sql => callback(createHelpers(sql))) as Promise<T>;
-  };
 
   return {
     one,
@@ -82,11 +85,21 @@ export const createHelpers = (sql_: Db) => {
     any,
     manyOrNone,
     none,
-    transaction,
-    sql: sql_,
+    sql: sql_ as DbTransaction,
   } satisfies DbHelpers;
 };
 
+export const createHelpers = (sql_: Db) => {
+  const transaction = <T>(callback: (tran: DbHelpers) => Promise<T>): Promise<T> => {
+    return sql_.begin(sql => callback(createHelpersForTransaction(sql))) as Promise<T>;
+  };
+
+  return {
+    ...createHelpersForTransaction(sql_),
+    transaction,
+    sql: sql_,
+  } satisfies DbHelpersFull;
+};
 
 export const db = createHelpers(sql);
 

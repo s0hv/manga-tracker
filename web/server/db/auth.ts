@@ -40,7 +40,6 @@ import type { User } from '@/types/db/user';
 import type { SafeSession } from '@/types/session';
 
 import { db } from './helpers';
-import { clearRedirectCookie } from '@/serverUtils/redirect';
 
 const AUTH_TOKEN_LENGTH = 32;
 const LOOKUP_TOKEN_LENGTH = 10;

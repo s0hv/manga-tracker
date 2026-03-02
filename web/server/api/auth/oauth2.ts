@@ -1,7 +1,6 @@
 import { type OAuthProvider } from '@/common/auth/providers';
 
 import { type CallbackHandler, oauthLoginHandler, router } from './common';
-import { discordCallbackHandler } from './discord';
 
 
 export const registerProviderRoute = (provider: OAuthProvider, callbackHandler: CallbackHandler) => {

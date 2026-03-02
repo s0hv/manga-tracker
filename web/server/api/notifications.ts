@@ -218,7 +218,7 @@ export default (app: Application) => {
     validateUser(),
     databaseIdValidation(param('notificationId')),
     handleValidationErrors,
-  ], (req: Request, res: Response) => {
+  ], (req: Request<Record<string, string>>, res: Response) => {
     deleteUserNotification({
       notificationId: req.params.notificationId,
       userId: req.user!.userId,

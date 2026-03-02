@@ -1,11 +1,17 @@
 import { sessionCookieName } from '../../constants';
 import { CreatedUser } from '../../types';
 
+beforeEach(() => {
+  cy.task('flushRedis');
+});
+
+afterEach(() => {
+  cy.task('flushRedis');
+});
+
 describe('Account data management', () => {
   describe('Request account data', () => {
     it('is possible to download your data', () => {
-      cy.task('flushRedis');
-
       // Create a new user and log in
       cy.task<CreatedUser>('createUser')
         .then(user => {
@@ -42,8 +48,6 @@ describe('Account data management', () => {
 
   describe('Delete account', () => {
     it('is possible to delete your own account', () => {
-      cy.task('flushRedis');
-
       // Create a new user and log in
       cy.task<CreatedUser>('createUser')
         .then(user => {
@@ -79,8 +83,6 @@ describe('Account data management', () => {
       cy.findByRole('alert').within(() => {
         cy.findByText(/^Invalid login/i);
       });
-
-      cy.task('flushRedis');
     });
   });
 });
