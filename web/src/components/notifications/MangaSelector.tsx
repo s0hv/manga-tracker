@@ -1,5 +1,5 @@
 import { type SyntheticEvent, useCallback, useState } from 'react';
-import { AutocompleteProps, Box } from '@mui/material';
+import { AutocompleteProps, Box, formControlClasses } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 import {
   type Control,
@@ -101,6 +101,10 @@ const MangaSelector = <TFieldValues extends FormValues = FormValues>({
     <Box sx={{
       display: 'flex',
       alignItems: 'center',
+      // Prevents the checkbox from overflowing the div
+      [`& .${formControlClasses.root}`]: {
+        flex: 'none',
+      },
     }}
     >
       <AutocompleteElement
@@ -129,14 +133,11 @@ const MangaSelector = <TFieldValues extends FormValues = FormValues>({
           ...autocompleteProps,
         }}
       />
-      OR
+      <span>OR</span>
       <CheckboxElement
         control={control}
         labelProps={{
-          sx: {
-            ml: 1,
-            flex: 'none',
-          },
+          sx: { mx: 1 },
         }}
         name={'useFollows' as FieldPath<TFieldValues>}
         color='primary'

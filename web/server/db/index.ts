@@ -21,7 +21,7 @@ const intervalType: PostgresType<IPostgresInterval> = {
   parse: raw => parseInterval(raw),
 };
 
-type CustomTypes = {
+export type CustomTypes = {
   undefined: PostgresType<undefined>
   interval: typeof intervalType
 };

@@ -220,7 +220,7 @@ export const hadValidationError = (req: Request, res: Response, sendAllErrors = 
   return false;
 };
 
-export const handleValidationErrors = (req: Request, res: Response, next: NextFunction) => {
+export const handleValidationErrors = (req: Request<Record<string, string>>, res: Response, next: NextFunction) => {
   if (hadValidationError(req, res)) return;
   next();
 };

@@ -1,39 +1,38 @@
 import { faker } from '@faker-js/faker';
-import type { JSONSchema4 } from 'json-schema';
-import { type Schema, JSONSchemaFaker as jsf } from 'json-schema-faker';
-import Random from 'random-seed';
+import { type JsonSchema, createGenerator, generate } from 'json-schema-faker';
 
 
-const positiveInteger: JSONSchema4 = {
+const positiveInteger: JsonSchema = {
   type: 'integer',
   minimum: 0,
-  exclusiveMinimum: true,
+  exclusiveMinimum: 1,
 };
 
-const stringType: JSONSchema4 = {
+const stringType: JsonSchema = {
   type: 'string',
+  minLength: 5,
 };
 
-const urlType: JSONSchema4 = {
+const urlType: JsonSchema = {
   type: 'string',
   faker: 'internet.url',
 };
 
-const booleanType: JSONSchema4 = {
+const booleanType: JsonSchema = {
   type: 'boolean',
 };
 
-const datetimeType: JSONSchema4 = {
+const datetimeType: JsonSchema = {
   type: 'string',
   format: 'date-time',
 };
 
-const imageType: JSONSchema4 = {
+const imageType: JsonSchema = {
   type: 'string',
   format: 'coverUrl',
 };
 
-export const LatestChapter: JSONSchema4 = {
+export const LatestChapter: JsonSchema = {
   type: 'object',
   properties: {
     chapterId: positiveInteger,
@@ -63,7 +62,7 @@ export const LatestChapter: JSONSchema4 = {
   ],
 };
 
-export const MangaService: JSONSchema4 = {
+export const MangaService: JsonSchema = {
   type: 'object',
   properties: {
     mangaId: positiveInteger,
@@ -84,7 +83,7 @@ export const MangaService: JSONSchema4 = {
   ],
 };
 
-export const Service: JSONSchema4 = {
+export const Service: JsonSchema = {
   type: 'object',
   properties: {
     serviceId: positiveInteger,
@@ -110,33 +109,44 @@ export const Service: JSONSchema4 = {
   ],
 };
 
+let generator: ReturnType<typeof createGenerator>['generate'];
+
 export const setupFaker = (seed = 1) => {
   faker.seed(seed);
 
-  const gen = Random.create(seed.toString());
-  jsf.extend('faker', () => faker);
-  jsf.option('random', () => gen.random());
-  jsf.format('formattedUrl', () => {
-    let url = faker.internet.url() + '/{}';
-    if (jsf.random.pick([true, false])) {
-      url += '/{title_id}';
-    }
+  generator = createGenerator({
+    seed,
 
-    return url;
-  });
+    extensions: {
+      faker,
+    },
 
-  jsf.format('coverUrl', () => {
-    const url = new URL(faker.image.url());
-    url.hostname = 'mangadex.org';
+    formats: {
+      formattedUrl: random => {
+        let url = faker.internet.url() + '/{}';
+        if (random.pick([true, false])) {
+          url += '/{title_id}';
+        }
 
-    return url;
-  });
+        return url;
+      },
+
+      coverUrl: () => {
+        const url = new URL(faker.image.url());
+        url.hostname = 'mangadex.org';
+
+        return url.toString();
+      },
+    },
+
+
+  }).generate;
 };
 
-export const generateNSchemas = <T = ReturnType<typeof jsf.generate>>(schema: Schema, count: number): T[] => {
+export const generateNSchemas = async <T = ReturnType<typeof generate>>(schema: JsonSchema, count: number): Promise<T[]> => {
   const arr: T[] = [];
   for (let i = 0; i < count; i++) {
-    arr.push(jsf.generate(schema) as T);
+    arr.push(await generator(schema) as T);
   }
 
   return arr;

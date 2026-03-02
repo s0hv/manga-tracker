@@ -1,7 +1,7 @@
 import { LRUCache } from 'lru-cache';
 
 import type { OAuthProvider } from '@/common/auth/providers';
-import { type DbHelpers, db } from '@/db/helpers';
+import { type DbHelpers, type DbHelpersFull, db } from '@/db/helpers';
 import { createSingleton } from '@/serverUtils/utilities';
 import type { User } from '@/types/db/user';
 
@@ -13,8 +13,8 @@ const userCache = createSingleton('userCache', () => new LRUCache<number, User>(
 }));
 
 type GetUser = {
-  (userId: number, options: { expectExists: true, noCache?: boolean, conn?: DbHelpers }): Promise<User>
-  (userId: number, options?: { expectExists?: false, noCache?: boolean, conn?: DbHelpers }): Promise<User | null>
+  (userId: number, options: { expectExists: true, noCache?: boolean, conn?: DbHelpers | DbHelpersFull }): Promise<User>
+  (userId: number, options?: { expectExists?: false, noCache?: boolean, conn?: DbHelpers | DbHelpersFull }): Promise<User | null>
 };
 
 export const getUser: GetUser = (async (userId, options = {}) => {
@@ -98,7 +98,7 @@ export const createUser = async ({
   username: string
   email: string
   password: string | null
-  conn?: DbHelpers
+  conn?: DbHelpers | DbHelpersFull
 }) => {
   const { userId } = await conn.one<{
     userId: number

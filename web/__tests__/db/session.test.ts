@@ -1,7 +1,6 @@
 import {
   type Mock,
   afterEach,
-  beforeEach,
   describe,
   expect,
   it,
@@ -122,7 +121,6 @@ describe('Deleting sessions', () => {
     expect(sessionCache.get(sid)).toBeUndefined();
     await expect(getSession(sid)).resolves.toBeNull();
 
-    console.log(spy.mock.calls);
     expect(spy).toHaveBeenCalledTimes(1);
   });
 

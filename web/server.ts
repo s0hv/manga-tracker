@@ -287,7 +287,7 @@ server.get('/manga/:mangaId', (req, _, next) => {
       sessionId: req.session.sessionId,
       data: req.session.data,
     })
-      .catch((err: unknown) => sessionLogger.error('Failed to update session', err));
+      .catch((err: Error) => sessionLogger.error(err, 'Failed to update session'));
   }
 
   next();

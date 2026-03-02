@@ -163,6 +163,7 @@ const WebhookEditor = ({ notificationData, defaultExpanded = false }: WebhookEdi
                   control={control}
                   name='manga'
                   label='Manga updates to notify on'
+                  fullWidth
                   sx={{
                     mt: 2,
                     mb: 2,
