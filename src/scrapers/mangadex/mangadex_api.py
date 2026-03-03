@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 from ratelimit import rate_limited, sleep_and_retry
 
 from src.enums import Status as MangaStatus
-from src.utils.utilities import dict_to_model
+from src.utils.utilities import dict_to_model, requests_session
 
 logger = logging.getLogger(__name__)
 
@@ -322,9 +322,10 @@ class MangadexAPI:
 
         params.append(f'limit={len(manga_ids)}')
 
-        r = requests.get(f'{self.base_url}/manga?{"&".join(params)}')
+        with requests_session() as session:
+            r = session.get(f'{self.base_url}/manga?{"&".join(params)}')
 
-        return request_to_model(r, MangaResult, continue_on_error=True)
+            return request_to_model(r, MangaResult, continue_on_error=True)
 
     @sleep_and_retry
     @api_rate_limiter
@@ -363,24 +364,27 @@ class MangadexAPI:
 
         params.append(f'includeFutureUpdates={"1" if include_future_updates else "0"}')
 
-        r = requests.get(f'{self.base_url}/chapter?{"&".join(params)}')
+        with requests_session() as session:
+            r = session.get(f'{self.base_url}/chapter?{"&".join(params)}')
 
-        if limit > MAX_LIMIT:
+            if limit <= MAX_LIMIT:
+                return request_to_model(r, ChapterResult)
+
             data = r.json()
-            its = [request_to_model(r, ChapterResult)]
 
-            if data['total'] > data['offset'] + data['limit']:
-                its.append(
-                    self.get_chapters(
-                        sort_by=sort_by,
-                        languages=languages,
-                        manga_id=manga_id,
-                        limit=limit - MAX_LIMIT,
-                        include_groups=include_groups,
-                        offset=(offset or 0) + MAX_LIMIT,
-                    )
+        its = [request_to_model(r, ChapterResult)]
+
+        if data['total'] > data['offset'] + data['limit']:
+            its.append(
+                self.get_chapters(
+                    sort_by=sort_by,
+                    languages=languages,
+                    manga_id=manga_id,
+                    limit=limit - MAX_LIMIT,
+                    include_groups=include_groups,
+                    offset=(offset or 0) + MAX_LIMIT,
                 )
+            )
 
-            return chain(*its)
-        else:
-            return request_to_model(r, ChapterResult)
+        return chain(*its)
+

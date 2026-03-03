@@ -8,39 +8,39 @@ license = "MIT"
 readme = "README.md"
 dependencies = [
     "ansicolors~=1.1.8",
-    "cssselect~=1.3.0",
+    "cssselect~=1.4.0",
     "discord-webhook~=1.4.1",
-    "elasticsearch~=7.17.12",
+    "elasticsearch~=7.17.13",
     "feedparser~=6.0.12",
     "lxml~=6.0.2",
-    "protobuf~=6.30.1",
-    "psycopg[c,pool]~=3.2.12",
-    "pydantic~=2.12.4",
-    "pydantic-extra-types~=2.10.6",
+    "protobuf~=7.34.0",
+    "psycopg[c,pool]~=3.3.3",
+    "pydantic~=2.12.5",
+    "pydantic-extra-types~=2.11.0",
     "ratelimit~=2.2.1",
     "requests~=2.32.5",
-    "sentry-sdk~=2.43.0",
+    "sentry-sdk~=2.54.0",
 ]
 
 [dependency-groups]
 dev = [
-    "mypy~=1.18.2",
-    "mypy-protobuf~=3.6.0",
-    "pytest~=9.0.0",
+    "mypy~=1.19.1",
+    "mypy-protobuf~=5.0.0",
+    "pytest~=9.0.2",
     "pytest-cov~=7.0.0",
-    "responses~=0.25.8",
-    "ruff~=0.14.4",
+    "responses~=0.26.0",
+    "ruff~=0.15.4",
     "testing-postgresql @ git+https://github.com/tk0miya/testing.postgresql.git@c81ded4",
-    "types-lxml~=2025.8.25",
-    "types-protobuf~=5.29",
-    "types-requests~=2.31.0.6",
+    "types-lxml~=2026.2.16",
+    "types-protobuf~=6.32.1.20260221",
+    "types-requests~=2.32.4.20260107",
 ]
 cypress = [
-    "psycopg[binary,pool]~=3.2.12",
-    "elasticsearch~=7.17.12",
+    "psycopg[binary,pool]~=3.3.3",
+    "elasticsearch~=7.17.13",
     "ansicolors~=1.1.8",
 ]
 
 [tool.uv]
 no-binary-package = ["psycopg"]
-required-version = "~=0.9.7"
+required-version = "~=0.10.7"

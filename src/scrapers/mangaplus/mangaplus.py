@@ -18,7 +18,7 @@ from src.scrapers.base_scraper import (
     BaseScraperWhole,
     ScrapeServiceRetVal,
 )
-from src.utils.utilities import random_timedelta, utcfromtimestamp, utcnow
+from src.utils.utilities import random_timedelta, requests_session, utcfromtimestamp, utcnow
 
 from .protobuf import mangaplus_pb2
 
@@ -307,7 +307,8 @@ class MangaPlus(BaseScraperWhole):
     @staticmethod
     def parse_series(title_id: str) -> ResponseWrapper | None:
         try:
-            r = requests.get(MangaPlus.API.format(title_id))
+            with requests_session() as session:
+                r = session.get(MangaPlus.API.format(title_id))
         except requests.RequestException:
             logger.exception(f'Failed to fetch series {title_id} for Manga Plus.')
             return None
@@ -321,7 +322,8 @@ class MangaPlus(BaseScraperWhole):
     @staticmethod
     def get_all_titles(api_url: str) -> AllTitlesViewWrapper | None:
         try:
-            r = requests.get(api_url)
+            with requests_session() as session:
+                r = session.get(api_url)
         except requests.RequestException:
             logger.exception('Failed to fetch all mangaplus titles')
             return None

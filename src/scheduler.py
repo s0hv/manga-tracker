@@ -5,7 +5,7 @@ import os
 import random
 import time
 from collections import Counter
-from collections.abc import Collection, Generator, Mapping, Sequence
+from collections.abc import Collection, Generator
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager
 from datetime import datetime, timedelta
@@ -17,9 +17,9 @@ from typing import LiteralString, Self, TypedDict, cast, override
 import psycopg
 import psycopg.rows
 from psycopg import Connection
+from psycopg.abc import Params, Query, QueryNoTemplate
 from psycopg.cursor import Cursor
 from psycopg.rows import DictRow
-from psycopg.sql import SQL, Composed
 from psycopg_pool import ConnectionPool
 
 from elasticsearch import Elasticsearch
@@ -48,14 +48,15 @@ class LoggingCursor(Cursor[DictRow]):
     @override
     def execute(
         self,
-        query: LiteralString | bytes | SQL | Composed,
-        params: Sequence | Mapping[str, object] | None = None,
+        query: Query,
+        params: Params | None = None,
         *,
         prepare: bool | None = None,
         binary: bool | None = None,
     ) -> Self:
         try:
-            return super().execute(query, params, prepare=prepare, binary=binary)
+            # Must cast Query to QueryNoTemplate for now as mypy does not like it for some reason
+            return super().execute(cast(QueryNoTemplate, query), params, prepare=prepare, binary=binary)
         finally:
             # No need to calculate coverage for this, as it's not used in tests
             # GCOVR_EXCL_START
