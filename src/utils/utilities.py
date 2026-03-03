@@ -5,10 +5,13 @@ from collections.abc import Iterable
 from datetime import datetime, time, timedelta, timezone
 from typing import TYPE_CHECKING
 
+import requests
 from feedparser import FeedParserDict
 from psycopg.rows import DictRow
 from pydantic import BaseModel, ValidationError
+from requests.adapters import BaseAdapter
 
+from src.constants import DEFAULT_REQUEST_ADAPTER
 from src.errors import FeedHttpError, InvalidFeedError
 
 if TYPE_CHECKING:
@@ -163,3 +166,16 @@ def dict_to_model[TModel: BaseModel](
     except Exception as e:
         logger.exception(f'Unexpected error when parsing model {Model.__name__} {result}')
         raise e
+
+
+def requests_session(adapter: BaseAdapter = DEFAULT_REQUEST_ADAPTER) -> requests.Session:
+    """
+    Generates a new requests session using the default adapter for HTTPS URLs.
+    This ensures a proper retry policy is used.
+
+    Returns: The created session object
+    """
+    session = requests.Session()
+    session.mount('https://', adapter)
+
+    return session

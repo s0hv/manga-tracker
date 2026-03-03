@@ -20,7 +20,7 @@ from src.db.models.chapter import Chapter
 from src.db.models.chapter import Chapter as ChapterModel
 from src.db.models.manga import MangaService
 from src.db.models.services import ServiceConfig
-from src.utils.utilities import get_latest_chapters, utcnow
+from src.utils.utilities import get_latest_chapters, requests_session, utcnow
 
 if TYPE_CHECKING:
     from src.utils.dbutils import DbUtil
@@ -467,7 +467,8 @@ class BaseScraper(abc.ABC):
         self, url: str, headers: dict[str, str] | None = None
     ) -> requests.Response | None:
         try:
-            r = requests.get(url, headers=headers)
+            with requests_session() as session:
+                r = session.get(url, headers=headers)
         except requests.RequestException:
             logger.exception(f'Failed to fetch {self.__class__.__name__} url {url}')
             return None

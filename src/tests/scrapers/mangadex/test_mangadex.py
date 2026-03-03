@@ -1,14 +1,14 @@
 import json
 import logging
 from pathlib import Path
-from typing import override
+from typing import cast, override
 
 import pytest
 import responses
 from psycopg.rows import class_row
 from pydantic import TypeAdapter
 
-from src.constants import NO_GROUP
+from src.constants import DEFAULT_RETRY_POLICY, NO_GROUP
 from src.db.models.authors import AuthorPartial
 from src.db.models.chapter import Chapter
 from src.db.models.groups import Group, GroupPartial
@@ -172,6 +172,67 @@ class MangadexTests(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsser
 
         assert retVal is None
         self.assertLogs(logger, logging.ERROR)
+
+        # Make sure the request was retried
+        assert len(responses.calls) == cast(int, DEFAULT_RETRY_POLICY.total) + 1
+        assert len(set(c.request.url for c in responses.calls)) == 1
+
+    @responses.activate
+    def test_invalid_chapters_result_without_retries(self):
+        responses.add(responses.GET, f'{self.API_URL}/chapter',
+                      status=400)
+
+        logger = logging.getLogger('src.scrapers.mangadex.mangadex')
+
+        with self.caplog.at_level(logging.ERROR, logger=logger.name):
+            retVal = self.mangadex.scrape_service(self.mangadex.ID, self.mangadex.FEED_URL, None)
+
+        assert retVal is None
+        self.assertLogs(logger, logging.ERROR)
+
+        # Make sure the request was not retried
+        assert len(responses.calls) == 1
+
+    @responses.activate
+    def test_valid_chapters_result_after_retry(self):
+        error_returned = False
+
+        def chapter_response(_) -> tuple[int, dict, str]:
+            nonlocal error_returned
+            if error_returned:
+                return (
+                    200,
+                    {},
+                    json.dumps({
+                        'data':   [],
+                        'limit':  25,
+                        'offset': 0,
+                        'total':  0
+                    })
+                )
+            else:
+                error_returned = True
+                return 503, {}, ''
+
+        responses.add_callback(
+            responses.GET, f'{self.API_URL}/chapter',
+            content_type='application/json',
+            callback=chapter_response)
+
+        logger = logging.getLogger('src.scrapers.mangadex.mangadex')
+
+        with self.caplog.at_level(logging.ERROR, logger=logger.name):
+            retVal = self.mangadex.scrape_service(self.mangadex.ID, self.mangadex.FEED_URL, None)
+
+        # Make sure the request was parsed correctly
+        assert retVal is not None
+        assert len(retVal.chapter_ids) == 0
+
+        # Make sure no errors were logged
+        self.assertNoLogs(logger, logging.ERROR)
+
+        # Make sure the request was retried once and after that succeeded
+        assert len(responses.calls) == 2
 
     def test_parse_feed(self):
         adapter = TypeAdapter(list[ChapterResult])

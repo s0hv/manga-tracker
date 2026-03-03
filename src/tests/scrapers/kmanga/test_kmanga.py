@@ -7,6 +7,7 @@ from unittest.mock import patch
 
 import pytest
 import responses
+from requests.exceptions import RetryError
 
 from src.constants import NO_GROUP
 from src.db.models.chapter import Chapter
@@ -222,7 +223,7 @@ class KMangaTests(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsserti
         logger = logging.getLogger('src.scrapers.kmanga.api')
 
         with (self.caplog.at_level(logging.ERROR, logger=logger.name),
-              pytest.raises(ValueError, match=f'Failed to fetch {api_url}')):
+              pytest.raises(RetryError, match=f'None: Max retries exceeded with url: {api_url}')):
             self.kmanga.scrape_service(self.kmanga.ID, self.kmanga.FEED_URL, None)
 
         self.assertLogs(logger, logging.ERROR)

@@ -7,7 +7,7 @@ import unittest
 from collections.abc import Callable, Iterable
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any, TypeVar, Union, override
+from typing import Any, Union, override
 from unittest import mock
 
 import feedparser
@@ -44,8 +44,6 @@ else:
         cache_initialized_db=True,
         initdb_args='-E=UTF8 -U postgres -A trust'
     )
-
-T = TypeVar('T')
 
 
 def run_migrations(conn: Connection[DictRow]) -> None:
@@ -119,7 +117,7 @@ def mock_feedparse[**P](feed: object, *args: P.args, **kwargs: P.kwargs) -> Call
 
 
 # Actually returns a literal union between the input and MagicMock
-def spy_on(instance: T) -> T | mock.MagicMock:
+def spy_on[T](instance: T) -> T | mock.MagicMock:
     return mock.MagicMock(spec_set=instance, wraps=instance)
 
 

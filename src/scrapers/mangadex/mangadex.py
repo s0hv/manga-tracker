@@ -7,6 +7,7 @@ from typing import cast, override
 
 from psycopg import Connection
 from psycopg.rows import DictRow
+from requests.exceptions import RetryError
 
 from src.constants import NO_GROUP
 from src.db.models.authors import AuthorPartial, MangaArtist, MangaAuthor
@@ -350,10 +351,13 @@ class MangaDex(BaseScraperWhole):
             )
             return list(self.parse_feed(result))
         except JSONDecodeError:
-            logger.exception('Failed to parse mangadex response')
+            logger.exception('Failed to parse MangaDex response')
             return None
         except ValueError as e:
-            logger.exception(f'Failed to parse mangadex result {e}')
+            logger.exception(f'Failed to parse MangaDex result {e}')
+            return None
+        except RetryError as e:
+            logger.exception(f'Failed to fetch MangaDex chapters {e}')
             return None
 
     def do_update(

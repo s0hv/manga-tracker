@@ -11,7 +11,7 @@ import requests
 from lxml import etree
 from pydantic import BaseModel, ValidateAs
 
-from src.utils.utilities import dict_to_model
+from src.utils.utilities import dict_to_model, requests_session
 
 logger = logging.getLogger(__name__)
 
@@ -132,16 +132,18 @@ class KMangaAPI:
 
         logger.info('Fetching KManga latest updates with date %s', params['base_date'])
 
-        r = requests.request(
-            'GET', f'{self.base_url}{path}', headers=get_headers(params), params=params
-        )
+        with requests_session() as session:
+            r = session.request(
+                'GET', f'{self.base_url}{path}', headers=get_headers(params), params=params
+            )
 
-        self._validate_response(r, path, params)
+            self._validate_response(r, path, params)
 
-        return dict_to_model(r.json(), LatestUpdatesResponse)
+            return dict_to_model(r.json(), LatestUpdatesResponse)
 
     def get_title_chapters(self, title_id: str) -> list[TitleChaptersList] | None:
-        r = requests.get(f'https://kmanga.kodansha.com/title/{title_id}')
+        with requests_session() as session:
+            r = session.get(f'https://kmanga.kodansha.com/title/{title_id}')
 
         if not r.ok:
             raise ValueError(f'Failed to fetch {r.url}')
@@ -179,11 +181,12 @@ class KMangaAPI:
             headers['Accept'] = 'application/json'
             path = 'episode/list'
 
-            r = requests.request('POST', f'{self.base_url}/{path}', headers=headers, data=params)
+            with requests_session() as session:
+                r = session.request('POST', f'{self.base_url}/{path}', headers=headers, data=params)
 
-            self._validate_response(r, path, params)
+                self._validate_response(r, path, params)
 
-            model_json = r.json()
-            retval.append(dict_to_model(model_json, TitleChaptersList))
+                model_json = r.json()
+                retval.append(dict_to_model(model_json, TitleChaptersList))
 
         return retval

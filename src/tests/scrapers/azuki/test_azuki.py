@@ -1,13 +1,14 @@
 import re
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import cast
 from unittest.mock import Mock, patch
 
 import pytest
 import responses
 
 import src.scrapers.azuki
-from src.constants import NO_GROUP
+from src.constants import DEFAULT_RETRY_POLICY, NO_GROUP
 from src.scrapers.azuki import Azuki, ParsedChapter
 from src.tests.testing_utils import BaseTestClasses, ChapterTestModel
 from src.utils.utilities import utctoday
@@ -175,7 +176,8 @@ class AzukiTest(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAssertion
         assert len(retval.manga_ids) == 3
         assert len(retval.chapter_ids) == 3
 
-        assert resp.call_count == 3
+        # Expected call count should account for retries
+        assert resp.call_count == 3 * (cast(int, DEFAULT_RETRY_POLICY.total) + 1)
 
         chapters = self.dbutil.get_chapters(None, Azuki.ID)
 
