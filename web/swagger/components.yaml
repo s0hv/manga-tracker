@@ -32,14 +32,11 @@ components:
     validationError:
       type: object
       description: A validation error. The value is either an error message
-        or an object or an array of objects describing where the error happened.
+        or an object of path -> errors pairs describing where the error happened.
       properties:
         error:
           oneOf:
-            - type: array
-              items:
-                $ref: '#/components/schemas/expressValidatorError'
-            - $ref: '#/components/schemas/expressValidatorError'
+            - $ref: '#/components/schemas/zodValidationError'
             - type: string
               description: The error message
 
@@ -55,31 +52,20 @@ components:
       required:
         - error
 
-    expressValidatorError:
+    zodValidationError:
       type: object
-      properties:
-        msg:
+      description: A map of validation errors for paths. The key is prefixed with either query, 
+        params or body depending on the source of the error.
+      example:
+        params.mangaId: ["Value must be finite"]
+      minProperties: 1
+      additionalProperties:
+        type: array
+        description: A list of validation errors for a specific path
+        items:
           type: string
           description: The error message
-          example: Error message
-        path:
-          type: string
-          description: Name of the parameter that caused the error
-        type:
-          type: string
-          description: What caused the error
-        value:
-          description: The value of the param
-        location:
-          type: string
-          description: Location of the param that caused the error
-          enum: [body, query, params, cookies, headers]
-          example: body
 
-      required:
-        - msg
-        - path
-        - location
 
     databaseId:
       oneOf:

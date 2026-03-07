@@ -18,14 +18,40 @@ import type { ZodApiError, ZodError } from '#server/models/error';
 
 import { Forbidden, StatusError, Unauthorized } from './errors';
 
+export type ZodErrorPath = 'query' | 'params' | 'body';
+
+export function validateRequest<
+  TParams extends z.ZodType = z.ZodUnknown,
+  TBody extends z.ZodType = z.ZodUnknown,
+  TQuery extends z.ZodType = z.ZodUnknown
+>(validations: {
+  body?: TBody
+  params?: TParams
+  query?: TQuery
+}): RequestHandler<z.output<TParams>, unknown, z.output<TBody>, z.output<TQuery>>;
+
+export function validateRequest<
+  TParams extends z.ZodType = z.ZodUnknown,
+  TBody extends z.ZodType = z.ZodUnknown,
+  TQuery extends z.ZodType = z.ZodUnknown
+>(
+  validations: {
+    body?: TBody
+    params?: TParams
+    query?: TQuery
+  },
+  ...preValidations: RequestHandler<z.output<TParams>, unknown, z.output<TBody>, z.output<TQuery>>[]
+): RequestHandler<z.output<TParams>, unknown, z.output<TBody>, z.output<TQuery>>[];
+
 /**
  * Validates the request body and query params using Zod schemas.
  *
  * @param body the schema to validate the request body with
  * @param params the schema to validate the request params with
  * @param query the schema to validate the request query params with
+ * @param preValidations additional validation functions to run before the main validation
  */
-export const validateRequest = <
+export function validateRequest<
   TParams extends z.ZodType = z.ZodUnknown,
   TBody extends z.ZodType = z.ZodUnknown,
   TQuery extends z.ZodType = z.ZodUnknown
@@ -37,8 +63,9 @@ export const validateRequest = <
   body?: TBody
   params?: TParams
   query?: TQuery
-}): RequestHandler<z.output<TParams>, unknown, z.output<TBody>, z.output<TQuery>> =>
-  async (req, res, next) => {
+},
+...preValidations: RequestHandler<z.output<TParams>, unknown, z.output<TBody>, z.output<TQuery>>[]): RequestHandler<z.output<TParams>, unknown, z.output<TBody>, z.output<TQuery>> | RequestHandler<z.output<TParams>, unknown, z.output<TBody>, z.output<TQuery>>[] {
+  const validator: RequestHandler<z.output<TParams>, unknown, z.output<TBody>, z.output<TQuery>> = async (req, res, next) => {
     // Parse params
     if (params) {
       const parsed = await params.safeParseAsync(req.params);
@@ -91,6 +118,11 @@ export const validateRequest = <
     next();
   };
 
+  return preValidations.length > 0
+    ? [...preValidations, validator]
+    : validator;
+}
+
 
 /**
  * Generates an error response from the given ZodError.
@@ -128,11 +160,54 @@ function flattenZodError<T>(acc: ZodError, error: z.core.$ZodErrorTree<T>, field
     }
   }
 
+  if ('items' in error && error.items) {
+    error.items.forEach((item, index) => {
+      const nestedFieldName = fieldName
+        ? `${fieldName}.${index}`
+        : index.toString();
+
+      flattenZodError(acc, item as z.core.$ZodErrorTree<unknown>, nestedFieldName);
+    });
+  }
+
   return acc;
 }
 
+export const booleanString = z.string().transform((value, ctx) => {
+  switch (value) {
+    case 'true':
+      return true;
+    case 'false':
+      return false;
+    default:
+      ctx.issues.push({
+        code: 'custom',
+        message: 'Value must be either "true" or "false"',
+        input: value,
+      });
+
+      return z.NEVER;
+  }
+});
+
 export const databaseIdValidation = (field: ValidationChain): ValidationChain => field
   .isInt({ min: 0 });
+
+export const positiveInt = z.int32().min(0);
+export const databaseId = positiveInt;
+export const coercedIntStr = z.string()
+  // Custom validation to make sure only integers are allowed and
+  // no other formats such as 1e3
+  .refine(val => /^-?\d+$/.test(val), { error: 'Value must contain only numbers' })
+  .pipe(z.coerce.number({ error: issue => {
+    if (!Number.isFinite(issue.input)) {
+      return 'Value must be finite';
+    }
+
+    // Fall back to the default error message
+    return undefined;
+  } }));
+export const databaseIdStr = coercedIntStr.pipe(databaseId);
 
 // Technically the same behavior
 export const limitValidation = databaseIdValidation;
@@ -183,6 +258,34 @@ export const userValidator: CustomValidator = (value, { req }) => {
   }
   return true;
 };
+
+export const validateUser2 = <TParams, TBody, TQuery>(
+  req: Request<TParams, unknown, TBody, TQuery>,
+  _: Response,
+  next: NextFunction
+) => {
+  if (!req.user) {
+    throw new Unauthorized('User not authenticated');
+  }
+  next();
+};
+
+export const validateAdminUser2 = <TParams, TBody, TQuery>(
+  req: Request<TParams, unknown, TBody, TQuery>,
+  _: Response,
+  next: NextFunction
+) => {
+  if (!req.user) {
+    throw new Unauthorized('User not authenticated');
+  }
+
+  if (!req.user.admin) {
+    throw new Forbidden('Forbidden to perform this action');
+  }
+
+  next();
+};
+
 
 export const validateUser = (): ValidationChain => body('')
   .custom(userValidator);
