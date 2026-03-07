@@ -167,6 +167,47 @@ describe('validateRequest works correctly', () => {
         }
       `));
     });
+
+    it('Reports errors on nested structures correctly', async () => {
+      expect.assertions(1);
+
+      const Schema = z.object({
+        test: z.string(),
+        x: z.array(z.object({
+          test: z.string(),
+        })),
+      }).strict();
+      type Schema = z.infer<typeof Schema>;
+
+      const body: Schema = {
+        test: 'test',
+        x: [{ test: 'test' }],
+      };
+
+      const endpoint = endpointGenerator();
+
+      app.post(endpoint, validateRequest({ body: Schema }), (req, res) => {
+        expect(req.body.test).toStrictEqual(body.test);
+        res.status(200).end();
+      });
+
+      await request(httpServer)
+        .post(endpoint)
+        .send({
+          ...body,
+          x: [{ test: 1 }],
+        })
+        .expect(400)
+        .expect(res => expect(res.body).toMatchInlineSnapshot(`
+          {
+            "error": {
+              "body.x.0.test": [
+                "Invalid input: expected string, received number",
+              ],
+            },
+          }
+        `));
+    });
   });
 
   describe('Validating path params works correctly', () => {

@@ -7,7 +7,7 @@ import stopServer from '../stopServer';
 import {
   adminUser,
   configureJestOpenAPI,
-  expectErrorMessage,
+  expectErrorMessage2,
   normalUser,
   withUser,
 } from '../utils';
@@ -15,7 +15,7 @@ import { expectISEOnDbError } from './api-test-utilities';
 import { addChapter } from '@/db/chapter';
 import { csrfMissing } from '@/serverUtils/constants';
 
-import { mangaIdError, userForbidden, userUnauthorized } from '../constants';
+import { userForbidden, userUnauthorized } from '../constants';
 
 
 let httpServer: any;
@@ -51,7 +51,7 @@ describe('POST /api/chapter/:chapterId', () => {
     await request(httpServer)
       .post('/api/chapter/1')
       .expect(403)
-      .expect(expectErrorMessage(csrfMissing));
+      .expect(expectErrorMessage2(csrfMissing));
   });
 
   it('returns unauthorized without login', async () => {
@@ -59,7 +59,7 @@ describe('POST /api/chapter/:chapterId', () => {
       .post('/api/chapter/1')
       .csrf()
       .expect(401)
-      .expect(expectErrorMessage(userUnauthorized));
+      .expect(expectErrorMessage2(userUnauthorized));
   });
 
   it('returns forbidden for non admin', async () => {
@@ -68,7 +68,7 @@ describe('POST /api/chapter/:chapterId', () => {
         .post('/api/chapter/1')
         .csrf()
         .expect(403)
-        .expect(expectErrorMessage(userForbidden));
+        .expect(expectErrorMessage2(userForbidden));
     });
   });
 
@@ -108,14 +108,14 @@ describe('POST /api/chapter/:chapterId', () => {
         .csrf()
         .send({ invalidOption: 123 })
         .expect(400)
-        .expect(expectErrorMessage('No valid values given'));
+        .expect(expectErrorMessage2('Empty body'));
 
       await request(httpServer)
         .post('/api/chapter/99999999')
         .csrf()
         .send({})
         .expect(400)
-        .expect(expectErrorMessage('Empty body'));
+        .expect(expectErrorMessage2('Empty body'));
 
       // Chapter number
       await request(httpServer)
@@ -123,14 +123,14 @@ describe('POST /api/chapter/:chapterId', () => {
         .csrf()
         .send({ chapterNumber: 'abc' })
         .expect(400)
-        .expect(expectErrorMessage('abc', 'chapterNumber'));
+        .expect(expectErrorMessage2('chapterNumber', 'Invalid input: expected number, received string', 'body'));
 
       await request(httpServer)
         .post('/api/chapter/99999999')
         .csrf()
         .send({ chapterNumber: null })
         .expect(400)
-        .expect(expectErrorMessage(null, 'chapterNumber'));
+        .expect(expectErrorMessage2('chapterNumber', 'Invalid input: expected number, received null', 'body'));
 
       // Title
       await request(httpServer)
@@ -138,14 +138,14 @@ describe('POST /api/chapter/:chapterId', () => {
         .csrf()
         .send({ title: 123 })
         .expect(400)
-        .expect(expectErrorMessage(123, 'title'));
+        .expect(expectErrorMessage2('title', 'Invalid input: expected string, received number', 'body'));
 
       await request(httpServer)
         .post('/api/chapter/99999999')
         .csrf()
         .send({ title: null })
         .expect(400)
-        .expect(expectErrorMessage(null, 'title'));
+        .expect(expectErrorMessage2('title', 'Invalid input: expected string, received null', 'body'));
 
       // Chapter decimal
       await request(httpServer)
@@ -153,14 +153,14 @@ describe('POST /api/chapter/:chapterId', () => {
         .csrf()
         .send({ chapterDecimal: 'abc' })
         .expect(400)
-        .expect(expectErrorMessage('abc', 'chapterDecimal'));
+        .expect(expectErrorMessage2('chapterDecimal', 'Invalid input: expected number, received string', 'body'));
 
       await request(httpServer)
         .post('/api/chapter/99999999')
         .csrf()
         .send({ chapterDecimal: []})
         .expect(400)
-        .expect(expectErrorMessage([], 'chapterDecimal'));
+        .expect(expectErrorMessage2('chapterDecimal', 'Invalid input: expected number, received array', 'body'));
 
       // Group
       await request(httpServer)
@@ -168,14 +168,14 @@ describe('POST /api/chapter/:chapterId', () => {
         .csrf()
         .send({ group: []})
         .expect(400)
-        .expect(expectErrorMessage([], 'group'));
+        .expect(expectErrorMessage2('group', 'Invalid input: expected string, received array', 'body'));
 
       await request(httpServer)
         .post('/api/chapter/99999999')
         .csrf()
         .send({ group: null })
         .expect(400)
-        .expect(expectErrorMessage(null, 'group'));
+        .expect(expectErrorMessage2('group', 'Invalid input: expected string, received null', 'body'));
     });
   });
 
@@ -241,7 +241,7 @@ describe('DELETE /api/chapter/:chapterId', () => {
     await request(httpServer)
       .delete('/api/chapter/1')
       .expect(403)
-      .expect(expectErrorMessage(csrfMissing));
+      .expect(expectErrorMessage2(csrfMissing));
   });
 
   it('returns unauthorized without login', async () => {
@@ -249,7 +249,7 @@ describe('DELETE /api/chapter/:chapterId', () => {
       .delete('/api/chapter/1')
       .csrf()
       .expect(401)
-      .expect(expectErrorMessage(userUnauthorized));
+      .expect(expectErrorMessage2(userUnauthorized));
   });
 
   it('returns forbidden for non admin', async () => {
@@ -258,7 +258,7 @@ describe('DELETE /api/chapter/:chapterId', () => {
         .delete('/api/chapter/1')
         .csrf()
         .expect(403)
-        .expect(expectErrorMessage(userForbidden));
+        .expect(expectErrorMessage2(userForbidden));
     });
   });
 
@@ -328,7 +328,8 @@ describe('GET /api/chapter/latest', () => {
   it('Should return 401 with useFollows without user', async () => {
     await request(httpServer)
       .get(`${url}?useFollows=true`)
-      .expect(401);
+      .expect(401)
+      .expect(expectErrorMessage2(userUnauthorized));
   });
 
   it('Should return 400 with invalid useFollows', async () => {
@@ -336,17 +337,17 @@ describe('GET /api/chapter/latest', () => {
       request(httpServer)
         .get(`${url}?useFollows=yes`)
         .expect(400)
-        .expect(expectErrorMessage('yes', 'useFollows')),
+        .expect(expectErrorMessage2('useFollows', 'Value must be either "true" or "false"')),
 
       request(httpServer)
         .get(`${url}?useFollows=tru`)
         .expect(400)
-        .expect(expectErrorMessage('tru', 'useFollows')),
+        .expect(expectErrorMessage2('useFollows', 'Value must be either "true" or "false"')),
 
       request(httpServer)
         .get(`${url}?useFollows=no`)
         .expect(400)
-        .expect(expectErrorMessage('no', 'useFollows')),
+        .expect(expectErrorMessage2('useFollows', 'Value must be either "true" or "false"')),
     ]);
   });
 
@@ -383,36 +384,36 @@ describe('GET /api/chapter/releases/:mangaId', () => {
 
   expectISEOnDbError(serverReference, `${url}/1`);
 
-  it('Should return 404 with invalid manga id', async () => {
+  it('Should return 400 with invalid manga id', async () => {
     const field = 'mangaId';
 
     await Promise.all([
       await request(httpServer)
         .get(`${url}/a`)
-        .expect(expectErrorMessage('a', field, mangaIdError))
-        .expect(400),
+        .expect(400)
+        .expect(expectErrorMessage2(field, 'Value must contain only numbers', 'params')),
 
       await request(httpServer)
         .get(`${url}/-1`)
-        .expect(expectErrorMessage('-1', field, mangaIdError))
-        .expect(400),
+        .expect(400)
+        .expect(expectErrorMessage2(field, 'Too small: expected number to be >=0', 'params')),
 
       await request(httpServer)
         .get(`${url}/1e10`)
-        .expect(expectErrorMessage('1e10', field, mangaIdError))
-        .expect(400),
+        .expect(400)
+        .expect(expectErrorMessage2(field, 'Value must contain only numbers', 'params')),
 
       await request(httpServer)
         .get(`${url}/NaN`)
-        .expect(expectErrorMessage('NaN', field, mangaIdError))
-        .expect(400),
+        .expect(400)
+        .expect(expectErrorMessage2(field, 'Value must contain only numbers', 'params')),
 
       await request(httpServer)
         .get(`${url}/`)
+        .expect(404)
         .expect(res => {
           expect(res.body).toBeEmptyObject();
-        })
-        .expect(404),
+        }),
     ]);
   });
 
@@ -420,7 +421,7 @@ describe('GET /api/chapter/releases/:mangaId', () => {
     await request(httpServer)
       .get(`${url}/${'1'.repeat(400)}`)
       .expect(400)
-      .expect(expectErrorMessage('Invalid manga id given'));
+      .expect(expectErrorMessage2('mangaId', 'Value must be finite', 'params'));
   });
 
   it('Should return 200 with empty list when manga not found', async () => {
@@ -442,4 +443,3 @@ describe('GET /api/chapter/releases/:mangaId', () => {
       });
   });
 });
-

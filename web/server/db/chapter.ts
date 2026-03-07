@@ -22,7 +22,7 @@ export const getChapterReleases = (mangaId: MangaId) => {
                WHERE manga_id=${mangaId} GROUP BY 1 ORDER BY 1`;
 };
 
-export const getLatestChapters = (limit: number, offset: number, userId?: DatabaseId) => {
+export const getLatestChapters = (limit: number, offset?: number, userId?: DatabaseId) => {
   return db.manyOrNone<ChapterRelease>`
       ${userId
         ? db.sql`WITH follow_all AS (
@@ -153,7 +153,6 @@ export const editChapter = async ({
   chapterDecimal,
   releaseDate,
   chapterIdentifier,
-  // group,
 }: PartialExcept<Chapter, 'chapterId'>) => {
   const chapter = {
     title,
@@ -161,7 +160,6 @@ export const editChapter = async ({
     chapterDecimal,
     releaseDate,
     chapterIdentifier,
-    // group,
   };
 
   return db.any`UPDATE chapters SET ${generateUpdate(chapter, db.sql)} WHERE chapter_id=${chapterId}`;

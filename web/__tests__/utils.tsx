@@ -24,8 +24,9 @@ import { expect, Mock, MockInstance, vi } from 'vitest';
 
 import { createTestSession } from '@/tests/dbutils';
 import { type FrontendUser, UserStoreProvider } from '#web/store/userStore';
-import type { DbHelpers } from '@/db/helpers';
+import type { DbHelpersFull } from '@/db/helpers';
 import { serverCookieNames } from '@/serverUtils/constants';
+import type { ZodErrorPath } from '@/serverUtils/validators';
 import { ServiceForApi } from '@/types/api/services';
 
 import { getOpenapiSpecification } from '../swagger';
@@ -52,7 +53,7 @@ vi.mock('notistack', async () => {
 
 // eslint-disable-next-line no-var
 var dbMock: {
-  db: DbHelpers
+  db: DbHelpersFull
   any: Mock
 };
 vi.mock('@/db/helpers', async () => {
@@ -407,12 +408,16 @@ export const expectErrorMessage: ExpectErrorMessage = (value, param, message = '
   };
 };
 
-
-export function getErrorMessage2(res: Response, param?: string, part: 'body' | 'param' | 'query' = 'body'): string | undefined {
+export function getErrorMessages(res: Response) {
   expect(res.ok).toBeFalse();
   expect(res.body).toBeObject();
   const errors = res.body.error;
   expect(errors).toBeDefined();
+  return errors;
+}
+
+export function getErrorMessage2(res: Response, param?: string, part: ZodErrorPath = 'query'): string | undefined {
+  const errors = getErrorMessages(res);
 
   if (typeof errors === 'string') {
     return errors;
@@ -426,9 +431,24 @@ export function getErrorMessage2(res: Response, param?: string, part: 'body' | '
       // Only get errors related to the given parameter
       errorEntries = errorEntries.filter(([key]) => key === paramName);
     }
-    expect(errorEntries, `Error message for field '${param}' not found in ${part}`).toHaveLength(1);
+    expect(errorEntries, `Error message for field '${param}' not found in '${part}.${param}'`).toHaveLength(1);
     return (errorEntries[0][1] as string[]).join('\n');
   }
+}
+
+type ExpectErrorMessageReturn2 = (res: Response) => void;
+
+export function expectErrorMessage2(message: string | RegExp): ExpectErrorMessageReturn2;
+export function expectErrorMessage2(param: string, message: string | RegExp, part?: ZodErrorPath): ExpectErrorMessageReturn2;
+export function expectErrorMessage2(paramOrMessage: string | RegExp, message?: string | RegExp, part: ZodErrorPath = 'query'): ExpectErrorMessageReturn2 {
+  return res => {
+    if (message === undefined) {
+      expect(getErrorMessage2(res)).toMatch(paramOrMessage);
+    } else {
+      expect(paramOrMessage).toBeString();
+      expect(getErrorMessage2(res, paramOrMessage as string, part)).toMatch(message);
+    }
+  };
 }
 
 export async function configureJestOpenAPI() {
@@ -490,7 +510,7 @@ export const mockDbForErrors = <T, >(fn: () => Promise<T>): Promise<T> => {
   dbMock.db = Object.keys(originalDb).reduce((prev, curr) => ({
     ...prev,
     [curr]: vi.fn().mockImplementation(async () => Promise.reject('Mocked error')),
-  }), {}) as DbHelpers;
+  }), {}) as DbHelpersFull;
   // Leave `sql` as is since it's an object
   dbMock.db.sql = sql;
 
