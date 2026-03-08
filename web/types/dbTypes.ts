@@ -1,4 +1,7 @@
-export type Theme = 'system' | 'light' | 'dark';
+import z from 'zod';
+
+export const Theme = z.literal(['system', 'light', 'dark']);
+export type Theme = z.infer<typeof Theme>;
 
 export interface SessionUser {
   username: string

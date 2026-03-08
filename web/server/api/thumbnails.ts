@@ -6,6 +6,7 @@ import type { Application } from 'express-serve-static-core';
 import { z } from 'zod';
 
 import { logger } from '@/serverUtils/logging';
+import { zodErrorResponse } from '@/serverUtils/validators';
 
 // This fixes typing issues with response piping
 // https://stackoverflow.com/a/75843145
@@ -32,12 +33,19 @@ const MangadexParams = z.object({
  */
 router.get('/mangadex/:mangaId/:coverId', async (req, res) => {
   const [coverId, extension] = req.params.coverId.split('.', 2);
-  const options = MangadexParams.parse({
+  const result = MangadexParams.safeParse({
     mangaId: req.params.mangaId,
     coverId,
     extension,
     size: req.query.size,
   });
+
+  if (!result.success) {
+    zodErrorResponse(res, result.error, 'params');
+    return;
+  }
+
+  const options = result.data;
 
   const suffix = options.size
     ? `.${options.size}.jpg`

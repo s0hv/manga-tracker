@@ -12,7 +12,9 @@ import stopServer from '../stopServer';
 import {
   adminUser,
   configureJestOpenAPI,
-  expectErrorMessage,
+  expectErrorMessage2,
+  getErrorMessage2,
+  getErrorMessages,
   normalUser,
   silenceConsole,
   withUser,
@@ -29,8 +31,6 @@ import {
 import { csrfMissing } from '@/serverUtils/constants';
 import { NotificationTypes } from '@/webUtils/constants';
 
-
-import { invalidValue } from '../constants';
 
 let httpServer: any;
 const serverReference = {
@@ -147,7 +147,14 @@ describe('POST /api/notifications', () => {
         .post(url)
         .csrf()
         .expect(400)
-        .satisfiesApiSpec();
+        .satisfiesApiSpec()
+        .expect(res => expect(getErrorMessages(res)).toMatchInlineSnapshot(`
+          {
+            "body": [
+              "Invalid input: expected object, received undefined",
+            ],
+          }
+        `));
     });
   });
 
@@ -165,7 +172,7 @@ describe('POST /api/notifications', () => {
         .send(body)
         .expect(400)
         .satisfiesApiSpec()
-        .expect(expectErrorMessage(null, 'manga', /At least one manga is required when useFollows is false/i));
+        .expect(res => expect(getErrorMessage2(res, 'manga', 'body')).toMatchInlineSnapshot(`"At least one manga is required when useFollows is false"`));
     });
   });
 
@@ -182,7 +189,7 @@ describe('POST /api/notifications', () => {
         .send(body)
         .expect(400)
         .satisfiesApiSpec()
-        .expect(expectErrorMessage(/Not all required fields given/i));
+        .expect(expectErrorMessage2(/Not all required fields given/i));
     });
   });
 
@@ -201,7 +208,7 @@ describe('POST /api/notifications', () => {
         .send(body)
         .expect(404)
         .satisfiesApiSpec()
-        .expect(expectErrorMessage(notFoundMessage));
+        .expect(expectErrorMessage2(notFoundMessage));
     });
   });
 
@@ -226,7 +233,7 @@ describe('POST /api/notifications', () => {
         .send(body)
         .expect(404)
         .satisfiesApiSpec()
-        .expect(expectErrorMessage(notFoundMessage));
+        .expect(expectErrorMessage2(notFoundMessage));
     });
 
     expect(original).toStrictEqual(await getUserNotifications(adminUser.userId, notificationId));
@@ -334,7 +341,7 @@ describe('DELETE /api/notifications', () => {
     await request(httpServer)
       .delete(defaultUrl)
       .expect(403)
-      .expect(expectErrorMessage(csrfMissing));
+      .expect(expectErrorMessage2(csrfMissing));
   });
 
   it('Returns 404 when notification not found', async () => {
@@ -345,7 +352,7 @@ describe('DELETE /api/notifications', () => {
         .csrf()
         .expect(404)
         .satisfiesApiSpec()
-        .expect(expectErrorMessage(notFoundMessage));
+        .expect(expectErrorMessage2(notFoundMessage));
     });
   });
 
@@ -359,7 +366,7 @@ describe('DELETE /api/notifications', () => {
         .csrf()
         .expect(404)
         .satisfiesApiSpec()
-        .expect(expectErrorMessage(notFoundMessage));
+        .expect(expectErrorMessage2(notFoundMessage));
     });
 
     expect(await getUserNotifications(adminUser.userId, notificationId)).toBeObject();
@@ -402,7 +409,7 @@ describe('POST /api/notifications/override', () => {
         .send(defaultBody)
         .expect(404)
         .satisfiesApiSpec()
-        .expect(expectErrorMessage(notFoundMessage));
+        .expect(expectErrorMessage2(notFoundMessage));
     });
   });
 
@@ -420,7 +427,7 @@ describe('POST /api/notifications/override', () => {
         })
         .expect(404)
         .satisfiesApiSpec()
-        .expect(expectErrorMessage(notFoundMessage));
+        .expect(expectErrorMessage2(notFoundMessage));
     });
 
     expect((await getUserNotifications(adminUser.userId, notificationId)).overrides).toBeEmptyObject();
@@ -433,9 +440,13 @@ describe('POST /api/notifications/override', () => {
         .csrf()
         .expect(400)
         .satisfiesApiSpec()
-        .expect(expectErrorMessage(undefined, 'notificationId', invalidValue))
-        .expect(expectErrorMessage(undefined, 'overrideId', invalidValue))
-        .expect(expectErrorMessage(undefined, 'fields', invalidValue));
+        .expect(res => expect(getErrorMessages(res)).toMatchInlineSnapshot(`
+          {
+            "body": [
+              "Invalid input: expected object, received undefined",
+            ],
+          }
+        `));
 
       await request(httpServer)
         .post(url)
@@ -447,9 +458,19 @@ describe('POST /api/notifications/override', () => {
         })
         .expect(400)
         .satisfiesApiSpec()
-        .expect(expectErrorMessage(null, 'notificationId', invalidValue))
-        .expect(expectErrorMessage(null, 'overrideId', invalidValue))
-        .expect(expectErrorMessage(null, 'fields', invalidValue));
+        .expect(res => expect(getErrorMessages(res)).toMatchInlineSnapshot(`
+          {
+            "body.fields": [
+              "Invalid input: expected array, received null",
+            ],
+            "body.notificationId": [
+              "Invalid input: expected number, received null",
+            ],
+            "body.overrideId": [
+              "Invalid input: expected number, received null",
+            ],
+          }
+        `));
 
       await request(httpServer)
         .post(url)
@@ -461,8 +482,16 @@ describe('POST /api/notifications/override', () => {
         })
         .expect(400)
         .satisfiesApiSpec()
-        .expect(expectErrorMessage('1e10', 'notificationId', invalidValue))
-        .expect(expectErrorMessage('1e10', 'overrideId', invalidValue));
+        .expect(res => expect(getErrorMessages(res)).toMatchInlineSnapshot(`
+          {
+            "body.notificationId": [
+              "Invalid input: expected number, received string",
+            ],
+            "body.overrideId": [
+              "Invalid input: expected number, received string",
+            ],
+          }
+        `));
 
       await request(httpServer)
         .post(url)
@@ -474,8 +503,19 @@ describe('POST /api/notifications/override', () => {
         })
         .expect(400)
         .satisfiesApiSpec()
-        .expect(expectErrorMessage(undefined, 'fields[0].value', invalidValue))
-        .expect(expectErrorMessage(undefined, 'fields[0].name', invalidValue));
+        .expect(res => expect(getErrorMessages(res)).toMatchInlineSnapshot(`
+          {
+            "body.fields.0.name": [
+              "Invalid input: expected string, received undefined",
+            ],
+            "body.fields.0.value": [
+              "Invalid input: expected string, received undefined",
+            ],
+            "body.notificationId": [
+              "Invalid input: expected number, received string",
+            ],
+          }
+        `));
 
       await request(httpServer)
         .post(url)
@@ -487,7 +527,16 @@ describe('POST /api/notifications/override', () => {
         })
         .expect(400)
         .satisfiesApiSpec()
-        .expect(expectErrorMessage(null, 'fields[0].name', invalidValue));
+        .expect(res => expect(getErrorMessages(res)).toMatchInlineSnapshot(`
+          {
+            "body.fields.0.name": [
+              "Invalid input: expected string, received null",
+            ],
+            "body.notificationId": [
+              "Invalid input: expected number, received string",
+            ],
+          }
+        `));
     });
   });
 

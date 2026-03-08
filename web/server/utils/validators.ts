@@ -1,3 +1,4 @@
+import { uniq } from 'es-toolkit';
 import type {
   NextFunction,
   Request,
@@ -143,7 +144,7 @@ export function zodErrorResponse<T>(res: Response, error: z.ZodError<T>, prefix:
 
 function flattenZodError<T>(acc: ZodError, error: z.core.$ZodErrorTree<T>, fieldName = ''): ZodError {
   if (error.errors.length > 0) {
-    acc[fieldName] = error.errors;
+    acc[fieldName] = uniq(error.errors);
   }
 
   if ('properties' in error && error.properties) {
@@ -208,17 +209,17 @@ export const coercedIntStr = z.string()
     return undefined;
   } }));
 export const databaseIdStr = coercedIntStr.pipe(databaseId);
+export const passwordSchema = z.string('Password must be a string')
+  .trim()
+  .min(8, 'Password must be between 8 and 72 characters long')
+  .max(72, 'Password must be between 8 and 72 characters long');
 
-// Technically the same behavior
-export const limitValidation = databaseIdValidation;
 
 export const mangaIdValidation = (field = query('mangaId')): ValidationChain => databaseIdValidation(field)
   .withMessage('Manga id must be a positive integer');
 
 export const serviceIdValidation = (field = query('serviceId')): ValidationChain => databaseIdValidation(field)
   .withMessage('Service id must be a positive integer');
-
-export const positiveTinyInt = (field: string): ValidationChain => query(field).isInt({ min: 0, max: 127 });
 
 export const passwordRequired: CustomValidator = (value, { req, path }) => {
   if (value === undefined) return true;
