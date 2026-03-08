@@ -1,6 +1,12 @@
-import type { Express, Request, Response } from 'express-serve-static-core';
-import { body } from 'express-validator';
+import type { Express } from 'express-serve-static-core';
+import { z } from 'zod';
 
+import {
+  databaseIdStr,
+  passwordSchema,
+  validateRequest,
+  validateUser2,
+} from '#server/utils/validators';
 import { clearUserAuthTokens, generateAuthToken } from '@/db/auth';
 import { deleteFollow, insertFollow } from '@/db/follows';
 import { db } from '@/db/helpers';
@@ -12,177 +18,183 @@ import {
   SECURE_COOKIE_OPTIONS,
   serverCookieNames,
 } from '@/serverUtils/constants';
+import { Forbidden } from '@/serverUtils/errors';
 import {
   clearSecureCookie,
   setSessionCookie,
 } from '@/serverUtils/requestHelpers';
-import type { DatabaseId, MangaId } from '@/types/dbTypes';
-
-
-import {
-  hadValidationError,
-  handleValidationErrors,
-  mangaIdValidation,
-  newPassword,
-  serviceIdValidation,
-  validateUser,
-} from '../utils/validators';
 
 
 const MAX_USERNAME_LENGTH = 100;
 
+const ProfileUpdateSchema = z.object({
+  username: z.string().max(MAX_USERNAME_LENGTH, `Max username length is ${MAX_USERNAME_LENGTH}`).optional(),
+});
+
+const ProfileUpdateSchemaWithPassword = ProfileUpdateSchema.extend({
+  newPassword: passwordSchema,
+  repeatPassword: passwordSchema,
+  password: passwordSchema,
+}).refine(data =>
+  data.newPassword === data.repeatPassword,
+"'body.newPassword' did not match 'body.repeatPassword'");
+
 export default (app: Express) => {
-  app.post('/api/profile', [
-    validateUser(),
-    newPassword('newPassword', 'repeatPassword'),
-    body('username')
-      .isString()
-      .optional()
-      .bail()
-      .isLength({ max: MAX_USERNAME_LENGTH })
-      .withMessage(`Max username length is ${MAX_USERNAME_LENGTH}`)
-      .optional(),
-    handleValidationErrors,
-  ], (req: Request, res: Response) => {
-    const cols = [];
-    const {
-      newPassword: newPass,
-      username,
-      password,
-    } = req.body;
-    let pw = false;
+  app.post('/api/profile',
+    ...validateRequest({
+      body: z.union([
+        ProfileUpdateSchema.extend({
+          password: z.undefined(),
+          newPassword: z.undefined(),
+          repeatPassword: z.undefined(),
+        }),
+        ProfileUpdateSchemaWithPassword,
+      ]),
+    }, validateUser2),
+    (req, res) => {
+      const cols = [];
+      const {
+        newPassword: newPass,
+        username,
+        password,
+      } = req.body;
+      const user = req.getUser();
+      let pw = false;
 
-    if (newPass) {
-      pw = true;
-      cols.push(db.sql`pwhash=crypt(${newPass}, gen_salt('bf'))`);
-    }
+      if (newPass) {
+        if (!user.isCredentialsAccount) {
+          throw new Forbidden('This action is only available if your account is a traditional email + password account.');
+        }
 
-    if (username) {
-      cols.push(db.sql`username=${username}`);
-    }
+        pw = true;
+        cols.push(db.sql`pwhash=crypt(${newPass}, gen_salt('bf'))`);
+      }
 
-    if (cols.length === 0) {
-      res.status(400).json({ error: 'Nothing to change' });
-      return;
-    }
+      if (username) {
+        cols.push(db.sql`username=${username}`);
+      }
 
-    const user = req.user!;
-    const userId = user.userId;
+      if (cols.length === 0) {
+        res.status(400).json({ error: 'Nothing to change' });
+        return;
+      }
 
-    const pwCheck = db.sql` AND pwhash IS NOT NULL AND pwhash=crypt(${password}, pwhash)`;
-    db.sql`UPDATE users
+      const userId = user.userId;
+
+      const pwCheck = db.sql` AND pwhash IS NOT NULL AND pwhash=crypt(${password}, pwhash)`;
+      db.sql`UPDATE users
                  SET ${cols.reduce((acc, col) => db.sql`${acc}, ${col}`)}
                  WHERE user_id=${userId} ${pw ? pwCheck : db.sql``}`
-      .then(async rows => {
-        if (rows.count === 0) {
-          res.status(401).json({ error: 'Invalid password' });
-          return;
-        }
-        // Force refetching after an update
-        removeUserFromCache(userId);
-
-        // If the password was changed, invalidate all sessions
-        // and generate a new auth token if one existed
-        if (pw) {
-          await clearUserSessions(userId);
-          const session = await createSession(user.userId);
-          setSessionCookie(session, res);
-
-          if (req.signedCookies[serverCookieNames.authToken]) {
-            await clearUserAuthTokens(userId);
-            const { token, expiresAt } = await generateAuthToken(userId, user.userUuid);
-
-            res.cookie(serverCookieNames.authToken, token, {
-              ...SECURE_COOKIE_OPTIONS,
-              expires: expiresAt,
-            });
+        .then(async rows => {
+          if (rows.count === 0) {
+            res.status(401).json({ error: 'Invalid password' });
+            return;
           }
-        }
+          // Force refetching after an update
+          removeUserFromCache(userId);
 
-        res.json({ message: 'success' });
-      })
-      .catch(err => handleError(err, res));
-  });
+          // If the password was changed, invalidate all sessions
+          // and generate a new auth token if one existed
+          if (pw) {
+            await clearUserSessions(userId);
+            const session = await createSession(user.userId);
+            setSessionCookie(session, res);
 
-  app.put('/api/user/follows', [
-    mangaIdValidation(),
-    serviceIdValidation().optional(),
-    validateUser(),
-  ], (req: Request, res: Response) => {
-    if (hadValidationError(req, res)) return;
+            if (req.signedCookies[serverCookieNames.authToken]) {
+              await clearUserAuthTokens(userId);
+              const { token, expiresAt } = await generateAuthToken(userId, user.userUuid);
 
-    insertFollow(req.user!.userId, req.query.mangaId as MangaId, req.query.serviceId as DatabaseId)
-      .then(() => res.status(200).end())
-      .catch(err => handleError(err, res));
-  });
+              res.cookie(serverCookieNames.authToken, token, {
+                ...SECURE_COOKIE_OPTIONS,
+                expires: expiresAt,
+              });
+            }
+          }
 
-  app.delete('/api/user/follows', [
-    mangaIdValidation(),
-    serviceIdValidation().optional(),
-    validateUser(),
-  ], (req: Request, res: Response) => {
-    if (hadValidationError(req, res)) return;
+          res.json({ message: 'success' });
+        })
+        .catch(err => handleError(err, res));
+    });
 
-    deleteFollow(req.user!.userId, req.query.mangaId as MangaId, req.query.serviceId as DatabaseId)
-      .then(rows => {
-        if (rows.count === 0) return res.status(404).end();
-        res.status(200).end();
-      })
-      .catch(err => handleError(err, res));
-  });
+  app.put('/api/user/follows',
+    ...validateRequest({
+      query: z.object({
+        mangaId: databaseIdStr,
+        serviceId: databaseIdStr.optional(),
+      }),
+    }, validateUser2),
+    (req, res) => {
+      insertFollow(req.getUser().userId, req.query.mangaId, req.query.serviceId ?? null)
+        .then(() => res.status(200).end())
+        .catch(err => handleError(err, res));
+    });
 
-  app.post('/api/user/delete', [
-    validateUser(),
-    handleValidationErrors,
-  ], async (req: Request, res: Response) => {
-    const user = await getUser(req.user!.userId, { noCache: true });
-    if (!user) {
-      res.status(404).json({ message: 'User not found' });
-      return;
-    }
+  app.delete('/api/user/follows',
+    ...validateRequest({
+      query: z.object({
+        mangaId: databaseIdStr,
+        serviceId: databaseIdStr.optional(),
+      }),
+    }, validateUser2),
+    (req, res) => {
+      deleteFollow(req.getUser().userId, req.query.mangaId, req.query.serviceId ?? null)
+        .then(rows => {
+          if (rows.count === 0) return res.status(404).end();
+          res.status(200).end();
+        })
+        .catch(err => handleError(err, res));
+    });
 
-    // TODO validate that username matches
+  app.post('/api/user/delete',
+    validateUser2,
+    async (req, res) => {
+      const user = await getUser(req.getUser().userId, { noCache: true });
+      if (!user) {
+        res.status(404).json({ message: 'User not found' });
+        return;
+      }
 
-    removeUserFromCache(user.userId);
-    await db.none`DELETE FROM users WHERE user_id=${user.userId}`;
-    await clearUserSessions(user.userId);
-    clearSecureCookie(res, serverCookieNames.authToken);
-    clearSecureCookie(res, serverCookieNames.session);
+      // TODO validate that username matches
 
-    res.status(200).end();
-  });
+      removeUserFromCache(user.userId);
+      await db.none`DELETE FROM users WHERE user_id=${user.userId}`;
+      await clearUserSessions(user.userId);
+      clearSecureCookie(res, serverCookieNames.authToken);
+      clearSecureCookie(res, serverCookieNames.session);
 
-  app.post('/api/user/dataRequest', [
-    validateUser(),
-    handleValidationErrors,
-  ], (req: Request, res: Response) => {
-    const user = req.user!;
+      res.status(200).end();
+    });
 
-    Promise.all([
-      getUserNotifications(user.userId),
-      db.one`SELECT user_id, username, email, user_uuid, joined_at, theme, admin, last_active FROM users WHERE user_id=${user.userId}`,
-      db.any`SELECT provider, provider_account_id, user_id FROM account WHERE user_id=${user.userId}`,
-      db.any`
+  app.post('/api/user/dataRequest',
+    validateUser2,
+    (req, res) => {
+      const user = req.getUser();
+
+      Promise.all([
+        getUserNotifications(user.userId),
+        db.one`SELECT user_id, username, email, user_uuid, joined_at, theme, admin, last_active FROM users WHERE user_id=${user.userId}`,
+        db.any`SELECT provider, provider_account_id, user_id FROM account WHERE user_id=${user.userId}`,
+        db.any`
         SELECT uf.*, m.title, COALESCE(s.service_name, 'All services') as service_name FROM user_follows uf 
         INNER JOIN manga m ON uf.manga_id=m.manga_id
         LEFT JOIN services s ON uf.service_id = s.service_id
         WHERE user_id=${user.userId}`,
-      db.any`SELECT expires_at, data FROM sessions WHERE user_id=${user.userId}`,
-    ])
-      .then(([notifications, userData, accounts, follows, sessions]) => {
-        res.setHeader('Content-Disposition', 'attachment; filename="manga-tracker-user-data.json"');
-        res
-          .status(200)
-          .json({
-            notifications,
-            user: userData,
-            accounts,
-            follows,
-            sessions,
-          });
-      })
-      .catch(err => handleError(err, res));
-  });
+        db.any`SELECT expires_at, data FROM sessions WHERE user_id=${user.userId}`,
+      ])
+        .then(([notifications, userData, accounts, follows, sessions]) => {
+          res.setHeader('Content-Disposition', 'attachment; filename="manga-tracker-user-data.json"');
+          res
+            .status(200)
+            .json({
+              notifications,
+              user: userData,
+              accounts,
+              follows,
+              sessions,
+            });
+        })
+        .catch(err => handleError(err, res));
+    });
 };
 
 export function updateUserLastActivity(userId: number) {

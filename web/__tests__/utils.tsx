@@ -426,8 +426,8 @@ export function getErrorMessage2(res: Response, param?: string, part: ZodErrorPa
   if (typeof errors === 'object') {
     let errorEntries = Object.entries(errors);
 
-    if (param) {
-      const paramName = `${part}.${param}`;
+    if (typeof param === 'string') {
+      const paramName = param ? `${part}.${param}` : part;
       // Only get errors related to the given parameter
       errorEntries = errorEntries.filter(([key]) => key === paramName);
     }
