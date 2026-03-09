@@ -6,7 +6,7 @@ import { removeUserFromCache } from '#server/db/user';
 import { handleError } from '#server/db/utils';
 import {
   validateRequest,
-  validateUser2,
+  validateUser,
 } from '#server/utils/validators';
 import { Theme } from '@/types/dbTypes';
 
@@ -15,7 +15,7 @@ export default (app: Express) => {
   app.post('/api/settings/theme',
     ...validateRequest({
       query: z.object({ value: Theme }),
-    }, validateUser2),
+    }, validateUser),
     (req, res) => {
       const { userId } = req.getUser();
       db.sql`UPDATE users SET theme=${req.query.value}::theme WHERE user_id=${userId}`

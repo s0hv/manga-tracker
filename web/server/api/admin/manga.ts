@@ -3,7 +3,7 @@ import { z } from 'zod';
 
 import {
   databaseIdStr,
-  validateAdminUser2,
+  validateAdminUser,
   validateRequest,
 } from '#server/utils/validators';
 import {
@@ -27,7 +27,7 @@ import { MangaStatus } from '@/types/dbTypes';
 
 export default () => {
   const router = express.Router();
-  router.use(validateAdminUser2);
+  router.use(validateAdminUser);
 
   router.get('/:mangaId/scheduledRuns',
     validateRequest({
@@ -83,7 +83,7 @@ export default () => {
   router.post('/:mangaId/title',
     validateRequest({
       params: z.object({ mangaId: databaseIdStr }),
-      body: z.object({
+      body: z.strictObject({
         title: z.string().min(1),
       }),
     }),
@@ -111,7 +111,7 @@ export default () => {
   router.post('/:mangaId/info',
     validateRequest({
       params: z.object({ mangaId: databaseIdStr }),
-      body: z.object({
+      body: z.strictObject({
         status: z.enum(MangaStatus),
       }),
     }),
@@ -146,7 +146,7 @@ export default () => {
     validateRequest({
       params: z.object({ mangaId: databaseIdStr, serviceId: databaseIdStr }),
       body: z.strictObject({
-        mangaService: z.object({
+        mangaService: z.strictObject({
           disabled: z.boolean().optional(),
           nextUpdate: z.iso.datetime().transform(val => new Date(val)).nullable().optional(),
         }),
@@ -166,7 +166,7 @@ export default () => {
     validateRequest({
       params: z.object({ mangaId: databaseIdStr, serviceId: databaseIdStr }),
       body: z.strictObject({
-        mangaService: z.object({
+        mangaService: z.strictObject({
           titleId: z.string(),
           feedUrl: z.string().nullable().optional(),
         }),

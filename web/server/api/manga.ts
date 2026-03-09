@@ -5,7 +5,7 @@ import { dbLogger } from '#server/utils/logging';
 import {
   coercedIntStr,
   databaseIdStr,
-  validateAdminUser2,
+  validateAdminUser,
   validateRequest,
 } from '#server/utils/validators';
 import { getChapters } from '@/db/chapter';
@@ -28,7 +28,7 @@ export default (app: Application) => {
         service: z.optional(databaseIdStr),
       }),
     },
-    validateAdminUser2),
+    validateAdminUser),
     (req, res) => {
       if (req.query.base === req.query.toMerge) {
         res.status(400).json({ error: 'Given ids are equal' });
