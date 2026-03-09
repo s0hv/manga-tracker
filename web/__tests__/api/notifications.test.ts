@@ -148,7 +148,8 @@ describe('POST /api/notifications', () => {
         .csrf()
         .expect(400)
         .satisfiesApiSpec()
-        .expect(res => expect(getErrorMessages(res)).toMatchInlineSnapshot(`
+        .expect(res => expect(getErrorMessages(res))
+          .toMatchInlineSnapshot(`
           {
             "body": [
               "Invalid input: expected object, received undefined",
@@ -172,7 +173,8 @@ describe('POST /api/notifications', () => {
         .send(body)
         .expect(400)
         .satisfiesApiSpec()
-        .expect(res => expect(getErrorMessage2(res, 'manga', 'body')).toMatchInlineSnapshot(`"At least one manga is required when useFollows is false"`));
+        .expect(res => expect(getErrorMessage2(res, 'manga', 'body'))
+          .toMatchInlineSnapshot(`"At least one manga is required when useFollows is false"`));
     });
   });
 
@@ -440,7 +442,8 @@ describe('POST /api/notifications/override', () => {
         .csrf()
         .expect(400)
         .satisfiesApiSpec()
-        .expect(res => expect(getErrorMessages(res)).toMatchInlineSnapshot(`
+        .expect(res => expect(getErrorMessages(res))
+          .toMatchInlineSnapshot(`
           {
             "body": [
               "Invalid input: expected object, received undefined",
@@ -458,7 +461,8 @@ describe('POST /api/notifications/override', () => {
         })
         .expect(400)
         .satisfiesApiSpec()
-        .expect(res => expect(getErrorMessages(res)).toMatchInlineSnapshot(`
+        .expect(res => expect(getErrorMessages(res))
+          .toMatchInlineSnapshot(`
           {
             "body.fields": [
               "Invalid input: expected array, received null",
@@ -482,7 +486,8 @@ describe('POST /api/notifications/override', () => {
         })
         .expect(400)
         .satisfiesApiSpec()
-        .expect(res => expect(getErrorMessages(res)).toMatchInlineSnapshot(`
+        .expect(res => expect(getErrorMessages(res))
+          .toMatchInlineSnapshot(`
           {
             "body.notificationId": [
               "Invalid input: expected number, received string",
@@ -503,7 +508,8 @@ describe('POST /api/notifications/override', () => {
         })
         .expect(400)
         .satisfiesApiSpec()
-        .expect(res => expect(getErrorMessages(res)).toMatchInlineSnapshot(`
+        .expect(res => expect(getErrorMessages(res))
+          .toMatchInlineSnapshot(`
           {
             "body.fields.0.name": [
               "Invalid input: expected string, received undefined",
@@ -527,7 +533,8 @@ describe('POST /api/notifications/override', () => {
         })
         .expect(400)
         .satisfiesApiSpec()
-        .expect(res => expect(getErrorMessages(res)).toMatchInlineSnapshot(`
+        .expect(res => expect(getErrorMessages(res))
+          .toMatchInlineSnapshot(`
           {
             "body.fields.0.name": [
               "Invalid input: expected string, received null",

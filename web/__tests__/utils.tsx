@@ -442,11 +442,18 @@ export function expectErrorMessage2(message: string | RegExp): ExpectErrorMessag
 export function expectErrorMessage2(param: string, message: string | RegExp, part?: ZodErrorPath): ExpectErrorMessageReturn2;
 export function expectErrorMessage2(paramOrMessage: string | RegExp, message?: string | RegExp, part: ZodErrorPath = 'query'): ExpectErrorMessageReturn2 {
   return res => {
-    if (message === undefined) {
-      expect(getErrorMessage2(res)).toMatch(paramOrMessage);
+    const errorMessage = message === undefined
+      ? getErrorMessage2(res)
+      : getErrorMessage2(res, paramOrMessage as string, part);
+
+    const comparisonMessage = message === undefined
+      ? paramOrMessage
+      : message;
+
+    if (typeof comparisonMessage === 'string') {
+      expect(errorMessage).toEqual(paramOrMessage);
     } else {
-      expect(paramOrMessage).toBeString();
-      expect(getErrorMessage2(res, paramOrMessage as string, part)).toMatch(message);
+      expect(errorMessage).toMatch(comparisonMessage);
     }
   };
 }

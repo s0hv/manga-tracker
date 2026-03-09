@@ -1,6 +1,11 @@
 import express from 'express';
-import { body, param } from 'express-validator';
+import { z } from 'zod';
 
+import {
+  databaseIdStr,
+  validateAdminUser2,
+  validateRequest,
+} from '#server/utils/validators';
 import {
   deleteScheduledRun,
   getScheduledRuns,
@@ -20,159 +25,162 @@ import { handleError } from '@/db/utils';
 import { MangaStatus } from '@/types/dbTypes';
 
 
-import {
-  handleValidationErrors,
-  mangaIdValidation,
-  serviceIdValidation,
-  validateAdminUser,
-} from '../../utils/validators';
-
 export default () => {
   const router = express.Router();
-  router.use([validateAdminUser()]);
+  router.use(validateAdminUser2);
 
-  router.use('/:mangaId/scheduledRuns', [
-    mangaIdValidation(param('mangaId')),
-  ]);
-  router.get('/:mangaId/scheduledRuns', handleValidationErrors, (req, res) => {
-    getScheduledRuns(req.params.mangaId)
-      .then(rows => {
-        res.status(200).json({
-          data: rows,
-        });
-      })
-      .catch(err => handleError(err, res));
-  });
-
-  const scheduleRunUrl = '/:mangaId/scheduledRun/:serviceId';
-  router.use(scheduleRunUrl, [
-    mangaIdValidation(param('mangaId')),
-    serviceIdValidation(param('serviceId')),
-    handleValidationErrors,
-  ]);
-  router.route(scheduleRunUrl)
-    .post((req, res) => {
-      scheduleMangaRun(req.params.mangaId, req.params.serviceId, req.user!.userId)
-        .then(row => {
-          res.status(200).json({
-            inserted: row,
-          });
-        })
-        .catch(err => handleError(err, res));
-    })
-
-    .delete((req, res) => {
-      deleteScheduledRun(req.params.mangaId, req.params.serviceId)
+  router.get('/:mangaId/scheduledRuns',
+    validateRequest({
+      params: z.object({ mangaId: databaseIdStr }),
+    }),
+    (req, res) => {
+      getScheduledRuns(req.params.mangaId)
         .then(rows => {
-          if (rows.count > 0) {
-            res.status(200).end();
-          } else {
-            res.status(404).end();
-          }
+          res.status(200).json({
+            data: rows,
+          });
         })
         .catch(err => handleError(err, res));
     });
 
-  const updateTitleUrl = '/:mangaId/title';
-  router.use(updateTitleUrl, [
-    mangaIdValidation(param('mangaId')),
-    body('title').isString().bail().isLength({ min: 1 }),
-  ]);
-  router.post(updateTitleUrl, handleValidationErrors, (req, res) => {
-    updateMangaTitle(req.params.mangaId, req.body.title)
-      .then(row => {
-        getMangaForElastic(req.params.mangaId)
-          .then(manga => updateManga(manga.mangaId, manga))
-          .finally(() => {
-            const msg = row
-              ? `Replaced old alias with current title "${row.title}"`
-              : `Alias not found. Scrapping old title`;
-            res.json({ message: msg });
-          });
-      })
-      .catch(err => {
-        if (err instanceof NoResultsError) {
-          res.status(404).json({ error: 'Manga not found' });
-          return;
-        }
-        handleError(err, res);
-      });
+  const scheduleRunUrl = '/:mangaId/scheduledRun/:serviceId';
+  const scheduleRunValidator = validateRequest({
+    params: z.object({
+      mangaId: databaseIdStr,
+      serviceId: databaseIdStr,
+    }),
   });
 
-  const updateInfoPath = '/:mangaId/info';
-  router.post(updateInfoPath, ...[
-    mangaIdValidation(param('mangaId')),
-    body('status').isInt({ min: MangaStatus.ONGOING, max: MangaStatus.HIATUS }).toInt(),
-    handleValidationErrors,
-  ], (req, res) => {
-    updateMangaInfo({
-      status: req.body.status,
-      mangaId: req.params!.mangaId,
-    })
-      .then(r => {
-        if (r.count === 0) return res.sendStatus(404);
+  router.route(scheduleRunUrl)
+    .post(
+      scheduleRunValidator,
+      (req, res) => {
+        scheduleMangaRun(req.params.mangaId, req.params.serviceId, req.getUser().userId)
+          .then(row => {
+            res.status(200).json({
+              inserted: row,
+            });
+          })
+          .catch(err => handleError(err, res));
+      }
+    )
 
-        res.sendStatus(200);
+    .delete(
+      scheduleRunValidator,
+      (req, res) => {
+        deleteScheduledRun(req.params.mangaId, req.params.serviceId)
+          .then(rows => {
+            if (rows.count > 0) {
+              res.status(200).end();
+            } else {
+              res.status(404).end();
+            }
+          })
+          .catch(err => handleError(err, res));
+      }
+    );
+
+  router.post('/:mangaId/title',
+    validateRequest({
+      params: z.object({ mangaId: databaseIdStr }),
+      body: z.object({
+        title: z.string().min(1),
+      }),
+    }),
+    (req, res) => {
+      updateMangaTitle(req.params.mangaId, req.body.title)
+        .then(row => {
+          getMangaForElastic(req.params.mangaId)
+            .then(manga => updateManga(manga.mangaId, manga))
+            .finally(() => {
+              const msg = row
+                ? `Replaced old alias with current title "${row.title}"`
+                : `Alias not found. Scrapping old title`;
+              res.json({ message: msg });
+            });
+        })
+        .catch(err => {
+          if (err instanceof NoResultsError) {
+            res.status(404).json({ error: 'Manga not found' });
+            return;
+          }
+          handleError(err, res);
+        });
+    });
+
+  router.post('/:mangaId/info',
+    validateRequest({
+      params: z.object({ mangaId: databaseIdStr }),
+      body: z.object({
+        status: z.enum(MangaStatus),
+      }),
+    }),
+    (req, res) => {
+      updateMangaInfo({
+        status: req.body.status,
+        mangaId: req.params.mangaId,
       })
-      .catch(err => handleError(err, res));
-  });
+        .then(r => {
+          if (r.count === 0) return res.sendStatus(404);
 
-  router.get('/:mangaId/services', ...[
-    mangaIdValidation(param('mangaId')),
-    handleValidationErrors,
-  ], (req, res) => {
-    getMangaServices(req.params!.mangaId)
-      .then(r => {
-        if (r.length === 0) return res.sendStatus(404);
+          res.sendStatus(200);
+        })
+        .catch(err => handleError(err, res));
+    });
 
-        res.json(r);
-      })
-      .catch(err => handleError(err, res));
-  });
+  router.get('/:mangaId/services',
+    validateRequest({
+      params: z.object({ mangaId: databaseIdStr }),
+    }),
+    (req, res) => {
+      getMangaServices(req.params.mangaId)
+        .then(r => {
+          if (r.length === 0) return res.sendStatus(404);
 
-  router.post('/:mangaId/services/:serviceId', ...[
-    mangaIdValidation(param('mangaId')),
-    serviceIdValidation(param('serviceId')),
-    body('mangaService')
-      .isObject({ strict: true }),
-    body('mangaService.disabled')
-      .optional()
-      .isBoolean({ strict: true }),
-    body('mangaService.nextUpdate')
-      .optional({ nullable: true })
-      .isISO8601({ strict: true })
-      .toDate(),
-    handleValidationErrors,
-  ], (req, res) => {
-    updateMangaService(req.params!.mangaId, req.params!.serviceId, req.body.mangaService)
-      .then(r => {
-        if (r.count === 0) return res.sendStatus(404);
+          res.json(r);
+        })
+        .catch(err => handleError(err, res));
+    });
 
-        res.sendStatus(200);
-      })
-      .catch(err => handleError(err, res));
-  });
+  router.post('/:mangaId/services/:serviceId',
+    validateRequest({
+      params: z.object({ mangaId: databaseIdStr, serviceId: databaseIdStr }),
+      body: z.strictObject({
+        mangaService: z.object({
+          disabled: z.boolean().optional(),
+          nextUpdate: z.iso.datetime().transform(val => new Date(val)).nullable().optional(),
+        }),
+      }),
+    }),
+    (req, res) => {
+      updateMangaService(req.params.mangaId, req.params.serviceId, req.body.mangaService)
+        .then(r => {
+          if (r.count === 0) return res.sendStatus(404);
 
-  router.post('/:mangaId/services/:serviceId/create', ...[
-    mangaIdValidation(param('mangaId')),
-    serviceIdValidation(param('serviceId')),
-    body('mangaService')
-      .isObject({ strict: true }),
-    body('mangaService.titleId')
-      .isString(),
-    body('mangaService.feedUrl')
-      .optional({ nullable: true })
-      .isString(),
-    handleValidationErrors,
-  ], (req, res) => {
-    createMangaService(req.params!.mangaId, req.params!.serviceId, req.body.mangaService)
-      .then(r => {
-        if (r.count === 0) return res.sendStatus(404);
+          res.sendStatus(200);
+        })
+        .catch(err => handleError(err, res));
+    });
 
-        res.sendStatus(200);
-      })
-      .catch(err => handleError(err, res));
-  });
+  router.post('/:mangaId/services/:serviceId/create',
+    validateRequest({
+      params: z.object({ mangaId: databaseIdStr, serviceId: databaseIdStr }),
+      body: z.strictObject({
+        mangaService: z.object({
+          titleId: z.string(),
+          feedUrl: z.string().nullable().optional(),
+        }),
+      }),
+    }),
+    (req, res) => {
+      createMangaService(req.params.mangaId, req.params.serviceId, req.body.mangaService)
+        .then(r => {
+          if (r.count === 0) return res.sendStatus(404);
+
+          res.sendStatus(200);
+        })
+        .catch(err => handleError(err, res));
+    });
 
   return router;
 };
