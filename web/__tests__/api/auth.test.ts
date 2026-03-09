@@ -21,7 +21,7 @@ import {
   expectErrorMessage,
   getAuthTokenCookie,
   getCookieFromRes,
-  getErrorMessage2,
+  getErrorMessage,
   getSessionCookie,
   login,
   normalUser,
@@ -111,7 +111,7 @@ describe('POST /api/auth/login', () => {
       .post(url)
       .csrf()
       .send({ email: 'test' })
-      .expect(res => expect(getErrorMessage2(res, 'password', 'body'))
+      .expect(res => expect(getErrorMessage(res, 'password', 'body'))
         .toMatchInlineSnapshot(`"Invalid input: expected string, received undefined"`))
       .expect(400);
 
@@ -119,7 +119,7 @@ describe('POST /api/auth/login', () => {
       .post(url)
       .csrf()
       .send({ password: 'test' })
-      .expect(res => expect(getErrorMessage2(res, 'email', 'body'))
+      .expect(res => expect(getErrorMessage(res, 'email', 'body'))
         .toMatchInlineSnapshot(`"Invalid input: expected string, received undefined"`))
       .expect(400);
   });
@@ -133,7 +133,7 @@ describe('POST /api/auth/login', () => {
         extra: 'test',
       })
       .expect(400)
-      .expect(res => expect(getErrorMessage2(res, '', 'body'))
+      .expect(res => expect(getErrorMessage(res, '', 'body'))
         .toMatchInlineSnapshot(`"Unrecognized key: "extra""`));
   });
 

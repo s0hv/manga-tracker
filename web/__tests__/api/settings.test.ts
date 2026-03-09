@@ -5,7 +5,7 @@ import { afterAll, beforeAll, describe, it } from 'vitest';
 import initServer from '../initServer';
 import stopServer from '../stopServer';
 import {
-  expectErrorMessage2,
+  expectErrorMessage,
   normalUser,
   withUser,
 } from '../utils';
@@ -26,7 +26,7 @@ describe('POST /api/settings/theme', () => {
     await request(httpServer)
       .post('/api/settings/theme?value=light')
       .expect(403)
-      .expect(expectErrorMessage2(csrfMissing));
+      .expect(expectErrorMessage(csrfMissing));
   });
 
   it('Returns 400 with invalid theme', async () => {
@@ -37,19 +37,19 @@ describe('POST /api/settings/theme', () => {
         .post('/api/settings/theme?value=1')
         .csrf()
         .expect(400)
-        .expect(expectErrorMessage2('value', errorMessage));
+        .expect(expectErrorMessage('value', errorMessage));
 
       await request(httpServer)
         .post('/api/settings/theme?value=DARK')
         .csrf()
         .expect(400)
-        .expect(expectErrorMessage2('value', errorMessage));
+        .expect(expectErrorMessage('value', errorMessage));
 
       await request(httpServer)
         .post('/api/settings/theme?value=darkk')
         .csrf()
         .expect(400)
-        .expect(expectErrorMessage2('value', errorMessage));
+        .expect(expectErrorMessage('value', errorMessage));
     });
   });
 

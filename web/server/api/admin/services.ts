@@ -1,76 +1,63 @@
-import type { Application, Request, Response } from 'express-serve-static-core';
-import { body, matchedData, param } from 'express-validator';
+import express from 'express';
+import type { Application } from 'express-serve-static-core';
+import { z } from 'zod';
 
+import {
+  databaseIdStr,
+  iso8601Duration, validateAdminUser,
+  validateRequest,
+} from '#server/utils/validators';
 import {
   updateService,
   updateServiceConfig,
   updateServiceWhole,
 } from '@/db/services';
 import { handleError } from '@/db/utils';
-import type { Service, ServiceConfig, ServiceWhole } from '@/types/db/services';
 
-import {
-  handleValidationErrors,
-  isISO8601Duration,
-  serviceIdValidation,
-  validateAdminUser,
-} from '../../utils/validators';
 
-export default (app: Application) => {
-  const validateService = [
-    body('service')
-      .isObject()
-      .optional(),
-    body('service.serviceName')
-      .isString()
-      .optional(),
-    body('service.disabled')
-      .isBoolean({ strict: true })
-      .optional()
-      .toBoolean(true),
+const Service = z.strictObject({
+  serviceName: z.string().optional(),
+  disabled: z.boolean().optional(),
+});
 
-    body('serviceWhole')
-      .isObject()
-      .optional(),
-    body('serviceWhole.nextUpdate')
-      .isISO8601({ strict: true })
-      .optional({ nullable: true })
-      .toDate(),
+const ServiceWhole = z.strictObject({
+  nextUpdate: z.iso.datetime()
+    .transform(value => new Date(value)).nullable().optional(),
+});
 
-    body('serviceConfig')
-      .isObject()
-      .optional(),
-    isISO8601Duration(body('serviceConfig.checkInterval'))
-      .optional(),
-    body('serviceConfig.scheduledRunLimit')
-      .isInt({ min: 1, max: 100 })
-      .optional()
-      .withMessage('scheduledRunLimit must be between 1 and 100'),
-    body('serviceConfig.scheduledRunsEnabled')
-      .isBoolean({ strict: true })
-      .optional()
-      .toBoolean(),
-    isISO8601Duration(body('serviceConfig.scheduledRunInterval'))
-      .optional(),
-  ];
+const ServiceConfig = z.strictObject({
+  checkInterval: iso8601Duration.optional(),
+  scheduledRunLimit: z.number()
+    .min(1)
+    .max(100)
+    .optional(),
+  scheduledRunsEnabled: z.boolean().optional(),
+  scheduledRunInterval: iso8601Duration.optional(),
+});
 
-  app.post('/api/admin/editService/:serviceId', [
-    validateAdminUser(),
-    serviceIdValidation(param('serviceId')),
-    ...validateService,
-    handleValidationErrors,
-  ], (req: Request, res: Response) => {
+const ServiceFullSchema = z.strictObject({
+  service: Service.optional(),
+  serviceWhole: ServiceWhole.optional(),
+  serviceConfig: ServiceConfig.optional(),
+});
+
+export const router = express.Router();
+
+router.use(validateAdminUser);
+
+router.post('/editService/:serviceId',
+  validateRequest({
+    params: z.object({ serviceId: databaseIdStr }),
+    body: ServiceFullSchema,
+  }),
+  (req, res) => {
     const {
       service,
       serviceWhole,
       serviceConfig,
-    } = matchedData<{
-      service?: Service
-      serviceWhole?: ServiceWhole
-      serviceConfig?: ServiceConfig
-    }>(req, { includeOptionals: false, onlyValidData: true });
+    } = req.body;
 
-    const serviceId = Number(req.params.serviceId);
+    const serviceId = req.params.serviceId;
 
     const serviceArgsExist = service && Object.keys(service).length !== 0;
     const serviceWholeArgsExist = serviceWhole && Object.keys(serviceWhole).length !== 0;
@@ -83,22 +70,25 @@ export default (app: Application) => {
 
     req.log.info('Updating service with %o', req.body);
 
-    const promise = Promise.resolve();
+    const promises: Promise<unknown>[] = [];
 
     if (serviceWholeArgsExist) {
-      promise.then(() => updateServiceWhole({ ...serviceWhole, serviceId }));
+      promises.push(updateServiceWhole({ ...serviceWhole, serviceId }));
     }
 
     if (serviceArgsExist) {
-      promise.then(() => updateService({ ...service, serviceId }));
+      promises.push(updateService({ ...service, serviceId }));
     }
 
     if (serviceConfigArgsExist) {
-      promise.then(() => updateServiceConfig({ ...serviceConfig, serviceId }));
+      promises.push(updateServiceConfig({ ...serviceConfig, serviceId }));
     }
 
-    promise
+    Promise.all(promises)
       .then(() => res.json({ message: 'OK' }))
       .catch(err => handleError(err, res));
   });
+
+export default (app: Application) => {
+  app.use('/api/admin', router);
 };

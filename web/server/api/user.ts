@@ -5,7 +5,7 @@ import {
   databaseIdStr,
   passwordSchema,
   validateRequest,
-  validateUser2,
+  validateUser,
 } from '#server/utils/validators';
 import { clearUserAuthTokens, generateAuthToken } from '@/db/auth';
 import { deleteFollow, insertFollow } from '@/db/follows';
@@ -27,7 +27,7 @@ import {
 
 const MAX_USERNAME_LENGTH = 100;
 
-const ProfileUpdateSchema = z.object({
+const ProfileUpdateSchema = z.strictObject({
   username: z.string().max(MAX_USERNAME_LENGTH, `Max username length is ${MAX_USERNAME_LENGTH}`).optional(),
 });
 
@@ -50,7 +50,7 @@ export default (app: Express) => {
         }),
         ProfileUpdateSchemaWithPassword,
       ]),
-    }, validateUser2),
+    }, validateUser),
     (req, res) => {
       const cols = [];
       const {
@@ -122,7 +122,7 @@ export default (app: Express) => {
         mangaId: databaseIdStr,
         serviceId: databaseIdStr.optional(),
       }),
-    }, validateUser2),
+    }, validateUser),
     (req, res) => {
       insertFollow(req.getUser().userId, req.query.mangaId, req.query.serviceId ?? null)
         .then(() => res.status(200).end())
@@ -135,7 +135,7 @@ export default (app: Express) => {
         mangaId: databaseIdStr,
         serviceId: databaseIdStr.optional(),
       }),
-    }, validateUser2),
+    }, validateUser),
     (req, res) => {
       deleteFollow(req.getUser().userId, req.query.mangaId, req.query.serviceId ?? null)
         .then(rows => {
@@ -146,7 +146,7 @@ export default (app: Express) => {
     });
 
   app.post('/api/user/delete',
-    validateUser2,
+    validateUser,
     async (req, res) => {
       const user = await getUser(req.getUser().userId, { noCache: true });
       if (!user) {
@@ -166,7 +166,7 @@ export default (app: Express) => {
     });
 
   app.post('/api/user/dataRequest',
-    validateUser2,
+    validateUser,
     (req, res) => {
       const user = req.getUser();
 

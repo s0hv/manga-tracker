@@ -362,52 +362,6 @@ export function withRoot(Component: React.ReactElement): React.ReactElement {
   );
 }
 
-export function getErrorMessage(res: Response) {
-  expect(res.body).toBeObject();
-  const errors = res.body.error;
-  expect(errors).toBeDefined();
-  return errors;
-}
-
-type ExpectErrorMessageReturn = (res: Response) => void;
-type ExpectErrorMessage = {
-  (value: any, param?: string, message?: string | RegExp): ExpectErrorMessageReturn
-};
-
-export const expectErrorMessage: ExpectErrorMessage = (value, param, message = 'Invalid value') => {
-  return (res: Response) => {
-    expect(res.ok).toBeFalse();
-    expect(res.body).toBeObject();
-    let errors = res.body.error;
-    expect(errors).toBeDefined();
-
-    let error;
-
-    if (typeof errors === 'string') {
-      expect(errors).toMatch(value);
-      return;
-    }
-
-    if (Array.isArray(errors)) {
-      if (param) {
-        // Only get errors related to the given parameter
-        errors = errors.filter(err => err.path === param);
-      }
-      expect(errors).toHaveLength(1);
-      error = errors[0];
-    } else {
-      error = errors;
-    }
-
-    expect(error.msg).toMatch(message);
-    if (typeof param === 'string') {
-      expect(error.path).toEqual(param);
-    }
-
-    expect(error.value).toEqual(value);
-  };
-};
-
 export function getErrorMessages(res: Response) {
   expect(res.ok).toBeFalse();
   expect(res.body).toBeObject();
@@ -416,7 +370,7 @@ export function getErrorMessages(res: Response) {
   return errors;
 }
 
-export function getErrorMessage2(res: Response, param?: string, part: ZodErrorPath = 'query'): string | undefined {
+export function getErrorMessage(res: Response, param?: string, part: ZodErrorPath = 'query'): string | undefined {
   const errors = getErrorMessages(res);
 
   if (typeof errors === 'string') {
@@ -436,22 +390,22 @@ export function getErrorMessage2(res: Response, param?: string, part: ZodErrorPa
   }
 }
 
-type ExpectErrorMessageReturn2 = (res: Response) => void;
+type ExpectErrorMessageReturn = (res: Response) => void;
 
-export function expectErrorMessage2(message: string | RegExp): ExpectErrorMessageReturn2;
-export function expectErrorMessage2(param: string, message: string | RegExp, part?: ZodErrorPath): ExpectErrorMessageReturn2;
-export function expectErrorMessage2(paramOrMessage: string | RegExp, message?: string | RegExp, part: ZodErrorPath = 'query'): ExpectErrorMessageReturn2 {
+export function expectErrorMessage(message: string | RegExp): ExpectErrorMessageReturn;
+export function expectErrorMessage(param: string, message: string | RegExp, part?: ZodErrorPath): ExpectErrorMessageReturn;
+export function expectErrorMessage(paramOrMessage: string | RegExp, message?: string | RegExp, part: ZodErrorPath = 'query'): ExpectErrorMessageReturn {
   return res => {
     const errorMessage = message === undefined
-      ? getErrorMessage2(res)
-      : getErrorMessage2(res, paramOrMessage as string, part);
+      ? getErrorMessage(res)
+      : getErrorMessage(res, paramOrMessage as string, part);
 
     const comparisonMessage = message === undefined
       ? paramOrMessage
       : message;
 
     if (typeof comparisonMessage === 'string') {
-      expect(errorMessage).toEqual(paramOrMessage);
+      expect(errorMessage).toEqual(comparisonMessage);
     } else {
       expect(errorMessage).toMatch(comparisonMessage);
     }

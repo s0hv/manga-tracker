@@ -12,8 +12,8 @@ import stopServer from '../stopServer';
 import {
   adminUser,
   configureJestOpenAPI,
-  expectErrorMessage2,
-  getErrorMessage2,
+  expectErrorMessage,
+  getErrorMessage,
   getErrorMessages,
   normalUser,
   silenceConsole,
@@ -173,7 +173,7 @@ describe('POST /api/notifications', () => {
         .send(body)
         .expect(400)
         .satisfiesApiSpec()
-        .expect(res => expect(getErrorMessage2(res, 'manga', 'body'))
+        .expect(res => expect(getErrorMessage(res, 'manga', 'body'))
           .toMatchInlineSnapshot(`"At least one manga is required when useFollows is false"`));
     });
   });
@@ -191,7 +191,7 @@ describe('POST /api/notifications', () => {
         .send(body)
         .expect(400)
         .satisfiesApiSpec()
-        .expect(expectErrorMessage2(/Not all required fields given/i));
+        .expect(expectErrorMessage(/Not all required fields given/i));
     });
   });
 
@@ -210,7 +210,7 @@ describe('POST /api/notifications', () => {
         .send(body)
         .expect(404)
         .satisfiesApiSpec()
-        .expect(expectErrorMessage2(notFoundMessage));
+        .expect(expectErrorMessage(notFoundMessage));
     });
   });
 
@@ -235,7 +235,7 @@ describe('POST /api/notifications', () => {
         .send(body)
         .expect(404)
         .satisfiesApiSpec()
-        .expect(expectErrorMessage2(notFoundMessage));
+        .expect(expectErrorMessage(notFoundMessage));
     });
 
     expect(original).toStrictEqual(await getUserNotifications(adminUser.userId, notificationId));
@@ -343,7 +343,7 @@ describe('DELETE /api/notifications', () => {
     await request(httpServer)
       .delete(defaultUrl)
       .expect(403)
-      .expect(expectErrorMessage2(csrfMissing));
+      .expect(expectErrorMessage(csrfMissing));
   });
 
   it('Returns 404 when notification not found', async () => {
@@ -354,7 +354,7 @@ describe('DELETE /api/notifications', () => {
         .csrf()
         .expect(404)
         .satisfiesApiSpec()
-        .expect(expectErrorMessage2(notFoundMessage));
+        .expect(expectErrorMessage(notFoundMessage));
     });
   });
 
@@ -368,7 +368,7 @@ describe('DELETE /api/notifications', () => {
         .csrf()
         .expect(404)
         .satisfiesApiSpec()
-        .expect(expectErrorMessage2(notFoundMessage));
+        .expect(expectErrorMessage(notFoundMessage));
     });
 
     expect(await getUserNotifications(adminUser.userId, notificationId)).toBeObject();
@@ -411,7 +411,7 @@ describe('POST /api/notifications/override', () => {
         .send(defaultBody)
         .expect(404)
         .satisfiesApiSpec()
-        .expect(expectErrorMessage2(notFoundMessage));
+        .expect(expectErrorMessage(notFoundMessage));
     });
   });
 
@@ -429,7 +429,7 @@ describe('POST /api/notifications/override', () => {
         })
         .expect(404)
         .satisfiesApiSpec()
-        .expect(expectErrorMessage2(notFoundMessage));
+        .expect(expectErrorMessage(notFoundMessage));
     });
 
     expect((await getUserNotifications(adminUser.userId, notificationId)).overrides).toBeEmptyObject();

@@ -2,6 +2,9 @@
 
 exports[`POST /api/admin/manga/:mangaId/services/:serviceId > Returns 400 with invalid body 'aaa' 1`] = `
 {
+  "body": [
+    "Unrecognized key: "aaa"",
+  ],
   "body.mangaService": [
     "Invalid input: expected object, received undefined",
   ],
@@ -50,6 +53,9 @@ exports[`POST /api/admin/manga/:mangaId/services/:serviceId > Returns 400 with i
 
 exports[`POST /api/admin/manga/:mangaId/services/:serviceId/create > Returns 400 with invalid body 'aaa' 1`] = `
 {
+  "body": [
+    "Unrecognized key: "aaa"",
+  ],
   "body.mangaService": [
     "Invalid input: expected object, received undefined",
   ],

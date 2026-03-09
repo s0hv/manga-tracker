@@ -17,8 +17,8 @@ import stopServer from '../stopServer';
 import {
   adminUser,
   configureJestOpenAPI,
-  expectErrorMessage2,
-  getErrorMessage2,
+  expectErrorMessage,
+  getErrorMessage,
   getErrorMessages,
   withUser,
 } from '../utils';
@@ -60,7 +60,7 @@ describe('GET /api/manga/:mangaId', () => {
       .get(`/api/manga/9999999`)
       .expect(404)
       .satisfiesApiSpec()
-      .expect(expectErrorMessage2('Manga not found'));
+      .expect(expectErrorMessage('Manga not found'));
   });
 
   it('returns 400 with non positive integers', async () => {
@@ -68,13 +68,13 @@ describe('GET /api/manga/:mangaId', () => {
       .get(`/api/manga/-1`)
       .expect(400)
       .satisfiesApiSpec()
-      .expect(expectErrorMessage2('mangaId', 'Too small: expected number to be >=0', 'params'));
+      .expect(expectErrorMessage('mangaId', 'Too small: expected number to be >=0', 'params'));
 
     await request(httpServer)
       .get(`/api/manga/abc`)
       .expect(400)
       .satisfiesApiSpec()
-      .expect(expectErrorMessage2('mangaId', 'Value must contain only numbers', 'params'));
+      .expect(expectErrorMessage('mangaId', 'Value must contain only numbers', 'params'));
   });
 
   it('returns 200 with valid manga id', async () => {
@@ -101,7 +101,7 @@ describe('GET /api/manga/:mangaId/chapters', () => {
     await request(httpServer)
       .get(`/api/manga/-1/chapters`)
       .expect(400)
-      .expect(res => expect(getErrorMessage2(res, 'mangaId', 'params'))
+      .expect(res => expect(getErrorMessage(res, 'mangaId', 'params'))
         .toMatchInlineSnapshot(`"Too small: expected number to be >=0"`));
   });
 
@@ -110,35 +110,35 @@ describe('GET /api/manga/:mangaId/chapters', () => {
       request(httpServer)
         .get(`${validUrl}?limit=invalid`)
         .expect('Content-Type', /json/)
-        .expect(res => expect(getErrorMessage2(res, 'limit'))
+        .expect(res => expect(getErrorMessage(res, 'limit'))
           .toMatchInlineSnapshot(`"Value must contain only numbers"`))
         .expect(400),
 
       request(httpServer)
         .get(`${validUrl}?limit=NaN`)
         .expect('Content-Type', /json/)
-        .expect(res => expect(getErrorMessage2(res, 'limit'))
+        .expect(res => expect(getErrorMessage(res, 'limit'))
           .toMatchInlineSnapshot(`"Value must contain only numbers"`))
         .expect(400),
 
       request(httpServer)
         .get(`${validUrl}?limit=Infinity`)
         .expect('Content-Type', /json/)
-        .expect(res => expect(getErrorMessage2(res, 'limit'))
+        .expect(res => expect(getErrorMessage(res, 'limit'))
           .toMatchInlineSnapshot(`"Value must contain only numbers"`))
         .expect(400),
 
       request(httpServer)
         .get(`${validUrl}?limit=-1`)
         .expect('Content-Type', /json/)
-        .expect(res => expect(getErrorMessage2(res, 'limit'))
+        .expect(res => expect(getErrorMessage(res, 'limit'))
           .toMatchInlineSnapshot(`"Too small: expected number to be >=0"`))
         .expect(400),
 
       request(httpServer)
         .get(`${validUrl}?limit=300`)
         .expect('Content-Type', /json/)
-        .expect(res => expect(getErrorMessage2(res, 'limit'))
+        .expect(res => expect(getErrorMessage(res, 'limit'))
           .toMatchInlineSnapshot(`"Too big: expected number to be <=200"`))
         .expect(400),
     ]);
@@ -167,28 +167,28 @@ describe('GET /api/manga/:mangaId/chapters', () => {
         .get(`${validUrl}?offset=NaN`)
         .expect('Content-Type', /json/)
         .expect(400)
-        .expect(res => expect(getErrorMessage2(res, 'offset'))
+        .expect(res => expect(getErrorMessage(res, 'offset'))
           .toMatchInlineSnapshot(`"Value must contain only numbers"`)),
 
       request(httpServer)
         .get(`${validUrl}?offset=-1`)
         .expect('Content-Type', /json/)
         .expect(400)
-        .expect(res => expect(getErrorMessage2(res, 'offset'))
+        .expect(res => expect(getErrorMessage(res, 'offset'))
           .toMatchInlineSnapshot(`"Too small: expected number to be >=0"`)),
 
       request(httpServer)
         .get(`${validUrl}?offset=Inf`)
         .expect('Content-Type', /json/)
         .expect(400)
-        .expect(res => expect(getErrorMessage2(res, 'offset'))
+        .expect(res => expect(getErrorMessage(res, 'offset'))
           .toMatchInlineSnapshot(`"Value must contain only numbers"`)),
 
       request(httpServer)
         .get(`${validUrl}?offset=${'1'.repeat(400)}`)
         .expect('Content-Type', /json/)
         .expect(400)
-        .expect(res => expect(getErrorMessage2(res, 'offset'))
+        .expect(res => expect(getErrorMessage(res, 'offset'))
           .toMatchInlineSnapshot(`"Value must be finite"`)),
     ]);
   });
@@ -209,7 +209,7 @@ describe('GET /api/manga/:mangaId/chapters', () => {
         .get(`${validUrl}?sortBy=test`)
         .expect('Content-Type', /json/)
         .expect(400)
-        .expect(res => expect(getErrorMessage2(res, 'sortBy'))
+        .expect(res => expect(getErrorMessage(res, 'sortBy'))
           .toMatchInlineSnapshot(`"Invalid option: expected one of "chapter_number"|"group"|"chapter_id"|"release_date""`)),
     ]);
   });
@@ -220,7 +220,7 @@ describe('GET /api/manga/:mangaId/chapters', () => {
         .get(`${validUrl}?sort=test`)
         .expect('Content-Type', /json/)
         .expect(400)
-        .expect(res => expect(getErrorMessage2(res, 'sort'))
+        .expect(res => expect(getErrorMessage(res, 'sort'))
           .toMatchInlineSnapshot(`"Invalid option: expected one of "asc"|"desc""`)),
     ]);
   });
@@ -252,43 +252,43 @@ describe('GET /api/manga/:mangaId/chapters', () => {
       request(httpServer)
         .get(`${validUrl}?services=test`)
         .expect(400)
-        .expect(res => expect(getErrorMessage2(res, 'services.0'))
+        .expect(res => expect(getErrorMessage(res, 'services.0'))
           .toMatchInlineSnapshot(`"Value must contain only numbers"`)),
 
       request(httpServer)
         .get(`${validUrl}?services=[]`)
         .expect(400)
-        .expect(res => expect(getErrorMessage2(res, 'services.0'))
+        .expect(res => expect(getErrorMessage(res, 'services.0'))
           .toMatchInlineSnapshot(`"Value must contain only numbers"`)),
 
       request(httpServer)
         .get(`${validUrl}?services=,`)
         .expect(400)
-        .expect(res => expect(getErrorMessage2(res, 'services.0'))
+        .expect(res => expect(getErrorMessage(res, 'services.0'))
           .toMatchInlineSnapshot(`"Value must contain only numbers"`)),
 
       request(httpServer)
         .get(`${validUrl}?services=-1,1`)
         .expect(400)
-        .expect(res => expect(getErrorMessage2(res, 'services.0'))
+        .expect(res => expect(getErrorMessage(res, 'services.0'))
           .toMatchInlineSnapshot(`"Too small: expected number to be >=0"`)),
 
       request(httpServer)
         .get(`${validUrl}?services=1.1,2`)
         .expect(400)
-        .expect(res => expect(getErrorMessage2(res, 'services.0'))
+        .expect(res => expect(getErrorMessage(res, 'services.0'))
           .toMatchInlineSnapshot(`"Value must contain only numbers"`)),
 
       request(httpServer)
         .get(`${validUrl}?services=1e10`)
         .expect(400)
-        .expect(res => expect(getErrorMessage2(res, 'services.0'))
+        .expect(res => expect(getErrorMessage(res, 'services.0'))
           .toMatchInlineSnapshot(`"Value must contain only numbers"`)),
 
       request(httpServer)
         .get(`${validUrl}?services=${manyInts.join(',')}`)
         .expect(400)
-        .expect(res => expect(getErrorMessage2(res, 'services'))
+        .expect(res => expect(getErrorMessage(res, 'services'))
           .toMatchInlineSnapshot(`"Too big: expected array to have <=25 items"`)),
     ]);
   });
@@ -351,21 +351,21 @@ describe('POST /api/manga/merge', () => {
         .post('/api/manga/merge?base=-1')
         .csrf()
         .expect(400)
-        .expect(res => expect(getErrorMessage2(res, 'base'))
+        .expect(res => expect(getErrorMessage(res, 'base'))
           .toMatchInlineSnapshot(`"Too small: expected number to be >=0"`));
 
       await request(httpServer)
         .post('/api/manga/merge?base=NaN')
         .csrf()
         .expect(400)
-        .expect(res => expect(getErrorMessage2(res, 'base'))
+        .expect(res => expect(getErrorMessage(res, 'base'))
           .toMatchInlineSnapshot(`"Value must contain only numbers"`));
 
       await request(httpServer)
         .post('/api/manga/merge?base=abc')
         .csrf()
         .expect(400)
-        .expect(res => expect(getErrorMessage2(res, 'base'))
+        .expect(res => expect(getErrorMessage(res, 'base'))
           .toMatchInlineSnapshot(`"Value must contain only numbers"`));
     });
   });
@@ -376,21 +376,21 @@ describe('POST /api/manga/merge', () => {
         .post('/api/manga/merge?toMerge=-1')
         .csrf()
         .expect(400)
-        .expect(res => expect(getErrorMessage2(res, 'toMerge'))
+        .expect(res => expect(getErrorMessage(res, 'toMerge'))
           .toMatchInlineSnapshot(`"Too small: expected number to be >=0"`));
 
       await request(httpServer)
         .post('/api/manga/merge?toMerge=NaN')
         .csrf()
         .expect(400)
-        .expect(res => expect(getErrorMessage2(res, 'toMerge'))
+        .expect(res => expect(getErrorMessage(res, 'toMerge'))
           .toMatchInlineSnapshot(`"Value must contain only numbers"`));
 
       await request(httpServer)
         .post('/api/manga/merge?toMerge=abc')
         .csrf()
         .expect(400)
-        .expect(res => expect(getErrorMessage2(res, 'toMerge'))
+        .expect(res => expect(getErrorMessage(res, 'toMerge'))
           .toMatchInlineSnapshot(`"Value must contain only numbers"`));
     });
   });
@@ -401,7 +401,7 @@ describe('POST /api/manga/merge', () => {
         .post('/api/manga/merge?toMerge=5&base=5')
         .csrf()
         .expect(400)
-        .expect(expectErrorMessage2('Given ids are equal'));
+        .expect(expectErrorMessage('Given ids are equal'));
     });
   });
 
@@ -441,28 +441,28 @@ describe('POST /api/manga/merge', () => {
         .post(getUrl('a', 1))
         .csrf()
         .expect(400)
-        .expect(res => expect(getErrorMessage2(res, 'base'))
+        .expect(res => expect(getErrorMessage(res, 'base'))
           .toMatchInlineSnapshot(`"Value must contain only numbers"`));
 
       await request(httpServer)
         .post(getUrl(1, 'x'))
         .csrf()
         .expect(400)
-        .expect(res => expect(getErrorMessage2(res, 'toMerge'))
+        .expect(res => expect(getErrorMessage(res, 'toMerge'))
           .toMatchInlineSnapshot(`"Value must contain only numbers"`));
 
       await request(httpServer)
         .post(getUrl(1, 1, 'not int'))
         .csrf()
         .expect(400)
-        .expect(res => expect(getErrorMessage2(res, 'service'))
+        .expect(res => expect(getErrorMessage(res, 'service'))
           .toMatchInlineSnapshot(`"Value must contain only numbers"`));
 
       await request(httpServer)
         .post(getUrl(1.1, 2))
         .csrf()
         .expect(400)
-        .expect(res => expect(getErrorMessage2(res, 'base'))
+        .expect(res => expect(getErrorMessage(res, 'base'))
           .toMatchInlineSnapshot(`"Value must contain only numbers"`));
     });
   });
@@ -473,7 +473,7 @@ describe('POST /api/manga/merge', () => {
         .post(getUrl(10, 10))
         .csrf()
         .expect(400)
-        .expect(expectErrorMessage2('Given ids are equal'));
+        .expect(expectErrorMessage('Given ids are equal'));
     });
   });
 
@@ -483,7 +483,7 @@ describe('POST /api/manga/merge', () => {
         .post(getUrl(9999, 99999))
         .csrf()
         .expect(400)
-        .expect(expectErrorMessage2('Not null value was null'));
+        .expect(expectErrorMessage('Not null value was null'));
     });
   });
 

@@ -5,7 +5,7 @@ import {
   databaseId,
   databaseIdStr,
   validateRequest,
-  validateUser2,
+  validateUser,
 } from '#server/utils/validators';
 import { type UpdateUserNotification,
   createUserNotification,
@@ -18,14 +18,14 @@ import { type UpdateUserNotification,
 import { handleError } from '@/db/utils';
 
 
-const UpdateNotificationBodyBase = z.object({
+const UpdateNotificationBodyBase = z.strictObject({
   notificationId: databaseId.optional().nullable(),
   notificationType: z.literal([1, 2]),
   groupByManga: z.boolean(),
   destination: z.string(),
   name: z.string().optional(),
   disabled: z.boolean(),
-  fields: z.array(z.object({
+  fields: z.array(z.strictObject({
     name: z.string(),
     value: z.string(),
   })).nonempty(),
@@ -55,7 +55,7 @@ export default (app: Application) => {
    *        401:
    *          $ref: '#/components/responses/unauthorized'
    */
-  app.get('/api/notifications', validateUser2, (req, res) => {
+  app.get('/api/notifications', validateUser, (req, res) => {
     getUserNotifications(req.getUser().userId)
       .then(resp => res.json({ data: resp || []}))
       .catch(err => handleError(err, res));
@@ -91,11 +91,12 @@ export default (app: Application) => {
       body: z.discriminatedUnion('useFollows', [
         UpdateNotificationBodyBase.extend({
           useFollows: z.literal(true),
+          manga: z.null().optional(),
         }),
         UpdateNotificationBodyBase.extend({
           useFollows: z.literal(false).default(false),
           manga: z.array(
-            z.object({
+            z.strictObject({
               mangaId: databaseId,
               serviceId: databaseId.optional().nullable(),
             }),
@@ -104,7 +105,7 @@ export default (app: Application) => {
             .min(0, 'At least one manga is required when useFollows is false'),
         }),
       ]),
-    }, validateUser2),
+    }, validateUser),
     (req, res) => {
       const data = {
         ...req.body,
@@ -153,15 +154,15 @@ export default (app: Application) => {
    */
   app.post('/api/notifications/override',
     ...validateRequest({
-      body: z.object({
+      body: z.strictObject({
         notificationId: databaseId,
         overrideId: databaseId,
-        fields: z.array(z.object({
+        fields: z.array(z.strictObject({
           name: z.string(),
           value: z.string(),
         })),
       }),
-    }, validateUser2),
+    }, validateUser),
     (req, res) => {
       const data = {
         ...req.body,
@@ -210,7 +211,7 @@ export default (app: Application) => {
   app.delete('/api/notifications/:notificationId',
     ...validateRequest({
       params: z.object({ notificationId: databaseIdStr }),
-    }, validateUser2),
+    }, validateUser),
     (req, res) => {
       deleteUserNotification({
         notificationId: req.params.notificationId,
@@ -244,7 +245,7 @@ export default (app: Application) => {
    *          $ref: '#/components/responses/unauthorized'
    */
   app.get('/api/notifications/notificationFollows',
-    validateUser2,
+    validateUser,
     (req, res) => {
       listNotificationFollows(req.getUser().userId)
         .then(rows => res.json({ data: rows }))

@@ -6,9 +6,9 @@ import {
   booleanString,
   coercedIntStr,
   databaseIdStr,
-  validateAdminUser2,
+  validateAdminUser,
   validateRequest,
-  validateUser2,
+  validateUser,
 } from '#server/utils/validators';
 import {
   deleteChapter,
@@ -26,14 +26,14 @@ export default (app: Express) => {
   app.post(`${BASE_URL}/:chapterId`,
     ...validateRequest({
       params: z.object({ chapterId: databaseIdStr }),
-      body: z.object({
+      body: z.strictObject({
         title: z.string().optional(),
         chapterNumber: z.int().optional(),
         chapterDecimal: z.int().nullable().optional(),
         group: z.string().optional(),
       }),
     },
-    validateAdminUser2),
+    validateAdminUser),
     (req, res) => {
       const body = req.body;
       if (!body || Object.keys(body).length === 0) {
@@ -73,7 +73,7 @@ export default (app: Express) => {
     ...validateRequest({
       params: z.object({ chapterId: databaseIdStr }),
     },
-    validateAdminUser2),
+    validateAdminUser),
     (req, res) => {
       deleteChapter(req.params.chapterId)
         .then(row => {
@@ -134,7 +134,7 @@ export default (app: Express) => {
     }),
     (req, res, next) => {
       if (req.query.useFollows) {
-        validateUser2(req, res, next);
+        validateUser(req, res, next);
       } else {
         next();
       }

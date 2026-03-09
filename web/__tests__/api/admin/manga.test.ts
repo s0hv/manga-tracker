@@ -10,8 +10,8 @@ import initServer from '@/tests/initServer';
 import stopServer from '@/tests/stopServer';
 import {
   adminUser,
-  expectErrorMessage2,
-  getErrorMessage2,
+  expectErrorMessage,
+  getErrorMessage,
   getErrorMessages,
   normalUser,
   withUser,
@@ -53,14 +53,14 @@ describe('POST /api/admin/manga/:mangaId/scheduledRun/:serviceId', () => {
         .post('/api/admin/manga/1/scheduledRun/abc')
         .csrf()
         .expect(400)
-        .expect(res => expect(getErrorMessage2(res, 'serviceId', 'params'))
+        .expect(res => expect(getErrorMessage(res, 'serviceId', 'params'))
           .toMatchInlineSnapshot(`"Value must contain only numbers"`));
 
       await request(httpServer)
         .post('/api/admin/manga/1d2/scheduledRun/1')
         .csrf()
         .expect(400)
-        .expect(res => expect(getErrorMessage2(res, 'mangaId', 'params'))
+        .expect(res => expect(getErrorMessage(res, 'mangaId', 'params'))
           .toMatchInlineSnapshot(`"Value must contain only numbers"`));
 
       await request(httpServer)
@@ -133,14 +133,14 @@ describe('DELETE /api/admin/manga/:mangaId/scheduledRun/:serviceId', () => {
         .delete('/api/admin/manga/1/scheduledRun/abc')
         .csrf()
         .expect(400)
-        .expect(res => expect(getErrorMessage2(res, 'serviceId', 'params'))
+        .expect(res => expect(getErrorMessage(res, 'serviceId', 'params'))
           .toMatchInlineSnapshot(`"Value must contain only numbers"`));
 
       await request(httpServer)
         .delete('/api/admin/manga/1d2/scheduledRun/1')
         .csrf()
         .expect(400)
-        .expect(res => expect(getErrorMessage2(res, 'mangaId', 'params'))
+        .expect(res => expect(getErrorMessage(res, 'mangaId', 'params'))
           .toMatchInlineSnapshot(`"Value must contain only numbers"`));
 
       await request(httpServer)
@@ -195,7 +195,7 @@ describe('GET /api/admin/manga/:mangaId/scheduledRuns', () => {
     await request(httpServer)
       .get(url)
       .expect(401)
-      .expect(expectErrorMessage2(userUnauthorized));
+      .expect(expectErrorMessage(userUnauthorized));
   });
 
   it('returns forbidden for non admin', async () => {
@@ -203,7 +203,7 @@ describe('GET /api/admin/manga/:mangaId/scheduledRuns', () => {
       await request(httpServer)
         .get(url)
         .expect(403)
-        .expect(expectErrorMessage2(userForbidden));
+        .expect(expectErrorMessage(userForbidden));
     });
   });
 
@@ -212,13 +212,13 @@ describe('GET /api/admin/manga/:mangaId/scheduledRuns', () => {
       await request(httpServer)
         .get('/api/admin/manga/abc/scheduledRuns')
         .expect(400)
-        .expect(res => expect(getErrorMessage2(res, 'mangaId', 'params'))
+        .expect(res => expect(getErrorMessage(res, 'mangaId', 'params'))
           .toMatchInlineSnapshot(`"Value must contain only numbers"`));
 
       await request(httpServer)
         .get('/api/admin/manga/1e2/scheduledRuns')
         .expect(400)
-        .expect(res => expect(getErrorMessage2(res, 'mangaId', 'params'))
+        .expect(res => expect(getErrorMessage(res, 'mangaId', 'params'))
           .toMatchInlineSnapshot(`"Value must contain only numbers"`));
     });
   });
@@ -273,7 +273,7 @@ describe('POST /api/admin/manga/:mangaId/title', () => {
         .post(url)
         .csrf()
         .expect(400)
-        .expect(res => expect(getErrorMessage2(res, '', 'body'))
+        .expect(res => expect(getErrorMessage(res, '', 'body'))
           .toMatchInlineSnapshot(`"Invalid input: expected object, received undefined"`));
 
       await request(httpServer)
@@ -281,7 +281,7 @@ describe('POST /api/admin/manga/:mangaId/title', () => {
         .csrf()
         .send({ title: null })
         .expect(400)
-        .expect(res => expect(getErrorMessage2(res, 'title', 'body'))
+        .expect(res => expect(getErrorMessage(res, 'title', 'body'))
           .toMatchInlineSnapshot(`"Invalid input: expected string, received null"`));
     });
   });
@@ -293,7 +293,7 @@ describe('POST /api/admin/manga/:mangaId/title', () => {
         .csrf()
         .send({ title: '' })
         .expect(400)
-        .expect(res => expect(getErrorMessage2(res, 'title', 'body'))
+        .expect(res => expect(getErrorMessage(res, 'title', 'body'))
           .toMatchInlineSnapshot(`"Too small: expected string to have >=1 characters"`));
     });
   });
@@ -305,7 +305,7 @@ describe('POST /api/admin/manga/:mangaId/title', () => {
         .csrf()
         .send({ title: 'aaa' })
         .expect(404)
-        .expect(expectErrorMessage2('Manga not found'));
+        .expect(expectErrorMessage('Manga not found'));
     });
   });
 
@@ -358,7 +358,7 @@ describe('POST /api/admin/manga/:mangaId/info', () => {
         .post(url)
         .csrf()
         .expect(400)
-        .expect(res => expect(getErrorMessage2(res, '', 'body'))
+        .expect(res => expect(getErrorMessage(res, '', 'body'))
           .toMatchInlineSnapshot(`"Invalid input: expected object, received undefined"`));
 
       await request(httpServer)
@@ -366,7 +366,7 @@ describe('POST /api/admin/manga/:mangaId/info', () => {
         .csrf()
         .send({ status: null })
         .expect(400)
-        .expect(res => expect(getErrorMessage2(res, 'status', 'body'))
+        .expect(res => expect(getErrorMessage(res, 'status', 'body'))
           .toMatchInlineSnapshot(`"Invalid option: expected one of 0|1|2|3"`));
     });
   });
@@ -378,7 +378,7 @@ describe('POST /api/admin/manga/:mangaId/info', () => {
         .csrf()
         .send({ status: '' })
         .expect(400)
-        .expect(res => expect(getErrorMessage2(res, 'status', 'body'))
+        .expect(res => expect(getErrorMessage(res, 'status', 'body'))
           .toMatchInlineSnapshot(`"Invalid option: expected one of 0|1|2|3"`));
     });
   });
@@ -390,7 +390,7 @@ describe('POST /api/admin/manga/:mangaId/info', () => {
         .csrf()
         .send({ status: -1 })
         .expect(400)
-        .expect(res => expect(getErrorMessage2(res, 'status', 'body'))
+        .expect(res => expect(getErrorMessage(res, 'status', 'body'))
           .toMatchInlineSnapshot(`"Invalid option: expected one of 0|1|2|3"`));
 
       await request(httpServer)
@@ -398,7 +398,7 @@ describe('POST /api/admin/manga/:mangaId/info', () => {
         .csrf()
         .send({ status: 4 })
         .expect(400)
-        .expect(res => expect(getErrorMessage2(res, 'status', 'body'))
+        .expect(res => expect(getErrorMessage(res, 'status', 'body'))
           .toMatchInlineSnapshot(`"Invalid option: expected one of 0|1|2|3"`));
     });
   });
@@ -435,13 +435,13 @@ describe('GET /api/admin/manga/:mangaId/services', () => {
       await request(httpServer)
         .get('/api/admin/manga/aaa/services')
         .expect(400)
-        .expect(res => expect(getErrorMessage2(res, 'mangaId', 'params'))
+        .expect(res => expect(getErrorMessage(res, 'mangaId', 'params'))
           .toMatchInlineSnapshot(`"Value must contain only numbers"`));
 
       await request(httpServer)
         .get('/api/admin/manga/1e/services')
         .expect(400)
-        .expect(res => expect(getErrorMessage2(res, 'mangaId', 'params'))
+        .expect(res => expect(getErrorMessage(res, 'mangaId', 'params'))
           .toMatchInlineSnapshot(`"Value must contain only numbers"`));
     });
   });
@@ -512,14 +512,14 @@ describe('POST /api/admin/manga/:mangaId/services/:serviceId', () => {
         .post('/api/admin/manga/1/services/1e')
         .csrf()
         .expect(400)
-        .expect(res => expect(getErrorMessage2(res, 'serviceId', 'params'))
+        .expect(res => expect(getErrorMessage(res, 'serviceId', 'params'))
           .toMatchInlineSnapshot(`"Value must contain only numbers"`));
 
       await request(httpServer)
         .post('/api/admin/manga/1/services/aaa')
         .csrf()
         .expect(400)
-        .expect(res => expect(getErrorMessage2(res, 'serviceId', 'params'))
+        .expect(res => expect(getErrorMessage(res, 'serviceId', 'params'))
           .toMatchInlineSnapshot(`"Value must contain only numbers"`));
     });
   });
@@ -548,7 +548,7 @@ describe('POST /api/admin/manga/:mangaId/services/:serviceId', () => {
         .post(url)
         .send({ mangaService: {}})
         .csrf()
-        .expect(expectErrorMessage2('No valid columns given'));
+        .expect(expectErrorMessage('No valid columns given'));
     });
   });
 
@@ -566,7 +566,7 @@ describe('POST /api/admin/manga/:mangaId/services/:serviceId', () => {
           feedUrl: 'aaa',
         }})
         .csrf()
-        .expect(expectErrorMessage2('Unrecognized keys: "mangaId", "serviceId", "lastCheck", "titleId", "latestChapter", "latestDecimal", "feedUrl"'));
+        .expect(expectErrorMessage('Unrecognized keys: "mangaId", "serviceId", "lastCheck", "titleId", "latestChapter", "latestDecimal", "feedUrl"'));
     });
   });
 
@@ -654,14 +654,14 @@ describe('POST /api/admin/manga/:mangaId/services/:serviceId/create', () => {
         .post('/api/admin/manga/1/services/1e/create')
         .csrf()
         .expect(400)
-        .expect(res => expect(getErrorMessage2(res, 'serviceId', 'params'))
+        .expect(res => expect(getErrorMessage(res, 'serviceId', 'params'))
           .toMatchInlineSnapshot(`"Value must contain only numbers"`));
 
       await request(httpServer)
         .post('/api/admin/manga/1/services/aaa/create')
         .csrf()
         .expect(400)
-        .expect(res => expect(getErrorMessage2(res, 'serviceId', 'params'))
+        .expect(res => expect(getErrorMessage(res, 'serviceId', 'params'))
           .toMatchInlineSnapshot(`"Value must contain only numbers"`));
     });
   });
@@ -719,7 +719,7 @@ describe('POST /api/admin/manga/:mangaId/services/:serviceId/create', () => {
         }})
         .csrf()
         .expect(400)
-        .expect(expectErrorMessage2('Unrecognized keys: "mangaId", "serviceId", "lastCheck", "disabled", "latestChapter", "latestDecimal", "nextUpdate"'));
+        .expect(expectErrorMessage('Unrecognized keys: "mangaId", "serviceId", "lastCheck", "disabled", "latestChapter", "latestDecimal", "nextUpdate"'));
     });
   });
 
@@ -740,7 +740,7 @@ describe('POST /api/admin/manga/:mangaId/services/:serviceId/create', () => {
         .send({ mangaService: { titleId: 'aaa' }})
         .csrf()
         .expect(404)
-        .expect(expectErrorMessage2('Foreign key violation'));
+        .expect(expectErrorMessage('Foreign key violation'));
     });
   });
 

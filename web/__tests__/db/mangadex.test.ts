@@ -24,7 +24,7 @@ describe('mangadex API works correctly', () => {
     vi.spyOn(Manga, 'get')
       .mockImplementation(async () => ({ mainCover: {}} as unknown as any));
     vi.spyOn(Cover, 'get')
-      .mockImplementation(async () => ({ imageSource: 'test' } as unknown as any));
+      .mockImplementation(async () => ({ imageSource: 'test', manga: { id: 'test' }} as unknown as any));
   });
   afterEach(async () => {
     vi.restoreAllMocks();

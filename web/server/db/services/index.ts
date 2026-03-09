@@ -71,6 +71,17 @@ export const updateServiceWhole = ({
     .execute();
 };
 
+
+interface UpdateServiceConfig extends Omit<
+  PartialExcept<ServiceConfig, 'serviceId'>,
+  'scheduledRunInterval'
+  | 'checkInterval'
+> {
+  // These will be strings when inserting to thedb
+  scheduledRunInterval?: string
+  checkInterval?: string
+}
+
 /**
  * Update service_config row
  */
@@ -80,7 +91,7 @@ export const updateServiceConfig = ({
   scheduledRunInterval,
   scheduledRunLimit,
   scheduledRunsEnabled,
-}: PartialExcept<ServiceConfig, 'serviceId'>) => {
+}: UpdateServiceConfig) => {
   const serviceConfig = {
     checkInterval,
     scheduledRunInterval,

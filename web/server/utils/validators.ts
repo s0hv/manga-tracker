@@ -5,19 +5,12 @@ import type {
   RequestHandler,
   Response,
 } from 'express-serve-static-core';
-import {
-  type CustomValidator,
-  type ValidationChain,
-  body,
-  query,
-  validationResult,
-} from 'express-validator';
 import { pattern } from 'iso8601-duration';
 import { z } from 'zod';
 
 import type { ZodApiError, ZodError } from '#server/models/error';
 
-import { Forbidden, StatusError, Unauthorized } from './errors';
+import { Forbidden, Unauthorized } from './errors';
 
 export type ZodErrorPath = 'query' | 'params' | 'body';
 
@@ -191,9 +184,6 @@ export const booleanString = z.string().transform((value, ctx) => {
   }
 });
 
-export const databaseIdValidation = (field: ValidationChain): ValidationChain => field
-  .isInt({ min: 0 });
-
 export const positiveInt = z.int32().min(0);
 export const databaseId = positiveInt;
 export const coercedIntStr = z.string()
@@ -208,59 +198,16 @@ export const coercedIntStr = z.string()
     // Fall back to the default error message
     return undefined;
   } }));
+
 export const databaseIdStr = coercedIntStr.pipe(databaseId);
 export const passwordSchema = z.string('Password must be a string')
   .trim()
   .min(8, 'Password must be between 8 and 72 characters long')
   .max(72, 'Password must be between 8 and 72 characters long');
 
+export const iso8601Duration = z.string().refine(value => pattern.test(value), 'Value must be a valid ISO 8601 duration');
 
-export const mangaIdValidation = (field = query('mangaId')): ValidationChain => databaseIdValidation(field)
-  .withMessage('Manga id must be a positive integer');
-
-export const serviceIdValidation = (field = query('serviceId')): ValidationChain => databaseIdValidation(field)
-  .withMessage('Service id must be a positive integer');
-
-export const passwordRequired: CustomValidator = (value, { req, path }) => {
-  if (value === undefined) return true;
-  if (!req.body?.password) throw new Unauthorized(`Password required for modifying ${path}`);
-  return true;
-};
-
-export const credentialsAccountOnly: CustomValidator = (value, { req }) => {
-  if (!req.user?.isCredentialsAccount) throw new Forbidden('This action is only available if your account is a traditional email + password account.');
-  return true;
-};
-
-export const newPassword = (newPass: string, repeatPass: string): ValidationChain => body(newPass)
-  .if(body(newPass).exists())
-  .custom(credentialsAccountOnly)
-  .bail()
-  .custom(passwordRequired)
-  .bail()
-  .trim()
-  .isString()
-  .withMessage('Password must be a string')
-  .bail()
-  .isLength({ min: 8, max: 72 })
-  .withMessage('Password must be between 8 and 72 characters long')
-  .bail()
-  .custom((value, { req }) => {
-    if (req.body[repeatPass] !== value) {
-      throw new Error(`${newPass} did not match ${repeatPass}`);
-    }
-
-    return true;
-  });
-
-export const userValidator: CustomValidator = (value, { req }) => {
-  if (!req.user) {
-    throw new Unauthorized('User not authenticated');
-  }
-  return true;
-};
-
-export const validateUser2 = <TParams, TBody, TQuery>(
+export const validateUser = <TParams, TBody, TQuery>(
   req: Request<TParams, unknown, TBody, TQuery>,
   _: Response,
   next: NextFunction
@@ -271,7 +218,7 @@ export const validateUser2 = <TParams, TBody, TQuery>(
   next();
 };
 
-export const validateAdminUser2 = <TParams, TBody, TQuery>(
+export const validateAdminUser = <TParams, TBody, TQuery>(
   req: Request<TParams, unknown, TBody, TQuery>,
   _: Response,
   next: NextFunction
@@ -286,49 +233,3 @@ export const validateAdminUser2 = <TParams, TBody, TQuery>(
 
   next();
 };
-
-
-export const validateUser = (): ValidationChain => body('')
-  .custom(userValidator);
-
-export const validateAdminUser = (): ValidationChain => validateUser()
-  .bail()
-  .custom((value, { req }) => {
-    if (!req.user?.admin) {
-      throw new Forbidden('Forbidden to perform this action');
-    }
-    return true;
-  });
-
-/**
- * @returns {boolean} true if validation errors occurred. false otherwise
- */
-export const hadValidationError = (req: Request, res: Response, sendAllErrors = true): boolean => {
-  const errorsObj = validationResult(req);
-  if (!errorsObj.isEmpty()) {
-    const errors = errorsObj.array();
-
-    const customError = errors.find(err => err.msg instanceof StatusError)?.msg;
-
-    if (customError) {
-      res.status(customError.status).json({ error: customError.message });
-    } else if (sendAllErrors) {
-      res.status(400).json({ error: errors });
-    } else {
-      res.status(400).json({ error: errors[0] });
-    }
-
-    return true;
-  }
-
-  return false;
-};
-
-export const handleValidationErrors = (req: Request<Record<string, string>>, res: Response, next: NextFunction) => {
-  if (hadValidationError(req, res)) return;
-  next();
-};
-
-
-export const isISO8601Duration = (chain: ValidationChain): ValidationChain => chain.custom(value => pattern.test(value))
-  .withMessage('Value must be a valid ISO 8601 duration');
