@@ -7,6 +7,7 @@ import {
   adminUser,
   expectErrorMessage,
   getCookie,
+  getErrorMessage,
   login,
   normalUser,
   oauthUser,
@@ -24,20 +25,18 @@ import { createUser } from '@/db/user';
 import { csrfMissing, serverCookieNames } from '@/serverUtils/constants';
 import { redis } from '@/serverUtils/ratelimits';
 
-
 import {
   type TestUser,
   authTokenCookieRegex,
-  mangaIdError,
   sessionCookieRegex,
   userUnauthorized,
 } from '../constants';
+
 
 let httpServer: any;
 const serverReference = {
   httpServer,
 };
-
 
 beforeAll(async () => {
   ({ httpServer } = await initServer());
@@ -69,62 +68,66 @@ describe('PUT /api/user/follows', () => {
   });
 
   it('Returns 400 with invalid manga id', async () => {
-    const errorMessage = mangaIdError;
-
     await withUser(normalUser, async () => {
       await request(httpServer)
         .put('/api/user/follows?mangaId=-1')
         .csrf()
         .expect(400)
-        .expect(expectErrorMessage('-1', 'mangaId', errorMessage));
+        .expect(res => expect(getErrorMessage(res, 'mangaId'))
+          .toMatchInlineSnapshot(`"Too small: expected number to be >=0"`));
 
       await request(httpServer)
         .put('/api/user/follows?mangaId=Infinity')
         .csrf()
         .expect(400)
-        .expect(expectErrorMessage('Infinity', 'mangaId', errorMessage));
+        .expect(res => expect(getErrorMessage(res, 'mangaId'))
+          .toMatchInlineSnapshot(`"Value must contain only numbers"`));
 
       await request(httpServer)
         .put('/api/user/follows?mangaId=')
         .csrf()
         .expect(400)
-        .expect(expectErrorMessage('', 'mangaId', errorMessage));
+        .expect(res => expect(getErrorMessage(res, 'mangaId'))
+          .toMatchInlineSnapshot(`"Value must contain only numbers"`));
 
       await request(httpServer)
         .put('/api/user/follows?mangaId=2147483648')
         .csrf()
         .expect(400)
-        .expect(expectErrorMessage('Number value out of range'));
+        .expect(res => expect(getErrorMessage(res, 'mangaId'))
+          .toMatchInlineSnapshot(`"Too big: expected number to be <=2147483647"`));
     });
   });
 
   it('Returns 400 with invalid service id', async () => {
-    const errorMessage = 'Service id must be a positive integer';
-
     await withUser(normalUser, async () => {
       await request(httpServer)
         .put('/api/user/follows?mangaId=1&serviceId=abc')
         .csrf()
         .expect(400)
-        .expect(expectErrorMessage('abc', 'serviceId', errorMessage));
+        .expect(res => expect(getErrorMessage(res, 'serviceId'))
+          .toMatchInlineSnapshot(`"Value must contain only numbers"`));
 
       await request(httpServer)
         .put('/api/user/follows?mangaId=1&serviceId=')
         .csrf()
         .expect(400)
-        .expect(expectErrorMessage('', 'serviceId', errorMessage));
+        .expect(res => expect(getErrorMessage(res, 'serviceId'))
+          .toMatchInlineSnapshot(`"Value must contain only numbers"`));
 
       await request(httpServer)
         .put('/api/user/follows?mangaId=1&serviceId=-1')
         .csrf()
         .expect(400)
-        .expect(expectErrorMessage('-1', 'serviceId', errorMessage));
+        .expect(res => expect(getErrorMessage(res, 'serviceId'))
+          .toMatchInlineSnapshot(`"Too small: expected number to be >=0"`));
 
       await request(httpServer)
         .put('/api/user/follows?mangaId=1&serviceId=undefined')
         .csrf()
         .expect(400)
-        .expect(expectErrorMessage('undefined', 'serviceId', errorMessage));
+        .expect(res => expect(getErrorMessage(res, 'serviceId'))
+          .toMatchInlineSnapshot(`"Value must contain only numbers"`));
     });
   });
 
@@ -160,62 +163,66 @@ describe('DELETE /api/user/follows', () => {
   });
 
   it('Returns 400 with invalid manga id', async () => {
-    const errorMessage = mangaIdError;
-
     await withUser(normalUser, async () => {
       await request(httpServer)
         .delete('/api/user/follows?mangaId=-1')
         .csrf()
         .expect(400)
-        .expect(expectErrorMessage('-1', 'mangaId', errorMessage));
+        .expect(res => expect(getErrorMessage(res, 'mangaId'))
+          .toMatchInlineSnapshot(`"Too small: expected number to be >=0"`));
 
       await request(httpServer)
         .delete('/api/user/follows?mangaId=Infinity')
         .csrf()
         .expect(400)
-        .expect(expectErrorMessage('Infinity', 'mangaId', errorMessage));
+        .expect(res => expect(getErrorMessage(res, 'mangaId'))
+          .toMatchInlineSnapshot(`"Value must contain only numbers"`));
 
       await request(httpServer)
         .delete('/api/user/follows?mangaId=')
         .csrf()
         .expect(400)
-        .expect(expectErrorMessage('', 'mangaId', errorMessage));
+        .expect(res => expect(getErrorMessage(res, 'mangaId'))
+          .toMatchInlineSnapshot(`"Value must contain only numbers"`));
 
       await request(httpServer)
         .delete('/api/user/follows?mangaId=2147483648')
         .csrf()
         .expect(400)
-        .expect(expectErrorMessage('Number value out of range'));
+        .expect(res => expect(getErrorMessage(res, 'mangaId'))
+          .toMatchInlineSnapshot(`"Too big: expected number to be <=2147483647"`));
     });
   });
 
   it('Returns 400 with invalid service id', async () => {
-    const errorMessage = 'Service id must be a positive integer';
-
     await withUser(normalUser, async () => {
       await request(httpServer)
         .delete('/api/user/follows?mangaId=1&serviceId=abc')
         .csrf()
         .expect(400)
-        .expect(expectErrorMessage('abc', 'serviceId', errorMessage));
+        .expect(res => expect(getErrorMessage(res, 'serviceId'))
+          .toMatchInlineSnapshot(`"Value must contain only numbers"`));
 
       await request(httpServer)
         .delete('/api/user/follows?mangaId=1&serviceId=')
         .csrf()
         .expect(400)
-        .expect(expectErrorMessage('', 'serviceId', errorMessage));
+        .expect(res => expect(getErrorMessage(res, 'serviceId'))
+          .toMatchInlineSnapshot(`"Value must contain only numbers"`));
 
       await request(httpServer)
         .delete('/api/user/follows?mangaId=1&serviceId=-1')
         .csrf()
         .expect(400)
-        .expect(expectErrorMessage('-1', 'serviceId', errorMessage));
+        .expect(res => expect(getErrorMessage(res, 'serviceId'))
+          .toMatchInlineSnapshot(`"Too small: expected number to be >=0"`));
 
       await request(httpServer)
         .delete('/api/user/follows?mangaId=1&serviceId=undefined')
         .csrf()
         .expect(400)
-        .expect(expectErrorMessage('undefined', 'serviceId', errorMessage));
+        .expect(res => expect(getErrorMessage(res, 'serviceId'))
+          .toMatchInlineSnapshot(`"Value must contain only numbers"`));
     });
   });
 
@@ -272,21 +279,24 @@ describe('POST /api/user/profile', () => {
         .csrf()
         .send({ username: 'a'.repeat(101) })
         .expect(400)
-        .expect(expectErrorMessage('a'.repeat(101), 'username', /Max username length is \d+/));
+        .expect(res => expect(getErrorMessage(res, 'username', 'body'))
+          .toMatchInlineSnapshot(`"Max username length is 100"`));
 
       await request(httpServer)
         .post('/api/profile')
         .csrf()
         .send({ username: [1, 2]})
         .expect(400)
-        .expect(expectErrorMessage([1, 2], 'username'));
+        .expect(res => expect(getErrorMessage(res, 'username', 'body'))
+          .toMatchInlineSnapshot(`"Invalid input: expected string, received array"`));
 
       await request(httpServer)
         .post('/api/profile')
         .csrf()
         .send({ username: null })
         .expect(400)
-        .expect(expectErrorMessage(null, 'username'));
+        .expect(res => expect(getErrorMessage(res, 'username', 'body'))
+          .toMatchInlineSnapshot(`"Invalid input: expected string, received null"`));
     });
   });
 
@@ -295,13 +305,15 @@ describe('POST /api/user/profile', () => {
       await request(httpServer)
         .post('/api/profile')
         .csrf()
-        .send({ email: 'test@abc', password: 'notRealPassword' })
+        .send({ email: 'test@abc' })
         .expect(400)
-        .expect(expectErrorMessage('Nothing to change'));
+        .expect(expectErrorMessage('', 'Unrecognized key: "email"', 'body'));
     });
   });
 
   it('returns 400 with too long or too short password', async () => {
+    const passwordErrorMsg = 'Password must be between 8 and 72 characters long';
+
     await withUser(normalUser, async () => {
       const spy = spyOnDb();
       const tooLong = 'a'.repeat(73);
@@ -316,7 +328,7 @@ describe('POST /api/user/profile', () => {
           password: 'notRealPassword',
         })
         .expect(400)
-        .expect(expectErrorMessage(tooLong, 'newPassword', 'Password must be between 8 and 72 characters long'));
+        .expect(expectErrorMessage('newPassword', passwordErrorMsg, 'body'));
 
       await request(httpServer)
         .post('/api/profile')
@@ -327,7 +339,7 @@ describe('POST /api/user/profile', () => {
           password: 'notRealPassword',
         })
         .expect(400)
-        .expect(expectErrorMessage(tooShort, 'newPassword', 'Password must be between 8 and 72 characters long'));
+        .expect(expectErrorMessage('newPassword', passwordErrorMsg, 'body'));
 
       expect(spy).not.toHaveBeenCalled();
     });
@@ -348,13 +360,14 @@ describe('POST /api/user/profile', () => {
           password: 'notRealPassword',
         })
         .expect(400)
-        .expect(expectErrorMessage(newPassword, 'newPassword', /did not match/));
+        .expect(res => expect(getErrorMessage(res, '', 'body'))
+          .toMatchInlineSnapshot(`"'body.newPassword' did not match 'body.repeatPassword'"`));
 
       expect(spy).not.toHaveBeenCalled();
     });
   });
 
-  it('returns 401 when editing email or changing password without giving old password', async () => {
+  it('returns 400 when editing email or changing password without giving old password', async () => {
     await withUser(normalUser, async () => {
       const spy = spyOnDb();
 
@@ -362,14 +375,17 @@ describe('POST /api/user/profile', () => {
         .post('/api/profile')
         .csrf()
         .send({ newPassword: 'newPass123' })
-        .expect(401)
-        .expect(expectErrorMessage('Password required for modifying newPassword'));
+        .expect(400)
+        .expect(res => expect(getErrorMessage(res, 'password', 'body'))
+          .toMatchInlineSnapshot(`"Password must be a string"`))
+        .expect(res => expect(getErrorMessage(res, 'repeatPassword', 'body'))
+          .toMatchInlineSnapshot(`"Password must be a string"`));
 
       expect(spy).not.toHaveBeenCalled();
     });
   });
 
-  it('returns 401 when editing all values without password', async () => {
+  it('returns 400 when editing all values without password', async () => {
     await withUser(normalUser, async () => {
       const spy = spyOnDb();
 
@@ -382,8 +398,9 @@ describe('POST /api/user/profile', () => {
           repeatPassword: 'abcdefg123',
           newPassword: 'abcdefg123',
         })
-        .expect(401)
-        .expect(expectErrorMessage(/Password required for modifying/));
+        .expect(400)
+        .expect(res => expect(getErrorMessage(res, 'password', 'body'))
+          .toMatchInlineSnapshot(`"Password must be a string"`));
 
       expect(spy).not.toHaveBeenCalled();
     });
@@ -397,9 +414,9 @@ describe('POST /api/user/profile', () => {
       .post('/api/profile')
       .csrf()
       .send({
-        newPassword: 'test',
-        repeatPassword: 'test',
-        password: oauthUser.password,
+        newPassword: 'testtest',
+        repeatPassword: 'testtest',
+        password: 'testtest1',
       })
       .expect(403)
       .expect(expectErrorMessage('This action is only available if your account is a traditional email + password account.'));
@@ -412,9 +429,9 @@ describe('POST /api/user/profile', () => {
     await agent
       .post('/api/profile')
       .csrf()
-      .send({ email: adminUser.email, password: normalUser.password })
+      .send({ email: adminUser.email })
       .expect(400)
-      .expect(expectErrorMessage('Nothing to change'));
+      .expect(expectErrorMessage('', 'Unrecognized key: "email"', 'body'));
   });
 
   async function checkAndResetPassword(agent: Agent, newPassword: string, user: TestUser) {

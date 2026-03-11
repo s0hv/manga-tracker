@@ -2,13 +2,13 @@ import { parse, toSeconds } from 'iso8601-duration';
 import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
-import { copyService } from '@/tests/dbutils';
 import initServer from '@/tests/initServer';
 import stopServer from '@/tests/stopServer';
 import {
   adminUser,
   expectErrorMessage,
   getErrorMessage,
+  getErrorMessages,
   getIncrementalStringGenerator,
   mockUTCDates,
   normalUser,
@@ -16,7 +16,7 @@ import {
 } from '@/tests/utils';
 import { getServiceFull } from '@/db/services';
 import { csrfMissing } from '@/serverUtils/constants';
-import { isCI, userForbidden, userUnauthorized } from '@/tests/constants';
+import { userForbidden, userUnauthorized } from '@/tests/constants';
 import type { Service, ServiceConfig, ServiceWhole } from '@/types/db/services';
 
 let httpServer: any;
@@ -78,7 +78,7 @@ describe('POST /api/admin/editService/:serviceId', () => {
         .post(url)
         .csrf()
         .expect(400)
-        .expect(expectErrorMessage('No valid fields given to update'));
+        .expect(expectErrorMessage('Invalid input: expected object, received undefined'));
 
       await request(httpServer)
         .post(url)
@@ -108,7 +108,8 @@ describe('POST /api/admin/editService/:serviceId', () => {
           },
         })
         .expect(400)
-        .expect(expectErrorMessage([1, 2, 3], 'service.serviceName'));
+        .expect(res => expect(getErrorMessage(res, 'service.serviceName', 'body'))
+          .toMatchInlineSnapshot(`"Invalid input: expected string, received array"`));
 
       // disabled
       await request(httpServer)
@@ -120,7 +121,8 @@ describe('POST /api/admin/editService/:serviceId', () => {
           },
         })
         .expect(400)
-        .expect(expectErrorMessage('2', 'service.disabled'));
+        .expect(res => expect(getErrorMessage(res, 'service.disabled', 'body'))
+          .toMatchInlineSnapshot(`"Invalid input: expected boolean, received string"`));
 
       await request(httpServer)
         .post(url)
@@ -131,7 +133,8 @@ describe('POST /api/admin/editService/:serviceId', () => {
           },
         })
         .expect(400)
-        .expect(expectErrorMessage(null, 'service.disabled'));
+        .expect(res => expect(getErrorMessage(res, 'service.disabled', 'body'))
+          .toMatchInlineSnapshot(`"Invalid input: expected boolean, received null"`));
     });
   });
 
@@ -146,7 +149,8 @@ describe('POST /api/admin/editService/:serviceId', () => {
           },
         })
         .expect(400)
-        .expect(expectErrorMessage('abc', 'serviceWhole.nextUpdate'));
+        .expect(res => expect(getErrorMessage(res, 'serviceWhole.nextUpdate', 'body'))
+          .toMatchInlineSnapshot(`"Invalid ISO datetime"`));
 
       await request(httpServer)
         .post(url)
@@ -157,7 +161,8 @@ describe('POST /api/admin/editService/:serviceId', () => {
           },
         })
         .expect(400)
-        .expect(expectErrorMessage(1602954767, 'serviceWhole.nextUpdate'));
+        .expect(res => expect(getErrorMessage(res, 'serviceWhole.nextUpdate', 'body'))
+          .toMatchInlineSnapshot(`"Invalid input: expected string, received number"`));
     });
   });
 
@@ -174,7 +179,17 @@ describe('POST /api/admin/editService/:serviceId', () => {
           },
         })
         .expect(400)
-        .expect(res => expect(getErrorMessage(res)).toMatchSnapshot());
+        .expect(res => expect(getErrorMessages(res))
+          .toMatchInlineSnapshot(`
+            {
+              "body.serviceConfig.checkInterval": [
+                "Value must be a valid ISO 8601 duration",
+              ],
+              "body.serviceConfig.scheduledRunInterval": [
+                "Value must be a valid ISO 8601 duration",
+              ],
+            }
+          `));
 
       await request(httpServer)
         .post(url)
@@ -186,8 +201,17 @@ describe('POST /api/admin/editService/:serviceId', () => {
           },
         })
         .expect(400)
-        .expect(res => expect(getErrorMessage(res)).toMatchSnapshot());
-
+        .expect(res => expect(getErrorMessages(res))
+          .toMatchInlineSnapshot(`
+            {
+              "body.serviceConfig.checkInterval": [
+                "Value must be a valid ISO 8601 duration",
+              ],
+              "body.serviceConfig.scheduledRunInterval": [
+                "Value must be a valid ISO 8601 duration",
+              ],
+            }
+          `));
 
       // scheduledRunLimit
       await request(httpServer)
@@ -199,7 +223,8 @@ describe('POST /api/admin/editService/:serviceId', () => {
           },
         })
         .expect(400)
-        .expect(res => expect(getErrorMessage(res)).toMatchSnapshot());
+        .expect(res => expect(getErrorMessage(res, 'serviceConfig.scheduledRunLimit', 'body'))
+          .toMatchInlineSnapshot(`"Invalid input: expected number, received string"`));
 
       await request(httpServer)
         .post(url)
@@ -210,7 +235,8 @@ describe('POST /api/admin/editService/:serviceId', () => {
           },
         })
         .expect(400)
-        .expect(res => expect(getErrorMessage(res)).toMatchSnapshot());
+        .expect(res => expect(getErrorMessage(res, 'serviceConfig.scheduledRunLimit', 'body'))
+          .toMatchInlineSnapshot(`"Too big: expected number to be <=100"`));
 
       await request(httpServer)
         .post(url)
@@ -221,8 +247,8 @@ describe('POST /api/admin/editService/:serviceId', () => {
           },
         })
         .expect(400)
-        .expect(res => expect(getErrorMessage(res)).toMatchSnapshot());
-
+        .expect(res => expect(getErrorMessage(res, 'serviceConfig.scheduledRunLimit', 'body'))
+          .toMatchInlineSnapshot(`"Too small: expected number to be >=1"`));
 
       // scheduledRunsEnabled
       await request(httpServer)
@@ -234,7 +260,8 @@ describe('POST /api/admin/editService/:serviceId', () => {
           },
         })
         .expect(400)
-        .expect(expectErrorMessage('y', 'serviceConfig.scheduledRunsEnabled'));
+        .expect(res => expect(getErrorMessage(res, 'serviceConfig.scheduledRunsEnabled', 'body'))
+          .toMatchInlineSnapshot(`"Invalid input: expected boolean, received string"`));
     });
   });
 
@@ -250,13 +277,7 @@ describe('POST /api/admin/editService/:serviceId', () => {
         .send(data)
         .expect(200);
 
-      await new Promise(setImmediate);
-      // Sleep for a bit here to make sure changes get flushed to database
-      await new Promise(r => setTimeout(r, 20));
-
-      const newServiceId = isCI ? await copyService(serviceId) : serviceId;
-
-      const originalService = await getServiceFull(newServiceId);
+      const originalService = await getServiceFull(serviceId);
       originalService.serviceConfig!.checkInterval = toSeconds(originalService.serviceConfig!.checkInterval) as any;
       originalService.serviceConfig!.scheduledRunInterval = toSeconds(originalService.serviceConfig!.scheduledRunInterval) as any;
 

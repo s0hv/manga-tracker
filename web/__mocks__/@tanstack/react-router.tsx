@@ -1,7 +1,6 @@
 import { vi } from 'vitest';
 import type {
   AnyRouter,
-  LinkComponent,
   RegisteredRouter,
 } from '@tanstack/react-router';
 

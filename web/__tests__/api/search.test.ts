@@ -3,7 +3,10 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import initServer from '../initServer';
 import stopServer from '../stopServer';
-import { expectErrorMessage } from '../utils';
+import {
+  expectErrorMessage,
+  getErrorMessage,
+} from '../utils';
 import { fullManga, isoDateTimeRegex } from '@/tests/constants';
 
 
@@ -22,12 +25,12 @@ describe('GET /api/quicksearch', () => {
     await request(httpServer)
       .get('/api/quicksearch')
       .expect(400)
-      .expect(expectErrorMessage(undefined, 'query', 'No search query specified'));
+      .expect(expectErrorMessage('query', 'No search query specified'));
 
     await request(httpServer)
       .get('/api/quicksearch?query=a')
       .expect(400)
-      .expect(expectErrorMessage('a', 'query', 'Query must be between 2 and 500 characters'));
+      .expect(expectErrorMessage('query', 'Query must be between 2 and 500 characters'));
   });
 
   it('Returns 400 with too large query', async () => {
@@ -35,7 +38,7 @@ describe('GET /api/quicksearch', () => {
     await request(httpServer)
       .get(`/api/quicksearch?query=${query}`)
       .expect(400)
-      .expect(expectErrorMessage(query, 'query', 'Query must be between 2 and 500 characters'));
+      .expect(expectErrorMessage('query', 'Query must be between 2 and 500 characters'));
   });
 
   it('Returns 400 with valid query with invalid withServices value', async () => {
@@ -88,12 +91,14 @@ describe('GET /api/search', () => {
     await request(httpServer)
       .get('/api/search')
       .expect(400)
-      .expect(expectErrorMessage(undefined, 'query', 'No search query specified'));
+      .expect(res => expect(getErrorMessage(res, 'query'))
+        .toMatchInlineSnapshot(`"No search query specified"`));
 
     await request(httpServer)
       .get('/api/search?query=a')
       .expect(400)
-      .expect(expectErrorMessage('a', 'query', 'Query must be between 2 and 500 characters'));
+      .expect(res => expect(getErrorMessage(res, 'query'))
+        .toMatchInlineSnapshot(`"Query must be between 2 and 500 characters"`));
   });
 
   it('Returns 400 with too large query', async () => {
@@ -101,7 +106,8 @@ describe('GET /api/search', () => {
     await request(httpServer)
       .get(`/api/search?query=${query}`)
       .expect(400)
-      .expect(expectErrorMessage(query, 'query', 'Query must be between 2 and 500 characters'));
+      .expect(res => expect(getErrorMessage(res, 'query'))
+        .toMatchInlineSnapshot(`"Query must be between 2 and 500 characters"`));
   });
 
   it('Returns 200 with valid query', async () => {

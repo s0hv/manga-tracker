@@ -133,7 +133,7 @@ describe('Smoke tests', () => {
     cy.findByRole('button', { name: /^delete row$/i }).should('not.exist');
 
     // Manga admin page
-    cy.findByRole('button', { name: /^admin page$/i }).click();
+    Selector.getMangaAdminPageBtn().click();
     cy.location('pathname').should('equal', '/admin/manga/1');
 
     cy.findByText('Alternative titles').should('exist');
@@ -142,7 +142,7 @@ describe('Smoke tests', () => {
 
     cy.findByRole('button', { name: /^add item$/i }).should('exist');
     cy.findByRole('button', { name: /^add scheduled run$/i }).should('exist');
-    cy.findByRole('combobox', { name: /^publication status$/i }).should('exist');
+    Selector.getPublicationStatusSelect().should('exist');
 
     // Merge manga page
     cy.visit('/admin/manga/merge');

@@ -7,6 +7,7 @@ import {
   MANGA4,
   sessionCookieName,
 } from '../../constants';
+import { Selector } from '../../selectors';
 
 beforeEach(() => {
   cy.task('flushRedis');
@@ -119,10 +120,10 @@ describe('Login features', () => {
 
       // Clear the session cookie
       cy.clearCookie(sessionCookieName);
-      cy.wait(100);
+      cy.wait(150);
 
       // Navigate to another page
-      cy.findByRole('button', { name: /^admin page$/i }).click();
+      Selector.getMangaAdminPageBtn().click();
 
       // Token should be refreshed and the page should be changed
       cy.getCookie(sessionCookieName)

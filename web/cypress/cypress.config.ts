@@ -10,6 +10,7 @@ import type { CreatedUser } from './types';
 export default defineConfig({
   video: false,
   watchForFileChanges: false,
+  allowCypressEnv: false,
   e2e: {
     supportFile: 'support/e2e.{js,jsx,ts,tsx}',
     specPattern: 'e2e/**/*.cy.{js,jsx,ts,tsx}',
@@ -30,6 +31,10 @@ export default defineConfig({
               console.error(err);
               throw err;
             });
+        },
+
+        async runSql({ sql, params }: { sql: string, params?: Record<string, unknown> }): Promise<unknown> {
+          return await db.sql.unsafe(sql, params);
         },
 
         async createUser(): Promise<CreatedUser> {

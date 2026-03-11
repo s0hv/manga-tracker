@@ -1,4 +1,5 @@
 import type { Request } from 'express-serve-static-core';
+import type {} from 'pino-http';
 
 /**
  * Request with generics set to unknown.

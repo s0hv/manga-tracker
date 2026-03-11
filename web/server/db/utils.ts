@@ -24,7 +24,9 @@ export const generateUpdate = (o: {[key: string]: any }, sql: Db) => {
   const obj = { ...o };
   Object.keys(obj).forEach(key => obj[key] === undefined && delete obj[key]);
 
-  if (Object.keys(obj).length === 0) throw new NoColumnsError('No valid columns given');
+  if (Object.keys(obj).length === 0) {
+    throw new NoColumnsError('No valid columns given');
+  }
 
   return sql(obj);
 };

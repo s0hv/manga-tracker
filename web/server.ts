@@ -106,6 +106,23 @@ if (IS_DEVELOPMENT) {
   directives.connectSrc = ["'self'", 'ws:'];
 }
 
+Object.defineProperty(
+  server.request,
+  'getUser',
+  {
+    configurable: false,
+    enumerable: false,
+    writable: false,
+    value: function getUser() {
+      if (!this.user) {
+        throw new Error('Tried to access user when it was null');
+      }
+
+      return this.user;
+    },
+  }
+);
+
 server.use(pinoHttp({ logger: expressLogger, useLevel: 'debug' }));
 
 server.use((req, _, next) => {

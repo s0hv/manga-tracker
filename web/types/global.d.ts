@@ -16,6 +16,16 @@ declare module 'next-auth/adapters' {
 declare module 'express-serve-static-core' {
   interface Request {
     user: SessionUser | null
+
+    /**
+     * This is a helper function to return a strongly typed user.
+     *
+     * It is a getter because it double-checks that the user is not null.
+     *
+     * The user validations should still be used to ensure the validation
+     * is done early and for proper error handling.
+     */
+    getUser(): SessionUser
     session: SafeSession | null
     isStaticResource?: boolean
     _nonce?: string

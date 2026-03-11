@@ -1,0 +1,103 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`POST /api/admin/manga/:mangaId/services/:serviceId > Returns 400 with invalid body 'aaa' 1`] = `
+{
+  "body": [
+    "Unrecognized key: "aaa"",
+  ],
+  "body.mangaService": [
+    "Invalid input: expected object, received undefined",
+  ],
+}
+`;
+
+exports[`POST /api/admin/manga/:mangaId/services/:serviceId > Returns 400 with invalid body { mangaService: 'a' } 1`] = `
+{
+  "body.mangaService": [
+    "Invalid input: expected object, received string",
+  ],
+}
+`;
+
+exports[`POST /api/admin/manga/:mangaId/services/:serviceId > Returns 400 with invalid body { mangaService: [] } 1`] = `
+{
+  "body.mangaService": [
+    "Invalid input: expected object, received array",
+  ],
+}
+`;
+
+exports[`POST /api/admin/manga/:mangaId/services/:serviceId > Returns 400 with invalid body { mangaService: null } 1`] = `
+{
+  "body.mangaService": [
+    "Invalid input: expected object, received null",
+  ],
+}
+`;
+
+exports[`POST /api/admin/manga/:mangaId/services/:serviceId > Returns 400 with invalid body null 1`] = `
+{
+  "body": [
+    "Invalid input: expected object, received undefined",
+  ],
+}
+`;
+
+exports[`POST /api/admin/manga/:mangaId/services/:serviceId > Returns 400 with invalid body undefined 1`] = `
+{
+  "body": [
+    "Invalid input: expected object, received array",
+  ],
+}
+`;
+
+exports[`POST /api/admin/manga/:mangaId/services/:serviceId/create > Returns 400 with invalid body 'aaa' 1`] = `
+{
+  "body": [
+    "Unrecognized key: "aaa"",
+  ],
+  "body.mangaService": [
+    "Invalid input: expected object, received undefined",
+  ],
+}
+`;
+
+exports[`POST /api/admin/manga/:mangaId/services/:serviceId/create > Returns 400 with invalid body { mangaService: 'a' } 1`] = `
+{
+  "body.mangaService": [
+    "Invalid input: expected object, received string",
+  ],
+}
+`;
+
+exports[`POST /api/admin/manga/:mangaId/services/:serviceId/create > Returns 400 with invalid body { mangaService: [] } 1`] = `
+{
+  "body.mangaService": [
+    "Invalid input: expected object, received array",
+  ],
+}
+`;
+
+exports[`POST /api/admin/manga/:mangaId/services/:serviceId/create > Returns 400 with invalid body { mangaService: null } 1`] = `
+{
+  "body.mangaService": [
+    "Invalid input: expected object, received null",
+  ],
+}
+`;
+
+exports[`POST /api/admin/manga/:mangaId/services/:serviceId/create > Returns 400 with invalid body null 1`] = `
+{
+  "body": [
+    "Invalid input: expected object, received undefined",
+  ],
+}
+`;
+
+exports[`POST /api/admin/manga/:mangaId/services/:serviceId/create > Returns 400 with invalid body undefined 1`] = `
+{
+  "body": [
+    "Invalid input: expected object, received array",
+  ],
+}
+`;

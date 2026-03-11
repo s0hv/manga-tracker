@@ -50,7 +50,9 @@ describe('formatChapterUrl', () => {
 
   it('Should replace {} with second argument', () => {
     expect(formatChapterUrl('{}', 'abc', 'testId')).toBe('abc');
-    expect(formatChapterUrl('abc/{}/x', 'defg', 'testId')).toMatchInlineSnapshot(`"abc/defg/x"`);
-    expect(formatChapterUrl('{title_id}/{}/x', 'defg', 'testId')).toMatchInlineSnapshot(`"testId/defg/x"`);
+    expect(formatChapterUrl('abc/{}/x', 'defg', 'testId'))
+      .toMatchInlineSnapshot(`"abc/defg/x"`);
+    expect(formatChapterUrl('{title_id}/{}/x', 'defg', 'testId'))
+      .toMatchInlineSnapshot(`"testId/defg/x"`);
   });
 });
