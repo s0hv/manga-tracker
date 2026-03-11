@@ -154,7 +154,7 @@ export default (app: Application) => {
    */
   app.post('/api/notifications/override',
     ...validateRequest({
-      body: z.strictObject({
+      body: z.object({
         notificationId: databaseId,
         overrideId: databaseId,
         fields: z.array(z.strictObject({
