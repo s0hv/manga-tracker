@@ -51,6 +51,14 @@ export const Selector = {
     return cy.findByRole('img', { name: mangaTitle });
   },
 
+  getMangaServicesTable() {
+    return cy.findByRole('table', { name: /^manga services$/i });
+  },
+
+  getScheduledRunsTable() {
+    return cy.findByRole('table', { name: /^scheduled runs$/i });
+  },
+
   getStatsTab() {
     return cy.findByRole('tab', { name: /^stats$/i });
   },
@@ -65,6 +73,10 @@ export const Selector = {
 
   getNotificationTypeSelect() {
     return cy.findByRole('combobox', { name: /^notification type to create$/i });
+  },
+
+  getPublicationStatusSelect() {
+    return cy.findByRole('combobox', { name: /^publication status$/i });
   },
 
   getDiscordWebhookOption() {
@@ -86,12 +98,47 @@ export const Selector = {
     return cy.findByRole('button', { name: /^save$/i });
   },
 
+  getCreateRowBtn() {
+    return cy.findByRole('button', { name: /^create row$/i });
+  },
+
+  getDeleteRowBtn() {
+    return cy.findByRole('button', { name: /^confirm delete row$/i });
+  },
+
   getYesBtn() {
     return cy.findByRole('button', { name: /^yes$/i });
   },
 
+  getDeleteBtn() {
+    return cy.findByRole('button', { name: /^delete$/i });
+  },
+
   getEditChaptersBtn() {
     return cy.findByRole('button', { name: /^edit chapters$/i });
+  },
+
+  getAddScheduledRunBtn() {
+    return cy.findByRole('button', { name: /^add scheduled run/i });
+  },
+
+  getEditRowBtn(index?: number) {
+    if (index !== undefined) {
+      return cy.findAllByRole('button', { name: /^edit row$/i }).eq(index);
+    }
+    return cy.findByRole('button', { name: /^edit row$/i });
+  },
+
+  getSaveRowBtn() {
+    return cy.findByRole('button', { name: /^save row$/i });
+  },
+
+  getCancelRowSaveBtn() {
+    return cy.findByRole('button', { name: /^cancel edit$/i });
+  },
+
+  getMangaAdminPageBtn() {
+    return cy.findByRole('button', { name: /^admin page$/i });
   },
 
   assertAlertExists(text: string | RegExp) {

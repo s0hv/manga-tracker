@@ -48,6 +48,7 @@ declare global {
       logout(): Chainable<void>
       expectLightTheme(): Chainable<void>
       expectDarkTheme(): Chainable<void>
+      selectComboboxValue(name: string | RegExp, option: string | RegExp): Chainable<void>
     }
   }
 }
@@ -91,6 +92,11 @@ Cypress.Commands.add('expectLightTheme', () => {
 
 Cypress.Commands.add('expectDarkTheme', () => {
   cy.get('body').should('have.css', 'background-color', 'rgb(18, 18, 18)');
+});
+
+Cypress.Commands.add('selectComboboxValue', (name, option) => {
+  cy.findByRole('combobox', { name: name }).click();
+  cy.findByRole('option', { name: option }).click();
 });
 
 Cypress.on('uncaught:exception', err => {
