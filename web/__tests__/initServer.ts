@@ -13,64 +13,65 @@ vi.mock('@/db/auth', async () => {
   };
 });
 
-export default async function initServer(): Promise<{ httpServer: Server, addr: string }> {
-  vi.mock('@/db/elasticsearch', async () => {
-    const { Client } = await import('@elastic/elasticsearch');
-    const { default: Mock } = await import('@elastic/elasticsearch-mock');
-    const mock = new Mock();
+vi.mock('@/db/elasticsearch', async () => {
+  const { Client } = await import('@elastic/elasticsearch');
+  const { default: Mock } = await import('@elastic/elasticsearch-mock');
+  const mock = new Mock();
 
-    const hits: MangaSearchResult<true> = {
-      hits: {
-        total: {
-          value: 10,
-          relation: '',
-        },
-        max_score: 10,
-        hits: [
-          {
-            _id: '1',
-            _score: 10,
-            fields: {
-              manga_id: [1],
-              title: ['Test Manga'],
-              'services.service_name': ['Test Service'],
-              'services.service_id': [1],
-            },
+  const hits: MangaSearchResult<true> = {
+    hits: {
+      total: {
+        value: 10,
+        relation: '',
+      },
+      max_score: 10,
+      hits: [
+        {
+          _id: '1',
+          _score: 10,
+          fields: {
+            manga_id: [1],
+            title: ['Test Manga'],
+            'services.service_name': ['Test Service'],
+            'services.service_id': [1],
           },
-        ],
-      },
-    };
+        },
+      ],
+    },
+  };
 
-    mock.add({
-      method: ['GET', 'POST'],
-      path: ['/_search', '/:index/_search'],
-    }, () => hits);
+  mock.add({
+    method: ['GET', 'POST'],
+    path: ['/_search', '/:index/_search'],
+  }, () => hits);
 
-    // https://github.com/elastic/elasticsearch-js-mock/issues/18#issuecomment-900365420
-    // Needed as the es client >=@7.14.0 validates whether it is connected to a real ES instance
-    // by GETting / and checking these fields in the response
-    mock.add({ method: 'GET', path: '/' }, () => ({
-      name: 'mocked-es-instance',
-      version: {
-        number: '7.17.1',
-        build_flavor: 'default',
-      },
-      tagline: 'You Know, for Search',
-    }));
+  // https://github.com/elastic/elasticsearch-js-mock/issues/18#issuecomment-900365420
+  // Needed as the es client >=@7.14.0 validates whether it is connected to a real ES instance
+  // by GETting / and checking these fields in the response
+  mock.add({ method: 'GET', path: '/' }, () => ({
+    name: 'mocked-es-instance',
+    version: {
+      number: '7.17.1',
+      build_flavor: 'default',
+    },
+    tagline: 'You Know, for Search',
+  }));
 
-    mock.add({
-      method: ['POST', 'DELETE'],
-      path: ['/:index/_update/:id', '/:index/_doc/:id'],
-    }, () => ({ status: 'OK' }));
+  mock.add({
+    method: ['POST', 'DELETE'],
+    path: ['/:index/_update/:id', '/:index/_doc/:id'],
+  }, () => ({ status: 'OK' }));
 
-    return {
-      default: new Client({
-        node: 'http://localhost:9200',
-        Connection: mock.getConnection(),
-      }),
-    };
-  });
+  return {
+    default: new Client({
+      node: 'http://localhost:9200',
+      Connection: mock.getConnection(),
+    }),
+  };
+});
 
+
+export default async function initServer(): Promise<{ httpServer: Server, addr: string }> {
   process.env.PORT = '0';
   const httpServer = await import('../server')
     .then(m => m.default)
