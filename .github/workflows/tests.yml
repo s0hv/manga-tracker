@@ -48,7 +48,7 @@ jobs:
           --health-retries 5
 
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
     # Force https use since ssh does not work
     - run: 'git config --global url."https://github.com/".insteadOf ssh://git@github.com/'
     - run: 'git config --global url."https://".insteadOf ssh://'
@@ -141,7 +141,7 @@ jobs:
           - 9200:9200
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v6
         with:
@@ -240,7 +240,7 @@ jobs:
           - 9200:9200
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       # Force https use since ssh does not work
       - run: 'git config --global url."https://github.com/".insteadOf ssh://git@github.com/'
       - run: 'git config --global url."https://".insteadOf ssh://'
@@ -303,7 +303,7 @@ jobs:
           CYPRESS: true
           IS_CI: true
 
-      - uses: cypress-io/github-action@v6
+      - uses: cypress-io/github-action@v7
         continue-on-error: true
         name: Run Cypress tests
         id: cypress-run
@@ -321,7 +321,7 @@ jobs:
           fail_ci_if_error: true
           token: ${{ secrets.CODECOV_TOKEN }}
 
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v7
         with:
           name: cypress-screenshots
           path: ./web/cypress/screenshots
