@@ -37,7 +37,9 @@ afterAll(async () => {
 
 
 describe('POST /api/chapter/:chapterId', () => {
-  expectISEOnDbError(serverReference, '/api/chapter/1', {
+  const url = '/api/chapter/1';
+
+  expectISEOnDbError(serverReference, url, {
     user: adminUser,
     method: 'post',
     custom: req => req
@@ -49,14 +51,14 @@ describe('POST /api/chapter/:chapterId', () => {
 
   it('Returns 403 without CSRF token', async () => {
     await request(httpServer)
-      .post('/api/chapter/1')
+      .post(url)
       .expect(403)
       .expect(expectErrorMessage(csrfMissing));
   });
 
   it('returns unauthorized without login', async () => {
     await request(httpServer)
-      .post('/api/chapter/1')
+      .post(url)
       .csrf()
       .expect(401)
       .expect(expectErrorMessage(userUnauthorized));
@@ -65,7 +67,7 @@ describe('POST /api/chapter/:chapterId', () => {
   it('returns forbidden for non admin', async () => {
     await withUser(normalUser, async () => {
       await request(httpServer)
-        .post('/api/chapter/1')
+        .post(url)
         .csrf()
         .expect(403)
         .expect(expectErrorMessage(userForbidden));
@@ -176,13 +178,20 @@ describe('POST /api/chapter/:chapterId', () => {
         .send({ group: null })
         .expect(400)
         .expect(expectErrorMessage('group', 'Invalid input: expected string, received null', 'body'));
+
+      await request(httpServer)
+        .post('/api/chapter/99999999')
+        .csrf()
+        .send({ title: undefined })
+        .expect(400)
+        .expect(expectErrorMessage('Empty body'));
     });
   });
 
   it('returns ok when editing successful', async () => {
     await withUser(adminUser, async () => {
       await request(httpServer)
-        .post('/api/chapter/1')
+        .post(url)
         .csrf()
         .send({
           title: 'edited title',
@@ -193,7 +202,7 @@ describe('POST /api/chapter/:chapterId', () => {
         .expect(200);
 
       await request(httpServer)
-        .post('/api/chapter/1')
+        .post(url)
         .csrf()
         .send({
           title: 'edited title 2',
@@ -201,7 +210,7 @@ describe('POST /api/chapter/:chapterId', () => {
         .expect(200);
 
       await request(httpServer)
-        .post('/api/chapter/1')
+        .post(url)
         .csrf()
         .send({
           chapterNumber: 2,
@@ -209,7 +218,7 @@ describe('POST /api/chapter/:chapterId', () => {
         .expect(200);
 
       await request(httpServer)
-        .post('/api/chapter/1')
+        .post(url)
         .csrf()
         .send({
           chapterDecimal: null,
@@ -219,7 +228,7 @@ describe('POST /api/chapter/:chapterId', () => {
       // Disabled for now as group editing not allowed
       /*
       await request(httpServer)
-        .post('/api/chapter/1')
+        .post(url)
         .csrf()
         .send({
           group: 'test group 2',
@@ -231,7 +240,9 @@ describe('POST /api/chapter/:chapterId', () => {
 });
 
 describe('DELETE /api/chapter/:chapterId', () => {
-  expectISEOnDbError(serverReference, '/api/chapter/1', {
+  const url = '/api/chapter/1';
+
+  expectISEOnDbError(serverReference, url, {
     user: adminUser,
     method: 'delete',
     custom: req => req.csrf(),
@@ -239,14 +250,14 @@ describe('DELETE /api/chapter/:chapterId', () => {
 
   it('Returns 403 without CSRF token', async () => {
     await request(httpServer)
-      .delete('/api/chapter/1')
+      .delete(url)
       .expect(403)
       .expect(expectErrorMessage(csrfMissing));
   });
 
   it('returns unauthorized without login', async () => {
     await request(httpServer)
-      .delete('/api/chapter/1')
+      .delete(url)
       .csrf()
       .expect(401)
       .expect(expectErrorMessage(userUnauthorized));
@@ -255,7 +266,7 @@ describe('DELETE /api/chapter/:chapterId', () => {
   it('returns forbidden for non admin', async () => {
     await withUser(normalUser, async () => {
       await request(httpServer)
-        .delete('/api/chapter/1')
+        .delete(url)
         .csrf()
         .expect(403)
         .expect(expectErrorMessage(userForbidden));

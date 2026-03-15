@@ -13,7 +13,10 @@ import {
   oauthUser,
   withUser,
 } from '../utils';
-import { apiRequiresUserPostTests } from './api-test-utilities';
+import {
+  apiRequiresUserPostTests,
+  expectISEOnDbError,
+} from './api-test-utilities';
 import {
   expectAuthTokenRegenerated,
   expectSessionRegenerated,
@@ -52,6 +55,8 @@ beforeEach(async () => {
 });
 
 describe('PUT /api/user/follows', () => {
+  expectISEOnDbError(serverReference, '/api/user/follows?mangaId=1', { method: 'put' });
+
   it('Returns 401 without user authentication', async () => {
     await request(httpServer)
       .put('/api/user/follows')
@@ -147,6 +152,8 @@ describe('PUT /api/user/follows', () => {
 });
 
 describe('DELETE /api/user/follows', () => {
+  expectISEOnDbError(serverReference, '/api/user/follows?mangaId=1&serviceId=1', { method: 'delete' });
+
   it('Returns 403 without CSRF token', async () => {
     await request(httpServer)
       .delete('/api/user/follows')
@@ -256,7 +263,16 @@ describe('DELETE /api/user/follows', () => {
   });
 });
 
-describe('POST /api/user/profile', () => {
+describe('POST /api/profile', () => {
+  expectISEOnDbError(
+    serverReference,
+    '/api/profile',
+    {
+      method: 'post',
+      custom: test => test.send({ username: 'test ci edited' }),
+    }
+  );
+
   it('Returns 403 without CSRF token', async () => {
     await request(httpServer)
       .post('/api/profile')
@@ -308,6 +324,17 @@ describe('POST /api/user/profile', () => {
         .send({ email: 'test@abc' })
         .expect(400)
         .expect(expectErrorMessage('', 'Unrecognized key: "email"', 'body'));
+    });
+  });
+
+  it('returns 400 without anything to update', async () => {
+    await withUser(normalUser, async () => {
+      await request(httpServer)
+        .post('/api/profile')
+        .csrf()
+        .send({})
+        .expect(400)
+        .expect(expectErrorMessage('Nothing to change'));
     });
   });
 
@@ -548,6 +575,7 @@ describe('POST /api/user/profile', () => {
 describe('POST /api/user/delete', () => {
   const url = '/api/user/delete';
   apiRequiresUserPostTests(serverReference, url);
+  expectISEOnDbError(serverReference, url, { method: 'post' });
 
   it('Deletes the user', async () => {
     const deleteTestUser: TestUser = {
@@ -577,6 +605,7 @@ describe('POST /api/user/delete', () => {
 describe('POST /api/user/dataRequest', () => {
   const url = '/api/user/dataRequest';
   apiRequiresUserPostTests(serverReference, url);
+  expectISEOnDbError(serverReference, url, { method: 'post' });
 
   it('Returns user data', async () => {
     const agent = await login(httpServer, oauthUser);

@@ -4,6 +4,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {
   apiRequiresAdminUserGetTests,
   apiRequiresAdminUserPostTests,
+  expectISEOnDbError,
 } from '../api-test-utilities';
 import { createManga, createMangaService } from '@/tests/dbutils';
 import initServer from '@/tests/initServer';
@@ -13,6 +14,7 @@ import {
   expectErrorMessage,
   getErrorMessage,
   getErrorMessages,
+  mockDbForErrors,
   normalUser,
   withUser,
 } from '@/tests/utils';
@@ -23,6 +25,7 @@ import {
 import { getMangaServices } from '@/db/admin/manga';
 import { getAliases, getMangaPartial } from '@/db/manga';
 import {
+  ISE,
   userForbidden,
   userUnauthorized,
 } from '@/tests/constants';
@@ -126,6 +129,22 @@ describe('DELETE /api/admin/manga/:mangaId/scheduledRun/:serviceId', () => {
   const url = `/api/admin/manga/${mangaId}/scheduledRun/${serviceId}`;
 
   apiRequiresAdminUserPostTests(serverReference, url);
+
+  it('returns 500 when database throws an error', async () => {
+    await withUser(adminUser, async () => {
+      await scheduleMangaRun(mangaId, serviceId, adminUser.userId);
+
+      await mockDbForErrors(async () => {
+        request(httpServer)
+          .delete(url)
+          .csrf()
+          .expect(500)
+          .expect(expectErrorMessage(ISE));
+      });
+
+      await deleteScheduledRun(mangaId, serviceId);
+    });
+  });
 
   it('Returns 400 with invalid params', async () => {
     await withUser(adminUser, async () => {
@@ -266,6 +285,11 @@ describe('POST /api/admin/manga/:mangaId/title', () => {
   const url = `/api/admin/manga/${mangaId}/title`;
 
   apiRequiresAdminUserPostTests(serverReference, url);
+  expectISEOnDbError(serverReference, url, {
+    method: 'post',
+    user: adminUser,
+    custom: test => test.send({ title: 'update title error test' }),
+  });
 
   it('returns bad request when body missing', async () => {
     await withUser(adminUser, async () => {
@@ -351,6 +375,11 @@ describe('POST /api/admin/manga/:mangaId/info', () => {
   const url = `/api/admin/manga/${mangaId}/info`;
 
   apiRequiresAdminUserPostTests(serverReference, url);
+  expectISEOnDbError(serverReference, url, {
+    method: 'post',
+    user: adminUser,
+    custom: test => test.send({ status: 1 }),
+  });
 
   it('returns bad request when body missing', async () => {
     await withUser(adminUser, async () => {

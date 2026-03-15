@@ -82,7 +82,7 @@ export default (app: Express) => {
       const userId = user.userId;
 
       const pwCheck = db.sql` AND pwhash IS NOT NULL AND pwhash=crypt(${password}, pwhash)`;
-      db.sql`UPDATE users
+      db.any`UPDATE users
                  SET ${cols.reduce((acc, col) => db.sql`${acc}, ${col}`)}
                  WHERE user_id=${userId} ${pw ? pwCheck : db.sql``}`
         .then(async rows => {
@@ -148,21 +148,25 @@ export default (app: Express) => {
   app.post('/api/user/delete',
     validateUser,
     async (req, res) => {
-      const user = await getUser(req.getUser().userId, { noCache: true });
-      if (!user) {
-        res.status(404).json({ message: 'User not found' });
-        return;
+      try {
+        const user = await getUser(req.getUser().userId, { noCache: true });
+        if (!user) {
+          res.status(404).json({ message: 'User not found' });
+          return;
+        }
+
+        // TODO validate that username matches
+
+        removeUserFromCache(user.userId);
+        await db.none`DELETE FROM users WHERE user_id=${user.userId}`;
+        await clearUserSessions(user.userId);
+        clearSecureCookie(res, serverCookieNames.authToken);
+        clearSecureCookie(res, serverCookieNames.session);
+
+        res.status(200).end();
+      } catch (err) {
+        handleError(err, res);
       }
-
-      // TODO validate that username matches
-
-      removeUserFromCache(user.userId);
-      await db.none`DELETE FROM users WHERE user_id=${user.userId}`;
-      await clearUserSessions(user.userId);
-      clearSecureCookie(res, serverCookieNames.authToken);
-      clearSecureCookie(res, serverCookieNames.session);
-
-      res.status(200).end();
     });
 
   app.post('/api/user/dataRequest',
