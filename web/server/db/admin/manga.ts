@@ -22,7 +22,7 @@ export const updateMangaTitle = (mangaId: MangaId, newTitle: string) => {
 };
 
 export const updateMangaInfo = (mangaInfo: MangaInfoUpdate) => {
-  return db.sql`UPDATE manga_info SET status=${mangaInfo.status} WHERE manga_id=${mangaInfo.mangaId}`.execute();
+  return db.any`UPDATE manga_info SET status=${mangaInfo.status} WHERE manga_id=${mangaInfo.mangaId}`;
 };
 
 export const getMangaServices = (mangaId: MangaId): Promise<MangaService[]> => {
@@ -34,14 +34,13 @@ export const updateMangaService = async (
   mangaId: MangaId, serviceId: DatabaseId,
   { disabled, nextUpdate }: MangaServiceUpdateData
 ) => {
-  return db.sql`UPDATE manga_service SET ${generateUpdate({ disabled, nextUpdate }, db.sql)} WHERE manga_id=${mangaId} AND service_id=${serviceId}`.execute();
+  return db.any`UPDATE manga_service SET ${generateUpdate({ disabled, nextUpdate }, db.sql)} WHERE manga_id=${mangaId} AND service_id=${serviceId}`;
 };
 
 export const createMangaService = (
   mangaId: MangaId, serviceId: DatabaseId,
   { titleId, feedUrl }: MangaServiceCreateData
 ) => {
-  return db.sql`INSERT INTO manga_service (manga_id, service_id, title_id, feed_url) 
-                VALUES (${mangaId}, ${serviceId}, ${titleId}, ${feedUrl})`
-    .execute();
+  return db.any`INSERT INTO manga_service (manga_id, service_id, title_id, feed_url) 
+                VALUES (${mangaId}, ${serviceId}, ${titleId}, ${feedUrl})`;
 };

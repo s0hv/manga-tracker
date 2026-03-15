@@ -36,6 +36,7 @@ export default (app: Express) => {
     validateAdminUser),
     (req, res) => {
       const body = req.body;
+      // z.strictObject will always strip keys with 'undefined' value
       if (!body || Object.keys(body).length === 0) {
         res.status(400).json({ error: 'Empty body' });
         return;
@@ -60,13 +61,7 @@ export default (app: Express) => {
             res.status(404).json({ error: `Chapter with id ${chapterId} not found` });
           }
         })
-        .catch(err => {
-          if (err instanceof NoColumnsError) {
-            res.status(400).json({ error: 'No valid values given' });
-            return;
-          }
-          handleError(err, res);
-        });
+        .catch(err => handleError(err, res));
     });
 
   app.delete(`${BASE_URL}/:chapterId`,

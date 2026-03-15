@@ -82,7 +82,7 @@ export const apiRequiresAdminUserGetTests = (ref: HttpServerReference, url: stri
   });
 };
 
-export type Method = 'get' | 'post' | 'delete';
+export type Method = 'get' | 'post' | 'delete' | 'put';
 export const expectISEOnDbError = (
   ref: HttpServerReference,
   url: string,
@@ -98,7 +98,13 @@ export const expectISEOnDbError = (
 ) => {
   it('returns 500 when database throws an error', async () => {
     await withUser(user, async () => mockDbForErrors(async () => {
-      await custom(request(ref.httpServer)[method](url))
+      let testRequest = request(ref.httpServer)[method](url);
+
+      if (method !== 'get') {
+        testRequest = testRequest.csrf();
+      }
+
+      await custom(testRequest)
         .expect(500)
         .expect(expectErrorMessage(ISE));
     }));

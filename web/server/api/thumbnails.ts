@@ -57,20 +57,25 @@ router.get('/mangadex/:mangaId/:coverId', async (req, res) => {
     headers: req.headers as Record<string, string>,
   });
 
+  const copyHeaders = () => {
+    // Copy headers and status
+    res.setHeaders(coverRes.headers);
+    res.status(coverRes.status);
+  };
+
+  // If cache hit, end response
+  if (coverRes.status === 304) {
+    copyHeaders();
+    return res.end();
+  }
+
   if (!coverRes.ok || !coverRes.body) {
     logger.warn('Failed to fetch mangadex cover. %s: %o', coverRes.status, coverRes.headers);
     res.status(500).end();
     return;
   }
 
-  // Copy headers and status
-  res.setHeaders(coverRes.headers);
-  res.status(coverRes.status);
-
-  // If cache hit, end response
-  if (coverRes.status === 304) {
-    return res.end();
-  }
+  copyHeaders();
 
   // Stream the mangadex response to our response
   Readable.fromWeb(coverRes.body).pipe(res);

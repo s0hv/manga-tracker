@@ -155,6 +155,7 @@
     "jest-openapi": "^0.14.2",
     "jsdom": "^28.1.0",
     "json-schema-faker": "^0.6.0",
+    "msw": "^2.12.10",
     "node-fetch": "^3.3.2",
     "nyc": "^18.0.0",
     "random-seed": "^0.3.0",
