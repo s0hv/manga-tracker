@@ -2,7 +2,6 @@ import { tanstackStart } from '@tanstack/react-start/plugin/vite';
 import viteReact from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 import istanbul from 'vite-plugin-istanbul';
-import tsconfigPaths from 'vite-tsconfig-paths';
 
 // Base url must be defined in production
 const baseUrl = process.env.NODE_ENV === 'production'
