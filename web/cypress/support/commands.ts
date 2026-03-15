@@ -75,7 +75,7 @@ Cypress.Commands.add('login', (user, expectFail = false, rememberMe = false) => 
   cy.findByText(/^recent releases \(for your follows\)/i);
   cy.getCookie(sessionCookieName).should('not.be.null');
 
-  cy.wait(200);
+  cy.wait(400);
 });
 
 Cypress.Commands.add('logout', () => {
