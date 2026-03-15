@@ -72,6 +72,7 @@ const isCypress = /y|yes|true/.test(process.env.CYPRESS || '');
 
 const server = express();
 
+/* istanbul ignore if */
 if (reverseProxy) {
   server.set('trust proxy', process.env.TRUST_PROXY);
 }
