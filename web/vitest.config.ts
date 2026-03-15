@@ -1,5 +1,3 @@
-import path from 'path';
-
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vitest/config';
 
@@ -8,6 +6,9 @@ const noParallelTestsFiles = [
 ];
 
 export default defineConfig({
+  resolve: {
+    tsconfigPaths: true,
+  },
   plugins: [react()],
   test: {
     projects: [
@@ -42,16 +43,6 @@ export default defineConfig({
       },
     ],
     root: '.',
-    alias: {
-      '@/components': path.resolve(__dirname, './src/components'),
-      '@/views': path.resolve(__dirname, './src/views'),
-      '@/webUtils': path.resolve(__dirname, './src/utils'),
-      '@/serverUtils': path.resolve(__dirname, './server/utils'),
-      '@/db': path.resolve(__dirname, './server/db'),
-      '@/types': path.resolve(__dirname, './types'),
-      '@/common': path.resolve(__dirname, './common'),
-      '@/tests': path.resolve(__dirname, './__tests__'),
-    },
     include: [
       '__tests__',
     ],

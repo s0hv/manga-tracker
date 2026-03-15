@@ -13,6 +13,9 @@ const isCypress = /true|y|yes/i.test(process.env.CYPRESS || '');
 const isCI = !!process.env.IS_CI;
 
 export default defineConfig({
+  resolve: {
+    tsconfigPaths: true,
+  },
   server: {
     port: 3000,
   },
@@ -30,8 +33,6 @@ export default defineConfig({
       })
       : undefined,
 
-    // Enables Vite to resolve imports using path aliases.
-    tsconfigPaths(),
     tanstackStart({
       sitemap: {
         enabled: !isCI,
