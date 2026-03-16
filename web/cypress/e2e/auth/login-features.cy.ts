@@ -34,6 +34,12 @@ describe('Login features', () => {
       cy.findByRole('button', { name: /^sign in$/i }).click();
       cy.url().should('contain', '/manga/1');
     });
+
+    it('Redirects to index when navigating to login while logged in', () => {
+      cy.login(normalUser);
+      cy.visit('/login');
+      cy.location('pathname').should('equal', '/');
+    });
   });
 
   describe('Remember me logic works', () => {
@@ -111,7 +117,7 @@ describe('Login features', () => {
         .should('be.null');
     });
 
-    it.only('Properly refreshes login after session expired on an open page', () => {
+    it('Properly refreshes login after session expired on an open page', () => {
       cy.login(adminUser, false, true);
 
       // Visit a manga page

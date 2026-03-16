@@ -243,6 +243,7 @@ server.use((req, res, next) => {
   res.redirect('/api/auth/restore-login');
 });
 
+/* istanbul ignore if */
 if (!isTest && !isCypress) {
   server.use((req, res, next) => {
     // No need to ratelimit static resources
@@ -316,7 +317,7 @@ if (process.env.ENVIRONMENT === 'unit-test') {
   server.get('/', (_, res) => {
     res.send('OK');
   });
-/* istanbul ignore next */
+/* istanbul ignore if */
 } else if (IS_DEVELOPMENT) {
   void tanstackIntegration(server);
 } else {
