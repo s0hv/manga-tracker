@@ -5,6 +5,7 @@ import stylistic from '@stylistic/eslint-plugin';
 import vitest from '@vitest/eslint-plugin';
 import { defineConfig } from 'eslint/config';
 import importPlugin from 'eslint-plugin-import';
+import importZod from 'eslint-plugin-import-zod';
 import jsxA11y from 'eslint-plugin-jsx-a11y';
 import react from 'eslint-plugin-react';
 import reactHooks from 'eslint-plugin-react-hooks';
@@ -73,6 +74,7 @@ export default defineConfig(
   importPlugin.flatConfigs.recommended,
   stylistic.configs.recommended,
   reactHooks.configs.flat.recommended,
+  importZod.configs.recommended,
   {
     plugins: {
       react,

@@ -1,5 +1,5 @@
 import type { Express } from 'express-serve-static-core';
-import { z } from 'zod';
+import * as z from 'zod';
 
 import { db } from '#server/db/helpers';
 import { removeUserFromCache } from '#server/db/user';

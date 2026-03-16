@@ -57,7 +57,7 @@ Cypress.Commands.add('login', (user, expectFail = false, rememberMe = false) => 
   cy.getCookie(sessionCookieName).should('be.null');
   cy.visit('/login');
 
-  cy.wait(300);
+  cy.wait(350);
 
   cy.findByRole('textbox', { name: /email address/i }).focus().type(user.email);
   cy.findByLabelText(/password/i).focus().type(user.password);

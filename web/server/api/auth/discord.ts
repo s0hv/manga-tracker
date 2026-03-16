@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express-serve-static-core';
-import { z } from 'zod';
+import * as z from 'zod';
 
 import { logger } from '@/serverUtils/logging';
 
