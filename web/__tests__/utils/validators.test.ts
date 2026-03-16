@@ -10,7 +10,7 @@ import {
   expectTypeOf,
   it,
 } from 'vitest';
-import z from 'zod';
+import * as z from 'zod';
 
 import { getIncrementalStringGenerator } from '@/tests/utils';
 import { validateRequest } from '@/serverUtils/validators';

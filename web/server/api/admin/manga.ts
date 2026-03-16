@@ -1,5 +1,5 @@
 import express from 'express';
-import { z } from 'zod';
+import * as z from 'zod';
 
 import {
   databaseIdStr,

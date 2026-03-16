@@ -1,6 +1,6 @@
 import camelcaseKeys from 'camelcase-keys';
 import type { Application } from 'express-serve-static-core';
-import { z } from 'zod';
+import * as z from 'zod';
 
 import { booleanString, validateRequest } from '#server/utils/validators';
 import { mangaSearch } from '@/db/elasticsearch/manga';

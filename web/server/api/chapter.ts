@@ -1,5 +1,5 @@
 import type { Express } from 'express-serve-static-core';
-import { z } from 'zod';
+import * as z from 'zod';
 
 import { dbLogger, expressLogger } from '#server/utils/logging';
 import {
@@ -16,7 +16,6 @@ import {
   getChapterReleases,
   getLatestChapters,
 } from '@/db/chapter';
-import { NoColumnsError } from '@/db/errors';
 import { handleError } from '@/db/utils';
 
 

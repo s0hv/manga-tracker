@@ -6,7 +6,6 @@ import ReactFrappeChart from 'react-frappe-charts';
 import type { ChapterReleaseDates } from '@/types/api/chapter';
 
 import { type GroupedYear, groupByYear } from '../utils/utilities';
-import { theme } from '@/webUtils/theme';
 
 const Root = styled('div')(({ theme }) => ({
   minHeight: '213px',

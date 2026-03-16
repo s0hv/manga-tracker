@@ -3,7 +3,7 @@ import type * as streamWeb from 'node:stream/web';
 
 import express from 'express';
 import type { Application } from 'express-serve-static-core';
-import { z } from 'zod';
+import * as z from 'zod';
 
 import { logger } from '@/serverUtils/logging';
 import { zodErrorResponse } from '@/serverUtils/validators';

@@ -6,7 +6,7 @@ import type {
   Response,
 } from 'express-serve-static-core';
 import { pattern } from 'iso8601-duration';
-import { z } from 'zod';
+import * as z from 'zod';
 
 import type { ZodApiError, ZodError } from '#server/models/error';
 

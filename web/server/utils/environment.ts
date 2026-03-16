@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import * as z from 'zod';
 
 const Environment = z.literal(['development', 'production', 'test', 'unit-test']);
 export type Environment = z.infer<typeof Environment>;

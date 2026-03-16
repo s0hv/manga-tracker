@@ -1,5 +1,5 @@
 import type { Application } from 'express-serve-static-core';
-import z from 'zod';
+import * as z from 'zod';
 
 import { updateUserLastActivity } from '#server/api/user';
 import {

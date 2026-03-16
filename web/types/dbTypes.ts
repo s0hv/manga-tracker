@@ -1,4 +1,4 @@
-import z from 'zod';
+import * as z from 'zod';
 
 export const Theme = z.literal(['system', 'light', 'dark']);
 export type Theme = z.infer<typeof Theme>;

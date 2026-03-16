@@ -42,7 +42,7 @@ Test.prototype.csrf = function csrf(): TestType {
 };
 
 /**
- * Helper function to check if response matches OpenAPI spec
+ * Helper function to check if the response matches OpenAPI spec
  * @memberOf supertest.Test
  */
 Test.prototype.satisfiesApiSpec = function satisfiesApiSpec(): TestType {

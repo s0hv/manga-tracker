@@ -18,7 +18,7 @@ import {
   useForm,
 } from 'react-hook-form';
 import { TextFieldElement } from 'react-hook-form-mui';
-import { z } from 'zod';
+import * as z from 'zod';
 
 import { deleteAccount, updateUserProfile } from '../api/user';
 import type { FrontendUserForProfile } from '../store/userStore';
