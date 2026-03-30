@@ -75,7 +75,7 @@ jobs:
       run: pnpm test:ci
 
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v5
+      uses: codecov/codecov-action@v6
       with:
         flags: frontend
         name: Frontend coverage
@@ -171,7 +171,7 @@ jobs:
         run: uv run pip uninstall -y coverage
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v6
         with:
           flags: scraper
           name: Scraper coverage
@@ -314,7 +314,7 @@ jobs:
           config-file: cypress.config.ts
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v6
         with:
           flags: E2E
           name: E2E coverage
