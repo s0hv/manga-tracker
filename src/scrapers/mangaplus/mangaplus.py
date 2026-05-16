@@ -3,10 +3,13 @@ import re
 from datetime import datetime, timedelta
 from enum import Enum
 from typing import override
+from uuid import uuid4
 
 import psycopg
 import requests
+import requests.adapters
 
+from src.constants import USER_AGENT
 from src.db.mappers.chapter_mapper import Chapter as ChapterModel
 from src.db.mappers.chapter_mapper import ChapterMapper
 from src.db.models.authors import AuthorPartial
@@ -23,6 +26,18 @@ from src.utils.utilities import random_timedelta, requests_session, utcfromtimes
 from .protobuf import mangaplus_pb2
 
 logger = logging.getLogger(__name__)
+
+
+def get_request_headers() -> dict[str, str]:
+    """
+    MangaPlus requires some headers to work nowadays
+    """
+    return {
+        'Origin': MangaPlus.URL,
+        'Referer': f'{MangaPlus.URL}/',
+        'User-Agent': USER_AGENT,
+        'SESSION-TOKEN': str(uuid4())
+    }
 
 
 class UpdateTiming(Enum):
@@ -308,7 +323,7 @@ class MangaPlus(BaseScraperWhole):
     def parse_series(title_id: str) -> ResponseWrapper | None:
         try:
             with requests_session() as session:
-                r = session.get(MangaPlus.API.format(title_id))
+                r = session.get(MangaPlus.API.format(title_id), headers=get_request_headers())
         except requests.RequestException:
             logger.exception(f'Failed to fetch series {title_id} for Manga Plus.')
             return None
@@ -323,7 +338,7 @@ class MangaPlus(BaseScraperWhole):
     def get_all_titles(api_url: str) -> AllTitlesViewWrapper | None:
         try:
             with requests_session() as session:
-                r = session.get(api_url)
+                r = session.get(api_url, headers=get_request_headers())
         except requests.RequestException:
             logger.exception('Failed to fetch all mangaplus titles')
             return None

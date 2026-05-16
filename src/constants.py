@@ -13,3 +13,5 @@ DEFAULT_RETRY_POLICY = Retry(
 )
 
 DEFAULT_REQUEST_ADAPTER = requests.adapters.HTTPAdapter(max_retries=DEFAULT_RETRY_POLICY)
+
+USER_AGENT = 'Mozilla/5.0 (Windows; Windows NT 10.1; WOW64; en-US) AppleWebKit/602.37 (KHTML, like Gecko) Chrome/55.0.1613.185 Safari/534.6 Edge/10.86787'
