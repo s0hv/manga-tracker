@@ -1,4 +1,5 @@
 import logging
+import os
 import re
 from datetime import datetime, timedelta
 from enum import Enum
@@ -21,11 +22,21 @@ from src.scrapers.base_scraper import (
     BaseScraperWhole,
     ScrapeServiceRetVal,
 )
+from src.utils.proxy_manager import proxy_manager
 from src.utils.utilities import random_timedelta, requests_session, utcfromtimestamp, utcnow
 
 from .protobuf import mangaplus_pb2
 
 logger = logging.getLogger(__name__)
+
+should_use_proxy = os.getenv('USE_PROXY', '') == '1'
+
+
+def get_proxies() -> dict[str, str] | None:
+    if should_use_proxy and (proxy := proxy_manager.get_random_proxy()):
+        return {'https': proxy}
+
+    return None
 
 
 def get_request_headers() -> dict[str, str]:
@@ -323,13 +334,15 @@ class MangaPlus(BaseScraperWhole):
     def parse_series(title_id: str) -> ResponseWrapper | None:
         try:
             with requests_session() as session:
-                r = session.get(MangaPlus.API.format(title_id), headers=get_request_headers())
+                r = session.get(MangaPlus.API.format(title_id), headers=get_request_headers(), proxies=get_proxies())
         except requests.RequestException:
             logger.exception(f'Failed to fetch series {title_id} for Manga Plus.')
+            proxy_manager.invalidate_current_proxy()
             return None
 
         if not r.ok:
             logger.warning('Failed to fetch series for Manga Plus %s. Status: %s. Headers: %s', title_id, r.status_code, r.headers)
+            proxy_manager.invalidate_current_proxy()
             return None
 
         return ResponseWrapper(r.content)
@@ -338,12 +351,14 @@ class MangaPlus(BaseScraperWhole):
     def get_all_titles(api_url: str) -> AllTitlesViewWrapper | None:
         try:
             with requests_session() as session:
-                r = session.get(api_url, headers=get_request_headers())
+                r = session.get(api_url, headers=get_request_headers(), proxies=get_proxies())
         except requests.RequestException:
             logger.exception('Failed to fetch all mangaplus titles')
+            proxy_manager.invalidate_current_proxy()
             return None
 
         if not r.ok:
+            proxy_manager.invalidate_current_proxy()
             return None
 
         resp = ResponseWrapper(r.content)

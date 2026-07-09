@@ -3,6 +3,9 @@ test.*
 scraper-pm2.json
 pgsync-schema.json
 
+# Automatic downloads
+data/
+
 # Created by .ignore support plugin (hsz.mobi)
 ### Python template
 # Byte-compiled / optimized / DLL files
