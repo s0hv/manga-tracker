@@ -22,19 +22,23 @@ from src.scrapers.base_scraper import (
     BaseScraperWhole,
     ScrapeServiceRetVal,
 )
-from src.utils.proxy_manager import proxy_manager
 from src.utils.utilities import random_timedelta, requests_session, utcfromtimestamp, utcnow
 
 from .protobuf import mangaplus_pb2
 
 logger = logging.getLogger(__name__)
 
-should_use_proxy = os.getenv('USE_PROXY', '') == '1'
+proxy_url = os.getenv('PROXY_URL', None)
+should_use_proxy = bool(proxy_url)
 
 
 def get_proxies() -> dict[str, str] | None:
-    if should_use_proxy and (proxy := proxy_manager.get_random_proxy()):
-        return {'https': proxy}
+    # Redundant use of proxy_url to prevent type errors
+    if should_use_proxy and proxy_url:
+        return {
+            'http': proxy_url,
+            'https': proxy_url
+        }
 
     return None
 
@@ -337,12 +341,10 @@ class MangaPlus(BaseScraperWhole):
                 r = session.get(MangaPlus.API.format(title_id), headers=get_request_headers(), proxies=get_proxies())
         except requests.RequestException:
             logger.exception(f'Failed to fetch series {title_id} for Manga Plus.')
-            proxy_manager.invalidate_current_proxy()
             return None
 
         if not r.ok:
             logger.warning('Failed to fetch series for Manga Plus %s. Status: %s. Headers: %s', title_id, r.status_code, r.headers)
-            proxy_manager.invalidate_current_proxy()
             return None
 
         return ResponseWrapper(r.content)
@@ -354,11 +356,9 @@ class MangaPlus(BaseScraperWhole):
                 r = session.get(api_url, headers=get_request_headers(), proxies=get_proxies())
         except requests.RequestException:
             logger.exception('Failed to fetch all mangaplus titles')
-            proxy_manager.invalidate_current_proxy()
             return None
 
         if not r.ok:
-            proxy_manager.invalidate_current_proxy()
             return None
 
         resp = ResponseWrapper(r.content)
