@@ -5,7 +5,7 @@ import * as extendedMatchers from 'jest-extended';
 import request, { type Test as TestType } from 'supertest';
 import { afterEach, expect, vi } from 'vitest';
 
-import { theme } from '@/webUtils/theme';
+import { theme } from '#webUtils/theme';
 
 
 expect.extend(extendedMatchers);

@@ -21,9 +21,9 @@
     "@testing-library/cypress": "^10.1.0",
     "@types/cookie-signature": "^1.1.2",
     "cookie-signature": "^1.2.2",
-    "cypress": "15.11.0",
-    "tsc-alias": "^1.8.16",
-    "typescript": "^5.9.3"
+    "cypress": "15.20.0",
+    "tsc-alias": "^1.9.1",
+    "typescript": "^6.0.3"
   },
   "pnpm": {
     "onlyBuiltDependencies": [

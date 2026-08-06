@@ -18,7 +18,7 @@ export const getFollowsFn = createServerFn().handler(({
 
 
 export const getUserFollowsFn = createServerFn()
-  .inputValidator(DatabaseIdSchema)
+  .validator(DatabaseIdSchema)
   .handler(async ({ context, data }) => {
     if (!context.user) {
       return [];

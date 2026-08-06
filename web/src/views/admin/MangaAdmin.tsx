@@ -4,9 +4,9 @@ import SubdirectoryArrowLeftIcon
 import {
   Box,
   Container,
-  Grid,
   IconButton,
   Paper,
+  Stack,
   Tooltip,
   Typography,
 } from '@mui/material';
@@ -232,9 +232,7 @@ function MangaAdmin(props: MangaAdminProps) {
               alt={manga.title}
             />
           </a>
-          <Grid
-            container
-            direction='column'
+          <Stack
             sx={{ ml: { sx: '0px', sm: 4 }, width: 'fit-content' }}
           >
             <MangaInfo mangaData={manga} />
@@ -246,7 +244,7 @@ function MangaAdmin(props: MangaAdminProps) {
               confirm={confirm}
               allowEdits
             />
-          </Grid>
+          </Stack>
         </DetailsContainer>
 
         <MangaServiceTable mangaId={mangaId} sx={{ mb: 4 }} />

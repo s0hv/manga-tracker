@@ -103,7 +103,7 @@ type FormComponentProps = {
   overrides: Set<number>
   fieldRequired: MappedNotificationField<boolean>
   changeOverride: ChangeOverride
-  onSubmit: (e?: React.BaseSyntheticEvent) => Promise<void>
+  onSubmit: (e?: React.BaseSyntheticEvent) => Promise<unknown>
   control: Control<DiscordFormData>
   formState: FormState<DiscordFormData>
 };

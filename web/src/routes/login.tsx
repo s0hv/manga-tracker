@@ -1,8 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router';
 
 
+import { SUPPORTED_OAUTH_PROVIDERS } from '@/common/auth/providers';
 import { defineMeta } from '@/webUtils/meta';
-import { SUPPORTED_OAUTH_PROVIDERS } from 'common/auth/providers';
 
 import SignIn from '../views/SignIn';
 

@@ -2,7 +2,7 @@ import React from 'react';
 import { render } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
-import { PrivacyPolicy } from '#web/routes/(static)/privacy_policy';
+import { PrivacyPolicy } from '@/views/static/PrivacyPolicy';
 
 
 describe('PrivacyPolicy page should render without errors', () => {

@@ -9,32 +9,22 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as ProfileRouteImport } from './routes/profile'
-import { Route as NotificationsRouteImport } from './routes/notifications'
-import { Route as LoginRouteImport } from './routes/login'
-import { Route as FollowsRouteImport } from './routes/follows'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as MangaMangaIdRouteImport } from './routes/manga/$mangaId'
-import { Route as AdminServicesRouteImport } from './routes/admin/services'
-import { Route as staticThird_party_noticesRouteImport } from './routes/(static)/third_party_notices'
-import { Route as staticTermsRouteImport } from './routes/(static)/terms'
+import { Route as FollowsRouteImport } from './routes/follows'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as NotificationsRouteImport } from './routes/notifications'
+import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as staticPrivacy_policyRouteImport } from './routes/(static)/privacy_policy'
-import { Route as AdminMangaMergeRouteImport } from './routes/admin/manga.merge'
+import { Route as staticTermsRouteImport } from './routes/(static)/terms'
+import { Route as staticThird_party_noticesRouteImport } from './routes/(static)/third_party_notices'
+import { Route as AdminServicesRouteImport } from './routes/admin/services'
+import { Route as MangaMangaIdRouteImport } from './routes/manga/$mangaId'
 import { Route as AdminMangaMangaIdRouteImport } from './routes/admin/manga.$mangaId'
+import { Route as AdminMangaMergeRouteImport } from './routes/admin/manga.merge'
 
-const ProfileRoute = ProfileRouteImport.update({
-  id: '/profile',
-  path: '/profile',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const NotificationsRoute = NotificationsRouteImport.update({
-  id: '/notifications',
-  path: '/notifications',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FollowsRoute = FollowsRouteImport.update({
@@ -42,19 +32,29 @@ const FollowsRoute = FollowsRouteImport.update({
   path: '/follows',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const MangaMangaIdRoute = MangaMangaIdRouteImport.update({
-  id: '/manga/$mangaId',
-  path: '/manga/$mangaId',
+const NotificationsRoute = NotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminServicesRoute = AdminServicesRouteImport.update({
-  id: '/admin/services',
-  path: '/admin/services',
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const staticPrivacy_policyRoute = staticPrivacy_policyRouteImport.update({
+  id: '/(static)/privacy_policy',
+  path: '/privacy_policy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const staticTermsRoute = staticTermsRouteImport.update({
+  id: '/(static)/terms',
+  path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
 const staticThird_party_noticesRoute =
@@ -63,24 +63,24 @@ const staticThird_party_noticesRoute =
     path: '/third_party_notices',
     getParentRoute: () => rootRouteImport,
   } as any)
-const staticTermsRoute = staticTermsRouteImport.update({
-  id: '/(static)/terms',
-  path: '/terms',
+const AdminServicesRoute = AdminServicesRouteImport.update({
+  id: '/admin/services',
+  path: '/admin/services',
   getParentRoute: () => rootRouteImport,
 } as any)
-const staticPrivacy_policyRoute = staticPrivacy_policyRouteImport.update({
-  id: '/(static)/privacy_policy',
-  path: '/privacy_policy',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminMangaMergeRoute = AdminMangaMergeRouteImport.update({
-  id: '/admin/manga/merge',
-  path: '/admin/manga/merge',
+const MangaMangaIdRoute = MangaMangaIdRouteImport.update({
+  id: '/manga/$mangaId',
+  path: '/manga/$mangaId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminMangaMangaIdRoute = AdminMangaMangaIdRouteImport.update({
   id: '/admin/manga/$mangaId',
   path: '/admin/manga/$mangaId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminMangaMergeRoute = AdminMangaMergeRouteImport.update({
+  id: '/admin/manga/merge',
+  path: '/admin/manga/merge',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -189,25 +189,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/profile': {
-      id: '/profile'
-      path: '/profile'
-      fullPath: '/profile'
-      preLoaderRoute: typeof ProfileRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/notifications': {
-      id: '/notifications'
-      path: '/notifications'
-      fullPath: '/notifications'
-      preLoaderRoute: typeof NotificationsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/follows': {
@@ -217,39 +203,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FollowsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/manga/$mangaId': {
-      id: '/manga/$mangaId'
-      path: '/manga/$mangaId'
-      fullPath: '/manga/$mangaId'
-      preLoaderRoute: typeof MangaMangaIdRouteImport
+    '/notifications': {
+      id: '/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof NotificationsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin/services': {
-      id: '/admin/services'
-      path: '/admin/services'
-      fullPath: '/admin/services'
-      preLoaderRoute: typeof AdminServicesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/(static)/third_party_notices': {
-      id: '/(static)/third_party_notices'
-      path: '/third_party_notices'
-      fullPath: '/third_party_notices'
-      preLoaderRoute: typeof staticThird_party_noticesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/(static)/terms': {
-      id: '/(static)/terms'
-      path: '/terms'
-      fullPath: '/terms'
-      preLoaderRoute: typeof staticTermsRouteImport
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/(static)/privacy_policy': {
@@ -259,11 +231,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof staticPrivacy_policyRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin/manga/merge': {
-      id: '/admin/manga/merge'
-      path: '/admin/manga/merge'
-      fullPath: '/admin/manga/merge'
-      preLoaderRoute: typeof AdminMangaMergeRouteImport
+    '/(static)/terms': {
+      id: '/(static)/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof staticTermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(static)/third_party_notices': {
+      id: '/(static)/third_party_notices'
+      path: '/third_party_notices'
+      fullPath: '/third_party_notices'
+      preLoaderRoute: typeof staticThird_party_noticesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/services': {
+      id: '/admin/services'
+      path: '/admin/services'
+      fullPath: '/admin/services'
+      preLoaderRoute: typeof AdminServicesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/manga/$mangaId': {
+      id: '/manga/$mangaId'
+      path: '/manga/$mangaId'
+      fullPath: '/manga/$mangaId'
+      preLoaderRoute: typeof MangaMangaIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/manga/$mangaId': {
@@ -271,6 +264,13 @@ declare module '@tanstack/react-router' {
       path: '/admin/manga/$mangaId'
       fullPath: '/admin/manga/$mangaId'
       preLoaderRoute: typeof AdminMangaMangaIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/manga/merge': {
+      id: '/admin/manga/merge'
+      path: '/admin/manga/merge'
+      fullPath: '/admin/manga/merge'
+      preLoaderRoute: typeof AdminMangaMergeRouteImport
       parentRoute: typeof rootRouteImport
     }
   }

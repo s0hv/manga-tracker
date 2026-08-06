@@ -13,7 +13,6 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "moduleResolution": "bundler",
-    "baseUrl": ".",
   },
   "include": [
     "./*.ts"

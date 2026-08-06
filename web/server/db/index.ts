@@ -26,6 +26,11 @@ export type CustomTypes = {
   interval: typeof intervalType
 };
 
+export type CustomTypesTransaction = {
+  undefined: undefined
+  interval: IPostgresInterval
+};
+
 export type Db = ReturnType<typeof postgres<CustomTypes>>;
 
 export const db: Db = createSingleton<Db>('database', () => postgres<CustomTypes>({

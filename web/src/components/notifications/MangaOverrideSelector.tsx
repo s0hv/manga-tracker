@@ -51,6 +51,9 @@ const MangaOverrideSelector = <TFieldValues extends FormValues = FormValues>({
 
   const confirm = useConfirm();
   const formState = useFormState({ control });
+  // Subscribe to changes in dirtyFields
+  // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+  formState.dirtyFields;
 
   const {
     field: {
@@ -63,7 +66,7 @@ const MangaOverrideSelector = <TFieldValues extends FormValues = FormValues>({
   });
 
   const onValueChange = useCallback((_: any, v: NotificationFollow | null) => {
-    // Use formState directly because we do not want to subscribe to changes
+    // Use formState directly because this does not need to be reactive
     const dirtyCount = Object.entries(formState.dirtyFields).filter(([field, dirty]) => (field !== name && !allowedChangeFields.has(field)) && dirty).length;
     const overrideId = v?.mangaId ?? null;
     if (dirtyCount > 0) {

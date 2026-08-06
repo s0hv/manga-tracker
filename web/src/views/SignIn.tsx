@@ -22,8 +22,8 @@ import { RouteLink } from '@/components/common/RouteLink';
 
 import { baseKy } from '../api/utilities';
 
-import discordLogo from 'src/resources/Discord-Logo-Blurple.svg';
-import discordLogoLight from 'src/resources/Discord-Logo-Light-Blurple.svg';
+import discordLogo from '/src/resources/Discord-Logo-Blurple.svg';
+import discordLogoLight from '/src/resources/Discord-Logo-Light-Blurple.svg';
 
 
 type SignInFormValues = {
