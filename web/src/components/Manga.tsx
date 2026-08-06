@@ -14,6 +14,7 @@ import {
   Grid,
   IconButton,
   Paper,
+  Stack,
   Tab,
   Tabs,
   Tooltip,
@@ -164,17 +165,18 @@ function Manga(props: MangaProps): React.ReactElement {
           </a>
           <Grid
             container
-            justifyContent='center'
             sx={{ justifyContent: { sm: 'space-between' }}}
           >
-            <Grid
-              container
-              direction='column'
-              sx={{ width: 'fit-content', overflow: 'auto', ml: { xs: 0, md: 4 }}}
+            <Stack
+              sx={{
+                width: 'fit-content',
+                overflow: 'auto',
+                ml: { xs: 0, md: 4 },
+              }}
             >
               <MangaInfo mangaData={manga} />
               <MangaAliases aliases={aliases} />
-            </Grid>
+            </Stack>
             <MangaSourceList
               classesProp={[classes.sourceList]}
               items={services}

@@ -88,6 +88,7 @@ const ServiceFilter: FC<ServiceFilterProps> = ({ serviceMangaData, onChange }) =
   const [selectedServices, setSelectedServices] = useState<ServiceOption[]>(serviceOptions);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSelectedServices(serviceOptions);
   }, [serviceOptions]);
 

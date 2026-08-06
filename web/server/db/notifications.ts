@@ -11,10 +11,13 @@ import type {
 } from '@/types/api/notifications';
 import { type DatabaseId, NotificationType } from '@/types/dbTypes';
 
-
 import { BadRequest, NotFound } from '../utils/errors';
 
-import { type DatabaseHelpers, createHelpers, db } from './helpers';
+import {
+  type DbHelpersFull, type DbOrTransaction,
+  createHelpers,
+  db,
+} from './helpers';
 
 type DbNotificationField = NotificationField & {
   overrideId: number | null
@@ -78,7 +81,7 @@ export function getUserNotifications(userId: DatabaseId, notificationId?: Databa
 }
 
 
-const updateUserNotificationFields = (t: DatabaseHelpers, fields: NotificationFieldData[], notificationId: DatabaseId, notificationType: NotificationType) => {
+const updateUserNotificationFields = (t: DbHelpersFull<DbOrTransaction>, fields: NotificationFieldData[], notificationId: DatabaseId, notificationType: NotificationType) => {
   return t.none`
     INSERT INTO user_notification_fields (notification_id, field_id, value)
     SELECT ${notificationId}, nf.field_id, f.value FROM
@@ -120,7 +123,7 @@ export const createUserNotification = <T extends boolean>({
   manga,
   fields,
 }: CreateUserNotification<T>) => db.sql.begin(async sql => {
-  const t: DatabaseHelpers = createHelpers(sql);
+  const t = createHelpers(sql);
   const { notificationId } = await t.one<{ notificationId: number }>`INSERT INTO user_notifications (notification_type, user_id, use_follows, disabled)
     VALUES (${notificationType}, ${userId}, ${useFollows}, ${disabled}) RETURNING notification_id`;
 
@@ -156,7 +159,7 @@ export const upsertNotificationOverride = ({
   overrideId,
   fields,
 }: UpsertNotificationOverride): Promise<void> => db.sql.begin(async sql => {
-  const t: DatabaseHelpers = createHelpers(sql);
+  const t = createHelpers(sql);
 
   // Make sure user has actually created the notification
   const { notificationType } = await t.one<{ notificationType: number }>`SELECT notification_type FROM user_notifications WHERE user_id=${userId} AND notification_id=${notificationId}`

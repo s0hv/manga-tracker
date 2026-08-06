@@ -177,10 +177,12 @@ const MangaSearch = <TWithServices extends boolean = false>(props: MangaSearchPr
   const renderInput = useCallback((params: AutocompleteRenderInputParams) => (
     <InputBase
       inputProps={{
-        ...params.inputProps,
         'aria-label': ariaLabel,
+        ...params.slotProps.htmlInput,
       }}
-      ref={params.InputProps.ref}
+      id={params.id}
+      onMouseDown={params.slotProps.input.onMouseDown}
+      ref={params.slotProps.input.ref}
       placeholder={placeholder}
       classes={{
         input: classes.inputInput,

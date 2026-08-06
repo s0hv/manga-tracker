@@ -11,6 +11,7 @@ import {
   Paper,
   Radio,
   RadioGroup,
+  Stack,
   Typography,
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
@@ -146,8 +147,10 @@ function MergeManga() {
     >
       <Grid
         container
-        justifyContent='space-between'
-        wrap='nowrap'
+        sx={{
+          justifyContent: 'space-between',
+          wrap: 'nowrap',
+        }}
       >
         <MangaView>
           <Search
@@ -192,7 +195,7 @@ function MergeManga() {
           )}
         </MangaView>
       </Grid>
-      <Grid container direction='column' alignItems='center' sx={{ p: 2, textAlign: 'center' }}>
+      <Stack sx={{ p: 2, textAlign: 'center', alignItems: 'center' }}>
         {isValid && (
           <>
             <ServicesList
@@ -226,7 +229,7 @@ function MergeManga() {
         >
           {result.message || null}
         </Typography>
-      </Grid>
+      </Stack>
     </Container>
   );
 }

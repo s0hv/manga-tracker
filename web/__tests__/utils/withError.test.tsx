@@ -14,7 +14,7 @@ describe('withError()', () => {
           class="MuiBox-root css-1gt7mqe"
         >
           <h1
-            class="MuiTypography-root MuiTypography-h1 css-4nqirp-MuiTypography-root"
+            class="MuiTypography-root MuiTypography-h1 css-1m1wihm-MuiTypography-root"
           >
             404 Not found
           </h1>

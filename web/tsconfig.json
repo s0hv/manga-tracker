@@ -19,16 +19,15 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "moduleResolution": "bundler",
-    "baseUrl": ".",
     "paths": {
-      "@/components*": ["src/components*"],
-      "@/views*": ["src/views*"],
-      "@/webUtils*": ["src/utils*"],
-      "@/common*": ["common*"],
-      "@/serverUtils*": ["server/utils*"],
-      "@/db*": ["server/db*"],
-      "@/types*": ["types*"],
-      "@/tests*": ["__tests__*"]
+      "@/components*": ["./src/components*"],
+      "@/views*": ["./src/views*"],
+      "@/webUtils*": ["./src/utils*"],
+      "@/common*": ["./common*"],
+      "@/serverUtils*": ["./server/utils*"],
+      "@/db*": ["./server/db*"],
+      "@/types*": ["./types*"],
+      "@/tests*": ["./__tests__*"]
     }
   },
   "include": [
@@ -37,14 +36,14 @@
     "types/*.ts"
   ],
   "exclude": [
-    "__tests__/**",
-    "__mocks__/**",
-    "node_modules",
-    "setupTests.ts",
-    "vitest.config.ts",
-    "cypress/cypress.config.ts",
-    "cypress/**",
-    "server.ts",
-    "scripts"
+    "./__tests__/**",
+    "./__mocks__/**",
+    "./node_modules",
+    "./setupTests.ts",
+    "./vitest.config.ts",
+    "./cypress/cypress.config.ts",
+    "./cypress/**",
+    "./server.ts",
+    "./scripts"
   ]
 }

@@ -1,12 +1,21 @@
-import type { PendingQuery, Row, RowList, TransactionSql } from 'postgres';
+import type {
+  PendingQuery,
+  Row,
+  RowList,
+  TransactionSql,
+} from 'postgres';
 
 import { NoResultsError, TooManyResultsError } from '@/db/errors';
-import { type CustomTypes, type Db, sql } from '@/db/index';
+import {
+  type CustomTypesTransaction,
+  type Db,
+  sql,
+} from '@/db/index';
 
 
 export type RowType = readonly (object | undefined)[];
 type TemplateArgs<T extends RowType = Row[]> = Parameters<typeof sql<T>>;
-type DbTransaction = TransactionSql<CustomTypes>;
+type DbTransaction = TransactionType;
 
 export type DbHelpers = {
   one: <T extends Row>(...args: TemplateArgs<T[]>) => Promise<T>
@@ -18,12 +27,15 @@ export type DbHelpers = {
   sql: DbTransaction
 };
 
-export type DbHelpersFull = Omit<DbHelpers, 'sql'> & {
+export type TransactionType = TransactionSql<CustomTypesTransaction>;
+export type DbOrTransaction = Db | TransactionType;
+
+export type DbHelpersFull<TSql extends DbOrTransaction = Db> = Omit<DbHelpers, 'sql'> & {
   transaction: <T>(callback: (sql: DbHelpers) => Promise<T>) => Promise<T>
-  sql: Db
+  sql: TSql
 };
 
-export const createHelpersForTransaction = (sql_: TransactionSql<CustomTypes> | Db) => {
+export const createHelpersForTransaction = (sql_: DbOrTransaction) => {
   const customSql = <T extends Row>(...args: TemplateArgs<T[]>): PendingQuery<T[]> => {
     const [template, ...rest] = args;
     // Temporary measure until this fix is merged and released
@@ -89,16 +101,19 @@ export const createHelpersForTransaction = (sql_: TransactionSql<CustomTypes> | 
   } satisfies DbHelpers;
 };
 
-export const createHelpers = (sql_: Db) => {
+export const createHelpers = <TSql extends DbOrTransaction>(sql_: TSql) => {
   const transaction = <T>(callback: (tran: DbHelpers) => Promise<T>): Promise<T> => {
-    return sql_.begin(sql => callback(createHelpersForTransaction(sql))) as Promise<T>;
+    return (sql_ as Db).begin(sql => callback(createHelpersForTransaction(
+      // For some reason this does not really want to work so just force the cast
+      sql as unknown as TransactionType
+    ))) as Promise<T>;
   };
 
   return {
     ...createHelpersForTransaction(sql_),
     transaction,
     sql: sql_,
-  } satisfies DbHelpersFull;
+  } satisfies DbHelpersFull<TSql>;
 };
 
 export const db = createHelpers(sql);

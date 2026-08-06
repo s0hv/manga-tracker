@@ -1,11 +1,11 @@
 import signature from 'cookie-signature';
 import { defineConfig } from 'cypress';
 
-import { COOKIE_SECRET } from './constants';
-import { parseAuthCookie } from './dist/server/db/auth';
-import { db } from './dist/server/db/helpers';
-import { redis } from './dist/server/utils/ratelimits';
-import type { CreatedUser } from './types';
+import { COOKIE_SECRET } from './constants.js';
+import { parseAuthCookie } from './dist/server/db/auth.js';
+import { db } from './dist/server/db/helpers.js';
+import { redis } from './dist/server/utils/ratelimits.js';
+import type { CreatedUser } from './types.js';
 
 export default defineConfig({
   video: false,

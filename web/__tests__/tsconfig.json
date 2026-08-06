@@ -4,6 +4,16 @@
     "noEmit": true
   },
   "extends": "../tsconfig.json",
+  "paths": {
+    "@/components*": ["../src/components*"],
+    "@/views*": ["../src/views*"],
+    "@/webUtils*": ["../src/utils*"],
+    "@/common*": ["../common*"],
+    "@/serverUtils*": ["../server/utils*"],
+    "@/db*": ["../server/db*"],
+    "@/types*": ["../types*"],
+    "@/tests*": ["../__tests__*"]
+  },
   "exclude": [
     "../node_modules",
     "../cypress/cypress.config.ts",

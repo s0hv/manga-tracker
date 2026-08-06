@@ -1,5 +1,5 @@
 import React from 'react';
-import { Grid, Typography } from '@mui/material';
+import { Stack, Typography } from '@mui/material';
 import { styled } from '@mui/material/styles';
 
 import type { FullMangaData } from '@/types/api/manga';
@@ -48,9 +48,7 @@ function PartialManga(props: PartialMangaProps) {
             alt={manga.title}
           />
         </a>
-        <Grid
-          container
-          direction='column'
+        <Stack
           sx={{
             justifyContent: 'space-between',
           }}
@@ -62,7 +60,7 @@ function PartialManga(props: PartialMangaProps) {
               openByDefault
             />
           </SourceList>
-        </Grid>
+        </Stack>
       </DetailsContainer>
     </div>
   );

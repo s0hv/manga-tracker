@@ -155,6 +155,10 @@ export default defineConfig(
       '@stylistic/jsx-one-expression-per-line': ['error', {
         allow: 'non-jsx',
       }],
+      '@stylistic/object-property-newline': [
+        'error',
+        { allowAllPropertiesOnSameLine: true },
+      ],
 
       // TODO temporarily off
       '@typescript-eslint/no-explicit-any': 'off',

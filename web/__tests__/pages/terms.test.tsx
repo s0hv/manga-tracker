@@ -3,7 +3,7 @@ import { render } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
 
-import { TermsOfService } from '#web/routes/(static)/terms';
+import TermsOfService from '@/views/static/TermsOfService';
 
 vi.mock('@tanstack/react-router');
 

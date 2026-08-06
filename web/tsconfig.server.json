@@ -8,25 +8,24 @@
     "noEmit": false,
     "resolvePackageJsonImports": true,
     "sourceMap": true,
-    "baseUrl": ".",
     "rootDir": ".",
   },
   "include": [
-    "server.ts",
-    "server/**/*",
-    "server/db/*",
-    "types/**/*",
-    "common/**/*",
-    "src/server.ts"
+    "./server.ts",
+    "./server/**/*",
+    "./server/db/*",
+    "./types/**/*",
+    "./common/**/*",
+    "./src/server.ts"
   ],
   "exclude": [
-    "node_modules",
-    "src",
-    "__tests__/**",
-    "__mocks__/**",
-    "vitest.config.ts",
-    "setupTests.ts",
-    "cypress/**",
-    "cypress/cypress.config.ts"
+    "./node_modules",
+    "./src",
+    "./__tests__/**",
+    "./__mocks__/**",
+    "./vitest.config.ts",
+    "./setupTests.ts",
+    "./cypress/**",
+    "./cypress/cypress.config.ts"
   ]
 }

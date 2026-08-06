@@ -1,11 +1,15 @@
-import { type FC, useCallback } from 'react';
+import { useCallback } from 'react';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { IconButton } from '@mui/material';
 import type { IconButtonProps } from '@mui/material/IconButton';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useConfirm } from 'material-ui-confirm';
 import { useSnackbar } from 'notistack';
-import { type Control, useWatch } from 'react-hook-form';
+import {
+  type Control, type FieldPath,
+  type FieldValues,
+  useWatch,
+} from 'react-hook-form';
 
 import { deleteNotification } from '#web/api/notifications';
 import { QueryKeys } from '@/webUtils/constants';
@@ -13,18 +17,18 @@ import { QueryKeys } from '@/webUtils/constants';
 
 type DeleteReturn = Awaited<ReturnType<typeof deleteNotification>>;
 
-export type DeleteNotificationButtonProps = {
-  control?: Control<any>
-  fieldName?: string
+export type DeleteNotificationButtonProps<T extends FieldValues> = {
+  control?: Control<T>
+  fieldName?: FieldPath<T>
 } & IconButtonProps;
-const DeleteNotificationButton: FC<DeleteNotificationButtonProps> = ({
+const DeleteNotificationButton = <T extends FieldValues>({
   control,
-  fieldName = 'notificationId',
+  fieldName = 'notificationId' as FieldPath<T>,
   ...buttonProps
-}) => {
+}: DeleteNotificationButtonProps<T>) => {
   const { mutateAsync } = useMutation<DeleteReturn, unknown, [number]>({ mutationFn: ([notificationId]) => deleteNotification(notificationId) });
   const queryClient = useQueryClient();
-  const notificationId = useWatch({ name: fieldName, control }) as number;
+  const notificationId = useWatch({ name: fieldName, control });
   const confirm = useConfirm();
   const { enqueueSnackbar } = useSnackbar();
 

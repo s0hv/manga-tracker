@@ -1,9 +1,7 @@
 import React, {
   type FC,
   type PropsWithChildren,
-  useEffect,
   useMemo,
-  useState,
 } from 'react';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import {
@@ -129,10 +127,10 @@ export const GroupedChapterList: FC<GroupedChapterListProps> = ({
   loading = false,
   skeletons,
 }) => {
-  const [groupedChapters, setGroupedChapters] = useState<Group<ChapterRelease>[]>([]);
-  useEffect(() => {
-    setGroupedChapters(groupBy(chapters, groupKey));
-  }, [chapters, groupKey]);
+  const groupedChapters = useMemo<Group<ChapterRelease>[]>(
+    () => groupBy(chapters, groupKey),
+    [chapters, groupKey]
+  );
 
   const skeletonArray = useMemo(() => {
     if (skeletons) return new Array(skeletons).fill(0);

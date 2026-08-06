@@ -2,7 +2,7 @@ import { notFound } from '@tanstack/react-router';
 import ky from 'ky';
 
 export const baseKy = ky.extend({
-  prefixUrl: '/api',
+  prefix: '/api',
 });
 
 export class APIException extends Error {

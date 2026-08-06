@@ -44,9 +44,9 @@ export default (app: Express) => {
     ...validateRequest({
       body: z.union([
         ProfileUpdateSchema.extend({
-          password: z.undefined(),
-          newPassword: z.undefined(),
-          repeatPassword: z.undefined(),
+          password: z.undefined().optional(),
+          newPassword: z.undefined().optional(),
+          repeatPassword: z.undefined().optional(),
         }),
         ProfileUpdateSchemaWithPassword,
       ]),
