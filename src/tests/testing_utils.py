@@ -16,13 +16,14 @@ import pytest
 import testing.postgresql
 from elasticsearch.client import Elasticsearch
 from psycopg import Connection
-from psycopg.rows import DictRow, dict_row
+from psycopg.rows import DictRow, class_row, dict_row
 from pydantic import BaseModel
 
 from src.constants import NO_GROUP
+from src.db.logging_cursor import LoggingCursor
 from src.db.models.chapter import Chapter as DbChapter
+from src.db.models.chapter import ChapterFailed
 from src.db.models.manga import Manga, MangaService, MangaServiceWithId
-from src.scheduler import LoggingCursor
 from src.scrapers.base_scraper import BaseChapter, BaseChapterSimple, BaseScraper
 from src.tests.scrapers.testing_scraper import DummyScraper
 from src.utils.dbutils import DbUtil
@@ -219,6 +220,15 @@ class BaseTestClasses:
             self.dbutil.execute('DELETE FROM chapters WHERE service_id=%s',
                                 (service_id,))
 
+        def delete_failed_chapters(self, service_id: int):
+            self.dbutil.execute('DELETE FROM chapters_failed WHERE service_id=%s', (service_id,))
+
+        def get_failed_chapters(self, service_id: int) -> list[ChapterFailed]:
+            sql = 'SELECT * FROM chapters_failed WHERE service_id=%s'
+            with self.conn.cursor(row_factory=class_row(ChapterFailed)) as cur:
+                cur.execute(sql, (service_id,))
+                return cur.fetchall()
+
         # region DbUtil wrappers
 
         def get_manga_db(self, manga_id: int | None) -> Manga:
@@ -296,6 +306,32 @@ class BaseTestClasses:
         def assertMangaWithTitleFound(self, title: str):
             assert self.dbutil.find_manga_by_title(title) is not None, f'Manga with title {title} not found when expected to be found'
 
+        def assertChapterFailsEqual(self, a: ChapterFailed, b: ChapterFailed):
+            assert a.chapter_identifier == b.chapter_identifier, f'Chapter identifiers not equal for {a.chapter_identifier}'
+            assert a.service_id == b.service_id, f'Service ids not equal for {a.chapter_identifier}'
+            assert a.chapter_number == b.chapter_number, f'Chapter numbers not equal for {a.chapter_identifier}'
+            assert a.title_id == b.title_id, f'Title ids not equal for {a.chapter_identifier}'
+            assert a.manga_title == b.manga_title, f'Manga titles not equal for {a.chapter_identifier}'
+            assert a.title == b.title, f'Chapter titles not equal for {a.chapter_identifier}'
+            assert a.release_date == b.release_date, f'Chapter release dates not equal for {a.chapter_identifier}'
+            assert a.group == b.group, f'Chapter groups not equal for {a.chapter_identifier}'
+            assert a.errors == b.errors, f'Chapter errors not equal for {a.chapter_identifier}'
+
+        def assertFailedChaptersHandled(self, service_id: int, correct_failed: list[ChapterFailed]):
+            # Check that failed chapters were handled correctly
+            failed_chapters = self.get_failed_chapters(service_id)
+
+            assert len(failed_chapters) == len(correct_failed)
+
+            chapters_failed_zipped = zip(
+                sorted(failed_chapters, key=BaseTestClasses.ModelAssertions.chapterSortKey),
+                sorted(correct_failed, key=BaseTestClasses.ModelAssertions.chapterSortKey),
+                strict=True
+            )
+
+            for failed_chapters, correct_fail in chapters_failed_zipped:
+                self.assertChapterFailsEqual(failed_chapters, correct_fail)
+
         @staticmethod
         def utcnow() -> datetime:
             """
@@ -370,13 +406,15 @@ class BaseTestClasses:
             assert a.group_id == b.group_id, f'Group ids are not equal for {a.chapter_identifier}'
 
         @staticmethod
-        def chapterSortKey(chapter: Union[BaseChapter, 'ChapterTestModel', DbChapter]) -> str:
+        def chapterSortKey(chapter: Union[BaseChapter, 'ChapterTestModel', DbChapter, ChapterFailed]) -> str:
             return chapter.chapter_identifier
 
-        def assertAllChaptersEqual[C: BaseChapter | 'ChapterTestModel'](
-                self, chapters: list[C],
-                expected: list[BaseChapter] | list['ChapterTestModel'],
-                ignore_date: bool = False):
+        def assertAllChaptersEqual[C: 'BaseChapter | ChapterTestModel'](
+            self,
+            chapters: list[C],
+            expected: list[BaseChapter] | list['ChapterTestModel'],
+            ignore_date: bool = False,
+        ):
             assert len(chapters) == len(expected), 'Different amount of chapters passed'
 
             for chapter, expect in zip(sorted(chapters, key=self.chapterSortKey),

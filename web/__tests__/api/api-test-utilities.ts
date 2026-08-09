@@ -1,3 +1,5 @@
+import type { Server } from 'http';
+
 import request, { type Test } from 'supertest';
 import { it } from 'vitest';
 
@@ -17,8 +19,10 @@ import {
 } from '../constants';
 
 export interface HttpServerReference {
-  httpServer: any
+  httpServer: Server
 }
+
+export type Method = 'get' | 'post' | 'delete' | 'put';
 
 const optionalApiSpecTest = (req: Test, apiSpec = false): Test => {
   if (apiSpec) {
@@ -28,35 +32,53 @@ const optionalApiSpecTest = (req: Test, apiSpec = false): Test => {
   return req;
 };
 
-export const apiRequiresUserPostTests = (ref: HttpServerReference, url: string, apiSpec = false) => {
+export const apiRequiresUserTests = (
+  ref: HttpServerReference,
+  url: string,
+  {
+    method,
+    apiSpec = false,
+  }: { apiSpec?: boolean, method: Exclude<Method, 'get'> }
+) => {
   it('Returns 403 without CSRF token', async () => {
-    await request(ref.httpServer)
-      .post(url)
+    await request(ref.httpServer)[method](url)
       .expect(403)
       .expect(expectErrorMessage(csrfMissing));
   });
 
   it('returns 401 unauthorized without user', async () => {
-    await optionalApiSpecTest(request(ref.httpServer)
-      .post(url)
+    await optionalApiSpecTest(request(ref.httpServer)[method](url)
       .csrf()
       .expect(401)
       .expect(expectErrorMessage(userUnauthorized)), apiSpec);
   });
 };
 
-export const apiRequiresAdminUserPostTests = (ref: HttpServerReference, url: string) => {
-  apiRequiresUserPostTests(ref, url);
+export const apiRequiresAdminUserTests = (
+  ref: HttpServerReference,
+  url: string,
+  options: { apiSpec?: boolean, method: Exclude<Method, 'get'> }
+) => {
+  apiRequiresUserTests(ref, url, options);
 
   it('returns forbidden for non admin', async () => {
     await withUser(normalUser, async () => {
-      await request(ref.httpServer)
-        .post(url)
+      await request(ref.httpServer)[options.method](url)
         .csrf()
         .expect(403)
         .expect(expectErrorMessage(userForbidden));
     });
   });
+};
+
+export const apiRequiresUserPostTests = (ref: HttpServerReference, url: string, apiSpec = false) => {
+  apiRequiresUserTests(ref, url, { apiSpec, method: 'post' });
+};
+
+export const apiRequiresAdminUserPostTests = (ref: HttpServerReference, url: string) => {
+  apiRequiresUserPostTests(ref, url);
+
+  apiRequiresAdminUserTests(ref, url, { method: 'post' });
 };
 
 export const apiRequiresUserGetTests = (ref: HttpServerReference, url: string, apiSpec = false) => {
@@ -82,17 +104,18 @@ export const apiRequiresAdminUserGetTests = (ref: HttpServerReference, url: stri
   });
 };
 
-export type Method = 'get' | 'post' | 'delete' | 'put';
 export const expectISEOnDbError = (
   ref: HttpServerReference,
   url: string,
   {
     method = 'get',
     user = normalUser,
+    body,
     custom = _ => _,
   }: {
     method?: Method
     user?: TestUser
+    body?: string | object
     custom?: (test: Test) => Test
   } = {}
 ) => {
@@ -102,6 +125,10 @@ export const expectISEOnDbError = (
 
       if (method !== 'get') {
         testRequest = testRequest.csrf();
+      }
+
+      if (body !== undefined) {
+        testRequest = testRequest.send(body);
       }
 
       await custom(testRequest)

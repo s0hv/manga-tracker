@@ -140,7 +140,7 @@ describe('Smoke tests', () => {
     cy.findByRole('table', { name: /^manga services$/i }).should('exist');
     cy.findByRole('table', { name: /^scheduled runs$/i }).should('exist');
 
-    cy.findByRole('button', { name: /^add item$/i }).should('exist');
+    cy.findByRole('button', { name: /^create manga service/i }).should('exist');
     cy.findByRole('button', { name: /^add scheduled run$/i }).should('exist');
     Selector.getPublicationStatusSelect().should('exist');
 

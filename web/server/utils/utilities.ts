@@ -61,3 +61,22 @@ export const hashSecret = async (secret: Uint8Array | string): Promise<Uint8Arra
   const secretHashBuffer = await crypto.subtle.digest('SHA-256', secretBytes);
   return new Uint8Array(secretHashBuffer);
 };
+
+export const rethrowMappedError = (
+  ...errorMap: [
+    // Original error class constructor
+    new (...args: any[]) => Error,
+    // Instance of the error class to throw instead
+    Error
+  ][]
+) => {
+  return (err: unknown) => {
+    for (const [from, to] of errorMap) {
+      if (err instanceof from) {
+        throw to;
+      }
+    }
+
+    throw err;
+  };
+};

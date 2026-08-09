@@ -34,12 +34,47 @@ export type MangaSearchResult<TWithService extends boolean> = {
   }
 };
 
-export const mangaSearch = <TWithServices extends boolean>(query: string, count: number, withServices: TWithServices = false as TWithServices) => {
+const getMultiMatchForField = (query: string, field: string) => ({
+  multi_match: {
+    query,
+    type: 'most_fields',
+    fields: [
+      `${field}^3`,
+      `${field}.ngram`,
+    ],
+  },
+});
+
+const getMultiMatchesForFields = (query: string, ...fields: [string, ...string[]]) => {
+  return fields.map(field => getMultiMatchForField(query, field));
+};
+
+export const mangaSearch = <TWithServices extends boolean>(
+  query: string,
+  count: number,
+  withServices: TWithServices = false as TWithServices,
+  serviceId?: number
+) => {
   const fields = ['manga_id', 'title'];
   if (withServices) {
     fields.push('services.service_name');
     fields.push('services.service_id');
   }
+
+  const dis_max = {
+    queries: getMultiMatchesForFields(query, 'title', 'aliases.title'),
+  };
+
+  const queryDefinition = serviceId !== undefined
+    ? {
+      bool: {
+        filter: { term: { 'services.service_id': serviceId }},
+        must: {
+          dis_max,
+        },
+      },
+    }
+    : { dis_max };
 
   return client.search<MangaSearchResult<TWithServices>>({
     index,
@@ -50,32 +85,7 @@ export const mangaSearch = <TWithServices extends boolean>(query: string, count:
 
       query: {
         function_score: {
-          query: {
-            dis_max: {
-              queries: [
-                {
-                  multi_match: {
-                    query,
-                    type: 'most_fields',
-                    fields: [
-                      'title^3',
-                      'title.ngram',
-                    ],
-                  },
-                },
-                {
-                  multi_match: {
-                    query,
-                    type: 'most_fields',
-                    fields: [
-                      'aliases.title^3',
-                      'aliases.title.ngram',
-                    ],
-                  },
-                },
-              ],
-            },
-          },
+          query: queryDefinition,
           field_value_factor: {
             field: 'views',
             factor: 0.2,

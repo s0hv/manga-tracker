@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime, timedelta
 from typing import override
 
@@ -16,6 +17,7 @@ class DummyScraper(BaseScraper):
     MANGA_URL_FORMAT = 'manga/{}'
     NAME = 'Testing scraper'
     CONFIG = ServiceConfig(service_id=ID)
+    LOGGER = logging.getLogger('DummyScraper')
 
     @override
     def min_update_interval(self) -> timedelta:
@@ -41,3 +43,4 @@ class DummyScraper2(DummyScraper):
     MANGA_URL_FORMAT = 'manga/{}'
     NAME = 'Testing scraper 2'
     CONFIG = ServiceConfig(service_id=ID)
+    LOGGER = logging.getLogger('DummyScraper2')

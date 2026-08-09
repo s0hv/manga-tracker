@@ -18,3 +18,8 @@ export const formatChapterUrl = (chapterUrlFormat: string | undefined | null, ch
   chapterUrlFormat
     ? chapterUrlFormat.replace('{}', chapterIdentifier).replace('{title_id}', titleId)
     : undefined;
+
+export const formatTitleUrl = (mangaUrlFormat: string | undefined | null, titleId: string) =>
+  mangaUrlFormat
+    ? mangaUrlFormat.replace('{}', titleId)
+    : undefined;

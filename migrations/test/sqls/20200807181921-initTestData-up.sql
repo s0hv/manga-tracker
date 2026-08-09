@@ -61,8 +61,61 @@ INSERT INTO account (provider, provider_account_id, user_id) VALUES ('test', 'te
 SELECT setval(pg_get_serial_sequence('users', 'user_id'), MAX(user_id)) FROM users;
 
 -- insert follows
-INSERT INTO user_follows (manga_id, service_id, user_id) VALUES (1, 1, 1);
-INSERT INTO user_follows (manga_id, service_id, user_id) VALUES (1, 2, 3);
-INSERT INTO user_follows (manga_id, service_id, user_id) VALUES (1, 1, 3);
-INSERT INTO user_follows (manga_id, service_id, user_id) VALUES (4, 1, 3);
-INSERT INTO user_follows (manga_id, service_id, user_id) VALUES (1, NULL, 3);
+INSERT INTO user_follows
+  (manga_id, service_id, user_id)
+VALUES
+  (1, 1,    1),
+  (1, 2,    3),
+  (1, 1,    3),
+  (4, 1,    3),
+  (1, NULL, 3);
+
+-- insert groups
+INSERT INTO "groups" (group_id, name)
+VALUES
+  (2, 'Test group 1'),
+  (3, 'Test group 2'),
+  (4, 'Test group 3');
+
+SELECT setval(pg_get_serial_sequence('groups', 'group_id'), MAX(group_id)) FROM "groups";
+
+-- insert failed chapters
+INSERT INTO chapters_failed
+  (chapter_identifier,
+   service_id,
+   manga_id,
+   errors,
+   title,
+   chapter_number,
+   chapter_decimal,
+   title_id,
+   manga_title,
+   release_date,
+   "group",
+   timestamp)
+VALUES
+  ('abcdefghijklmn',
+   1,
+   1,
+   'Test error',
+   'Test Title',
+   1,
+   0.5,
+   '111',
+   'Test Manga',
+   '2020-07-08',
+   'Test group 1',
+   '2020-07-08 12:00:00.344806'),
+
+  ('opqrstuvwxyzabcd',
+   2,
+   NULL,
+   'Test error 2',
+   NULL,
+   NULL,
+   NULL,
+   NULL,
+   NULL,
+   NULL,
+   NULL,
+   DEFAULT);

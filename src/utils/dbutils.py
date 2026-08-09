@@ -18,7 +18,7 @@ from psycopg.rows import DictRow, RowFactory, class_row, dict_row
 
 from src.db.errors import RowNotFound
 from src.db.models.authors import Author, AuthorPartial, MangaArtist, MangaAuthor
-from src.db.models.chapter import Chapter, InsertedChapter
+from src.db.models.chapter import Chapter, ChapterAndMangaId, ChapterFailed, InsertedChapter
 from src.db.models.groups import Group, GroupPartial
 from src.db.models.manga import (
     Manga,
@@ -1446,3 +1446,88 @@ class DbUtil:
     ) -> None:
         sql = 'UPDATE manga_service SET disabled=TRUE WHERE service_id=%s AND title_id=%s'
         cur.execute(sql, (service_id, title_id))
+
+    @optional_generator_transaction
+    def filter_unprocessed_failed_chapters(self, failed_chapters: list[ChapterFailed], *, cur: CursorType = NotImplemented) -> Generator[ChapterFailed]:
+        # Do this in two passes to generate more optimal SQL compared to two LEFT JOINs.
+        # Shouldn't cause issues either way because the data counts should be low, as long as
+        # the fetch from the 'chapters' table uses an index.
+        chapters_sql = """
+        SELECT fc.chapter_identifier, fc.service_id FROM (VALUES %s) AS fc(chapter_identifier, service_id)
+            LEFT JOIN chapters c
+                ON c.chapter_identifier = fc.chapter_identifier AND c.service_id = fc.service_id
+        WHERE c.chapter_identifier IS NULL
+        """
+
+        chapters_failed_sql = """
+        SELECT fc.chapter_identifier, fc.service_id FROM (VALUES %s) AS fc(chapter_identifier, service_id)
+            LEFT JOIN chapters_failed c
+                ON c.chapter_identifier = fc.chapter_identifier AND c.service_id = fc.service_id
+        WHERE c.chapter_identifier IS NULL
+        """
+
+        values = [(c.chapter_identifier, c.service_id) for c in failed_chapters]
+
+        result1 = execute_values(cur, chapters_sql, values, fetch=True)
+        result2 = execute_values(cur, chapters_failed_sql, values, fetch=True)
+
+        # Create a set of unique existing values
+        fetched_set = {(r['chapter_identifier'], r['service_id']) for r in result1}
+        fetched_set.intersection_update((r['chapter_identifier'], r['service_id']) for r in result2)
+
+        for failed_chapter in failed_chapters:
+            if (failed_chapter.chapter_identifier, failed_chapter.service_id) in fetched_set:
+                yield failed_chapter
+
+    @OptionalTransaction()
+    def insert_chapters_failed(self, failed_chapters: list[ChapterFailed], *, cur: CursorType = NotImplemented):
+        sql = """INSERT INTO chapters_failed (
+            chapter_identifier,
+            service_id,
+            manga_id,
+            errors,
+            title,
+            chapter_number,
+            chapter_decimal,
+            title_id,
+            manga_title,
+            release_date,
+            "group",
+            timestamp)
+        VALUES %s
+        """
+
+        values = [(
+            c.chapter_identifier,
+            c.service_id,
+            c.manga_id,
+            c.errors,
+            c.title,
+            c.chapter_number,
+            c.chapter_decimal,
+            c.title_id,
+            c.manga_title,
+            c.release_date,
+            c.group,
+            c.timestamp
+        ) for c in failed_chapters]
+
+        execute_values(cur, sql, values)
+        logger.info(f'Inserted {cur.rowcount} new chapters that failed to be processed')
+
+    @OptionalTransaction(class_row(ChapterAndMangaId))
+    def get_chapters_for_notifications(self, *, cur: Cursor[ChapterAndMangaId] = NotImplemented) -> list[ChapterAndMangaId]:
+        sql = 'SELECT chapter_id, manga_id FROM chapters WHERE is_notification_sent = FALSE'
+
+        cur.execute(sql)
+
+        return cur.fetchall()
+
+    @OptionalTransaction()
+    def set_chapters_as_sent(self, chapter_ids: list[int], *, cur: CursorType = NotImplemented) -> None:
+        if not chapter_ids:
+            return
+
+        sql = 'UPDATE chapters SET is_notification_sent = TRUE WHERE chapter_id = ANY(%s)'
+
+        cur.execute(sql, (chapter_ids,))

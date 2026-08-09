@@ -1,9 +1,11 @@
+from datetime import datetime, timezone
 from pathlib import Path
 
 import pytest
 import responses
 
 from src.constants import NO_GROUP
+from src.db.models.chapter import ChapterFailed
 from src.scrapers.cubari import Cubari
 from src.tests.testing_utils import BaseTestClasses, ChapterTestModel
 
@@ -53,6 +55,42 @@ correct_parsed_chapters = sorted([
         group_id=NO_GROUP),
 ], key=lambda c: c.chapter_identifier)
 
+chapters_failed_expected = [
+    ChapterFailed(
+        service_id=Cubari.ID,
+        errors='Failed to find time element in chapter row',
+        title='Chapter 50 Title',
+        chapter_number=None,
+        title_id=TITLE_ID,
+        manga_title='One Punch Man',
+        release_date=None,
+        group='/r/OnePunchMan',
+        chapter_identifier='fail-date',
+    ),
+    ChapterFailed(
+        service_id=Cubari.ID,
+        errors='Chapter number not found from attribute data-chapter',
+        title='Chapter 51 Title',
+        chapter_number=None,
+        title_id=TITLE_ID,
+        manga_title='One Punch Man',
+        release_date=datetime.fromisoformat('2023-02-15T10:00:00').replace(tzinfo=timezone.utc),
+        group='/r/OnePunchMan',
+        chapter_identifier='fail-chapternum',
+    ),
+    ChapterFailed(
+        service_id=Cubari.ID,
+        errors='Failed to parse chapter title from Random Bonus',
+        title='Random Bonus',
+        chapter_number=52,
+        title_id=TITLE_ID,
+        manga_title='One Punch Man',
+        release_date=datetime.fromisoformat('2023-06-20T09:30:00').replace(tzinfo=timezone.utc),
+        group='/r/OnePunchMan',
+        chapter_identifier='fail-title',
+    ),
+]
+
 
 class CubariTests(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAssertions):
     def get_scraper(self) -> Cubari:
@@ -68,6 +106,7 @@ class CubariTests(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsserti
     @responses.activate
     def test_parse_manga_page(self):
         self.delete_groups()
+        self.delete_failed_chapters(Cubari.ID)
 
         with manga_page_path.open(encoding='utf-8') as f:
             data = f.read()
@@ -87,6 +126,8 @@ class CubariTests(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsserti
 
         for parsed, correct in zip(sorted(chapters, key=self.chapterSortKey), sorted(correct_parsed_chapters, key=self.chapterSortKey), strict=True):
             self.assertChaptersEqual(parsed, correct)
+
+        self.assertFailedChaptersHandled(Cubari.ID, chapters_failed_expected)
 
 
 if __name__ == '__main__':

@@ -1,13 +1,18 @@
 import type { FC, PropsWithChildren } from 'react';
 import { QueryClientProvider } from '@tanstack/react-query';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import fetchMock from 'fetch-mock';
 import { ConfirmProvider } from 'material-ui-confirm';
 import { FormContainer } from 'react-hook-form-mui';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { mockNotistackHooks, queryClient } from '../../utils';
+import {
+  expectRequestCalledWith,
+  mockNotistackHooks,
+  mockRequestJson,
+  queryClient,
+  setupMockServer,
+} from '../../utils';
 import MangaSelector, {
   type MangaSelectorProps,
 } from '@/components/notifications/MangaSelector';
@@ -37,9 +42,10 @@ const manga: NotificationFollow[] = [
   { mangaId: 1, serviceId: 2, title: 'Test manga 1', serviceName: 'Test service 2' },
 ];
 
+const server = setupMockServer();
+
 beforeEach(async () => {
   await mockNotistackHooks();
-  fetchMock.reset();
   queryClient.clear();
 });
 
@@ -107,7 +113,6 @@ describe('MangaSelector', () => {
   });
 
   it('Renders fetched items correctly', async () => {
-    const mockResponse = vi.fn();
     const data = [{
       title: manga[0].title,
       mangaId: manga[1].mangaId,
@@ -116,11 +121,8 @@ describe('MangaSelector', () => {
         [String(serviceId)]: serviceName,
       }), {}),
     }];
-    mockResponse.mockImplementation(() => ({ data }));
-    fetchMock.get(
-      `glob:/api/quicksearch?query=*&withServices=true`,
-      mockResponse
-    );
+
+    const mockResponse = mockRequestJson(server, '/api/quicksearch', data);
 
     render(<Rendered />);
 
@@ -130,6 +132,16 @@ describe('MangaSelector', () => {
     const autocomplete = screen.getByRole('combobox', { name: testLabel });
     await user.type(autocomplete, 'test');
 
+    await waitFor(() => expectRequestCalledWith(
+      mockResponse,
+      {
+        url: '/api/quicksearch',
+        searchParams: {
+          query: 'test',
+          withServices: 'true',
+        },
+      }
+    ));
 
     expect(screen.getByRole('option', { name: formatMangaName(manga[0]) })).toBeInTheDocument();
     expect(screen.getByRole('option', { name: formatMangaName(manga[1]) })).toBeInTheDocument();

@@ -9,7 +9,7 @@ import responses
 from requests import PreparedRequest
 
 from src.constants import NO_GROUP
-from src.db.models.chapter import Chapter
+from src.db.models.chapter import Chapter, ChapterFailed
 from src.db.models.manga import MangaService
 from src.scrapers.comikey import Comikey
 from src.tests.testing_utils import BaseTestClasses, ChapterTestModel, mock_feedparse
@@ -130,6 +130,20 @@ correct_chapters_manga_feed = [
     ),
 ]
 
+chapters_failed_expected = [
+    ChapterFailed(
+        service_id=Comikey.ID,
+        errors='Could not parse title from Bonus Content',
+        title='Bonus Content',
+        chapter_number=None,
+        title_id='test-title/1',
+        manga_title=None,
+        release_date=get_date('Thu, 20 Jan 2022 09:00:00 -0800'),
+        group='Comikey',
+        chapter_identifier='test-title/xyz123/episode-99',
+    ),
+]
+
 
 class ComikeyTest(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAssertions):
     test_feed = base_path / 'feed.xml'
@@ -178,7 +192,7 @@ class ComikeyTest(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsserti
         feed_url = 'http://comikey.com/feed.rss'
         responses.add_callback(responses.HEAD, self.manga_url, self.redirect)
 
-        chapters = self.comikey.get_feed_chapters(feed_url)
+        result = self.comikey.get_feed_chapters(feed_url)
 
         parse.assert_called_once()
         parse.assert_called_with(feed_url)
@@ -188,13 +202,19 @@ class ComikeyTest(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsserti
         assert len(responses.calls) == 2, 'All requests not done'
         assert len(Comikey.id_cache) == 2
 
-        assert chapters is not None
+        assert result is not None
+
+        chapters, failed_chapters = result
+
+        assert len(failed_chapters) == 0, 'Failed chapters found'
+
         self.assertAllChaptersEqual(chapters, correct_chapters)
 
     @responses.activate
     @patch('feedparser.parse', wraps=mock_feedparse(test_manga_feed))
     def test_scrape_series(self, parse: MagicMock):
         self.delete_chapters(Comikey.ID)
+        self.delete_failed_chapters(Comikey.ID)
         feed_url = 'https://comikey.com/sapi/comics/1/feed.rss'
         title_id = 'test-title/1'
         responses.add_callback(responses.HEAD, self.manga_url, self.redirect)
@@ -214,6 +234,8 @@ class ComikeyTest(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsserti
             new_chapters,
             correct_chapters_manga_feed
         )
+
+        self.assertFailedChaptersHandled(Comikey.ID, chapters_failed_expected)
 
     @patch.object(Comikey, 'get_chapter_id')
     def test_language_skip(self, mock: MagicMock):

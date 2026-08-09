@@ -10,7 +10,7 @@ from pydantic import TypeAdapter
 
 from src.constants import DEFAULT_RETRY_POLICY, NO_GROUP
 from src.db.models.authors import AuthorPartial
-from src.db.models.chapter import Chapter
+from src.db.models.chapter import Chapter, ChapterFailed
 from src.db.models.groups import Group, GroupPartial
 from src.db.models.manga import MangaService
 from src.scrapers.mangadex import Chapter as MangaDexChapter
@@ -237,7 +237,10 @@ class MangadexTests(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsser
     def test_parse_feed(self):
         adapter = TypeAdapter(list[ChapterResult])
         chapters = adapter.validate_python(self.chapters_data['data'])
-        parsed = self.mangadex.parse_feed(chapters)
+        parsed, failed_chapters = self.mangadex.parse_feed(chapters)
+
+        assert len(failed_chapters) == 0, 'Failed to parse some chapters'
+
         for chapter in parsed:
             # Parse feed does not handle fetching groups
             chapter.group_id = NO_GROUP
@@ -250,6 +253,41 @@ class MangadexTests(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAsser
     def test_scrape_service_without_feed_url_throws(self):
         with pytest.raises(ValueError, match='feed_url cannot be None'):
             self.mangadex.scrape_series('', 1, 1, None)
+
+    @responses.activate
+    def test_scrape_service_failed_chapter(self):
+        self.delete_chapters()
+        self.delete_failed_chapters(MangaDex.ID)
+
+        api_path = Path(__file__).parent.joinpath('api_data')
+        with api_path.joinpath('chapters_failed.json').open(encoding='utf-8') as f:
+            chapters_failed_data = json.load(f)
+
+        responses.add(responses.GET, f'{self.API_URL}/chapter', json=chapters_failed_data)
+
+        # The chapter is missing its "manga" relationship, which is what causes parsing to fail
+        broken_chapter = TypeAdapter(list[ChapterResult]).validate_python(chapters_failed_data['data'])[0]
+        chapters_failed_expected = [
+            ChapterFailed(
+                service_id=MangaDex.ID,
+                errors=f'Failed to parse chapter {broken_chapter}',
+                title=broken_chapter.attributes.title,
+                chapter_number=None,
+                title_id=None,
+                manga_title=None,
+                release_date=broken_chapter.attributes.readable_at,
+                group=broken_chapter.group.attributes.name if broken_chapter.group else None,
+                chapter_identifier=broken_chapter.id,
+            ),
+        ]
+
+        retVal = self.mangadex.scrape_service(self.mangadex.ID, self.mangadex.FEED_URL, None)
+
+        assert retVal is not None
+        assert len(retVal.chapter_ids) == 0
+        assert len(retVal.manga_ids) == 0
+
+        self.assertFailedChaptersHandled(MangaDex.ID, chapters_failed_expected)
 
     @responses.activate
     def test_scrape_service(self) -> None:

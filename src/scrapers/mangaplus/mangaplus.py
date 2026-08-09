@@ -309,6 +309,7 @@ class MangaPlus(BaseScraperWhole):
     CHAPTER_URL_FORMAT = 'https://mangaplus.shueisha.co.jp/viewer/{}'
     MANGA_URL_FORMAT = 'https://mangaplus.shueisha.co.jp/titles/{}'
     GROUP = 'Shueisha'
+    LOGGER = logger
 
     @override
     def min_update_interval(self) -> timedelta:

@@ -17,6 +17,7 @@ import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as staticPrivacy_policyRouteImport } from './routes/(static)/privacy_policy'
 import { Route as staticTermsRouteImport } from './routes/(static)/terms'
 import { Route as staticThird_party_noticesRouteImport } from './routes/(static)/third_party_notices'
+import { Route as AdminParsingFailsRouteImport } from './routes/admin/parsing-fails'
 import { Route as AdminServicesRouteImport } from './routes/admin/services'
 import { Route as MangaMangaIdRouteImport } from './routes/manga/$mangaId'
 import { Route as AdminMangaMangaIdRouteImport } from './routes/admin/manga.$mangaId'
@@ -63,6 +64,11 @@ const staticThird_party_noticesRoute =
     path: '/third_party_notices',
     getParentRoute: () => rootRouteImport,
   } as any)
+const AdminParsingFailsRoute = AdminParsingFailsRouteImport.update({
+  id: '/admin/parsing-fails',
+  path: '/admin/parsing-fails',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminServicesRoute = AdminServicesRouteImport.update({
   id: '/admin/services',
   path: '/admin/services',
@@ -93,6 +99,7 @@ export interface FileRoutesByFullPath {
   '/privacy_policy': typeof staticPrivacy_policyRoute
   '/terms': typeof staticTermsRoute
   '/third_party_notices': typeof staticThird_party_noticesRoute
+  '/admin/parsing-fails': typeof AdminParsingFailsRoute
   '/admin/services': typeof AdminServicesRoute
   '/manga/$mangaId': typeof MangaMangaIdRoute
   '/admin/manga/$mangaId': typeof AdminMangaMangaIdRoute
@@ -107,6 +114,7 @@ export interface FileRoutesByTo {
   '/privacy_policy': typeof staticPrivacy_policyRoute
   '/terms': typeof staticTermsRoute
   '/third_party_notices': typeof staticThird_party_noticesRoute
+  '/admin/parsing-fails': typeof AdminParsingFailsRoute
   '/admin/services': typeof AdminServicesRoute
   '/manga/$mangaId': typeof MangaMangaIdRoute
   '/admin/manga/$mangaId': typeof AdminMangaMangaIdRoute
@@ -122,6 +130,7 @@ export interface FileRoutesById {
   '/(static)/privacy_policy': typeof staticPrivacy_policyRoute
   '/(static)/terms': typeof staticTermsRoute
   '/(static)/third_party_notices': typeof staticThird_party_noticesRoute
+  '/admin/parsing-fails': typeof AdminParsingFailsRoute
   '/admin/services': typeof AdminServicesRoute
   '/manga/$mangaId': typeof MangaMangaIdRoute
   '/admin/manga/$mangaId': typeof AdminMangaMangaIdRoute
@@ -138,6 +147,7 @@ export interface FileRouteTypes {
     | '/privacy_policy'
     | '/terms'
     | '/third_party_notices'
+    | '/admin/parsing-fails'
     | '/admin/services'
     | '/manga/$mangaId'
     | '/admin/manga/$mangaId'
@@ -152,6 +162,7 @@ export interface FileRouteTypes {
     | '/privacy_policy'
     | '/terms'
     | '/third_party_notices'
+    | '/admin/parsing-fails'
     | '/admin/services'
     | '/manga/$mangaId'
     | '/admin/manga/$mangaId'
@@ -166,6 +177,7 @@ export interface FileRouteTypes {
     | '/(static)/privacy_policy'
     | '/(static)/terms'
     | '/(static)/third_party_notices'
+    | '/admin/parsing-fails'
     | '/admin/services'
     | '/manga/$mangaId'
     | '/admin/manga/$mangaId'
@@ -181,6 +193,7 @@ export interface RootRouteChildren {
   staticPrivacy_policyRoute: typeof staticPrivacy_policyRoute
   staticTermsRoute: typeof staticTermsRoute
   staticThird_party_noticesRoute: typeof staticThird_party_noticesRoute
+  AdminParsingFailsRoute: typeof AdminParsingFailsRoute
   AdminServicesRoute: typeof AdminServicesRoute
   MangaMangaIdRoute: typeof MangaMangaIdRoute
   AdminMangaMangaIdRoute: typeof AdminMangaMangaIdRoute
@@ -245,6 +258,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof staticThird_party_noticesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/parsing-fails': {
+      id: '/admin/parsing-fails'
+      path: '/admin/parsing-fails'
+      fullPath: '/admin/parsing-fails'
+      preLoaderRoute: typeof AdminParsingFailsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/services': {
       id: '/admin/services'
       path: '/admin/services'
@@ -285,6 +305,7 @@ const rootRouteChildren: RootRouteChildren = {
   staticPrivacy_policyRoute: staticPrivacy_policyRoute,
   staticTermsRoute: staticTermsRoute,
   staticThird_party_noticesRoute: staticThird_party_noticesRoute,
+  AdminParsingFailsRoute: AdminParsingFailsRoute,
   AdminServicesRoute: AdminServicesRoute,
   MangaMangaIdRoute: MangaMangaIdRoute,
   AdminMangaMangaIdRoute: AdminMangaMangaIdRoute,

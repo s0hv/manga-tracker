@@ -1,0 +1,33 @@
+{
+  "data": [
+    {
+      "id": "99999999-9999-9999-9999-999999999999",
+      "type": "chapter",
+      "attributes": {
+        "volume": null,
+        "chapter": "10",
+        "title": "Broken chapter",
+        "translatedLanguage": "en",
+        "publishAt": "2021-04-01T00:00:00+00:00",
+        "readableAt": "2021-04-01T00:00:00+00:00",
+        "createdAt": "2021-04-01T00:00:00+00:00",
+        "updatedAt": "2021-04-01T00:00:00+00:00"
+      },
+      "relationships": [
+        {
+          "id": "021677e3-e0b4-43c4-a396-4fcfd503b8b3",
+          "type": "scanlation_group",
+          "attributes": {
+            "name": "Test Group",
+            "createdAt": "2021-04-19T21:45:59+00:00",
+            "updatedAt": "2021-04-19T21:45:59+00:00",
+            "version": 1
+          }
+        }
+      ]
+    }
+  ],
+  "limit": 100,
+  "offset": 0,
+  "total": 1
+}

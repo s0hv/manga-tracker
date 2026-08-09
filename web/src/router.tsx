@@ -1,6 +1,12 @@
-import { QueryClient } from '@tanstack/react-query';
+import {
+  matchQuery,
+  MutationCache,
+  QueryCache,
+  QueryClient,
+} from '@tanstack/react-query';
 import { createRouter } from '@tanstack/react-router';
 import { setupRouterSsrQueryIntegration } from '@tanstack/react-router-ssr-query';
+import { HTTPError } from 'ky';
 
 import NotFound from '@/views/NotFound';
 import { getCspNonce } from '@/webUtils/routeUtils';
@@ -10,7 +16,14 @@ import { routeTree } from './routeTree.gen';
 
 
 export function getRouter() {
-  const queryClient = new QueryClient({
+  const queryClient: QueryClient = new QueryClient({
+    queryCache: new QueryCache({
+      // Log query errors. Otherwise, query errors are not printed anywhere.
+      onError: (error, query) => {
+        console.error(`Query ${query.queryKey[0]} failed`, error);
+      },
+    }),
+
     defaultOptions: {
       queries: {
         refetchOnWindowFocus: false,
@@ -20,10 +33,43 @@ export function getRouter() {
             return false;
           }
 
+          if (error instanceof HTTPError) {
+            // Do not retry ky requests
+            return false;
+          }
+
           return failureCount < 3; // Retry up to 3 times for server errors
         },
       },
     },
+
+    mutationCache: new MutationCache({
+      onSuccess: (_data, _variables, _context, mutation) => {
+        const queryKeysToInvalidate = mutation.meta?.queryKeysToInvalidate;
+
+        if (!queryKeysToInvalidate) return;
+
+        return queryClient.invalidateQueries({
+          predicate: query => queryKeysToInvalidate.some(
+            queryKey => matchQuery({ queryKey }, query)
+          ),
+        });
+      },
+
+      onError: (_data, _variables, _context, mutation) => {
+        const queryKeysToInvalidate = mutation.meta?.queryKeysToInvalidate;
+
+        if (!queryKeysToInvalidate || !mutation.meta?.invalidateOnError) {
+          return;
+        }
+
+        return queryClient.invalidateQueries({
+          predicate: query => queryKeysToInvalidate.some(
+            queryKey => matchQuery({ queryKey }, query)
+          ),
+        });
+      },
+    }),
   });
 
   const router = createRouter({

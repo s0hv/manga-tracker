@@ -1,3 +1,4 @@
+import logging
 import random
 import re
 import time
@@ -6,6 +7,8 @@ from typing import override
 import requests
 
 from .base_rss import BaseRSS
+
+logger = logging.getLogger(__name__)
 
 
 class Comikey(BaseRSS):
@@ -19,6 +22,7 @@ class Comikey(BaseRSS):
     )
     id_cache: dict[str, str] = {}  # noqa: RUF012 The dictionary should not be replaced
     NAME = 'Comikey'
+    LOGGER = logger
 
     @override
     def get_chapter_title(self, entry: dict) -> str | None:

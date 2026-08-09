@@ -154,7 +154,12 @@ export const MangaServiceTable: FunctionComponent<MangaServiceTableProps> = prop
   }, [services, mangaServices]);
 
   const onCreateRow = useCallback((form: MangaServiceForm) => {
-    return createMangaService(mangaId, form.serviceId, form)
+    const {
+      serviceId,
+      ...data
+    } = form;
+
+    return createMangaService(mangaId, form.serviceId, data)
       .then(() => refetch())
       .then(() => {
         enqueueSnackbar(
@@ -180,6 +185,7 @@ export const MangaServiceTable: FunctionComponent<MangaServiceTableProps> = prop
     <TableContainer component={Paper} sx={sx}>
       <MaterialTable
         title='Manga services'
+        toolbarProps={{ addButtonLabel: 'create manga service' }}
         columns={columns}
         data={mangaServices ?? noRows}
         onSaveRow={onSaveRow}

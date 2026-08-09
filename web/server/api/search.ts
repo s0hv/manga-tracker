@@ -2,7 +2,11 @@ import camelcaseKeys from 'camelcase-keys';
 import type { Application } from 'express-serve-static-core';
 import * as z from 'zod';
 
-import { booleanString, validateRequest } from '#server/utils/validators';
+import {
+  booleanString,
+  databaseIdStr,
+  validateRequest,
+} from '#server/utils/validators';
 import { mangaSearch } from '@/db/elasticsearch/manga';
 import {
   type CustomFieldFormatter,
@@ -24,11 +28,16 @@ export default (app: Application) => {
       query: z.object({
         query: SearchQuerySchema,
         withServices: booleanString.optional().default(false),
+        serviceId: databaseIdStr.optional(),
       }),
     }),
     (req, res) => {
       let extractCustomFields: CustomFieldFormatter<boolean>;
-      const { query, withServices } = req.query;
+      const {
+        query,
+        withServices,
+        serviceId,
+      } = req.query;
 
       if (withServices) {
         extractCustomFields = fields => {
@@ -46,7 +55,7 @@ export default (app: Application) => {
         };
       }
 
-      mangaSearch(query, 5, withServices)
+      mangaSearch(query, 5, withServices, serviceId)
         .then(result => extractFields(result, ['title'], 'manga', extractCustomFields))
         .then(results => res.json(camelcaseKeys(results)))
         .catch(err => handleElasticError(err, res));

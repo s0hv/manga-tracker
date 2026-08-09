@@ -16,7 +16,12 @@ from psycopg.rows import DictRow
 from pydantic import BaseModel, Field
 
 from src.db.mappers.chapter_mapper import ChapterMapper
-from src.db.models.chapter import Chapter
+from src.db.models.chapter import (
+    Chapter,
+    ChapterFailed,
+    ChapterFailedBase,
+    ChapterFailedUnprocessable,
+)
 from src.db.models.chapter import Chapter as ChapterModel
 from src.db.models.manga import MangaService
 from src.db.models.services import ServiceConfig
@@ -24,8 +29,6 @@ from src.utils.utilities import get_latest_chapters, requests_session, utcnow
 
 if TYPE_CHECKING:
     from src.utils.dbutils import DbUtil
-
-logger = logging.getLogger(__name__)
 
 
 class BaseChapter(abc.ABC):
@@ -260,6 +263,8 @@ class BaseScraper(abc.ABC):
     CONFIG: ServiceConfig = NotImplemented
     """Service configuration values"""
 
+    LOGGER: logging.Logger = NotImplemented
+
     @override
     def __init_subclass__(cls, **kwargs: dict):
         # Ignore for abstract classes
@@ -276,7 +281,12 @@ class BaseScraper(abc.ABC):
         if self.CONFIG is NotImplemented:
             raise NotImplementedError(f'Service config value not set for {type(self).__name__}')
 
+        if self.LOGGER is NotImplemented:
+            raise NotImplementedError(f'Service logger not set for {type(self).__name__}')
+
         self._conn = conn
+        self._logger = self.LOGGER
+
         if dbutil is None:
             from src.utils.dbutils import DbUtil
 
@@ -292,6 +302,10 @@ class BaseScraper(abc.ABC):
     def dbutil(self) -> 'DbUtil':
         return self._dbutil
 
+    @property
+    def logger(self) -> logging.Logger:
+        return self._logger
+
     def set_checked(self, service_id: int, is_manga: bool = False) -> None:  # noqa: ARG002
         with self.conn.cursor() as cursor:
             now = utcnow()
@@ -302,7 +316,7 @@ class BaseScraper(abc.ABC):
             try:
                 cursor.execute(sql, (utcnow(), disabled_until, service_id))
             except psycopg.Error:
-                logger.exception(f'Failed to update last check of {service_id}')
+                self.logger.exception(f'Failed to update last check of {service_id}')
                 return
 
     def min_update_interval(self) -> timedelta:
@@ -339,12 +353,12 @@ class BaseScraper(abc.ABC):
         with self.conn.cursor() as cur:
             cur.execute(sql, (self.URL, self.ID))
             if cur.fetchone():
-                logger.error(
+                self.logger.error(
                     f'Service {self.NAME} already exists with duplicate url {self.URL} or id {self.ID}'
                 )
                 return None
 
-        logger.info(f'Adding service {self.NAME} {self.URL}')
+        self.logger.info(f'Adding service {self.NAME} {self.URL}')
         sql: LiteralString = """
             INSERT INTO services (service_id, service_name, url, disabled, last_check, chapter_url_format, manga_url_format, disabled_until)
             VALUES (%s, %s, %s, FALSE, NULL, %s, %s, NULL) RETURNING service_id"""
@@ -441,7 +455,7 @@ class BaseScraper(abc.ABC):
                         ChapterMapper.base_chapter_to_db(chapter, manga.manga_id, service_id)
                     )
                 except pydantic.ValidationError:
-                    logger.exception(f'Failed to map chapter {chapter} to db model')
+                    self.logger.exception(f'Failed to map chapter {chapter} to db model')
 
     def get_new_entries(
         self, service_id: int, entries: Collection[ScraperChapter]
@@ -451,10 +465,10 @@ class BaseScraper(abc.ABC):
         """
         entries = self.dbutil.get_only_latest_entries(service_id, entries)
         if not entries:
-            logger.info(f'No new entries found for {type(self).__name__}')
+            self.logger.info(f'No new entries found for {type(self).__name__}')
             return None
 
-        logger.info(
+        self.logger.info(
             '%s new chapters found for %s. %s',
             len(entries),
             self.NAME,
@@ -470,11 +484,11 @@ class BaseScraper(abc.ABC):
             with requests_session() as session:
                 r = session.get(url, headers=headers)
         except requests.RequestException:
-            logger.exception(f'Failed to fetch {self.__class__.__name__} url {url}')
+            self.logger.exception(f'Failed to fetch {self.__class__.__name__} url {url}')
             return None
 
         if not r.ok:
-            logger.error(
+            self.logger.error(
                 f'Failed to fetch {self.__class__.__name__} url {url}. HTTP {r.status_code}'
             )
             return None
@@ -540,6 +554,48 @@ class BaseScraper(abc.ABC):
             chapter_ids={row.chapter_id for row in inserted}
         )
 
+    def log_chapter_fails(self, failed_chapters: Sequence[ChapterFailedBase]):
+        for chapter in failed_chapters:
+            self.logger.error(
+                f'Failed to process chapter: {chapter.errors}',
+                exc_info=chapter.exception
+            )
+
+    def handle_failed_chapters(self, failed_chapters: Sequence[ChapterFailedBase]):
+        """
+        Handles adding failed chapters to the database, checking if they exist there already,
+        and logging errors for new entries.
+
+        Args:
+            failed_chapters (Sequence[ChapterFailedBase]): The sequence of failed chapters.
+        """
+        if not failed_chapters:
+            return
+
+        # It is okay if this fails. It is more important that processing can continue regardless
+        # of the result of adding failed chapters
+        try:
+            unprocessable_chapters = [c for c in failed_chapters if isinstance(c, ChapterFailedUnprocessable)]
+            processable_chapters: list[ChapterFailed] = [c for c in failed_chapters if isinstance(c, ChapterFailed)]
+
+            self.log_chapter_fails(unprocessable_chapters)
+
+            if not processable_chapters:
+                return
+
+            unprocessed_chapters = list(self.dbutil.filter_unprocessed_failed_chapters(processable_chapters))
+
+            if not unprocessed_chapters:
+                return
+
+            # log new chapter errors once
+            self.log_chapter_fails(unprocessed_chapters)
+
+            self.dbutil.insert_chapters_failed(unprocessed_chapters)
+        except Exception:
+            self.logger.exception('Failed to insert failed chapters')
+            return
+
 
 class BaseScraperWhole(BaseScraper, ABC):
     @override
@@ -566,4 +622,4 @@ class BaseScraperWhole(BaseScraper, ABC):
             super().set_checked(service_id)
             self.dbutil.update_service_whole(service_id, self.min_update_interval())
         except psycopg.Error:
-            logger.exception(f'Failed to update service {service_id}')
+            self.logger.exception(f'Failed to update service {service_id}')

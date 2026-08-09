@@ -73,16 +73,16 @@ export type MangaServiceCreateData = Partial<Pick<
   | 'feedUrl'
 >>;
 
-export type SearchedManga = {
+export interface SearchedManga {
   mangaId: number
   title: string
   score: number
-};
+}
 
-export type SearchedMangaWithService = SearchedManga & {
+export interface SearchedMangaWithService extends SearchedManga {
   /** serviceId: serviceName */
   services: Record<number, string>
-};
+}
 
 export type MergeMangaResult = {
   aliasCount: number

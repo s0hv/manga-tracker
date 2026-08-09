@@ -1,10 +1,11 @@
 import logging
 import re
 from datetime import datetime, timezone
-from typing import cast, override
+from typing import Self, cast, override
 
 from lxml import etree
 
+from src.db.models.chapter import ChapterFailed, ChapterFailedBase, ChapterFailedUnprocessable
 from src.scrapers.base_scraper import (
     BaseChapterSimple,
     BaseScraper,
@@ -33,14 +34,12 @@ def get_group_name(elem: etree._Element) -> str:
 class ParsedChapter(BaseChapterSimple):
     invalid: bool
 
-    def __init__(
-        self, chapter_element: etree._Element, group_id: int, manga_title: str | None = None
-    ):
-        self.invalid = False
-
+    @classmethod
+    def of_element(cls, chapter_element: etree._Element, group_id: int, manga_title: str | None = None) -> Self | ChapterFailedBase:
         group_name = get_group_name(chapter_element)
 
         title_el = chapter_element.cssselect('td.chapter-title a')[0]
+        title_full = (title_el.text or '').strip()
 
         # This value will be in the format gist/OPM/208/1/
         chapter_url = title_el.attrib['href'].removeprefix('/read/')
@@ -48,9 +47,12 @@ class ParsedChapter(BaseChapterSimple):
         # Title id is the first two parts of the URL, e.g., gist/OPM
         title_id = '/'.join(chapter_url.split('/')[:2])
         if not title_id:
-            logger.error(f'Title id not parsed correctly from {title_el.attrib["href"]}')
-            self.invalid = True
-            return
+            return ChapterFailedUnprocessable(
+                service_id=Cubari.ID,
+                errors=f'Title id not parsed correctly from {title_el.attrib["href"]}',
+                title=title_full,
+                manga_title=manga_title,
+            )
 
         # Chapter identifier is the third part of the URL, e.g., 208
         chapter_identifier = chapter_url.split('/')[2]
@@ -58,10 +60,17 @@ class ParsedChapter(BaseChapterSimple):
         # Returns the date as a text like "[2025, 5, 19, 7, 48, 26]"
         time_element_list = chapter_element.cssselect('td.detailed-chapter-upload-date')
         time_element = time_element_list[0] if time_element_list else None
+
         if time_element is None:
-            logger.exception('Failed to find time element in chapter row')
-            self.invalid = True
-            return
+            return ChapterFailed(
+                chapter_identifier=chapter_identifier,
+                service_id=Cubari.ID,
+                errors='Failed to find time element in chapter row',
+                title=title_full,
+                title_id=title_id,
+                manga_title=manga_title,
+                group=group_name,
+            )
 
         time_text_elements = (time_element.text or '').strip().split(',')
         # Months are 0 indexed meaning january is 0
@@ -75,9 +84,16 @@ class ParsedChapter(BaseChapterSimple):
         # Parse chapter number from the data-chapter attribute
         chapter_number_str = chapter_element.attrib.get('data-chapter')
         if not chapter_number_str:
-            logger.error('Chapter number not found from attribute data-chapter')
-            self.invalid = True
-            return
+            return ChapterFailed(
+                chapter_identifier=chapter_identifier,
+                service_id=Cubari.ID,
+                errors='Chapter number not found from attribute data-chapter',
+                title=title_full,
+                title_id=title_id,
+                manga_title=manga_title,
+                release_date=release_date,
+                group=group_name,
+            )
 
         # Parse the chapter number and decimal if present
         chapter_number_split = chapter_number_str.split('.')
@@ -88,12 +104,22 @@ class ParsedChapter(BaseChapterSimple):
             chapter_decimal = int(chapter_number_split[1])
 
         # Parse the chapter title from the text of the title element
-        title_full = (title_el.text or '').strip()
-        chapter_title = self.parse_title(title_full)
+        chapter_title = ParsedChapter.parse_title(title_full)
         if chapter_title is None:
-            return
+            return ChapterFailed(
+                chapter_identifier=chapter_identifier,
+                service_id=Cubari.ID,
+                errors=f'Failed to parse chapter title from {title_full}',
+                title=title_full,
+                title_id=title_id,
+                manga_title=manga_title,
+                release_date=release_date,
+                group=group_name,
+                chapter_number=chapter_number,
+                chapter_decimal=chapter_decimal
+            )
 
-        super().__init__(
+        return cls(
             chapter_title=chapter_title,
             chapter_number=chapter_number,
             chapter_identifier=chapter_identifier,
@@ -109,7 +135,7 @@ class ParsedChapter(BaseChapterSimple):
 
     @override
     def __repr__(self) -> str:
-        return f'{self.manga_title} chapter {self.chapter_number}: {self.title}'
+        return f'{self.manga_title or ''} chapter {self.chapter_number}: {self.title}'
 
     @override
     @property
@@ -117,13 +143,12 @@ class ParsedChapter(BaseChapterSimple):
         # Guaranteed string in this class
         return cast(str, self._chapter_title)
 
-    def parse_title(self, title: str) -> str | None:
+    @staticmethod
+    def parse_title(title: str) -> str | None:
         title_stripped = title.replace('\n', ' ').strip()
         match = chapter_regex.match(title_stripped)
 
         if not match:
-            logger.error(f'Failed to parse title from {title_stripped}')
-            self.invalid = True
             return None
 
         d = match.groupdict()
@@ -138,11 +163,13 @@ class Cubari(BaseScraper):
     NAME = 'Cubari'
     CHAPTER_URL_FORMAT = 'https://cubari.moe/read/{title_id}/{}'
     MANGA_URL_FORMAT = 'https://cubari.moe/read/{}'
+    LOGGER = logger
 
     def parse_chapters(
         self, rows: list[etree._Element], manga_title: str | None = None
-    ) -> list[ParsedChapter]:
-        chapters = []
+    ) -> tuple[list[ParsedChapter], list[ChapterFailedBase]]:
+        chapters: list[ParsedChapter] = []
+        chapters_failed: list[ChapterFailedBase] = []
         group_name_to_id: dict[str, int] = {}
 
         def get_group_id(name: str) -> int:
@@ -153,18 +180,19 @@ class Cubari(BaseScraper):
 
         for row in rows:
             group_name = get_group_name(row)
-            c = ParsedChapter(
+            c = ParsedChapter.of_element(
                 row, group_id=get_group_id(group_name),
                 manga_title=manga_title
             )
-            if c.invalid:
+            if isinstance(c, ChapterFailedBase):
+                chapters_failed.append(c)
                 continue
 
             chapters.append(c)
 
-        return chapters
+        return chapters, chapters_failed
 
-    def get_manga_chapters(self, title_id: str) -> list[ParsedChapter] | None:
+    def get_manga_chapters(self, title_id: str) -> tuple[list[ParsedChapter], list[ChapterFailedBase]] | None:
         r = self.fetch_url(self.MANGA_URL_FORMAT.format(title_id))
         if r is None:
             return None
@@ -178,18 +206,20 @@ class Cubari(BaseScraper):
             logger.exception('Failed to extract title from manga page')
 
         chapter_rows = root.cssselect('table#chapters tbody tr')
-        chapters = self.parse_chapters(chapter_rows, manga_title)
 
-        return chapters
+        return self.parse_chapters(chapter_rows, manga_title)
 
     @override
     def scrape_series(
         self, title_id: str, service_id: int, manga_id: int, feed_url: str | None = None
     ) -> set[int] | None:
-        chapters = self.get_manga_chapters(title_id)
+        result = self.get_manga_chapters(title_id)
 
-        if chapters is None:
+        if result is None:
             return None
+
+        chapters, failed_chapters = result
+        self.handle_failed_chapters(failed_chapters)
 
         all_chapters = set(chapters)
         new_chapters = self.dbutil.get_only_latest_entries(service_id, chapters)

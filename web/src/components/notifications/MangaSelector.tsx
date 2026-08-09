@@ -13,6 +13,7 @@ import {
   useWatch,
 } from 'react-hook-form-mui';
 
+import { quickSearch } from '#web/api/manga';
 import type { FormValues } from '@/components/notifications/types';
 import {
   getOptionLabel,
@@ -23,8 +24,6 @@ import {
 } from '@/components/notifications/utilities';
 import type { NotificationFollow } from '@/types/api/notifications';
 
-
-import { quickSearch } from '../../api/manga';
 
 type AutocompleteType = AutocompleteProps<NotificationFollow, true, false, false>;
 export type MangaSelectorProps<TFieldValues extends FormValues = FormValues> = {
@@ -71,7 +70,7 @@ const MangaSelector = <TFieldValues extends FormValues = FormValues>({
   }, []);
 
   const { data } = useQuery({
-    queryKey: ['search-notif', query],
+    queryKey: ['search-notif', query] as const,
     queryFn: doSearch,
   });
 

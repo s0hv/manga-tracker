@@ -2,6 +2,7 @@ import React, { type FC, useCallback } from 'react';
 import AccountCircle from '@mui/icons-material/AccountCircle';
 import BookmarksIcon from '@mui/icons-material/Bookmarks';
 import MoonIcon from '@mui/icons-material/Brightness3';
+import BrokenImageIcon from '@mui/icons-material/BrokenImage';
 import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import PersonIcon from '@mui/icons-material/Person';
@@ -145,18 +146,33 @@ export const UserMenu: FC<UserMenuProps> = ({ handleThemeChange }) => {
         </RouteLink>
 
         {isUserAdmin && (
-          <RouteLink
-            component={MenuItem}
-            to='/admin/services'
-            preload={false}
-            onClick={handleClose}
-            sx={{ color: 'inherit' }}
-            underline='none'
-          >
-            <ViewListIcon className={classes.menuItemIcon} />
-            {' '}
-            Services
-          </RouteLink>
+          <>
+            <RouteLink
+              component={MenuItem}
+              to='/admin/services'
+              preload={false}
+              onClick={handleClose}
+              sx={{ color: 'inherit' }}
+              underline='none'
+            >
+              <ViewListIcon className={classes.menuItemIcon} />
+              {' '}
+              Services
+            </RouteLink>
+
+            <RouteLink
+              component={MenuItem}
+              to='/admin/parsing-fails'
+              preload={false}
+              onClick={handleClose}
+              sx={{ color: 'inherit' }}
+              underline='none'
+            >
+              <BrokenImageIcon className={classes.menuItemIcon} />
+              {' '}
+              Parsing fails
+            </RouteLink>
+          </>
         )}
 
         <MenuItem onClick={signOut}>

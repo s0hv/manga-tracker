@@ -11,6 +11,7 @@ from requests.exceptions import RetryError
 
 from src.constants import NO_GROUP
 from src.db.models.authors import AuthorPartial, MangaArtist, MangaAuthor
+from src.db.models.chapter import ChapterFailed
 from src.db.models.groups import Group, GroupPartial
 from src.db.models.manga import MangaInfo
 from src.scrapers.base_scraper import (
@@ -69,6 +70,7 @@ class Chapter(BaseChapterSimple):
                     if not chapter_title:
                         chapter_title = f'Chapter {chapter_number}'
                 else:
+                    # TODO should this be handled by failed chapter parsing?
                     logger.warning(
                         f'Failed to parse chapter number {chapter_number} for {manga_id}'
                     )
@@ -116,6 +118,9 @@ class Chapter(BaseChapterSimple):
         )
 
 
+type ChapterReturnTuple = tuple[list[Chapter], list[ChapterFailed]]
+
+
 class MangaDex(BaseScraperWhole):
     ID = 2
     URL = 'https://mangadex.org'
@@ -125,6 +130,7 @@ class MangaDex(BaseScraperWhole):
     CHAPTER_URL_FORMAT = 'https://mangadex.org/chapter/{}'
     MANGA_URL_FORMAT = 'https://mangadex.org/title/{}'
     COVER_FORMAT: str = 'https://uploads.mangadex.org/covers/{title_id}/{file_name}'
+    LOGGER = logger
 
     def __init__(self, conn: Connection[DictRow], dbutil: DbUtil | None = None):
         super().__init__(conn, dbutil)
@@ -132,12 +138,15 @@ class MangaDex(BaseScraperWhole):
         self.api = MangadexAPI()
 
     @staticmethod
-    def parse_feed(entries: Iterable[ChapterResult]) -> list[Chapter]:
-        chapters = []
+    def parse_feed(entries: Iterable[ChapterResult]) -> ChapterReturnTuple:
+        chapters: list[Chapter] = []
+        failed_chapters: list[ChapterFailed] = []
+
         for chapter in entries:
+            # Mypy thinks attrs is of type DataT which makes no sense as DataT is a TypeVar
+            attrs: ChapterAttributes = chapter.attributes
+
             try:
-                # Mypy thinks attrs is of type DataT which makes no sense as DataT is a TypeVar
-                attrs: ChapterAttributes = chapter.attributes
                 chapters.append(
                     Chapter(
                         attrs.chapter,
@@ -149,11 +158,28 @@ class MangaDex(BaseScraperWhole):
                         chapter.group,
                     )
                 )
-            except Exception:
-                logger.exception(f'Failed to parse chapter {chapter}')
+            except Exception as ex:
+                # chapter.manga_id can throw
+                try:
+                    title_id = chapter.manga_id
+                except ValueError:
+                    title_id = None
+
+                failed_chapters.append(
+                    ChapterFailed(
+                        chapter_identifier=chapter.id,
+                        service_id=MangaDex.ID,
+                        errors=f'Failed to parse chapter {chapter}',
+                        title=attrs.title,
+                        title_id=title_id,
+                        release_date=attrs.readable_at,
+                        group=chapter.group.attributes.name if chapter.group else None,
+                        exception=ex,
+                    )
+                )
                 continue
 
-        return chapters
+        return chapters, failed_chapters
 
     def update_manga_info_and_title(self, mangas: dict[int, MangaResult]) -> None:
         """
@@ -343,13 +369,17 @@ class MangaDex(BaseScraperWhole):
 
     def fetch_chapters(
         self, api_url: str, title_id: str | None = None, limit: int = 100
-    ) -> list[Chapter] | None:
+    ) -> ChapterReturnTuple | None:
         self.api.base_url = api_url
         try:
             result = self.api.get_chapters(
-                {'readableAt': 'desc'}, manga_id=title_id, languages=['en'], limit=limit
+                {'readableAt': 'desc'},
+                manga_id=title_id,
+                languages=['en'],
+                limit=limit
             )
-            return list(self.parse_feed(result))
+
+            return self.parse_feed(result)
         except JSONDecodeError:
             logger.exception('Failed to parse MangaDex response')
             return None
@@ -367,9 +397,13 @@ class MangaDex(BaseScraperWhole):
         Handles fetching the chapter feed and adding the results to the database
         and other required operations
         """
-        parsed = self.fetch_chapters(feed_url, title_id=title_id, limit=limit)
-        if parsed is None:
+        result = self.fetch_chapters(feed_url, title_id=title_id, limit=limit)
+        if result is None:
             return None
+
+        parsed, failed_chapters = result
+
+        self.handle_failed_chapters(failed_chapters)
 
         if not parsed:
             return ScrapeServiceRetVal()

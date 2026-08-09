@@ -3,6 +3,7 @@ from math import ceil
 from typing import Any, Literal, overload
 
 import psycopg
+from psycopg.rows import DictRow
 
 
 @overload
@@ -44,7 +45,7 @@ def execute_values[T](
 ) -> list[T] | None: ...
 
 
-def execute_values[T](
+def execute_values[T = DictRow](
     cur: psycopg.Cursor[T],
     sql: str,
     values: Sequence[Sequence[Any]],

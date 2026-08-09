@@ -1,11 +1,43 @@
 import { faker } from '@faker-js/faker';
-import { type JsonSchema, createGenerator, generate } from 'json-schema-faker';
+import {
+  type JsonSchema,
+  createGeneratorSync,
+} from 'json-schema-faker';
 
+import { DbChapterCreate } from '@/common/schemas/chapter';
+import type { ChapterFail } from '@/types/db/chapterFail';
+
+type JsonSchemaObject = Exclude<JsonSchema, boolean>;
+
+const nullable = (schema: JsonSchemaObject): JsonSchema => {
+  if (!schema.type) {
+    throw new Error('Cannot make a nullable schema without a type');
+  }
+
+  return {
+    ...schema,
+    type: Array.isArray(schema.type)
+      ? ['null', ...schema.type]
+      : ['null', schema.type],
+  };
+};
 
 const positiveInteger: JsonSchema = {
   type: 'integer',
   minimum: 0,
   exclusiveMinimum: 1,
+};
+
+const serviceIdSchema: JsonSchema = {
+  ...positiveInteger,
+  // Currently the highest service ID (KManga)
+  maximum: 12,
+};
+
+const mangaIdSchema: JsonSchema = {
+  ...positiveInteger,
+  // Test db has 4 test manga
+  maximum: 4,
 };
 
 const stringType: JsonSchema = {
@@ -41,7 +73,7 @@ export const LatestChapter: JsonSchema = {
     chapterDecimal: positiveInteger,
     releaseDate: datetimeType,
     group: stringType,
-    serviceId: positiveInteger,
+    serviceId: serviceIdSchema,
     chapterIdentifier: stringType,
     manga: stringType,
     mangaId: positiveInteger,
@@ -62,7 +94,7 @@ export const LatestChapter: JsonSchema = {
   ],
 };
 
-export const MangaService: JsonSchema = {
+export const MangaService = {
   type: 'object',
   properties: {
     mangaId: positiveInteger,
@@ -81,9 +113,9 @@ export const MangaService: JsonSchema = {
     'titleId',
     'disabled',
   ],
-};
+} as const satisfies JsonSchema;
 
-export const Service: JsonSchema = {
+export const Service = {
   type: 'object',
   properties: {
     serviceId: positiveInteger,
@@ -107,14 +139,79 @@ export const Service: JsonSchema = {
     'chapterUrlFormat',
     'mangaUrlFormat',
   ],
-};
+} as const satisfies JsonSchema;
 
-let generator: ReturnType<typeof createGenerator>['generate'];
+export const ChapterFailSchema = {
+  type: 'object',
+
+  properties: {
+    chapterIdentifier: stringType,
+    serviceId: serviceIdSchema,
+    title: nullable(stringType),
+    chapterNumber: nullable(positiveInteger),
+    chapterDecimal: nullable(positiveInteger),
+    releaseDate: nullable(datetimeType),
+    group: nullable(stringType),
+    mangaId: nullable(mangaIdSchema),
+    errors: stringType,
+    titleId: nullable(stringType),
+    mangaTitle: nullable(stringType),
+  } satisfies Record<keyof Omit<ChapterFail, 'timestamp'>, JsonSchema>,
+
+  required: [
+    'chapterIdentifier',
+    'serviceId',
+    'title',
+    'chapterNumber',
+    'chapterDecimal',
+    'releaseDate',
+    'group',
+    'mangaId',
+    'errors',
+    'titleId',
+    'mangaTitle',
+  ],
+} as const satisfies JsonSchema;
+
+export const ChapterCreateSchema = {
+  type: 'object',
+
+  properties: {
+    title: stringType,
+    chapterNumber: positiveInteger,
+    chapterDecimal: nullable(positiveInteger),
+    releaseDate: datetimeType,
+    group: {
+      type: 'object',
+      properties: {
+        name: stringType,
+        groupId: { type: 'null' },
+      },
+      required: ['name', 'groupId'],
+    },
+    serviceId: serviceIdSchema,
+    chapterIdentifier: stringType,
+    mangaId: mangaIdSchema,
+  } satisfies Record<keyof DbChapterCreate, JsonSchema>,
+
+  required: [
+    'title',
+    'chapterNumber',
+    'chapterDecimal',
+    'releaseDate',
+    'group',
+    'serviceId',
+    'chapterIdentifier',
+    'mangaId',
+  ],
+} as const satisfies JsonSchema;
+
+let generator: ReturnType<typeof createGeneratorSync>['generate'];
 
 export const setupFaker = (seed = 1) => {
   faker.seed(seed);
 
-  generator = createGenerator({
+  generator = createGeneratorSync({
     seed,
 
     extensions: {
@@ -143,11 +240,22 @@ export const setupFaker = (seed = 1) => {
   }).generate;
 };
 
-export const generateNSchemas = async <T = ReturnType<typeof generate>>(schema: JsonSchema, count: number): Promise<T[]> => {
+type SchemaTypeMap<TSchema, TFallback = unknown> =
+  TSchema extends typeof ChapterCreateSchema
+    ? DbChapterCreate
+    : TSchema extends typeof ChapterFailSchema
+      ? Omit<ChapterFail, 'timestamp'>
+      : TFallback;
+
+export const generateNSchemas = <T = unknown>(schema: JsonSchema, count: number): T[] => {
   const arr: T[] = [];
   for (let i = 0; i < count; i++) {
-    arr.push(await generator(schema) as T);
+    arr.push(generator(schema) as T);
   }
 
   return arr;
 };
+
+export const generateSchema = <TSchema extends JsonSchema, T = SchemaTypeMap<TSchema>>(
+  schema: TSchema
+): SchemaTypeMap<TSchema, T> => generator(schema) as SchemaTypeMap<TSchema, T>;

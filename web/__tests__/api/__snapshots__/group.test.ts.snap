@@ -1,0 +1,9 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`GET /api/groups/search > Should give an error with an invalid limit "-1" 1`] = `"Too small: expected number to be >=1"`;
+
+exports[`GET /api/groups/search > Should give an error with an invalid limit "0" 1`] = `"Too small: expected number to be >=1"`;
+
+exports[`GET /api/groups/search > Should give an error with an invalid limit "1e10" 1`] = `"Value must contain only numbers"`;
+
+exports[`GET /api/groups/search > Should give an error with an invalid limit "201" 1`] = `"Too big: expected number to be <=200"`;

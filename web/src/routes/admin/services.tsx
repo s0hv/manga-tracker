@@ -1,13 +1,13 @@
 import { createFileRoute } from '@tanstack/react-router';
 
+import { getServicesFn } from '#web/serverFunctions/services';
+import { validateIsAdminUserFn } from '#web/serverFunctions/validation';
 import {
   DefaultLocalizationProvider,
 } from '@/components/DefaultLocalizationProvider';
 import Services from '@/views/admin/Services';
 import { defineMeta } from '@/webUtils/meta';
 
-import { getServicesFn } from '../../serverFunctions/services';
-import { validateIsAdminUserFn } from '../../serverFunctions/validation';
 
 export const Route = createFileRoute('/admin/services')({
   beforeLoad: async () => {

@@ -12,10 +12,12 @@ import type { NodeHttp1Handler } from 'srvx';
 import { type AdapterMeta, toNodeHandler } from 'srvx/node';
 
 import {
+  adminChapterFailApi,
   adminMangaApi,
   adminServicesApi,
   authHandler,
   chapterApi,
+  groupApi,
   mangaApi,
   notificationsApi,
   rssApi,
@@ -257,6 +259,8 @@ authHandler(server);
 rssApi(server);
 mangaApi(server);
 userApi(server);
+groupApi(server);
+adminChapterFailApi(server);
 settingsApi(server);
 searchApi(server);
 adminServicesApi(server);

@@ -17,7 +17,7 @@ import {
   TableHead,
   TablePagination,
   TableRow,
-  TableSortLabel,
+  TableSortLabel, Box,
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import {
@@ -84,7 +84,7 @@ const skeletonCount = new Array(10).fill(0);
 
 export type MaterialTableProps<TData> = {
   title?: string
-  arialLabel?: string
+  ariaLabel?: string
   data: TData[]
   columns: MaterialColumnDef<TData>[]
   sortable?: boolean
@@ -113,7 +113,7 @@ export type MaterialTableProps<TData> = {
 const MaterialTable = <TData, >(props: MaterialTableProps<TData>): ReactElement => {
   const {
     title,
-    arialLabel,
+    ariaLabel,
     columns,
     data,
     sortable = false,
@@ -216,11 +216,20 @@ const MaterialTable = <TData, >(props: MaterialTableProps<TData>): ReactElement 
         {...toolbarProps}
       />
       <Table
-        aria-label={arialLabel ?? title}
+        aria-label={ariaLabel ?? title}
         data-isloading={loading}
       >
         <colgroup>
-          {table.getVisibleFlatColumns().map(col => <col width={col.columnDef.width} key={col.id} />)}
+          {table.getVisibleFlatColumns().map(col => (
+            <Box
+              component='col'
+              sx={{
+                width: col.columnDef.width,
+                minWidth: col.columnDef.minSize,
+              }}
+              key={col.id}
+            />
+          ))}
         </colgroup>
         <TableHeadStyled>
           {table.getHeaderGroups().map(headerGroup => (

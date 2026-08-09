@@ -3,10 +3,11 @@ import logging
 import re
 from abc import ABC
 from datetime import datetime, timezone
-from typing import cast, override
+from typing import Self, cast, override
 
 from lxml import etree
 
+from src.db.models.chapter import ChapterFailed, ChapterFailedBase, ChapterFailedUnprocessable
 from src.scrapers.base_scraper import (
     BaseChapterSimple,
     BaseScraperWhole,
@@ -24,10 +25,9 @@ ignore_chapter_regex = re.compile(r'^\s*chapter announcement\s*$', re.I)
 
 
 class ParsedChapter(BaseChapterSimple, ABC):
-    invalid: bool
-
+    @classmethod
     @abc.abstractmethod
-    def __init__(self, chapter_element: etree._Element, group_id: int | None = None): ...
+    def from_element(cls, chapter_element: etree._Element, group_id: int | None = None): Self | ChapterFailedBase | None
 
     @override
     def __repr__(self) -> str:
@@ -44,22 +44,27 @@ class ParsedChapter(BaseChapterSimple, ABC):
     def title(self) -> str:
         return self.chapter_title
 
-    def parse_title(self, title: str) -> tuple[str, int, int | None] | None:
+    @staticmethod
+    def parse_title(title: str) -> tuple[str, int, int | None] | ChapterFailedUnprocessable | None:
         if ignore_chapter_regex.match(title):
-            self.invalid = True
             return None
 
         match = chapter_regex.match(title)
 
         if not match:
-            logger.error(f'Failed to parse title from {title}')
-            self.invalid = True
-            return None
+            return ChapterFailedUnprocessable(
+                chapter_identifier=None,
+                service_id=Azuki.ID,
+                errors=f'Failed to parse title from {title}',
+                title=title,
+                group=Azuki.NAME
+            )
 
         d = match.groupdict()
         chapter_number = int(d['chapter_number'])
         special_chapter = d['special_chapter']
         chapter_decimal: int | None = None
+
         if d['chapter_decimal']:
             chapter_decimal = int(d['chapter_decimal'])
 
@@ -83,35 +88,47 @@ class ParsedChapter(BaseChapterSimple, ABC):
 
 
 class MangaChapter(ParsedChapter):
-    def __init__(self, chapter_element: etree._Element, group_id: int | None = None):
-        self.invalid = False
-
+    @override
+    @classmethod
+    def from_element(cls, chapter_element: etree._Element, group_id: int | None = None) -> Self | ChapterFailedBase | None:
         title_el = chapter_element.cssselect('a.a-card-link')[0]
-
         title_id = title_el.attrib['href'].split('/')[-3]
-        if not title_id:
-            logger.error(f'Title id not parsed correctly from {title_el.attrib["href"]}')
-            self.invalid = True
-            return
-
-        chapter_identifier = title_el.attrib['href'].split('/')[-1]
-
         time_elements = chapter_element.cssselect('time')
+
         if not time_elements:
             release_date = utctoday()
         else:
             time_el = time_elements[0]
             release_date = datetime.fromisoformat(time_el.attrib['datetime'].replace('Z', '+00:00'))
 
+        if not title_id:
+            # Fatal error because chapter identifier could not be parsed
+            return ChapterFailedUnprocessable(
+                chapter_identifier=None,
+                service_id=Azuki.ID,
+                errors=f'Title id not parsed correctly from {title_el.attrib["href"]}',
+                title=title_el.attrib['href'],
+                release_date=release_date,
+                group=Azuki.NAME)
+
+        chapter_identifier = title_el.attrib['href'].split('/')[-1]
+
         title_full = title_el.cssselect('span span')[0].text.strip()  # type: ignore[union-attr]
-        result = self.parse_title(title_full)
+        result = cls.parse_title(title_full)
+
         if result is None:
-            return
+            return None
+
+        if isinstance(result, ChapterFailedBase):
+            return ChapterFailed(
+                **result.model_dump(exclude_none=True),
+                chapter_identifier=chapter_identifier,
+                release_date=release_date,
+            )
 
         chapter_title, chapter_number, chapter_decimal = result
 
-        BaseChapterSimple.__init__(
-            self,
+        return cls(
             chapter_title=chapter_title,
             chapter_number=chapter_number,
             chapter_identifier=chapter_identifier,
@@ -137,8 +154,9 @@ class MangaChapter(ParsedChapter):
 
 
 class ReleaseChapter(ParsedChapter):
-    def __init__(self, chapter_element: etree._Element, group_id: int | None = None):
-        self.invalid = False
+    @override
+    @classmethod
+    def from_element(cls, chapter_element: etree._Element, group_id: int | None = None) -> Self | ChapterFailedBase | None:
         title_el, chapter_el, date_el = chapter_element.cssselect('td')
 
         manga_title = title_el.cssselect('cite')[0].text.strip()  # type: ignore[union-attr]
@@ -148,23 +166,39 @@ class ReleaseChapter(ParsedChapter):
         title = chapter_link.text.strip()  # type: ignore[union-attr]
         chapter_identifier = chapter_link.attrib['href'].split('/')[-1]
 
-        result = self.parse_title(title)
-        if result is None:
-            return
-
-        chapter_title, chapter_number, chapter_decimal = result
-
         try:
             release_date = datetime.strptime(date_el.text.strip(), '%b %d, %Y').replace(  # type: ignore[union-attr]
                 tzinfo=timezone.utc
             )
-        except ValueError:
-            logger.exception('Failed to parse time')
-            self.invalid = True
-            return
+        except ValueError as ex:
+            return ChapterFailed(
+                chapter_identifier=chapter_identifier,
+                service_id=Azuki.ID,
+                errors='Failed to parse time',
+                title=title,
+                title_id=title_id,
+                manga_title=manga_title,
+                group=Azuki.NAME,
+                exception=ex,
+            )
 
-        BaseChapterSimple.__init__(
-            self,
+        result = cls.parse_title(title)
+
+        if result is None:
+            return None
+
+        if isinstance(result, ChapterFailedUnprocessable):
+            return ChapterFailed(
+                **result.model_dump(exclude_none=True),
+                manga_title=manga_title,
+                title_id=title_id,
+                chapter_identifier=chapter_identifier,
+                release_date=release_date,
+            )
+
+        chapter_title, chapter_number, chapter_decimal = result
+
+        return cls(
             chapter_title=chapter_title,
             chapter_number=chapter_number,
             chapter_identifier=chapter_identifier,
@@ -186,23 +220,49 @@ class Azuki(BaseScraperWhole):
     NAME = 'Azuki'
     CHAPTER_URL_FORMAT = 'https://www.azuki.co/series/{title_id}/read/{}'
     MANGA_URL_FORMAT = 'https://www.azuki.co/series/{}'
+    LOGGER = logger
 
     @staticmethod
     def parse_chapters[TChapter: ParsedChapter](
-        rows: list[etree._Element], chapter_cls: type[TChapter], group_id: int
-    ) -> list[TChapter]:
+        rows: list[etree._Element],
+        chapter_cls: type[TChapter],
+        group_id: int
+    ) -> tuple[list[TChapter], list[ChapterFailed]]:
         chapters = []
+        failed_chapters: list[ChapterFailed] = []
         now = utctoday()
+
         for row in rows:
-            c: TChapter = chapter_cls(row, group_id=group_id)
-            if c.invalid or c.release_date > now:
+            c = chapter_cls.from_element(row, group_id=group_id)
+
+            # Skip ignored chapters
+            if c is None:
+                continue
+
+            if isinstance(c, ChapterFailed):
+                # Ignore errors for future chapters
+                if c.release_date and c.release_date > now:
+                    continue
+
+                failed_chapters.append(c)
+                continue
+
+            elif isinstance(c, ChapterFailedBase):
+                # Ignore errors for future chapters
+                if c.release_date and c.release_date > now:
+                    continue
+
+                logger.error(c.errors)
+                continue
+
+            elif c.release_date > now:
                 continue
 
             chapters.append(c)
 
-        return chapters
+        return chapters, failed_chapters
 
-    def get_manga_chapters(self, title_id: str, group_id: int) -> list[MangaChapter] | None:
+    def get_manga_chapters(self, title_id: str, group_id: int) -> tuple[list[MangaChapter], list[ChapterFailed]] | None:
         r = self.fetch_url(self.MANGA_URL_FORMAT.format(title_id))
         if r is None:
             return None
@@ -212,7 +272,7 @@ class Azuki(BaseScraperWhole):
         chapter_rows = root.xpath(
             ".//azuki-chapter-row-list//li[contains(@class, 'm-chapter-row') and not(contains(@class, 'm-chapter-row--upcoming'))]"
         )
-        chapters = self.parse_chapters(chapter_rows, MangaChapter, group_id)
+        chapters, failed_chapters = self.parse_chapters(chapter_rows, MangaChapter, group_id)
 
         try:
             manga_title = root.cssselect('div.o-series-summary h1')[0].text.strip()  # type: ignore[union-attr]
@@ -222,17 +282,28 @@ class Azuki(BaseScraperWhole):
             for c in chapters:
                 c.manga_title = manga_title
 
-        return chapters
+            for c in failed_chapters:
+                c.manga_title = manga_title
+                c.title_id = title_id
+
+        return chapters, failed_chapters
 
     @override
     def scrape_series(
         self, title_id: str, service_id: int, manga_id: int, feed_url: str | None = None
     ) -> set[int] | None:
         group_id = self.dbutil.get_or_create_group(self.NAME).group_id
-        chapters = self.get_manga_chapters(title_id, group_id)
+        chapters_result = self.get_manga_chapters(title_id, group_id)
 
-        if chapters is None:
+        if chapters_result is None:
             return None
+
+        chapters, failed_chapters = chapters_result
+
+        for c in failed_chapters:
+            c.manga_id = manga_id
+
+        self.handle_failed_chapters(failed_chapters)
 
         all_chapters = set(chapters)
         new_chapters = self.dbutil.get_only_latest_entries(service_id, chapters)
@@ -258,7 +329,9 @@ class Azuki(BaseScraperWhole):
         chapter_rows = root.cssselect('table tbody tr')
 
         group_id = self.dbutil.get_or_create_group(self.NAME).group_id
-        chapters = self.parse_chapters(chapter_rows, ReleaseChapter, group_id)
+        chapters, failed_chapters = self.parse_chapters(chapter_rows, ReleaseChapter, group_id)
+
+        self.handle_failed_chapters(failed_chapters)
 
         chapters = list(self.dbutil.get_only_latest_entries(service_id, chapters))
         if not chapters:
@@ -271,10 +344,12 @@ class Azuki(BaseScraperWhole):
         if len(grouped) <= 3:
             for key, manga_chapters in grouped.items():
                 logger.debug(f'Fetching chapter titles for {key}')
-                named_chapters = self.get_manga_chapters(key, group_id)
-                if not named_chapters:
+                named_chapters_res = self.get_manga_chapters(key, group_id)
+                if not named_chapters_res:
                     continue
 
+                # Failed chapters can be ignored here
+                named_chapters = named_chapters_res[0]
                 mapped: dict[str, ParsedChapter] = {c.chapter_identifier: c for c in manga_chapters}
 
                 for c in named_chapters:
