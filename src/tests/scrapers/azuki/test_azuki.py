@@ -9,15 +9,10 @@ import responses
 
 import src.scrapers.azuki
 from src.constants import DEFAULT_RETRY_POLICY, NO_GROUP
+from src.db.models.chapter import ChapterFailed
 from src.scrapers.azuki import Azuki, ParsedChapter
 from src.tests.testing_utils import BaseTestClasses, ChapterTestModel
 from src.utils.utilities import utctoday
-
-
-class TempChapter(ParsedChapter):
-    def __init__(self):
-        pass
-
 
 correct_chapters = [
     ChapterTestModel(
@@ -71,6 +66,45 @@ correct_chapters = [
         title='Chapter 58',
         manga_title='Grand Blue Dreaming',
         group_id=NO_GROUP),
+]
+
+chapters_failed_manga = [
+    ChapterFailed(
+        service_id=Azuki.ID,
+        errors='Failed to parse title from Weird chapter name',
+        title='Weird chapter name',
+        chapter_number=None,
+        title_id='grand-blue-dreaming',
+        manga_title='Grand Blue Dreaming',
+        release_date=datetime.fromisoformat('2022-06-06T00:00:00.000').replace(tzinfo=timezone.utc),
+        group=Azuki.NAME,
+        chapter_identifier='title-parse-fail',
+    ),
+]
+
+chapters_failed_releases = [
+    ChapterFailed(
+        service_id=Azuki.ID,
+        errors='Failed to parse title from Bonus Content',
+        title='Bonus Content',
+        chapter_number=None,
+        title_id='cagaster',
+        manga_title='Cagaster',
+        release_date=datetime.fromisoformat('2022-05-20T00:00:00.000').replace(tzinfo=timezone.utc),
+        group=Azuki.NAME,
+        chapter_identifier='fail1',
+    ),
+    ChapterFailed(
+        service_id=Azuki.ID,
+        errors='Failed to parse time',
+        title='Chapter 388',
+        chapter_number=None,
+        title_id='space-brothers',
+        manga_title='Space Brothers',
+        release_date=None,
+        group=Azuki.NAME,
+        chapter_identifier='fail2',
+    ),
 ]
 
 
@@ -143,7 +177,8 @@ class AzukiTest(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAssertion
             c.group_id = group_id
 
         self.delete_chapters(Azuki.ID)
-        chapter_ids = azuki.scrape_series(title_id, Azuki.ID, 0)
+        self.delete_failed_chapters(Azuki.ID)
+        chapter_ids = azuki.scrape_series(title_id, Azuki.ID, 1)
 
         assert chapter_ids
 
@@ -151,6 +186,8 @@ class AzukiTest(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAssertion
 
         for parsed, correct in zip(sorted(chapters, key=self.chapterSortKey), sorted(correct_chapters, key=self.chapterSortKey), strict=True):
             self.assertChaptersEqual(parsed, correct)
+
+        self.assertFailedChaptersHandled(Azuki.ID, chapters_failed_manga)
 
     @responses.activate
     @patch.object(src.scrapers.azuki, 'utctoday', Mock())
@@ -169,6 +206,7 @@ class AzukiTest(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAssertion
             c.group_id = group_id
 
         self.delete_chapters(Azuki.ID)
+        self.delete_failed_chapters(Azuki.ID)
         retval = azuki.scrape_service(Azuki.ID, Azuki.FEED_URL, None)
 
         assert retval
@@ -183,6 +221,8 @@ class AzukiTest(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAssertion
 
         for parsed, correct in zip(sorted(chapters, key=self.chapterSortKey), sorted(correct_chapters_releases, key=self.chapterSortKey), strict=True):
             self.assertChaptersEqual(parsed, correct)
+
+        self.assertFailedChaptersHandled(Azuki.ID, chapters_failed_releases)
 
 
 @pytest.mark.parametrize(('title', 'correct'), [
@@ -201,8 +241,7 @@ class AzukiTest(BaseTestClasses.DatabaseTestCase, BaseTestClasses.ModelAssertion
     ('Chapter Announcement', None),
 ])
 def test_parse_chapter_title(title: str, correct: tuple[str, int, int | None] | None):
-    ch = TempChapter()
-    assert ch.parse_title(title) == correct, f'ParsedChapter.parse_title("{title}") did not equal {correct}'
+    assert ParsedChapter.parse_title(title) == correct, f'ParsedChapter.parse_title("{title}") did not equal {correct}'
 
 
 if __name__ == '__main__':

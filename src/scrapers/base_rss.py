@@ -9,6 +9,7 @@ from typing import Any, cast, override
 
 import feedparser
 
+from src.db.models.chapter import ChapterFailed
 from src.errors import FeedHttpError, InvalidFeedError
 from src.scrapers.base_scraper import (
     BaseChapterSimple,
@@ -204,33 +205,70 @@ class BaseRSS(BaseScraperWhole, ABC):
     def get_group_id(self) -> int:
         return self.dbutil.get_or_create_group(self.NAME).group_id
 
-    def parse_feed(self, entries: Iterable[dict], group_id: int) -> list[RSSChapter]:
+    def parse_feed(self, entries: Iterable[dict], group_id: int) -> tuple[list[RSSChapter], list[ChapterFailed]]:
         titles = []
+        failed_chapters: list[ChapterFailed] = []
+
         for entry in entries:
             if self.skip_entry(entry):
                 continue
 
             title = entry.get('title', '')
+            chapter_identifier = self.get_chapter_id(entry)
+            title_id = self.get_title_id(entry)
+            manga_title = self.get_manga_title(entry)
+            release_date = entry.get('published_parsed') or entry.get('updated_parsed')
+            # ChapterFailed requires an actual datetime, unlike self.Chapter which accepts a struct_time
+            release_date_dt = utcfromtimestamp(timegm(release_date)) if release_date else None
+
+            # Fatal error because chapter identifier is required creating failed chapters
+            if not chapter_identifier:
+                logger.warning(f'Could not parse chapter_identifier from {entry}')
+                continue
+
             match = self.TITLE_REGEX.match(title)
             kwargs: dict[str, Any]
             if not match:
                 universal_match = match_title(title)
+
                 if not universal_match:
-                    logger.warning(f'Could not parse title from {title or entry}')
+                    failed_chapters.append(
+                        ChapterFailed(
+                            chapter_identifier=chapter_identifier,
+                            service_id=self.ID,
+                            errors=f'Could not parse title from {title or entry}',
+                            title=title,
+                            title_id=title_id,
+                            manga_title=manga_title,
+                            release_date=release_date_dt,
+                            group=self.get_group(entry),
+                        )
+                    )
                     continue
 
                 logger.info(f'Fallback to universal regex successful on {title or entry}')
 
-                kwargs = cast(Any, universal_match)
+                kwargs = cast(dict[str, Any], universal_match)
             else:
                 kwargs = match.groupdict()
 
-            kwargs['chapter_identifier'] = self.get_chapter_id(entry)
-            kwargs['title_id'] = self.get_title_id(entry)
-            kwargs['manga_title'] = self.get_manga_title(entry) or kwargs.get('manga_title')
+            kwargs['chapter_identifier'] = chapter_identifier
+            kwargs['title_id'] = title_id
+            kwargs['manga_title'] = manga_title or kwargs.get('manga_title')
 
-            if not kwargs['title_id'] or not kwargs['chapter_identifier']:
-                logger.warning(f'Could not parse ids from {entry}')
+            if not title_id:
+                failed_chapters.append(
+                    ChapterFailed(
+                        chapter_identifier=chapter_identifier,
+                        service_id=self.ID,
+                        errors='Failed to parse title id',
+                        title=title,
+                        title_id=title_id,
+                        manga_title=manga_title or kwargs.get('manga_title'),
+                        release_date=release_date_dt,
+                        group=self.get_group(entry),
+                    )
+                )
                 continue
 
             if 'chapter_title' not in kwargs:
@@ -240,17 +278,29 @@ class BaseRSS(BaseScraperWhole, ABC):
                 kwargs['manga_url'] = None
             else:
                 kwargs['manga_url'] = self.MANGA_URL_FORMAT.format(kwargs['title_id'])
-            kwargs['release_date'] = entry.get('published_parsed') or entry.get('updated_parsed')
+            kwargs['release_date'] = release_date
             kwargs['group'] = self.get_group(entry)
             kwargs['group_id'] = group_id
 
             try:
                 titles.append(self.Chapter(**kwargs))
-            except Exception:
-                logger.exception(f'Failed to parse chapter {entry}')
+            except Exception as ex:
+                failed_chapters.append(
+                    ChapterFailed(
+                        chapter_identifier=chapter_identifier,
+                        service_id=self.ID,
+                        errors=f'Failed to parse chapter {entry}',
+                        title=title,
+                        title_id=title_id,
+                        manga_title=manga_title or kwargs.get('manga_title'),
+                        release_date=release_date_dt,
+                        group=self.get_group(entry),
+                        exception=ex
+                    )
+                )
                 continue
 
-        return titles
+        return titles, failed_chapters
 
     @override
     def min_update_interval(self) -> timedelta:
@@ -262,7 +312,7 @@ class BaseRSS(BaseScraperWhole, ABC):
     ) -> set[int] | None:
         pass
 
-    def get_feed_chapters(self, feed_url: str) -> list[RSSChapter] | None:
+    def get_feed_chapters(self, feed_url: str) -> tuple[list[RSSChapter], list[ChapterFailed]] | None:
         feed = feedparser.parse(feed_url)
         try:
             is_valid_feed(feed)
@@ -273,9 +323,12 @@ class BaseRSS(BaseScraperWhole, ABC):
         return self.parse_feed(feed.entries, self.get_group_id())
 
     def add_from_feed_url(self, service_id: int, feed_url: str) -> ScrapeServiceRetVal | None:
-        entries = self.get_feed_chapters(feed_url)
-        if entries is None:
+        result = self.get_feed_chapters(feed_url)
+        if result is None:
             return None
+
+        entries, failed_chapters = result
+        self.handle_failed_chapters(failed_chapters)
 
         return self.handle_adding_chapters(entries, service_id) or ScrapeServiceRetVal()
 

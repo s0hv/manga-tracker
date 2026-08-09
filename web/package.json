@@ -11,7 +11,12 @@
   "imports": {
     "#server/*": "./server/*.js",
     "#web/*": "./src/*.js",
-    "#webUtils/*": ["./src/utils/*.js"]
+    "#webUtils/*": [
+      "./src/utils/*.js"
+    ],
+    "#common/*": [
+      "./common/*.js"
+    ]
   },
   "scripts": {
     "start-dev": "node --enable-source-maps -r dotenv/config dist/server.js",
@@ -157,6 +162,7 @@
     "tsx": "^4.23.9",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.66.0",
+    "undici": "^8.10.0",
     "vite": "^8.2.1",
     "vite-plugin-istanbul": "^8.0.0",
     "vitest": "^4.1.10"

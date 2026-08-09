@@ -25,6 +25,10 @@ export const Selector = {
     return cy.findByRole('menuitem', { name: 'Services' });
   },
 
+  getParsingFailsLink() {
+    return cy.findByRole('menuitem', { name: 'Parsing fails' });
+  },
+
   getLogoutLink() {
     return cy.findByRole('menuitem', { name: 'Logout' });
   },
@@ -114,6 +118,30 @@ export const Selector = {
     return cy.findByRole('button', { name: /^delete$/i });
   },
 
+  getCancelBtn() {
+    return cy.findByRole('button', { name: /^cancel$/i });
+  },
+
+  getFixChapterFailBtn(index?: number) {
+    const selector = cy.findAllByRole('button', { name: /^create chapter from row$/i });
+
+    return index !== undefined
+      ? selector.eq(index)
+      : selector;
+  },
+
+  getDeleteChapterFailBtn(index?: number) {
+    const selector = cy.findAllByRole('button', { name: /^delete chapter fail$/i });
+
+    return index !== undefined
+      ? selector.eq(index)
+      : selector;
+  },
+
+  getCreateChapterForm() {
+    return cy.findByRole('dialog', { name: 'Create chapter' });
+  },
+
   getEditChaptersBtn() {
     return cy.findByRole('button', { name: /^edit chapters$/i });
   },
@@ -123,10 +151,11 @@ export const Selector = {
   },
 
   getEditRowBtn(index?: number) {
-    if (index !== undefined) {
-      return cy.findAllByRole('button', { name: /^edit row$/i }).eq(index);
-    }
-    return cy.findByRole('button', { name: /^edit row$/i });
+    const selector = cy.findAllByRole('button', { name: /^edit row$/i });
+
+    return index !== undefined
+      ? selector.eq(index)
+      : selector;
   },
 
   getSaveRowBtn() {

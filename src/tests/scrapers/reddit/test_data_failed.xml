@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom" xmlns:media="http://search.yahoo.com/mrss/">
+    <category term="OnePunchMan" label="r/OnePunchMan"/>
+    <updated>2020-10-03T17:33:36+00:00</updated>
+    <icon>https://www.redditstatic.com/icon.png/</icon>
+    <id>/r/OnePunchMan/search.rss?sort=new&amp;restrict_sr=on&amp;q=flair%3AMURATA%2BCHAPTER</id>
+    <link rel="self"
+          href="https://www.reddit.com/r/OnePunchMan/search.rss?sort=new&amp;restrict_sr=on&amp;q=flair%3AMURATA%2BCHAPTER"
+          type="application/atom+xml"/>
+    <link rel="alternate"
+          href="https://www.reddit.com/r/OnePunchMan/search?sort=new&amp;restrict_sr=on&amp;q=flair%3AMURATA%2BCHAPTER"
+          type="text/html"/>
+    <logo>https://b.thumbs.redditmedia.com/lCfU5jBdxvrdIOyxyLON6m-NVUkK2Do0bk_-FX1ZQfA.png</logo>
+    <subtitle>Hello there! Welcome to r/OnePunchMan, the subreddit for all things related to our caped bald hero! Check
+        the sidebar for information!
+    </subtitle>
+    <title>OnePunchMan: search results - flair:MURATA+CHAPTER</title>
+    <entry>
+        <author>
+            <name>/u/Test</name>
+            <uri>https://www.reddit.com/user/Test</uri>
+        </author>
+        <category term="OnePunchMan" label="r/OnePunchMan"/>
+        <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href=&quot;https://www.reddit.com/r/OnePunchMan/comments/aaa111/random_bonus_content/&quot;&gt;
+            &lt;img src=&quot;https://b.thumbs.redditmedia.com/placeholder.jpg&quot; alt=&quot;Random Bonus Content&quot;
+            title=&quot;Random Bonus Content&quot; /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32;
+            &lt;a href=&quot;https://www.reddit.com/user/Test&quot;&gt; /u/Test &lt;/a&gt; &lt;br/&gt; &lt;span&gt;&lt;a
+            href=&quot;https://guya.moe/proxy/imgur/randomlink/1/1/&quot;&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32;
+            &lt;span&gt;&lt;a href=&quot;https://www.reddit.com/r/OnePunchMan/comments/aaa111/random_bonus_content/&quot;&gt;[comments]&lt;/a&gt;&lt;/span&gt;
+            &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+        </content>
+        <id>t3_aaa111</id>
+        <link href="https://www.reddit.com/r/OnePunchMan/comments/aaa111/random_bonus_content/"/>
+        <updated>2020-10-01T20:22:22+00:00</updated>
+        <title>Random Bonus Content</title>
+    </entry>
+    <entry>
+        <author>
+            <name>/u/Test</name>
+            <uri>https://www.reddit.com/user/Test</uri>
+        </author>
+        <category term="OnePunchMan" label="r/OnePunchMan"/>
+        <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href=&quot;https://www.reddit.com/r/OnePunchMan/comments/bbb222/my_test_manga_oneshot/&quot;&gt;
+            &lt;img src=&quot;https://b.thumbs.redditmedia.com/placeholder.jpg&quot; alt=&quot;My Test Manga Oneshot&quot;
+            title=&quot;My Test Manga Oneshot&quot; /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32;
+            &lt;a href=&quot;https://www.reddit.com/user/Test&quot;&gt; /u/Test &lt;/a&gt; &lt;br/&gt; &lt;span&gt;&lt;a
+            href=&quot;https://guya.moe/proxy/imgur/oneshotlink/1/1/&quot;&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32;
+            &lt;span&gt;&lt;a href=&quot;https://www.reddit.com/r/OnePunchMan/comments/bbb222/my_test_manga_oneshot/&quot;&gt;[comments]&lt;/a&gt;&lt;/span&gt;
+            &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+        </content>
+        <id>t3_bbb222</id>
+        <link href="https://www.reddit.com/r/OnePunchMan/comments/bbb222/my_test_manga_oneshot/"/>
+        <updated>2020-10-02T20:22:22+00:00</updated>
+        <title>My Test Manga Oneshot</title>
+    </entry>
+    <entry>
+        <author>
+            <name>/u/Test</name>
+            <uri>https://www.reddit.com/user/Test</uri>
+        </author>
+        <category term="OnePunchMan" label="r/OnePunchMan"/>
+        <content type="html">&lt;table&gt; &lt;tr&gt;&lt;td&gt; &lt;a href=&quot;https://www.reddit.com/r//comments/ccc333/chapter_200/&quot;&gt;
+            &lt;img src=&quot;https://b.thumbs.redditmedia.com/placeholder.jpg&quot; alt=&quot;Chapter 200 [English]&quot;
+            title=&quot;Chapter 200 [English]&quot; /&gt; &lt;/a&gt; &lt;/td&gt;&lt;td&gt; &amp;#32; submitted by &amp;#32;
+            &lt;a href=&quot;https://www.reddit.com/user/Test&quot;&gt; /u/Test &lt;/a&gt; &lt;br/&gt; &lt;span&gt;&lt;a
+            href=&quot;https://guya.moe/proxy/imgur/titleidfaillink/1/1/&quot;&gt;[link]&lt;/a&gt;&lt;/span&gt; &amp;#32;
+            &lt;span&gt;&lt;a href=&quot;https://www.reddit.com/r//comments/ccc333/chapter_200/&quot;&gt;[comments]&lt;/a&gt;&lt;/span&gt;
+            &lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+        </content>
+        <id>t3_ccc333</id>
+        <link href="https://www.reddit.com/r//comments/ccc333/chapter_200/"/>
+        <updated>2020-10-03T20:22:22+00:00</updated>
+        <title>Chapter 200 [English]</title>
+    </entry>
+</feed>

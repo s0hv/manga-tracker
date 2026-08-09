@@ -12,6 +12,7 @@ export interface MangaCoverProps extends DetailedHTMLProps<ImgHTMLAttributes<HTM
   alt: string
   size?: number
   maxWidth?: number
+  minWidth?: CSSStyleProperties['minWidth']
 }
 
 export const MangaCover: FC<MangaCoverProps> = ({
@@ -19,6 +20,7 @@ export const MangaCover: FC<MangaCoverProps> = ({
   alt,
   size = 256,
   maxWidth = size,
+  minWidth = '100%',
   ...props
 }) => {
   const actualUrl = useMemo(() => {
@@ -47,7 +49,7 @@ export const MangaCover: FC<MangaCoverProps> = ({
     <img
       style={{
         maxWidth: `${maxWidth}px`,
-        minWidth: '100%',
+        minWidth,
         // Force automatic height after loading the image
         height: 'auto',
         objectFit: 'contain',

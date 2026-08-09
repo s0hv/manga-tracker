@@ -1,3 +1,4 @@
+import type { DbGroup } from '@/common/schemas/group';
 import { serverCookieNames } from '@/serverUtils/constants';
 import type { FullMangaData } from '@/types/api/manga';
 import { ServiceForApi } from '@/types/api/services';
@@ -185,3 +186,9 @@ export const testServices: ServiceForApi[] = [
     mangaUrlFormat: '',
   },
 ];
+
+export const TEST_GROUP: DbGroup = {
+  groupId: 2,
+  name: 'Test group 1',
+  mangadexId: null,
+};

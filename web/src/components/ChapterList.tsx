@@ -294,7 +294,7 @@ function ChapterList(props: ChapterListProps): ReactElement {
         deletable={editable}
         pagination
         tableOptions={tableOptions}
-        arialLabel='Manga chapters'
+        ariaLabel='Manga chapters'
         sx={{ minWidth: '600px' }}
       />
     </TableContainer>

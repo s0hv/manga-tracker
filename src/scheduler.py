@@ -1,4 +1,3 @@
-import inspect
 import logging
 import math
 import os
@@ -6,23 +5,21 @@ import random
 import time
 from collections import Counter
 from collections.abc import Collection, Generator
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import Future, ThreadPoolExecutor
 from contextlib import contextmanager
 from datetime import datetime, timedelta
 from itertools import groupby
 from operator import attrgetter
-from types import FrameType, ModuleType
-from typing import LiteralString, Self, TypedDict, cast, override
+from typing import LiteralString, TypedDict, cast
 
 import psycopg
 import psycopg.rows
 from psycopg import Connection
-from psycopg.abc import Params, Query, QueryNoTemplate
-from psycopg.cursor import Cursor
 from psycopg.rows import DictRow
 from psycopg_pool import ConnectionPool
 
 from elasticsearch import Elasticsearch
+from src.db.logging_cursor import LoggingCursor
 from src.db.mappers.notifications_mapper import NotificationsMapper
 from src.db.models.chapter import Chapter
 from src.elasticsearch.configuration import get_client
@@ -34,7 +31,6 @@ from src.utils.dbutils import DbUtil
 from src.utils.utilities import inject_service_values, utcnow
 
 logger = logging.getLogger(__name__)
-db_logger = logging.getLogger('database')
 
 
 class MangaServiceInfo(TypedDict):
@@ -44,48 +40,12 @@ class MangaServiceInfo(TypedDict):
     feed_url: str | None
 
 
-class LoggingCursor(Cursor[DictRow]):
-    @override
-    def execute(
-        self,
-        query: Query,
-        params: Params | None = None,
-        *,
-        prepare: bool | None = None,
-        binary: bool | None = None,
-    ) -> Self:
-        try:
-            # Must cast Query to QueryNoTemplate for now as mypy does not like it for some reason
-            return super().execute(cast(QueryNoTemplate, query), params, prepare=prepare, binary=binary)
-        finally:
-            # No need to calculate coverage for this, as it's not used in tests
-            # GCOVR_EXCL_START
-            if db_logger.isEnabledFor(logging.DEBUG):
-
-                caller = cast(FrameType, inspect.currentframe()).f_back
-                module = cast(ModuleType, inspect.getmodule(caller)).__name__
-
-                # If the caller was dbutil, try to find the real caller
-                if module.endswith('.dbutils'):
-                    for _ in range(4):
-                        caller = cast(FrameType, caller).f_back
-                        current_module = cast(ModuleType, inspect.getmodule(caller)).__name__
-                        if not current_module.endswith('dbutils'):
-                            module = current_module
-                            break
-
-                param_string = '' if not params else f', {params}'
-                if isinstance(query, bytes):
-                    db_logger.debug(f'{query.decode("utf-8")}{param_string}', extra={'originalmodule': module})
-                else:
-                    db_logger.debug(f'{query}{param_string}', extra={'originalmodule': module})
-            # GCOVR_EXCL_STOP
-
-
 class UpdateScheduler:
     MAX_POOLS = 5
 
     def __init__(self) -> None:
+        self._es: Elasticsearch = get_client()
+
         config = {
             'host':        os.environ['DB_HOST'],
             'dbname':      os.environ['DB_NAME'],
@@ -103,7 +63,6 @@ class UpdateScheduler:
             open=True,
         )
         self.thread_pool = ThreadPoolExecutor(max_workers=self.MAX_POOLS - 1)
-        self._es: Elasticsearch = get_client()
 
         with self.conn() as conn:
             inject_service_values(DbUtil(conn, self.es_methods))
@@ -368,7 +327,7 @@ class UpdateScheduler:
 
     def run_once(self) -> datetime:
         with self.conn() as conn:
-            futures = []
+            futures: list[Future[tuple[set[int], list[int]]]] = []
             sql: LiteralString = """
                 SELECT ms.service_id, s.url, array_agg(json_build_object('title_id', ms.title_id, 'manga_id', ms.manga_id, 'feed_url', ms.feed_url)) AS manga_info
                 FROM manga_service ms
@@ -460,7 +419,7 @@ class UpdateScheduler:
                             dbutil.update_chapter_interval(manga_id, cur=cursor)
 
             try:
-                self.send_notifications(manga_ids, chapter_ids)
+                self.send_notifications_for_new_chapters(conn)
             except Exception:
                 logger.exception('Failed to send notifications')
 
@@ -488,6 +447,24 @@ class UpdateScheduler:
                 if not next_update_row:
                     return utcnow() + timedelta(hours=1)
                 return next_update_row['update']
+
+    def send_notifications_for_new_chapters(self, conn: Connection[DictRow]):
+        dbutil = DbUtil(conn, self.es_methods)
+
+        try:
+            # Fetch the data. We do it this way because chapters might be created
+            # outside of this process. e.g., from the chapter fail view.
+            notification_chapters = dbutil.get_chapters_for_notifications()
+            manga_ids_for_notifs = set(c.manga_id for c in notification_chapters)
+            chapter_ids_for_notifs = [c.chapter_id for c in notification_chapters]
+
+            # Send notifications
+            self.send_notifications(manga_ids_for_notifs, chapter_ids_for_notifs)
+
+            # Set the chapters as sent
+            dbutil.set_chapters_as_sent(chapter_ids_for_notifs)
+        except Exception:
+            logger.exception('Failed to send notifications')
 
     def send_notifications(self, manga_ids: set[int], chapter_ids: list[int]) -> None:
         if not (manga_ids and chapter_ids):

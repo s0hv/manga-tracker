@@ -1,16 +1,19 @@
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import fetchMock from 'fetch-mock';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
+import {
+  expectRequestCalledWith,
+  mockRequestJson,
+  setupMockServer,
+} from '../utils';
 import MangaSearch from '@/components/MangaSearch';
+import type { SearchedManga } from '@/types/api/manga';
 
-
-fetchMock.config.overwriteRoutes = true;
 vi.mock('@tanstack/react-router');
 
-beforeEach(() => fetchMock.reset());
+const server = setupMockServer();
 
 // Fix MUI warning spam https://github.com/mui/material-ui/issues/47792#issuecomment-3924961278
 (globalThis as any).MUI_TEST_ENV = true;
@@ -23,23 +26,25 @@ describe('Search should render correctly', () => {
   });
 
   it('with valid input', async () => {
-    const mockResult = [
+    const mockResult: SearchedManga[] = [
       {
         mangaId: 1,
         title: 'Test 1',
+        score: 1,
       },
       {
         mangaId: 2,
         title: 'Test 2',
+        score: 1,
       },
       {
         mangaId: 3,
         title: 'Test 3',
+        score: 1,
       },
     ];
-    const searchFn = vi.fn().mockImplementation(() => mockResult);
 
-    fetchMock.mock('glob:/api/quicksearch?query=*', searchFn);
+    const searchFn = mockRequestJson(server, '/api/quicksearch', mockResult);
 
     render(<MangaSearch />);
 
@@ -47,9 +52,15 @@ describe('Search should render correctly', () => {
     const input = screen.getByRole('combobox');
 
     const user = userEvent.setup();
-    // Simulate text changes and test that the quicksearch endpoint wasn't called
+    // Simulate text changes and test that the quicksearch endpoint was called
     await user.type(input, 'test search');
-    await waitFor(() => expect(searchFn).toHaveBeenCalledWith('/api/quicksearch?query=test%20search&withServices=false', undefined, undefined));
+    await waitFor(() => expectRequestCalledWith(
+      searchFn,
+      {
+        url: '/api/quicksearch',
+        searchParams: { query: 'test search', withServices: 'false' },
+      }
+    ));
 
     const listItems = screen.getAllByRole('option');
     expect(listItems).toHaveLength(mockResult.length);
@@ -61,9 +72,7 @@ describe('Search should render correctly', () => {
 
 describe('Search should behave correctly with user input', () => {
   it('Should not do requests of under 3 characters', async () => {
-    const searchFn = vi.fn().mockImplementation(() => []);
-
-    fetchMock.mock('glob:/api/quicksearch?query=*', searchFn);
+    const searchFn = mockRequestJson(server, '/api/quicksearch', []);
 
     render(<MangaSearch />);
 
@@ -82,9 +91,7 @@ describe('Search should behave correctly with user input', () => {
   });
 
   it('Should do a request with 2 or more characters', async () => {
-    const searchFn = vi.fn().mockImplementation(() => []);
-
-    fetchMock.mock('glob:/api/quicksearch?query=*', searchFn);
+    const searchFn = mockRequestJson(server, '/api/quicksearch', []);
 
     render(<MangaSearch />);
 
@@ -98,9 +105,7 @@ describe('Search should behave correctly with user input', () => {
   });
 
   it('Should throttle fast requests', async () => {
-    const searchFn = vi.fn().mockImplementation(() => []);
-
-    fetchMock.mock('glob:/api/quicksearch?query=*', searchFn);
+    const searchFn = mockRequestJson(server, '/api/quicksearch', []);
 
     render(<MangaSearch />);
 
@@ -114,8 +119,13 @@ describe('Search should behave correctly with user input', () => {
     await user.type(input, 'cd');
 
     await vi.waitFor(() => expect(searchFn).toHaveBeenCalledTimes(1));
-    expect(fetchMock.called('glob:/api/quicksearch?query=*', { query: {
-      query: 'abcd',
-    }})).toBeTrue();
+
+    expectRequestCalledWith(searchFn, {
+      url: '/api/quicksearch',
+      searchParams: {
+        query: 'abcd',
+        withServices: 'false',
+      },
+    });
   });
 });

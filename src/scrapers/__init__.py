@@ -1,7 +1,6 @@
 from typing import TYPE_CHECKING
 
 from src.scrapers.azuki import Azuki
-from src.scrapers.comick import Comick
 from src.scrapers.comikey import Comikey
 from src.scrapers.cubari import Cubari
 from src.scrapers.kmanga import KManga
@@ -18,7 +17,6 @@ SCRAPERS: dict[str, type['BaseScraper']] = {
     Reddit.URL:    Reddit,
     Comikey.URL:   Comikey,
     Azuki.URL:     Azuki,
-    Comick.URL:    Comick,
     Cubari.URL:    Cubari,
     KManga.URL:    KManga,
 }

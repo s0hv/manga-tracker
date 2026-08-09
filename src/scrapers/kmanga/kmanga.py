@@ -130,6 +130,7 @@ class KManga(BaseScraperWhole):
     GROUP = 'Kodansha'
     # Not used anywhere, but shown to display the interval that should match the database
     UPDATE_INTERVAL = timedelta(hours=6)
+    LOGGER = logger
 
     def __init__(self, conn: Connection[DictRow], dbutil: DbUtil | None = None):
         super().__init__(conn, dbutil)
@@ -174,7 +175,12 @@ class KManga(BaseScraperWhole):
         prev_chapter_decimal = 0
 
         for idx, episode in enumerate(sorted(episodes, key=get_index)):
-            chapter = KMangaChapter.of_kmanga_episode(episode, group_id, prev_chapter_number=prev_chapter_number, prev_chapter_decimal=prev_chapter_decimal)
+            chapter = KMangaChapter.of_kmanga_episode(
+                episode,
+                group_id,
+                prev_chapter_number=prev_chapter_number,
+                prev_chapter_decimal=prev_chapter_decimal,
+            )
             chapters.append(chapter)
 
             prev_chapter_number = chapter.chapter_number

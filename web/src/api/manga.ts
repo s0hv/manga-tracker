@@ -8,7 +8,7 @@ import type {
 } from '@/types/api/manga';
 import type { DatabaseId } from '@/types/dbTypes';
 
-import { handleError, handleResponse } from './utilities';
+import { baseKy, handleError, handleResponse } from './utilities';
 
 /**
  * Get a manga from the api by id
@@ -19,9 +19,10 @@ export const getManga = (mangaId: DatabaseId): Promise<FullMangaData> => fetch(`
   .then(handleResponse<FullMangaData>)
   .catch(handleError);
 
-export const getMangaQueryOptions = (mangaId: DatabaseId) => queryOptions({
-  queryKey: [mangaId],
-  queryFn: ({ queryKey: [mangaIdKey] }) => getManga(mangaIdKey),
+export const getMangaQueryOptions = (mangaId: DatabaseId | null) => queryOptions({
+  queryKey: [mangaId] as const,
+  queryFn: ({ queryKey: [mangaIdKey] }) => getManga(mangaIdKey!),
+  enabled: !!mangaId,
 });
 
 /**
@@ -51,18 +52,25 @@ export type SearchResultBasedOnServices<TWithServices extends boolean> =
     : SearchedManga;
 
 type QuickSearch = {
-  (query: string, withServices: true): Promise<SearchedMangaWithService[]>
-  (query: string, withServices?: false): Promise<SearchedManga[]>
-  (query: string, withServices?: boolean): Promise<SearchResultBasedOnServices<boolean>[]>
+  (query: string, withServices: true, serviceId?: number): Promise<SearchedMangaWithService[]>
+  (query: string, withServices?: false, serviceId?: number): Promise<SearchedManga[]>
+  (query: string, withServices?: boolean, serviceId?: number): Promise<SearchResultBasedOnServices<boolean>[]>
 };
 
 /**
  * Searches for a manga
  * @param {string} query The search query
  * @param {Boolean} withServices Whether to include services in the result
+ * @param {Number} serviceId Optional id of the service to filter by
  */
-export const quickSearch: QuickSearch = (query: string, withServices: boolean = false) => fetch(
-  '/api/quicksearch?query=' + encodeURIComponent(query) + '&withServices=' + encodeURIComponent(withServices)
-)
-  .then(handleResponse<any>)
+export const quickSearch: QuickSearch = (query: string, withServices: boolean = false, serviceId?: number) => baseKy
+  .get('quicksearch',
+    {
+      searchParams: {
+        query,
+        withServices,
+        serviceId,
+      },
+    })
+  .json<any>()
   .catch(handleError);

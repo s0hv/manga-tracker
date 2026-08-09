@@ -1,7 +1,10 @@
 import React, { type PropsWithChildren, isValidElement } from 'react';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import {
+  QueryClient,
+  QueryClientProvider,
+} from '@tanstack/react-query';
 import {
   BoundFunctions,
   queries,
@@ -17,10 +20,27 @@ import { enGB as enLocale } from 'date-fns/locale';
 import fetchMock, { type MockCall } from 'fetch-mock';
 import jestOpenAPI from 'jest-openapi';
 import type { ConfirmResult } from 'material-ui-confirm';
+import {
+  type DefaultBodyType,
+  type JsonBodyType,
+  type ResponseResolverInfo,
+  http,
+  HttpResponse,
+} from 'msw';
+import { type SetupServer, setupServer } from 'msw/node';
 import { SnackbarProvider } from 'notistack';
 import type { Response } from 'supertest';
 import request from 'supertest';
-import { expect, Mock, MockInstance, vi } from 'vitest';
+import { setGlobalOrigin } from 'undici';
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  expect,
+  Mock,
+  MockInstance,
+  vi,
+} from 'vitest';
 
 import { createTestSession } from '@/tests/dbutils';
 import { type FrontendUser, UserStoreProvider } from '#web/store/userStore';
@@ -54,15 +74,11 @@ vi.mock('notistack', async () => {
 // eslint-disable-next-line no-var
 var dbMock: {
   db: DbHelpersFull
-  any: Mock
 };
 vi.mock('@/db/helpers', async () => {
   const db = await vi.importActual<typeof import('@/db/helpers')>('@/db/helpers');
   dbMock = {
     ...db,
-    any: vi.fn().mockImplementation(() => {
-      throw new Error('aaaaaaaa');
-    }),
   };
   return dbMock;
 });
@@ -473,7 +489,22 @@ export const mockDbForErrors = <T, >(fn: () => Promise<T>): Promise<T> => {
     [curr]: vi.fn().mockImplementation(async () => Promise.reject('Mocked error')),
   }), {}) as DbHelpersFull;
   // Leave `sql` as is since it's an object
-  dbMock.db.sql = sql;
+  const sqlMock = vi.fn().mockImplementation(() => {
+    const response = Promise.reject('Mocked error');
+
+    // Execute is available on the returned promise, so mock it here
+    // @ts-ignore
+    response['execute'] = () => Promise.reject('Mocked error');
+
+    return response;
+  });
+
+  Object.entries(sql).forEach(([key, value]) => {
+    // @ts-ignore
+    sqlMock[key as any] = value;
+  });
+
+  dbMock.db.sql = sqlMock as unknown as typeof dbMock.db.sql;
 
   return fn()
     .finally(() => {
@@ -550,4 +581,54 @@ export function getCoverUrl(cover: string | undefined | null, size: 256 | 512 | 
     : '';
 
   return `/thumbnails/mangadex/${mangaId}/${coverId}${sizeParam}`;
+}
+
+export function setupMockServer() {
+  const server = setupServer();
+
+  beforeAll(() => {
+    // Required as ky uses relative URLs which are not supported by undici
+    setGlobalOrigin(window.location.href);
+    server.listen({ onUnhandledRequest: 'error' });
+  });
+  afterAll(() => server.close());
+  afterEach(() => server.restoreHandlers());
+
+  return server;
+}
+
+export function mockRequestJson<TBody extends JsonBodyType>(
+  server: SetupServer,
+  url: string,
+  responseJson: TBody,
+  method: keyof typeof http = 'get'
+) {
+  const mockFn = vi.fn().mockImplementation(() => HttpResponse.json(responseJson));
+
+  server.use(
+    http[method](url, handleMockRequest(mockFn))
+  );
+
+  return mockFn;
+}
+
+export function handleMockRequest<TBody extends DefaultBodyType>(fn: Mock) {
+  return ({ request }: ResponseResolverInfo<Record<string, unknown>, TBody>) => {
+    const url = new URL(request.url);
+
+    return fn({
+      url: url.pathname,
+      params: Object.fromEntries(url.searchParams.entries()),
+    });
+  };
+}
+
+export function expectRequestCalledWith(
+  fn: Mock,
+  { url, searchParams }: {
+    url: string
+    searchParams?: Record<string, string>
+  }
+) {
+  expect(fn).toHaveBeenCalledWith({ url, params: searchParams });
 }

@@ -175,9 +175,15 @@ export default () => {
     (req, res) => {
       createMangaService(req.params.mangaId, req.params.serviceId, req.body.mangaService)
         .then(r => {
-          if (r.count === 0) return res.sendStatus(404);
+          if (r.count === 0) {
+            return res.sendStatus(404);
+          }
 
-          res.sendStatus(200);
+          // If manga service was created successfully, update elasticsearch
+          // with new manga info
+          return getMangaForElastic(req.params.mangaId)
+            .then(manga => updateManga(manga.mangaId, manga))
+            .then(() => res.sendStatus(200));
         })
         .catch(err => handleError(err, res));
     });

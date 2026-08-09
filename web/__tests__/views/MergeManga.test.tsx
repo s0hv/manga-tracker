@@ -1,14 +1,19 @@
 import React from 'react';
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent, { type UserEvent } from '@testing-library/user-event';
-import fetchMock from 'fetch-mock';
 import { describe, expect, it, vi } from 'vitest';
 
-import { TestRoot } from '@/tests/utils';
+import {
+  expectRequestCalledWith,
+  mockRequestJson,
+  setupMockServer,
+  TestRoot,
+} from '@/tests/utils';
 import { emptyFullManga, fullManga } from '@/tests/constants';
 import type { SearchedMangaWithService } from '@/types/api/manga';
 import MergeManga from '@/views/MergeManga';
 
+const server = setupMockServer();
 
 vi.mock('es-toolkit', () => ({ throttle: (_: unknown) => _ }));
 vi.mock('@tanstack/react-router');
@@ -35,9 +40,9 @@ describe('Merge manga page should render correctly', () => {
     },
   ];
 
-  fetchMock.mock('glob:/api/quicksearch?query=*', mockResult);
-  fetchMock.mock(`glob:/api/manga/${fullManga.manga.mangaId}`, { data: fullManga });
-  fetchMock.mock(`glob:/api/manga/${emptyFullManga.manga.mangaId}`, { data: emptyFullManga });
+  mockRequestJson(server, '/api/quicksearch', mockResult);
+  mockRequestJson(server, `/api/manga/${fullManga.manga.mangaId}`, { data: fullManga });
+  mockRequestJson(server, `/api/manga/${emptyFullManga.manga.mangaId}`, { data: emptyFullManga });
 
   const selectItem = async (user: UserEvent, item: SearchedMangaWithService) => {
     const optionName = `${item.title} | ${Object.values(item.services).join(' | ')}`;
@@ -111,8 +116,12 @@ describe('Merge manga page should render correctly', () => {
   });
 
   it('Should merge correctly', async () => {
-    const url = 'glob:/api/manga/merge?*';
-    fetchMock.mock(url, { aliasCount: 1, chapterCount: 1 });
+    const mockFn = mockRequestJson(
+      server,
+      '/api/manga/merge',
+      { aliasCount: 1, chapterCount: 1 },
+      'post'
+    );
 
     render(<TestRoot><MergeManga /></TestRoot>);
     const user = userEvent.setup();
@@ -129,18 +138,21 @@ describe('Merge manga page should render correctly', () => {
 
     await user.click(mergeBtn);
 
-    expect(
-      fetchMock.called(url, { query: {
-        base: mockResult[0].mangaId.toString(),
-        toMerge: mockResult[1].mangaId.toString(),
-        service: emptyFullManga.services[0].serviceId.toString(),
-      },
-      method: 'post' })
-    ).toBeTrue();
+    expectRequestCalledWith(
+      mockFn,
+      {
+        url: '/api/manga/merge',
+        searchParams: {
+          base: mockResult[0].mangaId.toString(),
+          toMerge: mockResult[1].mangaId.toString(),
+          service: emptyFullManga.services[0].serviceId.toString(),
+        },
+      }
+    );
 
     await waitFor(() => expect(
       within(screen.getByLabelText('merge result'))
-        .getByText(/moved \d+ alias\(es\) and \d+ chapter\(s\)/i)
+        .getByText(/moved 1 alias\(es\) and 1 chapter\(s\)/i)
     ).toBeInTheDocument());
 
     expect(screen.queryByLabelText('manga to merge')).not.toBeInTheDocument();

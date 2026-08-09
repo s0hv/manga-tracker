@@ -36,13 +36,17 @@ export type Db = ReturnType<typeof postgres<CustomTypes>>;
 export const db: Db = createSingleton<Db>('database', () => postgres<CustomTypes>({
   host: process.env.DB_HOST,
   username: process.env.DB_USER,
-  database: isTest
-    ? process.env.DB_NAME_TEST || process.env.DB_NAME
-    : process.env.DB_NAME,
+  database:
+    /* istanbul ignore next */
+    isTest
+      ? process.env.DB_NAME_TEST || process.env.DB_NAME
+      : process.env.DB_NAME,
   port: Number(process.env.DB_PORT),
   password: process.env.PGPASSWORD,
   max: 10,
-  idle_timeout: isTest ? 1 : 300,
+  idle_timeout:
+    /* istanbul ignore next */
+    isTest ? 1 : 300,
   // 'fetch_types' initializes a connection when the object is created,
   // which is not ideal
   fetch_types: !IS_PRERENDER,
@@ -66,8 +70,3 @@ export const db: Db = createSingleton<Db>('database', () => postgres<CustomTypes
   },
 }));
 export const sql: Db = db;
-
-
-export async function end() {
-  await db.end({ timeout: 15 });
-}

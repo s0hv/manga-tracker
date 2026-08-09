@@ -1,5 +1,6 @@
-import type { QueryClient } from '@tanstack/react-query';
+import type { QueryClient, QueryKey } from '@tanstack/react-query';
 import type {} from '@tanstack/react-start';
+import '@tanstack/react-query';
 
 import type { SessionUser } from '@/types/dbTypes';
 import type { SafeSession } from '@/types/session';
@@ -24,5 +25,17 @@ declare module '@tanstack/react-start' {
     server: {
       requestContext: RequestContext
     }
+  }
+}
+
+
+interface MutationMeta extends Record<string, unknown> {
+  queryKeysToInvalidate?: QueryKey[]
+  invalidateOnError?: boolean
+}
+
+declare module '@tanstack/react-query' {
+  interface Register {
+    mutationMeta: MutationMeta
   }
 }

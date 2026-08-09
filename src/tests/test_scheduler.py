@@ -60,6 +60,21 @@ class SchedulerRunTest(BaseTestClasses.DatabaseTestCase):
             cur.execute(sql, (notification_id, manga_id, service_id))
             return self.dbutil.fetchone_or_throw(cur)
 
+    def delete_notifications(self):
+        with self.conn.transaction(), self.conn.cursor() as cur:
+            cur.execute('DELETE FROM notification_options')
+            cur.execute('DELETE FROM notification_manga')
+            cur.execute('DELETE FROM user_notifications')
+
+    def get_unsent_chapter_count(self, manga_ids: list[int]) -> int:
+        with self.conn.transaction(), self.conn.cursor() as cur:
+            cur.execute(
+                'SELECT COUNT(*) AS count FROM chapters WHERE manga_id = ANY(%s) AND is_notification_sent=FALSE',
+                (manga_ids,)
+            )
+
+            return next(cur)['count']
+
     def test_scheduled_runs_without_data(self):
         assert not self.dbutil.get_scheduled_runs()
 
@@ -170,6 +185,7 @@ class SchedulerRunTest(BaseTestClasses.DatabaseTestCase):
 
     @patch.object(DiscordEmbedWebhookNotifier, 'send_notification')
     def test_send_notifications(self, notify_mock: MagicMock):
+        self.delete_notifications()
         ms1 = self.create_manga_service()
         chapters1 = self.create_chapters(ms1, 4)
         ms2 = self.create_manga_service()
@@ -207,8 +223,62 @@ class SchedulerRunTest(BaseTestClasses.DatabaseTestCase):
             assert info.failed_in_row == 0
             assert info.times_failed == 0
 
+        # The normal send notifications function does not update chapter statuses
+        assert self.get_unsent_chapter_count([ms1.manga_id, ms2.manga_id]) == 9
+
+    @patch.object(DiscordEmbedWebhookNotifier, 'send_notification')
+    def test_send_notifications_for_new_chapters(self, notify_mock: MagicMock):
+        self.delete_notifications()
+        ms1 = self.create_manga_service()
+        chapters1 = self.create_chapters(ms1, 4)
+        ms2 = self.create_manga_service()
+        chapters2 = self.create_chapters(ms2, 10)
+
+        notif1 = self.create_notification()
+        nm1 = self.create_notification_manga(notif1.notification_id, ms1.manga_id)
+
+        notif2 = self.create_notification()
+        nm2 = self.create_notification_manga(notif2.notification_id, ms2.manga_id, ms2.service_id)
+
+        # Mock value for the discord webhook notification
+        notif_times_run = 2
+        notify_mock.return_value = notif_times_run, True
+
+        # Send notifications
+        try:
+            self.scheduler.send_notifications_for_new_chapters(self.conn)
+        except Exception:
+            self.conn.rollback()
+            raise
+        else:
+            self.conn.commit()
+
+        # Called once for each manga
+        assert notify_mock.call_count == 2
+
+        # Make sure send called for all notifications
+        notif_ids = [args.args[1].notification_id for args in notify_mock.call_args_list]
+        assert nm1.notification_id in notif_ids
+        assert nm2.notification_id in notif_ids
+
+        chapter_counts = [len(args.args[0]) for args in notify_mock.call_args_list]
+        assert len(chapters1) in chapter_counts
+        assert len(chapters2) in chapter_counts
+
+        for info in [
+            self.dbutil.get_notification_info(notif1.notification_id),
+            self.dbutil.get_notification_info(notif2.notification_id)
+        ]:
+            assert info.times_run == notif_times_run
+            assert info.failed_in_row == 0
+            assert info.times_failed == 0
+
+        # Should update the is_notification_sent to TRUE for each chapter
+        assert self.get_unsent_chapter_count([ms1.manga_id, ms2.manga_id]) == 0
+
     @patch.object(DiscordEmbedWebhookNotifier, 'send_notification')
     def test_send_notifications_failed(self, notify_mock: MagicMock):
+        self.delete_notifications()
         ms1 = self.create_manga_service()
         chapters1 = self.create_chapters(ms1, 4)
 

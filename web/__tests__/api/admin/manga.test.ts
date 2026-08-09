@@ -1,5 +1,12 @@
 import request from 'supertest';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import {
+  afterAll,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  onTestFinished,
+} from 'vitest';
 
 import {
   apiRequiresAdminUserGetTests,
@@ -134,15 +141,17 @@ describe('DELETE /api/admin/manga/:mangaId/scheduledRun/:serviceId', () => {
     await withUser(adminUser, async () => {
       await scheduleMangaRun(mangaId, serviceId, adminUser.userId);
 
+      onTestFinished(async () => {
+        await deleteScheduledRun(mangaId, serviceId);
+      });
+
       await mockDbForErrors(async () => {
-        request(httpServer)
+        await request(httpServer)
           .delete(url)
           .csrf()
           .expect(500)
           .expect(expectErrorMessage(ISE));
       });
-
-      await deleteScheduledRun(mangaId, serviceId);
     });
   });
 

@@ -55,3 +55,62 @@ export function getTableRowByColumnValue({
     });
 }
 
+type RowAssertion = (row: JQuery<HTMLTableRowElement>, columnIndex: number) => unknown;
+
+export function assertTableRowValues<TValues extends Record<string, string | RowAssertion>>(
+  tableName: string | RegExp,
+  columnValues: TValues,
+  identifyingColumn: keyof TValues
+) {
+  const getTable = () => cy.findByRole('table', { name: tableName });
+
+  getTable()
+    .should('have.attr', 'data-isloading')
+    .and('not.equal', 'true');
+
+  getTable()
+    .within(() => {
+      cy.findAllByRole('columnheader')
+        .then(columnHeaders => {
+          const columnIndexMap = columnHeaders.toArray()
+            .reduce<Record<string, number>>((acc, header, index) => {
+              const headerName = header.textContent;
+              acc[headerName] = index;
+
+              return acc;
+            }, {});
+
+          return Object.entries(columnValues).reduce<Record<number, string | RowAssertion>>((acc, [key, value]) => {
+            const headerIndex = columnIndexMap[key];
+            expect(headerIndex).not.to.equal(undefined);
+            acc[headerIndex] = value;
+
+            return acc;
+          }, {});
+        }).as('columnValueMap');
+    });
+
+  const identifyingValue = columnValues[identifyingColumn];
+
+  expect(identifyingValue).to.be.a('string');
+
+  return getTableRowByColumnValue({
+    tableName,
+    column: identifyingColumn as string,
+    value: identifyingValue as string,
+  }).closest('tr')
+    .then(row => {
+      return cy.get<Record<number, string | RowAssertion>>('@columnValueMap')
+        .then(columnValueMap => {
+          const cells = row.find('td');
+
+          Object.entries(columnValueMap).forEach(([index, value]) => {
+            if (typeof value === 'function') {
+              value(row, Number(index));
+              return;
+            }
+            cy.wrap(cells.eq(Number(index))).should('have.text', value);
+          });
+        });
+    });
+}

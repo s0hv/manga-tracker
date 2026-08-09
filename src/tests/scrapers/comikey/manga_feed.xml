@@ -28,5 +28,13 @@
             <pubDate>Thu, 20 Jan 2022 08:00:00 -0800</pubDate>
             <guid>e4p:episode:EPI-abcdef</guid>
         </item>
+        <item>
+            <title>Bonus Content</title>
+            <link>
+                https://comikey.com/read/test-title/xyz123/episode-99/
+            </link>
+            <pubDate>Thu, 20 Jan 2022 09:00:00 -0800</pubDate>
+            <guid>e4p:episode:EPI-xyz123</guid>
+        </item>
     </channel>
 </rss>

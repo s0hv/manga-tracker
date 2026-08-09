@@ -1,0 +1,25 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`DELETE /api/admin/chapters-failed/:serviceId/:chapterIdentifier > returns 400 with invalid serviceId "-1" 1`] = `"Too small: expected number to be >=0"`;
+
+exports[`DELETE /api/admin/chapters-failed/:serviceId/:chapterIdentifier > returns 400 with invalid serviceId "10e1" 1`] = `"Value must contain only numbers"`;
+
+exports[`DELETE /api/admin/chapters-failed/:serviceId/:chapterIdentifier > returns 400 with invalid serviceId "adw" 1`] = `"Value must contain only numbers"`;
+
+exports[`GET /api/admin/chapters-failed > returns 400 with invalid limit "" 1`] = `"Value must contain only numbers"`;
+
+exports[`GET /api/admin/chapters-failed > returns 400 with invalid limit "-1" 1`] = `"Too small: expected number to be >=0"`;
+
+exports[`GET /api/admin/chapters-failed > returns 400 with invalid limit "10e1" 1`] = `"Value must contain only numbers"`;
+
+exports[`GET /api/admin/chapters-failed > returns 400 with invalid limit "201" 1`] = `"Too big: expected number to be <=200"`;
+
+exports[`GET /api/admin/chapters-failed > returns 400 with invalid limit "a" 1`] = `"Value must contain only numbers"`;
+
+exports[`GET /api/admin/chapters-failed > returns 400 with invalid offset "" 1`] = `"Value must contain only numbers"`;
+
+exports[`GET /api/admin/chapters-failed > returns 400 with invalid offset "-1" 1`] = `"Too small: expected number to be >=0"`;
+
+exports[`GET /api/admin/chapters-failed > returns 400 with invalid offset "10e1" 1`] = `"Value must contain only numbers"`;
+
+exports[`GET /api/admin/chapters-failed > returns 400 with invalid offset "a" 1`] = `"Value must contain only numbers"`;

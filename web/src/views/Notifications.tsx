@@ -1,7 +1,8 @@
 import { type FC, lazy, Suspense, useCallback, useMemo, useState } from 'react';
 import {
   Box,
-  Button, CircularProgress,
+  Button,
+  CircularProgress,
   Container,
   FormControl,
   InputLabel,

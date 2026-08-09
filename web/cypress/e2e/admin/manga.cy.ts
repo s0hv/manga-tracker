@@ -1,9 +1,22 @@
 import { adminUser } from '../../../__tests__/constants';
 import { Selector } from '../../selectors';
+import {
+  assertTableRowValues,
+  getTableRowByColumnValue,
+} from '../../utilities';
 
+const testTitleId = 'test-title-id';
+
+function deleteTempMangaService() {
+  return cy.task('runSql', {
+    sql: `DELETE FROM manga_service WHERE service_id=8 AND title_id='${testTitleId}'`,
+  });
+}
 
 describe('Manga admin page', () => {
   beforeEach(() => {
+    deleteTempMangaService();
+
     cy.task('runSql', {
       sql: 'UPDATE manga_info SET status = 0 WHERE manga_id=1;\n'
         + "UPDATE manga SET title = 'Dr. Stone' WHERE manga_id=1;\n"
@@ -17,6 +30,10 @@ describe('Manga admin page', () => {
     cy.visit('/manga/1');
     cy.wait(200);
     Selector.getMangaAdminPageBtn().click();
+  });
+
+  after(() => {
+    deleteTempMangaService();
   });
 
   it('should allow editing manga info', () => {
@@ -72,6 +89,56 @@ describe('Manga admin page', () => {
 
     cy.wait(50);
     cy.findByRole('alert').should('not.exist');
+  });
+
+  it('should allow creating a new manga service', () => {
+    cy.findByRole('button', { name: 'create manga service' }).click();
+    cy.findByRole('heading', { name: 'Create row' });
+
+    const serviceName = 'Comikey';
+
+    cy.selectComboboxValue('Service', serviceName);
+    cy.findByRole('textbox', { name: 'Title id' })
+      .type(testTitleId);
+    Selector.getCreateRowBtn().click();
+    Selector.assertAlertExists('Successfully create a new manga service');
+
+    getTableRowByColumnValue({
+      tableName: /^manga services$/i,
+      column: 'Service',
+      value: serviceName,
+    });
+
+    cy.reload();
+
+    // Assert that the new manga service was persisted
+    assertTableRowValues(
+      /^manga services$/i,
+      {
+        Service: serviceName,
+        'Title id': testTitleId,
+        'Last check': 'Unknown',
+        'Next update': 'Unknown',
+        Disabled: row => cy.wrap(row).findByRole('checkbox').should('not.be.checked'),
+      } as const,
+      'Service'
+    );
+
+    const searchParams = new URLSearchParams({
+      query: 'Dr. stone',
+      withServices: 'true',
+    });
+
+    // Wait for changes to persist
+    cy.wait(100);
+
+    // Make sure that elasticsearch was updated after new service was created
+    cy.request(`/api/quicksearch?${searchParams.toString()}`)
+      .then(async res => {
+        cy.log('response body', JSON.stringify(res.body, undefined, 2));
+        return res;
+      })
+      .its('body.0.services.8').should('eq', serviceName);
   });
 
   it('should allow adding and deleting scheduled runs', () => {

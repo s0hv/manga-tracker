@@ -6,7 +6,9 @@ export { default as searchApi } from './search';
 export { default as servicesApi } from './services';
 export { default as settingsApi } from './settings';
 export { default as userApi } from './user';
+export { default as groupApi } from './group';
 
 export { default as adminServicesApi } from './admin/services';
 export { default as adminMangaApi } from './admin/manga';
+export { default as adminChapterFailApi } from './admin/chapterFail';
 export { default as authHandler } from './auth';

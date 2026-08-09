@@ -22,9 +22,9 @@ describe('Chapter list should allow editing', () => {
   const mockChapters = async (n = 10): Promise<[Mock, Mock, ChapterRelease[]]> => {
     fetchMock.reset();
     const chaptersMock = vi.fn();
-    const chapters = await generateNSchemas<ChapterRelease>(LatestChapter, n);
+    const chapters = generateNSchemas<ChapterRelease>(LatestChapter, n);
     const serviceIds = new Set<number>(chapters.map(c => c.serviceId));
-    const services = await generateNSchemas<ServiceForApi>(Service, serviceIds.size);
+    const services = generateNSchemas<ServiceForApi>(Service, serviceIds.size);
 
     let idx = 0;
     for (const serviceId of serviceIds) {

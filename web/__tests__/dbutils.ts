@@ -7,6 +7,8 @@ import { parseAuthCookie } from '@/db/auth';
 import { type DatabaseHelpers, db } from '@/db/helpers';
 import { serverCookieNames } from '@/serverUtils/constants';
 import { hashSecret } from '@/serverUtils/utilities';
+import { ChapterFailSchema, generateSchema } from '@/tests/schemas';
+import type { ChapterFail } from '@/types/db/chapterFail';
 import type { DatabaseId } from '@/types/dbTypes';
 import type { Session } from '@/types/session';
 
@@ -153,4 +155,37 @@ export const copyService = async (serviceId: DatabaseId) => {
     SELECT ${newServiceId}, check_interval, scheduled_run_limit, scheduled_runs_enabled, scheduled_run_interval FROM service_config WHERE service_id=${serviceId}`;
 
   return newServiceId;
+};
+
+export const createChapterFail = async (chapterFail?: Omit<ChapterFail, 'timestamp'>) => {
+  const data = chapterFail
+    ? chapterFail
+    : generateSchema(ChapterFailSchema);
+
+  await db.none`
+      INSERT INTO chapters_failed ${db.sql(data)}`;
+
+  return {
+    serviceId: data.serviceId,
+    chapterIdentifier: data.chapterIdentifier,
+  };
+};
+
+export const deleteChapterFail = async (
+  serviceId: number,
+  chapterIdentifier: string
+) => {
+  await db.none`
+      DELETE FROM chapters_failed
+      WHERE service_id = ${serviceId}
+      AND chapter_identifier = ${chapterIdentifier}`;
+};
+
+export const chapterFailExists = async (serviceId: number, chapterIdentifier: string) => {
+  return db.oneOrNone`
+        SELECT 1
+        FROM chapters_failed
+        WHERE service_id = ${serviceId}
+          AND chapter_identifier = ${chapterIdentifier}`
+    .then(row => row !== null);
 };

@@ -9,6 +9,7 @@ from typing import Any, cast, override
 import feedparser
 from lxml import etree
 
+from src.db.models.chapter import ChapterFailed
 from src.errors import FeedHttpError, InvalidFeedError
 from src.scrapers.base_scraper import BaseChapterSimple, BaseScraper
 from src.utils.utilities import (
@@ -73,11 +74,21 @@ class Reddit(BaseScraper):
     MANGA_URL_FORMAT = 'https://www.reddit.com/r/{}'
 
     SPECIAL_REGEX = re.compile(r'volume \d+ (bonus)? chapter .+?', re.I)
+    LOGGER = logger
 
     @staticmethod
-    def parse_feed(entries: typing.Iterable[dict], group_id: int | None = None) -> list[Chapter]:
-        chapters = []
+    def parse_feed(entries: typing.Iterable[dict], group_id: int | None = None) -> tuple[list[Chapter], list[ChapterFailed]]:
+        chapters: list[Chapter] = []
+        chapters_failed: list[ChapterFailed] = []
+
         for post in entries:
+            # The tree might have more than one root element so force it to have only a single one
+            tree = etree.fromstring(f'<root>{post.get("summary", "")}</root>')
+            chapter_identifier = tree.cssselect('span a')[0].get('href')
+            if not chapter_identifier:
+                logger.error(f'Chapter identifier not found from {post}')
+                continue
+
             title = post.get('title', '')
             match = Reddit.CHAPTER_REGEX.match(title)
             kwargs: dict[str, Any]
@@ -89,7 +100,14 @@ class Reddit(BaseScraper):
                     # to set any properties
                     special = Reddit.SPECIAL_REGEX.match(title)
                     if not special:
-                        logger.info(f'Could not parse title from {title or post}')
+                        chapters_failed.append(
+                            ChapterFailed(
+                                chapter_identifier=chapter_identifier,
+                                service_id=Reddit.ID,
+                                title=title,
+                                errors='Failed to parse chapter title'
+                            )
+                        )
                         continue
 
                     # Special cases don't have a chapter number shown so default to 0
@@ -103,24 +121,31 @@ class Reddit(BaseScraper):
                 kwargs = match.groupdict()
 
             if not kwargs['chapter_number']:
-                logger.error(f'Failed to get chapter number from title "{title}"')
+                chapters_failed.append(
+                    ChapterFailed(
+                        chapter_identifier=chapter_identifier,
+                        service_id=Reddit.ID,
+                        title=title,
+                        errors=f'Failed to get chapter number from title "{title}"',
+                    )
+                )
                 continue
 
             kwargs['chapter_title'] = title
             kwargs['group_id'] = group_id
-
-            # The tree might have more than one root element so force it to have only a single one
-            tree = etree.fromstring(f'<root>{post.get("summary", "")}</root>')
-            kwargs['chapter_identifier'] = tree.cssselect('span a')[0].get('href')
-            if not kwargs['chapter_identifier']:
-                logger.error(f'Chapter identifier not found from {post}')
-                continue
-
+            kwargs['chapter_identifier'] = chapter_identifier
             kwargs['title_id'] = post['link'].split('/r/')[-1].split('/')[0]
             kwargs['manga_url'] = Reddit.MANGA_URL_FORMAT.format(kwargs['title_id'])
 
-            if not kwargs['title_id'] or not kwargs['chapter_identifier']:
-                logger.warning(f'Could not parse ids from {post}')
+            if not kwargs['title_id']:
+                chapters_failed.append(
+                    ChapterFailed(
+                        chapter_identifier=chapter_identifier,
+                        service_id=Reddit.ID,
+                        title=title,
+                        errors='Could not parse title_id',
+                    )
+                )
                 continue
 
             kwargs['release_date'] = post.get('published_parsed') or post.get('updated_parsed')
@@ -132,7 +157,7 @@ class Reddit(BaseScraper):
 
             chapters.append(Chapter(**kwargs))
 
-        return chapters
+        return chapters, chapters_failed
 
     @override
     def scrape_series(
@@ -154,10 +179,14 @@ class Reddit(BaseScraper):
         group_name = '/'.join(feed_url.split('reddit.com/')[1].split('/')[:2])
         group_id = self.dbutil.get_or_create_group(group_name).group_id
 
+        result = self.parse_feed(feed.entries, group_id=group_id)
+        self.handle_failed_chapters(result[1])
+
         chapters = self.dbutil.get_only_latest_entries(
-            service_id, self.parse_feed(feed.entries, group_id=group_id)
+            service_id,
+            result[0]
         )
-        if not chapters:
+        if not result:
             logger.debug(f'Nothing to update in {feed_url}')
             return set()
 
