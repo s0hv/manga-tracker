@@ -1,30 +1,46 @@
 import React, { ReactElement, useCallback } from 'react';
 import { Checkbox, Container, Paper, TableContainer } from '@mui/material';
+import {
+  type ColumnDef,
+  type Row,
+  createColumnHelper,
+  createSortedRowModel,
+  rowSortingFeature,
+  sortFn_basic,
+  sortFn_datetime,
+  tableFeatures,
+  useTable,
+} from '@tanstack/react-table';
 import { format, formatDistanceToNowStrict } from 'date-fns';
 import { enGB } from 'date-fns/locale';
 import { useSnackbar } from 'notistack';
 
-import type {
-  MaterialCellContext,
-  MaterialColumnDef,
-} from '@/components/MaterialTable/types';
-import { createColumnHelper } from '@/components/MaterialTable/utilities';
+import { editService } from '#web/api/admin/service';
+import {
+  EditableCheckbox,
+  EditableDateTimePicker,
+  MaterialTable,
+} from '@/components/MaterialTable';
+import {
+  defaultOnSaveRow,
+  getEditColumnDef,
+  getRowEditStateFromRow,
+  rowEditingPlugin,
+} from '@/components/MaterialTable/plugins';
 import type {
   ServiceForAdmin,
   ServiceForAdminSerialized,
 } from '@/types/api/services';
 
 
-import { editService } from '../../api/admin/service';
-import {
-  defaultOnSaveRow,
-  EditableCheckbox,
-  EditableDateTimePicker,
-  MaterialTable,
-} from '../../components/MaterialTable';
+const features = tableFeatures({
+  rowEditingPlugin,
+  rowSortingFeature,
+  sortedRowModel: createSortedRowModel(),
+});
+type Features = typeof features;
 
-
-const columnHelper = createColumnHelper<ServiceForAdmin>();
+const columnHelper = createColumnHelper<Features, ServiceForAdmin>();
 
 export type ServicesProps = {
   services?: ServiceForAdmin[] | ServiceForAdminSerialized[]
@@ -47,7 +63,9 @@ function Services(props: ServicesProps): ReactElement {
   },
   [services]);
 
-  const columns = React.useMemo((): MaterialColumnDef<ServiceForAdmin, any>[] => [
+  const columns = React.useMemo((): ColumnDef<Features, ServiceForAdmin>[] => columnHelper.columns([
+    getEditColumnDef(),
+
     columnHelper.accessor('id', {
       header: 'Id',
       enableEditing: false,
@@ -61,7 +79,7 @@ function Services(props: ServicesProps): ReactElement {
     columnHelper.accessor('lastCheck', {
       header: 'Last checked',
       enableEditing: false,
-      sortingFn: 'datetime',
+      sortFn: sortFn_datetime,
       cell: ({ row }) => (row.original.lastCheck
         ? `${format(row.original.lastCheck, 'MMM do, HH:mm', { locale: enGB })} - ${formatDistanceToNowStrict(row.original.lastCheck, { addSuffix: true })}`
         : 'Never'),
@@ -69,7 +87,7 @@ function Services(props: ServicesProps): ReactElement {
 
     columnHelper.accessor('nextUpdate', {
       header: 'Next update',
-      sortingFn: 'datetime',
+      sortFn: sortFn_datetime,
       cell: ({ row }) => (row.original.nextUpdate
         ? `${format(row.original.nextUpdate, 'MMM do, HH:mm', { locale: enGB })} - ${formatDistanceToNowStrict(row.original.nextUpdate, { addSuffix: true })}`
         : 'ASAP'),
@@ -85,26 +103,27 @@ function Services(props: ServicesProps): ReactElement {
 
     columnHelper.accessor('disabled', {
       header: 'Disabled',
-      width: '1%',
-      sortingFn: 'basic',
+      sortFn: sortFn_basic,
       cell: ({ row }) => <Checkbox checked={row.original.disabled} disabled />,
       EditCell: ctx => (
         <EditableCheckbox
           checked={ctx.row.original.disabled}
           aria-label='disabled'
-          ctx={ctx as MaterialCellContext<any, boolean>}
+          ctx={ctx}
         />
       ),
     }),
-  ],
+  ]),
   []);
 
-  const onSaveRow = useCallback((state: Partial<ServiceForAdmin>, ctx: MaterialCellContext<ServiceForAdmin, unknown>) => {
+  const onSaveRow = useCallback((
+    row: Row<Features, ServiceForAdmin>
+  ) => {
+    const state = getRowEditStateFromRow(row);
     const keys = Object.keys(state);
     if (keys.length === 0) return;
 
-    const { row } = ctx;
-    defaultOnSaveRow(state, ctx);
+    defaultOnSaveRow(row);
 
     const body = {
       service: {
@@ -124,16 +143,22 @@ function Services(props: ServicesProps): ReactElement {
       .catch(err => enqueueSnackbar(err.message, { variant: 'error' }));
   }, [enqueueSnackbar]);
 
+  const table = useTable({
+    columns,
+    features,
+    data,
+    onSaveRowEdit: onSaveRow,
+  },
+  state => ({
+    sorting: state.sorting,
+  }));
+
   return (
     <Container maxWidth='lg' style={{ minWidth: '950px' }}>
       <TableContainer component={Paper}>
         <MaterialTable
           title='Services'
-          columns={columns}
-          data={data}
-          sortable
-          editable
-          onSaveRow={onSaveRow}
+          table={table}
         />
       </TableContainer>
     </Container>

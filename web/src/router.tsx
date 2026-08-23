@@ -1,5 +1,4 @@
 import {
-  matchQuery,
   MutationCache,
   QueryCache,
   QueryClient,
@@ -10,6 +9,10 @@ import { HTTPError } from 'ky';
 
 import NotFound from '@/views/NotFound';
 import { getCspNonce } from '@/webUtils/routeUtils';
+import {
+  mutationCacheOnError,
+  mutationCacheOnSuccess,
+} from '@/webUtils/utilities';
 
 import { APIException, HTTPException } from './api/utilities';
 import { routeTree } from './routeTree.gen';
@@ -45,29 +48,11 @@ export function getRouter() {
 
     mutationCache: new MutationCache({
       onSuccess: (_data, _variables, _context, mutation) => {
-        const queryKeysToInvalidate = mutation.meta?.queryKeysToInvalidate;
-
-        if (!queryKeysToInvalidate) return;
-
-        return queryClient.invalidateQueries({
-          predicate: query => queryKeysToInvalidate.some(
-            queryKey => matchQuery({ queryKey }, query)
-          ),
-        });
+        return mutationCacheOnSuccess(queryClient, mutation);
       },
 
       onError: (_data, _variables, _context, mutation) => {
-        const queryKeysToInvalidate = mutation.meta?.queryKeysToInvalidate;
-
-        if (!queryKeysToInvalidate || !mutation.meta?.invalidateOnError) {
-          return;
-        }
-
-        return queryClient.invalidateQueries({
-          predicate: query => queryKeysToInvalidate.some(
-            queryKey => matchQuery({ queryKey }, query)
-          ),
-        });
+        return mutationCacheOnError(queryClient, mutation);
       },
     }),
   });

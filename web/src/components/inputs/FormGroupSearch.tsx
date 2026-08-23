@@ -14,13 +14,13 @@ import {
 } from 'react-hook-form';
 import { AutocompleteElement } from 'react-hook-form-mui';
 
+import {
+  useAutocompleteWithSearch,
+} from '#components/inputs/useAutocompleteWithSearch';
+import { showAll } from '#components/notifications/utilities';
 import { searchGroupsQueryOptions } from '#web/api/group';
 import { noRows } from '#webUtils/constants';
 import type { SearchGroup } from '@/common/schemas/group';
-import {
-  useAutocompleteWithSearch,
-} from '@/components/inputs/useAutocompleteWithSearch';
-import { showAll } from '@/components/notifications/utilities';
 import type { NullableExcept } from '@/types/utility';
 
 type OptionType = NullableExcept<SearchGroup, 'name'>;

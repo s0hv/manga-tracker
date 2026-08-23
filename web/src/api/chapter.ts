@@ -1,4 +1,5 @@
 import { queryOptions } from '@tanstack/react-query';
+import type { PaginationState } from '@tanstack/react-table';
 
 import type {
   ChapterRelease,
@@ -19,21 +20,19 @@ export type SortBy<T> = {
 /**
  * Fetches chapters for a manga
  * @param mangaId id of the manga to fetch chapters for
- * @param limit limit of the fetched chapters
- * @param offset current offset
+ * @param pagination the pagination info for the request
  * @param sortBy A list of objects containing the row name and sorting directions
  * @param services A list of service ids to filter by
  */
 export const getChapters = (
   mangaId: MangaId,
-  limit: number | string,
-  offset: number | string,
+  pagination: PaginationState,
   sortBy: SortBy<MangaChapter>[] = [],
   services?: number[]
 ): Promise<MangaChapterResponse> => {
   const searchParams = new URLSearchParams({
-    limit: limit.toString(),
-    offset: offset.toString(),
+    limit: pagination.pageSize.toString(),
+    offset: (pagination.pageIndex * pagination.pageSize).toString(),
   });
 
   if (sortBy.length > 0) {
@@ -59,12 +58,11 @@ export const getChapters = (
 
 export const getChaptersQueryOptions = (
   mangaId: MangaId,
-  limit: number | string,
-  offset: number | string,
+  pagination: PaginationState,
   sortBy: SortBy<MangaChapter>[] = [],
   services?: number[]
 ) => queryOptions({
-  queryKey: ['mangaChapters', mangaId, limit, offset, sortBy, services] as const,
+  queryKey: ['mangaChapters', mangaId, pagination, sortBy, services] as const,
   queryFn: ({ queryKey: [_, ...params] }) => getChapters(...params),
 });
 

@@ -1,16 +1,26 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import {
   DateTimePicker,
   DateTimePickerProps,
 } from '@mui/x-date-pickers/DateTimePicker';
 import { PickerValidDate } from '@mui/x-date-pickers/models';
+import type {
+  CellContext,
+  Plugins,
+  RowData,
+  TableFeatures,
+} from '@tanstack/react-table';
 
+import {
+  processCellEdit,
+  TableFeaturesWithRowEditing,
+} from './plugins';
 
-import { MaterialCellContext } from './types';
-import { processCellEdit } from './useEditable';
-
-export interface EditableDateTimePickerProps extends Partial<Omit<DateTimePickerProps, 'value'>> {
-  ctx: MaterialCellContext<any, PickerValidDate>
+export interface EditableDateTimePickerProps<
+  TFeatures extends TableFeaturesWithRowEditing,
+  TData extends RowData
+> extends Partial<Omit<DateTimePickerProps, 'value'>> {
+  ctx: CellContext<TFeatures, TData, PickerValidDate | null | undefined>
   value: PickerValidDate | null | undefined
 }
 
@@ -19,21 +29,26 @@ export interface EditableDateTimePickerProps extends Partial<Omit<DateTimePicker
  * @param {Object} props Props given to the component
  * @param {Date?} props.value Initial date that the component will be set to
  */
-export default function EditableDateTimePicker(props: EditableDateTimePickerProps): React.ReactElement {
+export default function EditableDateTimePicker<
+  TFeatures extends TableFeatures & Pick<Plugins, 'rowEditingPlugin'>,
+  TData extends RowData
+>(
+  props: EditableDateTimePickerProps<TFeatures, TData>
+): React.ReactElement {
   const {
     value,
-    ctx: { table, cell },
+    ctx: { cell },
     onChange,
     ...pickerProps
   } = props;
 
-  // Undefined date is treated as current date. null is treated as no date
+  // Undefined date is treated as the current date. null is treated as no date
   const [date, setDate] = React.useState<PickerValidDate | null>(value ?? null);
 
-  const handleChange = (newDate: PickerValidDate | null): void => {
-    processCellEdit(newDate as PickerValidDate, table.getState().rowEditState, cell);
+  const handleChange = useCallback((newDate: PickerValidDate | null): void => {
+    processCellEdit(newDate, cell);
     setDate(newDate);
-  };
+  }, [cell]);
 
   return (
     <DateTimePicker

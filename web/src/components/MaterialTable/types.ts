@@ -1,93 +1,105 @@
 import type { TableCellProps } from '@mui/material';
 import type {
-  Cell,
-  CellContext,
-  Column,
-  ColumnDef,
-  ColumnDefTemplate,
+  CellData,
   Row,
   RowData,
-  RowModel,
-  Table,
-  TableState,
+  TableFeature,
+  TableFeatures,
 } from '@tanstack/react-table';
+import type { confirm } from 'material-ui-confirm';
 
-export type MaterialColumnDef<TData extends RowData, TValue = unknown> = Omit<
-  ColumnDef<TData, TValue>,
-  | 'cell'
-> & {
-  enableEditing?: boolean
-  padding?: TableCellProps['padding']
-  cell?: ColumnDefTemplate<MaterialCellContext<TData, TValue>>
-  EditCell?: ColumnDefTemplate<MaterialCellContext<TData, TValue>>
-  OriginalCell?: ColumnDefTemplate<MaterialCellContext<TData, TValue>>
-  width?: number | string
+import type {
+  Row_RowDeleting,
+  Table_RowDeleting,
+  TableOptions_RowDeleting,
+} from './plugins/rowDeletingPlugin';
+import type {
+  ColumnDef_RowEditing,
+  Row_RowEditing,
+  Table_RowEditing,
+  TableOptions_RowEditing,
+  TableState_RowEditing,
+} from './plugins/rowEditingPlugin';
+
+export type { WithRequiredFeature } from './plugins/types';
+
+
+export type TableAPI<TTable> = {
+  [K in keyof TTable as K extends string ? `table_${K}` : never]: {
+    fn: TTable[K]
+  }
 };
 
-export type MaterialColumn<TData extends RowData, TValue> = Omit<
-  Column<TData, TValue>,
-  | 'columnDef'
-> & {
-  columnDef: MaterialColumnDef<TData, TValue>
+export type RowPrototype<TRow> = {
+  [K in keyof TRow as K extends string ? `row_${K}` : never]: {
+    fn: NonNullable<TRow[K]> extends (...args: infer P) => infer R
+      ? (
+        row: Row<TableFeatures, RowData>,
+        ...rest: P
+      ) => R
+      : never
+  }
 };
 
-export type MaterialCell<TData extends RowData, TValue> = Omit<
-  Cell<TData, TValue>,
-  | 'column'
-  | 'getContext'
-> & {
-  column: MaterialColumn<TData, TValue>
-  getContext: () => MaterialCellContext<TData, TValue>
-};
+/* eslint-disable @typescript-eslint/no-unused-vars */
+declare module '@tanstack/react-table' {
+  interface Plugins {
+    rowEditingPlugin: TableFeature
+    rowDeletingPlugin: TableFeature
+  }
 
-export type MaterialRow<TData extends RowData> = Omit<
-  Row<TData>,
-  | 'getVisibleCells'
-  | 'getAllCells'
-> & {
-  getVisibleCells: () => MaterialCell<TData, unknown>[]
-  getAllCells: () => MaterialCell<TData, unknown>[]
-};
+  interface TableState_FeatureMap {
+    rowEditingPlugin: TableState_RowEditing
+  }
 
-export type MaterialRowModel<TData extends RowData> = Omit<
-  RowModel<TData>,
-  | 'rows'
-  | 'flatRows'
-  | 'rowsById'
-> & {
-  rows: MaterialRow<TData>[]
-  flatRows: MaterialRow<TData>[]
-  rowsById: Record<string, MaterialRow<TData>>
-};
+  interface TableOptions_FeatureMap<
+    TFeatures extends TableFeatures,
+    TData extends RowData
+  > {
+    rowEditingPlugin: TableOptions_RowEditing<TFeatures, TData>
+    rowDeletingPlugin: TableOptions_RowDeleting<TFeatures, TData>
+  }
 
-export type MaterialTableState<TData extends RowData> = TableState & {
-  editing: Record<string, boolean>
-  rowEditState: Record<string, TData | undefined>
-};
+  interface Table_FeatureMap<
+    TFeatures extends TableFeatures,
+    TData extends RowData
+  > {
+    rowEditingPlugin: Table_RowEditing<TFeatures, TData>
+    rowDeletingPlugin: Table_RowDeleting<TFeatures, TData>
+  }
 
-export type MaterialTableInstance<TData extends RowData> = Omit<
-  Table<TData>,
-  | 'getRowModel'
-  | 'getState'
-  | 'getVisibleFlatColumns'
-> & {
-  getRowModel: () => MaterialRowModel<TData>
-  getState: () => MaterialTableState<TData>
-  getVisibleFlatColumns: () => MaterialColumn<TData, unknown>[]
-};
+  interface ColumnDef_FeatureMap<
+    in out TFeatures extends TableFeatures,
+    in out TData extends RowData,
+    TValue extends CellData
+  > {
+    rowEditingPlugin: ColumnDef_RowEditing<TFeatures, TData, TValue>
+  }
 
+  interface Row_FeatureMap<
+    in out TFeatures extends TableFeatures,
+    in out TData extends RowData
+  > {
+    rowEditingPlugin: Row_RowEditing
+    rowDeletingPlugin: Row_RowDeleting
+  }
 
-export interface MaterialCellContext<TData extends RowData, TValue> extends Omit<
-  CellContext<TData, TValue>,
-  | 'table'
-  | 'column'
-  | 'cell'
-> {
-  table: MaterialTableInstance<TData>
-  column: MaterialColumn<TData, TValue>
-  cell: MaterialCell<TData, TValue>
+  interface ColumnMeta<
+    TFeatures extends TableFeatures,
+    TData extends RowData,
+    TValue extends CellData = CellData
+  > {
+    padding?: TableCellProps['padding']
+    width?: CSSStyleProperties['width'] | number
+    minWidth?: CSSStyleProperties['minWidth'] | number
+  }
+
+  interface TableMeta<
+    TFeatures extends TableFeatures,
+    TData extends RowData
+  > {
+    classes?: Record<string, string>
+    confirm: typeof confirm
+  }
 }
-
-
-export type AfterRowEdit<TData extends RowData> = (modifiedData: Partial<TData>, ctx: MaterialCellContext<TData, unknown>) => void;
-export type RowChangeAction<TData extends RowData> = (ctx: MaterialCellContext<TData, unknown>) => void;
+/* eslint-enable @typescript-eslint/no-unused-vars */

@@ -1,6 +1,19 @@
 import React, { type FunctionComponent, useCallback, useMemo } from 'react';
 import { Checkbox, Paper, SxProps, TableContainer } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
+import {
+  type Row,
+  type TableState,
+  ColumnDef,
+  createColumnHelper,
+  createSortedRowModel,
+  rowSortingFeature,
+  sortFn_basic,
+  sortFn_datetime,
+  sortFn_text,
+  tableFeatures,
+  useTable,
+} from '@tanstack/react-table';
 import { useSnackbar } from 'notistack';
 import { SelectElement, TextFieldElement } from 'react-hook-form-mui';
 
@@ -10,27 +23,26 @@ import {
   updateMangaService,
 } from '#web/api/admin/manga';
 import { getServicesQueryOptions } from '#web/api/services';
+import {
+  defaultOnSaveRow,
+  getEditColumnDef,
+  getRowEditStateFromRow,
+  rowEditingPlugin,
+} from '@/components/MaterialTable/plugins';
 import type { MangaService, MangaServiceCreateData } from '@/types/api/manga';
 import type { MangaId } from '@/types/dbTypes';
 import type { SelectOption } from '@/types/utility';
 import { noRows } from '@/webUtils/constants';
 import { defaultDateFormat } from '@/webUtils/utilities';
 
-
 import {
   AddRowFormTemplate,
-  defaultOnSaveRow,
   EditableCheckbox,
   EditableDateTimePicker,
   MaterialTable,
 } from '../MaterialTable';
 import type { DialogComponentProps } from '../MaterialTable/TableToolbar';
-import type {
-  MaterialCellContext,
-  MaterialColumnDef,
-  MaterialTableState,
-} from '../MaterialTable/types';
-import { createColumnHelper } from '../MaterialTable/utilities';
+
 
 export type MangaServiceTableProps = {
   mangaId: MangaId
@@ -41,11 +53,25 @@ type MangaServiceForm = MangaServiceCreateData & {
   serviceId: string
 };
 
-const columnHelper = createColumnHelper<MangaService>();
+const features = tableFeatures({
+  rowEditingPlugin,
+  rowSortingFeature,
+  sortedRowModel: createSortedRowModel(),
+  sortFns: {
+    basic: sortFn_basic,
+    text: sortFn_text,
+  },
+});
+type Features = typeof features;
 
-const initialState: Partial<MaterialTableState<MangaService>> = {
+const columnHelper = createColumnHelper<Features, MangaService>();
+
+const initialState: Partial<TableState<Features>> = {
   sorting: [
-    { id: 'serviceId', desc: false },
+    {
+      id: 'serviceId' satisfies keyof MangaService,
+      desc: false,
+    },
   ],
 };
 
@@ -61,27 +87,31 @@ export const MangaServiceTable: FunctionComponent<MangaServiceTableProps> = prop
   const loading = mangaLoading || servicesLoading;
   const { enqueueSnackbar } = useSnackbar();
 
-  const onSaveRow = useCallback((state: Partial<MangaService>, ctx: MaterialCellContext<MangaService, unknown>) => {
+  const onSaveRow = useCallback((row: Row<Features, MangaService>) => {
+    const state = getRowEditStateFromRow(row);
     const keys = Object.keys(state);
     if (keys.length === 0) return;
 
-    const { row } = ctx;
-    defaultOnSaveRow(state, ctx);
+    defaultOnSaveRow(row);
 
     updateMangaService(row.original.mangaId, row.original.serviceId, state)
       .then(() => enqueueSnackbar('Updated manga service', { variant: 'success' }))
       .catch(e => enqueueSnackbar(`'Failed to update manga service. ${e}`, { variant: 'error' }));
   }, [enqueueSnackbar]);
 
-  const columns = useMemo((): MaterialColumnDef<MangaService, any>[] => [
+  const columns = useMemo((): ColumnDef<Features, MangaService>[] => columnHelper.columns([
+    getEditColumnDef(),
+
     columnHelper.accessor('serviceId', {
       header: 'Service',
+      sortFn: 'text',
       cell: ({ getValue }) => services?.[getValue()]?.name || null,
       enableEditing: false,
     }),
+
     columnHelper.accessor('disabled', {
       header: 'Disabled',
-      sortingFn: 'basic',
+      sortFn: 'basic',
       cell: ({ getValue }) => <Checkbox checked={getValue()} disabled />,
       EditCell: ctx => (
         <EditableCheckbox
@@ -91,19 +121,23 @@ export const MangaServiceTable: FunctionComponent<MangaServiceTableProps> = prop
         />
       ),
     }),
+
     columnHelper.accessor('titleId', {
       header: 'Title id',
+      sortFn: 'text',
       enableEditing: false,
     }),
+
     columnHelper.accessor('lastCheck', {
       header: 'Last check',
-      sortingFn: 'datetime',
+      sortFn: sortFn_datetime,
       enableEditing: false,
       cell: ({ getValue }) => defaultDateFormat(getValue()),
     }),
+
     columnHelper.accessor('nextUpdate', {
       header: 'Next update',
-      sortingFn: 'datetime',
+      sortFn: sortFn_datetime,
       cell: ({ getValue }) => defaultDateFormat(getValue()),
       EditCell: ctx => (
         <EditableDateTimePicker
@@ -114,7 +148,7 @@ export const MangaServiceTable: FunctionComponent<MangaServiceTableProps> = prop
         />
       ),
     }),
-  ], [services]);
+  ]), [services]);
 
   // Table layout
   const fields = useMemo(() => {
@@ -181,21 +215,25 @@ export const MangaServiceTable: FunctionComponent<MangaServiceTableProps> = prop
     />
   ), [fields, onCreateRow]);
 
+  const table = useTable({
+    data: mangaServices ?? noRows,
+    columns,
+    features,
+    initialState,
+    onSaveRowEdit: onSaveRow,
+  },
+  () => null);
+
   return (
     <TableContainer component={Paper} sx={sx}>
       <MaterialTable
+        table={table}
         title='Manga services'
         toolbarProps={{ addButtonLabel: 'create manga service' }}
-        columns={columns}
-        data={mangaServices ?? noRows}
-        onSaveRow={onSaveRow}
         rowCount={mangaServices?.length || 3}
         loading={loading}
-        initialState={initialState}
         CreateDialog={CreateDialog}
-        creatable
-        sortable
-        editable
+        enableRowCreation
       />
     </TableContainer>
   );

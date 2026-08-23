@@ -3,7 +3,12 @@ import BuildIcon from '@mui/icons-material/Build';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { Grid, IconButton, Link, Paper, TableContainer } from '@mui/material';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import type { TableOptions } from '@tanstack/react-table';
+import {
+  type TableOptions,
+  createColumnHelper,
+  tableFeatures,
+  useTable,
+} from '@tanstack/react-table';
 import { useConfirm } from 'material-ui-confirm';
 
 import {
@@ -17,12 +22,12 @@ import {
   AddChapterModal,
 } from '@/components/chapter/AddChapterModal';
 import { MaterialTable } from '@/components/MaterialTable';
-import type { MaterialColumnDef } from '@/components/MaterialTable/types';
-import { createColumnHelper } from '@/components/MaterialTable/utilities';
-import { noRows } from '@/webUtils/constants';
 import { defaultDateFormat } from '@/webUtils/utilities';
 
-const columnHelper = createColumnHelper<ChapterFail>();
+const features = tableFeatures({});
+type Features = typeof features;
+
+const columnHelper = createColumnHelper<Features, ChapterFail>();
 
 const mapFailToChapterInitialValues = (chapterFail: ChapterFail): AddChapterInitialValues => ({
   serviceId: chapterFail.serviceId,
@@ -45,7 +50,7 @@ const mapFailToChapterInitialValues = (chapterFail: ChapterFail): AddChapterInit
   title: chapterFail.title ?? null,
 });
 
-const tableOptions: Partial<TableOptions<ChapterFail>> = {
+const tableOptions: Partial<TableOptions<Features, ChapterFail>> = {
   getRowId: originalRow => `${originalRow.serviceId}-${originalRow.chapterIdentifier}`,
 };
 
@@ -70,8 +75,8 @@ export const ChaptersFailed = () => {
   const isLoading = chaptersFetching
     || servicesFetching;
 
-  const columns = useMemo<MaterialColumnDef<ChapterFail, any>[]>(() => [
-    {
+  const columns = useMemo(() => columnHelper.columns([
+    columnHelper.display({
       header: '',
       id: 'fixChapter',
       cell: ({ row: { original: row }}) => (
@@ -105,27 +110,27 @@ export const ChaptersFailed = () => {
           </IconButton>
         </Grid>
       ),
-    },
+    }),
 
     columnHelper.accessor('chapterIdentifier', {
       header: 'Chapter identifier',
-      minSize: 250,
+      meta: { minWidth: 250 },
     }),
 
     columnHelper.accessor('serviceId', {
       header: 'Service',
       cell: ({ row }) => services?.[row.original.serviceId].name,
-      minSize: 100,
+      meta: { minWidth: 100 },
     }),
 
     columnHelper.accessor('errors', {
       header: 'Error',
-      minSize: 200,
+      meta: { minWidth: 200 },
     }),
 
     columnHelper.accessor('titleId', {
       header: 'Title ID',
-      minSize: 200,
+      meta: { minWidth: 200 },
       cell: ({ row }) => {
         const titleId = row.original.titleId;
         const service = services?.[row.original.serviceId];
@@ -147,20 +152,27 @@ export const ChaptersFailed = () => {
 
     columnHelper.accessor('mangaTitle', {
       header: 'Manga title',
-      minSize: 250,
+      meta: { minWidth: 250 },
     }),
 
     columnHelper.accessor('releaseDate', {
       header: 'Release date',
-      minSize: 200,
+      meta: { minWidth: 200 },
       cell: ({ row }) => defaultDateFormat(row.original.releaseDate),
     }),
 
     columnHelper.accessor('group', {
       header: 'Group',
-      minSize: 100,
+      meta: { minWidth: 100 },
     }),
-  ], [confirm, deleteChapterFailed, services]);
+  ]), [confirm, deleteChapterFailed, services]);
+
+  const table = useTable({
+    columns,
+    data: chaptersFailed ?? [],
+    features,
+    ...tableOptions,
+  });
 
   return (
     <TableContainer component={Paper} sx={{ px: 4 }}>
@@ -173,14 +185,12 @@ export const ChaptersFailed = () => {
       )}
 
       <MaterialTable
+        table={table}
         title='Chapters that could not be parsed'
-        columns={columns}
-        data={chaptersFailed ?? noRows}
         rowCount={chaptersFailed?.length ?? 0}
         loading={isLoading}
         // Disabled for now
         // pagination
-        tableOptions={tableOptions}
         ariaLabel='Chapters that could not be parsed'
         sx={{ minWidth: '600px' }}
       />

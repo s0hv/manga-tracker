@@ -2,6 +2,7 @@ import React, { type PropsWithChildren, isValidElement } from 'react';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import {
+  MutationCache,
   QueryClient,
   QueryClientProvider,
 } from '@tanstack/react-query';
@@ -19,7 +20,7 @@ import { addHours } from 'date-fns';
 import { enGB as enLocale } from 'date-fns/locale';
 import fetchMock, { type MockCall } from 'fetch-mock';
 import jestOpenAPI from 'jest-openapi';
-import type { ConfirmResult } from 'material-ui-confirm';
+import { type ConfirmResult, ConfirmProvider } from 'material-ui-confirm';
 import {
   type DefaultBodyType,
   type JsonBodyType,
@@ -48,6 +49,10 @@ import type { DbHelpersFull } from '@/db/helpers';
 import { serverCookieNames } from '@/serverUtils/constants';
 import type { ZodErrorPath } from '@/serverUtils/validators';
 import { ServiceForApi } from '@/types/api/services';
+import {
+  mutationCacheOnError,
+  mutationCacheOnSuccess,
+} from '@/webUtils/utilities';
 
 import { getOpenapiSpecification } from '../swagger';
 
@@ -83,16 +88,29 @@ vi.mock('@/db/helpers', async () => {
   return dbMock;
 });
 
-const getQueryClient = () => new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: false,
-      staleTime: 0,
-      gcTime: 0,
-      refetchOnMount: 'always',
+const getQueryClient = () => {
+  const queryClientNew: QueryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+        staleTime: 0,
+        gcTime: 0,
+        refetchOnMount: 'always',
+      },
     },
-  },
-});
+
+    mutationCache: new MutationCache({
+      onSuccess(_data, _variables, _context, mutation) {
+        return mutationCacheOnSuccess(queryClientNew, mutation);
+      },
+      onError(_data, _variables, _context, mutation) {
+        return mutationCacheOnError(queryClientNew, mutation);
+      },
+    }),
+  });
+
+  return queryClientNew;
+};
 
 export const queryClient = getQueryClient();
 
@@ -104,9 +122,11 @@ type TestRootProps = {
 export const TestRoot = ({ children, queryClient, user = null }: PropsWithChildren<TestRootProps>) => (
   <QueryClientProvider client={queryClient ?? getQueryClient()}>
     <UserStoreProvider user={user ? toFrontendUser(user) : user}>
-      <SnackbarProvider>
-        {children}
-      </SnackbarProvider>
+      <ConfirmProvider>
+        <SnackbarProvider>
+          {children}
+        </SnackbarProvider>
+      </ConfirmProvider>
     </UserStoreProvider>
   </QueryClientProvider>
 );

@@ -11,6 +11,7 @@ import { RateLimiterRes } from 'rate-limiter-flexible';
 import type { NodeHttp1Handler } from 'srvx';
 import { type AdapterMeta, toNodeHandler } from 'srvx/node';
 
+import { COOKIES } from '#common/cookies';
 import {
   adminChapterFailApi,
   adminMangaApi,
@@ -56,8 +57,6 @@ import {
   uint8ArrayToBase64,
 } from '#server/utils/utilities';
 import { addMangaView } from '#server/utils/view-counter';
-
-import { COOKIES } from './common/cookies';
 
 
 validateEnv();

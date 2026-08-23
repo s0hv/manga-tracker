@@ -1,36 +1,43 @@
-import React, { ChangeEvent, PropsWithChildren } from 'react';
+import React, { ChangeEvent, PropsWithChildren, useCallback } from 'react';
 import { Checkbox, CheckboxProps } from '@mui/material';
-import { RowData } from '@tanstack/react-table';
+import { type CellContext, RowData } from '@tanstack/react-table';
 
+import {
+  type TableFeaturesWithRowEditing,
+  processCellEdit,
+} from './plugins';
 
-import { MaterialCellContext } from './types';
-import { processCellEdit } from './useEditable';
-
-export interface EditableCheckboxProps<TData extends RowData> extends Omit<CheckboxProps, 'checked'> {
+export interface EditableCheckboxProps<
+  TFeatures extends TableFeaturesWithRowEditing,
+  TData extends RowData
+> extends Omit<CheckboxProps, 'checked'> {
   checked: boolean
-  ctx: MaterialCellContext<TData, boolean>
+  ctx: CellContext<TFeatures, TData, boolean>
   'aria-label'?: string
 }
 /**
- * Checkbox component that modifies react table state when edited, allowing
+ * Checkbox component that modifies the react-table state when edited, allowing
  * user edits to be saved
  * @param {Object} props Component props
  * @param {boolean} props.checked Determines whether the checkbox is initially checked or not
  */
-const EditableCheckbox = <TData extends RowData>(props: PropsWithChildren<EditableCheckboxProps<TData>>) => {
+const EditableCheckbox = <
+  TFeatures extends TableFeaturesWithRowEditing,
+  TData extends RowData
+>(props: PropsWithChildren<EditableCheckboxProps<TFeatures, TData>>) => {
   const {
     checked: initialValue,
-    ctx: { table, cell },
+    ctx: { cell },
     'aria-label': ariaLabel,
     ...checkboxProps
   } = props;
 
   const [value, setValue] = React.useState(initialValue);
 
-  const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
-    processCellEdit(event.target.checked, table.getState().rowEditState, cell);
+  const handleChange = useCallback((event: ChangeEvent<HTMLInputElement>) => {
+    processCellEdit(event.target.checked, cell);
     setValue(event.target.checked);
-  };
+  }, [cell]);
 
   return (
     <Checkbox

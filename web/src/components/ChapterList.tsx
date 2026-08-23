@@ -15,12 +15,34 @@ import {
   TextField,
 } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
-import type { SortingState, TableOptions } from '@tanstack/react-table';
+import {
+  type CellContext,
+  type PaginationState,
+  type Row,
+  type SortingState,
+  ColumnDef,
+  createColumnHelper,
+  createPaginatedRowModel,
+  createSortedRowModel,
+  rowPaginationFeature,
+  rowSortingFeature,
+  tableFeatures,
+  useTable,
+} from '@tanstack/react-table';
+import { useConfirm } from 'material-ui-confirm';
 import { useSnackbar } from 'notistack';
 
+import { DEFAULT_PAGE_SIZE } from '@/components/MaterialTable/constants';
+import {
+  defaultOnSaveRow,
+  getDeleteColumnDef,
+  getEditColumnDef,
+  getRowEditStateFromRow,
+  rowDeletingPlugin,
+  rowEditingPlugin,
+} from '@/components/MaterialTable/plugins';
 import type { MangaChapter } from '@/types/api/chapter';
 import type { MangaId } from '@/types/dbTypes';
-
 
 import {
   deleteChapter,
@@ -32,34 +54,36 @@ import { getServicesQueryOptions } from '../api/services';
 import { formatChapterUrl } from '../utils/formatting';
 import { defaultDateFormat } from '../utils/utilities';
 
-import { defaultOnSaveRow, MaterialTable } from './MaterialTable';
-import type {
-  AfterRowEdit,
-  MaterialCellContext,
-  MaterialColumnDef,
-  RowChangeAction,
-} from './MaterialTable/types';
-import { createColumnHelper } from './MaterialTable/utilities';
+import { MaterialTable } from './MaterialTable';
 
 type ServiceOption = {
   value: number
   label: string
 };
 
-type PaginationOptions = {
-  limit: number
-  offset: number
-  sortingState?: SortBy<MangaChapter>[]
-};
-
 export interface MangaChapterWithUrl extends MangaChapter {
   url: string
 }
 
-const columnHelper = createColumnHelper<MangaChapterWithUrl>();
+function getRowId(row: MangaChapterWithUrl) {
+  return row.chapterId.toString();
+}
 
+const features = tableFeatures({
+  rowSortingFeature,
+  rowPaginationFeature,
+  rowDeletingPlugin,
+  rowEditingPlugin,
+  sortedRowModel: createSortedRowModel(),
+  paginatedRowModel: createPaginatedRowModel(),
+});
+type Features = typeof features;
 
-const TitleCell = ({ row }: MaterialCellContext<MangaChapterWithUrl, any>) => (
+const columnHelper = createColumnHelper<Features, MangaChapterWithUrl>();
+const editColumnDef: ColumnDef<Features, MangaChapterWithUrl> = getEditColumnDef();
+const deleteColumnDef: ColumnDef<Features, MangaChapterWithUrl> = getDeleteColumnDef();
+
+const TitleCell = ({ row }: CellContext<Features, MangaChapterWithUrl, string>) => (
   <Link href={row.original.url} target='_blank' style={{ textDecoration: 'none' }} rel='noopener noreferrer'>
     <span>
       {row.original.title}
@@ -147,8 +171,14 @@ function ChapterList(props: ChapterListProps): ReactElement {
   } = props;
 
   const [selectedServices, setSelectedServices] = useState<number[] | undefined>(undefined);
-  const [paginationOptions, setPaginationOptions] = useState<PaginationOptions | undefined>(undefined);
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [pagination, setPagination] = useState<PaginationState>({
+    pageSize: DEFAULT_PAGE_SIZE,
+    pageIndex: 0,
+  });
+
   const { enqueueSnackbar } = useSnackbar();
+  const confirm = useConfirm();
   const { data: services } = useQuery(getServicesQueryOptions);
 
   const {
@@ -158,14 +188,10 @@ function ChapterList(props: ChapterListProps): ReactElement {
   } = useQuery({
     ...getChaptersQueryOptions(
       mangaId,
-      /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
-      paginationOptions?.limit!,
-      paginationOptions?.offset!,
-      paginationOptions?.sortingState!,
-      /* eslint-enable @typescript-eslint/no-non-null-asserted-optional-chain */
+      pagination,
+      sorting as SortBy<MangaChapter>[],
       selectedServices
     ),
-    enabled: paginationOptions !== undefined,
     select: data => {
       return {
         chapters: formatChapters(data.chapters ?? []),
@@ -198,20 +224,21 @@ function ChapterList(props: ChapterListProps): ReactElement {
     enqueueSnackbar(json.message, { variant: 'success' });
   }, [enqueueSnackbar]);
 
-  const onSaveRow = useCallback<AfterRowEdit<MangaChapterWithUrl>>((state, ctx) => {
+  const onSaveRow = useCallback((row: Row<Features, MangaChapterWithUrl>) => {
+    const state = getRowEditStateFromRow(row);
     const keys = Object.keys(state);
     if (keys.length === 0) return;
 
-    defaultOnSaveRow(state, ctx);
+    defaultOnSaveRow(row);
 
-    updateChapter(ctx.row.original.chapterId, state)
+    updateChapter(row.original.chapterId, state)
       .then(handleResponse)
       .catch(err => {
         enqueueSnackbar(err.message, { variant: 'error' });
       });
   }, [handleResponse, enqueueSnackbar]);
 
-  const onDeleteRow = useCallback<RowChangeAction<MangaChapterWithUrl>>(({ row }) => {
+  const onRowDelete = useCallback((row: Row<Features, MangaChapterWithUrl>) => {
     const id = row.original.chapterId;
 
     deleteChapter(id)
@@ -222,11 +249,17 @@ function ChapterList(props: ChapterListProps): ReactElement {
       .finally(refetch);
   }, [handleResponse, enqueueSnackbar, refetch]);
 
-  const columns = useMemo<MaterialColumnDef<MangaChapterWithUrl, any>[]>(() => [
+  const columns = useMemo<ColumnDef<Features, MangaChapterWithUrl>[]>(() => columnHelper.columns([
+    ...(editable
+      ? [editColumnDef]
+      : []),
+
     columnHelper.accessor('chapterNumber', {
       header: 'Ch.',
       enableEditing: false,
-      width: '50px',
+      meta: {
+        width: '50px',
+      },
       cell: ({ row }) => {
         const {
           chapterNumber,
@@ -236,21 +269,24 @@ function ChapterList(props: ChapterListProps): ReactElement {
         return `${chapterNumber}${typeof chapterDecimal === 'number' ? '.' + chapterDecimal : ''}`;
       },
     }),
+
     columnHelper.accessor('title', {
       header: 'Title',
       enableSorting: false,
       cell: TitleCell,
     }),
+
     columnHelper.accessor('releaseDate', {
       header: 'Released',
       enableEditing: false,
-      sortingFn: 'datetime',
       cell: ({ row }) => defaultDateFormat(row.original.releaseDate),
     }),
+
     columnHelper.accessor('group', {
       header: 'Group',
       enableEditing: false,
     }),
+
     columnHelper.accessor('serviceId', {
       header: 'Service',
       enableEditing: false,
@@ -259,21 +295,34 @@ function ChapterList(props: ChapterListProps): ReactElement {
         return services?.[serviceId]?.name ?? '';
       },
     }),
-  ], [services]);
 
-  const getRowId = useCallback<(row: MangaChapterWithUrl) => string>(row => row.chapterId.toString(), []);
+    ...(editable
+      ? [deleteColumnDef]
+      : []),
+  ]), [services, editable]);
 
-  const fetchData = useCallback((pageIndex: number, pageSize: number, sortBy?: SortingState) => {
-    const offset = pageIndex * pageSize;
-
-    setPaginationOptions({
-      limit: pageSize,
-      offset,
-      sortingState: sortBy as SortBy<MangaChapter>[],
-    });
-  }, []);
-
-  const [tableOptions] = useState<Partial<TableOptions<MangaChapterWithUrl>>>({ getRowId });
+  const table = useTable({
+    columns,
+    data: chapters,
+    features,
+    rowCount: count,
+    state: {
+      pagination,
+      sorting,
+    },
+    confirm,
+    handleDeleteRowConfirmed: onRowDelete,
+    onSaveRowEdit: onSaveRow,
+    onPaginationChange: setPagination,
+    onSortingChange: setSorting,
+    manualSorting: true,
+    manualPagination: true,
+    getRowId,
+  },
+  state => ({
+    pagination: state.pagination,
+    sorting: state.sorting,
+  }));
 
   return (
     <TableContainer component={Paper}>
@@ -282,18 +331,9 @@ function ChapterList(props: ChapterListProps): ReactElement {
         onChange={setSelectedServices}
       />
       <MaterialTable
-        columns={columns}
-        data={chapters}
-        onSaveRow={onSaveRow}
-        onDeleteRow={onDeleteRow}
-        fetchData={fetchData}
+        table={table}
         rowCount={count}
         loading={loading}
-        sortable
-        editable={editable}
-        deletable={editable}
-        pagination
-        tableOptions={tableOptions}
         ariaLabel='Manga chapters'
         sx={{ minWidth: '600px' }}
       />
