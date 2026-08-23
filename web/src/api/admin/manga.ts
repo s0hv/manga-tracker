@@ -1,4 +1,4 @@
-import { queryOptions } from '@tanstack/react-query';
+import { mutationOptions, queryOptions } from '@tanstack/react-query';
 
 import type {
   MangaService,
@@ -18,20 +18,47 @@ export const getScheduledRuns = (mangaId: MangaId) => fetch(`/api/admin/manga/${
   .then(handleResponse<ScheduledRun[]>)
   .catch(handleError);
 
-export const createScheduledRun = (mangaId: MangaId, serviceId: DatabaseId) => fetch(`/api/admin/manga/${mangaId}/scheduledRun/${serviceId}`,
-  {
-    method: 'POST',
-  })
+export const getScheduledRunsKey = (mangaId: MangaId) =>
+  ['getScheduledRuns', mangaId] as const;
+
+export const getScheduledRunsQueryOptions = (mangaId_: MangaId) => queryOptions({
+  queryKey: getScheduledRunsKey(mangaId_),
+  queryFn: ({ queryKey: [_, mangaId] }) => getScheduledRuns(mangaId),
+});
+
+type ScheduledRunParams = {
+  mangaId: MangaId
+  serviceId: DatabaseId
+};
+export const createScheduledRun = (
+  { mangaId, serviceId }: ScheduledRunParams
+) => fetch(`/api/admin/manga/${mangaId}/scheduledRun/${serviceId}`,
+  { method: 'POST' })
   .then(handleResponse<{ inserted: ScheduledRun }>)
   .catch(handleError);
 
-export const deleteScheduledRun = (mangaId: MangaId, serviceId: DatabaseId) => fetch(`/api/admin/manga/${mangaId}/scheduledRun/${serviceId}`,
-  {
-    method: 'DELETE',
-  })
+export const createScheduledRunMutationOptions = mutationOptions({
+  mutationFn: createScheduledRun,
+  meta: {
+    queryKeysToInvalidate: [['getScheduledRuns']],
+    invalidateOnError: true,
+  },
+});
+
+export const deleteScheduledRun = (
+  { mangaId, serviceId }: ScheduledRunParams
+) => fetch(`/api/admin/manga/${mangaId}/scheduledRun/${serviceId}`,
+  { method: 'DELETE' })
   .then(handleResponse)
   .catch(handleError);
 
+export const deleteScheduledRunMutationOptions = mutationOptions({
+  mutationFn: deleteScheduledRun,
+  meta: {
+    queryKeysToInvalidate: [['getScheduledRuns']],
+    invalidateOnError: true,
+  },
+});
 
 export type UpdateMangaTitleResponse = { message: string };
 

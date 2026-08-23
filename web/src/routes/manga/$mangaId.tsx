@@ -1,5 +1,6 @@
 import React from 'react';
 import { createFileRoute, notFound } from '@tanstack/react-router';
+import { ConfirmProvider } from 'material-ui-confirm';
 
 import { getUserFollowsFn } from '#web/serverFunctions/follows';
 import { getFullMangaFn } from '#web/serverFunctions/manga';
@@ -57,6 +58,10 @@ function MangaPage() {
   } = Route.useLoaderData();
 
 
-  return <Manga mangaData={mangaData} userFollows={userFollows} />;
+  return (
+    <ConfirmProvider>
+      <Manga mangaData={mangaData} userFollows={userFollows} />
+    </ConfirmProvider>
+  );
 }
 

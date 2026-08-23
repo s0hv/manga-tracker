@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, render, screen, within } from '@testing-library/react';
+import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent, { type UserEvent } from '@testing-library/user-event';
 import fetchMock from 'fetch-mock';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -124,6 +124,10 @@ describe('Manga admin page should handle data fetching correctly', () => {
       );
     });
 
+    await waitFor(() => expect(
+      screen.getByRole('table', { name: /^manga services$/i })
+    ).toHaveAttribute('data-isloading', 'false'));
+
     if (expectGetMock) {
       expect(getMock).toHaveBeenCalledTimes(1);
     }
@@ -166,10 +170,13 @@ describe('Manga admin page should handle data fetching correctly', () => {
     const form = within(screen.getByRole('presentation', { name: 'Create item form' }));
     await muiSelectValue(user, form, 'Service', serviceName);
 
+    // Make sure the refetch after edit gets the correct new info
+    partialGetMock.mockReturnValue({ data: mockServices });
     await submitForm(user);
 
     expect(postMock).toHaveBeenCalledTimes(1);
-    expect(screen.queryByText(serviceName)).toBeTruthy();
+    expect(partialGetMock).toHaveBeenCalledTimes(2)
+    expect(screen.getByText(serviceName)).toBeInTheDocument();
     expectSuccessSnackbar();
   });
 

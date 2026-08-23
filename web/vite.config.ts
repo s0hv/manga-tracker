@@ -1,6 +1,7 @@
 import { tanstackStart } from '@tanstack/react-start/plugin/vite';
 import viteReact from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
+import { analyzer } from 'vite-bundle-analyzer';
 import istanbul from 'vite-plugin-istanbul';
 
 // Base url must be defined in production
@@ -9,6 +10,7 @@ const baseUrl = process.env.NODE_ENV === 'production'
   : (process.env.HOST ?? 'https://localhost:3000');
 
 const isCypress = /true|y|yes/i.test(process.env.CYPRESS || '');
+const isAnalyze = /true|y|yes/i.test(process.env.ANALYZE || '');
 const isCI = !!process.env.IS_CI;
 
 export default defineConfig({
@@ -50,6 +52,8 @@ export default defineConfig({
         },
       })),
     }),
+
+    isAnalyze ? analyzer() : undefined,
 
     viteReact(),
   ],

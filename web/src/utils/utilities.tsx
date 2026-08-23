@@ -1,4 +1,9 @@
 import type { MouseEvent } from 'react';
+import {
+  type Mutation,
+  type QueryClient,
+  matchQuery,
+} from '@tanstack/react-query';
 import { format, formatDistanceToNowStrict } from 'date-fns';
 import { enGB } from 'date-fns/locale';
 import { throttle } from 'es-toolkit';
@@ -257,3 +262,29 @@ export const enumValues = <T extends object>(enumObj: T): string[] => {
     .keys(enumObj)
     .filter(key => !Number.isNaN(Number(key)));
 };
+
+export function mutationCacheOnSuccess(queryClient: QueryClient, mutation: Mutation<unknown, unknown>) {
+  const queryKeysToInvalidate = mutation.meta?.queryKeysToInvalidate;
+
+  if (!queryKeysToInvalidate) return;
+
+  return queryClient.invalidateQueries({
+    predicate: query => queryKeysToInvalidate.some(
+      queryKey => matchQuery({ queryKey }, query)
+    ),
+  });
+}
+
+export function mutationCacheOnError(queryClient: QueryClient, mutation: Mutation<unknown, unknown>) {
+  const queryKeysToInvalidate = mutation.meta?.queryKeysToInvalidate;
+
+  if (!queryKeysToInvalidate || !mutation.meta?.invalidateOnError) {
+    return;
+  }
+
+  return queryClient.invalidateQueries({
+    predicate: query => queryKeysToInvalidate.some(
+      queryKey => matchQuery({ queryKey }, query)
+    ),
+  });
+}
