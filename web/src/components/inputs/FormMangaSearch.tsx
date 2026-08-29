@@ -6,7 +6,6 @@ import {
   CircularProgress,
 } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
-import { identity } from 'es-toolkit';
 import type {
   Control,
   FieldPathByValue,
@@ -15,7 +14,7 @@ import type {
 } from 'react-hook-form';
 import { AutocompleteElement } from 'react-hook-form-mui';
 
-import { type SearchResultBasedOnServices, quickSearch } from '#web/api/manga';
+import { type SearchResultBasedOnServices, quickSearchQueryOptions } from '#web/api/manga';
 import {
   useAutocompleteWithSearch,
 } from '@/components/inputs/useAutocompleteWithSearch';
@@ -74,7 +73,7 @@ export const FormMangaSearch = <
     placeholder = 'Search…',
     renderItem,
     id = 'manga-search',
-    searchThrottleTimeout = 200,
+    searchThrottleTimeout = 300,
     withServices = false,
     required,
     serviceId,
@@ -103,18 +102,7 @@ export const FormMangaSearch = <
   const {
     data,
     isFetching,
-  } = useQuery({
-    // TODO move these query options elsewhere
-    queryKey: ['manga-search', searchValue, withServices, serviceId] as const,
-    queryFn: ({ queryKey }) => quickSearch(
-      queryKey[1],
-      queryKey[2],
-      queryKey[3]
-    ),
-    enabled: !!searchValue,
-    // Keep previous data while loading
-    placeholderData: identity,
-  });
+  } = useQuery(quickSearchQueryOptions(searchValue, withServices, serviceId));
   const options = (data ?? noRows) as unknown as SearchResultBasedOnServices<TWithServices>[];
 
   const renderListOption =

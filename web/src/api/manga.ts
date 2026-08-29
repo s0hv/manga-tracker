@@ -1,4 +1,7 @@
-import { queryOptions } from '@tanstack/react-query';
+import {
+  keepPreviousData,
+  queryOptions,
+} from '@tanstack/react-query';
 
 import type {
   FullMangaData,
@@ -10,20 +13,34 @@ import type { DatabaseId } from '@/types/dbTypes';
 
 import { baseKy, handleError, handleResponse } from './utilities';
 
+export const mangaUrls = {
+  manga: (mangaId: DatabaseId | null) => `/api/manga/${mangaId}`,
+  merge: '/api/manga/merge',
+  quickSearch: 'quicksearch',
+} as const;
+
 /**
  * Get a manga from the api by id
  * @param {Number|string} mangaId Id of the manga to fetch
  * @return {Promise<FullMangaData>}
  */
-export const getManga = (mangaId: DatabaseId): Promise<FullMangaData> => fetch(`/api/manga/${mangaId}`)
+export const getManga = (mangaId: DatabaseId): Promise<FullMangaData> => fetch(mangaUrls.manga(mangaId))
   .then(handleResponse<FullMangaData>)
   .catch(handleError);
 
+export const getMangaQueryKey = (mangaId: DatabaseId | null) => [mangaUrls.manga(mangaId)] as const;
+
 export const getMangaQueryOptions = (mangaId: DatabaseId | null) => queryOptions({
-  queryKey: [mangaId] as const,
-  queryFn: ({ queryKey: [mangaIdKey] }) => getManga(mangaIdKey!),
+  queryKey: getMangaQueryKey(mangaId),
+  queryFn: () => getManga(mangaId!),
   enabled: !!mangaId,
 });
+
+export type PostMergeMangaParams = {
+  baseManga: DatabaseId
+  toMerge: DatabaseId
+  serviceId: DatabaseId | undefined
+};
 
 /**
  * Does a POST request to merge a manga
@@ -33,12 +50,10 @@ export const getMangaQueryOptions = (mangaId: DatabaseId | null) => queryOptions
  * @return Response data from the server
  */
 export const postMergeManga = (
-  baseManga: DatabaseId,
-  toMerge: DatabaseId,
-  serviceId: DatabaseId | undefined
+  { baseManga, toMerge, serviceId }: PostMergeMangaParams
 ): Promise<MergeMangaResult> => {
   const service = (serviceId === undefined) ? '' : `&service=${serviceId}`;
-  return fetch(`/api/manga/merge?base=${baseManga}&toMerge=${toMerge}${service}`, {
+  return fetch(`${mangaUrls.merge}?base=${baseManga}&toMerge=${toMerge}${service}`, {
     method: 'post',
   })
     .then(handleResponse<MergeMangaResult>)
@@ -64,7 +79,7 @@ type QuickSearch = {
  * @param {Number} serviceId Optional id of the service to filter by
  */
 export const quickSearch: QuickSearch = (query: string, withServices: boolean = false, serviceId?: number) => baseKy
-  .get('quicksearch',
+  .get(mangaUrls.quickSearch,
     {
       searchParams: {
         query,
@@ -74,3 +89,22 @@ export const quickSearch: QuickSearch = (query: string, withServices: boolean = 
     })
   .json<any>()
   .catch(handleError);
+
+export const quickSearchQueryKey = (
+  query: string,
+  withServices: boolean = false,
+  serviceId?: number
+) => [mangaUrls.quickSearch, query, withServices, serviceId] as const;
+
+export const quickSearchQueryOptions = <TWithServices extends boolean = false>(
+  query: string,
+  withServices: TWithServices = false as TWithServices,
+  serviceId?: number
+) => queryOptions({
+  queryKey: quickSearchQueryKey(query, withServices, serviceId),
+  queryFn: () => quickSearch(query, withServices, serviceId) as Promise<SearchResultBasedOnServices<TWithServices>[]>,
+  enabled: query.trim().length >= 1,
+  // Keep previous data while loading
+  placeholderData: keepPreviousData,
+  staleTime: 1000 * 60,
+});

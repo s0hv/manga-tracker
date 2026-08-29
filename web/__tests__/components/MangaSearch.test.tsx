@@ -6,7 +6,7 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   expectRequestCalledWith,
   mockRequestJson,
-  setupMockServer,
+  setupMockServer, TestRoot,
 } from '../utils';
 import MangaSearch from '@/components/MangaSearch';
 import type { SearchedManga } from '@/types/api/manga';
@@ -18,9 +18,15 @@ const server = setupMockServer();
 // Fix MUI warning spam https://github.com/mui/material-ui/issues/47792#issuecomment-3924961278
 (globalThis as any).MUI_TEST_ENV = true;
 
+const doRender = () => render(
+  <TestRoot>
+    <MangaSearch />
+  </TestRoot>
+);
+
 describe('Search should render correctly', () => {
   it('without input', () => {
-    render(<MangaSearch />);
+    doRender();
 
     expect(screen.getByRole('combobox', { name: 'manga search' })).toBeInTheDocument();
   });
@@ -46,7 +52,7 @@ describe('Search should render correctly', () => {
 
     const searchFn = mockRequestJson(server, '/api/quicksearch', mockResult);
 
-    render(<MangaSearch />);
+    doRender();
 
     // Find search input
     const input = screen.getByRole('combobox');
@@ -74,7 +80,7 @@ describe('Search should behave correctly with user input', () => {
   it('Should not do requests of under 3 characters', async () => {
     const searchFn = mockRequestJson(server, '/api/quicksearch', []);
 
-    render(<MangaSearch />);
+    doRender();
 
     // Find search input
     const input = screen.getByRole('combobox');
@@ -93,7 +99,7 @@ describe('Search should behave correctly with user input', () => {
   it('Should do a request with 2 or more characters', async () => {
     const searchFn = mockRequestJson(server, '/api/quicksearch', []);
 
-    render(<MangaSearch />);
+    doRender();
 
     // Find search input
     const input = screen.getByRole('combobox');
@@ -107,7 +113,7 @@ describe('Search should behave correctly with user input', () => {
   it('Should throttle fast requests', async () => {
     const searchFn = mockRequestJson(server, '/api/quicksearch', []);
 
-    render(<MangaSearch />);
+    doRender();
 
     // Find search input
     const input = screen.getByRole('combobox');

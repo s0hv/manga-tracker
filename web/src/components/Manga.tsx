@@ -2,7 +2,6 @@ import React, {
   lazy,
   Suspense,
   useCallback,
-  useEffect,
   useMemo,
   useState,
 } from 'react';
@@ -21,13 +20,13 @@ import {
   Typography,
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
+import { useQuery } from '@tanstack/react-query';
 
 import { RouteLink } from '@/components/common/RouteLink';
-import type { ChapterReleaseDates } from '@/types/api/chapter';
 import type { FullMangaData } from '@/types/api/manga';
 import type { DatabaseId } from '@/types/dbTypes';
 
-import { getMangaReleases } from '../api/chapter';
+import { getMangaReleasesQueryOptions } from '../api/chapter';
 import { useIsUserAdmin, useIsUserAuthenticated } from '../store/userStore';
 import { followUnfollow } from '../utils/utilities';
 
@@ -105,16 +104,11 @@ function Manga(props: MangaProps): React.ReactElement {
     userFollows = [],
   } = props;
 
-  const [releaseData, setReleaseData] = useState<ChapterReleaseDates[]>([]);
   const [activeTab, setActiveTab] = useState<number>(0);
   const changeTab = useCallback((e: any, newVal: number) => setActiveTab(newVal), []);
 
-  useEffect(() => {
-    getMangaReleases(manga.mangaId)
-      .then(js => {
-        setReleaseData(js);
-      });
-  }, [manga.mangaId]);
+  const { data } = useQuery(getMangaReleasesQueryOptions(manga.mangaId));
+  const releaseData = data ?? [];
 
   const isAuthenticated = useIsUserAuthenticated();
   const isAdmin = useIsUserAdmin();

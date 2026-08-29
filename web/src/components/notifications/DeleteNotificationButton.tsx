@@ -11,11 +11,7 @@ import {
   useWatch,
 } from 'react-hook-form';
 
-import { deleteNotification } from '#web/api/notifications';
-import { QueryKeys } from '@/webUtils/constants';
-
-
-type DeleteReturn = Awaited<ReturnType<typeof deleteNotification>>;
+import { deleteNotificationMutationOptions, notificationsQueryKey } from '#web/api/notifications';
 
 export type DeleteNotificationButtonProps<T extends FieldValues> = {
   control?: Control<T>
@@ -26,7 +22,7 @@ const DeleteNotificationButton = <T extends FieldValues>({
   fieldName = 'notificationId' as FieldPath<T>,
   ...buttonProps
 }: DeleteNotificationButtonProps<T>) => {
-  const { mutateAsync } = useMutation<DeleteReturn, unknown, [number]>({ mutationFn: ([notificationId]) => deleteNotification(notificationId) });
+  const { mutateAsync } = useMutation(deleteNotificationMutationOptions);
   const queryClient = useQueryClient();
   const notificationId = useWatch({ name: fieldName, control });
   const confirm = useConfirm();
@@ -43,12 +39,12 @@ const DeleteNotificationButton = <T extends FieldValues>({
         if (!reason.confirmed) return;
 
         if (!notificationId) {
-          return queryClient.invalidateQueries({ queryKey: QueryKeys.NotificationsList });
+          return queryClient.invalidateQueries({ queryKey: notificationsQueryKey });
         }
-        return mutateAsync([notificationId])
+
+        return mutateAsync(notificationId)
           .then(() => {
             enqueueSnackbar('Notification deleted', { variant: 'success' });
-            return queryClient.invalidateQueries({ queryKey: QueryKeys.NotificationsList });
           })
           .catch(() => {
             enqueueSnackbar('Failed to delete notification', { variant: 'error' });

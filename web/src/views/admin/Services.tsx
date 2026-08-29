@@ -1,5 +1,6 @@
 import React, { ReactElement, useCallback } from 'react';
 import { Checkbox, Container, Paper, TableContainer } from '@mui/material';
+import { useMutation } from '@tanstack/react-query';
 import {
   type ColumnDef,
   type Row,
@@ -15,7 +16,7 @@ import { format, formatDistanceToNowStrict } from 'date-fns';
 import { enGB } from 'date-fns/locale';
 import { useSnackbar } from 'notistack';
 
-import { editService } from '#web/api/admin/service';
+import { editServiceMutationOptions } from '#web/api/admin/service';
 import {
   EditableCheckbox,
   EditableDateTimePicker,
@@ -52,6 +53,7 @@ function Services(props: ServicesProps): ReactElement {
   } = props;
 
   const { enqueueSnackbar } = useSnackbar();
+  const editService = useMutation(editServiceMutationOptions);
 
   // Format date strings back to dates for sorting
   const data = React.useMemo((): ServiceForAdmin[] => {
@@ -136,12 +138,12 @@ function Services(props: ServicesProps): ReactElement {
       },
     };
 
-    editService(row.original.id, body)
+    editService.mutateAsync({ serviceId: row.original.id, body })
       .then(() => {
         enqueueSnackbar('Service edited successfully', { variant: 'success' });
       })
       .catch(err => enqueueSnackbar(err.message, { variant: 'error' }));
-  }, [enqueueSnackbar]);
+  }, [enqueueSnackbar, editService]);
 
   const table = useTable({
     columns,

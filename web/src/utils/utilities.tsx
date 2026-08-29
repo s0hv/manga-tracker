@@ -1,7 +1,7 @@
 import type { MouseEvent } from 'react';
 import {
   type Mutation,
-  type QueryClient,
+  type QueryClient, type QueryKey,
   matchQuery,
 } from '@tanstack/react-query';
 import { format, formatDistanceToNowStrict } from 'date-fns';
@@ -263,19 +263,31 @@ export const enumValues = <T extends object>(enumObj: T): string[] => {
     .filter(key => !Number.isNaN(Number(key)));
 };
 
-export function mutationCacheOnSuccess(queryClient: QueryClient, mutation: Mutation<unknown, unknown>) {
+function getQueryKey(
+  queryKey: QueryKey | ((variables: unknown) => QueryKey),
+  variables: unknown
+) {
+  return typeof queryKey === 'function'
+    ? queryKey(variables)
+    : queryKey;
+}
+
+export function mutationCacheOnSuccess(queryClient: QueryClient, variables: unknown, mutation: Mutation<unknown, unknown>) {
   const queryKeysToInvalidate = mutation.meta?.queryKeysToInvalidate;
 
   if (!queryKeysToInvalidate) return;
 
   return queryClient.invalidateQueries({
     predicate: query => queryKeysToInvalidate.some(
-      queryKey => matchQuery({ queryKey }, query)
+      queryKey => matchQuery(
+        { queryKey: getQueryKey(queryKey, variables) },
+        query
+      )
     ),
   });
 }
 
-export function mutationCacheOnError(queryClient: QueryClient, mutation: Mutation<unknown, unknown>) {
+export function mutationCacheOnError(queryClient: QueryClient, variables: unknown, mutation: Mutation<unknown, unknown>) {
   const queryKeysToInvalidate = mutation.meta?.queryKeysToInvalidate;
 
   if (!queryKeysToInvalidate || !mutation.meta?.invalidateOnError) {
@@ -284,7 +296,10 @@ export function mutationCacheOnError(queryClient: QueryClient, mutation: Mutatio
 
   return queryClient.invalidateQueries({
     predicate: query => queryKeysToInvalidate.some(
-      queryKey => matchQuery({ queryKey }, query)
+      queryKey => matchQuery(
+        { queryKey: getQueryKey(queryKey, variables) },
+        query
+      )
     ),
   });
 }

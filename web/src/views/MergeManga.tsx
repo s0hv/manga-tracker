@@ -15,6 +15,7 @@ import {
   Typography,
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
+import { useQueryClient } from '@tanstack/react-query';
 
 import Search, { RenderListOption } from '@/components/MangaSearch';
 import PartialManga from '@/components/PartialManga';
@@ -24,7 +25,7 @@ import type {
   SearchedMangaWithService,
 } from '@/types/api/manga';
 
-import { getManga, postMergeManga } from '../api/manga';
+import { getMangaQueryOptions, postMergeManga } from '../api/manga';
 
 type MergeResult = {
   message?: string
@@ -108,23 +109,25 @@ function MergeManga() {
     && manga2?.manga.mangaId
     && manga1.manga.mangaId !== manga2.manga.mangaId;
 
-  const getMangaData = (mangaId: number, setManga: (manga: FullMangaData) => void) => {
-    getManga(mangaId)
+  const queryClient = useQueryClient();
+
+  const getMangaData = useCallback((mangaId: number, setManga: (manga: FullMangaData) => void) => {
+    queryClient.ensureQueryData(getMangaQueryOptions(mangaId))
       .then(data => setManga(data));
-  };
+  }, [queryClient]);
 
   const onManga1Select = useCallback(({ mangaId }: SearchedManga) => {
     getMangaData(mangaId, setManga1);
-  }, []);
+  }, [getMangaData]);
   const onManga2Select = useCallback(({ mangaId }: SearchedManga) => {
     getMangaData(mangaId, setManga2);
-  }, []);
+  }, [getMangaData]);
 
   const mergeManga = () => {
     if (!isValid) return;
 
     const service = radio === 'all' ? undefined : radio;
-    return postMergeManga(manga1.manga.mangaId, manga2.manga.mangaId, service)
+    return postMergeManga({ baseManga: manga1.manga.mangaId, toMerge: manga2.manga.mangaId, serviceId: service })
       .then(json => {
         setResult({ message: `Moved ${json.aliasCount} alias(es) and ${json.chapterCount} chapter(s)` });
         setManga2(null);

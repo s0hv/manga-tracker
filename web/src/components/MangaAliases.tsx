@@ -9,11 +9,12 @@ import {
   Typography,
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
+import { useMutation } from '@tanstack/react-query';
 import type { confirm } from 'material-ui-confirm';
 import type { EnqueueSnackbar } from 'notistack';
 
 
-import { updateMangaTitle } from '../api/admin/manga';
+import { updateMangaTitleMutationOptions } from '../api/admin/manga';
 import { useIsUserAdmin } from '../store/userStore';
 
 const Root = styled('div')(({ theme }) => ({
@@ -42,6 +43,7 @@ const MangaAliases = (props: MangaAliasesProps) => {
 
   const isAdmin = useIsUserAdmin();
   const autoHideDuration = 8000;
+  const updateMangaTitle = useMutation(updateMangaTitleMutationOptions);
 
   const onAliasPromote = useCallback((title: string) => {
     if (!mangaId || !confirm || !enqueueSnackbar || !onTitleUpdate) {
@@ -56,7 +58,7 @@ const MangaAliases = (props: MangaAliasesProps) => {
     }).then(({ confirmed }) => {
       if (!confirmed) return;
 
-      return updateMangaTitle(mangaId, title)
+      return updateMangaTitle.mutateAsync({ mangaId, title })
         .then(json => {
           enqueueSnackbar(
             `Set "${title}" as the main title. ${json.message}`,
@@ -69,7 +71,7 @@ const MangaAliases = (props: MangaAliasesProps) => {
           { variant: 'error', autoHideDuration }
         ));
     });
-  }, [enqueueSnackbar, mangaId, onTitleUpdate, confirm]);
+  }, [enqueueSnackbar, mangaId, onTitleUpdate, confirm, updateMangaTitle]);
 
   if (!aliases || aliases.length === 0) return null;
 

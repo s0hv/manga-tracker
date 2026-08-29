@@ -30,7 +30,7 @@ declare module '@tanstack/react-start' {
 
 
 interface MutationMeta extends Record<string, unknown> {
-  queryKeysToInvalidate?: QueryKey[]
+  queryKeysToInvalidate?: (QueryKey | ((params: unknown) => QueryKey))[]
   invalidateOnError?: boolean
 }
 

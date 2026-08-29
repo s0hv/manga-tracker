@@ -11,7 +11,7 @@ import {
   expectSuccessSnackbar,
   getRowByColumnValue,
   mockNotistackHooks,
-  mockUTCDates,
+  mockUTCDates, TestRoot,
   withRoot,
 } from '../../utils';
 import { ServiceForAdminSerialized } from '@/types/api/services';
@@ -77,7 +77,7 @@ describe('Services page should render correctly', async () => {
   };
 
   it('should render correctly without services', () => {
-    render(<Services />);
+    render(<TestRoot><Services /></TestRoot>);
 
     expect(screen.getByText('Services')).toBeInTheDocument();
     expect(screen.getAllByRole('row')).toHaveLength(1);
@@ -86,7 +86,11 @@ describe('Services page should render correctly', async () => {
   });
 
   it('should render correctly with services', () => {
-    render(<Services services={services} />);
+    render(
+      <TestRoot>
+        <Services services={services} />
+      </TestRoot>
+    );
 
     expect(screen.getByText('Services')).toBeInTheDocument();
     expect(screen.getAllByRole('row')).toHaveLength(services.length + 1);

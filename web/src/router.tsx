@@ -47,12 +47,12 @@ export function getRouter() {
     },
 
     mutationCache: new MutationCache({
-      onSuccess: (_data, _variables, _context, mutation) => {
-        return mutationCacheOnSuccess(queryClient, mutation);
+      onSuccess: (_data, variables, _context, mutation) => {
+        return mutationCacheOnSuccess(queryClient, variables, mutation);
       },
 
-      onError: (_data, _variables, _context, mutation) => {
-        return mutationCacheOnError(queryClient, mutation);
+      onError: (_data, variables, _context, mutation) => {
+        return mutationCacheOnError(queryClient, variables, mutation);
       },
     }),
   });
