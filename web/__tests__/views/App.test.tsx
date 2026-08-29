@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, render, screen } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import fetchMock from 'fetch-mock';
 import { type Mock, describe, expect, it, vi } from 'vitest';
 
@@ -69,7 +69,9 @@ describe('Chapter list should allow editing', () => {
     const chapter = chapters.filter(c => c.cover)[0];
     expect(chapter).toBeDefined();
 
-    expect(screen.queryByRole('heading', { name: chapter.manga })).toBeInTheDocument();
+    await waitFor(
+      () => expect(screen.getByRole('heading', { name: chapter.manga })).toBeInTheDocument()
+    );
 
     const cover = screen.queryByRole('img', { name: chapter.manga });
     expect(cover).toBeInTheDocument();

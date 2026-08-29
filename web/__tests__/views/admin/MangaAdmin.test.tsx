@@ -175,7 +175,7 @@ describe('Manga admin page should handle data fetching correctly', () => {
     await submitForm(user);
 
     expect(postMock).toHaveBeenCalledTimes(1);
-    expect(partialGetMock).toHaveBeenCalledTimes(2)
+    expect(partialGetMock).toHaveBeenCalledTimes(2);
     expect(screen.getByText(serviceName)).toBeInTheDocument();
     expectSuccessSnackbar();
   });

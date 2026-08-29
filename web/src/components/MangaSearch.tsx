@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import SearchIcon from '@mui/icons-material/Search';
 import {
   type AutocompleteFreeSoloValueMapping,
@@ -6,20 +6,23 @@ import {
   type AutocompleteRenderInputParams, type AutocompleteSlots,
   type InputBaseClasses,
   type PopperProps,
-  Box,
   IconButton,
   InputBase,
   Popper,
 } from '@mui/material';
 import Autocomplete from '@mui/material/Autocomplete';
 import { alpha, styled } from '@mui/material/styles';
+import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
-import { throttle } from 'es-toolkit';
 
+import {
+  useAutocompleteWithSearch,
+} from '@/components/inputs/useAutocompleteWithSearch';
 import { showAll } from '@/components/notifications/utilities';
 import type { SearchedManga } from '@/types/api/manga';
+import { noRows } from '@/webUtils/constants';
 
-import { type SearchResultBasedOnServices, quickSearch } from '../api/manga';
+import { type SearchResultBasedOnServices, quickSearchQueryOptions } from '../api/manga';
 
 export type RenderListOption<TManga extends SearchedManga = SearchedManga> = NonNullable<AutocompleteProps<TManga, false, false, true>['renderOption']>;
 
@@ -66,12 +69,6 @@ const StyledAutocomplete = styled(Autocomplete)(({ theme }) => ({
   },
 })) as typeof Autocomplete;
 
-const defaultRenderListOption: RenderListOption = ({ key, ...renderProps }, option) => (
-  <Box key={key} component='li' {...renderProps}>
-    <Box sx={{ width: '100%' }}>{option.title}</Box>
-  </Box>
-);
-
 const getOptionLabel = (option: SearchResultBasedOnServices<boolean> | AutocompleteFreeSoloValueMapping<true>) => (typeof option === 'string' ? option : option.title);
 
 const emptyObject = {};
@@ -98,13 +95,12 @@ const MangaSearch = <TWithServices extends boolean = false>(props: MangaSearchPr
     ariaLabel = 'manga search',
     clearOnClick = true,
     onChange: onChangeFunc,
-    searchThrottleTimeout = 200,
+    searchThrottleTimeout = 300,
     withServices = false,
   } = props;
 
-  const [value, setValue] = useState('');
-  const [options, setOptions] = useState<SearchResultBasedOnServices<TWithServices>[]>([]);
   const navigate = useNavigate();
+  const [fieldValue, setFieldValue] = useState('');
 
   const onChangeDefault = useCallback(
     (newValue: SearchedManga) => navigate({ to: `/manga/$mangaId`, params: { mangaId: newValue.mangaId.toString() }}),
@@ -112,9 +108,20 @@ const MangaSearch = <TWithServices extends boolean = false>(props: MangaSearchPr
   );
   const onChange = onChangeFunc ?? onChangeDefault;
 
-  const handleChange = useCallback((_: unknown, newValue: string) => {
-    setValue(newValue);
-  }, []);
+  const {
+    value,
+    defaultRenderListOption,
+    onInputChange: handleChange,
+  } = useAutocompleteWithSearch<SearchResultBasedOnServices<TWithServices>>({
+    getOptionLabel,
+    setFieldValue,
+    searchThrottleTimeout,
+  });
+
+  const {
+    data,
+  } = useQuery(quickSearchQueryOptions(value, withServices));
+  const options = (data ?? noRows) as SearchResultBasedOnServices<TWithServices>[];
 
   const handleValueChange = useCallback((_: unknown, newValue: string | SearchResultBasedOnServices<TWithServices> | null) => {
     // If no option has been selected on change, use the first option
@@ -126,41 +133,15 @@ const MangaSearch = <TWithServices extends boolean = false>(props: MangaSearchPr
       newValue = options[0];
     }
     if (clearOnClick) {
-      setValue('');
+      setFieldValue('');
+      handleChange(undefined, '');
     }
     if (!newValue) {
       return;
     }
 
     return onChange(newValue);
-  }, [clearOnClick, onChange, options]);
-
-  const throttleFetch = useMemo(
-    () => throttle((query: string, cb: (manga: SearchResultBasedOnServices<TWithServices>[]) => void) => {
-      quickSearch(query, withServices)
-        .then(js => cb(js as SearchResultBasedOnServices<TWithServices>[]));
-    }, searchThrottleTimeout, { edges: ['trailing']}),
-    [searchThrottleTimeout, withServices]
-  );
-
-  useEffect(() => {
-    let active = true;
-    if (value.length < 2) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setOptions([]);
-      return undefined;
-    }
-
-    throttleFetch(value, results => {
-      if (active) {
-        setOptions((results ?? []));
-      }
-    });
-
-    return () => {
-      active = false;
-    };
-  }, [value, throttleFetch]);
+  }, [clearOnClick, handleChange, onChange, options]);
 
   const renderListOption = renderItem || defaultRenderListOption as RenderListOption<SearchResultBasedOnServices<TWithServices>>;
 
@@ -208,7 +189,7 @@ const MangaSearch = <TWithServices extends boolean = false>(props: MangaSearchPr
       onChange={handleValueChange}
       slots={slots}
       onInputChange={handleChange}
-      inputValue={value}
+      inputValue={fieldValue}
       freeSolo
       openOnFocus
       fullWidth

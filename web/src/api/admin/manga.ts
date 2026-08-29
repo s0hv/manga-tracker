@@ -11,10 +11,16 @@ import type { DatabaseId, MangaId, MangaStatus } from '@/types/dbTypes';
 import { handleError, handleResponse } from '../utilities';
 
 export const ADMIN_MANGA_URL = {
+  scheduledRuns: (mangaId: MangaId) => `/api/admin/manga/${mangaId}/scheduledRuns`,
+  scheduledRun: (mangaId: MangaId, serviceId: DatabaseId) => `/api/admin/manga/${mangaId}/scheduledRun/${serviceId}`,
+  title: (mangaId: MangaId) => `/api/admin/manga/${mangaId}/title`,
+  info: (mangaId: MangaId) => `/api/admin/manga/${mangaId}/info`,
   mangaServices: (mangaId: MangaId) => `/api/admin/manga/${mangaId}/services`,
+  mangaService: (mangaId: MangaId, serviceId: DatabaseId) => `/api/admin/manga/${mangaId}/services/${serviceId}`,
+  createMangaService: (mangaId: MangaId, serviceId: DatabaseId) => `/api/admin/manga/${mangaId}/services/${serviceId}/create`,
 } as const;
 
-export const getScheduledRuns = (mangaId: MangaId) => fetch(`/api/admin/manga/${mangaId}/scheduledRuns`)
+export const getScheduledRuns = (mangaId: MangaId) => fetch(ADMIN_MANGA_URL.scheduledRuns(mangaId))
   .then(handleResponse<ScheduledRun[]>)
   .catch(handleError);
 
@@ -32,7 +38,7 @@ type ScheduledRunParams = {
 };
 export const createScheduledRun = (
   { mangaId, serviceId }: ScheduledRunParams
-) => fetch(`/api/admin/manga/${mangaId}/scheduledRun/${serviceId}`,
+) => fetch(ADMIN_MANGA_URL.scheduledRun(mangaId, serviceId),
   { method: 'POST' })
   .then(handleResponse<{ inserted: ScheduledRun }>)
   .catch(handleError);
@@ -47,7 +53,7 @@ export const createScheduledRunMutationOptions = mutationOptions({
 
 export const deleteScheduledRun = (
   { mangaId, serviceId }: ScheduledRunParams
-) => fetch(`/api/admin/manga/${mangaId}/scheduledRun/${serviceId}`,
+) => fetch(ADMIN_MANGA_URL.scheduledRun(mangaId, serviceId),
   { method: 'DELETE' })
   .then(handleResponse)
   .catch(handleError);
@@ -62,12 +68,15 @@ export const deleteScheduledRunMutationOptions = mutationOptions({
 
 export type UpdateMangaTitleResponse = { message: string };
 
+export type UpdateMangaTitleParams = {
+  mangaId: MangaId
+  title: string
+};
+
 /**
  * Updates the title of a manga
- * @param {Number|string} mangaId Id of the manga
- * @param {string} title New title of the manga
  */
-export const updateMangaTitle = (mangaId: MangaId, title: string) => fetch(`/api/admin/manga/${mangaId}/title`,
+export const updateMangaTitle = ({ mangaId, title }: UpdateMangaTitleParams) => fetch(ADMIN_MANGA_URL.title(mangaId),
   {
     method: 'POST',
     headers: {
@@ -78,11 +87,15 @@ export const updateMangaTitle = (mangaId: MangaId, title: string) => fetch(`/api
   .then(handleResponse<UpdateMangaTitleResponse>)
   .catch(handleError);
 
+export const updateMangaTitleMutationOptions = mutationOptions({
+  mutationFn: updateMangaTitle,
+});
+
 export type MangaInfo = {
   status: MangaStatus
 };
 
-export const updateMangaInfo = (mangaId: MangaId, info: MangaInfo) => fetch(`/api/admin/manga/${mangaId}/info`,
+export const updateMangaInfo = (mangaId: MangaId, info: MangaInfo) => fetch(ADMIN_MANGA_URL.info(mangaId),
   {
     method: 'POST',
     headers: {
@@ -108,9 +121,15 @@ export const getMangaServicesQueryOptions = (mangaId: MangaId) => queryOptions({
   queryFn: () => getMangaServices(mangaId),
 });
 
+export type UpdateMangaServiceParams = {
+  mangaId: MangaId
+  serviceId: DatabaseId
+  data: MangaServiceUpdateData
+};
+
 export const updateMangaService = (
-  mangaId: MangaId, serviceId: DatabaseId, data: MangaServiceUpdateData
-) => fetch(`/api/admin/manga/${mangaId}/services/${serviceId}`,
+  { mangaId, serviceId, data }: UpdateMangaServiceParams
+) => fetch(ADMIN_MANGA_URL.mangaService(mangaId, serviceId),
   {
     method: 'POST',
     headers: {
@@ -120,10 +139,20 @@ export const updateMangaService = (
   })
   .then(handleResponse)
   .catch(handleError);
+
+export const updateMangaServiceMutationOptions = mutationOptions({
+  mutationFn: updateMangaService,
+});
+
+export type CreateMangaServiceParams = {
+  mangaId: MangaId
+  serviceId: DatabaseId
+  data: MangaServiceCreateData
+};
 
 export const createMangaService = (
-  mangaId: MangaId, serviceId: DatabaseId, data: MangaServiceCreateData
-) => fetch(`/api/admin/manga/${mangaId}/services/${serviceId}/create`,
+  { mangaId, serviceId, data }: CreateMangaServiceParams
+) => fetch(ADMIN_MANGA_URL.createMangaService(mangaId, serviceId),
   {
     method: 'POST',
     headers: {
@@ -134,3 +163,11 @@ export const createMangaService = (
   .then(handleResponse)
   .catch(handleError);
 
+export const createMangaServiceMutationOptions = mutationOptions({
+  mutationFn: createMangaService,
+  meta: {
+    queryKeysToInvalidate: [
+      variables => [ADMIN_MANGA_URL.mangaServices((variables as CreateMangaServiceParams).mangaId)],
+    ],
+  },
+});

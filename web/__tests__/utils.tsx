@@ -100,11 +100,11 @@ const getQueryClient = () => {
     },
 
     mutationCache: new MutationCache({
-      onSuccess(_data, _variables, _context, mutation) {
-        return mutationCacheOnSuccess(queryClientNew, mutation);
+      onSuccess(_data, variables, _context, mutation) {
+        return mutationCacheOnSuccess(queryClientNew, variables, mutation);
       },
-      onError(_data, _variables, _context, mutation) {
-        return mutationCacheOnError(queryClientNew, mutation);
+      onError(_data, variables, _context, mutation) {
+        return mutationCacheOnError(queryClientNew, variables, mutation);
       },
     }),
   });
@@ -392,9 +392,11 @@ export function expectCookieDeleted(cookieName: string) {
 
 export function withRoot(Component: React.ReactElement): React.ReactElement {
   return (
-    <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={enLocale}>
-      {Component}
-    </LocalizationProvider>
+    <TestRoot>
+      <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={enLocale}>
+        {Component}
+      </LocalizationProvider>
+    </TestRoot>
   );
 }
 

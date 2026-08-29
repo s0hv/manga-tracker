@@ -1,6 +1,6 @@
 import React, { type FunctionComponent, useCallback, useMemo } from 'react';
 import { Checkbox, Paper, SxProps, TableContainer } from '@mui/material';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import {
   type Row,
   type TableState,
@@ -18,9 +18,9 @@ import { useSnackbar } from 'notistack';
 import { SelectElement, TextFieldElement } from 'react-hook-form-mui';
 
 import {
-  createMangaService,
+  createMangaServiceMutationOptions,
   getMangaServicesQueryOptions,
-  updateMangaService,
+  updateMangaServiceMutationOptions,
 } from '#web/api/admin/manga';
 import { getServicesQueryOptions } from '#web/api/services';
 import {
@@ -81,11 +81,13 @@ export const MangaServiceTable: FunctionComponent<MangaServiceTableProps> = prop
     sx,
   } = props;
 
-  const { data: mangaServices, isFetching: mangaLoading, refetch } = useQuery(getMangaServicesQueryOptions(mangaId));
+  const { data: mangaServices, isFetching: mangaLoading } = useQuery(getMangaServicesQueryOptions(mangaId));
   const { data: services, isFetching: servicesLoading } = useQuery(getServicesQueryOptions);
 
   const loading = mangaLoading || servicesLoading;
   const { enqueueSnackbar } = useSnackbar();
+  const updateMangaService = useMutation(updateMangaServiceMutationOptions);
+  const createMangaService = useMutation(createMangaServiceMutationOptions);
 
   const onSaveRow = useCallback((row: Row<Features, MangaService>) => {
     const state = getRowEditStateFromRow(row);
@@ -94,10 +96,14 @@ export const MangaServiceTable: FunctionComponent<MangaServiceTableProps> = prop
 
     defaultOnSaveRow(row);
 
-    updateMangaService(row.original.mangaId, row.original.serviceId, state)
+    updateMangaService.mutateAsync({
+      mangaId: row.original.mangaId,
+      serviceId: row.original.serviceId,
+      data: state,
+    })
       .then(() => enqueueSnackbar('Updated manga service', { variant: 'success' }))
       .catch(e => enqueueSnackbar(`'Failed to update manga service. ${e}`, { variant: 'error' }));
-  }, [enqueueSnackbar]);
+  }, [enqueueSnackbar, updateMangaService]);
 
   const columns = useMemo((): ColumnDef<Features, MangaService>[] => columnHelper.columns([
     getEditColumnDef(),
@@ -193,8 +199,7 @@ export const MangaServiceTable: FunctionComponent<MangaServiceTableProps> = prop
       ...data
     } = form;
 
-    return createMangaService(mangaId, form.serviceId, data)
-      .then(() => refetch())
+    return createMangaService.mutateAsync({ mangaId, serviceId: form.serviceId, data })
       .then(() => {
         enqueueSnackbar(
           'Successfully create a new manga service',
@@ -202,7 +207,7 @@ export const MangaServiceTable: FunctionComponent<MangaServiceTableProps> = prop
         );
       })
       .catch(err => enqueueSnackbar(err.message, { variant: 'error' }));
-  }, [mangaId, refetch, enqueueSnackbar]);
+  }, [mangaId, enqueueSnackbar, createMangaService]);
 
   // The component is memoized with useMemo. I don't see a problem.
   // eslint-disable-next-line react/no-unstable-nested-components

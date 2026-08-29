@@ -13,6 +13,13 @@ import { snakeCase } from '../utils/utilities';
 
 import { handleError, handleResponse } from './utilities';
 
+export const chapterUrls = {
+  mangaChapters: (mangaId: MangaId) => `/api/manga/${mangaId}/chapters`,
+  latestChapters: '/api/chapter/latest',
+  chapter: (chapterId: number | string) => `/api/chapter/${chapterId}`,
+  mangaReleases: (mangaId: MangaId) => `/api/chapter/releases/${mangaId}`,
+} as const;
+
 export type SortBy<T> = {
   id: keyof T
   desc?: boolean
@@ -44,7 +51,7 @@ export const getChapters = (
     searchParams.set('services', services.join(','));
   }
 
-  return fetch(`/api/manga/${mangaId}/chapters?${searchParams.toString()}`)
+  return fetch(`${chapterUrls.mangaChapters(mangaId)}?${searchParams.toString()}`)
     .then(handleResponse<MangaChapterResponse>)
     .then(res => {
       res.chapters.forEach(ch => {
@@ -62,8 +69,8 @@ export const getChaptersQueryOptions = (
   sortBy: SortBy<MangaChapter>[] = [],
   services?: number[]
 ) => queryOptions({
-  queryKey: ['mangaChapters', mangaId, pagination, sortBy, services] as const,
-  queryFn: ({ queryKey: [_, ...params] }) => getChapters(...params),
+  queryKey: [chapterUrls.mangaChapters(mangaId), pagination, sortBy, services] as const,
+  queryFn: () => getChapters(mangaId, pagination, sortBy, services),
 });
 
 /**
@@ -71,17 +78,29 @@ export const getChaptersQueryOptions = (
  */
 export const getLatestChapters =
   (limit: number | string, offset: number | string, useFollows: boolean): Promise<ChapterRelease[]> => fetch(
-    `/api/chapter/latest?limit=${limit}&offset=${offset}&useFollows=${useFollows}`
+    `${chapterUrls.latestChapters}?limit=${limit}&offset=${offset}&useFollows=${useFollows}`
   )
     .then(handleResponse<ChapterRelease[]>)
     .catch(handleError);
 
+export const getLatestChaptersQueryOptions = (
+  limit: number | string,
+  offset: number | string,
+  useFollows: boolean
+) => queryOptions({
+  queryKey: [chapterUrls.latestChapters, limit, offset, useFollows] as const,
+  queryFn: ({ queryKey }) => getLatestChapters(queryKey[1], queryKey[2], queryKey[3]),
+});
+
+export type UpdateChapterParams = {
+  chapterId: number | string
+  data: object
+};
+
 /**
  * Updates a chapter with the given data
- * @param {Number|string} chapterId Id of the chapter to be updated
- * @param {object} data Update data
  */
-export const updateChapter = (chapterId: number | string, data: object) => fetch(`/api/chapter/${chapterId}`,
+export const updateChapter = ({ chapterId, data }: UpdateChapterParams) => fetch(chapterUrls.chapter(chapterId),
   {
     method: 'post',
     headers: {
@@ -96,7 +115,7 @@ export const updateChapter = (chapterId: number | string, data: object) => fetch
  * Deletes a chapter with the given id
  * @param {Number|string} chapterId Id of the chapter to delete
  */
-export const deleteChapter = (chapterId: number | string) => fetch(`/api/chapter/${chapterId}`,
+export const deleteChapter = (chapterId: number | string) => fetch(chapterUrls.chapter(chapterId),
   {
     method: 'delete',
   })
@@ -108,6 +127,11 @@ export const deleteChapter = (chapterId: number | string) => fetch(`/api/chapter
  * @param {Number|string} mangaId Id of the manga to get releases for
  * @return {Promise<ChapterReleaseDates[]>}
  */
-export const getMangaReleases = (mangaId: MangaId): Promise<ChapterReleaseDates[]> => fetch(`/api/chapter/releases/${mangaId}`)
+export const getMangaReleases = (mangaId: MangaId): Promise<ChapterReleaseDates[]> => fetch(chapterUrls.mangaReleases(mangaId))
   .then(handleResponse<ChapterReleaseDates[]>)
   .catch(handleError);
+
+export const getMangaReleasesQueryOptions = (mangaId: MangaId) => queryOptions({
+  queryKey: [chapterUrls.mangaReleases(mangaId)] as const,
+  queryFn: () => getMangaReleases(mangaId),
+});

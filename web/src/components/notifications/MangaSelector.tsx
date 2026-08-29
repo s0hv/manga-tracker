@@ -13,7 +13,7 @@ import {
   useWatch,
 } from 'react-hook-form-mui';
 
-import { quickSearch } from '#web/api/manga';
+import { quickSearchQueryOptions } from '#web/api/manga';
 import type { FormValues } from '@/components/notifications/types';
 import {
   getOptionLabel,
@@ -45,33 +45,22 @@ const MangaSelector = <TFieldValues extends FormValues = FormValues>({
   const [query, setQuery] = useState('');
   const useFollows = useWatch({ name: 'useFollows', control });
 
-  const doSearch = useCallback(async ({ queryKey }: { queryKey: string[] }): Promise<NotificationFollow[]> => {
-    const searchQuery = queryKey[1]?.trim();
-    if (searchQuery?.length < 2) return [];
-
-    return quickSearch(searchQuery, true)
-      .then(rows => {
-        if (!rows) return [];
-        return rows.reduce<NotificationFollow[]>((prev, row) => [
-          ...prev,
-          {
-            ...row,
-            serviceId: null,
-            serviceName: 'All services',
-          },
-          ...Object.entries(row.services)
-            .map(([serviceId, serviceName]) => ({
-              ...row,
-              serviceId: Number(serviceId),
-              serviceName,
-            })),
-        ], []);
-      });
-  }, []);
-
   const { data } = useQuery({
-    queryKey: ['search-notif', query] as const,
-    queryFn: doSearch,
+    ...quickSearchQueryOptions(query, true),
+    select: rows => (rows ?? []).reduce<NotificationFollow[]>((prev, row) => [
+      ...prev,
+      {
+        ...row,
+        serviceId: null,
+        serviceName: 'All services',
+      },
+      ...Object.entries(row.services)
+        .map(([serviceId, serviceName]) => ({
+          ...row,
+          serviceId: Number(serviceId),
+          serviceName,
+        })),
+    ], []),
   });
 
   const onInputChange = useCallback((_: SyntheticEvent, value: string | null) => {

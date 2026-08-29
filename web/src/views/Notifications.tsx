@@ -15,12 +15,8 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { defaultDataForType } from '@/components/notifications/defaultDatas';
 import type { NotificationData } from '@/types/api/notifications';
 
-import { getNotifications } from '../api/notifications';
-import {
-  type NotificationType,
-  NotificationTypes,
-  QueryKeys,
-} from '../utils/constants';
+import { getNotificationsQueryOptions, notificationsQueryKey } from '../api/notifications';
+import { type NotificationType, NotificationTypes } from '../utils/constants';
 
 const ResponsiveBox = styled('div')(({ theme }) => ({
   display: 'flex',
@@ -54,18 +50,13 @@ const NotificationComponents = {
   [NotificationTypes.Webhook]: WebhookEditor,
 };
 
-const queryKey = QueryKeys.NotificationsList;
-
 const Notifications: FC = () => {
-  const { data: notificationData, isLoading } = useQuery({
-    queryKey,
-    queryFn: getNotifications,
-  });
+  const { data: notificationData, isLoading } = useQuery(getNotificationsQueryOptions);
   const [notifType, setNotifType] = useState<NotificationType>(NotificationTypes.DiscordWebhook);
   const queryClient = useQueryClient();
 
   const addNewNotification = useCallback(() => {
-    queryClient.setQueryData<Partial<NotificationData>[]>(queryKey, prev => [defaultDataForType[notifType], ...(prev ?? [])]);
+    queryClient.setQueryData<Partial<NotificationData>[]>(notificationsQueryKey, prev => [defaultDataForType[notifType], ...(prev ?? [])]);
   }, [notifType, queryClient]);
 
   const defaultExpanded = useMemo(() => (notificationData?.length ?? 0) < 3, [notificationData?.length]);

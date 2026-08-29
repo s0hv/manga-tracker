@@ -11,7 +11,7 @@ import {
   Typography,
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   type ColumnDef,
   type Row,
@@ -31,7 +31,7 @@ import {
   getScheduledRunsKey,
   getScheduledRunsQueryOptions,
 } from '#web/api/admin/manga';
-import { getManga } from '#web/api/manga';
+import { getMangaQueryOptions } from '#web/api/manga';
 import { RouteLink } from '@/components/common/RouteLink';
 import { MangaServiceTable } from '@/components/manga/MangaServiceTable';
 import { MangaCover } from '@/components/MangaCover';
@@ -109,6 +109,7 @@ function MangaAdmin(props: MangaAdminProps) {
   // Hooks
   const { enqueueSnackbar } = useSnackbar();
   const confirm = useConfirm();
+  const queryClient = useQueryClient();
 
   const [aliases, setAliases] = useState(aliasesProp);
   const [mangaTitle, setMangaTitle] = useState(manga.title);
@@ -125,12 +126,12 @@ function MangaAdmin(props: MangaAdminProps) {
   }), [services]);
 
   const onTitleChange = useCallback(() => {
-    getManga(mangaId)
+    queryClient.fetchQuery(getMangaQueryOptions(mangaId))
       .then(data => {
         setAliases(data.aliases);
         setMangaTitle(data.manga.title);
       });
-  }, [mangaId]);
+  }, [mangaId, queryClient]);
 
   const {
     isFetching: loading,

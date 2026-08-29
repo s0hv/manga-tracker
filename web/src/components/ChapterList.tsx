@@ -231,7 +231,7 @@ function ChapterList(props: ChapterListProps): ReactElement {
 
     defaultOnSaveRow(row);
 
-    updateChapter(row.original.chapterId, state)
+    updateChapter({ chapterId: row.original.chapterId, data: state })
       .then(handleResponse)
       .catch(err => {
         enqueueSnackbar(err.message, { variant: 'error' });

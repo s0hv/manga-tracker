@@ -2,7 +2,13 @@ import type { Theme } from '@/types/dbTypes';
 
 import { handleError, handleResponse } from './utilities';
 
-export const updateUserTheme = (theme: Theme) => fetch(`/api/settings/theme?value=${theme}`,
+export const userUrls = {
+  theme: '/api/settings/theme',
+  profile: '/api/profile',
+  deleteAccount: '/api/user/delete',
+} as const;
+
+export const updateUserTheme = (theme: Theme) => fetch(`${userUrls.theme}?value=${theme}`,
   { method: 'post' })
   .then(handleResponse)
   .catch(handleError);
@@ -15,7 +21,7 @@ export type UpdateProfileType = {
   repeatPassword?: string
 };
 
-export const updateUserProfile = (body: UpdateProfileType) => fetch('/api/profile',
+export const updateUserProfile = (body: UpdateProfileType) => fetch(userUrls.profile,
   {
     method: 'post',
     body: JSON.stringify(body),
@@ -26,7 +32,7 @@ export const updateUserProfile = (body: UpdateProfileType) => fetch('/api/profil
   .then(handleResponse)
   .catch(handleError);
 
-export const deleteAccount = () => fetch('/api/user/delete',
+export const deleteAccount = () => fetch(userUrls.deleteAccount,
   {
     method: 'POST',
   })
