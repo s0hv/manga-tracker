@@ -20,7 +20,7 @@ type GroupBy = {
  * @param arr
  * @param getKeyOrKey Either an object property name or a function that returns the group key
  * @param options
- * @param options.keepOrder If true the order of the array will be kept the same
+ * @param options.keepOrder If true, the order of the array will be kept the same
  * meaning the same key can be grouped multiple times
  * @param options.returnAsDict If true returns the grouped values as a dictionary. Ignored if keepOrder is true.
  */
@@ -80,7 +80,8 @@ export const groupBy: GroupBy = <T>(
     return groups;
   }
 
-  // Set is iterated in insertion order https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set#description
+  // Set is iterated in insertion order
+  // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set#description
   const order: Set<string> = new Set();
   const group: Record<string, T[]> = {};
 

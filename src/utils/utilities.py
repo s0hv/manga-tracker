@@ -90,7 +90,7 @@ def random_timedelta(low: timedelta | int, high: timedelta | int) -> timedelta:
 
 
 def is_valid_feed(feed: FeedType) -> None:
-    if hasattr(feed, 'status') and feed.status != 200:
+    if hasattr(feed, 'status') and feed.status >= 400:
         raise FeedHttpError(f'Failed to get feed. Status: {feed.status}')
 
     if feed.bozo:

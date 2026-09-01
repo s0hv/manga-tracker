@@ -35,17 +35,53 @@ export const Selector = {
 
   // endregion Top bar
 
-  getFollowsText(loggedIn: boolean) {
-    const text = loggedIn
-      ? /^Recent releases (for your follows)$/i
-      : /^Recent releases$/i;
-
-    return cy.findByRole('heading', { name: text });
+  getRecentReleasesHeading() {
+    return cy.findByRole('heading', { name: 'Recent Releases' });
   },
 
   getRecentReleaseHeader(name: string) {
     return cy.findByRole('heading', { name });
   },
+
+  // region Frontpage
+
+  getAllReleasesTab() {
+    return cy.findByRole('tab', { name: /^all releases$/i });
+  },
+
+  getMyFollowsTab() {
+    return cy.findByRole('tab', { name: /^my follows$/i });
+  },
+
+  getChapterAndSeriesCountText() {
+    return cy.findByText(/^\d+ chapters · \d+ series$/);
+  },
+
+  getSeriesHeading(title: string) {
+    return cy.findByRole('heading', { name: title });
+  },
+
+  getShowAllChaptersBtns() {
+    return cy.findAllByRole('button', { name: /^show all \d+ chapters$/i });
+  },
+
+  getShowFewerChaptersBtn() {
+    return cy.findByRole('button', { name: /^show fewer$/i });
+  },
+
+  getOpenChapterBtns() {
+    return cy.findAllByRole('button', { name: /^open chapter in new tab$/i });
+  },
+
+  getLoadMoreChaptersBtn() {
+    return cy.findByRole('button', { name: /^load \d+ older chapters$/i });
+  },
+
+  getLastPageBtn() {
+    return cy.findByRole('button', { name: /^reached the end$/i });
+  },
+
+  // endregion Frontpage
 
   getMangaSearchInput() {
     return cy.findByRole('combobox', { name: 'manga search' });

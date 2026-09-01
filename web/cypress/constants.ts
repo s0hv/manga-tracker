@@ -6,4 +6,5 @@ export const mangaTitle = 'Dr. STONE';
 export const MANGA4 = {
   title: 'Jojo part 2',
   id: 4,
+  serviceId: 1,
 };
