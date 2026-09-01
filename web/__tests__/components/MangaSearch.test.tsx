@@ -6,7 +6,8 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   expectRequestCalledWith,
   mockRequestJson,
-  setupMockServer, TestRoot,
+  setupMockServer,
+  TestRoot,
 } from '../utils';
 import MangaSearch from '@/components/MangaSearch';
 import type { SearchedManga } from '@/types/api/manga';

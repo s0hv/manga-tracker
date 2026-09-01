@@ -72,7 +72,7 @@ Cypress.Commands.add('login', (user, expectFail = false, rememberMe = false) => 
     return;
   }
 
-  cy.findByText(/^recent releases \(for your follows\)/i);
+  cy.findByRole('button', { name: /account of current user/i }).should('exist');
   cy.getCookie(sessionCookieName).should('not.be.null');
 
   cy.wait(400);
@@ -82,7 +82,7 @@ Cypress.Commands.add('logout', () => {
   cy.findByRole('button', { name: /account of current user/i }).click();
 
   cy.findByRole('menuitem', { name: /^logout$/i }).click();
-  cy.findByText(/^recent releases$/i);
+  cy.findByRole('button', { name: /account of current user/i }).should('not.exist');
   cy.getCookie(sessionCookieName).should('be.null');
 });
 

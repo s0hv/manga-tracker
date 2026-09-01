@@ -1,5 +1,6 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, renderHook, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { getCoverUrl } from '@/tests/utils';
@@ -9,7 +10,8 @@ import {
   ChapterGroupWithCover,
   ChapterWithLink,
   GroupedChapterList,
-} from '@/components/GroupedChapterList';
+  useGroupedChapters,
+} from '@/components/chapter/GroupedChapterList';
 import type { ChapterRelease } from '@/types/api/chapter';
 import type { ServiceForApi } from '@/types/api/services';
 import { formatChapterTitle, formatChapterUrl } from '@/webUtils/formatting';
@@ -26,18 +28,19 @@ describe('ChapterGroupWithCover', () => {
   };
 
   it('should render correctly', async () => {
-    const Component = ChapterGroupWithCover(mangaToCover);
     const groupChildren = 'group children for test';
-    const groupString = 'group name';
+    const groupString = 'Test group';
     const mangaId = 1;
     render(
-      <Component
+      <ChapterGroupWithCover
         mangaId={mangaId}
         group={mangaId}
         groupString={groupString}
+        groupItems={[]}
+        mangaToCover={mangaToCover}
       >
         {groupChildren}
-      </Component>
+      </ChapterGroupWithCover>
     );
 
     expect(screen.getByText(groupChildren)).toBeInTheDocument();
@@ -46,6 +49,7 @@ describe('ChapterGroupWithCover', () => {
     expect(cover).toHaveAttribute('src', getCoverUrl(mangaToCover[mangaId]));
 
     expect(screen.getByRole('heading', { name: groupString })).toBeInTheDocument();
+    expect(screen.getByText('0 chapters')).toBeInTheDocument();
   });
 });
 
@@ -62,7 +66,6 @@ describe('ChapterWithLink', () => {
   };
 
   it('should render correctly', async () => {
-    const Component = ChapterWithLink(services);
     const serviceId = 1;
     const service = services[serviceId];
     const chapter: ChapterRelease = {
@@ -82,11 +85,11 @@ describe('ChapterWithLink', () => {
     };
 
     render(
-      <Component chapter={chapter} />
+      <ChapterWithLink chapter={chapter} services={services} />
     );
 
-    // Should be enclosed in a li tag
-    expect(screen.getByRole('listitem')).toBeInTheDocument();
+    // Should be enclosed in a link
+    expect(screen.getByRole('link')).toBeInTheDocument();
 
     // Chapter title should be properly formatted
     expect(screen.getByText(formatChapterTitle(chapter))).toBeInTheDocument();
@@ -116,17 +119,21 @@ describe('GroupedChapterList', () => {
         return chapter;
       });
 
-  it('should render correctly', () => {
-    const nGroups = 5;
+  it('should render correctly', async () => {
+    const nGroups = 3;
     const groupToString = vi.fn().mockImplementation(group => group);
 
     const GroupComponent = ({ children }: GroupComponentProps) => <div>{children}</div>;
     const GroupComponentMock = vi.fn().mockImplementation(GroupComponent);
 
-    const ChapterComponent = ({ chapter: { title }}: ChapterComponentProps) => <h5>{title}</h5>;
+    const ChapterComponent = ({ chapter: { title }}: ChapterComponentProps) => (
+      <h5 data-testid='test-id'>
+        {title}
+      </h5>
+    );
     const ChapterComponentMock = vi.fn().mockImplementation(ChapterComponent);
 
-    const chaptersA1 = generateChaptersWithMangaId(groupA, 2);
+    const chaptersA1 = generateChaptersWithMangaId(groupA, 5);
     const chaptersB = generateChaptersWithMangaId(groupB, 2);
     const chaptersC1 = generateChaptersWithMangaId(groupC, 1);
     const chaptersA2 = generateChaptersWithMangaId(groupA, 1);
@@ -140,20 +147,38 @@ describe('GroupedChapterList', () => {
       ...chaptersC2,
     ];
 
+    const groupedChapters = renderHook(() => useGroupedChapters(chapters)).result.current;
+
     render(
       <GroupedChapterList
-        chapters={chapters}
-        groupKey='mangaId'
+        groupedChapters={groupedChapters}
         groupToString={groupToString}
         GroupComponent={GroupComponentMock}
         ChapterComponent={ChapterComponentMock}
       />
     );
 
-    // This component does not really render anything of its own so these tests
-    // should be fine as they assert that the given components are rendered
-    // the correct amount of times
+    // Ensure that the correct number of groups rendered
     expect(GroupComponentMock).toHaveBeenCalledTimes(nGroups);
-    expect(ChapterComponentMock).toHaveBeenCalledTimes(chapters.length);
+    // Truncated chapter count
+    expect(ChapterComponentMock).toHaveBeenCalledTimes(7);
+
+    // Check that showing more chapters works
+    const user = userEvent.setup();
+
+    const showFewerRegex = /^show fewer$/i;
+
+    expect(screen.queryByRole('button', { name: showFewerRegex })).not.toBeInTheDocument();
+
+    const showMoreBtn = screen.getByRole('button', { name: /^show all 6 chapters$/i });
+    await user.click(showMoreBtn);
+
+    expect(screen.getByRole('button', { name: showFewerRegex })).toBeInTheDocument();
+
+    expect(screen.getAllByTestId('test-id')).toHaveLength(chapters.length);
+
+    // Static element checks
+    expect(screen.getByRole('button', { name: 'Load 15 older chapters' })).toBeInTheDocument();
+    expect(screen.getByText('Chapters from series already listed are added to their card above.')).toBeInTheDocument();
   });
 });

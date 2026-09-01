@@ -5,3 +5,5 @@ export const NotificationTypes = {
 export type NotificationType = typeof NotificationTypes[keyof typeof NotificationTypes];
 
 export const noRows: never[] = [];
+
+export const MAX_OFFSET = 500;

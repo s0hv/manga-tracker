@@ -20,3 +20,10 @@ export type SelectOption = {
   value: string | number | undefined
   disabled?: boolean
 };
+
+// True when every field of TExtraProps is already optional (i.e. Partial<TExtraProps> is
+// assignable back to TExtraProps), meaning an empty object would satisfy it.
+export type HasRequiredKeys<TExtraProps extends object> =
+  Partial<TExtraProps> extends TExtraProps
+    ? false
+    : true;

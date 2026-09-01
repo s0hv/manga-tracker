@@ -1,6 +1,7 @@
-import { queryOptions } from '@tanstack/react-query';
+import { infiniteQueryOptions, queryOptions } from '@tanstack/react-query';
 import type { PaginationState } from '@tanstack/react-table';
 
+import type { PageParams } from '#web/api/types';
 import type {
   ChapterRelease,
   ChapterReleaseDates,
@@ -8,6 +9,7 @@ import type {
   MangaChapterResponse,
 } from '@/types/api/chapter';
 import type { MangaId } from '@/types/dbTypes';
+import { MAX_OFFSET } from '@/webUtils/constants';
 
 import { snakeCase } from '../utils/utilities';
 
@@ -84,12 +86,32 @@ export const getLatestChapters =
     .catch(handleError);
 
 export const getLatestChaptersQueryOptions = (
-  limit: number | string,
-  offset: number | string,
+  limit: number,
   useFollows: boolean
-) => queryOptions({
-  queryKey: [chapterUrls.latestChapters, limit, offset, useFollows] as const,
-  queryFn: ({ queryKey }) => getLatestChapters(queryKey[1], queryKey[2], queryKey[3]),
+) => infiniteQueryOptions({
+  queryKey: [chapterUrls.latestChapters, limit, useFollows] as const,
+  queryFn: ({ queryKey, pageParam }) => getLatestChapters(
+    pageParam.limit,
+    pageParam.offset,
+    queryKey[2]
+  ),
+  initialData: {
+    pageParams: [] satisfies PageParams[],
+    pages: [],
+  },
+  initialPageParam: { limit, offset: 0 } satisfies PageParams,
+  getNextPageParam: (_, __, lastPageParam) => {
+    const newOffset = lastPageParam.offset + limit;
+
+    if (newOffset > MAX_OFFSET) {
+      return null;
+    }
+
+    return {
+      limit,
+      offset: newOffset,
+    };
+  },
 });
 
 export type UpdateChapterParams = {

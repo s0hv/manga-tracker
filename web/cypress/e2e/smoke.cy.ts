@@ -8,8 +8,8 @@ describe('Smoke tests', () => {
     cy.visit('/');
 
     Selector.getLogoLink().should('exist');
-    Selector.getFollowsText(false).should('exist');
-    Selector.getRecentReleaseHeader(mangaTitle);
+    Selector.getRecentReleasesHeading().should('exist');
+    Selector.getSeriesHeading(mangaTitle).should('exist');
 
     Selector.getMangaSearchInput().click().type(mangaTitle);
     cy.findByRole('listbox').within(() => {

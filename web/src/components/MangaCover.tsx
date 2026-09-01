@@ -53,6 +53,7 @@ export const MangaCover: FC<MangaCoverProps> = ({
         // Force automatic height after loading the image
         height: 'auto',
         objectFit: 'contain',
+        borderRadius: '4px',
       }}
       src={actualUrl}
       alt={alt}

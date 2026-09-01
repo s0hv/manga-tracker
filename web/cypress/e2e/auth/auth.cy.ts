@@ -1,4 +1,5 @@
 import { normalUser } from '../../../__tests__/constants';
+import { Selector } from '../../selectors';
 
 beforeEach(() => {
   cy.task('flushRedis');
@@ -11,7 +12,7 @@ afterEach(() => {
 describe('Test authentication', () => {
   it('Logs in with correct email + password', () => {
     cy.visit('/');
-    cy.findByText(/^recent releases$/i);
+    Selector.getRecentReleasesHeading().should('exist');
 
     cy.findByRole('link', { name: /login/i }).click();
 
@@ -20,7 +21,7 @@ describe('Test authentication', () => {
     cy.findByRole('textbox', { name: /email address/i }).focus().type(normalUser.email);
     cy.findByLabelText(/password/i).type(normalUser.password);
     cy.findByRole('button', { name: /^sign in$/i }).click();
-    cy.findByText(/^recent releases \(for your follows\)/i);
+    Selector.getUserMenuBtn().should('exist');
   });
 
   it('Ratelimits after 3 failed login attempts', () => {
