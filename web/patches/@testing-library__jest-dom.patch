@@ -1,0 +1,26 @@
+diff --git a/types/vitest.d.ts b/types/vitest.d.ts
+index 3ee9eb2f35d3f94c22d74b0177e82d92db56a979..d0b0efa7251c8058873bef9b2cf1335723cb0a76 100644
+--- a/types/vitest.d.ts
++++ b/types/vitest.d.ts
+@@ -1,15 +1,12 @@
+ import 'vitest'
++import type { ExpectStatic } from 'vitest'
+ import {type TestingLibraryMatchers} from './matchers'
+ 
++type AsymmetricMatcher = ReturnType<ExpectStatic['stringContaining']>
++
+ declare module 'vitest' {
+-  interface Assertion<T = any>
+-    extends TestingLibraryMatchers<
+-      any,
+-      T
+-    > {}
++  interface Matchers<R, T>
++    extends TestingLibraryMatchers<AsymmetricMatcher, R> {}
+   interface AsymmetricMatchersContaining
+-    extends TestingLibraryMatchers<
+-      any,
+-      any
+-    > {}
++    extends TestingLibraryMatchers<AsymmetricMatcher, any> {}
+ }

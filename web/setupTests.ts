@@ -1,13 +1,16 @@
 import '@testing-library/jest-dom/vitest';
 import { cleanup } from '@testing-library/react';
 import { config } from 'dotenv';
+// eslint-disable-next-line import-x/namespace
 import * as extendedMatchers from 'jest-extended';
 import request, { type Test as TestType } from 'supertest';
 import { afterEach, expect, vi } from 'vitest';
 
 import { theme } from '#webUtils/theme';
 
-
+// The patched types do not seem to play well with this
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
 expect.extend(extendedMatchers);
 
 if (!process.env.IS_CI) {

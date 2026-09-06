@@ -1,4 +1,4 @@
-FROM dhi.io/node:24-alpine3.22-dev AS build-stage
+FROM dhi.io/node:26-alpine3.22-dev AS build-stage
 
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
@@ -11,7 +11,7 @@ WORKDIR /app
 COPY package.json pnpm-lock.yaml ./
 COPY ./migrations ./migrations
 
-RUN corepack enable && corepack install
+RUN npx get-pnpm next-12
 
 COPY ./web ./web
 
@@ -24,7 +24,7 @@ RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 RUN pnpm build
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm prune --prod
 
-FROM dhi.io/node:24-alpine3.22 AS runtime-stage
+FROM dhi.io/node:26-alpine3.22 AS runtime-stage
 
 ENV NODE_ENV=production
 

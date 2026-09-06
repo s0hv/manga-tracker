@@ -4,7 +4,7 @@ import eslint from '@eslint/js';
 import stylistic from '@stylistic/eslint-plugin';
 import vitest from '@vitest/eslint-plugin';
 import { defineConfig } from 'eslint/config';
-import importPlugin from 'eslint-plugin-import';
+import { importX } from 'eslint-plugin-import-x';
 import importZod from 'eslint-plugin-import-zod';
 import jsxA11y from 'eslint-plugin-jsx-a11y';
 import react from 'eslint-plugin-react';
@@ -71,7 +71,8 @@ export default defineConfig(
   },
   eslint.configs.recommended,
   tseslint.configs.recommended,
-  importPlugin.flatConfigs.recommended,
+  importX.flatConfigs.recommended,
+  importX.flatConfigs.typescript,
   stylistic.configs.recommended,
   reactHooks.configs.flat.recommended,
   importZod.configs.recommended,
@@ -94,12 +95,7 @@ export default defineConfig(
     },
     settings: {
       react: {
-        version: 'detect',
-      },
-      'import/resolver': {
-        typescript: {
-          project: './tsconfig.json',
-        },
+        version: '19',
       },
     },
     rules: {
@@ -164,10 +160,11 @@ export default defineConfig(
       '@typescript-eslint/no-explicit-any': 'off',
 
       // React
-      'react/jsx-filename-extension': [1, { extensions: ['.jsx', '.tsx']}],
+      // Disabled as the plugin is not compatible with eslint 10
+      'react/jsx-filename-extension': ['off', { extensions: ['.jsx', '.tsx']}],
       'react/function-component-definition': 'off',
       'react/no-unstable-nested-components': ['error', { allowAsProps: true }],
-      'import/order': [
+      'import-x/order': [
         'error',
         importOrderBase,
       ],
@@ -188,7 +185,7 @@ export default defineConfig(
           message: '`with` is disallowed in strict mode because it makes code impossible to predict and optimize.',
         },
       ],
-      'import/no-extraneous-dependencies': ['error', {
+      'import-x/no-extraneous-dependencies': ['error', {
         devDependencies: [
           '**/__tests__/**/*',
           '**/__tests__/**',
@@ -202,7 +199,11 @@ export default defineConfig(
           './cypress/support/e2e.ts',
           'scripts/**',
         ]}],
-      'import/no-unresolved': ['error', { ignore: ['\\.svg$']}],
+      'import-x/no-unresolved': ['error', { ignore: ['\\.svg$']}],
+      'import-x/no-deprecated': 'error',
+      'import-x/first': 'error',
+      'import-x/newline-after-import': 'error',
+      'import-x/no-named-as-default-member': 'off',
 
       // No plans on using the compiler in the near future
       'react-hooks/incompatible-library': 'off',
@@ -212,7 +213,7 @@ export default defineConfig(
   {
     files: ['src/**/*', 'src/*'],
     rules: {
-      'import/no-restricted-paths': ['error', {
+      'import-x/no-restricted-paths': ['error', {
         zones: [
           {
             target: ['./src', './server', './types'],
@@ -246,7 +247,7 @@ export default defineConfig(
         assertFunctionNames: ['expect', 'expect*', 'assert*', 'request.**.expect', 'agent.**.expect'],
       }],
 
-      'import/order': [
+      'import-x/order': [
         'error',
         {
           ...importOrderBase,

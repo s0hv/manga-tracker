@@ -17,7 +17,7 @@ export default defineConfig({
         test: {
           name: 'react',
           include: ['__tests__/**/*.test.{tsx,jsx}'],
-          environment: 'jsdom',
+          environment: 'happy-dom',
         },
       },
 

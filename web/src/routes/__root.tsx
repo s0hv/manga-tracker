@@ -5,7 +5,7 @@ import InitColorSchemeScript from '@mui/material/InitColorSchemeScript';
 import { ThemeProvider } from '@mui/material/styles';
 import createCache from '@emotion/cache';
 import { CacheProvider } from '@emotion/react';
-// eslint-disable-next-line import/no-extraneous-dependencies
+// eslint-disable-next-line import-x/no-extraneous-dependencies,import-x/default
 import fontsourceVariableRobotoCss from '@fontsource-variable/roboto?url';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import {

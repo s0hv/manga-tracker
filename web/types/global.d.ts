@@ -47,12 +47,3 @@ declare module 'supertest' {
     satisfiesApiSpec(): Test
   }
 }
-
-declare module 'next-auth' {
-  type User = SessionUser;
-  interface Session {
-    data?: SessionData | null
-    userId: string
-    deleteUser: Date | null
-  }
-}
