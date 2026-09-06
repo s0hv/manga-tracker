@@ -15,7 +15,7 @@ import {
   deleteChapterFailMutationOptions,
   getChaptersFailedQueryOptions,
 } from '#web/api/admin/chaptersFailed';
-import { getServicesQueryOptions } from '#web/api/services';
+import { servicesQueryOptions } from '#web/api/services';
 import type { ChapterFail } from '#web/schemas/admin/chaptersFailed';
 import {
   type AddChapterInitialValues,
@@ -70,7 +70,7 @@ export const ChaptersFailed = () => {
   const {
     data: services,
     isFetching: servicesFetching,
-  } = useQuery(getServicesQueryOptions);
+  } = useQuery(servicesQueryOptions);
 
   const isLoading = chaptersFetching
     || servicesFetching;

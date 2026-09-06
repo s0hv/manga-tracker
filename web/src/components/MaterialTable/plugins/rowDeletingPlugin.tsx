@@ -117,12 +117,12 @@ export function defaultOnRowDelete<
     handleDeleteRowConfirmed = noop,
   } = table.options;
 
-  confirm({
+  void confirm({
     description: (
       <span style={{ whiteSpace: 'pre-wrap' }}>
         Do you want to delete row:
         <br />
-        {`${JSON.stringify(row.original, undefined, 2)}`}
+        {JSON.stringify(row.original, undefined, 2)}
       </span>
     ),
     confirmationText: 'Delete',

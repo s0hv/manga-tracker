@@ -80,6 +80,7 @@ export type MangaSearchProps<TWithServices extends boolean = false> = {
   popperProps?: Partial<PopperProps>
   clearOnClick?: boolean
   ariaLabel?: string
+  // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
   onChange?: (manga: SearchResultBasedOnServices<TWithServices>) => Promise<unknown> | unknown
   id?: string
   searchThrottleTimeout?: number
@@ -143,7 +144,7 @@ const MangaSearch = <TWithServices extends boolean = false>(props: MangaSearchPr
     return onChange(newValue);
   }, [clearOnClick, handleChange, onChange, options]);
 
-  const renderListOption = renderItem || defaultRenderListOption as RenderListOption<SearchResultBasedOnServices<TWithServices>>;
+  const renderListOption = renderItem ?? defaultRenderListOption as RenderListOption<SearchResultBasedOnServices<TWithServices>>;
 
   const BottomEndPopper = useCallback((pProps: PopperProps) => (
     <Popper {...pProps} placement='bottom-end' {...popperProps}>

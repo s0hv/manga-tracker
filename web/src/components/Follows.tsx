@@ -100,7 +100,7 @@ function Follows(props: FollowProps) {
                   </th>
                   <td>
                     <Typography>
-                      {defaultDateDistanceToNow(new Date(follow.latestRelease || 0))}
+                      {defaultDateDistanceToNow(new Date(follow.latestRelease ?? 0))}
                     </Typography>
                   </td>
                 </tr>
@@ -109,7 +109,7 @@ function Follows(props: FollowProps) {
                     <Typography>Latest chapter: </Typography>
                   </th>
                   <td>
-                    <Typography>{follow.latestChapter || 'No chapters'}</Typography>
+                    <Typography>{follow.latestChapter ?? 'No chapters'}</Typography>
                   </td>
                 </tr>
               </tbody>
@@ -118,14 +118,14 @@ function Follows(props: FollowProps) {
               <ListItem key='all_services' disableGutters sx={followServiceItem}>
                 <ListItemText primary='All services' sx={serviceNameText} />
                 <Button variant='contained' color='primary' onClick={followUnfollow(follow.mangaId, null)}>
-                  {followedServices.indexOf(null) < 0 ? 'Follow' : 'Unfollow'}
+                  {!followedServices.includes(null) ? 'Follow' : 'Unfollow'}
                 </Button>
               </ListItem>
               {follow.services.map(service => (
                 <ListItem key={service.serviceId} sx={followServiceItem} disableGutters>
                   <ListItemText primary={service.serviceName} sx={serviceNameText} />
                   <Button variant='contained' color='primary' onClick={followUnfollow(follow.mangaId, service.serviceId)}>
-                    {followedServices.indexOf(service.serviceId) < 0 ? 'Follow' : 'Unfollow'}
+                    {!followedServices.includes(service.serviceId) ? 'Follow' : 'Unfollow'}
                   </Button>
                 </ListItem>
               ))}

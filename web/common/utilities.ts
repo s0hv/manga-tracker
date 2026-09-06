@@ -12,7 +12,7 @@ interface GroupByOptions<B extends boolean = boolean, C extends boolean = boolea
 type GroupBy = {
   <T, B extends true = true, C extends false = false>(arr: T[], getKeyOrKey: keyof T | GetKey<T>, options?: GroupByOptions<B, C>): Group<T>[]
   <T, B extends false = false, C extends false = false>(arr: T[], getKeyOrKey: keyof T | GetKey<T>, options?: GroupByOptions<B, C>): T[][]
-  <T, B extends false = false, C extends true = true>(arr: T[], getKeyOrKey: keyof T | GetKey<T>, options?: GroupByOptions<B, C>): {[key: string]: T[] }
+  <T, B extends false = false, C extends true = true>(arr: T[], getKeyOrKey: keyof T | GetKey<T>, options?: GroupByOptions<B, C>): Record<string, T[]>
 };
 
 /**
@@ -27,10 +27,12 @@ type GroupBy = {
 export const groupBy: GroupBy = <T>(
   arr: T[],
   getKeyOrKey: keyof T | GetKey<T>,
-  { keepOrder = true, returnAsDict = false } = {} as GroupByOptions<true, false>
+  // These two cause the function to break
+  // eslint-disable-next-line @typescript-eslint/no-useless-default-assignment,@typescript-eslint/no-unnecessary-type-assertion
+  { keepOrder = true, returnAsDict = false } = {} as GroupByOptions
   // By adding "| T" to the return type somehow fixes overload errors WTF???
   // GJ TypeScript
-): Group<T>[] | T[][] | T | {[key: string]: T[] } => {
+): Group<T>[] | T[][] | T | Record<string, T[]> => {
   if (!Array.isArray(arr)) {
     throw new TypeError('Input must be an array');
   }
@@ -82,7 +84,7 @@ export const groupBy: GroupBy = <T>(
 
   // Set is iterated in insertion order
   // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set#description
-  const order: Set<string> = new Set();
+  const order = new Set<string>();
   const group: Record<string, T[]> = {};
 
   arr.forEach(o => {

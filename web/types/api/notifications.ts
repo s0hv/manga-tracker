@@ -30,7 +30,5 @@ export type NotificationData = {
   name: string
   manga: NotificationManga[] | null
   fields: NotificationField[]
-  overrides: {
-    [mangaId: number | string]: NotificationField[]
-  }
+  overrides: Record<number | string, NotificationField[]>
 };

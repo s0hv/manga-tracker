@@ -1,5 +1,6 @@
 import camelcaseKeys from 'camelcase-keys';
 import { NOT_NULL_VIOLATION } from 'pg-error-constants';
+import { PostgresError } from 'postgres';
 
 import { groupBy } from '@/common/utilities';
 import type {
@@ -66,11 +67,11 @@ export function getUserNotifications(userId: DatabaseId, notificationId?: Databa
     ORDER BY un.created DESC
   `
     .then(rows => camelcaseKeys<DbNotificationData[]>(rows, { deep: true }))
-    .then(rows => rows.map(row => ({
+    .then(rows => rows.map<DbNotificationData>(row => ({
       ...row,
       fields: row.fields.filter(v => v.overrideId === null),
       overrides: groupBy(row.fields.filter(v => v.overrideId !== null), 'overrideId', { keepOrder: false, returnAsDict: true }),
-    } as DbNotificationData)))
+    })))
     .then(rows => {
       if (hasNotificationId) {
         return rows[0];
@@ -88,8 +89,8 @@ const updateUserNotificationFields = (t: DbHelpersFull<DbOrTransaction>, fields:
     notification_fields nf
     LEFT JOIN (VALUES ${t.sql(fields.filter(row => row.value !== null).map(row => [row.value!, row.name]))}) f (value, name) ON f.name = nf.name
     WHERE nf.notification_type=${notificationType} AND (NOT nf.optional OR f.name IS NOT NULL)`
-    .catch(err => {
-      if (err?.code === NOT_NULL_VIOLATION) {
+    .catch((err: unknown) => {
+      if (err instanceof PostgresError && err.code === NOT_NULL_VIOLATION) {
         throw new BadRequest('Not all required fields given');
       }
       throw err;

@@ -50,7 +50,7 @@ import {
   SortBy,
   updateChapter,
 } from '../api/chapter';
-import { getServicesQueryOptions } from '../api/services';
+import { servicesQueryOptions } from '../api/services';
 import { formatChapterUrl } from '../utils/formatting';
 import { defaultDateFormat } from '../utils/utilities';
 
@@ -98,7 +98,7 @@ type ServiceFilterProps = {
   onChange: (services: number[] | undefined) => void
 };
 const ServiceFilter: FC<ServiceFilterProps> = ({ serviceMangaData, onChange }) => {
-  const { data: services } = useQuery(getServicesQueryOptions);
+  const { data: services } = useQuery(servicesQueryOptions);
 
   const serviceOptions = useMemo(() => {
     if (!serviceMangaData) return [];
@@ -179,7 +179,7 @@ function ChapterList(props: ChapterListProps): ReactElement {
 
   const { enqueueSnackbar } = useSnackbar();
   const confirm = useConfirm();
-  const { data: services } = useQuery(getServicesQueryOptions);
+  const { data: services } = useQuery(servicesQueryOptions);
 
   const {
     data,
@@ -233,8 +233,13 @@ function ChapterList(props: ChapterListProps): ReactElement {
 
     updateChapter({ chapterId: row.original.chapterId, data: state })
       .then(handleResponse)
-      .catch(err => {
-        enqueueSnackbar(err.message, { variant: 'error' });
+      .catch((err: unknown) => {
+        enqueueSnackbar(
+          err instanceof Error
+            ? err.message
+            : 'Failed to update chapter',
+          { variant: 'error' }
+        );
       });
   }, [handleResponse, enqueueSnackbar]);
 
@@ -243,8 +248,13 @@ function ChapterList(props: ChapterListProps): ReactElement {
 
     deleteChapter(id)
       .then(handleResponse)
-      .catch(err => {
-        enqueueSnackbar(err.message, { variant: 'error' });
+      .catch((err: unknown) => {
+        enqueueSnackbar(
+          err instanceof Error
+            ? err.message
+            : 'Failed to delete chapter',
+          { variant: 'error' }
+        );
       })
       .finally(refetch);
   }, [handleResponse, enqueueSnackbar, refetch]);
@@ -266,7 +276,7 @@ function ChapterList(props: ChapterListProps): ReactElement {
           chapterDecimal,
         } = row.original;
 
-        return `${chapterNumber}${typeof chapterDecimal === 'number' ? '.' + chapterDecimal : ''}`;
+        return `${chapterNumber}${typeof chapterDecimal === 'number' ? `.${chapterDecimal}` : ''}`;
       },
     }),
 

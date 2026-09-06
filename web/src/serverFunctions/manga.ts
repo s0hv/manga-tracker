@@ -19,6 +19,9 @@ export const getFullMangaFn = createIsomorphicFn()
     return manga;
   })
   .client(async (queryClient: QueryClient, mangaId: DatabaseId) => {
-    return queryClient.ensureQueryData(getMangaQueryOptions(mangaId))
+    return queryClient.query({
+      ...getMangaQueryOptions(mangaId),
+      staleTime: 'static',
+    })
       .catch(handleErrorInRoute);
   });

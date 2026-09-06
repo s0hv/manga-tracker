@@ -42,7 +42,7 @@ export const clearRedirectCookie = (res: Response) => {
 };
 
 export const getRedirectUrl = (req: AnyRequest): string => {
-  const redirect = req.cookies[COOKIES.redirect];
+  const redirect = (req.cookies as Record<string, string>)[COOKIES.redirect];
 
   if (!redirect) {
     return '/';

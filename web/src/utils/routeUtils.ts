@@ -33,9 +33,9 @@ export const getCspNonce = createIsomorphicFn()
     return ctx?.nonce;
   })
   .client(() => {
-    const el = document.querySelector(
+    const el = document.querySelector<HTMLMetaElement>(
       'meta[property=csp-nonce]'
-    ) as HTMLMetaElement;
+    );
 
-    return el.content;
+    return el?.content;
   });

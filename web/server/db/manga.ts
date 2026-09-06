@@ -51,7 +51,7 @@ interface FullMangaUnformatted extends MangaData {
   aliases: string[]
 }
 
-function formatFullManga(obj: FullMangaUnformatted): FullMangaData {
+function formatFullManga(obj: Partial<FullMangaUnformatted>): FullMangaData {
   const out: FullMangaData = {
     manga: {} as unknown as MangaData,
     services: [],
@@ -59,13 +59,14 @@ function formatFullManga(obj: FullMangaUnformatted): FullMangaData {
   };
 
   if (obj.services) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     out.services = obj.services;
-    delete (obj as Partial<FullMangaUnformatted>).services;
+    delete (obj).services;
   }
 
   if (obj.aliases) {
     out.aliases = obj.aliases;
-    delete (obj as Partial<FullMangaUnformatted>).aliases;
+    delete (obj).aliases;
   }
 
   out.manga = obj as Omit<FullMangaUnformatted, 'services' | 'aliases'>;

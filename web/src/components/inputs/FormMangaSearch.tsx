@@ -10,7 +10,7 @@ import type {
   Control,
   FieldPathByValue,
   FieldValues,
-  SetFieldValue,
+  UseFormSetValue,
 } from 'react-hook-form';
 import { AutocompleteElement } from 'react-hook-form-mui';
 
@@ -48,10 +48,11 @@ const isOptionEqualToValue = (
 export type FormMangaSearchProps<TFieldValues extends FieldValues, TWithServices extends boolean = false> = {
   control: Control<TFieldValues>
   name: FieldPathByValue<TFieldValues, Omit<SearchedManga, 'score'> | null>
-  setFieldValue: SetFieldValue<TFieldValues>
+  setFieldValue: UseFormSetValue<TFieldValues>
   label?: string
   placeholder?: string
   renderItem?: RenderListOption<SearchResultBasedOnServices<TWithServices>>
+  // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
   onChange?: (manga: SearchResultBasedOnServices<TWithServices>) => Promise<unknown> | unknown
   id?: string
   searchThrottleTimeout?: number
@@ -80,11 +81,12 @@ export const FormMangaSearch = <
   } = props;
 
   const updateFieldValue = useCallback(
-    (value: string) => setFieldValue(
+    (value: string): unknown => setFieldValue(
       name,
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       {
         title: value,
-      } satisfies Omit<SearchedManga, 'score' | 'mangaId'> | null
+      } satisfies Omit<SearchedManga, 'score' | 'mangaId'> | null as any
     ),
     [setFieldValue, name]
   );

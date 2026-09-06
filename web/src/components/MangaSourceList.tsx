@@ -42,7 +42,7 @@ function MangaSourceList(props: MangaSourceListProps) {
   };
 
   function renderItem(item: MangaServiceData) {
-    const followText = userFollows.indexOf(item.serviceId) < 0 ? 'Follow' : 'Unfollow';
+    const followText = !userFollows.includes(item.serviceId) ? 'Follow' : 'Unfollow';
     return (
       <ListItem key={item.serviceId} sx={{ pl: 4, display: 'flex', justifyContent: 'space-between' }}>
         <Typography>
@@ -73,7 +73,7 @@ function MangaSourceList(props: MangaSourceListProps) {
     <List
       aria-label='manga sources'
       sx={{ width: '100%', maxWidth: '360px' }}
-      className={`${classesProp.join(' ')}`}
+      className={classesProp.join(' ')}
     >
       <ListItemButton
         onClick={handleClick}

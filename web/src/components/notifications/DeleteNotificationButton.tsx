@@ -30,7 +30,7 @@ const DeleteNotificationButton = <T extends FieldValues>({
 
 
   const deleteClicked = useCallback(() => {
-    confirm({
+    void confirm({
       description: `Are you sure you want to delete this notification?`,
       confirmationText: 'Yes',
       cancellationText: 'No',

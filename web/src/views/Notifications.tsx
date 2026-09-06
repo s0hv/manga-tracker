@@ -1,4 +1,12 @@
-import { type FC, lazy, Suspense, useCallback, useMemo, useState } from 'react';
+import {
+  type FC,
+  type LazyExoticComponent,
+  lazy,
+  Suspense,
+  useCallback,
+  useMemo,
+  useState,
+} from 'react';
 import {
   Box,
   Button,
@@ -13,9 +21,15 @@ import { styled } from '@mui/material/styles';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { defaultDataForType } from '@/components/notifications/defaultDatas';
+import type {
+  NotificationComponentProps,
+} from '@/components/notifications/types';
 import type { NotificationData } from '@/types/api/notifications';
 
-import { getNotificationsQueryOptions, notificationsQueryKey } from '../api/notifications';
+import {
+  getNotificationsQueryOptions,
+  notificationsQueryKey,
+} from '../api/notifications';
 import { type NotificationType, NotificationTypes } from '../utils/constants';
 
 const ResponsiveBox = styled('div')(({ theme }) => ({
@@ -48,7 +62,7 @@ const WebhookEditor = lazy(() => import('../components/notifications/WebhookEdit
 const NotificationComponents = {
   [NotificationTypes.DiscordWebhook]: DiscordWebhookEditor,
   [NotificationTypes.Webhook]: WebhookEditor,
-};
+} as const satisfies Record<number, LazyExoticComponent<FC<NotificationComponentProps>>>;
 
 const Notifications: FC = () => {
   const { data: notificationData, isLoading } = useQuery(getNotificationsQueryOptions);
@@ -78,7 +92,7 @@ const Notifications: FC = () => {
           <Select
             labelId='selectLabelId'
             value={notifType}
-            onChange={e => setNotifType(e.target.value as NotificationType)}
+            onChange={e => setNotifType(e.target.value)}
             label='Notification type to create'
             sx={{ m: 1 }}
           >
@@ -98,7 +112,11 @@ const Notifications: FC = () => {
       </ResponsiveBox>
       {!isLoading && Array.isArray(notificationData) && notificationData.map((notif, idx) => {
         const Component = NotificationComponents[notif.notificationType as keyof typeof NotificationComponents];
-        if (!Component) return <span>Invalid notification type {notif.notificationType}</span>;
+
+        if (!Component) {
+          return <span>Invalid notification type {notif.notificationType}</span>;
+        }
+
         return (
           <Suspense key={notif.notificationId || `temp-${idx}`} fallback={<EditorLoadingFallback />}>
             <Component

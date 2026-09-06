@@ -53,7 +53,7 @@ const useTestTable = () => useTable({
 const getStatusCell = () => {
   const table = renderHook(() => useTestTable()).result.current;
   const row = table.getRowModel().rows[0];
-  const cell = row.getAllCellsByColumnId()['status'] as Cell<Features, TestData, string>;
+  const cell = row.getAllCellsByColumnId().status as Cell<Features, TestData, string>;
 
   return { row, cell };
 };

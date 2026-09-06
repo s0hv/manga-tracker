@@ -47,7 +47,7 @@ const MangaSelector = <TFieldValues extends FormValues = FormValues>({
 
   const { data } = useQuery({
     ...quickSearchQueryOptions(query, true),
-    select: rows => (rows ?? []).reduce<NotificationFollow[]>((prev, row) => [
+    select: rows => rows.reduce<NotificationFollow[]>((prev, row) => [
       ...prev,
       {
         ...row,
@@ -75,8 +75,7 @@ const MangaSelector = <TFieldValues extends FormValues = FormValues>({
 
   const hasError = useCallback<Validate<NotificationFollow[] | null, FormValues>>(
     (value, allValues) => {
-      const currentUseFollows = allValues ? allValues.useFollows : false;
-      if (currentUseFollows ? false : !((value?.length ?? 0) > 0)) {
+      if (allValues.useFollows ? false : !((value?.length ?? 0) > 0)) {
         return 'Must select at least one manga or use follows';
       }
     },

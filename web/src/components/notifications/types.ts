@@ -8,3 +8,8 @@ export interface FormValues extends Omit<NotificationData,
   | 'timesFailed'> {
   overrideId: number | null
 }
+
+export interface NotificationComponentProps {
+  notificationData: NotificationData
+  defaultExpanded?: boolean
+}

@@ -1,12 +1,12 @@
 import type { Response } from 'express-serve-static-core';
 import {
   FOREIGN_KEY_VIOLATION,
-  IN_FAILED_SQL_TRANSACTION,
   INVALID_TEXT_REPRESENTATION,
   NOT_NULL_VIOLATION,
   NUMERIC_VALUE_OUT_OF_RANGE,
   UNIQUE_VIOLATION,
 } from 'pg-error-constants';
+import { PostgresError } from 'postgres';
 
 import type { Db } from '.';
 import { StatusError } from '../utils/errors';
@@ -20,8 +20,9 @@ import { NoColumnsError } from './errors';
  * @param {Object} o Input object
  * @param {Db} sql Database instance
  */
-export const generateUpdate = (o: {[key: string]: any }, sql: Db) => {
+export const generateUpdate = (o: Record<string, any>, sql: Db) => {
   const obj = { ...o };
+  // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
   Object.keys(obj).forEach(key => obj[key] === undefined && delete obj[key]);
 
   if (Object.keys(obj).length === 0) {
@@ -31,11 +32,7 @@ export const generateUpdate = (o: {[key: string]: any }, sql: Db) => {
   return sql(obj);
 };
 
-export function handleError(err: any, res: Response, msgOverrides: any = {}) {
-  if (typeof err?.getErrors === 'function') {
-    err = err.getErrors().filter((e: any) => e?.code !== IN_FAILED_SQL_TRANSACTION)[0] || err;
-  }
-
+export function handleError(err: unknown, res: Response, msgOverrides: Record<string, string> = {}) {
   if (err instanceof StatusError) {
     res.status(err.status).json({ error: err.message });
     return;
@@ -46,20 +43,28 @@ export function handleError(err: any, res: Response, msgOverrides: any = {}) {
     return;
   }
 
-  const msg = msgOverrides[err.code];
-  if (err.code === INVALID_TEXT_REPRESENTATION) {
-    dbLogger.debug(err.message);
-    res.status(400).json({ error: msg || 'Invalid data type given' });
-  } else if (err.code === NUMERIC_VALUE_OUT_OF_RANGE) {
-    res.status(400).json({ error: msg || 'Number value out of range' });
-  } else if (err.code === UNIQUE_VIOLATION) {
-    res.status(422).json({ error: msg || 'Resource already exists' });
-  } else if (err.code === FOREIGN_KEY_VIOLATION) {
-    res.status(404).json({ error: msg || 'Foreign key violation' });
-  } else if (err.code === NOT_NULL_VIOLATION) {
-    res.status(400).json({ error: msg || 'Not null value was null' });
-  } else {
-    dbLogger.error(err, 'Unknown database error');
-    res.status(500).json({ error: msg || 'Internal server error' });
+
+  if (err instanceof PostgresError) {
+    const msg = msgOverrides[err.code];
+
+    if (err.code === INVALID_TEXT_REPRESENTATION) {
+      dbLogger.debug(err.message);
+      res.status(400).json({ error: msg || 'Invalid data type given' });
+    } else if (err.code === NUMERIC_VALUE_OUT_OF_RANGE) {
+      res.status(400).json({ error: msg || 'Number value out of range' });
+    } else if (err.code === UNIQUE_VIOLATION) {
+      res.status(422).json({ error: msg || 'Resource already exists' });
+    } else if (err.code === FOREIGN_KEY_VIOLATION) {
+      res.status(404).json({ error: msg || 'Foreign key violation' });
+    } else if (err.code === NOT_NULL_VIOLATION) {
+      res.status(400).json({ error: msg || 'Not null value was null' });
+    } else {
+      dbLogger.error(err, 'Unknown database error');
+      res.status(500).json({ error: msg || 'Internal server error' });
+    }
+
+    return;
   }
+
+  res.status(500).json({ error: 'Internal server error' });
 }

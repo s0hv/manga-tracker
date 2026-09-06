@@ -47,6 +47,8 @@ const EditableCheckbox = <
         ...checkboxProps.slotProps,
         input: {
           'aria-label': ariaLabel,
+          // false positive
+          // eslint-disable-next-line @typescript-eslint/no-misused-spread
           ...checkboxProps.slotProps?.input,
         },
       }}

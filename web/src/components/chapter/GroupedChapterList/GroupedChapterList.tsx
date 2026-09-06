@@ -37,7 +37,7 @@ export const GroupedChapterList = <
   TChapterExtraProps extends object = object
 >({
   groupedChapters,
-  groupToString = group => group.toString(),
+  groupToString,
   onLoadMore,
   GroupComponent,
   ChapterComponent,
@@ -50,7 +50,7 @@ export const GroupedChapterList = <
   chapterRowGap = '8px',
 }: GroupedChapterListProps<TGroupExtraProps, TChapterExtraProps>) => {
   const skeletonArray = useMemo(() => {
-    return new Array(pageSize).fill(0);
+    return new Array<number>(pageSize).fill(0);
   }, [pageSize]);
 
   return (

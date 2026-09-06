@@ -12,16 +12,18 @@ import { ConfirmProvider } from 'material-ui-confirm';
 import { useSnackbar } from 'notistack';
 import { type SubmitHandler, useController, useForm } from 'react-hook-form';
 import { TextFieldElement } from 'react-hook-form-mui';
+import * as z from 'zod';
 
 import { postNotifications } from '#web/api/notifications';
-import type { FormValues } from '@/components/notifications/types';
-import type { NotificationData } from '@/types/api/notifications';
+import type {
+  FormValues,
+  NotificationComponentProps,
+} from '@/components/notifications/types';
 import { NotificationTypes } from '@/webUtils/constants';
 import {
   buildNotificationData,
   mapNotificationFields,
 } from '@/webUtils/utilities';
-
 
 import DefaultHelpTexts from './DefaultHelpTexts';
 import DeleteNotificationButton from './DeleteNotificationButton';
@@ -37,16 +39,19 @@ import NotificationIdField from './NotificationIdField';
 import NotificationsForm from './NotificationsForm';
 import SaveButton from './SaveButton';
 
+const webhookJsonSchema = z.object({
+  $CHAPTER_FORMAT: z.object({}, { error: '$CHAPTER_FORMAT must be defined at the root and it must be an object' })
+    .required(),
+  $CHAPTER_ARRAY: z.string().or(z.number()).nonoptional({ error: '$CHAPTER_ARRAY must be a string or number defined at the root' }),
+});
 
 const validateJson = (value: string): string | undefined => {
   try {
-    const parsed = JSON.parse(value);
-    if (!parsed.$CHAPTER_FORMAT || typeof parsed.$CHAPTER_FORMAT !== 'object') {
-      return '$CHAPTER_FORMAT must be defined at the root and it must be an object';
-    }
+    const parsed: unknown = JSON.parse(value);
+    const validated = webhookJsonSchema.safeParse(parsed);
 
-    if (!parsed.$CHAPTER_ARRAY) {
-      return '$CHAPTER_ARRAY must be defined at the root';
+    if (validated.error) {
+      return validated.error.issues[0].message;
     }
   } catch (err) {
     if (err instanceof Error) {
@@ -60,11 +65,7 @@ interface JsonFormValues extends FormValues {
   json: string
 }
 
-export type WebhookEditorProps = {
-  notificationData: NotificationData
-  defaultExpanded?: boolean
-};
-const WebhookEditor = ({ notificationData, defaultExpanded = false }: WebhookEditorProps) => {
+const WebhookEditor = ({ notificationData, defaultExpanded = false }: NotificationComponentProps) => {
   const initialValues = useMemo<JsonFormValues>(() => ({
     ...notificationData,
     fields: undefined,

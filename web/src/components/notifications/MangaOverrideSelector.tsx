@@ -19,7 +19,6 @@ import { getNotificationFollowsQueryOptions } from '#web/api/notifications';
 import type { FormValues } from '@/components/notifications/types';
 import {
   getOptionLabelNoService,
-  noData,
   optionEquals,
 } from '@/components/notifications/utilities';
 import type { NotificationFollow } from '@/types/api/notifications';
@@ -69,7 +68,7 @@ const MangaOverrideSelector = <TFieldValues extends FormValues = FormValues>({
     const dirtyCount = Object.entries(formState.dirtyFields).filter(([field, dirty]) => (field !== name && !allowedChangeFields.has(field)) && dirty).length;
     const overrideId = v?.mangaId ?? null;
     if (dirtyCount > 0) {
-      confirm({
+      void confirm({
         description: 'You have unsaved changes. Do you want to discard changes?',
         confirmationText: 'Yes',
         cancellationText: 'No',
@@ -98,7 +97,7 @@ const MangaOverrideSelector = <TFieldValues extends FormValues = FormValues>({
   const useFollows = typeof useFollowsInput === 'boolean' ? useFollowsInput : false;
   const renderOption = useCallback<NonNullable<AutocompleteType['renderOption']>>((props, option) => {
     return (
-      <li {...props} key={props.key as string} aria-selected={overrides.has(option.mangaId) ? 'true' : 'false'}>
+      <li {...props} key={props.key} aria-selected={overrides.has(option.mangaId) ? 'true' : 'false'}>
         {getOptionLabelNoService(option)}
       </li>
     );
@@ -108,11 +107,10 @@ const MangaOverrideSelector = <TFieldValues extends FormValues = FormValues>({
 
   const options = useMemo<NotificationFollow[]>(() => {
     const actualData: NotificationFollow[] = (useFollows ? data : selectedManga) ?? [];
-    const foundManga: Set<number> = new Set();
+    const foundManga = new Set<number>();
     const filteredData: NotificationFollow[] = [];
 
-    for (let i = 0; i < actualData.length; i++) {
-      const row = actualData[i];
+    for (const row of actualData) {
       if (!foundManga.has(row.mangaId)) {
         filteredData.push(row);
         foundManga.add(row.mangaId);
@@ -128,9 +126,9 @@ const MangaOverrideSelector = <TFieldValues extends FormValues = FormValues>({
       alignItems: 'center',
     }}
     >
-      <Autocomplete<NotificationFollow, false, false, false>
-        value={value as NotificationFollow | null}
-        options={options || noData as NotificationFollow[]}
+      <Autocomplete
+        value={value}
+        options={options}
         renderInput={params => <TextField {...params} label={label} />}
         renderOption={renderOption}
         onChange={onValueChange}

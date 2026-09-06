@@ -19,9 +19,9 @@ export const followUnfollow = (mangaId: MangaId, serviceId: DatabaseId | null) =
     : `/api/user/follows?mangaId=${mangaId}`;
   return throttle((event: MouseEvent) => {
     const target = event.target as HTMLElement;
-    switch (target?.textContent?.toLowerCase()) {
+    switch (target.textContent.toLowerCase()) {
       case 'follow':
-        fetch(url,
+        void fetch(url,
           {
             method: 'put',
           })
@@ -36,7 +36,7 @@ export const followUnfollow = (mangaId: MangaId, serviceId: DatabaseId | null) =
         break;
 
       case 'unfollow':
-        fetch(url, {
+        void fetch(url, {
           method: 'delete',
         })
           .then(res => {
@@ -59,7 +59,7 @@ export const followUnfollow = (mangaId: MangaId, serviceId: DatabaseId | null) =
 };
 
 // This seems to be faster than a custom recursive function according to my measurements
-export const jsonSerializable = (value: any) => JSON.parse(JSON.stringify(value));
+export const jsonSerializable = (value: any) => JSON.parse(JSON.stringify(value)) as unknown;
 
 function dateIsInvalid(date?: Date | null): boolean {
   return !date || Number.isNaN(date.getTime()) || date.getTime() === 0;
@@ -80,32 +80,6 @@ export const defaultDateDistanceToNow = (date?: Date, ifUndefined = 'Unknown'): 
 export type Noop = (..._: any) => void;
 export const noop: Noop = () => {};
 
-/**
-export const cmpBy = (arr, accessor, cmp) => {
-  if (!arr || arr.length === 0) {
-    return undefined;
-  }
-  let selectedIdx;
-  let selectedVal;
-  arr.forEach((item, idx) => {
-    const val = accessor(item);
-    if (selectedIdx === undefined || cmp(val, selectedVal)) {
-      selectedIdx = idx;
-      selectedVal = accessor(item);
-    }
-  });
-
-  if (selectedIdx === undefined) {
-    return undefined;
-  }
-
-  return arr[selectedIdx];
-};
-
-export const minBy = (arr, accessor) => cmpBy(arr, accessor, (a, b) => a < b);
-export const maxBy = (arr, accessor) => cmpBy(arr, accessor, (a, b) => a > b);
-*/
-
 export interface GroupedYearData {
   timestamp: number
   count: number
@@ -115,14 +89,10 @@ export interface GroupedYear {
   start: Date
   end: Date
   total: number
-  dataPoints: {
-    [key: string]: number
-  }
+  dataPoints: Record<string, number>
 }
 
-export type GroupedYears = {
-  [key: string]: GroupedYear | { empty: true }
-};
+export type GroupedYears = Record<string, GroupedYear | { empty: true }>;
 
 /**
  * Groups given data on a year by year basis ready for heatmaps
@@ -136,7 +106,7 @@ export const groupByYear = (data: GroupedYearData[] | undefined): GroupedYears =
   let minYear: number | undefined;
   let maxYear: number | undefined;
 
-  const grouped: GroupedYears = data.reduce((o, r) => {
+  const grouped: GroupedYears = data.reduce<Record<number, GroupedYear>>((o, r) => {
     const d = new Date(r.timestamp * 1000);
     const year = d.getFullYear();
 
@@ -163,20 +133,18 @@ export const groupByYear = (data: GroupedYearData[] | undefined): GroupedYears =
     }
 
     return o;
-  }, {} as Record<number, GroupedYear>);
+  }, {});
 
-  minYear = minYear || 0;
-  maxYear = maxYear || minYear || 0;
+  minYear = minYear ?? 0;
+  maxYear = maxYear ?? minYear;
   for (let i = minYear; i <= maxYear; i++) {
-    if (grouped[i] === undefined) {
-      grouped[i] = {
-        empty: true,
-      };
-    }
+    grouped[i] ??= {
+      empty: true,
+    };
   }
 
   const now = new Date(Date.now());
-  if (maxYear === now.getFullYear() && grouped[maxYear]) {
+  if (maxYear === now.getFullYear()) {
     (grouped[maxYear] as GroupedYear).end = now;
   }
   return grouped;
@@ -227,14 +195,12 @@ export const buildNotificationData = (values: FormValues) => ({
 
   manga: values.useFollows
     ? undefined
-    : values.manga!.map((m: any) => ({ mangaId: m.mangaId, serviceId: m.serviceId })),
+    : values.manga!.map(m => ({ mangaId: m.mangaId, serviceId: m.serviceId })),
 });
 
 
 export type MappedNotificationField<TValue, TKey extends Record<string, unknown> | 'generic' = 'generic'> = TKey extends 'generic'
-  ? {
-    [key: string]: TValue
-  } : {
+  ? Record<string, TValue> : {
     [key in keyof TKey]: TValue;
   };
 
@@ -257,7 +223,7 @@ export const mapNotificationFields = <
 };
 
 
-export const enumValues = <T extends object>(enumObj: T): string[] => {
+export const enumValues = (enumObj: object): string[] => {
   return Object
     .keys(enumObj)
     .filter(key => !Number.isNaN(Number(key)));
@@ -290,7 +256,7 @@ export function mutationCacheOnSuccess(queryClient: QueryClient, variables: unkn
 export function mutationCacheOnError(queryClient: QueryClient, variables: unknown, mutation: Mutation<unknown, unknown>) {
   const queryKeysToInvalidate = mutation.meta?.queryKeysToInvalidate;
 
-  if (!queryKeysToInvalidate || !mutation.meta?.invalidateOnError) {
+  if (!queryKeysToInvalidate || !mutation.meta.invalidateOnError) {
     return;
   }
 

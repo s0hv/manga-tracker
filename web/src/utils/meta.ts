@@ -89,7 +89,7 @@ export interface OpenGraph {
 type OpenGraphField =
   | string
   | {[field: string]: OpenGraphField }
-  | Array<OpenGraphField>
+  | OpenGraphField[]
   | (null | undefined);
 
 type MetaDescriptor = DetailedHTMLProps<
@@ -160,14 +160,12 @@ export function defineMeta(meta: Meta) {
     metaTags.push({ name: 'robots', content: 'noindex,nofollow' });
   }
 
-  if (openGraph) {
-    renderOpenGraph(metaTags, 'og', openGraph);
-  }
+  renderOpenGraph(metaTags, 'og', openGraph);
 
   if (meta.extra) {
     for (const { type, props } of meta.extra) {
       if (type === 'meta') {
-        metaTags.push(props as (typeof metaTags)[number]);
+        metaTags.push(props);
       }
     }
   }

@@ -31,7 +31,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
     links: [{ rel: 'stylesheet', href: fontsourceVariableRobotoCss }],
   }),
   component: RootComponent,
-  beforeLoad: async ({ serverContext }) => {
+  beforeLoad: ({ serverContext }) => {
     if (!serverContext) {
       return {
         frontendUser: null,

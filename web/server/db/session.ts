@@ -64,7 +64,7 @@ export function setSessionClearInterval(clearIntervalMs: number | null, clearSes
 
   const handle = setInterval(
     () => clearSessionsFn()
-      .catch((err: any) => sessionLogger.error(err, 'Failed to clear old sessions')),
+      .catch((err: unknown) => sessionLogger.error(err, 'Failed to clear old sessions')),
     clearIntervalMs
   );
 
@@ -77,7 +77,9 @@ export function setSessionClearInterval(clearIntervalMs: number | null, clearSes
 }
 
 export async function clearOldSessions() {
-  const data = await db.manyOrNone`DELETE FROM sessions WHERE expires_at < CURRENT_TIMESTAMP RETURNING data, session_id`;
+  const data = await db.manyOrNone<
+    { data: Session['data'], sessionId: string }
+  >`DELETE FROM sessions WHERE expires_at < CURRENT_TIMESTAMP RETURNING data, session_id`;
 
   data.forEach(({ sessionId }) => sessionCache.delete(sessionId));
 
@@ -139,8 +141,6 @@ export async function validateSessionToken(token: string): Promise<Session | nul
   return session;
 }
 
-export async function getSession(sessionId: string, useCache: boolean): Promise<Session | null>;
-export async function getSession(sessionId: string): Promise<Session | null>;
 export async function getSession(sessionId: string, useCache = true): Promise<Session | null> {
   const now = new Date();
 
@@ -200,7 +200,7 @@ export async function touchSessionOnRequest(req: Request, res: Response, next: N
   await updateSession({ sessionId: session.sessionId, expiresAt });
 
   setSessionCookie({
-    token: req.signedCookies[serverCookieNames.session],
+    token: (req.signedCookies as Record<string, string>)[serverCookieNames.session],
     expiresAt,
   }, res);
 

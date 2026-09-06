@@ -533,7 +533,7 @@ describe('POST /api/profile', () => {
       })
       .expect(200);
 
-    const sess = await expectSessionRegenerated(agent, oldSess.value)!;
+    const sess = await expectSessionRegenerated(agent, oldSess.value);
     await checkAndResetPassword(agent, newPassword, normalUser);
     await expectSessionRegenerated(agent, sess.value);
   });

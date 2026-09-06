@@ -91,7 +91,7 @@ export default function SignIn({ providers }: SignInProps): ReactElement {
       .then(res => {
         void navigate({ reloadDocument: true, to: new URL(res.url).pathname });
       })
-      .catch(err => {
+      .catch((err: unknown) => {
         if (err instanceof HTTPError) {
           let errorMessage: string;
 

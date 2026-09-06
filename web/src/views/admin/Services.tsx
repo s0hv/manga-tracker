@@ -142,7 +142,12 @@ function Services(props: ServicesProps): ReactElement {
       .then(() => {
         enqueueSnackbar('Service edited successfully', { variant: 'success' });
       })
-      .catch(err => enqueueSnackbar(err.message, { variant: 'error' }));
+      .catch((err: unknown) => enqueueSnackbar(
+        err instanceof Error
+          ? err.message
+          : 'Failed to edit service',
+        { variant: 'error' }
+      ));
   }, [enqueueSnackbar, editService]);
 
   const table = useTable({

@@ -23,6 +23,7 @@ export function getRouter() {
     queryCache: new QueryCache({
       // Log query errors. Otherwise, query errors are not printed anywhere.
       onError: (error, query) => {
+        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
         console.error(`Query ${query.queryKey[0]} failed`, error);
       },
     }),
@@ -31,7 +32,7 @@ export function getRouter() {
       queries: {
         refetchOnWindowFocus: false,
         retry: (failureCount, error) => {
-          if (error instanceof APIException || (error instanceof HTTPException && (error as HTTPException).statusCode >= 400)) {
+          if (error instanceof APIException || (error instanceof HTTPException && (error).statusCode >= 400)) {
             // Do not retry on client errors
             return false;
           }

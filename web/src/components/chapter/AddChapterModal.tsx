@@ -18,7 +18,7 @@ import { DateTimePickerElement } from 'react-hook-form-mui/date-pickers';
 import * as z from 'zod';
 
 import { fixChapterFailedMutationOptions } from '#web/api/admin/chaptersFailed';
-import { getServicesQueryOptions } from '#web/api/services';
+import { servicesQueryOptions } from '#web/api/services';
 import { DbChapter } from '@/common/schemas/chapter';
 import { dbId } from '@/common/schemas/common';
 import { SearchGroup } from '@/common/schemas/group';
@@ -70,7 +70,7 @@ export const AddChapterModal = ({
 }: AddChapterModalProps) => {
   const {
     data: services,
-  } = useQuery(getServicesQueryOptions);
+  } = useQuery(servicesQueryOptions);
 
   const fixChapter = useMutation(fixChapterFailedMutationOptions);
   const { enqueueSnackbar } = useSnackbar();
@@ -98,10 +98,10 @@ export const AddChapterModal = ({
       serviceId: initialValues.serviceId,
       mangaId: manga.mangaId,
     })
-      .catch(err => {
+      .catch((err: unknown) => {
         // TODO better error message handling
         enqueueSnackbar(
-          `Failed to fix failed chapter. ${err}`,
+          `Failed to fix failed chapter. ${String(err)}`,
           { variant: 'error' }
         );
         throw err;

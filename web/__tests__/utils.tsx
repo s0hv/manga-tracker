@@ -483,7 +483,7 @@ export const getRowByColumnValue = (
   /**
    * @type {HTMLTableRowElement}
    */
-  const headerRow = table.querySelector('thead tr') as HTMLTableRowElement;
+  const headerRow = table.querySelector<HTMLTableRowElement>('thead tr');
 
   if (!headerRow) throw new Error('Header row not found');
 
@@ -495,7 +495,7 @@ export const getRowByColumnValue = (
 
   if (headerIndex < 0) throw new Error(`Header index not found for "${header}"`);
 
-  const rows = table.querySelectorAll('tbody tr') as NodeListOf<HTMLTableRowElement>;
+  const rows = table.querySelectorAll<HTMLTableRowElement>('tbody tr');
   for (let idx = 0; idx < rows.length; idx++) {
     const row = rows[idx];
     if (valueCheck(row.cells[headerIndex])) return row;
@@ -516,7 +516,7 @@ export const mockDbForErrors = <T, >(fn: () => Promise<T>): Promise<T> => {
 
     // Execute is available on the returned promise, so mock it here
     // @ts-ignore
-    response['execute'] = () => Promise.reject('Mocked error');
+    response.execute = () => Promise.reject('Mocked error');
 
     return response;
   });
@@ -562,7 +562,7 @@ export const silenceConsole: SilenceConsole = (<T, >(callback?: Promise<T>): Pro
 
 export const restoreMocks = (spies: MockInstance[]) => spies.forEach(spy => spy.mockRestore());
 
-export const confirmMock = (confirmed: boolean = true) => vi.fn(() => Promise.resolve(
+export const confirmMock = (confirmed = true) => vi.fn(() => Promise.resolve(
   { confirmed, reason: confirmed ? 'confirm' : 'cancel' } satisfies ConfirmResult
 ));
 
@@ -584,8 +584,8 @@ export function toFrontendUser(user: TestUser): FrontendUser {
   };
 }
 
-export function getCoverUrl(cover: string, size?: 256 | 512 | undefined): string;
-export function getCoverUrl(cover: string | undefined | null, size?: 256 | 512 | undefined): string | undefined;
+export function getCoverUrl(cover: string, size?: 256 | 512): string;
+export function getCoverUrl(cover: string | undefined | null, size?: 256 | 512): string | undefined;
 export function getCoverUrl(cover: string | undefined | null, size: 256 | 512 | undefined = 256) {
   if (cover == undefined) {
     return;

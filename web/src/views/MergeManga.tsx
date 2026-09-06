@@ -67,6 +67,8 @@ const MergeArrowText = styled(Typography)({
 
 type ServicesListProps = {
   services: { name: string, serviceId: number }[] | null
+  // Explicit definition for the sake of documentation of the special string
+  // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
   value: 'all' | number | string
   setValue: (value: number | string) => void
 };
@@ -104,7 +106,7 @@ function MergeManga() {
   const [manga1, setManga1] = useState<FullMangaData | null>(null);
   const [manga2, setManga2] = useState<FullMangaData | null>(null);
   const [result, setResult] = useState<MergeResult>({});
-  const [radio, setRadio] = useState<'all' | number | string>('all');
+  const [radio, setRadio] = useState<number | string>('all');
   const isValid = manga1?.manga.mangaId
     && manga2?.manga.mangaId
     && manga1.manga.mangaId !== manga2.manga.mangaId;
@@ -112,7 +114,10 @@ function MergeManga() {
   const queryClient = useQueryClient();
 
   const getMangaData = useCallback((mangaId: number, setManga: (manga: FullMangaData) => void) => {
-    queryClient.ensureQueryData(getMangaQueryOptions(mangaId))
+    void queryClient.query({
+      ...getMangaQueryOptions(mangaId),
+      staleTime: 'static',
+    })
       .then(data => setManga(data));
   }, [queryClient]);
 
@@ -132,7 +137,7 @@ function MergeManga() {
         setResult({ message: `Moved ${json.aliasCount} alias(es) and ${json.chapterCount} chapter(s)` });
         setManga2(null);
       })
-      .catch(err => setResult({ error: true, message: err.message }))
+      .catch((err: unknown) => setResult({ error: true, message: (err as Error).message }))
       .finally(() => setRadio('all'));
   };
 
@@ -230,7 +235,7 @@ function MergeManga() {
           sx={{ mt: 2, color: result.error ? 'error' : 'initial' }}
           aria-label='merge result'
         >
-          {result.message || null}
+          {result.message ?? null}
         </Typography>
       </Stack>
     </Container>

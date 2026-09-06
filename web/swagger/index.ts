@@ -23,8 +23,10 @@ const options = {
 
 export const getOpenapiSpecification = async () => {
   // Read component definitions
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   options.definition.components = YAML.parse(
     (await readFile('./swagger/components.yaml')).toString('utf-8')
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
   ).components;
   return swaggerJsdoc(options);
 };

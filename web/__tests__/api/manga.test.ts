@@ -1,3 +1,5 @@
+import type { Server } from 'http';
+
 import request from 'supertest';
 import {
   type Mock,
@@ -10,7 +12,11 @@ import {
   vi,
 } from 'vitest';
 
-import { apiRequiresAdminUserPostTests, expectISEOnDbError } from './api-test-utilities';
+import {
+  type HttpServerReference,
+  apiRequiresAdminUserPostTests,
+  expectISEOnDbError,
+} from './api-test-utilities';
 import { createMangaService } from '../dbutils';
 import initServer from '../initServer';
 import stopServer from '../stopServer';
@@ -28,9 +34,9 @@ import { getMangaPartial } from '@/db/manga';
 import type { DatabaseId, MangaId } from '@/types/dbTypes';
 
 
-let httpServer: any;
-const serverReference = {
-  httpServer,
+let httpServer: Server;
+const serverReference: HttpServerReference = {
+  httpServer: undefined!,
 };
 
 vi.mock('@/db/elasticsearch/manga', async () => {
@@ -85,7 +91,7 @@ describe('GET /api/manga/:mangaId', () => {
   });
 });
 
-const getChapterCount = (body: any) => (body && body?.data?.chapters?.length) || 0;
+const getChapterCount = (body: any) => (body?.data?.chapters?.length) || 0;
 
 describe('GET /api/manga/:mangaId/chapters', () => {
   const validUrl = '/api/manga/1/chapters';
@@ -147,7 +153,7 @@ describe('GET /api/manga/:mangaId/chapters', () => {
   it('Returns chapters with valid limit', async () => {
     await Promise.all([
       request(httpServer)
-        .get(`${validUrl}`)
+        .get(validUrl)
         .expect('Content-Type', /json/)
         .satisfiesApiSpec()
         .expect(200),

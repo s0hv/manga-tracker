@@ -9,8 +9,8 @@ const baseUrl = process.env.NODE_ENV === 'production'
   ? process.env.HOST
   : (process.env.HOST ?? 'https://localhost:3000');
 
-const isCypress = /true|y|yes/i.test(process.env.CYPRESS || '');
-const isAnalyze = /true|y|yes/i.test(process.env.ANALYZE || '');
+const isCypress = /true|y|yes/i.test(process.env.CYPRESS ?? '');
+const isAnalyze = /true|y|yes/i.test(process.env.ANALYZE ?? '');
 const isCI = !!process.env.IS_CI;
 
 export default defineConfig({

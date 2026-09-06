@@ -151,7 +151,7 @@ function Manga(props: MangaProps): React.ReactElement {
           )}
         </TitleBar>
         <DetailsContainer>
-          <a href={manga.mal || undefined} target='_blank' rel='noreferrer noopener' aria-label='myanimelist page of the manga'>
+          <a href={manga.mal ?? undefined} target='_blank' rel='noreferrer noopener' aria-label='myanimelist page of the manga'>
             <MangaCover
               url={manga.cover}
               alt={manga.title}
@@ -185,9 +185,9 @@ function Manga(props: MangaProps): React.ReactElement {
             color='primary'
             onClick={followUnfollow(manga.mangaId, null)}
             sx={{ mt: 2, mb: 2 }}
-            aria-label={`${userFollows.indexOf(null) < 0 ? 'follow' : 'unfollow'} all releases`}
+            aria-label={`${!userFollows.includes(null) ? 'follow' : 'unfollow'} all releases`}
           >
-            {userFollows.indexOf(null) < 0 ? 'Follow' : 'Unfollow'}
+            {!userFollows.includes(null) ? 'Follow' : 'Unfollow'}
           </Button>
         )}
 

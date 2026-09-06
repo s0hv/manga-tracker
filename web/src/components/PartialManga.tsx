@@ -36,7 +36,7 @@ function PartialManga(props: PartialMangaProps) {
     services,
   } = props;
 
-  if (!manga || !manga.mangaId) return null;
+  if (!manga?.mangaId) return null;
 
   return (
     <div>

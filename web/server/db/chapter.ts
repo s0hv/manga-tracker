@@ -73,7 +73,7 @@ export const addChapter = ({
   chapterIdentifier,
   group = NO_GROUP,
 }: AddChapter): Promise<number | undefined> => {
-  releaseDate = releaseDate || new Date(Date.now());
+  releaseDate = releaseDate ?? new Date(Date.now());
 
   return db.oneOrNone<{ chapterId: number }>`INSERT INTO chapters (manga_id, service_id, title, chapter_number, chapter_decimal, release_date, chapter_identifier, group_id) 
                VALUES (${mangaId}, ${serviceId}, ${title}, ${chapterNumber}, ${chapterDecimal}, ${releaseDate}, ${chapterIdentifier}, ${group})
@@ -133,7 +133,7 @@ export const getChapters = (
     WHERE m.manga_id=${mangaId}
   `
     .then(row => {
-      if (!row || !row.exists) return Promise.resolve(null);
+      if (!row?.exists) return Promise.resolve(null);
 
       return Promise.resolve({
         count: row.count,

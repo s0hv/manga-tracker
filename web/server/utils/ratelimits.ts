@@ -51,7 +51,7 @@ export const mangadexLimiter = new RateLimiterMemory({
   duration: 1,
 });
 
-const accountLoginRetries = Number.parseInt(process.env.LOGIN_RETRY_COUNT || '10', 10);
+const accountLoginRetries = Number.parseInt(process.env.LOGIN_RETRY_COUNT ?? '10', 10);
 
 export const accountLoginLimiter = createSingleton('bruteforceByIp', () => new RateLimiterRedis({
   storeClient: redis,

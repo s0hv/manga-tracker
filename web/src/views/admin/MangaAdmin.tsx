@@ -126,7 +126,7 @@ function MangaAdmin(props: MangaAdminProps) {
   }), [services]);
 
   const onTitleChange = useCallback(() => {
-    queryClient.fetchQuery(getMangaQueryOptions(mangaId))
+    void queryClient.query(getMangaQueryOptions(mangaId))
       .then(data => {
         setAliases(data.aliases);
         setMangaTitle(data.manga.title);
@@ -193,7 +193,7 @@ function MangaAdmin(props: MangaAdminProps) {
       serviceConfigs.filter(s => s.scheduledRunsEnabled).map(s => s.serviceId)
     );
     const options = services
-      ?.filter(s => servicesWithRunsEnabled.has(s.serviceId))
+      .filter(s => servicesWithRunsEnabled.has(s.serviceId))
       .map(s => ({ value: s.serviceId, label: s.name }));
 
     return [
@@ -264,7 +264,7 @@ function MangaAdmin(props: MangaAdminProps) {
         </Box>
 
         <DetailsContainer>
-          <a href={manga.mal || ''} target='_blank' rel='noreferrer noopener'>
+          <a href={manga.mal ?? ''} target='_blank' rel='noreferrer noopener'>
             <MangaCover
               url={manga.cover}
               alt={manga.title}
