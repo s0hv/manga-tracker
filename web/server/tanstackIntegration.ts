@@ -4,7 +4,7 @@ import type { NodeHttp1Handler } from 'srvx';
 import { type AdapterMeta, toNodeHandler } from 'srvx/node';
 
 export const tanstackIntegration = async (server: Express) => {
-  // eslint-disable-next-line import/no-extraneous-dependencies
+  // eslint-disable-next-line import-x/no-extraneous-dependencies
   const viteDevServer = await import('vite').then(vite =>
     vite.createServer({
       server: { middlewareMode: true },

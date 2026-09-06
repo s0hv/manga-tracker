@@ -1,0 +1,35 @@
+diff --git a/dist/index.d.ts b/dist/index.d.ts
+index 21609f70f8f6e87aab7f900dea5da4473598d6c9..78e37f6726ef65b59280e15848f3500a426cc59c 100644
+--- a/dist/index.d.ts
++++ b/dist/index.d.ts
+@@ -1,18 +1,16 @@
+ import { OpenAPISpecObject } from 'openapi-validator';
+-declare global {
+-    namespace jest {
+-        interface Matchers<R> {
+-            /**
+-             * Check the HTTP response object satisfies a response defined in your OpenAPI spec.
+-             * [See usage example](https://github.com/openapi-library/OpenAPIValidators/tree/master/packages/jest-openapi#in-api-tests-validate-the-status-and-body-of-http-responses-against-your-openapi-spec)
+-             */
+-            toSatisfyApiSpec(): R;
+-            /**
+-             * Check the object satisfies a schema defined in your OpenAPI spec.
+-             * [See usage example](https://github.com/openapi-library/OpenAPIValidators/tree/master/packages/jest-openapi#in-unit-tests-validate-objects-against-schemas-defined-in-your-openapi-spec)
+-             */
+-            toSatisfySchemaInApiSpec(schemaName: string): R;
+-        }
++declare module 'vitest' {
++    interface Matchers<R, T = any> {
++        /**
++         * Check the HTTP response object satisfies a response defined in your OpenAPI spec.
++         * [See usage example](https://github.com/openapi-library/OpenAPIValidators/tree/master/packages/jest-openapi#in-api-tests-validate-the-status-and-body-of-http-responses-against-your-openapi-spec)
++         */
++        toSatisfyApiSpec(): R;
++        /**
++         * Check the object satisfies a schema defined in your OpenAPI spec.
++         * [See usage example](https://github.com/openapi-library/OpenAPIValidators/tree/master/packages/jest-openapi#in-unit-tests-validate-objects-against-schemas-defined-in-your-openapi-spec)
++         */
++        toSatisfySchemaInApiSpec(schemaName: string): R;
+     }
+ }
+ export default function (filepathOrObject: string | OpenAPISpecObject): void;

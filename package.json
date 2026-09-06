@@ -4,8 +4,8 @@
   "private": true,
   "license": "MIT",
   "engines": {
-    "node": "^24",
-    "pnpm": "^10"
+    "node": "^26",
+    "pnpm": "^12"
   },
   "dependencies": {
     "db-migrate": "^0.11.14",
@@ -25,5 +25,5 @@
   "cacheDirectories": [
     "node_modules/"
   ],
-  "packageManager": "pnpm@10.27.0+sha512.72d699da16b1179c14ba9e64dc71c9a40988cbdc65c264cb0e489db7de917f20dcf4d64d8723625f2969ba52d4b7e2a1170682d9ac2a5dcaeaab732b7e16f04a"
+  "packageManager": "pnpm@12.3.4+sha512.961aa41fb077da3a04a441d9f8e15ebc0c96da8ef710b2eb67bf9ee7cb0610eabd48f1fd85f51cffe73846785fa0f87c56a3a872a1d893f8446741b5cce45457"
 }

@@ -19,7 +19,7 @@ jobs:
     name: Web app tests
     runs-on: ubuntu-latest
     environment: tests
-    container: node:24-bullseye
+    container: node:26-bullseye
 
     # Service containers to run with `container-job`
     services:
@@ -57,7 +57,7 @@ jobs:
 
     - uses: actions/setup-node@v6
       with:
-        node-version: 24
+        node-version: 26
         cache: 'pnpm'
         cache-dependency-path: pnpm-lock.yaml
 
@@ -145,7 +145,7 @@ jobs:
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v6
         with:
-          node-version: '24'
+          node-version: '26'
           cache: 'pnpm'
       - name: Setup uv
         uses: astral-sh/setup-uv@v7
@@ -199,7 +199,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: tests
     container:
-      image: cypress/browsers:24.12.0
+      image: cypress/browsers:latest
 
     # Service containers to run with `container-job`
     services:
@@ -249,7 +249,7 @@ jobs:
 
       - uses: actions/setup-node@v6
         with:
-          node-version: 24
+          node-version: 26
           cache: 'pnpm'
           cache-dependency-path: pnpm-lock.yaml
 

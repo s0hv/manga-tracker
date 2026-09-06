@@ -1,4 +1,4 @@
-import React, { type FC, type FormEvent, useCallback, useMemo } from 'react';
+import React, { type FC, type SyntheticEvent, useCallback, useMemo } from 'react';
 import {
   Box,
   Button,
@@ -129,7 +129,7 @@ const Profile: FC<ProfileProps> = props => {
       });
   }, [confirm, enqueueSnackbar, user.username]);
 
-  const requestDataDialog = useCallback((event: FormEvent<HTMLFormElement>) => {
+  const requestDataDialog = useCallback((event: SyntheticEvent<HTMLFormElement>) => {
     event.preventDefault();
     confirm({
       title: 'Request for collected personal data',

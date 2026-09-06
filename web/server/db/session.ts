@@ -68,6 +68,9 @@ export function setSessionClearInterval(clearIntervalMs: number | null, clearSes
     clearIntervalMs
   );
 
+  // Allows the event loop to exit even when the interval is active
+  handle.unref();
+
   sessionClearIntervalHandle.handle = handle;
 
   return handle;

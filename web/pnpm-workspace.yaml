@@ -1,0 +1,14 @@
+
+minimumReleaseAgeExclude:
+  - happy-dom@20.14.0
+
+allowBuilds:
+  core-js: true
+  esbuild: true
+  msw: true
+  unrs-resolver: false
+
+patchedDependencies:
+  '@testing-library/jest-dom': patches/@testing-library__jest-dom.patch
+  jest-extended: patches/jest-extended.patch
+  jest-openapi@0.14.2: patches/jest-openapi@0.14.2.patch
