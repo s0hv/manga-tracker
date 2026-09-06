@@ -34,7 +34,7 @@ export const constantTimeEqual = (a: Uint8Array, b: Uint8Array): boolean => {
   return c === 0;
 };
 
-export const generateSecureRandomBytes = (length: number): Uint8Array => {
+export const generateSecureRandomBytes = (length: number): Uint8Array<ArrayBuffer> => {
   if (!length) throw new Error('Length must be greater than 0 when generating secure random bytes.');
 
   // 24 bytes = 192 bits of entropy.
@@ -49,11 +49,11 @@ export const uint8ArrayToBase64 = (bytes: Uint8Array): string => {
   return Buffer.from(bytes).toString('base64');
 };
 
-export const base64toUint8Array = (base64: string): Uint8Array => {
+export const base64toUint8Array = (base64: string): Uint8Array<ArrayBuffer> => {
   return Buffer.from(base64, 'base64');
 };
 
-export const hashSecret = async (secret: Uint8Array | string): Promise<Uint8Array> => {
+export const hashSecret = async (secret: Uint8Array<ArrayBuffer> | string): Promise<Uint8Array<ArrayBuffer>> => {
   const secretBytes = typeof secret === 'string'
     ? new TextEncoder().encode(secret)
     : secret;

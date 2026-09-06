@@ -249,7 +249,7 @@ export function clearUserAuthTokens(userId: number) {
   return db.none`DELETE FROM auth_token WHERE user_id=${userId}`;
 }
 
-export function parseAuthCookie(authCookie: string): null | { lookup: string, token: Uint8Array, userUUID: string } {
+export function parseAuthCookie(authCookie: string): null | { lookup: string, token: Uint8Array<ArrayBuffer>, userUUID: string } {
   /*
   Try to find the remember me token.
   If found, associate the current session with the user and regenerate session id (this is important)
