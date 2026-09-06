@@ -22,7 +22,7 @@ import {
   getMangaServicesQueryOptions,
   updateMangaServiceMutationOptions,
 } from '#web/api/admin/manga';
-import { getServicesQueryOptions } from '#web/api/services';
+import { servicesQueryOptions } from '#web/api/services';
 import {
   defaultOnSaveRow,
   getEditColumnDef,
@@ -82,7 +82,7 @@ export const MangaServiceTable: FunctionComponent<MangaServiceTableProps> = prop
   } = props;
 
   const { data: mangaServices, isFetching: mangaLoading } = useQuery(getMangaServicesQueryOptions(mangaId));
-  const { data: services, isFetching: servicesLoading } = useQuery(getServicesQueryOptions);
+  const { data: services, isFetching: servicesLoading } = useQuery(servicesQueryOptions);
 
   const loading = mangaLoading || servicesLoading;
   const { enqueueSnackbar } = useSnackbar();
@@ -102,7 +102,8 @@ export const MangaServiceTable: FunctionComponent<MangaServiceTableProps> = prop
       data: state,
     })
       .then(() => enqueueSnackbar('Updated manga service', { variant: 'success' }))
-      .catch(e => enqueueSnackbar(`'Failed to update manga service. ${e}`, { variant: 'error' }));
+      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+      .catch((e: unknown) => enqueueSnackbar(`'Failed to update manga service. ${e}`, { variant: 'error' }));
   }, [enqueueSnackbar, updateMangaService]);
 
   const columns = useMemo((): ColumnDef<Features, MangaService>[] => columnHelper.columns([
@@ -111,7 +112,7 @@ export const MangaServiceTable: FunctionComponent<MangaServiceTableProps> = prop
     columnHelper.accessor('serviceId', {
       header: 'Service',
       sortFn: 'text',
-      cell: ({ getValue }) => services?.[getValue()]?.name || null,
+      cell: ({ getValue }) => services?.[getValue()]?.name ?? null,
       enableEditing: false,
     }),
 
@@ -206,7 +207,12 @@ export const MangaServiceTable: FunctionComponent<MangaServiceTableProps> = prop
           { variant: 'success' }
         );
       })
-      .catch(err => enqueueSnackbar(err.message, { variant: 'error' }));
+      .catch((err: unknown) => enqueueSnackbar(
+        err instanceof Error
+          ? err.message
+          : 'Failed to create manga service',
+        { variant: 'error' }
+      ));
   }, [mangaId, enqueueSnackbar, createMangaService]);
 
   // The component is memoized with useMemo. I don't see a problem.
@@ -235,7 +241,7 @@ export const MangaServiceTable: FunctionComponent<MangaServiceTableProps> = prop
         table={table}
         title='Manga services'
         toolbarProps={{ addButtonLabel: 'create manga service' }}
-        rowCount={mangaServices?.length || 3}
+        rowCount={mangaServices?.length ?? 3}
         loading={loading}
         CreateDialog={CreateDialog}
         enableRowCreation

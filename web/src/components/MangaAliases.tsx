@@ -51,7 +51,7 @@ const MangaAliases = (props: MangaAliasesProps) => {
       return;
     }
 
-    confirm({
+    void confirm({
       description: `Do you want to set "${title}" as the main title for this manga?`,
       confirmationText: 'Yes',
       cancellationText: 'No',
@@ -66,8 +66,8 @@ const MangaAliases = (props: MangaAliasesProps) => {
           );
           onTitleUpdate();
         })
-        .catch(err => enqueueSnackbar(
-          `Failed to set title. ${err}`,
+        .catch((err: unknown) => enqueueSnackbar(
+          `Failed to set title. ${String(err)})`,
           { variant: 'error', autoHideDuration }
         ));
     });

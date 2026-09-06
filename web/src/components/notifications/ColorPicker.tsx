@@ -103,7 +103,7 @@ const ColorPicker = <T extends FieldValues>({
           }}
         >
           <HexColorPicker
-            color={color || '#FFFFFF'}
+            color={color ?? '#FFFFFF'}
             onChange={onColorChange}
             {...pickerProps}
           />

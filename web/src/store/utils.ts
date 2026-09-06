@@ -15,6 +15,7 @@ export const createSelectorHooks = <S extends UseBoundStore<StoreApi<object>>>(
 ): StoreUseHooks<S> => {
   const useHooks = {};
   for (const k of Object.keys(store.getState())) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     (useHooks as any)[`use${upperFirst(k)}`] = () => store(s => s[k as keyof typeof s]);
   }
 

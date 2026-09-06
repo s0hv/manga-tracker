@@ -14,9 +14,7 @@ export interface SessionUser {
   isCredentialsAccount: boolean
 }
 
-export interface SessionData {
-  [k: string]: any
-}
+export type SessionData = Record<string, any>;
 
 /**
  * Subset of the interval object returned by postgres-interval.

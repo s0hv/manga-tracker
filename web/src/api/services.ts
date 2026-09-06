@@ -15,7 +15,7 @@ export const getServices = (): Promise<ServiceForApi[]> => fetch(SERVICES_URL.se
   .then(handleResponse<ServiceForApi[]>)
   .catch(handleError);
 
-export const getServicesQueryOptions = queryOptions({
+export const servicesQueryOptions = queryOptions({
   queryKey: [SERVICES_URL.services],
   queryFn: getServices,
   select: data => data.reduce<Record<number, ServiceForApi>>(

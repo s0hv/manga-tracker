@@ -102,10 +102,9 @@ export function doIfTableFeatureExists<
  */
 export function makeStateUpdaterGeneric<
   TFeatures extends TableFeatures,
-  K extends (string & {}) | keyof TableState_All | keyof TableState<TFeatures>,
   TData extends RowData
 >(
-  key: K,
+  key: (string & {}) | keyof TableState_All | keyof TableState<TFeatures>,
   instance: {
     readonly options: { readonly atoms?: object | undefined }
     readonly baseAtoms: object

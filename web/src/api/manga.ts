@@ -78,7 +78,7 @@ type QuickSearch = {
  * @param {Boolean} withServices Whether to include services in the result
  * @param {Number} serviceId Optional id of the service to filter by
  */
-export const quickSearch: QuickSearch = (query: string, withServices: boolean = false, serviceId?: number) => baseKy
+export const quickSearch: QuickSearch = (query: string, withServices = false, serviceId?: number) => baseKy
   .get(mangaUrls.quickSearch,
     {
       searchParams: {
@@ -92,7 +92,7 @@ export const quickSearch: QuickSearch = (query: string, withServices: boolean = 
 
 export const quickSearchQueryKey = (
   query: string,
-  withServices: boolean = false,
+  withServices = false,
   serviceId?: number
 ) => [mangaUrls.quickSearch, query, withServices, serviceId] as const;
 

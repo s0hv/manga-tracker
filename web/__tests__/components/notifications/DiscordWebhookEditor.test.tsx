@@ -417,8 +417,8 @@ describe('DiscordWebhookEditor', () => {
 
     await user.click(screen.getByRole('button', { name: /Do not discard form changes/i }));
 
-    const msgField = defaultDataWithManga.fields.filter(f => f.name === 'message')[0]!;
-    expect(await screen.findByRole('textbox', { name: /^Message$/i }, { timeout: 5000 })).toHaveValue(msgField.value + text);
+    const msgField = defaultDataWithManga.fields.filter(f => f.name === 'message')[0];
+    expect(await screen.findByRole('textbox', { name: /^Message$/i }, { timeout: 5000 })).toHaveValue(msgField.value! + text);
 
     await silenceConsole(changeOverride(defaultDataWithManga.manga![0].title, user));
     await user.click(screen.getByRole('button', { name: /^Discard form changes/i }));

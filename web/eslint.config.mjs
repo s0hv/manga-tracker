@@ -70,7 +70,8 @@ export default defineConfig(
     ],
   },
   eslint.configs.recommended,
-  tseslint.configs.recommended,
+  tseslint.configs.strictTypeChecked,
+  tseslint.configs.stylisticTypeChecked,
   importX.flatConfigs.recommended,
   importX.flatConfigs.typescript,
   stylistic.configs.recommended,
@@ -88,6 +89,7 @@ export default defineConfig(
         ...globals.es2020,
       },
       parserOptions: {
+        projectService: true,
         ecmaFeatures: {
           jsx: true,
         },
@@ -129,6 +131,38 @@ export default defineConfig(
         varsIgnorePattern: '^_',
         ignoreRestSiblings: true,
       }],
+      '@typescript-eslint/only-throw-error': ['error', {
+        allowRethrowing: true,
+        allow: [
+          {
+            from: 'package',
+            name: ['NotFoundError', 'Redirect'],
+            package: '@tanstack/router-core',
+          },
+        ],
+      }],
+      '@typescript-eslint/restrict-template-expressions': ['error', {
+        allowNumber: true,
+      }],
+      '@typescript-eslint/no-misused-promises': ['error', {
+        checksVoidReturn: false,
+      }],
+      '@typescript-eslint/prefer-nullish-coalescing': ['error', {
+        ignorePrimitives: {
+          // Boolean coercion is often on purpose, when you just want to get
+          // the first true value
+          boolean: true,
+        },
+      }],
+      // I feel like this will more easily cause bugs for record and array access
+      '@typescript-eslint/no-unnecessary-condition': 'off',
+      '@typescript-eslint/unbound-method': 'off',
+      '@typescript-eslint/no-empty-function': 'off',
+      // This seemed to just cause too much annoyance
+      '@typescript-eslint/no-confusing-void-expression': 'off',
+      '@typescript-eslint/consistent-type-definitions': 'off',
+      // This is used quite a bit in the codebase
+      '@typescript-eslint/no-non-null-assertion': 'off',
       '@stylistic/function-paren-newline': ['error', 'consistent'],
       '@stylistic/arrow-parens': ['error', 'as-needed'],
       '@stylistic/quote-props': ['error', 'as-needed'],
@@ -211,6 +245,15 @@ export default defineConfig(
   },
 
   {
+    files: [
+      'eslint.config.mjs',
+      'vitest.config.ts',
+      'setupTests.ts',
+    ],
+    extends: [tseslint.configs.disableTypeChecked],
+  },
+
+  {
     files: ['src/**/*', 'src/*'],
     rules: {
       'import-x/no-restricted-paths': ['error', {
@@ -268,6 +311,9 @@ export default defineConfig(
       // Makes some test code a bit tidier
       '@stylistic/jsx-one-expression-per-line': 'off',
       '@typescript-eslint/ban-ts-comment': 'off',
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/prefer-promise-reject-errors': 'off',
     },
   }
 );

@@ -59,7 +59,7 @@ const Root = styled('div')({
   },
 });
 
-const skeletonCount = new Array(10).fill(0);
+const skeletonCount = new Array<number>(10).fill(0);
 
 function getCssWidth(width: number | string | undefined): string | undefined {
   if (typeof width === 'number') {
@@ -112,7 +112,7 @@ export const MaterialTable = <
   } = props;
 
   const skeletonArray = useMemo(() => {
-    if (rowCount > 0) return new Array(rowCount).fill(0);
+    if (rowCount > 0) return new Array<number>(rowCount).fill(0);
 
     return skeletonCount;
   }, [rowCount]);

@@ -10,7 +10,8 @@ import {
   type Control,
   type FieldPathByValue,
   type FieldValues,
-  type SetFieldValue, useWatch,
+  type UseFormSetValue,
+  useWatch,
 } from 'react-hook-form';
 import { AutocompleteElement } from 'react-hook-form-mui';
 
@@ -58,7 +59,7 @@ export type FormGroupSearchProps<TFieldValues extends FieldValues> = {
   id?: string
   searchThrottleTimeout?: number
   required?: boolean
-  setFieldValue: SetFieldValue<TFieldValues>
+  setFieldValue: UseFormSetValue<TFieldValues>
   sx?: SxProps
 };
 
@@ -79,7 +80,15 @@ export const FormGroupSearch = <
   } = props;
 
   const updateFieldValue = useCallback(
-    (value: string) => setFieldValue(name, { name: value, groupId: null }),
+    (value: string) => setFieldValue(
+      name,
+      // TS does not really want to co-operate with this
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+      {
+        name: value,
+        groupId: null,
+      } satisfies OptionType as any
+    ),
     [setFieldValue, name]
   );
 

@@ -56,7 +56,7 @@ export const AddRowFormTemplate = <TFieldValues extends FieldValues = FieldValue
 
   return (
     <Dialog open={open} onClose={onClose} aria-label='Create item form'>
-      <DialogTitle>{title || 'Create row'}</DialogTitle>
+      <DialogTitle>{title ?? 'Create row'}</DialogTitle>
       <DialogContent>
         <FormProvider {...methods}>
           <Box

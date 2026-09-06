@@ -23,7 +23,7 @@ import type { ChapterRelease } from '@/types/api/chapter';
 import { MAX_OFFSET } from '@/webUtils/constants';
 
 import { getLatestChaptersQueryOptions } from '../api/chapter';
-import { getServicesQueryOptions } from '../api/services';
+import { servicesQueryOptions } from '../api/services';
 import { useIsUserAuthenticated } from '../store/userStore';
 
 const getGroupName = (_: unknown, chapters: ChapterRelease[]) => chapters[0].manga;
@@ -52,7 +52,7 @@ function App() {
       if (!lastPage) return false;
 
       return lastPage.offset >= MAX_OFFSET
-        || (last(pages || []) ?? []).length < pageSize;
+        || (last(pages) ?? []).length < pageSize;
     },
     [pageParams, pages]
   );
@@ -60,7 +60,7 @@ function App() {
   const {
     data: services,
     isFetching: isServicesFetching,
-  } = useQuery(getServicesQueryOptions);
+  } = useQuery(servicesQueryOptions);
 
   const chapters = useMemo(() => pages.flat(), [pages]);
   const groupedChapters = useGroupedChapters(chapters);

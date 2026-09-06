@@ -23,7 +23,7 @@ export type DbHelpers = {
   many: <T extends Row>(...args: TemplateArgs<T[]>) => Promise<RowList<T[]>>
   manyOrNone: <T extends Row>(...args: TemplateArgs<T[]>) => PendingQuery<T[]>
   any: <T extends Row>(...args: TemplateArgs<T[]>) => PendingQuery<T[]>
-  none: <T extends Row>(...args: TemplateArgs<T[]>) => Promise<void>
+  none: (...args: TemplateArgs) => Promise<void>
   sql: DbTransaction
 };
 
@@ -49,7 +49,8 @@ export const createHelpersForTransaction = (sql_: DbOrTransaction) => {
       throw new TooManyResultsError('Over one row found', result);
     }
 
-    return result[0] as unknown as T || null;
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    return result[0] ?? null;
   };
 
 
@@ -62,7 +63,7 @@ export const createHelpersForTransaction = (sql_: DbOrTransaction) => {
       throw new TooManyResultsError('Over one row found', result);
     }
 
-    return result[0] as unknown as T;
+    return result[0];
   };
 
   const many = async <T extends Row>(...args: TemplateArgs<T[]>): Promise<RowList<T[]>> => {

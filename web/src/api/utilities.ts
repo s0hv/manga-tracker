@@ -37,9 +37,13 @@ export class HTTPException extends Error {
  * @param status status code of the response
  * @throws {APIException} Thrown when errors found
  */
-export const getResponseData = async <T = any>(json: any, status: number): Promise<T> => {
+// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
+export const getResponseData = <T = any>(json: any, status: number): T => {
+  // Temporarily disabled until this utility is refactored
+  /* eslint-disable @typescript-eslint/no-unsafe-argument,@typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-assignment */
   let error = json.error;
   if (!error) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return json.data ?? json;
   }
 
@@ -52,6 +56,7 @@ export const getResponseData = async <T = any>(json: any, status: number): Promi
   }
 
   throw new APIException(error.msg || error, status);
+  /* eslint-enable @typescript-eslint/no-unsafe-argument,@typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-assignment */
 };
 
 type HandleResponse = {
@@ -65,8 +70,8 @@ type HandleResponse = {
  * @returns {Promise<any>} json body of the request
  * @throws {APIException} exception thrown if non-ok status code
  */
-export const handleResponse: HandleResponse = async <T = any>(res: Response): Promise<T | void> => {
-  const contentType = res.headers.get('content-type') || '';
+export const handleResponse: HandleResponse = async <T = any>(res: Response): Promise<T | undefined> => {
+  const contentType = res.headers.get('content-type') ?? '';
   const isJson = /application\/json/i.test(contentType);
 
   if (!res.ok && !isJson) {
@@ -81,7 +86,7 @@ export const handleResponse: HandleResponse = async <T = any>(res: Response): Pr
     .then(data => getResponseData<T>(data, res.status));
 };
 
-export const handleError = async (err: any): Promise<never> => {
+export const handleError = (err: any): never => {
   if (!(err instanceof APIException) && !(err instanceof HTTPException)) {
     console.error('Unhandled error', err);
     throw new Error('Unexpected error occurred');

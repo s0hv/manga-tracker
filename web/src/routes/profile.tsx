@@ -20,7 +20,7 @@ export const Route = createFileRoute('/profile')({
     middleware: [fullUserProviderMiddleware],
   },
   beforeLoad: async ({ serverContext, context }): Promise<{ profileUser: FrontendUserForProfile | null }> => {
-    validateLoggedIn(context);
+    await validateLoggedIn(context);
 
     const profileUser = serverContext
       ? serverContext.profileUser

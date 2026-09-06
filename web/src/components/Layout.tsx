@@ -78,7 +78,7 @@ export const Layout: FC<PropsWithChildren<RootProps>> = props => {
   // Will not be instant as the useEffect takes a bit to run.
   // Should not be the biggest problem since the default theme is system theme.
   useEffect(() => {
-    setMode(user?.theme || 'system');
+    setMode(user?.theme ?? 'system');
     // setMode changes when theme is changed
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);

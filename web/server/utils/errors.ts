@@ -2,7 +2,7 @@ export const HttpError = (statusCode: number, message?: string) => {
   if (!message && statusCode === 404) {
     message = 'Not found';
   }
-  message = message || 'Internal server error';
+  message = message ?? 'Internal server error';
   const err = new Error(message);
   (err as StatusError).status = statusCode;
   return err;
@@ -15,12 +15,13 @@ export const HttpError = (statusCode: number, message?: string) => {
  * only gives the error message if the error is an instance of Error.
  * This allows us to pass the whole error as the error parameter.
  */
-export class StatusError {
+export class StatusError extends Error {
   public message: string;
   public name: string;
   public status: number;
 
   constructor(message: string, name: string, status: number) {
+    super(message);
     this.message = message;
     this.name = name;
     this.status = status;

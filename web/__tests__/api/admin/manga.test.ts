@@ -1,3 +1,5 @@
+import type { Server } from 'http';
+
 import request from 'supertest';
 import {
   afterAll,
@@ -9,6 +11,7 @@ import {
 } from 'vitest';
 
 import {
+  type HttpServerReference,
   apiRequiresAdminUserGetTests,
   apiRequiresAdminUserPostTests,
   expectISEOnDbError,
@@ -38,9 +41,9 @@ import {
 } from '@/tests/constants';
 
 
-let httpServer: any;
-const serverReference = {
-  httpServer,
+let httpServer: Server;
+const serverReference: HttpServerReference = {
+  httpServer: undefined!,
 };
 
 beforeAll(async () => {
@@ -444,7 +447,7 @@ describe('POST /api/admin/manga/:mangaId/info', () => {
   it('returns 404 when manga not found', async () => {
     await withUser(adminUser, async () => {
       await request(httpServer)
-        .post(`/api/admin/manga/${999999}/info`)
+        .post(`/api/admin/manga/999999/info`)
         .csrf()
         .send({ status: 1 })
         .expect(404);
@@ -507,7 +510,7 @@ describe('POST /api/admin/manga/:mangaId/services/:serviceId', () => {
   const url = getUrl(1);
 
   const getMangaService = (mangaId: number) => getMangaServices(mangaId)
-    .then(ms => ms.filter(m => m.serviceId === serviceId)[0]);
+    .then(ms => ms.find(m => m.serviceId === serviceId)!);
 
 
   apiRequiresAdminUserPostTests(serverReference, url);
@@ -650,7 +653,7 @@ describe('POST /api/admin/manga/:mangaId/services/:serviceId/create', () => {
   const url = getUrl(1);
 
   const getMangaService = (mangaId: number) => getMangaServices(mangaId)
-    .then(ms => ms.filter(m => m.serviceId === serviceId)[0]);
+    .then(ms => ms.find(m => m.serviceId === serviceId)!);
 
   apiRequiresAdminUserPostTests(serverReference, url);
 

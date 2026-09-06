@@ -72,7 +72,7 @@ const EditableMangaInfo: FunctionComponent<MangaInfoProps> = ({ mangaData }) => 
   const updateInfo = useCallback<SubmitHandler<FormData>>(values => {
     updateMangaInfo(mangaData.mangaId, values)
       .then(() => enqueueSnackbar('Manga info updated', { variant: 'success' }))
-      .catch(err => enqueueSnackbar(`Failed to update manga info. ${err}`, { variant: 'error' }));
+      .catch((err: unknown) => enqueueSnackbar(`Failed to update manga info. ${String(err)}`, { variant: 'error' }));
   }, [enqueueSnackbar, mangaData.mangaId]);
 
   return (
@@ -98,7 +98,7 @@ const EditableMangaInfo: FunctionComponent<MangaInfoProps> = ({ mangaData }) => 
           <td>
             <DetailText>
               {(mangaData.releaseInterval
-                ? `${mangaData.releaseInterval?.days || 0} days ${mangaData.releaseInterval?.hours || 0} hours`
+                ? `${mangaData.releaseInterval?.days ?? 0} days ${mangaData.releaseInterval?.hours ?? 0} hours`
                 : 'Unknown')}
             </DetailText>
           </td>
@@ -121,7 +121,7 @@ const EditableMangaInfo: FunctionComponent<MangaInfoProps> = ({ mangaData }) => 
           </th>
           <td>
             <DetailText>
-              {mangaData.latestChapter ? mangaData.latestChapter : 'Unknown'}
+              {mangaData.latestChapter ?? 'Unknown'}
             </DetailText>
           </td>
         </tr>

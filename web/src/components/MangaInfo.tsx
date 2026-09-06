@@ -79,7 +79,7 @@ const MangaInfo: FunctionComponent<MangaInfoProps> = ({ mangaData, showId = fals
           <td>
             <DetailText>
               {(mangaData.releaseInterval
-                ? `${mangaData.releaseInterval?.days || 0} days ${mangaData.releaseInterval?.hours || 0} hours`
+                ? `${mangaData.releaseInterval?.days ?? 0} days ${mangaData.releaseInterval?.hours ?? 0} hours`
                 : 'Unknown')}
             </DetailText>
           </td>
@@ -102,7 +102,7 @@ const MangaInfo: FunctionComponent<MangaInfoProps> = ({ mangaData, showId = fals
           </th>
           <td>
             <DetailText>
-              {mangaData.latestChapter ? mangaData.latestChapter : 'Unknown'}
+              {mangaData.latestChapter ?? 'Unknown'}
             </DetailText>
           </td>
         </tr>

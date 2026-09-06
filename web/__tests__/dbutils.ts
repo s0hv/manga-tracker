@@ -15,7 +15,7 @@ import type { Session } from '@/types/session';
 
 export const sessionExists = async (sessionId: string, encrypted = true) => {
   if (encrypted) {
-    sessionId = unsignCookie(sessionId) as string;
+    sessionId = unsignCookie(sessionId);
   }
   expect(sessionId).not.toBeFalse();
 
@@ -111,7 +111,7 @@ export const expectOnlySessionInsert = (spy: SqlMock) => {
 
 export const sessionAssociatedWithUser = async (sessionId: string, encrypted = false) => {
   if (encrypted) {
-    sessionId = unsignCookie(sessionId) as string; // Type safety asserted on the next line
+    sessionId = unsignCookie(sessionId); // Type safety asserted on the next line
   }
   expect(sessionId).not.toBeFalse();
 
@@ -128,14 +128,18 @@ export const userSessionCount = async (uuid: string) => {
 };
 
 export const createManga = async (): Promise<number> => {
-  return db.one`INSERT INTO manga (title, release_interval, latest_release, estimated_release, latest_chapter) VALUES (${'test'}, NULL, NULL, NULL, NULL) RETURNING manga_id`
+  return db.one<{ mangaId: number }>`INSERT INTO manga (title, release_interval, latest_release, estimated_release, latest_chapter) 
+    VALUES (${'test'}, NULL, NULL, NULL, NULL) 
+    RETURNING manga_id`
     .then(row => row.mangaId);
 };
 
 export const createMangaService = async (serviceId: DatabaseId, customMangaId?: DatabaseId) => {
   const id = Date.now().toString();
-  return (customMangaId ? Promise.resolve(customMangaId) : createManga())
-    .then(mangaId => db.one`INSERT INTO manga_service (manga_id, service_id, last_check, title_id, next_update, latest_chapter, latest_decimal, feed_url) VALUES 
+  return (customMangaId
+    ? Promise.resolve(customMangaId)
+    : createManga())
+    .then(mangaId => db.one<{ mangaId: number }>`INSERT INTO manga_service (manga_id, service_id, last_check, title_id, next_update, latest_chapter, latest_decimal, feed_url) VALUES 
                                                            (${mangaId}, ${serviceId}, NULL, ${id}, NULL, NULL, NULL, ${id}) RETURNING manga_id`)
     .then(row => row.mangaId);
 };
@@ -143,7 +147,7 @@ export const createMangaService = async (serviceId: DatabaseId, customMangaId?: 
 export const copyService = async (serviceId: DatabaseId) => {
   const uniqueId = Date.now().toString();
 
-  const { serviceId: newServiceId } = await db.one`INSERT INTO services (service_name, url, disabled, last_check, chapter_url_format, disabled_until, manga_url_format, scheduled_runs_disabled_until)  
+  const { serviceId: newServiceId } = await db.one<{ serviceId: number }>`INSERT INTO services (service_name, url, disabled, last_check, chapter_url_format, disabled_until, manga_url_format, scheduled_runs_disabled_until)  
     SELECT service_name, url || ${uniqueId}::TEXT, disabled, last_check, chapter_url_format, disabled_until, manga_url_format, scheduled_runs_disabled_until 
     FROM services WHERE service_id=${serviceId}
     RETURNING service_id`;
@@ -158,9 +162,7 @@ export const copyService = async (serviceId: DatabaseId) => {
 };
 
 export const createChapterFail = async (chapterFail?: Omit<ChapterFail, 'timestamp'>) => {
-  const data = chapterFail
-    ? chapterFail
-    : generateSchema(ChapterFailSchema);
+  const data = chapterFail ?? generateSchema(ChapterFailSchema);
 
   await db.none`
       INSERT INTO chapters_failed ${db.sql(data)}`;

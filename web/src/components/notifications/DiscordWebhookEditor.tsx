@@ -45,7 +45,7 @@ import MangaSelector from './MangaSelector';
 import { NameInput } from './NameInput';
 import NotificationsForm from './NotificationsForm';
 import SaveButton from './SaveButton';
-import type { FormValues } from './types';
+import type { FormValues, NotificationComponentProps } from './types';
 
 type FieldTypes = {
   username: string | undefined | null
@@ -60,11 +60,6 @@ type FieldTypes = {
 };
 interface DiscordFormData extends FormValues, FieldTypes {}
 
-export type DiscordWebhookEditorProps = {
-  notificationData: NotificationData
-  defaultExpanded: boolean
-};
-
 const getFields = (values: DiscordFormData) => [
   { name: 'username', value: values.username },
   { name: 'embed_title', value: values.embed_title },
@@ -75,14 +70,14 @@ const getFields = (values: DiscordFormData) => [
   { name: 'footer', value: values.footer },
   { name: 'thumbnail', value: values.thumbnail },
   { name: 'color', value: values.color },
-].filter(f => (f.value?.length || 0) > 0);
+].filter(f => (f.value?.length ?? 0) > 0);
 
 
 const getNotificationFields = (override: number | null | undefined, notificationData: NotificationData): NotificationField[] => {
   if (override == null) return notificationData.fields;
 
-  const fields = notificationData.overrides[override];
-  return fields || [];
+  const fields: NotificationField[] = notificationData.overrides[override];
+  return fields ?? [];
 };
 
 const getInitialValues = (notificationData: NotificationData, notificationFields: NotificationField[]): Partial<DiscordFormData> => ({
@@ -299,7 +294,7 @@ const FormComponent: FC<FormComponentProps> = (
 };
 
 
-const DiscordWebhookEditor: React.FC<DiscordWebhookEditorProps> = ({
+const DiscordWebhookEditor: React.FC<NotificationComponentProps> = ({
   notificationData: notificationDataProp,
   defaultExpanded = false,
 }) => {
@@ -319,7 +314,7 @@ const DiscordWebhookEditor: React.FC<DiscordWebhookEditorProps> = ({
 
   const fieldRequired = useMemo<Record<keyof FieldTypes, boolean>>(() => {
     const mapped = mapNotificationFields<FieldTypes, 'optional'>(notificationData.fields, 'optional');
-    (Object.keys(mapped) as Array<keyof FieldTypes>)
+    (Object.keys(mapped) as (keyof FieldTypes)[])
       .forEach(key => {
         mapped[key] = !mapped[key];
       });
@@ -393,10 +388,10 @@ const DiscordWebhookEditor: React.FC<DiscordWebhookEditorProps> = ({
     });
 
     if (overrideId === null) {
-      (Object.entries(fieldRequired) as Array<[keyof FieldTypes, boolean]>)
+      (Object.entries(fieldRequired) as [keyof FieldTypes, boolean][])
         .forEach(([name, required]) => register(name, { required }));
     } else {
-      (Object.keys(fieldRequired) as Array<keyof FieldTypes>)
+      (Object.keys(fieldRequired) as (keyof FieldTypes)[])
         .forEach(name => register(name, { required: false }));
     }
 

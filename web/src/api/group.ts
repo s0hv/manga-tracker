@@ -11,7 +11,7 @@ const groupUrls = {
 
 export const searchGroups = (
   name: string,
-  limit: number = 10,
+  limit = 10,
   signal: AbortSignal
 ) => baseKy
   .get(groupUrls.search, {
@@ -25,7 +25,7 @@ export const searchGroups = (
   .then(SearchGroupResponse.parseAsync)
   .then(res => res.data);
 
-export const searchGroupsQueryOptions = (name: string, limit: number = 10) => queryOptions({
+export const searchGroupsQueryOptions = (name: string, limit = 10) => queryOptions({
   queryKey: [groupUrls.search, name, limit] as const,
   queryFn: ({ queryKey, signal }) => searchGroups(queryKey[1], queryKey[2], signal),
   enabled: !!name,

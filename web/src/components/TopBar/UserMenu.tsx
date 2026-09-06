@@ -50,7 +50,7 @@ export const UserMenu: FC<UserMenuProps> = ({ handleThemeChange }) => {
   const isUserAdmin = useIsUserAdmin();
 
   const handleClick = useCallback((event?: React.MouseEvent<HTMLButtonElement>) => {
-    setAnchorEl(event?.currentTarget || null);
+    setAnchorEl(event?.currentTarget ?? null);
   }, []);
 
   const handleClose = useCallback(() => {

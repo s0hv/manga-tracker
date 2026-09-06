@@ -72,7 +72,7 @@ describe('groupBy', () => {
       [groupB, 2],
     ];
     const groupedData: Group[] = groupCounts
-      .reduce((prev, g) => [...prev, ...generateData(g[0], g[1])], [] as Group[]);
+      .reduce<Group[]>((prev, g) => [...prev, ...generateData(g[0], g[1])], []);
 
     const grouped = groupBy(groupedData, groupKeyProperty);
     expect(grouped).toHaveLength(5);

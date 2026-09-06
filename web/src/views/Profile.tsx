@@ -88,17 +88,22 @@ const Profile: FC<ProfileProps> = props => {
     .then(() => {
       enqueueSnackbar('Profile updated successfully', { variant: 'success' });
     })
-    .catch(err => {
-      enqueueSnackbar(err.message, { variant: 'error' });
-      return { error: err.message };
+    .catch((err: unknown) => {
+      const errorMessage = err instanceof Error
+        ? err.message
+        : 'Failed to update profile';
+
+      enqueueSnackbar(errorMessage, { variant: 'error' });
+      return { error: errorMessage };
     }), [enqueueSnackbar]);
 
 
   const { isSubmitting, isValid } = formState;
 
   const deleteAccountDialog = useCallback(() => {
-    const confirmationKeyword = user.username || 'I understand';
-    confirm(({
+    const confirmationKeyword = user.username ?? 'I understand';
+
+    void confirm(({
       content: (
         <Typography sx={{ mb: 2 }} color='textSecondary'>
           This action is permanent and irreversible.
@@ -131,7 +136,7 @@ const Profile: FC<ProfileProps> = props => {
 
   const requestDataDialog = useCallback((event: SyntheticEvent<HTMLFormElement>) => {
     event.preventDefault();
-    confirm({
+    void confirm({
       title: 'Request for collected personal data',
       description: (
         `
