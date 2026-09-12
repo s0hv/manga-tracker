@@ -10,23 +10,23 @@ import type { Theme } from '@/types/dbTypes';
 
 
 export interface FrontendUser {
-  uuid: string
-  username: string | null
-  theme: Theme
-  admin: boolean
+  uuid: string;
+  username: string | null;
+  theme: Theme;
+  admin: boolean;
 }
 
 export interface FrontendUserForProfile extends FrontendUser {
-  email: string
-  isCredentialsAccount: boolean
+  email: string;
+  isCredentialsAccount: boolean;
 }
 
 interface UserStore {
-  user: FrontendUser | null
+  user: FrontendUser | null;
 
   actions: {
-    setUser: (user: FrontendUser | null) => void
-  }
+    setUser: (user: FrontendUser | null) => void;
+  };
 }
 
 const createUserStore = (initProps: Pick<UserStore, 'user'>) => {

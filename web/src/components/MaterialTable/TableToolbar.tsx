@@ -9,15 +9,15 @@ import { IconButton, Toolbar, Tooltip, Typography } from '@mui/material';
 
 
 export type DialogComponentProps = {
-  open: boolean
-  onClose: () => void
+  open: boolean;
+  onClose: () => void;
 };
 
 export type TableToolbarProps = {
-  title?: string
-  DialogComponent?: ComponentType<DialogComponentProps>
-  creatable?: boolean
-  addButtonLabel?: string
+  title?: string;
+  DialogComponent?: ComponentType<DialogComponentProps>;
+  creatable?: boolean;
+  addButtonLabel?: string;
 };
 
 

@@ -14,8 +14,8 @@ import {
 import { deleteNotificationMutationOptions, notificationsQueryKey } from '#web/api/notifications';
 
 export type DeleteNotificationButtonProps<T extends FieldValues> = {
-  control?: Control<T>
-  fieldName?: FieldPath<T>
+  control?: Control<T>;
+  fieldName?: FieldPath<T>;
 } & IconButtonProps;
 const DeleteNotificationButton = <T extends FieldValues>({
   control,

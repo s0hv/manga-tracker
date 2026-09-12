@@ -46,9 +46,9 @@ export type DbChapterForm = z.infer<typeof DbChapterForm>;
 export type AddChapterInitialValues = NullableExcept<DbChapterForm, 'serviceId' | 'chapterIdentifier'>;
 
 export type AddChapterModalProps = {
-  initialValues: AddChapterInitialValues
-  isOpen: boolean
-  onClose: () => void
+  initialValues: AddChapterInitialValues;
+  isOpen: boolean;
+  onClose: () => void;
 };
 
 const fitContentInput = {

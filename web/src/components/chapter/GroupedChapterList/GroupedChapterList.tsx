@@ -18,16 +18,16 @@ export type GroupedChapterListProps<
   TGroupExtraProps extends object = object,
   TChapterExtraProps extends object = object
 > = {
-  groupedChapters: GroupedChapters[]
-  groupToString: (mangaId: number, arr: ChapterRelease[]) => string
-  onLoadMore?: () => unknown
-  isLastPage?: boolean
-  GroupComponent: React.ComponentType<GroupComponentProps<TGroupExtraProps>>
-  ChapterComponent: React.ComponentType<ChapterComponentProps<TChapterExtraProps>>
-  loading?: boolean
-  pageSize?: number
-  maxShownChaptersPerManga?: number
-  chapterRowGap?: string
+  groupedChapters: GroupedChapters[];
+  groupToString: (mangaId: number, arr: ChapterRelease[]) => string;
+  onLoadMore?: () => unknown;
+  isLastPage?: boolean;
+  GroupComponent: React.ComponentType<GroupComponentProps<TGroupExtraProps>>;
+  ChapterComponent: React.ComponentType<ChapterComponentProps<TChapterExtraProps>>;
+  loading?: boolean;
+  pageSize?: number;
+  maxShownChaptersPerManga?: number;
+  chapterRowGap?: string;
 }
 & ExtraPropsField<'groupComponentProps', TGroupExtraProps>
 & ExtraPropsField<'chapterComponentProps', TChapterExtraProps>;

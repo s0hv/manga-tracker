@@ -81,15 +81,15 @@ export type Noop = (..._: any) => void;
 export const noop: Noop = () => {};
 
 export interface GroupedYearData {
-  timestamp: number
-  count: number
+  timestamp: number;
+  count: number;
 }
 
 export interface GroupedYear {
-  start: Date
-  end: Date
-  total: number
-  dataPoints: Record<string, number>
+  start: Date;
+  end: Date;
+  total: number;
+  dataPoints: Record<string, number>;
 }
 
 export type GroupedYears = Record<string, GroupedYear | { empty: true }>;

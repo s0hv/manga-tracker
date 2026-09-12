@@ -6,10 +6,10 @@ export interface FormValues extends Omit<NotificationData,
   | 'notificationType'
   | 'timesRun'
   | 'timesFailed'> {
-  overrideId: number | null
+  overrideId: number | null;
 }
 
 export interface NotificationComponentProps {
-  notificationData: NotificationData
-  defaultExpanded?: boolean
+  notificationData: NotificationData;
+  defaultExpanded?: boolean;
 }

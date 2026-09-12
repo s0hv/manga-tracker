@@ -15,10 +15,10 @@ export const updateUserTheme = (theme: Theme) => fetch(`${userUrls.theme}?value=
 
 
 export type UpdateProfileType = {
-  username?: string
-  password?: string
-  newPassword?: string
-  repeatPassword?: string
+  username?: string;
+  password?: string;
+  newPassword?: string;
+  repeatPassword?: string;
 };
 
 export const updateUserProfile = (body: UpdateProfileType) => fetch(userUrls.profile,

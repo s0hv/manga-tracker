@@ -57,12 +57,12 @@ import { defaultDateFormat } from '../utils/utilities';
 import { MaterialTable } from './MaterialTable';
 
 type ServiceOption = {
-  value: number
-  label: string
+  value: number;
+  label: string;
 };
 
 export interface MangaChapterWithUrl extends MangaChapter {
-  url: string
+  url: string;
 }
 
 function getRowId(row: MangaChapterWithUrl) {
@@ -94,8 +94,8 @@ const TitleCell = ({ row }: CellContext<Features, MangaChapterWithUrl, string>) 
 const allSelectedLabel = () => 'All services selected';
 
 type ServiceFilterProps = {
-  serviceMangaData?: Record<number, ServiceMangaData>
-  onChange: (services: number[] | undefined) => void
+  serviceMangaData?: Record<number, ServiceMangaData>;
+  onChange: (services: number[] | undefined) => void;
 };
 const ServiceFilter: FC<ServiceFilterProps> = ({ serviceMangaData, onChange }) => {
   const { data: services } = useQuery(servicesQueryOptions);
@@ -153,14 +153,14 @@ const ServiceFilter: FC<ServiceFilterProps> = ({ serviceMangaData, onChange }) =
 };
 
 export type ServiceMangaData = {
-  urlFormat: string
-  titleId: string
+  urlFormat: string;
+  titleId: string;
 };
 
 export type ChapterListProps = {
-  editable?: boolean
-  serviceMangaData?: Record<number, ServiceMangaData>
-  mangaId: MangaId
+  editable?: boolean;
+  serviceMangaData?: Record<number, ServiceMangaData>;
+  mangaId: MangaId;
 };
 
 function ChapterList(props: ChapterListProps): ReactElement {

@@ -16,9 +16,9 @@ export type FlattenType<T> = {
 } & {};
 
 export type SelectOption = {
-  label: string | number | React.ReactElement
-  value: string | number | undefined
-  disabled?: boolean
+  label: string | number | React.ReactElement;
+  value: string | number | undefined;
+  disabled?: boolean;
 };
 
 // True when every field of TExtraProps is already optional (i.e. Partial<TExtraProps> is

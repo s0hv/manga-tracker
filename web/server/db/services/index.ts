@@ -14,9 +14,9 @@ export const getServiceConfig = (serviceId: DatabaseId) => db.oneOrNone<ServiceC
 
 export const getServiceFull = (serviceId: DatabaseId) => {
   const retVal: {
-    service?: Service | null
-    serviceWhole?: ServiceWhole | null
-    serviceConfig?: ServiceConfig | null
+    service?: Service | null;
+    serviceWhole?: ServiceWhole | null;
+    serviceConfig?: ServiceConfig | null;
   } = {};
 
   return Promise.all([
@@ -78,8 +78,8 @@ interface UpdateServiceConfig extends Omit<
   | 'checkInterval'
 > {
   // These will be strings when inserting to thedb
-  scheduledRunInterval?: string
-  checkInterval?: string
+  scheduledRunInterval?: string;
+  checkInterval?: string;
 }
 
 /**

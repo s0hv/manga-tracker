@@ -16,8 +16,8 @@ import { EditableSelect } from '@/components/MaterialTable';
 import { getRowEditStateFromRow, rowEditingPlugin } from '@/components/MaterialTable/plugins';
 
 interface TestData {
-  id: string
-  status: string
+  id: string;
+  status: string;
 }
 
 const options = [

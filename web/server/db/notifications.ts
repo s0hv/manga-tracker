@@ -21,11 +21,11 @@ import {
 } from './helpers';
 
 type DbNotificationField = NotificationField & {
-  overrideId: number | null
+  overrideId: number | null;
 };
 
 export type DbNotificationData = Omit<NotificationData, 'fields'> & {
-  fields: DbNotificationField[]
+  fields: DbNotificationField[];
 };
 
 export function getUserNotifications(userId: DatabaseId): Promise<DbNotificationData[]>;
@@ -98,17 +98,17 @@ const updateUserNotificationFields = (t: DbHelpersFull<DbOrTransaction>, fields:
 };
 
 export type CreateUserNotification<T extends boolean> = {
-  notificationType: NotificationType
-  userId: DatabaseId
-  useFollows: T
-  disabled: boolean
+  notificationType: NotificationType;
+  userId: DatabaseId;
+  useFollows: T;
+  disabled: boolean;
 
-  groupByManga: boolean
-  destination: string
-  name?: string | null
+  groupByManga: boolean;
+  destination: string;
+  name?: string | null;
 
-  manga: T extends true ? null : NotificationManga[]
-  fields: NotificationFieldData[]
+  manga: T extends true ? null : NotificationManga[];
+  fields: NotificationFieldData[];
 };
 
 export const createUserNotification = <T extends boolean>({
@@ -148,10 +148,10 @@ export const createUserNotification = <T extends boolean>({
 });
 
 export type UpsertNotificationOverride = {
-  notificationId: DatabaseId
-  userId: DatabaseId
-  overrideId: DatabaseId
-  fields: NotificationFieldData[]
+  notificationId: DatabaseId;
+  userId: DatabaseId;
+  overrideId: DatabaseId;
+  fields: NotificationFieldData[];
 };
 
 export const upsertNotificationOverride = ({
@@ -183,7 +183,7 @@ export const upsertNotificationOverride = ({
 });
 
 export type UpdateUserNotification<T extends boolean> = CreateUserNotification<T> & {
-  notificationId: DatabaseId
+  notificationId: DatabaseId;
 };
 
 export const updateUserNotification = <T extends boolean>({
@@ -231,8 +231,8 @@ export const updateUserNotification = <T extends boolean>({
 });
 
 export type DeleteUserNotification = {
-  notificationId: DatabaseId
-  userId: DatabaseId
+  notificationId: DatabaseId;
+  userId: DatabaseId;
 };
 
 export const deleteUserNotification = ({

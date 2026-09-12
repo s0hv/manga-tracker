@@ -11,9 +11,9 @@ export interface EditableCheckboxProps<
   TFeatures extends TableFeaturesWithRowEditing,
   TData extends RowData
 > extends Omit<CheckboxProps, 'checked'> {
-  checked: boolean
-  ctx: CellContext<TFeatures, TData, boolean>
-  'aria-label'?: string
+  checked: boolean;
+  ctx: CellContext<TFeatures, TData, boolean>;
+  'aria-label'?: string;
 }
 /**
  * Checkbox component that modifies the react-table state when edited, allowing

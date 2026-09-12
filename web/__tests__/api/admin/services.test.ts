@@ -268,9 +268,9 @@ describe('POST /api/admin/editService/:serviceId', () => {
   });
 
   const expectUpdateDoneCorrectly = async (data: {
-    service?: Partial<Service> | null
-    serviceWhole?: Partial<ServiceWhole> | null
-    serviceConfig?: Partial<Omit<ServiceConfig, 'checkInterval' | 'scheduledRunInterval'> & { checkInterval: string, scheduledRunInterval: string }> | null
+    service?: Partial<Service> | null;
+    serviceWhole?: Partial<ServiceWhole> | null;
+    serviceConfig?: Partial<Omit<ServiceConfig, 'checkInterval' | 'scheduledRunInterval'> & { checkInterval: string; scheduledRunInterval: string }> | null;
   }) => {
     await withUser(adminUser, async () => {
       await request(httpServer)

@@ -50,7 +50,7 @@ beforeEach(async () => {
 });
 
 type RenderProps = {
-  selectedManga?: NotificationFollow[]
+  selectedManga?: NotificationFollow[];
 } & Omit<
   MangaSelectorProps,
   | 'name'
@@ -67,7 +67,7 @@ describe('MangaSelector', () => {
     </Root>
   );
 
-  const formatMangaName = ({ title, serviceName }: { title: string, serviceName: string | null }) => (
+  const formatMangaName = ({ title, serviceName }: { title: string; serviceName: string | null }) => (
     `${title} | ${serviceName ?? 'All services'}`
   );
 

@@ -35,7 +35,7 @@ export default defineConfig({
             });
         },
 
-        async runSql({ sql, params }: { sql: string, params?: ParameterOrJSON<IPostgresInterval>[] }): Promise<unknown> {
+        async runSql({ sql, params }: { sql: string; params?: ParameterOrJSON<IPostgresInterval>[] }): Promise<unknown> {
           return await db.sql.unsafe(sql, params);
         },
 

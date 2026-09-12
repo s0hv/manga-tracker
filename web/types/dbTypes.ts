@@ -4,14 +4,14 @@ export const Theme = z.literal(['system', 'light', 'dark']);
 export type Theme = z.infer<typeof Theme>;
 
 export interface SessionUser {
-  username: string
-  userUuid: string
-  userId: number
-  theme: Theme
-  admin: boolean
-  email: string
+  username: string;
+  userUuid: string;
+  userId: number;
+  theme: Theme;
+  admin: boolean;
+  email: string;
   // Calculated property
-  isCredentialsAccount: boolean
+  isCredentialsAccount: boolean;
 }
 
 export type SessionData = Record<string, any>;
@@ -21,13 +21,13 @@ export type SessionData = Record<string, any>;
  * Only contains time-related properties
  */
 export interface PostgresInterval {
-  years?: number
-  months?: number
-  days?: number
-  hours?: number
-  minutes?: number
-  seconds?: number
-  milliseconds?: number
+  years?: number;
+  months?: number;
+  days?: number;
+  hours?: number;
+  minutes?: number;
+  seconds?: number;
+  milliseconds?: number;
 }
 
 export enum MangaStatus {
@@ -46,6 +46,6 @@ export type MangaId = number | string;
 export type DatabaseId = number | string;
 
 export interface MangaInfoUpdate {
-  mangaId: MangaId
-  status: MangaStatus
+  mangaId: MangaId;
+  status: MangaStatus;
 }

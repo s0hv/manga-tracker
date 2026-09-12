@@ -60,7 +60,7 @@ const resolver = zodResolver(zodSchema);
 const defaultProfile: Partial<FrontendUserForProfile> = {};
 
 type ProfileProps = {
-  user: FrontendUserForProfile | null
+  user: FrontendUserForProfile | null;
 };
 const Profile: FC<ProfileProps> = props => {
   const user = props.user ?? defaultProfile;

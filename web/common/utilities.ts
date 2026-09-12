@@ -1,18 +1,18 @@
 export type Group<T> = {
-  group: string
-  arr: T[]
+  group: string;
+  arr: T[];
 };
 
 export type GetKey<T> = (value: T) => string;
 interface GroupByOptions<B extends boolean = boolean, C extends boolean = boolean> {
-  keepOrder: B
-  returnAsDict?: C
+  keepOrder: B;
+  returnAsDict?: C;
 }
 
 type GroupBy = {
-  <T, B extends true = true, C extends false = false>(arr: T[], getKeyOrKey: keyof T | GetKey<T>, options?: GroupByOptions<B, C>): Group<T>[]
-  <T, B extends false = false, C extends false = false>(arr: T[], getKeyOrKey: keyof T | GetKey<T>, options?: GroupByOptions<B, C>): T[][]
-  <T, B extends false = false, C extends true = true>(arr: T[], getKeyOrKey: keyof T | GetKey<T>, options?: GroupByOptions<B, C>): Record<string, T[]>
+  <T, B extends true = true, C extends false = false>(arr: T[], getKeyOrKey: keyof T | GetKey<T>, options?: GroupByOptions<B, C>): Group<T>[];
+  <T, B extends false = false, C extends false = false>(arr: T[], getKeyOrKey: keyof T | GetKey<T>, options?: GroupByOptions<B, C>): T[][];
+  <T, B extends false = false, C extends true = true>(arr: T[], getKeyOrKey: keyof T | GetKey<T>, options?: GroupByOptions<B, C>): Record<string, T[]>;
 };
 
 /**

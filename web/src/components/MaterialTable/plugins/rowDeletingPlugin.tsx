@@ -25,20 +25,20 @@ export interface TableOptions_RowDeleting<
   in out TFeatures extends TableFeatures,
   in out TData extends RowData
 > {
-  confirm: typeof confirm
-  onRowDelete?: (row: Row<TFeatures, TData>) => unknown
-  handleDeleteRowConfirmed?: (row: Row<TFeatures, TData>) => unknown
+  confirm: typeof confirm;
+  onRowDelete?: (row: Row<TFeatures, TData>) => unknown;
+  handleDeleteRowConfirmed?: (row: Row<TFeatures, TData>) => unknown;
 }
 
 export interface Table_RowDeleting<
   TFeatures extends TableFeatures,
   TData extends RowData
 > {
-  deleteRow: (row: Row<TFeatures, TData>) => unknown
+  deleteRow: (row: Row<TFeatures, TData>) => unknown;
 }
 
 export interface Row_RowDeleting {
-  delete: () => void
+  delete: () => void;
 }
 
 export function getDeleteColumnDef<

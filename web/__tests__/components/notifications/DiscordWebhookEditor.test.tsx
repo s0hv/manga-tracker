@@ -118,7 +118,7 @@ const defaultDataWithManga: NotificationData = {
 };
 
 describe('DiscordWebhookEditor', () => {
-  const Rendered = ({ notificationData, defaultExpanded = true }: { notificationData: NotificationData, defaultExpanded?: boolean }) => (
+  const Rendered = ({ notificationData, defaultExpanded = true }: { notificationData: NotificationData; defaultExpanded?: boolean }) => (
     <Root>
       <DiscordWebhookEditor
         notificationData={notificationData}

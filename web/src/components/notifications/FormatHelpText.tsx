@@ -3,8 +3,8 @@ import Info from '@mui/icons-material/Info';
 import { Box, Tooltip } from '@mui/material';
 
 export type FormatHelpTextProps = {
-  name: ReactNode
-  description: ReactNode
+  name: ReactNode;
+  description: ReactNode;
 };
 const FormatHelpText: FC<FormatHelpTextProps> = ({ name, description }) => (
   <Box sx={{ display: 'flex' }}>

@@ -15,8 +15,8 @@ type ChapterFailString = {
     ? string
     : ChapterFail[K]
 } & {
-  serviceName: string
-  releaseDateDb?: string
+  serviceName: string;
+  releaseDateDb?: string;
 };
 
 // Row that has every optional field populated, including an existing manga
@@ -200,7 +200,7 @@ describe('Chapter parsing fails page', () => {
 
     getRowByChapterIdentifier(fullFail.chapterIdentifier, 'none');
 
-    cy.task<{ title: string, chapterNumber: number }[]>('runSql', {
+    cy.task<{ title: string; chapterNumber: number }[]>('runSql', {
       sql: `SELECT title, chapter_number, group_id FROM chapters
             WHERE service_id = ${fullFail.serviceId} AND chapter_identifier = '${fullFail.chapterIdentifier}'`,
     }).then(rows => {

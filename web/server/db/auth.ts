@@ -108,8 +108,8 @@ const getAuthToken = (userUUID: string, lookup: string): Promise<AuthToken | nul
 };
 
 export type AuthTokenResponse = {
-  token: string
-  expiresAt: Date
+  token: string;
+  expiresAt: Date;
 };
 
 export const generateAuthToken = async (userId: number, userUUID: string): Promise<AuthTokenResponse> => {
@@ -249,7 +249,7 @@ export function clearUserAuthTokens(userId: number) {
   return db.none`DELETE FROM auth_token WHERE user_id=${userId}`;
 }
 
-export function parseAuthCookie(authCookie: string): null | { lookup: string, token: Uint8Array<ArrayBuffer>, userUUID: string } {
+export function parseAuthCookie(authCookie: string): null | { lookup: string; token: Uint8Array<ArrayBuffer>; userUUID: string } {
   /*
   Try to find the remember me token.
   If found, associate the current session with the user and regenerate session id (this is important)

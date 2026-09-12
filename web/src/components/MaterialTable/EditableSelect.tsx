@@ -17,10 +17,10 @@ export interface EditableSelectProps<
   TData extends Record<string, any>,
   TValue extends number | string | undefined
 > extends Omit<SelectProps<number | string>, 'onChange'> {
-  ctx: CellContext<TFeatures, TData, TValue>
-  items: { value: TValue, text: string }[]
-  onChange?: (val: TValue, ctx: CellContext<TFeatures, TData, TValue>) => void
-  value: TValue
+  ctx: CellContext<TFeatures, TData, TValue>;
+  items: { value: TValue; text: string }[];
+  onChange?: (val: TValue, ctx: CellContext<TFeatures, TData, TValue>) => void;
+  value: TValue;
 }
 
 /**

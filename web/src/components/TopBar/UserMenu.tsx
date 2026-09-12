@@ -39,7 +39,7 @@ const signOut = () => {
 };
 
 export type UserMenuProps = {
-  handleThemeChange: () => Theme
+  handleThemeChange: () => Theme;
 };
 
 export const UserMenu: FC<UserMenuProps> = ({ handleThemeChange }) => {

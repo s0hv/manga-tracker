@@ -48,15 +48,15 @@ import SaveButton from './SaveButton';
 import type { FormValues, NotificationComponentProps } from './types';
 
 type FieldTypes = {
-  username: string | undefined | null
-  embed_title: string | undefined | null
-  message: string | undefined | null
-  url: string | undefined | null
-  avatar_url: string | undefined | null
-  embed_content: string | undefined | null
-  footer: string | undefined | null
-  thumbnail: string | undefined | null
-  color: string | undefined | null
+  username: string | undefined | null;
+  embed_title: string | undefined | null;
+  message: string | undefined | null;
+  url: string | undefined | null;
+  avatar_url: string | undefined | null;
+  embed_content: string | undefined | null;
+  footer: string | undefined | null;
+  thumbnail: string | undefined | null;
+  color: string | undefined | null;
 };
 interface DiscordFormData extends FormValues, FieldTypes {}
 
@@ -94,13 +94,13 @@ const getInitialValues = (notificationData: NotificationData, notificationFields
 const mapOverrides = (notificationData: NotificationData) => new Set(Object.keys(notificationData.overrides).map(v => Number(v)));
 
 type FormComponentProps = {
-  defaultExpanded: boolean
-  overrides: Set<number>
-  fieldRequired: MappedNotificationField<boolean>
-  changeOverride: ChangeOverride
-  onSubmit: (e?: React.BaseSyntheticEvent) => Promise<unknown>
-  control: Control<DiscordFormData>
-  formState: FormState<DiscordFormData>
+  defaultExpanded: boolean;
+  overrides: Set<number>;
+  fieldRequired: MappedNotificationField<boolean>;
+  changeOverride: ChangeOverride;
+  onSubmit: (e?: React.BaseSyntheticEvent) => Promise<unknown>;
+  control: Control<DiscordFormData>;
+  formState: FormState<DiscordFormData>;
 };
 
 const FormComponent: FC<FormComponentProps> = (
@@ -302,8 +302,8 @@ const DiscordWebhookEditor: React.FC<NotificationComponentProps> = ({
   const [notificationData, setNotificationData] = useState<NotificationData>(notificationDataProp);
   const [overrides, setOverrides] = useState<Set<number>>(mapOverrides(notificationData));
   const [newFormData, setNewFormData] = useState<{
-    notificationData?: NotificationData
-    overrideId: number | null
+    notificationData?: NotificationData;
+    overrideId: number | null;
   }>({ overrideId: null });
 
   const notificationFields = useMemo<NotificationField[]>(() => getNotificationFields(null, notificationData),

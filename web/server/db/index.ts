@@ -22,13 +22,13 @@ const intervalType: PostgresType<IPostgresInterval> = {
 };
 
 export type CustomTypes = {
-  undefined: PostgresType<undefined>
-  interval: typeof intervalType
+  undefined: PostgresType<undefined>;
+  interval: typeof intervalType;
 };
 
 export type CustomTypesTransaction = {
-  undefined: undefined
-  interval: IPostgresInterval
+  undefined: undefined;
+  interval: IPostgresInterval;
 };
 
 export type Db = ReturnType<typeof postgres<CustomTypes>>;

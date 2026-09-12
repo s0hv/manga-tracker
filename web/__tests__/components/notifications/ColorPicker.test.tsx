@@ -30,7 +30,7 @@ class FakeMouseEvent extends MouseEvent {
   pageX_: number;
   pageY_: number;
 
-  constructor(type: string, values: MouseEventInit & { pageX?: number, pageY?: number } = {}) {
+  constructor(type: string, values: MouseEventInit & { pageX?: number; pageY?: number } = {}) {
     super(type, { buttons: 1, bubbles: true, ...values });
     Object.assign(this, {
       pageX: values.pageX ?? 0,

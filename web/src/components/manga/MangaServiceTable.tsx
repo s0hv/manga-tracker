@@ -45,12 +45,12 @@ import type { DialogComponentProps } from '../MaterialTable/TableToolbar';
 
 
 export type MangaServiceTableProps = {
-  mangaId: MangaId
-  sx?: SxProps
+  mangaId: MangaId;
+  sx?: SxProps;
 };
 
 type MangaServiceForm = MangaServiceCreateData & {
-  serviceId: string
+  serviceId: string;
 };
 
 const features = tableFeatures({

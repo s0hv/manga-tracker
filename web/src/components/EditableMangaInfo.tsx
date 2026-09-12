@@ -38,11 +38,11 @@ const InfoTable = styled('table')(({ theme }) => ({
 }));
 
 export type MangaInfoProps = {
-  mangaData: MangaData & Pick<MangaInfoData, 'status'>
+  mangaData: MangaData & Pick<MangaInfoData, 'status'>;
 };
 
 interface FormData {
-  status: MangaStatus
+  status: MangaStatus;
 }
 
 const statusOptions = enumValues(MangaStatus)

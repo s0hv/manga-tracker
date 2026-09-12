@@ -26,7 +26,7 @@ export type { WithRequiredFeature } from './plugins/types';
 
 export type TableAPI<TTable> = {
   [K in keyof TTable as K extends string ? `table_${K}` : never]: {
-    fn: TTable[K]
+    fn: TTable[K];
   }
 };
 
@@ -37,35 +37,35 @@ export type RowPrototype<TRow> = {
         row: Row<TableFeatures, RowData>,
         ...rest: P
       ) => R
-      : never
+      : never;
   }
 };
 
 /* eslint-disable @typescript-eslint/no-unused-vars */
 declare module '@tanstack/react-table' {
   interface Plugins {
-    rowEditingPlugin: TableFeature
-    rowDeletingPlugin: TableFeature
+    rowEditingPlugin: TableFeature;
+    rowDeletingPlugin: TableFeature;
   }
 
   interface TableState_FeatureMap {
-    rowEditingPlugin: TableState_RowEditing
+    rowEditingPlugin: TableState_RowEditing;
   }
 
   interface TableOptions_FeatureMap<
     TFeatures extends TableFeatures,
     TData extends RowData
   > {
-    rowEditingPlugin: TableOptions_RowEditing<TFeatures, TData>
-    rowDeletingPlugin: TableOptions_RowDeleting<TFeatures, TData>
+    rowEditingPlugin: TableOptions_RowEditing<TFeatures, TData>;
+    rowDeletingPlugin: TableOptions_RowDeleting<TFeatures, TData>;
   }
 
   interface Table_FeatureMap<
     TFeatures extends TableFeatures,
     TData extends RowData
   > {
-    rowEditingPlugin: Table_RowEditing<TFeatures, TData>
-    rowDeletingPlugin: Table_RowDeleting<TFeatures, TData>
+    rowEditingPlugin: Table_RowEditing<TFeatures, TData>;
+    rowDeletingPlugin: Table_RowDeleting<TFeatures, TData>;
   }
 
   interface ColumnDef_FeatureMap<
@@ -73,15 +73,15 @@ declare module '@tanstack/react-table' {
     in out TData extends RowData,
     TValue extends CellData
   > {
-    rowEditingPlugin: ColumnDef_RowEditing<TFeatures, TData, TValue>
+    rowEditingPlugin: ColumnDef_RowEditing<TFeatures, TData, TValue>;
   }
 
   interface Row_FeatureMap<
     in out TFeatures extends TableFeatures,
     in out TData extends RowData
   > {
-    rowEditingPlugin: Row_RowEditing
-    rowDeletingPlugin: Row_RowDeleting
+    rowEditingPlugin: Row_RowEditing;
+    rowDeletingPlugin: Row_RowDeleting;
   }
 
   interface ColumnMeta<
@@ -89,17 +89,17 @@ declare module '@tanstack/react-table' {
     TData extends RowData,
     TValue extends CellData = CellData
   > {
-    padding?: TableCellProps['padding']
-    width?: CSSStyleProperties['width'] | number
-    minWidth?: CSSStyleProperties['minWidth'] | number
+    padding?: TableCellProps['padding'];
+    width?: CSSStyleProperties['width'] | number;
+    minWidth?: CSSStyleProperties['minWidth'] | number;
   }
 
   interface TableMeta<
     TFeatures extends TableFeatures,
     TData extends RowData
   > {
-    classes?: Record<string, string>
-    confirm: typeof confirm
+    classes?: Record<string, string>;
+    confirm: typeof confirm;
   }
 }
 /* eslint-enable @typescript-eslint/no-unused-vars */

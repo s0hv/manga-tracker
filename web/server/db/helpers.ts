@@ -18,21 +18,21 @@ type TemplateArgs<T extends RowType = Row[]> = Parameters<typeof sql<T>>;
 type DbTransaction = TransactionType;
 
 export type DbHelpers = {
-  one: <T extends Row>(...args: TemplateArgs<T[]>) => Promise<T>
-  oneOrNone: <T extends Row>(...args: TemplateArgs<T[]>) => Promise<T | null>
-  many: <T extends Row>(...args: TemplateArgs<T[]>) => Promise<RowList<T[]>>
-  manyOrNone: <T extends Row>(...args: TemplateArgs<T[]>) => PendingQuery<T[]>
-  any: <T extends Row>(...args: TemplateArgs<T[]>) => PendingQuery<T[]>
-  none: (...args: TemplateArgs) => Promise<void>
-  sql: DbTransaction
+  one: <T extends Row>(...args: TemplateArgs<T[]>) => Promise<T>;
+  oneOrNone: <T extends Row>(...args: TemplateArgs<T[]>) => Promise<T | null>;
+  many: <T extends Row>(...args: TemplateArgs<T[]>) => Promise<RowList<T[]>>;
+  manyOrNone: <T extends Row>(...args: TemplateArgs<T[]>) => PendingQuery<T[]>;
+  any: <T extends Row>(...args: TemplateArgs<T[]>) => PendingQuery<T[]>;
+  none: (...args: TemplateArgs) => Promise<void>;
+  sql: DbTransaction;
 };
 
 export type TransactionType = TransactionSql<CustomTypesTransaction>;
 export type DbOrTransaction = Db | TransactionType;
 
 export type DbHelpersFull<TSql extends DbOrTransaction = Db> = Omit<DbHelpers, 'sql'> & {
-  transaction: <T>(callback: (sql: DbHelpers) => Promise<T>) => Promise<T>
-  sql: TSql
+  transaction: <T>(callback: (sql: DbHelpers) => Promise<T>) => Promise<T>;
+  sql: TSql;
 };
 
 export const createHelpersForTransaction = (sql_: DbOrTransaction) => {

@@ -106,8 +106,8 @@ export function makeStateUpdaterGeneric<
 >(
   key: (string & {}) | keyof TableState_All | keyof TableState<TFeatures>,
   instance: {
-    readonly options: { readonly atoms?: object | undefined }
-    readonly baseAtoms: object
+    readonly options: { readonly atoms?: object | undefined };
+    readonly baseAtoms: object;
   }
 ) {
   return makeStateUpdater(key as string, instance) as OnChangeFn<TData>;

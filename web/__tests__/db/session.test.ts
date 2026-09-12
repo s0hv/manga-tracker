@@ -274,8 +274,8 @@ describe('clearOldSessions and manga views', () => {
     await vi.waitFor(() => expect(viewsSpy).toHaveBeenCalledTimes(rowDatas.length));
 
     type MangaResult = {
-      mangaId: number
-      views: number
+      mangaId: number;
+      views: number;
     };
     const modifiedManga = await db.many<MangaResult>`SELECT manga_id, views FROM manga WHERE manga_id IN ${db.sql(Object.keys(expectedMangaViews))}`;
     const actualMangaViews = Object.fromEntries(

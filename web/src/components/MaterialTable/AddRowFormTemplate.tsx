@@ -22,13 +22,13 @@ export const defaultSx: SxProps = {
 };
 
 export type AddRowFormTemplateProps<TFieldValues extends FieldValues = FieldValues> = {
-  fields: ReactNode[]
-  onSuccess: SubmitHandler<TFieldValues>
-  onClose: () => unknown
-  open: boolean
-  closeOnSubmit?: boolean
-  title?: string
-  sx?: SxProps
+  fields: ReactNode[];
+  onSuccess: SubmitHandler<TFieldValues>;
+  onClose: () => unknown;
+  open: boolean;
+  closeOnSubmit?: boolean;
+  title?: string;
+  sx?: SxProps;
 } & UseFormProps<TFieldValues>;
 
 export const AddRowFormTemplate = <TFieldValues extends FieldValues = FieldValues>(

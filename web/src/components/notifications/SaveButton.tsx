@@ -3,8 +3,8 @@ import { Button } from '@mui/material';
 
 
 export type SaveButtonProps = {
-  submitting?: boolean
-  hasValidationErrors?: boolean
+  submitting?: boolean;
+  hasValidationErrors?: boolean;
 };
 const SaveButton = ({ submitting, hasValidationErrors }: SaveButtonProps) => (
   <Button

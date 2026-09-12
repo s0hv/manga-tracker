@@ -105,7 +105,7 @@ export const getChapters = (
     .map(sort => db.sql`${db.sql(sort.col)}${sort.desc ? db.sql` DESC` : db.sql``}${sort.nullsLast ? db.sql` NULLS LAST` : db.sql``}`)
     .reduce((acc, sort) => db.sql`${acc}, ${sort}`);
 
-  return db.oneOrNone<{ count: number, chapters: MangaChapter[], exists: boolean }>`
+  return db.oneOrNone<{ count: number; chapters: MangaChapter[]; exists: boolean }>`
     SELECT
         COUNT(*)::INT as count,
         (

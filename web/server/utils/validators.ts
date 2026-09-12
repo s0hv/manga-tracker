@@ -19,9 +19,9 @@ export function validateRequest<
   TBody extends z.ZodType = z.ZodUnknown,
   TQuery extends z.ZodType = z.ZodUnknown
 >(validations: {
-  body?: TBody
-  params?: TParams
-  query?: TQuery
+  body?: TBody;
+  params?: TParams;
+  query?: TQuery;
 }): RequestHandler<z.output<TParams>, unknown, z.output<TBody>, z.output<TQuery>>;
 
 export function validateRequest<
@@ -30,9 +30,9 @@ export function validateRequest<
   TQuery extends z.ZodType = z.ZodUnknown
 >(
   validations: {
-    body?: TBody
-    params?: TParams
-    query?: TQuery
+    body?: TBody;
+    params?: TParams;
+    query?: TQuery;
   },
   ...preValidations: RequestHandler<z.output<TParams>, unknown, z.output<TBody>, z.output<TQuery>>[]
 ): RequestHandler<z.output<TParams>, unknown, z.output<TBody>, z.output<TQuery>>[];
@@ -54,9 +54,9 @@ export function validateRequest<
   params,
   query,
 }: {
-  body?: TBody
-  params?: TParams
-  query?: TQuery
+  body?: TBody;
+  params?: TParams;
+  query?: TQuery;
 },
 ...preValidations: RequestHandler<z.output<TParams>, unknown, z.output<TBody>, z.output<TQuery>>[]): RequestHandler<z.output<TParams>, unknown, z.output<TBody>, z.output<TQuery>> | RequestHandler<z.output<TParams>, unknown, z.output<TBody>, z.output<TQuery>>[] {
   const validator: RequestHandler<z.output<TParams>, unknown, z.output<TBody>, z.output<TQuery>> = async (req, res, next) => {

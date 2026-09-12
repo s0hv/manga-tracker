@@ -13,8 +13,8 @@ const userCache = createSingleton('userCache', () => new LRUCache<number, User>(
 }));
 
 type GetUser = {
-  (userId: number, options: { expectExists: true, noCache?: boolean, conn?: DbHelpers | DbHelpersFull }): Promise<User>
-  (userId: number, options?: { expectExists?: false, noCache?: boolean, conn?: DbHelpers | DbHelpersFull }): Promise<User | null>
+  (userId: number, options: { expectExists: true; noCache?: boolean; conn?: DbHelpers | DbHelpersFull }): Promise<User>;
+  (userId: number, options?: { expectExists?: false; noCache?: boolean; conn?: DbHelpers | DbHelpersFull }): Promise<User | null>;
 };
 
 export const getUser: GetUser = (async (userId, options = {}) => {
@@ -74,10 +74,10 @@ export const createOAuthUser = async ({
   provider,
   accountId,
 }: {
-  username: string
-  email: string
-  provider: OAuthProvider
-  accountId: string
+  username: string;
+  email: string;
+  provider: OAuthProvider;
+  accountId: string;
 }) => {
   return db.transaction(async tran => {
     const user = await createUser({ username, email, password: null, conn: tran });
@@ -95,13 +95,13 @@ export const createUser = async ({
   password,
   conn = db,
 }: {
-  username: string
-  email: string
-  password: string | null
-  conn?: DbHelpers | DbHelpersFull
+  username: string;
+  email: string;
+  password: string | null;
+  conn?: DbHelpers | DbHelpersFull;
 }) => {
   const { userId } = await conn.one<{
-    userId: number
+    userId: number;
   }>`INSERT INTO users (username, email, pwhash) VALUES (${username}, ${email}, crypt(${password}, gen_salt('bf'))) RETURNING user_id`;
 
   return getUser(userId, { expectExists: true, conn });

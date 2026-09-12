@@ -60,8 +60,8 @@ export const getResponseData = <T = any>(json: any, status: number): T => {
 };
 
 type HandleResponse = {
-  <T = any>(res: Response): Promise<T>
-  (res: Response): Promise<void>
+  <T = any>(res: Response): Promise<T>;
+  (res: Response): Promise<void>;
 };
 
 /**

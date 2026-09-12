@@ -34,8 +34,8 @@ describe('groupBy', () => {
 
   const groupKeyProperty = 'group';
   type Group<T = string> = {
-    group: T
-    value: number
+    group: T;
+    value: number;
   };
 
   const generateData = <T = string>(group: T, count = 1): Group<T>[] => new Array(count).fill(0)

@@ -71,7 +71,7 @@ vi.mock('@/db/elasticsearch', async () => {
 });
 
 
-export default async function initServer(): Promise<{ httpServer: Server, addr: string }> {
+export default async function initServer(): Promise<{ httpServer: Server; addr: string }> {
   process.env.PORT = '0';
   const httpServer = await import('../server')
     .then(m => m.default)

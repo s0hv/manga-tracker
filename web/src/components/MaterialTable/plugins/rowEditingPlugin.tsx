@@ -33,19 +33,19 @@ export type TableFeaturesWithRowEditing = WithRequiredFeature<'rowEditingPlugin'
 type RowEditState<TData extends Record<string, any>> = Record<string, TData | undefined>;
 
 export interface TableState_RowEditing {
-  rowEditing: Record<string, boolean>
-  rowEditState: RowEditState<Partial<Record<string, any>>>
+  rowEditing: Record<string, boolean>;
+  rowEditState: RowEditState<Partial<Record<string, any>>>;
 }
 
 export interface TableOptions_RowEditing<
   in out TFeatures extends TableFeatures,
   in out TData extends RowData
 > {
-  onRowEditingChange?: OnChangeFn<Record<string, boolean>>
-  onRowEditStateChange?: OnChangeFn<RowEditState<TData>>
-  rowEditColumnClass?: string
-  onSaveRowEdit?: (row: Row<TFeatures, TData>) => unknown
-  onCancelRowEdit?: (row: Row<TFeatures, TData>) => unknown
+  onRowEditingChange?: OnChangeFn<Record<string, boolean>>;
+  onRowEditStateChange?: OnChangeFn<RowEditState<TData>>;
+  rowEditColumnClass?: string;
+  onSaveRowEdit?: (row: Row<TFeatures, TData>) => unknown;
+  onCancelRowEdit?: (row: Row<TFeatures, TData>) => unknown;
 }
 
 // Define types for our new feature's table APIs
@@ -53,8 +53,8 @@ export interface Table_RowEditing<
   TFeatures extends TableFeatures,
   TData extends RowData
 > {
-  setRowEditable: (updater: Updater<RowEditState<TData>>) => void
-  saveRow: (row: Row<TFeatures, TData>) => unknown
+  setRowEditable: (updater: Updater<RowEditState<TData>>) => void;
+  saveRow: (row: Row<TFeatures, TData>) => unknown;
 }
 
 export interface ColumnDef_RowEditing<
@@ -65,18 +65,18 @@ export interface ColumnDef_RowEditing<
   /**
    * Enables/Disables editing for this column
    */
-  enableEditing?: boolean
+  enableEditing?: boolean;
 
   /**
    * Renders the cell when the row is in edit mode
    */
-  EditCell?: ColumnDefTemplate<CellContext<TFeatures, TData, TValue>>
+  EditCell?: ColumnDefTemplate<CellContext<TFeatures, TData, TValue>>;
 }
 
 export interface Row_RowEditing {
-  startEditing: () => void
-  cancelEditing: () => void
-  saveEdits: () => void
+  startEditing: () => void;
+  cancelEditing: () => void;
+  saveEdits: () => void;
 }
 
 export function getEditColumnDef<

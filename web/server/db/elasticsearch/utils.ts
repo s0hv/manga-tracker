@@ -13,8 +13,8 @@ export const handleElasticError = (err: unknown, res: Response) => {
 };
 
 export type ExtractedFields = {
-  score: number
-  [key: string]: unknown
+  score: number;
+  [key: string]: unknown;
 };
 export type CustomFieldFormatter<T extends boolean> = (fields: MangaSearchResultFields<T>) => Record<string, unknown>;
 

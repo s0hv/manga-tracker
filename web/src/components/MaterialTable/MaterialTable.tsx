@@ -75,17 +75,17 @@ export type MaterialTableProps<
   TData extends RowData,
   TSelected
 > = {
-  table: ReactTable<TFeatures, TData, TSelected>
-  title?: string
-  ariaLabel?: string
-  id?: string
+  table: ReactTable<TFeatures, TData, TSelected>;
+  title?: string;
+  ariaLabel?: string;
+  id?: string;
   /* Number of rows in a paginated table and number of skeleton rows while loading */
-  rowCount?: number
-  loading?: boolean
-  CreateDialog?: ComponentType<DialogComponentProps>
-  toolbarProps?: TableToolbarProps
-  enableRowCreation?: boolean
-  sx?: SxProps
+  rowCount?: number;
+  loading?: boolean;
+  CreateDialog?: ComponentType<DialogComponentProps>;
+  toolbarProps?: TableToolbarProps;
+  enableRowCreation?: boolean;
+  sx?: SxProps;
 };
 
 /**

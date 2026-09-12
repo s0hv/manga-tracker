@@ -6,13 +6,13 @@ import { throttle } from 'es-toolkit';
 export type FormMangaSearchProps<
   TOption,
 > = {
-  getOptionLabel: (option: TOption) => string
+  getOptionLabel: (option: TOption) => string;
   // Callback to set the field value to the current search string.
   // This will always be called on change regardless of throttling.
   // Use it to keep your inputs in sync.
-  setFieldValue: (option: string) => void
-  searchThrottleTimeout?: number
-  initialSearchValue?: string
+  setFieldValue: (option: string) => void;
+  searchThrottleTimeout?: number;
+  initialSearchValue?: string;
 };
 
 export const useAutocompleteWithSearch = <TOption,>(props: FormMangaSearchProps<TOption>) => {

@@ -27,9 +27,9 @@ const YearContainer = styled('div')({
 });
 
 export type ReleaseHeatmapProps = {
-  title?: ReactNode
-  id?: string
-  dataRows: ChapterReleaseDates[] | undefined
+  title?: ReactNode;
+  id?: string;
+  dataRows: ChapterReleaseDates[] | undefined;
 };
 const ReleaseHeatmap: FC<ReleaseHeatmapProps> = props => {
   const {

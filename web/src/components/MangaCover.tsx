@@ -8,11 +8,11 @@ import React, {
 const MANGADEX_COVER_HOST = 'uploads.mangadex.org';
 
 export interface MangaCoverProps extends DetailedHTMLProps<ImgHTMLAttributes<HTMLImageElement>, HTMLImageElement> {
-  url: string | null | undefined
-  alt: string
-  size?: number
-  maxWidth?: number
-  minWidth?: CSSStyleProperties['minWidth']
+  url: string | null | undefined;
+  alt: string;
+  size?: number;
+  maxWidth?: number;
+  minWidth?: CSSStyleProperties['minWidth'];
 }
 
 export const MangaCover: FC<MangaCoverProps> = ({

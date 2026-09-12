@@ -27,7 +27,7 @@ const SourceList = styled('div')(({ theme }) => ({
 }));
 
 export type PartialMangaProps = Partial<Pick<FullMangaData, 'manga' | 'services'>> & {
-  showId?: boolean
+  showId?: boolean;
 };
 function PartialManga(props: PartialMangaProps) {
   const {

@@ -51,16 +51,16 @@ const isOptionEqualToValue = (
 
 
 export type FormGroupSearchProps<TFieldValues extends FieldValues> = {
-  control: Control<TFieldValues>
-  name: FieldPathByValue<TFieldValues, OptionType | null>
-  label?: string
-  placeholder?: string
-  renderItem?: RenderListOption
-  id?: string
-  searchThrottleTimeout?: number
-  required?: boolean
-  setFieldValue: UseFormSetValue<TFieldValues>
-  sx?: SxProps
+  control: Control<TFieldValues>;
+  name: FieldPathByValue<TFieldValues, OptionType | null>;
+  label?: string;
+  placeholder?: string;
+  renderItem?: RenderListOption;
+  id?: string;
+  searchThrottleTimeout?: number;
+  required?: boolean;
+  setFieldValue: UseFormSetValue<TFieldValues>;
+  sx?: SxProps;
 };
 
 export const FormGroupSearch = <

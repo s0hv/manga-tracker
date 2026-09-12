@@ -6,32 +6,33 @@ import { MangaForElastic } from '../manga';
 export const index = process.env.ES_INDEX ?? 'manga';
 
 type ServiceFields = {
-  'services.service_name'?: string[]
-  'services.service_id'?: number[]
+  'services.service_name'?: string[];
+  'services.service_id'?: number[];
 };
 
 export type MangaSearchResultFields<
   TWithService extends boolean,
   // Array type is used to hack TypeScript into working correctly with conditional types
   // https://github.com/microsoft/TypeScript/issues/51822#issuecomment-1344612998
-  TReturnType = [TWithService] extends [false] ? Partial<unknown> : ServiceFields> = {
-    manga_id: number[]
-    title: string[]
-  } & TReturnType;
+  TReturnType = [TWithService] extends [false] ? { manga_id: number[] } : ServiceFields
+> = {
+  manga_id: number[];
+  title: string[];
+} & TReturnType;
 
 export type MangaSearchResult<TWithService extends boolean> = {
   hits: {
     total: {
-      value: number
-      relation: string
-    }
-    max_score: number
+      value: number;
+      relation: string;
+    };
+    max_score: number;
     hits: {
-      _id: string
-      _score: number
-      fields: MangaSearchResultFields<TWithService>
-    }[]
-  }
+      _id: string;
+      _score: number;
+      fields: MangaSearchResultFields<TWithService>;
+    }[];
+  };
 };
 
 const getMultiMatchForField = (query: string, field: string) => ({
@@ -49,7 +50,7 @@ const getMultiMatchesForFields = (query: string, ...fields: [string, ...string[]
   return fields.map(field => getMultiMatchForField(query, field));
 };
 
-export const mangaSearch = <TWithServices extends boolean>(
+export const mangaSearch = <TWithServices extends boolean = false>(
   query: string,
   count: number,
   withServices: TWithServices = false as TWithServices,

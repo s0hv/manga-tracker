@@ -28,8 +28,8 @@ import type {
 import { getMangaQueryOptions, postMergeManga } from '../api/manga';
 
 type MergeResult = {
-  message?: string
-  error?: boolean
+  message?: string;
+  error?: boolean;
 };
 
 const PREFIX = 'MergeManga';
@@ -66,11 +66,11 @@ const MergeArrowText = styled(Typography)({
 
 
 type ServicesListProps = {
-  services: { name: string, serviceId: number }[] | null
+  services: { name: string; serviceId: number }[] | null;
   // Explicit definition for the sake of documentation of the special string
   // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
-  value: 'all' | number | string
-  setValue: (value: number | string) => void
+  value: 'all' | number | string;
+  setValue: (value: number | string) => void;
 };
 const ServicesList: FC<ServicesListProps> = ({ services, value, setValue }) => {
   if (!services) return null;

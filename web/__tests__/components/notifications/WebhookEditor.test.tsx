@@ -49,7 +49,7 @@ const defaultNotificationDataNoManga: NotificationData = {
 };
 
 describe('WebhookEditor', () => {
-  const Rendered = ({ notificationData, defaultExpanded = true }: { notificationData: NotificationData, defaultExpanded?: boolean }) => (
+  const Rendered = ({ notificationData, defaultExpanded = true }: { notificationData: NotificationData; defaultExpanded?: boolean }) => (
     <Root>
       <WebhookEditor
         notificationData={notificationData}

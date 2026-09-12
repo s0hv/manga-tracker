@@ -3,21 +3,21 @@ import { ChapterCreateSchema, generateNSchemas, setupFaker } from '../__tests__/
 setupFaker();
 
 export type GeneratedChapterFields = {
-  title: string
-  chapterNumber: number
-  chapterDecimal: number | null
+  title: string;
+  chapterNumber: number;
+  chapterDecimal: number | null;
 };
 
 export type CreateChaptersParams = {
-  mangaId: number
-  serviceId: number
-  count: number
+  mangaId: number;
+  serviceId: number;
+  count: number;
   /** Release date of the most recent generated chapter; older chapters are spaced earlier */
-  latestReleaseDate: Date
+  latestReleaseDate: Date;
   /** Minutes between each generated chapter's release date. Defaults to 60 */
-  intervalMinutes?: number
+  intervalMinutes?: number;
   /** Prefix used for chapter_identifier. Pass to deleteChaptersByIdentifierPrefix to clean up */
-  identifierPrefix: string
+  identifierPrefix: string;
 };
 
 /**
@@ -61,10 +61,10 @@ export function deleteChaptersByIdentifierPrefix(serviceId: number, identifierPr
 }
 
 export type RowByColumnParams = {
-  column: string | RegExp
-  value: string
-  tableName?: string | RegExp
-  expectedRows?: 'none' | 'one' | 'many'
+  column: string | RegExp;
+  value: string;
+  tableName?: string | RegExp;
+  expectedRows?: 'none' | 'one' | 'many';
 };
 
 export function getTableRowByColumnValue({

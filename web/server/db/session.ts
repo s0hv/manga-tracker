@@ -32,7 +32,7 @@ export const sessionCache = createSingleton('sessionCache', () => new LRUCache<s
 }));
 
 type SessionClearInterval = {
-  handle: null | NodeJS.Timeout
+  handle: null | NodeJS.Timeout;
 };
 
 const sessionClearIntervalHandle = createSingleton<SessionClearInterval>('sessionClearInterval', () => ({
@@ -78,7 +78,7 @@ export function setSessionClearInterval(clearIntervalMs: number | null, clearSes
 
 export async function clearOldSessions() {
   const data = await db.manyOrNone<
-    { data: Session['data'], sessionId: string }
+    { data: Session['data']; sessionId: string }
   >`DELETE FROM sessions WHERE expires_at < CURRENT_TIMESTAMP RETURNING data, session_id`;
 
   data.forEach(({ sessionId }) => sessionCache.delete(sessionId));

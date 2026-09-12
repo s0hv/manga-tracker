@@ -182,11 +182,11 @@ export default defineConfig(
         'error',
         {
           multiline: {
-            delimiter: 'none',
-            requireLast: false,
+            delimiter: 'semi',
+            requireLast: true,
           },
           singleline: {
-            delimiter: 'comma',
+            delimiter: 'semi',
             requireLast: false,
           },
         },

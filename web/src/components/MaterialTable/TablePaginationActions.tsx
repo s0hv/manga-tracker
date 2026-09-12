@@ -14,13 +14,13 @@ const Root = styled('div')(({ theme }) => ({
 // Big part copied from here
 // https://material-ui.com/components/tables/#custom-pagination-actions
 export type TablePaginationActionsProps = {
-  count: number
-  page: number
-  rowsPerPage: number
+  count: number;
+  page: number;
+  rowsPerPage: number;
   onPageChange: (
     event: React.MouseEvent<HTMLButtonElement>,
     newPage: number
-  ) => void
+  ) => void;
 };
 
 const TablePaginationActions = (props: TablePaginationActionsProps) => {

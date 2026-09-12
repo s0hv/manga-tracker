@@ -24,12 +24,12 @@ const Root = styled('div')(({ theme }) => ({
 }));
 
 export type MangaAliasesProps = {
-  aliases?: string[] | undefined
-  mangaId?: number
-  onTitleUpdate?: () => void
-  enqueueSnackbar?: EnqueueSnackbar
-  confirm?: typeof confirm
-  allowEdits?: boolean
+  aliases?: string[] | undefined;
+  mangaId?: number;
+  onTitleUpdate?: () => void;
+  enqueueSnackbar?: EnqueueSnackbar;
+  confirm?: typeof confirm;
+  allowEdits?: boolean;
 };
 const MangaAliases = (props: MangaAliasesProps) => {
   const {
