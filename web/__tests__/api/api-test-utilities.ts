@@ -19,7 +19,7 @@ import {
 } from '../constants';
 
 export interface HttpServerReference {
-  httpServer: Server
+  httpServer: Server;
 }
 
 export type Method = 'get' | 'post' | 'delete' | 'put';
@@ -38,7 +38,7 @@ export const apiRequiresUserTests = (
   {
     method,
     apiSpec = false,
-  }: { apiSpec?: boolean, method: Exclude<Method, 'get'> }
+  }: { apiSpec?: boolean; method: Exclude<Method, 'get'> }
 ) => {
   it('Returns 403 without CSRF token', async () => {
     await request(ref.httpServer)[method](url)
@@ -57,7 +57,7 @@ export const apiRequiresUserTests = (
 export const apiRequiresAdminUserTests = (
   ref: HttpServerReference,
   url: string,
-  options: { apiSpec?: boolean, method: Exclude<Method, 'get'> }
+  options: { apiSpec?: boolean; method: Exclude<Method, 'get'> }
 ) => {
   apiRequiresUserTests(ref, url, options);
 
@@ -113,10 +113,10 @@ export const expectISEOnDbError = (
     body,
     custom = _ => _,
   }: {
-    method?: Method
-    user?: TestUser
-    body?: string | object
-    custom?: (test: Test) => Test
+    method?: Method;
+    user?: TestUser;
+    body?: string | object;
+    custom?: (test: Test) => Test;
   } = {}
 ) => {
   it('returns 500 when database throws an error', async () => {

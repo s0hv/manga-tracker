@@ -63,7 +63,7 @@ function Copyright(props: TypographyProps) {
 }
 
 export type RootProps = {
-  user?: FrontendUser | null
+  user?: FrontendUser | null;
 };
 export const Layout: FC<PropsWithChildren<RootProps>> = props => {
   const {

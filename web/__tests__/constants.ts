@@ -6,10 +6,10 @@ import type { User } from '@/types/db/user';
 import type { SessionUser } from '@/types/dbTypes';
 
 export type TestUser = User & SessionUser & {
-  joinedAt: Date
-  password: string
-  email: string
-  uuid: string
+  joinedAt: Date;
+  password: string;
+  email: string;
+  uuid: string;
 };
 export const userForbidden = 'Forbidden to perform this action';
 export const userUnauthorized = 'User not authenticated';

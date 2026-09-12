@@ -26,7 +26,7 @@ const RightSideBox = styled('div')(({ theme }) => ({
   rowGap: '5px',
 }));
 
-export const RightSide = <T extends FormValues>({ children, disabled, control }: PropsWithChildren<{ disabled?: boolean, control: Control<T> }>) => (
+export const RightSide = <T extends FormValues>({ children, disabled, control }: PropsWithChildren<{ disabled?: boolean; control: Control<T> }>) => (
   <RightSideBox>
     <CheckboxElement
       control={control as unknown as Control<FormValues>}

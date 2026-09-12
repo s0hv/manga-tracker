@@ -44,11 +44,11 @@ declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Cypress {
     interface Chainable {
-      login(user: { email: string, password: string }, expectFail?: boolean, rememberMe?: boolean): Chainable<void>
-      logout(): Chainable<void>
-      expectLightTheme(): Chainable<void>
-      expectDarkTheme(): Chainable<void>
-      selectComboboxValue(name: string | RegExp, option: string | RegExp): Chainable<void>
+      login(user: { email: string; password: string }, expectFail?: boolean, rememberMe?: boolean): Chainable<void>;
+      logout(): Chainable<void>;
+      expectLightTheme(): Chainable<void>;
+      expectDarkTheme(): Chainable<void>;
+      selectComboboxValue(name: string | RegExp, option: string | RegExp): Chainable<void>;
     }
   }
 }

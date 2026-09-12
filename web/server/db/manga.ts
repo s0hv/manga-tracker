@@ -42,18 +42,18 @@ export function formatLinks(row: Record<string, string>) {
 }
 
 export interface MangaData extends Omit<MangaInfoData, 'lastUpdated'> {
-  mangaId: number
-  title: string
-  releaseInterval?: PostgresInterval | null
-  latestRelease?: Date | null
-  estimatedRelease?: Date | null
-  latestChapter?: number | null
-  lastUpdated?: Date | null
+  mangaId: number;
+  title: string;
+  releaseInterval?: PostgresInterval | null;
+  latestRelease?: Date | null;
+  estimatedRelease?: Date | null;
+  latestChapter?: number | null;
+  lastUpdated?: Date | null;
 }
 
 interface FullMangaUnformatted extends MangaData {
-  services: MangaServiceData[]
-  aliases: string[]
+  services: MangaServiceData[];
+  aliases: string[];
 }
 
 function formatFullManga(obj: Partial<FullMangaUnformatted>): FullMangaData {
@@ -146,11 +146,11 @@ export const getMangaPartial = (mangaId: MangaId) => {
 };
 
 export type MangaForElastic = {
-  mangaId: number
-  title: string
-  views: number
-  aliases: { title: string }[]
-  services: { serviceId: number, serviceName: string }[]
+  mangaId: number;
+  title: string;
+  views: number;
+  aliases: { title: string }[];
+  services: { serviceId: number; serviceName: string }[];
 };
 
 type MangaForElasticRow = Omit<MangaForElastic, 'aliases'> & { aliases: string[] | null };

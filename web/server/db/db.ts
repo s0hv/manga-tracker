@@ -19,11 +19,11 @@ export type LatestRelease = Pick<Chapter,
   | 'chapterUrlFormat'
   | 'url'
 > & {
-  mangaTitle: string
-  mangaId: number
-  titleId: string
-  releaseInterval: MangaData['releaseInterval']
-  cover: string | null | undefined
+  mangaTitle: string;
+  mangaId: number;
+  titleId: string;
+  releaseInterval: MangaData['releaseInterval'];
+  cover: string | null | undefined;
 };
 
 export function getLatestReleases(serviceId?: DatabaseId, mangaId?: MangaId, userUUID?: string) {

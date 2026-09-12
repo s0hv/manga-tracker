@@ -9,8 +9,8 @@ export const adminServiceUrls = {
 } as const;
 
 export type EditServiceParams = {
-  serviceId: DatabaseId
-  body: Record<string, unknown>
+  serviceId: DatabaseId;
+  body: Record<string, unknown>;
 };
 
 export const editService = ({ serviceId, body }: EditServiceParams) => fetch(adminServiceUrls.editService(serviceId),

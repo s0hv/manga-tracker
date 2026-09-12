@@ -11,8 +11,8 @@ import { formatTitleUrl } from '@/webUtils/formatting';
 type FormValues = { manga: { mangaId: number } | null };
 
 export interface ShortMangaInfoProps<TFieldValues extends FormValues> {
-  control: Control<TFieldValues>
-  serviceId?: number
+  control: Control<TFieldValues>;
+  serviceId?: number;
 }
 
 export const ShortMangaInfo = <

@@ -47,10 +47,10 @@ import { defaultDateFormatRegex } from '../../constants';
 fetchMock.config.overwriteRoutes = true;
 
 type TestData = {
-  id: string
-  editableString: string
-  editableTime: Date | null | undefined
-  editableCheckbox: boolean
+  id: string;
+  editableString: string;
+  editableTime: Date | null | undefined;
+  editableCheckbox: boolean;
 };
 
 const sortFns = {
@@ -131,10 +131,10 @@ interface RootProps<
   TFeatures extends TableFeatures,
   TData extends RowData
 > extends Omit<MaterialTableProps<TFeatures, TData, TableState<TFeatures>>, 'table'> {
-  data: TData[]
-  columns: ColumnDef<TFeatures, TData>[]
-  features: TFeatures
-  tableOptions?: Omit<TableOptions<TFeatures, TData>, 'features' | 'data' | 'columns'>
+  data: TData[];
+  columns: ColumnDef<TFeatures, TData>[];
+  features: TFeatures;
+  tableOptions?: Omit<TableOptions<TFeatures, TData>, 'features' | 'data' | 'columns'>;
 }
 
 const Root = <TFeatures extends TableFeatures, TData extends RowData>({

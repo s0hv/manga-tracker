@@ -11,8 +11,8 @@ import {
 } from '@/components/MaterialTable/utilities';
 
 interface TestData {
-  id: string
-  name: string
+  id: string;
+  name: string;
 }
 
 const data: TestData[] = [

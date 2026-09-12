@@ -90,8 +90,8 @@ const DetailsContainer = styled('div')(({ theme }) => ({
 
 
 export type MangaProps = {
-  mangaData: FullMangaData
-  userFollows?: (number | null)[]
+  mangaData: FullMangaData;
+  userFollows?: (number | null)[];
 };
 
 function Manga(props: MangaProps): React.ReactElement {
@@ -117,7 +117,7 @@ function Manga(props: MangaProps): React.ReactElement {
   const startEditing = useCallback(() => setEditing(!editing), [editing]);
 
   const serviceMangaData = useMemo(() => {
-    const serviceMap: Record<number, { urlFormat: string, titleId: string }> = {};
+    const serviceMap: Record<number, { urlFormat: string; titleId: string }> = {};
     services.forEach(service => {
       serviceMap[service.serviceId] = {
         urlFormat: service.urlFormat,

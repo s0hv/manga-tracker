@@ -12,7 +12,7 @@ import { zodErrorResponse } from '@/serverUtils/validators';
 // https://stackoverflow.com/a/75843145
 declare global {
   interface Response {
-    readonly body: streamWeb.ReadableStream<Uint8Array> | null
+    readonly body: streamWeb.ReadableStream<Uint8Array> | null;
   }
 }
 

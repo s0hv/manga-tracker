@@ -7,9 +7,9 @@ import React, {
 } from 'react';
 
 export type TabPanelCustomProps = {
-  value: number
-  index: number
-  noRerenderOnChange?: boolean
+  value: number;
+  index: number;
+  noRerenderOnChange?: boolean;
 };
 export const TabPanelCustom: FC<PropsWithChildren<TabPanelCustomProps>> = props => {
   const {

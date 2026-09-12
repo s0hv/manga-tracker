@@ -44,7 +44,7 @@ type Features = typeof features;
 const columnHelper = createColumnHelper<Features, ServiceForAdmin>();
 
 export type ServicesProps = {
-  services?: ServiceForAdmin[] | ServiceForAdminSerialized[]
+  services?: ServiceForAdmin[] | ServiceForAdminSerialized[];
 };
 
 function Services(props: ServicesProps): ReactElement {

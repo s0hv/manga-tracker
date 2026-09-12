@@ -4,14 +4,14 @@ const Environment = z.literal(['development', 'production', 'test', 'unit-test']
 export type Environment = z.infer<typeof Environment>;
 
 interface CustomEnv {
-  HOST: string
-  COOKIE_SECRET: string
-  TRUST_PROXY?: string
-  CYPRESS?: string
-  NODE_ENV?: string
+  HOST: string;
+  COOKIE_SECRET: string;
+  TRUST_PROXY?: string;
+  CYPRESS?: string;
+  NODE_ENV?: string;
   // Environment info. Helps differentiate environment in deployed versions of the app.
   // For example, in a test deployment.
-  ENVIRONMENT?: Environment
+  ENVIRONMENT?: Environment;
 }
 
 declare global {

@@ -33,8 +33,8 @@ export const getScheduledRunsQueryOptions = (mangaId_: MangaId) => queryOptions(
 });
 
 type ScheduledRunParams = {
-  mangaId: MangaId
-  serviceId: DatabaseId
+  mangaId: MangaId;
+  serviceId: DatabaseId;
 };
 export const createScheduledRun = (
   { mangaId, serviceId }: ScheduledRunParams
@@ -69,8 +69,8 @@ export const deleteScheduledRunMutationOptions = mutationOptions({
 export type UpdateMangaTitleResponse = { message: string };
 
 export type UpdateMangaTitleParams = {
-  mangaId: MangaId
-  title: string
+  mangaId: MangaId;
+  title: string;
 };
 
 /**
@@ -92,7 +92,7 @@ export const updateMangaTitleMutationOptions = mutationOptions({
 });
 
 export type MangaInfo = {
-  status: MangaStatus
+  status: MangaStatus;
 };
 
 export const updateMangaInfo = (mangaId: MangaId, info: MangaInfo) => fetch(ADMIN_MANGA_URL.info(mangaId),
@@ -122,9 +122,9 @@ export const getMangaServicesQueryOptions = (mangaId: MangaId) => queryOptions({
 });
 
 export type UpdateMangaServiceParams = {
-  mangaId: MangaId
-  serviceId: DatabaseId
-  data: MangaServiceUpdateData
+  mangaId: MangaId;
+  serviceId: DatabaseId;
+  data: MangaServiceUpdateData;
 };
 
 export const updateMangaService = (
@@ -145,9 +145,9 @@ export const updateMangaServiceMutationOptions = mutationOptions({
 });
 
 export type CreateMangaServiceParams = {
-  mangaId: MangaId
-  serviceId: DatabaseId
-  data: MangaServiceCreateData
+  mangaId: MangaId;
+  serviceId: DatabaseId;
+  data: MangaServiceCreateData;
 };
 
 export const createMangaService = (

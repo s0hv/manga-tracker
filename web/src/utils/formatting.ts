@@ -1,4 +1,4 @@
-type FormatChapterTitleOpts = { title?: string, chapterNumber?: number, chapterDecimal?: number | null };
+type FormatChapterTitleOpts = { title?: string; chapterNumber?: number; chapterDecimal?: number | null };
 export const formatChapterTitle = ({ title, chapterNumber, chapterDecimal }: FormatChapterTitleOpts) => {
   const prefix = `Chapter ${chapterNumber}${chapterDecimal ? '.' + String(chapterDecimal) : ''}`;
   if (title === undefined || /chapter \d(\.\d+)?/i.test(title)) {

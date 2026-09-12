@@ -5,19 +5,19 @@ import type { DatabaseId } from '@/types/dbTypes';
 import type { HasRequiredKeys } from '@/types/utility';
 
 export type ChapterComponentProps<TExtraProps extends object = object> = TExtraProps & {
-  chapter: ChapterRelease
+  chapter: ChapterRelease;
 };
 
 export type GroupComponentProps<TExtraProps extends object = object> = PropsWithChildren<TExtraProps & {
-  groupString: string | React.ReactNode
-  group: DatabaseId
-  groupItems: ChapterRelease[]
-  mangaId: DatabaseId
+  groupString: string | React.ReactNode;
+  group: DatabaseId;
+  groupItems: ChapterRelease[];
+  mangaId: DatabaseId;
 }>;
 
 export interface GroupedChapters {
-  mangaId: number
-  chapters: ChapterRelease[]
+  mangaId: number;
+  chapters: ChapterRelease[];
 }
 
 /**

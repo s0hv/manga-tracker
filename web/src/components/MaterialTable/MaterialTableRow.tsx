@@ -17,15 +17,15 @@ export interface MaterialTableRowProps<
   TFeatures extends TableFeatures,
   TData extends RowData
 > {
-  row: Row<TFeatures, TData>
+  row: Row<TFeatures, TData>;
 }
 
 interface MaterialTableCellProps<
   TFeatures extends TableFeatures,
   TData extends RowData
 > {
-  cell: Cell<TFeatures, TData>
-  renderable: Renderable<CellContext<TFeatures, TData>>
+  cell: Cell<TFeatures, TData>;
+  renderable: Renderable<CellContext<TFeatures, TData>>;
 }
 const MaterialTableCell = <
   TFeatures extends TableFeatures,

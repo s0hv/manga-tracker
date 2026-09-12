@@ -2,15 +2,15 @@ import { normalUser } from '../../__tests__/constants';
 import { Selector } from '../selectors';
 
 type NotificationFields = {
-  webhookUsername: string
-  embedTitle: string
-  message: string
-  embedUrl: string
-  webhookUserAvatarUrl: string
-  embedContent: string
-  footerContent: string
-  embedThumbnail: string
-  embedColor: string
+  webhookUsername: string;
+  embedTitle: string;
+  message: string;
+  embedUrl: string;
+  webhookUserAvatarUrl: string;
+  embedContent: string;
+  footerContent: string;
+  embedThumbnail: string;
+  embedColor: string;
 };
 
 const defaultNotificationValues: NotificationFields = {

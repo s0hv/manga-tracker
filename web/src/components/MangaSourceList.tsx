@@ -18,11 +18,11 @@ import { useIsUserAuthenticated } from '../store/userStore';
 
 
 export type MangaSourceListProps = {
-  items?: MangaServiceData[]
-  followUnfollow?: (serviceId: number | null) => (undefined | MouseEventHandler<HTMLButtonElement>)
-  userFollows?: (number | null)[]
-  classesProp?: string[]
-  openByDefault?: boolean
+  items?: MangaServiceData[];
+  followUnfollow?: (serviceId: number | null) => (undefined | MouseEventHandler<HTMLButtonElement>);
+  userFollows?: (number | null)[];
+  classesProp?: string[];
+  openByDefault?: boolean;
 };
 
 function MangaSourceList(props: MangaSourceListProps) {

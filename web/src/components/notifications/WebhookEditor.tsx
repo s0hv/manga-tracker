@@ -62,7 +62,7 @@ const validateJson = (value: string): string | undefined => {
 };
 
 interface JsonFormValues extends FormValues {
-  json: string
+  json: string;
 }
 
 const WebhookEditor = ({ notificationData, defaultExpanded = false }: NotificationComponentProps) => {

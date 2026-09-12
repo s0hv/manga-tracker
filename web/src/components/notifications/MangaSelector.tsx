@@ -27,10 +27,10 @@ import type { NotificationFollow } from '@/types/api/notifications';
 
 type AutocompleteType = AutocompleteProps<NotificationFollow, true, false, false>;
 export type MangaSelectorProps<TFieldValues extends FormValues = FormValues> = {
-  control?: Control<TFieldValues>
-  name: FieldPathByValue<TFieldValues, NotificationFollow[] | null>
-  label: string
-  disabled?: boolean
+  control?: Control<TFieldValues>;
+  name: FieldPathByValue<TFieldValues, NotificationFollow[] | null>;
+  label: string;
+  disabled?: boolean;
 } & Omit<AutocompleteType, 'label' | 'options' | 'renderInput' | 'name'>;
 
 const MangaSelector = <TFieldValues extends FormValues = FormValues>({

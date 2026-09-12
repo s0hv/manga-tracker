@@ -23,8 +23,8 @@ export const chapterUrls = {
 } as const;
 
 export type SortBy<T> = {
-  id: keyof T
-  desc?: boolean
+  id: keyof T;
+  desc?: boolean;
 };
 /**
  * Fetches chapters for a manga
@@ -115,8 +115,8 @@ export const getLatestChaptersQueryOptions = (
 });
 
 export type UpdateChapterParams = {
-  chapterId: number | string
-  data: object
+  chapterId: number | string;
+  data: object;
 };
 
 /**

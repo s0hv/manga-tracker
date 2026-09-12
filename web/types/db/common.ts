@@ -1,5 +1,5 @@
 export type SortBy = {
-  col: string
-  desc: boolean
-  nullsLast?: boolean
+  col: string;
+  desc: boolean;
+  nullsLast?: boolean;
 };

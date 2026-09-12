@@ -7,10 +7,10 @@ import { CSS_VARS } from './constants';
 import type { ChapterComponentProps } from './types';
 
 export interface GroupChaptersProps<TChapterExtraProps extends object = object> {
-  ChapterComponent: React.ComponentType<ChapterComponentProps<TChapterExtraProps>>
-  chapters: ChapterRelease[]
-  maxShownChapters: number
-  chapterComponentProps?: TChapterExtraProps
+  ChapterComponent: React.ComponentType<ChapterComponentProps<TChapterExtraProps>>;
+  chapters: ChapterRelease[];
+  maxShownChapters: number;
+  chapterComponentProps?: TChapterExtraProps;
 }
 
 export const GroupChapters = <TChapterExtraProps extends object = object>({

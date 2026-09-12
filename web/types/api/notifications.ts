@@ -1,13 +1,13 @@
 export type NotificationFieldData = {
-  name: string
-  value: string | null
+  name: string;
+  value: string | null;
 };
 
 export type NotificationFollow = {
-  mangaId: number
-  serviceId: number | null
-  title: string
-  serviceName: string
+  mangaId: number;
+  serviceId: number | null;
+  title: string;
+  serviceName: string;
 };
 
 
@@ -15,20 +15,20 @@ export type NotificationManga = NotificationFollow;
 
 
 export type NotificationField = NotificationFieldData & {
-  optional: boolean
+  optional: boolean;
 };
 
 export type NotificationData = {
-  notificationId: number
-  useFollows: boolean | null
-  notificationType: number
-  timesRun: number | null
-  timesFailed: number | null
-  disabled: boolean
-  groupByManga: boolean
-  destination: string
-  name: string
-  manga: NotificationManga[] | null
-  fields: NotificationField[]
-  overrides: Record<number | string, NotificationField[]>
+  notificationId: number;
+  useFollows: boolean | null;
+  notificationType: number;
+  timesRun: number | null;
+  timesFailed: number | null;
+  disabled: boolean;
+  groupByManga: boolean;
+  destination: string;
+  name: string;
+  manga: NotificationManga[] | null;
+  fields: NotificationField[];
+  overrides: Record<number | string, NotificationField[]>;
 };

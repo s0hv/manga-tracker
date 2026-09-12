@@ -27,20 +27,20 @@ import discordLogoLight from '/src/resources/Discord-Logo-Light-Blurple.svg';
 
 
 type SignInFormValues = {
-  email: string
-  password: string
-  rememberMe?: boolean
+  email: string;
+  password: string;
+  rememberMe?: boolean;
 };
 
 export type SignInProps = {
-  providers?: OAuthProvider[] | null
+  providers?: OAuthProvider[] | null;
 };
 
 type ProviderStyle = {
-  logo: string
-  logoDark: string
-  bg: string
-  bgDark: string
+  logo: string;
+  logoDark: string;
+  bg: string;
+  bgDark: string;
 };
 
 const providerStyles = {

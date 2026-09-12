@@ -80,7 +80,7 @@ vi.mock('notistack', async () => {
 
 // eslint-disable-next-line no-var
 var dbMock: {
-  db: DbHelpersFull
+  db: DbHelpersFull;
 };
 vi.mock('@/db/helpers', async () => {
   const db = await vi.importActual<typeof import('@/db/helpers')>('@/db/helpers');
@@ -117,8 +117,8 @@ const getQueryClient = () => {
 export const queryClient = getQueryClient();
 
 type TestRootProps = {
-  queryClient?: QueryClient
-  user?: TestUser | null
+  queryClient?: QueryClient;
+  user?: TestUser | null;
 };
 
 export const TestRoot = ({ children, queryClient, user = null }: PropsWithChildren<TestRootProps>) => (
@@ -234,8 +234,8 @@ export function mockUTCDates() {
 }
 
 type WithUser = {
-  (userObject: TestUser, cb: React.ReactElement): Promise<React.ReactElement>
-  (userObject: TestUser, cb: () => Promise<any>): Promise<void>
+  (userObject: TestUser, cb: React.ReactElement): Promise<React.ReactElement>;
+  (userObject: TestUser, cb: () => Promise<any>): Promise<void>;
 };
 
 export const withUser: WithUser = (async (userObject: TestUser, cb: React.ReactElement | (() => Promise<any>)) => {
@@ -539,8 +539,8 @@ export const mockDbForErrors = <T, >(fn: () => Promise<T>): Promise<T> => {
 };
 
 type SilenceConsole = {
-  (): MockInstance[]
-  <T>(callback: Promise<T>): Promise<T>
+  (): MockInstance[];
+  <T>(callback: Promise<T>): Promise<T>;
 };
 export const silenceConsole: SilenceConsole = (<T, >(callback?: Promise<T>): Promise<T> | MockInstance[] => {
   if (process.env.KEEP_CONSOLE) {
@@ -653,8 +653,8 @@ export function handleMockRequest<TBody extends DefaultBodyType>(fn: Mock) {
 export function expectRequestCalledWith(
   fn: Mock,
   { url, searchParams }: {
-    url: string
-    searchParams?: Record<string, string>
+    url: string;
+    searchParams?: Record<string, string>;
   }
 ) {
   expect(fn).toHaveBeenCalledWith({ url, params: searchParams });

@@ -46,20 +46,20 @@ const isOptionEqualToValue = (
 };
 
 export type FormMangaSearchProps<TFieldValues extends FieldValues, TWithServices extends boolean = false> = {
-  control: Control<TFieldValues>
-  name: FieldPathByValue<TFieldValues, Omit<SearchedManga, 'score'> | null>
-  setFieldValue: UseFormSetValue<TFieldValues>
-  label?: string
-  placeholder?: string
-  renderItem?: RenderListOption<SearchResultBasedOnServices<TWithServices>>
+  control: Control<TFieldValues>;
+  name: FieldPathByValue<TFieldValues, Omit<SearchedManga, 'score'> | null>;
+  setFieldValue: UseFormSetValue<TFieldValues>;
+  label?: string;
+  placeholder?: string;
+  renderItem?: RenderListOption<SearchResultBasedOnServices<TWithServices>>;
   // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
-  onChange?: (manga: SearchResultBasedOnServices<TWithServices>) => Promise<unknown> | unknown
-  id?: string
-  searchThrottleTimeout?: number
-  withServices?: TWithServices
-  required?: boolean
+  onChange?: (manga: SearchResultBasedOnServices<TWithServices>) => Promise<unknown> | unknown;
+  id?: string;
+  searchThrottleTimeout?: number;
+  withServices?: TWithServices;
+  required?: boolean;
 
-  serviceId?: number
+  serviceId?: number;
 };
 
 export const FormMangaSearch = <

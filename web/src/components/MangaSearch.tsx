@@ -74,17 +74,17 @@ const getOptionLabel = (option: SearchResultBasedOnServices<boolean> | Autocompl
 const emptyObject = {};
 
 export type MangaSearchProps<TWithServices extends boolean = false> = {
-  placeholder?: string
-  renderItem?: RenderListOption<SearchResultBasedOnServices<TWithServices>>
-  inputClasses?: Partial<InputBaseClasses>
-  popperProps?: Partial<PopperProps>
-  clearOnClick?: boolean
-  ariaLabel?: string
+  placeholder?: string;
+  renderItem?: RenderListOption<SearchResultBasedOnServices<TWithServices>>;
+  inputClasses?: Partial<InputBaseClasses>;
+  popperProps?: Partial<PopperProps>;
+  clearOnClick?: boolean;
+  ariaLabel?: string;
   // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
-  onChange?: (manga: SearchResultBasedOnServices<TWithServices>) => Promise<unknown> | unknown
-  id?: string
-  searchThrottleTimeout?: number
-  withServices?: TWithServices
+  onChange?: (manga: SearchResultBasedOnServices<TWithServices>) => Promise<unknown> | unknown;
+  id?: string;
+  searchThrottleTimeout?: number;
+  withServices?: TWithServices;
 };
 const MangaSearch = <TWithServices extends boolean = false>(props: MangaSearchProps<TWithServices>) => {
   const {

@@ -1,11 +1,11 @@
 export interface Session {
-  sessionId: string
-  sessionSecret: Uint8Array // Uint8Array is a byte array
-  userId: number | null
-  expiresAt: Date
+  sessionId: string;
+  sessionSecret: Uint8Array; // Uint8Array is a byte array
+  userId: number | null;
+  expiresAt: Date;
   data?: {
-    mangaViews?: Record<string, number>
-  } | null
+    mangaViews?: Record<string, number>;
+  } | null;
 }
 
 export interface SafeSession extends Pick<Session,
@@ -15,9 +15,9 @@ export interface SafeSession extends Pick<Session,
   | 'data'
 > {
   // This should help with preventing sessionSecret from being included in the data
-  sessionSecret?: never
+  sessionSecret?: never;
 }
 
 export interface SessionWithToken extends Session {
-  token: string
+  token: string;
 }

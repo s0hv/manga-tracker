@@ -37,9 +37,9 @@ export const getMangaQueryOptions = (mangaId: DatabaseId | null) => queryOptions
 });
 
 export type PostMergeMangaParams = {
-  baseManga: DatabaseId
-  toMerge: DatabaseId
-  serviceId: DatabaseId | undefined
+  baseManga: DatabaseId;
+  toMerge: DatabaseId;
+  serviceId: DatabaseId | undefined;
 };
 
 /**
@@ -67,9 +67,9 @@ export type SearchResultBasedOnServices<TWithServices extends boolean> =
     : SearchedManga;
 
 type QuickSearch = {
-  (query: string, withServices: true, serviceId?: number): Promise<SearchedMangaWithService[]>
-  (query: string, withServices?: false, serviceId?: number): Promise<SearchedManga[]>
-  (query: string, withServices?: boolean, serviceId?: number): Promise<SearchResultBasedOnServices<boolean>[]>
+  (query: string, withServices: true, serviceId?: number): Promise<SearchedMangaWithService[]>;
+  (query: string, withServices?: false, serviceId?: number): Promise<SearchedManga[]>;
+  (query: string, withServices?: boolean, serviceId?: number): Promise<SearchResultBasedOnServices<boolean>[]>;
 };
 
 /**

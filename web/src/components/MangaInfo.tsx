@@ -32,8 +32,8 @@ const InfoTable = styled('table')(({ theme }) => ({
 }));
 
 export type MangaInfoProps = {
-  mangaData: MangaData & Pick<MangaInfoData, 'status'>
-  showId?: boolean
+  mangaData: MangaData & Pick<MangaInfoData, 'status'>;
+  showId?: boolean;
 };
 
 

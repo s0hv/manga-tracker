@@ -27,11 +27,11 @@ import type { NotificationFollow } from '@/types/api/notifications';
 export type ChangeOverride = (overrideId: number | null) => void;
 type AutocompleteType = AutocompleteProps<NotificationFollow, false, false, false>;
 export type MangaOverrideSelectorProps<TFieldValues extends FormValues = FormValues> = {
-  control: Control<TFieldValues>
-  name: FieldPathByValue<TFieldValues, number | null>
-  label: string
-  overrides: Set<number>
-  changeOverride: ChangeOverride
+  control: Control<TFieldValues>;
+  name: FieldPathByValue<TFieldValues, number | null>;
+  label: string;
+  overrides: Set<number>;
+  changeOverride: ChangeOverride;
 } & Omit<AutocompleteType, 'label' | 'options' | 'renderInput' | 'name'>;
 
 const allowedChangeFields = new Set(['notificationId', '_csrf']);

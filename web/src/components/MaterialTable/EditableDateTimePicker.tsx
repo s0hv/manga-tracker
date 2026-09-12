@@ -20,8 +20,8 @@ export interface EditableDateTimePickerProps<
   TFeatures extends TableFeaturesWithRowEditing,
   TData extends RowData
 > extends Partial<Omit<DateTimePickerProps, 'value'>> {
-  ctx: CellContext<TFeatures, TData, PickerValidDate | null | undefined>
-  value: PickerValidDate | null | undefined
+  ctx: CellContext<TFeatures, TData, PickerValidDate | null | undefined>;
+  value: PickerValidDate | null | undefined;
 }
 
 /**

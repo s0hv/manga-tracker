@@ -19,10 +19,10 @@ import { TextFieldElement } from 'react-hook-form-mui';
 
 type HexColorPickerProps = ComponentProps<typeof HexColorPicker>;
 export type ColorPickerProps<T extends FieldValues> = Omit<HexColorPickerProps, 'onChange' | 'color'> & {
-  control?: Control<T>
-  name: FieldPathByValue<T, string | undefined | null>
-  label: string
-  sx?: SxProps
+  control?: Control<T>;
+  name: FieldPathByValue<T, string | undefined | null>;
+  label: string;
+  sx?: SxProps;
 };
 const ColorPicker = <T extends FieldValues>({
   control,

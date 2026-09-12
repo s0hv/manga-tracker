@@ -54,7 +54,7 @@ import MangaInfo from '../../components/EditableMangaInfo';
 import MangaAliases from '../../components/MangaAliases';
 
 type AddTableRowForm = {
-  serviceId: string
+  serviceId: string;
 };
 
 const MangaTitle = styled(Typography)(({ theme }) => ({
@@ -89,8 +89,8 @@ type Features = typeof features;
 const columnHelper = createColumnHelper<Features, ScheduledRun>();
 
 export type MangaAdminProps = {
-  mangaData: FullMangaData
-  serviceConfigs: Pick<ServiceConfig, 'scheduledRunsEnabled' | 'serviceId'>[]
+  mangaData: FullMangaData;
+  serviceConfigs: Pick<ServiceConfig, 'scheduledRunsEnabled' | 'serviceId'>[];
 };
 
 function MangaAdmin(props: MangaAdminProps) {

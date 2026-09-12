@@ -47,7 +47,7 @@ const followServiceItem = { display: 'flex', justifyContent: 'space-between' };
 const mangaLinkStyles = { display: 'flex', height: '100%', position: 'relative' } satisfies SxProps;
 
 export type FollowProps = {
-  follows?: Follow[]
+  follows?: Follow[];
 };
 
 

@@ -38,7 +38,7 @@ export const OauthProviderConstructors = {
 
 
 export type OAuthProviders = {
-  discord: arctic.Discord
+  discord: arctic.Discord;
 };
 
 export const registerProvider = <TPrefix extends OAuthProvider>(prefix: TPrefix): OAuthProviders[TPrefix] => {
@@ -127,9 +127,9 @@ export const getOauthTokens = async (
 export const finishLoginCallback = async (
   providerName: OAuthProvider,
   userInfo: {
-    username: string
-    accountId: string
-    email: string
+    username: string;
+    accountId: string;
+    email: string;
   },
   req: Request,
   res: Response
