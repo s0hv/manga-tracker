@@ -15,16 +15,29 @@ import { mangadexLimiter, redis } from '@/serverUtils/ratelimits';
 
 const { fetchExtraInfo } = await vi.importActual<typeof import('@/db/mangadex')>('@/db/mangadex');
 
-afterAll(async () => {
+afterAll(() => {
   redis.disconnect();
 });
 
 describe('mangadex API works correctly', () => {
   beforeEach(() => {
     vi.spyOn(Manga, 'get')
-      .mockImplementation(async () => ({ mainCover: {}} as unknown as any));
+
+      .mockImplementation(
+        // eslint-disable-next-line @typescript-eslint/require-await
+        async () => ({
+          mainCover: {},
+        } satisfies Partial<Omit<Manga, 'mainCover'>> & { mainCover: Partial<Manga['mainCover']> } as Manga
+        )
+      );
     vi.spyOn(Cover, 'get')
-      .mockImplementation(async () => ({ imageSource: 'test', manga: { id: 'test' }} as unknown as any));
+      .mockImplementation(
+        // eslint-disable-next-line @typescript-eslint/require-await
+        async () => ({
+          fileName: 'test',
+          manga: { id: 'test' },
+        }) satisfies Partial<Omit<Cover, 'manga'>> & { manga: Partial<Cover['manga']> } as Cover
+      );
   });
   afterEach(async () => {
     vi.restoreAllMocks();
@@ -54,6 +67,8 @@ describe('mangadex API works correctly', () => {
   it('Silently ignores mangadex errors', async () => {
     const err = new Error('test');
     const spy = vi.spyOn(Manga, 'get')
+      // Mock needs to return a promise
+      // eslint-disable-next-line @typescript-eslint/require-await
       .mockImplementation(async () => { throw err });
     const dbSpy = spyOnDb('none');
 

@@ -29,7 +29,7 @@ import { emptyFullManga as emptyManga, fullManga as manga } from '../constants';
 
 vi.mock('@tanstack/react-router');
 vi.mock('es-toolkit', () => ({
-  throttle: (_: any) => _,
+  throttle: (_: unknown) => _,
 }));
 
 describe('Manga page should render correctly', async () => {
@@ -106,8 +106,8 @@ describe('Manga page should render correctly', async () => {
     conditionalInDocument(isAuthenticated, 'button', { name: /follow all releases/i });
   };
 
-  it('should render correctly', async () => {
-    await act(async () => {
+  it('should render correctly', () => {
+    act(() => {
       render(<TestRoot><Manga mangaData={manga} userFollows={follows} /></TestRoot>);
     });
 
@@ -118,8 +118,8 @@ describe('Manga page should render correctly', async () => {
     expectAuthenticatedFeatures(false);
   });
 
-  it('should render correctly when logged in', async () => {
-    await act(async () => {
+  it('should render correctly when logged in', () => {
+    act(() => {
       render(
         <TestRoot user={normalUser}>
           <Manga mangaData={manga} userFollows={follows} />
@@ -134,8 +134,8 @@ describe('Manga page should render correctly', async () => {
     expectAuthenticatedFeatures(true);
   });
 
-  it('Should render correctly as admin', async () => {
-    await act(async () => {
+  it('Should render correctly as admin', () => {
+    act(() => {
       render(
         <TestRoot user={adminUser}>
           <Manga mangaData={manga} userFollows={follows} />
@@ -150,8 +150,8 @@ describe('Manga page should render correctly', async () => {
     expectAuthenticatedFeatures(true);
   });
 
-  it('should render correctly with little data', async () => {
-    await act(async () => {
+  it('should render correctly with little data', () => {
+    act(() => {
       render(<TestRoot><Manga mangaData={emptyManga} /></TestRoot>);
     });
 
@@ -179,7 +179,7 @@ describe('Manga page should render correctly', async () => {
   };
 
   it('should call follow and unfollow on click for all services', async () => {
-    await act(async () => {
+    act(() => {
       render(
         <TestRoot user={normalUser}>
           <Manga mangaData={manga} userFollows={follows} />
@@ -206,7 +206,7 @@ describe('Manga page should render correctly', async () => {
   });
 
   it('should call follow and unfollow on click for a specific service', async () => {
-    await act(async () => {
+    act(() => {
       render(
         <TestRoot user={normalUser}>
           <Manga mangaData={manga} userFollows={[manga.services[0].serviceId]} />

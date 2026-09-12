@@ -1,3 +1,58 @@
+diff --git a/dist/matchers/index.js b/dist/matchers/index.js
+index 487718ca68c6f44680714056f33b42af4d7be08c..e1358023c0738e09bb4e5f5ce17f7189de13b455 100644
+--- a/dist/matchers/index.js
++++ b/dist/matchers/index.js
+@@ -1,6 +1,6 @@
+ "use strict";
+ Object.defineProperty(exports, "__esModule", { value: true });
+-exports.toContainValue = exports.toContainKeys = exports.toContainKey = exports.toContainEntry = exports.toContainEntries = exports.toContainAnyValues = exports.toContainAnyKeys = exports.toContainAnyEntries = exports.toContainAllValues = exports.toContainAllKeys = exports.toContainAllEntries = exports.toChangeTo = exports.toChangeBy = exports.toChange = exports.toBeWithin = exports.toBeValidDate = exports.toBeTrue = exports.toBeSymbol = exports.toBeString = exports.toBeSealed = exports.toBePositive = exports.toBeOneOf = exports.toBeOdd = exports.toBeObject = exports.toBeNumber = exports.toBeNil = exports.toBeNegative = exports.toBeNaN = exports.toBeInteger = exports.toBeHexadecimal = exports.toBeFunction = exports.toBeFrozen = exports.toBeFinite = exports.toBeFalse = exports.toBeExtensible = exports.toBeEven = exports.toBeEmptyObject = exports.toBeEmpty = exports.toBeDateString = exports.toBeDate = exports.toBeBoolean = exports.toBeBigInt = exports.toBeBetween = exports.toBeBeforeOrEqualTo = exports.toBeBefore = exports.toBeArrayOfSize = exports.toBeArray = exports.toBeAfterOrEqualTo = exports.toBeAfter = exports.pass = void 0;
++exports.toContainValue = exports.toContainKeys = exports.toContainKey = exports.toContainEntry = exports.toContainEntries = exports.toContainAnyValues = exports.toContainAnyKeys = exports.toContainAnyEntries = exports.toContainAllValues = exports.toContainAllKeys = exports.toContainAllEntries = exports.toChangeTo = exports.toChangeBy = exports.toChange = exports.toBeWithin = exports.toBeValidDate = exports.toBeTrue = exports.toBeSymbol = exports.toBeString = exports.toBeSealed = exports.toBePositive = exports.toBeOneOf = exports.toBeOdd = exports.toBeObject = exports.toBeNumber = exports.toBeNil = exports.toBeNegative = exports.toBeNaN = exports.toBeInteger = exports.toBeHexadecimal = exports.toBeFunction = exports.toBeFrozen = exports.toBeFinite = exports.toBeFalse = exports.toBeExtensible = exports.toBeEven = exports.toBeEmptyObject = exports.toBeEmpty = exports.toBeEmptyString = exports.toBeDateString = exports.toBeDate = exports.toBeBoolean = exports.toBeBigInt = exports.toBeBetween = exports.toBeBeforeOrEqualTo = exports.toBeBefore = exports.toBeArrayOfSize = exports.toBeArray = exports.toBeAfterOrEqualTo = exports.toBeAfter = exports.pass = void 0;
+ exports.toBeInRange = exports.toPartiallyContain = exports.toEqualIgnoringWhitespace = exports.toThrowWithMessage = exports.toStartWith = exports.toSatisfyAny = exports.toSatisfyAll = exports.toSatisfy = exports.toResolve = exports.toReject = exports.toIncludeSameMembers = exports.toIncludeRepeated = exports.toIncludeMultiple = exports.toIncludeAnyMembers = exports.toIncludeSamePartialMembers = exports.toIncludeAllPartialMembers = exports.toIncludeAllMembers = exports.toInclude = exports.toHaveBeenCalledExactlyOnceWith = exports.toHaveBeenCalledOnce = exports.toHaveBeenCalledBefore = exports.toHaveBeenCalledAfter = exports.toEqualCaseInsensitive = exports.toEndWith = exports.toContainValues = void 0;
+ var fail_1 = require("./fail");
+ Object.defineProperty(exports, "fail", { enumerable: true, get: function () { return fail_1.fail; } });
+@@ -30,6 +30,8 @@ var toBeDateString_1 = require("./toBeDateString");
+ Object.defineProperty(exports, "toBeDateString", { enumerable: true, get: function () { return toBeDateString_1.toBeDateString; } });
+ var toBeEmpty_1 = require("./toBeEmpty");
+ Object.defineProperty(exports, "toBeEmpty", { enumerable: true, get: function () { return toBeEmpty_1.toBeEmpty; } });
++var toBeEmptyString_1 = require("./toBeEmptyString");
++Object.defineProperty(exports, "toBeEmptyString", { enumerable: true, get: function () { return toBeEmptyString_1.toBeEmptyString; } });
+ var toBeEmptyObject_1 = require("./toBeEmptyObject");
+ Object.defineProperty(exports, "toBeEmptyObject", { enumerable: true, get: function () { return toBeEmptyObject_1.toBeEmptyObject; } });
+ var toBeEven_1 = require("./toBeEven");
+diff --git a/dist/matchers/toBeEmptyString.js b/dist/matchers/toBeEmptyString.js
+new file mode 100644
+index 0000000000000000000000000000000000000000..0af6b0ba0ece9dd00777acb1a8728d11212d1ea3
+--- /dev/null
++++ b/dist/matchers/toBeEmptyString.js
+@@ -0,0 +1,28 @@
++"use strict";
++Object.defineProperty(exports, "__esModule", { value: true });
++exports.toBeEmptyString = toBeEmptyString;
++function toBeEmptyString(actual) {
++    // @ts-expect-error OK to have implicit any for this.utils
++    const { printReceived, matcherHint } = this.utils;
++    // @ts-expect-error OK to have implicit any for this.equals
++    const pass = this.equals({}, actual, this.customTesters) || isEmptyIterable(actual);
++    return {
++        pass,
++        message: () => pass
++            ? matcherHint('.not.toBeEmptyString', 'received', '') +
++                '\n\n' +
++                'Expected value to not be empty received:\n' +
++                `  ${printReceived(actual)}`
++            : matcherHint('.toBeEmptyString', 'received', '') +
++                '\n\n' +
++                'Expected value to be empty received:\n' +
++                `  ${printReceived(actual)}`,
++    };
++}
++const isEmptyIterable = (value) => {
++    if (typeof value[Symbol.iterator] !== 'function') {
++        return false;
++    }
++    const firstIteration = value[Symbol.iterator]().next();
++    return firstIteration.done;
++};
 diff --git a/package.json b/package.json
 index 31ff79f12ef969d976a165ed04111d8930d37665..7bed0775a3b5a6991e05ab7c55297d51d7a85f7b 100644
 --- a/package.json
@@ -13,7 +68,7 @@ index 31ff79f12ef969d976a165ed04111d8930d37665..7bed0775a3b5a6991e05ab7c55297d51
    "peerDependenciesMeta": {
      "jest": {
 diff --git a/types/index.d.ts b/types/index.d.ts
-index e4c4c49c536dab50845e084a49aeadcd63b97492..820ad0fc6fc619195c5bf3719e8df485cadd767e 100644
+index e4c4c49c536dab50845e084a49aeadcd63b97492..5b9c121a082e83baf6f11d4a485936221c8acd42 100644
 --- a/types/index.d.ts
 +++ b/types/index.d.ts
 @@ -1,4 +1,7 @@
@@ -25,7 +80,19 @@ index e4c4c49c536dab50845e084a49aeadcd63b97492..820ad0fc6fc619195c5bf3719e8df485
    /**
     * Note: Currently unimplemented
     * Passing assertion
-@@ -465,479 +468,9 @@ interface CustomMatchers<R> extends Record<string, any> {
+@@ -20,6 +23,11 @@ interface CustomMatchers<R> extends Record<string, any> {
+    */
+   toBeEmpty(): R;
+ 
++  /**
++   * Use .toBeEmpty when checking if a String '', Array [] or Object {} is empty.
++   */
++  toBeEmptyString(): R;
++
+   /**
+    * Use .toBeOneOf when checking if a value is a member of a given Array.
+    * @param {Array.<*>} members
+@@ -465,490 +473,22 @@ interface CustomMatchers<R> extends Record<string, any> {
    toEqualIgnoringWhitespace(string: string): R;
  }
  
@@ -269,10 +336,11 @@ index e4c4c49c536dab50845e084a49aeadcd63b97492..820ad0fc6fc619195c5bf3719e8df485
 -     */
 -    toBeInRange(min: number | bigint, max: number | bigint): R;
 -
--    /**
--     * Use `.toBeInteger` when checking if a value is an integer.
--     */
--    toBeInteger(): R;
++  interface Matchers<R, T> extends CustomMatchers<R, T> {
+     /**
+      * Use `.toBeInteger` when checking if a value is an integer.
+      */
+     toBeInteger(): R;
 -
 -    /**
 -     * Use `.toBeObject` when checking if a value is an `Object`.
@@ -502,12 +570,19 @@ index e4c4c49c536dab50845e084a49aeadcd63b97492..820ad0fc6fc619195c5bf3719e8df485
 -     * @param {String} string
 -     */
 -    toEqualIgnoringWhitespace(string: string): R;
--  }
-+  interface Matchers<R, T> extends CustomMatchers<R, T> {}
+   }
  
    // noinspection JSUnusedGlobalSymbols
    // eslint-disable-next-line @typescript-eslint/no-empty-object-type
-@@ -952,3 +485,4 @@ declare module 'jest-extended' {
+-  interface Expect extends CustomMatchers<any> {}
+-
+-  // noinspection JSUnusedGlobalSymbols
+-  // eslint-disable-next-line @typescript-eslint/no-empty-object-type
+-  interface InverseAsymmetricMatchers extends Expect {}
++  interface InverseAsymmetricMatchers extends CustomMatchers<any> {}
+ }
+ 
+ declare module 'jest-extended' {
    const matchers: CustomMatchers<any>;
    export = matchers;
  }

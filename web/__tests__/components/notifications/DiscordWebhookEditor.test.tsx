@@ -154,7 +154,7 @@ describe('DiscordWebhookEditor', () => {
 
   it('Renders correctly', async () => {
     const mock = notificationFollowsMock();
-    await act(async () => {
+    act(() => {
       render(<Rendered notificationData={defaultNotificationDataNoManga} />);
     });
 
@@ -201,7 +201,7 @@ describe('DiscordWebhookEditor', () => {
 
   it('Renders correctly when collapsed', async () => {
     const mock = notificationFollowsMock();
-    await act(async () => {
+    act(() => {
       render(<Rendered notificationData={defaultNotificationDataNoManga} defaultExpanded={false} />);
     });
 
@@ -306,7 +306,7 @@ describe('DiscordWebhookEditor', () => {
       400
     );
 
-    await act(async () => {
+    act(() => {
       render(<Rendered notificationData={defaultNotificationDataNoManga} />);
     });
 
@@ -325,7 +325,7 @@ describe('DiscordWebhookEditor', () => {
       serviceId: null,
       serviceName: 'All services',
     }]);
-    await act(async () => {
+    act(() => {
       render(<Rendered notificationData={defaultNotificationDataNoManga} />);
     });
     const overrideId = 1;
@@ -391,7 +391,7 @@ describe('DiscordWebhookEditor', () => {
 
   it('Warns of unsaved changes when changing to an override', async () => {
     notificationFollowsMock();
-    await act(async () => {
+    act(() => {
       render(<Rendered notificationData={defaultDataWithManga} />);
     });
 
@@ -417,7 +417,7 @@ describe('DiscordWebhookEditor', () => {
 
     await user.click(screen.getByRole('button', { name: /Do not discard form changes/i }));
 
-    const msgField = defaultDataWithManga.fields.filter(f => f.name === 'message')[0];
+    const msgField = defaultDataWithManga.fields.find(f => f.name === 'message')!;
     expect(await screen.findByRole('textbox', { name: /^Message$/i }, { timeout: 5000 })).toHaveValue(msgField.value! + text);
 
     await silenceConsole(changeOverride(defaultDataWithManga.manga![0].title, user));

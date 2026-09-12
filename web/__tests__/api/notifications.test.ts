@@ -610,7 +610,7 @@ describe('GET /api/notifications/notificationFollows', () => {
         .get(url)
         .expect(200)
         .satisfiesApiSpec()
-        .expect(res => expect(res.body.data).not.toBeEmpty());
+        .expect(res => expect(res.body.data).not.toBeEmptyObject());
     });
   });
 });

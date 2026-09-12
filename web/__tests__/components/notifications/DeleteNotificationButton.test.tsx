@@ -52,7 +52,7 @@ describe('DeleteNotificationButton', () => {
   const getDeleteButton = () => screen.getByRole('button', { name: /delete notification/i });
 
 
-  it('Renders correctly', async () => {
+  it('Renders correctly', () => {
     render(<Rendered />);
 
     expect(getDeleteButton()).toBeInTheDocument();

@@ -76,7 +76,7 @@ describe('MangaServiceTable should render correctly', () => {
     fetchMock.get(`/api/admin/manga/${mangaId}/services`, mangaServices);
     fetchMock.get('/api/services', services);
 
-    await act(async () => {
+    act(() => {
       render(<Component />);
     });
 
@@ -94,7 +94,7 @@ describe('MangaServiceTable should render correctly', () => {
       .forEach((rowElem, idx) => {
         const row = within(rowElem);
         const mangaService = sorted[idx];
-        const service = services.filter(s => s.serviceId === mangaService.serviceId)[0];
+        const service = services.find(s => s.serviceId === mangaService.serviceId)!;
 
         expect(row.getByRole('cell', { name: service.name })).toBeInTheDocument();
 
@@ -119,12 +119,12 @@ describe('MangaServiceTable should render correctly', () => {
       });
   });
 
-  it('Should render correctly with failed request', async () => {
+  it('Should render correctly with failed request', () => {
     fetchMock.get(`/api/admin/manga/${mangaId}/services`, 500);
     fetchMock.get('/api/services', 500);
 
     const spies = silenceConsole();
-    await act(async () => {
+    act(() => {
       render(<Component />);
     });
     restoreMocks(spies);

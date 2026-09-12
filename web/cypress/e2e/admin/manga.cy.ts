@@ -134,7 +134,7 @@ describe('Manga admin page', () => {
 
     // Make sure that elasticsearch was updated after new service was created
     cy.request(`/api/quicksearch?${searchParams.toString()}`)
-      .then(async res => {
+      .then(res => {
         cy.log('response body', JSON.stringify(res.body, undefined, 2));
         return res;
       })

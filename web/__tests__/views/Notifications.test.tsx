@@ -30,12 +30,12 @@ describe('Notifications view', () => {
     </Root>
   );
 
-  it('Renders correctly', async () => {
+  it('Renders correctly', () => {
     const mockResponse = vi.fn();
     mockResponse.mockImplementation(() => ({ data: []}));
     fetchMock.get('path:/api/notifications', mockResponse);
 
-    await act(async () => {
+    act(() => {
       render(<Rendered />);
     });
 
@@ -52,7 +52,7 @@ describe('Notifications view', () => {
     mockResponse.mockImplementation(() => ({ data: []}));
     fetchMock.get('path:/api/notifications', mockResponse);
 
-    await act(async () => {
+    act(() => {
       render(<Rendered />);
     });
 

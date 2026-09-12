@@ -77,7 +77,7 @@ describe('MangaSelector', () => {
     )).toBeInTheDocument();
   };
 
-  it('Renders correctly', async () => {
+  it('Renders correctly', () => {
     render(<Rendered />);
 
     expect(screen.getByRole('combobox', { name: testLabel })).toBeInTheDocument();
@@ -98,14 +98,14 @@ describe('MangaSelector', () => {
     expect(autocomplete).not.toBeDisabled();
   });
 
-  it('Renders initial manga', async () => {
+  it('Renders initial manga', () => {
     render(<Rendered selectedManga={manga} />);
 
     expectMangaSelected(manga[0]);
     expectMangaSelected(manga[1]);
   });
 
-  it('Disabled input when disabled is true', async () => {
+  it('Disabled input when disabled is true', () => {
     render(<Rendered selectedManga={manga} disabled />);
 
     expect(screen.getByRole('checkbox', { name: /use follows/i })).toBeDisabled();

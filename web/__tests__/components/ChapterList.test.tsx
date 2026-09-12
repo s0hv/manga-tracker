@@ -62,7 +62,7 @@ describe('Chapter list should allow editing', () => {
       title: chapters[0].title + addedCharacters,
     };
 
-    await act(async () => {
+    act(() => {
       render(
         <TestRoot>
           <ChapterList
@@ -99,6 +99,8 @@ describe('Chapter list should allow editing', () => {
     const chapters = [testChapter];
     const [chaptersMock] = mockChapters(chapters);
 
+    // Async required, or test will fail
+    // eslint-disable-next-line @typescript-eslint/require-await
     await act(async () => {
       render(
         <TestRoot>
@@ -128,7 +130,7 @@ describe('Chapter list should allow editing', () => {
     const chapters = [testChapter];
     const [chaptersMock, servicesMock] = mockChapters(chapters);
 
-    await act(async () => {
+    act(() => {
       render(
         <TestRoot>
           <ChapterList

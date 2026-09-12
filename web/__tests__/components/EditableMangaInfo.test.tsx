@@ -137,6 +137,7 @@ describe('EditableMangaInfo should allow editing', () => {
 
     expectSuccessSnackbar();
 
+    // eslint-disable-next-line @typescript-eslint/no-base-to-string
     const response = JSON.parse(fetchMock.lastCall(`/api/admin/manga/${mangaId}/info`)![1]!.body!.toString());
     expect(response).toEqual({ status: mangaData.status + 1 });
   });

@@ -19,7 +19,7 @@ import {
 setupFaker();
 
 describe('Chapter list should allow editing', () => {
-  const mockChapters = async (n = 10): Promise<[Mock, Mock, ChapterRelease[]]> => {
+  const mockChapters = (n = 10): [Mock, Mock, ChapterRelease[]] => {
     fetchMock.reset();
     const chaptersMock = vi.fn();
     const chapters = generateNSchemas<ChapterRelease>(LatestChapter, n);
@@ -52,8 +52,8 @@ describe('Chapter list should allow editing', () => {
   };
 
   it('Renders correctly', async () => {
-    const [chapterMock, serviceMock, chapters] = await mockChapters();
-    await act(async () => {
+    const [chapterMock, serviceMock, chapters] = mockChapters();
+    act(() => {
       render(<TestRoot><App /></TestRoot>);
     });
 
@@ -66,7 +66,7 @@ describe('Chapter list should allow editing', () => {
 
     // Testing that one chapter is visible is enough.
     // Chapter list component has its own tests.
-    const chapter = chapters.filter(c => c.cover)[0];
+    const chapter = chapters.find(c => c.cover)!;
     expect(chapter).toBeDefined();
 
     await waitFor(
@@ -78,9 +78,9 @@ describe('Chapter list should allow editing', () => {
     expect(cover).toHaveProperty('src', chapter.cover);
   });
 
-  it('Renders correctly with user', async () => {
-    await mockChapters();
-    await act(async () => {
+  it('Renders correctly with user', () => {
+    mockChapters();
+    act(() => {
       render(
         <TestRoot user={normalUser}>
           <App />

@@ -178,7 +178,7 @@ export function expectNoSnackbar() {
 }
 
 export function getSnackbarMessage() {
-  return enqueueSnackbarMock.mock.calls[enqueueSnackbarMock.mock.calls.length - 1][0];
+  return enqueueSnackbarMock.mock.calls[enqueueSnackbarMock.mock.calls.length - 1][0] as string;
 }
 
 export async function muiSelectValue(user: UserEvent, container: BoundFunctions<typeof queries>, selectName: string | RegExp, value: string | RegExp) {
@@ -244,12 +244,14 @@ export const withUser: WithUser = (async (userObject: TestUser, cb: React.ReactE
       <UserStoreProvider user={toFrontendUser(userObject)}>
         {cb}
       </UserStoreProvider>
-    ) as any;
+    );
   }
 
   const { useSessionAndUser } = (await import('@/db/auth'));
   const useSessionAndUserMock = useSessionAndUser as Mock<typeof useSessionAndUser>;
 
+  // Mock needs to return a promise
+  // eslint-disable-next-line @typescript-eslint/require-await
   useSessionAndUserMock.mockImplementation(async (req, _, next) => {
     req.session = {
       sessionId: 'test',
@@ -470,6 +472,7 @@ export const expectRequestCalledWithBody = (req: MockCall | undefined, expectedB
   expect(req).toBeDefined();
   expect(req![1]?.body).toBeDefined();
 
+  // eslint-disable-next-line @typescript-eslint/no-base-to-string
   const body = JSON.parse(req![1]!.body!.toString());
 
   expect(body).toEqual(expectedBody);
@@ -496,9 +499,10 @@ export const getRowByColumnValue = (
   if (headerIndex < 0) throw new Error(`Header index not found for "${header}"`);
 
   const rows = table.querySelectorAll<HTMLTableRowElement>('tbody tr');
-  for (let idx = 0; idx < rows.length; idx++) {
-    const row = rows[idx];
-    if (valueCheck(row.cells[headerIndex])) return row;
+  for (const row of rows) {
+    if (valueCheck(row.cells[headerIndex])) {
+      return row;
+    }
   }
 };
 
@@ -619,10 +623,10 @@ export function setupMockServer() {
   return server;
 }
 
-export function mockRequestJson<TBody extends JsonBodyType>(
+export function mockRequestJson(
   server: SetupServer,
   url: string,
-  responseJson: TBody,
+  responseJson: JsonBodyType,
   method: keyof typeof http = 'get'
 ) {
   const mockFn = vi.fn().mockImplementation(() => HttpResponse.json(responseJson));
@@ -638,6 +642,7 @@ export function handleMockRequest<TBody extends DefaultBodyType>(fn: Mock) {
   return ({ request }: ResponseResolverInfo<Record<string, unknown>, TBody>) => {
     const url = new URL(request.url);
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return fn({
       url: url.pathname,
       params: Object.fromEntries(url.searchParams.entries()),
