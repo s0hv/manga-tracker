@@ -11,7 +11,7 @@ import {
 const tableName = 'Chapters that could not be parsed';
 
 type ChapterFailString = {
-  [K in keyof Omit<ChapterFail, 'timestamp'>]: ChapterFail[K] extends Date
+  [K in keyof Omit<ChapterFail, 'timestamp'>]: ChapterFail[K] extends Date | null
     ? string
     : ChapterFail[K]
 } & {
@@ -38,13 +38,13 @@ const fullFail = {
 } satisfies ChapterFailString;
 
 // Row where every optional field is empty
-const emptyFail: Partial<ChapterFailString> = {
+const emptyFail = {
   chapterIdentifier: 'cy-parsing-fail-empty',
   serviceId: 2,
   serviceName: 'MangaDex',
   errors: 'Cypress test parsing error empty',
   releaseDate: 'Unknown',
-};
+} satisfies Partial<ChapterFailString>;
 
 // Values used to manually fill in every field of the create chapter form
 // when fixing `emptyFail`.
@@ -74,9 +74,9 @@ function assertChapterFailTableValues(chapterFail: Partial<ChapterFailString>) {
   return assertTableRowValues(
     tableName,
     {
-      'Chapter identifier': chapterFail.chapterIdentifier,
-      Service: chapterFail.serviceName,
-      Error: chapterFail.errors,
+      'Chapter identifier': chapterFail.chapterIdentifier ?? '',
+      Service: chapterFail.serviceName ?? '',
+      Error: chapterFail.errors ?? '',
       'Title ID': (row, index) => {
         const chain = cy.wrap(row.find('td').eq(index))
           .should('have.text', chapterFail.titleId ?? '');
@@ -200,13 +200,14 @@ describe('Chapter parsing fails page', () => {
 
     getRowByChapterIdentifier(fullFail.chapterIdentifier, 'none');
 
-    cy.task('runSql', {
+    cy.task<{ title: string, chapterNumber: number }[]>('runSql', {
       sql: `SELECT title, chapter_number, group_id FROM chapters
             WHERE service_id = ${fullFail.serviceId} AND chapter_identifier = '${fullFail.chapterIdentifier}'`,
     }).then(rows => {
       expect(rows).to.have.length(1);
-      expect((rows as any)[0].title).to.equal('Cypress Fixed Chapter Title');
-      expect((rows as any)[0].chapterNumber).to.equal(fullFail.chapterNumber);
+      const row = rows[0];
+      expect(row.title).to.equal('Cypress Fixed Chapter Title');
+      expect(row.chapterNumber).to.equal(fullFail.chapterNumber);
     });
 
     cy.task('runSql', {

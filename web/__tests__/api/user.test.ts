@@ -1,3 +1,5 @@
+import type { Server } from 'http';
+
 import request, { type Agent } from 'supertest';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
@@ -14,6 +16,7 @@ import {
   withUser,
 } from '../utils';
 import {
+  type HttpServerReference,
   apiRequiresUserPostTests,
   expectISEOnDbError,
 } from './api-test-utilities';
@@ -36,9 +39,9 @@ import {
 } from '../constants';
 
 
-let httpServer: any;
-const serverReference = {
-  httpServer,
+let httpServer: Server;
+const serverReference: HttpServerReference = {
+  httpServer: undefined!,
 };
 
 beforeAll(async () => {

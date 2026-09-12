@@ -1,3 +1,5 @@
+import type { Server } from 'http';
+
 import request from 'supertest';
 import {
   afterAll,
@@ -19,7 +21,11 @@ import {
   silenceConsole,
   withUser,
 } from '../utils';
-import { apiRequiresUserGetTests, apiRequiresUserPostTests } from './api-test-utilities';
+import {
+  type HttpServerReference,
+  apiRequiresUserGetTests,
+  apiRequiresUserPostTests,
+} from './api-test-utilities';
 import { db } from '@/db/helpers';
 import {
   type DbNotificationData,
@@ -32,9 +38,9 @@ import { csrfMissing } from '@/serverUtils/constants';
 import { NotificationTypes } from '@/webUtils/constants';
 
 
-let httpServer: any;
-const serverReference = {
-  httpServer,
+let httpServer: Server;
+const serverReference: HttpServerReference = {
+  httpServer: undefined!,
 };
 
 beforeAll(async () => {

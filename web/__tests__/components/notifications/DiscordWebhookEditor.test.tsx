@@ -252,7 +252,7 @@ describe('DiscordWebhookEditor', () => {
 
     expect(mockRoute).toHaveBeenCalledOnce();
 
-    const response = JSON.parse(fetchMock.lastCall('/api/notifications')![1]!.body as any) as NotificationData;
+    const response = JSON.parse(fetchMock.lastCall('/api/notifications')![1]!.body as string) as NotificationData;
     response.fields.sort(sortFields);
 
     const data: Partial<NotificationData> = { ...defaultNotificationDataNoManga };
@@ -371,7 +371,7 @@ describe('DiscordWebhookEditor', () => {
 
     expect(mockRoute).toHaveBeenCalledOnce();
 
-    const response = JSON.parse(fetchMock.lastCall('/api/notifications/override')![1]!.body as any) as UpsertNotificationOverride;
+    const response = JSON.parse(fetchMock.lastCall('/api/notifications/override')![1]!.body as string) as UpsertNotificationOverride;
     response.fields.sort(sortFields);
 
     const fields = override.map(f => ({

@@ -1,7 +1,9 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-assignment,@typescript-eslint/no-unsafe-member-access */
 import type { Application, Request, Response } from 'express-serve-static-core';
 import RSS from 'rss';
 
 import { getLatestReleases, LatestRelease } from '@/db/db';
+import { formatChapterTitle } from '@/webUtils/formatting';
 
 
 function createFeed(rows: LatestRelease[]) {
@@ -10,7 +12,7 @@ function createFeed(rows: LatestRelease[]) {
     description: 'Latest manga releases',
     id: 'manga-tracker-rss',
     link: process.env.HOST,
-    feed_url: `${process.env.HOST.toString()}/rss`,
+    feed_url: `${process.env.HOST}/rss`,
     custom_namespaces: {
       manga: 'test',
     },
@@ -22,7 +24,7 @@ function createFeed(rows: LatestRelease[]) {
       title: row.title,
       guid: row.chapterId,
       url: row.chapterUrlFormat.replace('{}', row.chapterIdentifier).replace('{title_id}', row.titleId),
-      description: `${row.mangaTitle} - Chapter ${row.chapterNumber}${row.chapterDecimal ? '.' + row.chapterDecimal : ''}`,
+      description: `${row.mangaTitle} - ${formatChapterTitle({ chapterNumber: row.chapterNumber, chapterDecimal: row.chapterDecimal })}`,
       author: row.group,
       pubDate: row.releaseDate,
       source: row.serviceName,
@@ -35,7 +37,7 @@ function createFeed(rows: LatestRelease[]) {
     });
   });
 
-  return feed.xml({ indent: true });
+  return feed.xml({ indent: true }) as string;
 }
 
 export default (app: Application) => {
@@ -56,7 +58,7 @@ export default (app: Application) => {
         res.set('Content-Type', 'application/rss+xml');
         res.send(Buffer.from(createFeed(rows)));
       })
-      .catch(err => {
+      .catch((err: unknown) => {
         console.error(err);
         res.status(500).send('500 ISE');
       });

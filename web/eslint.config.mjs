@@ -149,10 +149,11 @@ export default defineConfig(
       }],
       '@typescript-eslint/prefer-nullish-coalescing': ['error', {
         ignorePrimitives: {
-          // Boolean coercion is often on purpose, when you just want to get
+          // Boolean coercion is often on purpose when you just want to get
           // the first true value
           boolean: true,
         },
+        ignoreIfStatements: true,
       }],
       // I feel like this will more easily cause bugs for record and array access
       '@typescript-eslint/no-unnecessary-condition': 'off',
@@ -249,6 +250,7 @@ export default defineConfig(
       'eslint.config.mjs',
       'vitest.config.ts',
       'setupTests.ts',
+      'scripts/**',
     ],
     extends: [tseslint.configs.disableTypeChecked],
   },

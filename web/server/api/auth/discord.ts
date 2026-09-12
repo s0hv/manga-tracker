@@ -31,7 +31,7 @@ export const discordCallbackHandler: CallbackHandler = async (
     },
   });
 
-  const discordUserParsed = await discordUserResponse.json();
+  const discordUserParsed: unknown = await discordUserResponse.json();
 
   const userParsed = DiscordUser.safeParse(discordUserParsed);
 

@@ -1,5 +1,7 @@
 import signature from 'cookie-signature';
 import { defineConfig } from 'cypress';
+import type { ParameterOrJSON } from 'postgres';
+import type { IPostgresInterval } from 'postgres-interval';
 
 import { COOKIE_SECRET } from './constants.js';
 import { parseAuthCookie } from './dist/server/db/auth.js';
@@ -27,13 +29,13 @@ export default defineConfig({
       on('task', {
         flushRedis() {
           return redis.flushall()
-            .catch(err => {
+            .catch((err: unknown) => {
               console.error(err);
               throw err;
             });
         },
 
-        async runSql({ sql, params }: { sql: string, params?: Record<string, unknown> }): Promise<unknown> {
+        async runSql({ sql, params }: { sql: string, params?: ParameterOrJSON<IPostgresInterval>[] }): Promise<unknown> {
           return await db.sql.unsafe(sql, params);
         },
 
@@ -60,7 +62,7 @@ export default defineConfig({
 
         getAuthToken(authTokenCookie: string) {
           const token = parseAuthCookie(unsignCookie(authTokenCookie));
-          return db.oneOrNone`SELECT * FROM auth_token WHERE lookup=${token.lookup}`;
+          return db.oneOrNone`SELECT * FROM auth_token WHERE lookup=${token?.lookup}`;
         },
       });
 

@@ -1,3 +1,5 @@
+import type { Server } from 'http';
+
 import request from 'supertest';
 import { afterAll, beforeAll, describe, it } from 'vitest';
 
@@ -11,7 +13,7 @@ import {
 } from '../utils';
 import { csrfMissing } from '@/serverUtils/constants';
 
-let httpServer: any;
+let httpServer: Server;
 
 beforeAll(async () => {
   ({ httpServer } = await initServer());
