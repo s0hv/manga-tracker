@@ -177,7 +177,7 @@ export async function authenticateByAuthCookie(authCookie: string, req: Request,
   }
 
   const authToken = await getAuthToken(authTokenCookie.userUUID, authTokenCookie.lookup)
-    .catch(err => {
+    .catch((err: unknown) => {
       // We want to handle error gracefully, so the bad token is cleared
       sessionLogger.error(err, 'Failed to fetch auth token from db');
       return null;

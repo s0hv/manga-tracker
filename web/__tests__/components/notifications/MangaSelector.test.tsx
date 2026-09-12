@@ -68,7 +68,7 @@ describe('MangaSelector', () => {
   );
 
   const formatMangaName = ({ title, serviceName }: { title: string, serviceName: string | null }) => (
-    `${title} | ${serviceName || 'All services'}`
+    `${title} | ${serviceName ?? 'All services'}`
   );
 
   const expectMangaSelected = (selectedManga: NotificationFollow) => {

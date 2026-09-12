@@ -113,7 +113,7 @@ export default (app: Express) => {
 
           res.json({ message: 'success' });
         })
-        .catch(err => handleError(err, res));
+        .catch((err: unknown) => handleError(err, res));
     });
 
   app.put('/api/user/follows',
@@ -126,7 +126,7 @@ export default (app: Express) => {
     (req, res) => {
       insertFollow(req.getUser().userId, req.query.mangaId, req.query.serviceId ?? null)
         .then(() => res.status(200).end())
-        .catch(err => handleError(err, res));
+        .catch((err: unknown) => handleError(err, res));
     });
 
   app.delete('/api/user/follows',
@@ -142,7 +142,7 @@ export default (app: Express) => {
           if (rows.count === 0) return res.status(404).end();
           res.status(200).end();
         })
-        .catch(err => handleError(err, res));
+        .catch((err: unknown) => handleError(err, res));
     });
 
   app.post('/api/user/delete',
@@ -197,7 +197,7 @@ export default (app: Express) => {
               sessions,
             });
         })
-        .catch(err => handleError(err, res));
+        .catch((err: unknown) => handleError(err, res));
     });
 };
 

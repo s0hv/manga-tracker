@@ -168,7 +168,7 @@ export function expectSuccessSnackbar() {
 
 export function expectErrorSnackbar(msg?: string) {
   expect(enqueueSnackbarMock).toHaveBeenLastCalledWith(
-    msg || expect.anything(),
+    msg ?? expect.anything(),
     expect.objectContaining({ variant: 'error' })
   );
 }
@@ -440,9 +440,7 @@ export function expectErrorMessage(paramOrMessage: string | RegExp, message?: st
       ? getErrorMessage(res)
       : getErrorMessage(res, paramOrMessage as string, part);
 
-    const comparisonMessage = message === undefined
-      ? paramOrMessage
-      : message;
+    const comparisonMessage = message ?? paramOrMessage;
 
     if (typeof comparisonMessage === 'string') {
       expect(errorMessage).toEqual(comparisonMessage);
@@ -542,7 +540,7 @@ type SilenceConsole = {
 };
 export const silenceConsole: SilenceConsole = (<T, >(callback?: Promise<T>): Promise<T> | MockInstance[] => {
   if (process.env.KEEP_CONSOLE) {
-    return callback || [];
+    return callback ?? [];
   }
   const spies = [
     vi.spyOn(console, 'log').mockImplementation(() => {}),

@@ -54,7 +54,14 @@ const importOrderBase = {
 export default defineConfig(
   // ignores must be the only property in the object
   {
-    ignores: ['public/*', '__mocks__/*', '**/dist/*', 'instrumented/*', '.*/*'],
+    ignores: [
+      'public/*',
+      '__mocks__/*',
+      '**/dist/*',
+      'instrumented/*',
+      '.*/*',
+      'coverage/**',
+    ],
   },
   {
     files: [

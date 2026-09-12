@@ -60,7 +60,7 @@ export default (app: Express) => {
             res.status(404).json({ error: `Chapter with id ${chapterId} not found` });
           }
         })
-        .catch(err => handleError(err, res));
+        .catch((err: unknown) => handleError(err, res));
     });
 
   app.delete(`${BASE_URL}/:chapterId`,
@@ -78,7 +78,7 @@ export default (app: Express) => {
             res.status(404).json({ error: `Chapter with id ${req.params.chapterId} not found` });
           }
         })
-        .catch(err => {
+        .catch((err: unknown) => {
           handleError(err, res);
         });
     });
@@ -89,7 +89,7 @@ export default (app: Express) => {
     }), (req, res) => {
       getChapterReleases(req.params.mangaId)
         .then(rows => res.status(200).json(rows))
-        .catch(err => handleError(err, res));
+        .catch((err: unknown) => handleError(err, res));
     });
 
   /**
@@ -137,6 +137,6 @@ export default (app: Express) => {
       const data = req.query;
       getLatestChapters(data.limit, data.offset, data.useFollows ? req.getUser().userId : undefined)
         .then(rows => res.status(200).json({ data: rows }))
-        .catch(err => handleError(err, res));
+        .catch((err: unknown) => handleError(err, res));
     });
 };

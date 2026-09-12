@@ -58,7 +58,7 @@ export default (app: Application) => {
       mangaSearch(query, 5, withServices, serviceId)
         .then(result => extractFields(result, ['title'], 'manga', extractCustomFields))
         .then(results => res.json(camelcaseKeys(results)))
-        .catch(err => handleElasticError(err, res));
+        .catch((err: unknown) => handleElasticError(err, res));
     });
 
   app.get('/api/search',
@@ -77,8 +77,8 @@ export default (app: Application) => {
 
           getFullManga(match[0].id as number)
             .then(manga => res.json({ data: manga }))
-            .catch(err => handleError(err, res));
+            .catch((err: unknown) => handleError(err, res));
         })
-        .catch(err => handleElasticError(err, res));
+        .catch((err: unknown) => handleElasticError(err, res));
     });
 };

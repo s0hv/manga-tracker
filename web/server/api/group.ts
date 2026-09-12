@@ -33,7 +33,7 @@ router.get('/search',
 
     searchGroups(name, limit)
       .then(groups => res.json({ data: groups }))
-      .catch(err => handleError(err, res));
+      .catch((err: unknown) => handleError(err, res));
   });
 
 export default (app: Application) => {

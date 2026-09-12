@@ -58,7 +58,7 @@ export default (app: Application) => {
   app.get('/api/notifications', validateUser, (req, res) => {
     getUserNotifications(req.getUser().userId)
       .then(resp => res.json({ data: resp || []}))
-      .catch(err => handleError(err, res));
+      .catch((err: unknown) => handleError(err, res));
   });
 
   /**
@@ -116,13 +116,13 @@ export default (app: Application) => {
         return updateUserNotification(data)
           .then(() => getUserNotifications(data.userId, data.notificationId))
           .then(notificationData => res.json({ data: notificationData }))
-          .catch(err => handleError(err, res));
+          .catch((err: unknown) => handleError(err, res));
       }
 
       createUserNotification(data)
         .then(notificationId => getUserNotifications(data.userId, notificationId))
         .then(notificationData => res.json({ data: notificationData }))
-        .catch(err => handleError(err, res));
+        .catch((err: unknown) => handleError(err, res));
     });
 
   /**
@@ -172,7 +172,7 @@ export default (app: Application) => {
       upsertNotificationOverride(data)
         .then(() => getUserNotifications(data.userId, data.notificationId))
         .then(notificationData => res.json({ data: notificationData }))
-        .catch(err => handleError(err, res));
+        .catch((err: unknown) => handleError(err, res));
     });
 
   /**
@@ -218,7 +218,7 @@ export default (app: Application) => {
         userId: req.getUser().userId,
       })
         .then(() => res.json({ status: 'OK' }))
-        .catch(err => handleError(err, res));
+        .catch((err: unknown) => handleError(err, res));
     });
 
   /**
@@ -249,6 +249,6 @@ export default (app: Application) => {
     (req, res) => {
       listNotificationFollows(req.getUser().userId)
         .then(rows => res.json({ data: rows }))
-        .catch(err => handleError(err, res));
+        .catch((err: unknown) => handleError(err, res));
     });
 };

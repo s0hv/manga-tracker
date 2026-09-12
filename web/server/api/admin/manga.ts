@@ -40,7 +40,7 @@ export default () => {
             data: rows,
           });
         })
-        .catch(err => handleError(err, res));
+        .catch((err: unknown) => handleError(err, res));
     });
 
   const scheduleRunUrl = '/:mangaId/scheduledRun/:serviceId';
@@ -61,7 +61,7 @@ export default () => {
               inserted: row,
             });
           })
-          .catch(err => handleError(err, res));
+          .catch((err: unknown) => handleError(err, res));
       }
     )
 
@@ -76,7 +76,7 @@ export default () => {
               res.status(404).end();
             }
           })
-          .catch(err => handleError(err, res));
+          .catch((err: unknown) => handleError(err, res));
       }
     );
 
@@ -99,7 +99,7 @@ export default () => {
               res.json({ message: msg });
             });
         })
-        .catch(err => {
+        .catch((err: unknown) => {
           if (err instanceof NoResultsError) {
             res.status(404).json({ error: 'Manga not found' });
             return;
@@ -125,7 +125,7 @@ export default () => {
 
           res.sendStatus(200);
         })
-        .catch(err => handleError(err, res));
+        .catch((err: unknown) => handleError(err, res));
     });
 
   router.get('/:mangaId/services',
@@ -139,7 +139,7 @@ export default () => {
 
           res.json(r);
         })
-        .catch(err => handleError(err, res));
+        .catch((err: unknown) => handleError(err, res));
     });
 
   router.post('/:mangaId/services/:serviceId',
@@ -159,7 +159,7 @@ export default () => {
 
           res.sendStatus(200);
         })
-        .catch(err => handleError(err, res));
+        .catch((err: unknown) => handleError(err, res));
     });
 
   router.post('/:mangaId/services/:serviceId/create',
@@ -185,7 +185,7 @@ export default () => {
             .then(manga => updateManga(manga.mangaId, manga))
             .then(() => res.sendStatus(200));
         })
-        .catch(err => handleError(err, res));
+        .catch((err: unknown) => handleError(err, res));
     });
 
   return router;

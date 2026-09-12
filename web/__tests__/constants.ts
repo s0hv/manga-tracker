@@ -29,7 +29,7 @@ export const isoDateTimeRegex = /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z/;
 
 export const testChapterUrlFormat = 'https://test-url.com/chapter/{}';
 
-export const isCI = /^(y|yes|true)$/i.test(process.env.IS_CI || '');
+export const isCI = /^(y|yes|true)$/i.test(process.env.IS_CI ?? '');
 
 export const fullManga: FullMangaData = {
   manga: {

@@ -75,7 +75,7 @@ export default async function initServer(): Promise<{ httpServer: Server, addr: 
   process.env.PORT = '0';
   const httpServer = await import('../server')
     .then(m => m.default)
-    .catch(err => {
+    .catch((err: unknown) => {
       console.log(err);
       throw err;
     });
