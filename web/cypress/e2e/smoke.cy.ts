@@ -83,7 +83,7 @@ describe('Smoke tests', () => {
     Selector.getUserMenuBtn().click();
     Selector.getNotificationsLink().click();
 
-    Selector.getCreateNotificationBtn().should('be.disabled');
+    Selector.getCreateNotificationBtn().should('be.enabled');
   });
 
   it('Pages load for admin users', () => {

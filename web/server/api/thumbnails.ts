@@ -16,6 +16,14 @@ declare global {
   }
 }
 
+const BANNED_HTTP1_HEADERS = [
+  'connection',
+  'keep-alive',
+  'proxy-connection',
+  'transfer-encoding',
+  'upgrade',
+];
+
 const router = express.Router();
 
 const MangadexParams = z.object({
@@ -51,6 +59,13 @@ router.get('/mangadex/:mangaId/:coverId', async (req, res) => {
     ? `.${options.size}.jpg`
     : '';
   const url = `https://uploads.mangadex.org/covers/${options.mangaId}/${options.coverId}.${options.extension}${suffix}`;
+
+  // MangaDex uses HTTP2 or newer, which disallows the use of some HTTP1 headers.
+  // If they are used, the fetch will throw `ERR_HTTP2_INVALID_CONNECTION_HEADERS`.
+  for (const header of BANNED_HTTP1_HEADERS) {
+    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+    delete req.headers[header];
+  }
 
   const coverRes = await fetch(url, {
     // Copy request headers, as they are used to validate the cache

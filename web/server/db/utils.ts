@@ -6,13 +6,15 @@ import {
   NUMERIC_VALUE_OUT_OF_RANGE,
   UNIQUE_VIOLATION,
 } from 'pg-error-constants';
-import { PostgresError } from 'postgres';
+import postgres from 'postgres';
 
 import type { Db } from '.';
 import { StatusError } from '../utils/errors';
 import { dbLogger } from '../utils/logging';
 
 import { NoColumnsError } from './errors';
+
+const PostgresError = postgres.PostgresError;
 
 /**
  * Generate update statement from an object while filtering out undefined values.

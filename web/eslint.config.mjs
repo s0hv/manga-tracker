@@ -267,6 +267,16 @@ export default defineConfig(
   },
 
   {
+    files: [
+      'cypress/**',
+    ],
+    rules: {
+      // Chained methods must be async in cypress even if there are no awaits in them
+      '@typescript-eslint/require-await': 'off',
+    },
+  },
+
+  {
     files: ['src/**/*', 'src/*'],
     rules: {
       'import-x/no-restricted-paths': ['error', {

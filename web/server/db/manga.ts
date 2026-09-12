@@ -3,7 +3,7 @@ import {
   INVALID_TEXT_REPRESENTATION,
   NUMERIC_VALUE_OUT_OF_RANGE,
 } from 'pg-error-constants';
-import { PostgresError } from 'postgres';
+import postgres from 'postgres';
 
 import type {
   FullMangaData,
@@ -19,6 +19,8 @@ import { mangadexLogger } from '../utils/logging';
 
 import { db } from './helpers';
 import { fetchExtraInfo, MANGADEX_ID } from './mangadex';
+
+const PostgresError = postgres.PostgresError;
 
 const links = {
   al: 'https://anilist.co/manga/',

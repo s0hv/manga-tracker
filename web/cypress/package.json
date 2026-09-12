@@ -25,11 +25,6 @@
     "tsc-alias": "^1.9.1",
     "typescript": "^6.0.3"
   },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "cypress"
-    ]
-  },
   "nyc": {
     "excludeAfterRemap": false,
     "reporter": [
