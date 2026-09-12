@@ -1,17 +1,21 @@
 FROM dhi.io/node:26-alpine-dev AS build-stage
 
 ENV PNPM_HOME="/pnpm"
-ENV PATH="$PNPM_HOME:$PATH"
+# We pre-append the pnpm executable to path, as otherwise it will not be found
+# and the install will fail
+ENV PATH="$PNPM_HOME:$PATH:$PNPM_HOME/bin"
 ENV NODE_ENV=production
 ARG HOST
 ENV HOST="$HOST"
 
 WORKDIR /app
 
-COPY package.json pnpm-lock.yaml ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY ./migrations ./migrations
 
-RUN npx get-pnpm next-12
+# Not perfect as the script does assume sh shell, which is not installed
+# The installed shell should be Busybox ash
+RUN wget -qO- https://get.pnpm.io/install.sh | env ENV="$HOME/.shrc" SHELL="$(which sh)" sh -
 
 COPY ./web ./web
 
@@ -28,7 +32,7 @@ FROM dhi.io/node:26-alpine AS runtime-stage
 
 ENV NODE_ENV=production
 
-# Install the sh shell.
+# Install the ash shell (aliased as `sh`).
 # A shell is required by dokku so it can run commands from the procfile
 COPY --from=build-stage /bin/sh /bin/sh
 
