@@ -36,9 +36,9 @@ describe('Profile renders correctly', () => {
     expect(email).toBeDisabled();
 
     // Password fields empty
-    expect(screen.getByLabelText<HTMLInputElement>(/^Password$/i).value).toBeEmpty();
-    expect(screen.getByLabelText<HTMLInputElement>(/^New password$/i).value).toBeEmpty();
-    expect(screen.getByLabelText<HTMLInputElement>(/^New password again$/i).value).toBeEmpty();
+    expect(screen.getByLabelText<HTMLInputElement>(/^Password$/i).value).toBeEmptyString();
+    expect(screen.getByLabelText<HTMLInputElement>(/^New password$/i).value).toBeEmptyString();
+    expect(screen.getByLabelText<HTMLInputElement>(/^New password again$/i).value).toBeEmptyString();
 
     // Find submit button
     expect(
@@ -95,7 +95,7 @@ describe('Requests should be handled correctly', () => {
     fetchMock.post('/api/profile', 200);
     render(<Profile user={normalUser} />);
 
-    expect(screen.getByLabelText<HTMLInputElement>(/^Password$/i).value).toBeEmpty();
+    expect(screen.getByLabelText<HTMLInputElement>(/^Password$/i).value).toBeEmptyString();
     const user = userEvent.setup();
 
     await user.type(screen.getByLabelText(/^New password$/i), 'aaa');

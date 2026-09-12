@@ -107,7 +107,7 @@ settings:
 
 patchedDependencies:
   '@testing-library/jest-dom': 86754a82a180cf17634c75857ed0ff28ab89315c4aff4847784f66cec765d92e
-  jest-extended: e21826ae0a1f5f00e82f08bcbe1b3c80ca470bbb4469139a376b2bd16fe59e28
+  jest-extended: 611f29f77a2c969910d679d280c2f0aaaf84abce87207818bb11204eed54578f
   jest-openapi@0.14.2: 5dd6eb8c89a773ff7b55931f1fa94c18fd4205d63441db70041a25ec0695410f
 
 importers:
@@ -414,7 +414,7 @@ importers:
         version: 20.14.0
       jest-extended:
         specifier: ^7.0.0
-        version: 7.0.0(patch_hash=e21826ae0a1f5f00e82f08bcbe1b3c80ca470bbb4469139a376b2bd16fe59e28)(typescript@6.0.3)
+        version: 7.0.0(patch_hash=611f29f77a2c969910d679d280c2f0aaaf84abce87207818bb11204eed54578f)(typescript@6.0.3)
       jest-openapi:
         specifier: ^0.14.2
         version: 0.14.2(patch_hash=5dd6eb8c89a773ff7b55931f1fa94c18fd4205d63441db70041a25ec0695410f)(debug@4.4.3(supports-color@7.2.0))
@@ -4841,10 +4841,6 @@ packages:
   undici-types@8.3.0:
     resolution: {integrity: sha512-j375ScV60dom+YkPFIfTLcOiPxkN/buHz5GobjLhixFuANaNs3C9l4GmrWqejgXWJ7BbJcFYpTEUkS1Ge8bpZQ==}
 
-  undici@8.10.1:
-    resolution: {integrity: sha512-YQ3WlbqjYMmNpdvDH64jAgLjxuAR9+649calDWhbshYaeQGO2bR4nI94ORJmwI3J9YhoKQnpyGOK+0zlWS5N5Q==}
-    engines: {node: '>=22.19.0'}
-
   undici@8.10.2:
     resolution: {integrity: sha512-/y4/bH9YNU5hi9NIrpOuvGXFcxrj3CMrV+/AYpowAYTpHn8gX/XPFjNy766FPoYY0miQhdW977JFWKGNhBdwyQ==}
     engines: {node: '>=22.19.0'}
@@ -8547,7 +8543,7 @@ snapshots:
       chalk: 4.1.2
       pretty-format: 30.5.1
 
-  jest-extended@7.0.0(patch_hash=e21826ae0a1f5f00e82f08bcbe1b3c80ca470bbb4469139a376b2bd16fe59e28)(typescript@6.0.3):
+  jest-extended@7.0.0(patch_hash=611f29f77a2c969910d679d280c2f0aaaf84abce87207818bb11204eed54578f)(typescript@6.0.3):
     dependencies:
       jest-diff: 30.5.1
       typescript: 6.0.3
@@ -8602,7 +8598,7 @@ snapshots:
       saxes: 6.0.0
       symbol-tree: 3.2.4
       tough-cookie: 6.0.2
-      undici: 8.10.1
+      undici: 8.10.2
       w3c-xmlserializer: 5.0.0
       webidl-conversions: 8.0.1
       whatwg-mimetype: 5.0.0
@@ -9926,9 +9922,6 @@ snapshots:
   undici-types@7.18.2: {}
 
   undici-types@8.3.0: {}
-
-  undici@8.10.1:
-    optional: true
 
   undici@8.10.2: {}
 

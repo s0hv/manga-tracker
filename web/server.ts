@@ -58,6 +58,8 @@ import {
 } from '#server/utils/utilities';
 import { addMangaView } from '#server/utils/view-counter';
 
+import type { SessionUser } from './types/dbTypes';
+
 
 validateEnv();
 
@@ -69,7 +71,7 @@ const dirname = __dirname;
 
 // Turn off when not using this app with a reverse proxy like heroku
 const reverseProxy = !!process.env.TRUST_PROXY;
-const isCypress = /y|yes|true/.test(process.env.CYPRESS || '');
+const isCypress = /y|yes|true/.test(process.env.CYPRESS ?? '');
 
 const server = express();
 
@@ -115,13 +117,13 @@ Object.defineProperty(
     configurable: false,
     enumerable: false,
     writable: false,
-    value: function getUser() {
+    value: function getUser(this: Request): SessionUser {
       if (!this.user) {
         throw new Error('Tried to access user when it was null');
       }
 
       return this.user;
-    },
+    } satisfies Request['getUser'],
   }
 );
 
@@ -219,10 +221,10 @@ server.use(cookieParser(process.env.COOKIE_SECRET));
 server.use(useSessionAndUser);
 server.use(touchSessionOnRequest);
 
-// Remember me logic
+// Remember-me logic
 server.use((req, res, next) => {
   // If session is already active, or if auth token does not exist, do nothing
-  if (req.isStaticResource || req.session?.userId || !req.signedCookies[serverCookieNames.authToken]) {
+  if (req.isStaticResource || req.session?.userId || !(req.signedCookies as Record<string, unknown>)[serverCookieNames.authToken]) {
     return next();
   }
 
@@ -268,15 +270,18 @@ servicesApi(server);
 notificationsApi(server);
 server.use('/api/admin/manga', adminMangaApi());
 
+/* eslint-disable @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-assignment */
 // https://github.com/gotwarlost/istanbul/blob/master/ignoring-code-for-coverage.md
 /* istanbul ignore if */
 if (isCypress && (global as any).__coverage__) {
   server.get('/__coverage__', (_, res) => {
     res.json({
-      coverage: (global as any).__coverage__ || null,
+      coverage: (global as any).__coverage__ ?? null,
     });
   });
 }
+/* eslint-enable @typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-assignment */
+
 
 server.get('/login', (req, res, next) => {
   if (req.session?.userId) {
@@ -309,7 +314,7 @@ server.get('/manga/:mangaId', (req, _, next) => {
       sessionId: req.session.sessionId,
       data: req.session.data,
     })
-      .catch((err: Error) => sessionLogger.error(err, 'Failed to update session'));
+      .catch((err: unknown) => sessionLogger.error(err, 'Failed to update session'));
   }
 
   next();
@@ -373,7 +378,7 @@ server.use((err: unknown, req: Request, res: Response, next: NextFunction) => {
   next(err);
 });
 
-const port = process.env.PORT || 3000;
+const port = process.env.PORT ?? 3000;
 
 export default server.listen(port, () => {
   expressLogger.info('Listening on port %s', port);

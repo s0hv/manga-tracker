@@ -58,7 +58,7 @@ describe('WebhookEditor', () => {
     </Root>
   );
 
-  it('Renders correctly', async () => {
+  it('Renders correctly', () => {
     render(<Rendered notificationData={defaultNotificationDataNoManga} />);
 
     expect(screen.getByRole('heading', { name: /^json webhook/i })).toBeInTheDocument();
@@ -77,7 +77,7 @@ describe('WebhookEditor', () => {
     expect(screen.getByRole('button', { name: /^delete notification/i })).toBeInTheDocument();
   });
 
-  it('Renders correctly when collapsed', async () => {
+  it('Renders correctly when collapsed', () => {
     render(<Rendered notificationData={defaultNotificationDataNoManga} defaultExpanded={false} />);
 
     expect(screen.getByRole('heading', { name: /^json webhook/i })).toBeInTheDocument();
@@ -116,8 +116,8 @@ describe('WebhookEditor', () => {
 
     expect(mockRoute).toHaveBeenCalledOnce();
 
-    const sort = (a: NotificationData, b: NotificationData) => ((a.name < b.name) ? 1 : -1);
-    const response = JSON.parse(fetchMock.lastCall('/api/notifications')?.[1]?.body as string);
+    const sort = (a: NotificationField, b: NotificationField) => ((a.name < b.name) ? 1 : -1);
+    const response = JSON.parse(fetchMock.lastCall('/api/notifications')?.[1]?.body as string) as NotificationData;
     response.fields.sort(sort);
 
     const data: Partial<NotificationData> = { ...defaultNotificationDataNoManga };

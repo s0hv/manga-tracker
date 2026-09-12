@@ -404,27 +404,27 @@ describe('GET /api/chapter/releases/:mangaId', () => {
     const field = 'mangaId';
 
     await Promise.all([
-      await request(httpServer)
+      request(httpServer)
         .get(`${url}/a`)
         .expect(400)
         .expect(expectErrorMessage(field, 'Value must contain only numbers', 'params')),
 
-      await request(httpServer)
+      request(httpServer)
         .get(`${url}/-1`)
         .expect(400)
         .expect(expectErrorMessage(field, 'Too small: expected number to be >=0', 'params')),
 
-      await request(httpServer)
+      request(httpServer)
         .get(`${url}/1e10`)
         .expect(400)
         .expect(expectErrorMessage(field, 'Value must contain only numbers', 'params')),
 
-      await request(httpServer)
+      request(httpServer)
         .get(`${url}/NaN`)
         .expect(400)
         .expect(expectErrorMessage(field, 'Value must contain only numbers', 'params')),
 
-      await request(httpServer)
+      request(httpServer)
         .get(`${url}/`)
         .expect(404)
         .expect(res => {

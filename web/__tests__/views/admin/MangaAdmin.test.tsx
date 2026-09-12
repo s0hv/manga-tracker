@@ -34,8 +34,8 @@ describe('Manga admin page should render correctly', () => {
   mockUTCDates();
   fetchMock.get('*', []);
 
-  it('should render correctly without data', async () => {
-    await act(async () => {
+  it('should render correctly without data', () => {
+    act(() => {
       render(
         <TestRoot queryClient={queryClient}>
           <MangaAdmin mangaData={{ manga: { mangaId: 0, title: '', status: 0 }, services: []}} serviceConfigs={[]} />
@@ -55,9 +55,9 @@ describe('Manga admin page should render correctly', () => {
     expect(screen.getByRole('table', { name: /scheduled runs/i })).toBeInTheDocument();
   });
 
-  it('should render correctly with data', async () => {
+  it('should render correctly with data', () => {
     // Does not test scheduled runs. They are tested separately
-    await act(async () => {
+    act(() => {
       render(
         <TestRoot queryClient={queryClient} user={adminUser}>
           <MangaAdmin mangaData={fullManga} serviceConfigs={[]} />
@@ -79,7 +79,7 @@ describe('Manga admin page should render correctly', () => {
   });
 
   it('should filter out services from add scheduled run menu', async () => {
-    await act(async () => {
+    act(() => {
       render(
         <TestRoot queryClient={queryClient}>
           <MangaAdmin mangaData={fullManga} serviceConfigs={[]} />
@@ -116,7 +116,7 @@ describe('Manga admin page should handle data fetching correctly', () => {
       },
     ];
 
-    await act(async () => {
+    act(() => {
       render(
         <TestRoot queryClient={queryClient}>
           <MangaAdmin mangaData={fullManga} serviceConfigs={serviceConfigs} />

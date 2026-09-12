@@ -96,7 +96,11 @@ export default defineConfig(
         ...globals.es2020,
       },
       parserOptions: {
-        projectService: true,
+        projectService: {
+          // The project service does not know how to use the server specific tsconfig
+          allowDefaultProject: ['server.ts'],
+          defaultProject: './tsconfig.server.json',
+        },
         ecmaFeatures: {
           jsx: true,
         },

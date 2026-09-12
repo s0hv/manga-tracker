@@ -27,7 +27,7 @@ describe('ChapterGroupWithCover', () => {
     2: 'http://localhost/test2',
   };
 
-  it('should render correctly', async () => {
+  it('should render correctly', () => {
     const groupChildren = 'group children for test';
     const groupString = 'Test group';
     const mangaId = 1;
@@ -65,7 +65,7 @@ describe('ChapterWithLink', () => {
     },
   };
 
-  it('should render correctly', async () => {
+  it('should render correctly', () => {
     const serviceId = 1;
     const service = services[serviceId];
     const chapter: ChapterRelease = {
@@ -121,7 +121,7 @@ describe('GroupedChapterList', () => {
 
   it('should render correctly', async () => {
     const nGroups = 3;
-    const groupToString = vi.fn().mockImplementation(group => group);
+    const groupToString = vi.fn().mockImplementation((group: string) => group);
 
     const GroupComponent = ({ children }: GroupComponentProps) => <div>{children}</div>;
     const GroupComponentMock = vi.fn().mockImplementation(GroupComponent);

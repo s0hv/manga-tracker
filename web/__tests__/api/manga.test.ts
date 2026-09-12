@@ -91,7 +91,7 @@ describe('GET /api/manga/:mangaId', () => {
   });
 });
 
-const getChapterCount = (body: any) => (body?.data?.chapters?.length) || 0;
+const getChapterCount = (body: any) => (body?.data?.chapters?.length as number) || 0;
 
 describe('GET /api/manga/:mangaId/chapters', () => {
   const validUrl = '/api/manga/1/chapters';

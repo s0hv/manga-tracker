@@ -90,7 +90,7 @@ export default () => {
     (req, res) => {
       updateMangaTitle(req.params.mangaId, req.body.title)
         .then(row => {
-          getMangaForElastic(req.params.mangaId)
+          return getMangaForElastic(req.params.mangaId)
             .then(manga => updateManga(manga.mangaId, manga))
             .finally(() => {
               const msg = row
