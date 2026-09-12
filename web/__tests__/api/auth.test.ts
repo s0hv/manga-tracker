@@ -1,3 +1,5 @@
+import type { Server } from 'http';
+
 import { addHours, differenceInMilliseconds } from 'date-fns';
 import request, { type Agent } from 'supertest';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
@@ -27,15 +29,16 @@ import {
   normalUser,
   signCookieValue,
 } from '../utils';
+import { type HttpServerReference } from './api-test-utilities';
 import { clearUserCache } from '#server/db/user';
 import { formatAuthToken, parseAuthCookie } from '@/db/auth';
 import { csrfMissing, serverCookieNames } from '@/serverUtils/constants';
 import { redis } from '@/serverUtils/ratelimits';
 import { authTokenCookieRegex, sessionCookieRegex } from '@/tests/constants';
 
-let httpServer: any;
-const serverReference = {
-  httpServer,
+let httpServer: Server;
+const serverReference: HttpServerReference = {
+  httpServer: undefined!,
 };
 
 beforeAll(async () => {
@@ -191,7 +194,7 @@ describe('POST /api/auth/login', () => {
       .csrf()
       .send(fakeUser)
       .expect(429)
-      .expect(res => { nextValidRequestDate = new Date(res.body.error.nextValidRequestDate) });
+      .expect(res => { nextValidRequestDate = new Date(res.body.error.nextValidRequestDate as string) });
 
     // Login attempts block further logins by 24 hours
     expect(new Date(nextValidRequestDate!)).toBeAfter(addHours(new Date(), 23));
@@ -202,7 +205,7 @@ describe('POST /api/auth/login', () => {
       .send(fakeUser)
       .expect(429)
       .expect(res => {
-        const dateDiff = differenceInMilliseconds(nextValidRequestDate!, new Date(res.body.error.nextValidRequestDate));
+        const dateDiff = differenceInMilliseconds(nextValidRequestDate!, new Date(res.body.error.nextValidRequestDate as string));
         // The limit can vary by a few milliseconds, which is fine
         expect(dateDiff).toBeLessThan(10);
       });
@@ -468,7 +471,7 @@ describe('Test authentication', () => {
       .redirects(2)
       .expect(429)
       .expect(res => {
-        const ratelimitedUntil = new Date(res.body.error.nextValidRequestDate);
+        const ratelimitedUntil = new Date(res.body.error.nextValidRequestDate as string);
 
         expect(ratelimitedUntil).toBeAfter(addHours(new Date(), 23));
       });

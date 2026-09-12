@@ -9,7 +9,7 @@ import { db } from '../helpers';
 import { generateUpdate } from '../utils';
 
 export const updateMangaTitle = (mangaId: MangaId, newTitle: string) => {
-  const sql = db.one`UPDATE manga
+  const sql = db.one<{ title: string }>`UPDATE manga
                SET title=${newTitle}
                WHERE manga_id=${mangaId}
                RETURNING (SELECT title FROM manga WHERE manga_id=${mangaId})`;

@@ -13,12 +13,12 @@ const intervalType: PostgresType<IPostgresInterval> = {
   to: 1186,
   from: [1186],
 
-  serialize: (value: any | IPostgresInterval) => {
+  serialize: (value: IPostgresInterval | string) => {
     // Can also be a string input
-    if (typeof value?.toPostgres === 'function') return value.toPostgres();
-    return value;
+    if (typeof value === 'string') return value;
+    return value.toPostgres();
   },
-  parse: raw => parseInterval(raw),
+  parse: (raw: string) => parseInterval(raw),
 };
 
 export type CustomTypes = {

@@ -71,7 +71,7 @@ export const authenticateUser = async (email: string, password: string): Promise
 export const useSessionAndUser = async (req: Request, res: Response, next: NextFunction) => {
   req.session = null;
 
-  const sessionToken = req.signedCookies[serverCookieNames.session];
+  const sessionToken = (req.signedCookies as Record<string, string | undefined>)[serverCookieNames.session];
 
   if (!sessionToken || req.isStaticResource) {
     return next();

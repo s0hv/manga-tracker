@@ -3,7 +3,7 @@ import snakecaseKeys from 'snakecase-keys';
 import client from './index';
 import { MangaForElastic } from '../manga';
 
-export const index = process.env.ES_INDEX || 'manga';
+export const index = process.env.ES_INDEX ?? 'manga';
 
 type ServiceFields = {
   'services.service_name'?: string[]
@@ -11,7 +11,7 @@ type ServiceFields = {
 };
 
 export type MangaSearchResultFields<
-  TWithService extends (true | false | boolean),
+  TWithService extends boolean,
   // Array type is used to hack TypeScript into working correctly with conditional types
   // https://github.com/microsoft/TypeScript/issues/51822#issuecomment-1344612998
   TReturnType = [TWithService] extends [false] ? Partial<unknown> : ServiceFields> = {

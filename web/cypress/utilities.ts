@@ -85,7 +85,7 @@ export function getTableRowByColumnValue({
     });
 
   return cy.get('@columnHeader')
-    .then(header => {
+    .then((header: JQuery) => {
       const headerElem = header.get(0);
       let headerIndex = 0;
       let node: Element = headerElem;

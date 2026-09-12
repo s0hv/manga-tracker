@@ -23,6 +23,7 @@ import {
   TestRoot,
 } from '../utils';
 import Manga from '@/components/Manga';
+import type { FullMangaData } from '@/types/api/manga';
 
 import { emptyFullManga as emptyManga, fullManga as manga } from '../constants';
 
@@ -65,7 +66,7 @@ describe('Manga page should render correctly', async () => {
     ).toBeInTheDocument();
   };
 
-  const expectMangaInfoExists = (m: any) => {
+  const expectMangaInfoExists = (m: FullMangaData) => {
     // With cover mal link and the cover should exist. Otherwise, they should be hidden
     if (m.manga.cover) {
       const malLink = screen.getByRole('link', { name: /myanimelist page of the manga/i });
@@ -80,7 +81,7 @@ describe('Manga page should render correctly', async () => {
       expect(screen.queryByRole('img', { name: m.manga.title })).not.toBeInTheDocument();
     }
 
-    if (m.aliases?.length > 0) {
+    if (m.aliases?.length) {
       // Make sure the aliases are listed
       expect(screen.getByText(/alternative titles/i)).toBeInTheDocument();
       expect(screen.getByText(m.aliases[0], { exact: true })).toBeInTheDocument();

@@ -3,8 +3,13 @@ import {
   INVALID_TEXT_REPRESENTATION,
   NUMERIC_VALUE_OUT_OF_RANGE,
 } from 'pg-error-constants';
+import { PostgresError } from 'postgres';
 
-import type { FullMangaData, MangaInfoData } from '@/types/api/manga';
+import type {
+  FullMangaData,
+  MangaInfoData,
+  MangaServiceData,
+} from '@/types/api/manga';
 import type { Follow } from '@/types/db/follows';
 import type { Manga } from '@/types/db/manga';
 import type { DatabaseId, MangaId, PostgresInterval } from '@/types/dbTypes';
@@ -47,7 +52,7 @@ export interface MangaData extends Omit<MangaInfoData, 'lastUpdated'> {
 }
 
 interface FullMangaUnformatted extends MangaData {
-  services: any[]
+  services: MangaServiceData[]
   aliases: string[]
 }
 
@@ -59,7 +64,6 @@ function formatFullManga(obj: Partial<FullMangaUnformatted>): FullMangaData {
   };
 
   if (obj.services) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     out.services = obj.services;
     delete (obj).services;
   }
@@ -99,7 +103,7 @@ export function getFullManga(mangaId: MangaId): Promise<FullMangaData | null> {
           .catch(mangadexLogger.error);
       }
 
-      formatLinks(row as any);
+      formatLinks(row as unknown as Record<string, string>);
       return formatFullManga(row);
     });
 }
@@ -122,9 +126,9 @@ export async function getFollows(userId: DatabaseId | undefined): Promise<Follow
                WHERE user_id=${userId}
                GROUP BY uf.manga_id, m.manga_id, mi.manga_id`
     .then(rows => camelcaseKeys<Follow[]>(rows, { deep: true }))
-    .catch(err => {
+    .catch((err: unknown) => {
       // integer overflow
-      if (err.code === NUMERIC_VALUE_OUT_OF_RANGE || err.code === INVALID_TEXT_REPRESENTATION) {
+      if (err instanceof PostgresError && (err.code === NUMERIC_VALUE_OUT_OF_RANGE || err.code === INVALID_TEXT_REPRESENTATION)) {
         throw HttpError(400, 'Integer out of range');
       }
       console.error(err);
@@ -149,8 +153,10 @@ export type MangaForElastic = {
   services: { serviceId: number, serviceName: string }[]
 };
 
+type MangaForElasticRow = Omit<MangaForElastic, 'aliases'> & { aliases: string[] | null };
+
 export const getMangaForElastic = (mangaId: MangaId): Promise<MangaForElastic> => {
-  return db.one<any>`SELECT
+  return db.one<MangaForElasticRow>`SELECT
       m.manga_id,
       m.title,
       m.views,
@@ -161,8 +167,8 @@ export const getMangaForElastic = (mangaId: MangaId): Promise<MangaForElastic> =
   INNER JOIN services s ON s.service_id = ms.service_id
   WHERE m.manga_id=${mangaId}
   GROUP BY m.manga_id, ms.manga_id`
-    .then(manga => {
-      manga.aliases = manga.aliases?.map((title: string) => ({ title })) || [];
-      return manga;
-    });
+    .then(({ aliases, ...manga }) => ({
+      ...manga,
+      aliases: aliases?.map(title => ({ title })) ?? [],
+    }));
 };

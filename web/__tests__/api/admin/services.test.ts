@@ -1,3 +1,5 @@
+import type { Server } from 'http';
+
 import { parse, toSeconds } from 'iso8601-duration';
 import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
@@ -19,7 +21,7 @@ import { csrfMissing } from '@/serverUtils/constants';
 import { userForbidden, userUnauthorized } from '@/tests/constants';
 import type { Service, ServiceConfig, ServiceWhole } from '@/types/db/services';
 
-let httpServer: any;
+let httpServer: Server;
 
 beforeAll(async () => {
   ({ httpServer } = await initServer());

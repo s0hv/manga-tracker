@@ -100,8 +100,9 @@ export const getOauthTokens = async (
   const code = req.query.code;
   const state = req.query.state;
 
-  const storedState = req.signedCookies[serverCookieNames.oauthState(providerName)] ?? null;
-  const codeVerifier = req.signedCookies[serverCookieNames.oauthVerifier(providerName)] ?? null;
+  const signedCookies = req.signedCookies as Record<string, string | undefined>;
+  const storedState = signedCookies[serverCookieNames.oauthState(providerName)] ?? null;
+  const codeVerifier = signedCookies[serverCookieNames.oauthVerifier(providerName)] ?? null;
 
   if (!code || !state || !storedState || !codeVerifier) {
     res.status(400).end();
@@ -114,6 +115,7 @@ export const getOauthTokens = async (
   }
 
   try {
+    // eslint-disable-next-line @typescript-eslint/no-base-to-string
     return await provider.validateAuthorizationCode(code.toString(), codeVerifier);
   } catch {
     // Invalid code or client credentials
@@ -146,7 +148,7 @@ export const finishLoginCallback = async (
       });
     } catch (err: unknown) {
       //  We should probably handle this better
-      logger.error(`Failed to create OAuth user: ${err}`);
+      logger.error(`Failed to create OAuth user: ${String(err)}`);
       res.status(400).end();
       return;
     }

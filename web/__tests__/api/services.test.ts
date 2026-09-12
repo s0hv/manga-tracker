@@ -1,3 +1,5 @@
+import type { Server } from 'http';
+
 import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
@@ -6,7 +8,7 @@ import stopServer from '../stopServer';
 import { configureJestOpenAPI } from '../utils';
 
 
-let httpServer: any;
+let httpServer: Server;
 
 beforeAll(async () => {
   ({ httpServer } = await initServer());

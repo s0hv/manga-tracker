@@ -1,3 +1,5 @@
+import type { Server } from 'http';
+
 import { http } from 'msw';
 import { setupServer } from 'msw/node';
 import request from 'supertest';
@@ -7,7 +9,7 @@ import initServer from '../initServer';
 import stopServer from '../stopServer';
 import { getErrorMessage } from '../utils';
 
-let httpServer: any;
+let httpServer: Server;
 
 const server = setupServer(
   http.get('https://uploads.mangadex.org/*', () => new Response(

@@ -75,7 +75,7 @@ describe('Requests should be handled correctly', () => {
     fetchMock.reset();
   });
 
-  const editInput = async (user: UserEvent, target: HTMLElement, value: any) => {
+  const editInput = async (user: UserEvent, target: HTMLElement, value: string) => {
     await user.type(target, value);
   };
 

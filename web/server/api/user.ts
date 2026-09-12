@@ -100,7 +100,7 @@ export default (app: Express) => {
             const session = await createSession(user.userId);
             setSessionCookie(session, res);
 
-            if (req.signedCookies[serverCookieNames.authToken]) {
+            if ((req.signedCookies as Record<string, string | undefined>)[serverCookieNames.authToken]) {
               await clearUserAuthTokens(userId);
               const { token, expiresAt } = await generateAuthToken(userId, user.userUuid);
 

@@ -88,7 +88,7 @@ describe('Chapter list should allow editing', () => {
     expect(postMock).toHaveBeenCalledTimes(1);
     // Make sure body contains all edited values
     const callArgs = postMock.mock.calls[0];
-    expect(JSON.parse(callArgs[1].body)).toMatchObject(updatedChapter);
+    expect(JSON.parse(callArgs[1].body as string)).toMatchObject(updatedChapter);
   });
 
   it('Should delete correctly', async () => {

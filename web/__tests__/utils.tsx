@@ -1,3 +1,5 @@
+import type { Server } from 'http';
+
 import React, { type PropsWithChildren, isValidElement } from 'react';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -310,7 +312,7 @@ export function deleteCookie(agent: request.Agent, name: string) {
   agent.jar.setCookie(c!);
 }
 
-export async function login(app: any, user: TestUser, rememberMe = false) {
+export async function login(app: Server, user: TestUser, rememberMe = false) {
   const agent = request.agent(app);
 
   // For oauth based accounts just mock the created session
@@ -400,12 +402,12 @@ export function withRoot(Component: React.ReactElement): React.ReactElement {
   );
 }
 
-export function getErrorMessages(res: Response) {
+export function getErrorMessages(res: Response): string | Record<string, string[]> {
   expect(res.ok).toBeFalse();
   expect(res.body).toBeObject();
   const errors = res.body.error;
   expect(errors).toBeDefined();
-  return errors;
+  return errors as string | Record<string, string[]>;
 }
 
 export function getErrorMessage(res: Response, param?: string, part: ZodErrorPath = 'query'): string | undefined {
@@ -424,7 +426,7 @@ export function getErrorMessage(res: Response, param?: string, part: ZodErrorPat
       errorEntries = errorEntries.filter(([key]) => key === paramName);
     }
     expect(errorEntries, `Error message for field '${param}' not found in '${part}.${param}'`).toHaveLength(1);
-    return (errorEntries[0][1] as string[]).join('\n');
+    return errorEntries[0][1].join('\n');
   }
 }
 
@@ -453,7 +455,7 @@ export function expectErrorMessage(paramOrMessage: string | RegExp, message?: st
 export async function configureJestOpenAPI() {
   // Must add global expect so that jest-openapi can add its custom matchers
   (global as any).expect = expect;
-  jestOpenAPI(await getOpenapiSpecification() as any);
+  jestOpenAPI(await getOpenapiSpecification() as Parameters<typeof jestOpenAPI>[0]);
   delete (global as any).expect;
 }
 

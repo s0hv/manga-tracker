@@ -54,10 +54,12 @@ describe('Login features', () => {
 
       cy.getCookie(sessionCookieName)
         .should('not.be.null')
-        .then(cookie => {
+        .then(cookieNullable => {
+          // Nullability was asserted above
+          const cookie = cookieNullable!;
           // Expiry should be 2 hours for the session
-          expect(cookie.expiry * 1000).to.be.greaterThan(Date.now() + hour * 2 - minute * 5);
-          expect(cookie.expiry * 1000).to.be.lessThan(Date.now() + hour * 2 + minute * 5);
+          expect(cookie.expiry! * 1000).to.be.greaterThan(Date.now() + hour * 2 - minute * 5);
+          expect(cookie.expiry! * 1000).to.be.lessThan(Date.now() + hour * 2 + minute * 5);
 
           cy.wrap(cookie.value).as('sessionToken');
         });
@@ -72,10 +74,12 @@ describe('Login features', () => {
 
       cy.getCookie(authTokenCookieName)
         .should('not.be.null')
-        .then(cookie => {
+        .then(cookieNullable => {
+          // Nullability was asserted above
+          const cookie = cookieNullable!;
           // Expiry should be 30 days for the remember me token
-          expect(cookie.expiry * 1000).to.be.greaterThan(Date.now() + day * 29);
-          expect(cookie.expiry * 1000).to.be.lessThan(Date.now() + day * 31);
+          expect(cookie.expiry! * 1000).to.be.greaterThan(Date.now() + day * 29);
+          expect(cookie.expiry! * 1000).to.be.lessThan(Date.now() + day * 31);
 
           cy.wrap(cookie.value).as('authToken');
         });
@@ -83,7 +87,7 @@ describe('Login features', () => {
       cy.get<string>('@authToken')
         .then(authToken => cy.task<AuthToken>('getAuthToken', authToken))
         .should('not.be.null')
-        .then((authToken: any) => {
+        .then(authToken => {
           expect(new Date(authToken.expiresAt)).to.be.greaterThan(new Date(Date.now() + day * 29));
           expect(new Date(authToken.expiresAt)).to.be.lessThan(new Date(Date.now() + day * 31));
         });
@@ -96,10 +100,12 @@ describe('Login features', () => {
 
       cy.getCookie(sessionCookieName)
         .should('not.be.null')
-        .then(cookie => {
+        .then(cookieNullable => {
+          // Nullability was asserted above
+          const cookie = cookieNullable!;
           // Expiry should be 2 hours for the session
-          expect(cookie.expiry * 1000).to.be.greaterThan(Date.now() + hour * 2 - minute * 5);
-          expect(cookie.expiry * 1000).to.be.lessThan(Date.now() + hour * 2 + minute * 5);
+          expect(cookie.expiry! * 1000).to.be.greaterThan(Date.now() + hour * 2 - minute * 5);
+          expect(cookie.expiry! * 1000).to.be.lessThan(Date.now() + hour * 2 + minute * 5);
 
           cy.wrap(cookie.value).as('sessionToken');
         });

@@ -38,7 +38,7 @@ import { discordCallbackHandler } from './discord';
 import { registerProviderRoute } from './oauth2';
 
 router.post('/logout', async (req, res) => {
-  const sessionToken = req.signedCookies[serverCookieNames.session];
+  const sessionToken = (req.signedCookies as Record<string, string | undefined>)[serverCookieNames.session];
   const session = await validateSessionToken(sessionToken ?? '');
 
   clearSecureCookie(res, serverCookieNames.session);
@@ -137,7 +137,7 @@ router.get('/restore-login', async (req, res) => {
     return;
   }
 
-  const validRequestCookie = req.cookies[serverCookieNames.authRestore];
+  const validRequestCookie = (req.cookies as Record<string, string | undefined>)[serverCookieNames.authRestore];
 
   if (validRequestCookie !== '1') {
     sessionLogger.warn('Tried to restore login without a valid restore cookie set');
@@ -154,7 +154,7 @@ router.get('/restore-login', async (req, res) => {
   res.location(redirectPath)
     .status(302);
 
-  const authToken = req.signedCookies[serverCookieNames.authToken] as string | undefined;
+  const authToken = (req.signedCookies as Record<string, string | undefined>)[serverCookieNames.authToken];
 
   // If the auth token does not exist or the session is already active, just redirect back
   if (!authToken || req.session?.userId) {

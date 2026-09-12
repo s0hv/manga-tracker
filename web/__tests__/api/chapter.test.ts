@@ -1,3 +1,5 @@
+import type { Server } from 'http';
+
 import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
@@ -11,16 +13,19 @@ import {
   normalUser,
   withUser,
 } from '../utils';
-import { expectISEOnDbError } from './api-test-utilities';
+import {
+  type HttpServerReference,
+  expectISEOnDbError,
+} from './api-test-utilities';
 import { addChapter } from '@/db/chapter';
 import { csrfMissing } from '@/serverUtils/constants';
 
 import { userForbidden, userUnauthorized } from '../constants';
 
 
-let httpServer: any;
-const serverReference = {
-  httpServer,
+let httpServer: Server;
+const serverReference: HttpServerReference = {
+  httpServer: undefined!,
 };
 
 
