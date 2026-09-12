@@ -20,7 +20,7 @@ describe('Layout component should render correctly', () => {
     expect(screen.getByRole('contentinfo')).toBeInTheDocument();
 
     const copyrightPattern = new RegExp(`^copyright . s0hv ${currentYear}.?$`, 'i');
-    expect(screen.getByText((_, node) => copyrightPattern.test(node?.textContent || ''))).toBeInTheDocument();
+    expect(screen.getByText((_, node) => copyrightPattern.test(node?.textContent ?? ''))).toBeInTheDocument();
     expect(screen.getByLabelText('license')).toBeInTheDocument();
     expect(screen.getByLabelText('github repository')).toBeInTheDocument();
 

@@ -52,19 +52,19 @@ export default (app: Application) => {
           if (!req.query.service) {
             deleteManga(toMerge)
               .then(() => dbLogger.info('Deleted manga %s from elasticsearch', req.query.toMerge))
-              .catch(err => dbLogger.error(err, 'Failed to delete manga from elasticsearch'));
+              .catch((err: unknown) => dbLogger.error(err, 'Failed to delete manga from elasticsearch'));
           } else {
             getMangaForElastic(toMerge)
               .then(manga => updateManga(manga.mangaId, manga))
-              .catch(err => dbLogger.error(err, 'Failed to update merged manga to elasticsearch'));
+              .catch((err: unknown) => dbLogger.error(err, 'Failed to update merged manga to elasticsearch'));
           }
 
           return getMangaForElastic(base)
             .then(manga => updateManga(manga.mangaId, manga)
-              .catch(err => dbLogger.error(err, 'Failed to update elasticsearch')))
+              .catch((err: unknown) => dbLogger.error(err, 'Failed to update elasticsearch')))
             .finally(() => res.status(200).json(row));
         })
-        .catch(err => handleError(err, res));
+        .catch((err: unknown) => handleError(err, res));
     });
 
   /**
@@ -111,7 +111,7 @@ export default (app: Application) => {
           }
           res.json({ data: manga });
         })
-        .catch(err => handleError(err, res));
+        .catch((err: unknown) => handleError(err, res));
     });
 
   /**
@@ -258,6 +258,6 @@ export default (app: Application) => {
           }
           res.json({ data: rows });
         })
-        .catch(err => handleError(err, res));
+        .catch((err: unknown) => handleError(err, res));
     });
 };

@@ -24,6 +24,6 @@ export default (app: Express) => {
           removeUserFromCache(userId);
           res.status(200).end();
         })
-        .catch(err => handleError(err, res));
+        .catch((err: unknown) => handleError(err, res));
     });
 };

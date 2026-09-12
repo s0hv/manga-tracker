@@ -42,7 +42,7 @@ router.get('/',
 
     getChapterFails(limit, offset)
       .then(chaptersFailed => res.json({ data: chaptersFailed }))
-      .catch(err => handleError(err, res));
+      .catch((err: unknown) => handleError(err, res));
   });
 
 router.post('/fix',
@@ -55,7 +55,7 @@ router.post('/fix',
   (req, res) => {
     fixFailedChapter(req.body)
       .then(() => res.json({ status: 'OK' }))
-      .catch(err => handleError(err, res));
+      .catch((err: unknown) => handleError(err, res));
   });
 
 router.delete('/:serviceId/:chapterIdentifier',
@@ -79,7 +79,7 @@ router.delete('/:serviceId/:chapterIdentifier',
 
         return res.json({ status: 'OK' });
       })
-      .catch(err => handleError(err, res));
+      .catch((err: unknown) => handleError(err, res));
   });
 
 export default (app: Application) => {

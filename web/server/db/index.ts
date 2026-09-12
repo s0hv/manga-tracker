@@ -39,7 +39,7 @@ export const db: Db = createSingleton<Db>('database', () => postgres<CustomTypes
   database:
     /* istanbul ignore next */
     isTest
-      ? process.env.DB_NAME_TEST || process.env.DB_NAME
+      ? process.env.DB_NAME_TEST ?? process.env.DB_NAME
       : process.env.DB_NAME,
   port: Number(process.env.DB_PORT),
   password: process.env.PGPASSWORD,

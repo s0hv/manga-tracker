@@ -28,6 +28,6 @@ export default (app: Application) => {
   app.get('/api/services', (_: Request, res: Response) => {
     getServicesForApi()
       .then(services => res.json({ data: services }))
-      .catch(err => handleError(err, res));
+      .catch((err: unknown) => handleError(err, res));
   });
 };

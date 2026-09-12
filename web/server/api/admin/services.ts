@@ -86,7 +86,7 @@ router.post('/editService/:serviceId',
 
     Promise.all(promises)
       .then(() => res.json({ message: 'OK' }))
-      .catch(err => handleError(err, res));
+      .catch((err: unknown) => handleError(err, res));
   });
 
 export default (app: Application) => {

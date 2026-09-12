@@ -12,7 +12,7 @@ const pretty = process.env.PRETTY
 
 export const logger = pino(
   {
-    level: level || 'debug',
+    level: level ?? 'debug',
     transport: pretty
       ? {
         target: 'pino-pretty',
