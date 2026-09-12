@@ -1,4 +1,4 @@
-FROM dhi.io/node:26-alpine3.22-dev AS build-stage
+FROM dhi.io/node:26-alpine-dev AS build-stage
 
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
@@ -24,7 +24,7 @@ RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 RUN pnpm build
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm prune --prod
 
-FROM dhi.io/node:26-alpine3.22 AS runtime-stage
+FROM dhi.io/node:26-alpine AS runtime-stage
 
 ENV NODE_ENV=production
 
