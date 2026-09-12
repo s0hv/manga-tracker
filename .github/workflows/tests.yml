@@ -48,14 +48,14 @@ jobs:
           --health-retries 5
 
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v7
     # Force https use since ssh does not work
     - run: 'git config --global url."https://github.com/".insteadOf ssh://git@github.com/'
     - run: 'git config --global url."https://".insteadOf ssh://'
 
-    - uses: pnpm/action-setup@v4
+    - uses: pnpm/action-setup@v6
 
-    - uses: actions/setup-node@v6
+    - uses: actions/setup-node@v7
       with:
         node-version: 26
         cache: 'pnpm'
@@ -75,7 +75,7 @@ jobs:
       run: pnpm test:ci
 
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v5
+      uses: codecov/codecov-action@v7
       with:
         flags: frontend
         name: Frontend coverage
@@ -141,9 +141,9 @@ jobs:
           - 9200:9200
 
     steps:
-      - uses: actions/checkout@v6
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v6
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: '26'
           cache: 'pnpm'
@@ -171,7 +171,7 @@ jobs:
         run: uv run pip uninstall -y coverage
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v7
         with:
           flags: scraper
           name: Scraper coverage
@@ -240,14 +240,14 @@ jobs:
           - 9200:9200
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       # Force https use since ssh does not work
       - run: 'git config --global url."https://github.com/".insteadOf ssh://git@github.com/'
       - run: 'git config --global url."https://".insteadOf ssh://'
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: 26
           cache: 'pnpm'
@@ -314,7 +314,7 @@ jobs:
           config-file: cypress.config.ts
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v7
         with:
           flags: E2E
           name: E2E coverage

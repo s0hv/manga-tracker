@@ -1,6 +1,6 @@
 import camelcaseKeys from 'camelcase-keys';
 import { NOT_NULL_VIOLATION } from 'pg-error-constants';
-import { PostgresError } from 'postgres';
+import postgres from 'postgres';
 
 import { groupBy } from '@/common/utilities';
 import type {
@@ -19,6 +19,8 @@ import {
   createHelpers,
   db,
 } from './helpers';
+
+const PostgresError = postgres.PostgresError;
 
 type DbNotificationField = NotificationField & {
   overrideId: number | null;

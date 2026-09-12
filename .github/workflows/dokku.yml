@@ -36,12 +36,12 @@ jobs:
       url: https://manga.gachimuchi.men
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
       - name: Set up qemu
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@v4
 
       - name: Set up docker buildx
         uses: docker/setup-buildx-action@v4
@@ -60,7 +60,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build and push
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/manga-tracker:${{ github.sha }}
