@@ -1,14 +1,11 @@
+import type { NotificationFollowRow } from '@/db/schemas/notifications';
+
 export type NotificationFieldData = {
   name: string;
   value: string | null;
 };
 
-export type NotificationFollow = {
-  mangaId: number;
-  serviceId: number | null;
-  title: string;
-  serviceName: string;
-};
+export type NotificationFollow = NotificationFollowRow;
 
 
 export type NotificationManga = NotificationFollow;

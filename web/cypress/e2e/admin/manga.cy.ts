@@ -18,11 +18,13 @@ describe('Manga admin page', () => {
     deleteTempMangaService();
 
     cy.task('runSql', {
-      sql: 'UPDATE manga_info SET status = 0 WHERE manga_id=1;\n'
-        + "UPDATE manga SET title = 'Dr. Stone' WHERE manga_id=1;\n"
-        + "UPDATE manga_alias SET title = 'Test alias' WHERE manga_id=1;\n"
-        + "UPDATE manga_service SET disabled = FALSE, next_update='2020-08-10 16:00:00.000000 +00:00'::timestamptz WHERE manga_id=1 AND service_id=1;\n"
-        + 'DELETE FROM scheduled_runs WHERE manga_id=1',
+      sql: [
+        'UPDATE manga_info SET status = 0 WHERE manga_id=1',
+        "UPDATE manga SET title = 'Dr. Stone' WHERE manga_id=1",
+        "UPDATE manga_alias SET title = 'Test alias' WHERE manga_id=1",
+        "UPDATE manga_service SET disabled = FALSE, next_update='2020-08-10 16:00:00.000000 +00:00'::timestamptz WHERE manga_id=1 AND service_id=1",
+        'DELETE FROM scheduled_runs WHERE manga_id=1',
+      ],
     });
 
     cy.login(adminUser);

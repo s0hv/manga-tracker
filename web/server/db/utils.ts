@@ -1,37 +1,83 @@
+import { isPlainObject } from 'es-toolkit';
 import type { Response } from 'express-serve-static-core';
 import {
-  FOREIGN_KEY_VIOLATION,
-  INVALID_TEXT_REPRESENTATION,
-  NOT_NULL_VIOLATION,
-  NUMERIC_VALUE_OUT_OF_RANGE,
-  UNIQUE_VIOLATION,
-} from 'pg-error-constants';
-import postgres from 'postgres';
+  type SqlToken,
+  ForeignKeyIntegrityConstraintViolationError,
+  InvalidInputError,
+  NotNullIntegrityConstraintViolationError,
+  SlonikError,
+  UniqueIntegrityConstraintViolationError,
+} from 'slonik';
+import snakecaseKeys from 'snakecase-keys';
 
-import type { Db } from '.';
+import { sql } from './index';
 import { StatusError } from '../utils/errors';
-import { dbLogger } from '../utils/logging';
+import { dbLogger, expressLogger } from '../utils/logging';
 
 import { NoColumnsError } from './errors';
 
-const PostgresError = postgres.PostgresError;
-
-/**
- * Generate update statement from an object while filtering out undefined values.
- * Do not pass untrusted properties to this method, as it will update every column given to it
- * @param {Object} o Input object
- * @param {Db} sql Database instance
- */
-export const generateUpdate = (o: Record<string, any>, sql: Db) => {
+const withoutUndefined = (o: Record<string, unknown>) => {
   const obj = { ...o };
   // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
   Object.keys(obj).forEach(key => obj[key] === undefined && delete obj[key]);
 
-  if (Object.keys(obj).length === 0) {
+  return obj;
+};
+
+function getValueAsSql(value: unknown): SqlToken {
+  if (value instanceof Date) {
+    return sql.timestamp(value);
+  }
+
+  // Only plain objects should be treated as JSON
+  if (isPlainObject(value)) {
+    // All slonik SQL tokens have the type property, which is a symbol.
+    // If the value already is an SQL token, return it as is.
+    if ('type' in value && typeof value.type === 'symbol') {
+      return value as SqlToken;
+    }
+
+    return sql.json(value);
+  }
+
+  return sql.fragment`${value as never}`;
+}
+
+/**
+ * Builds a `(col1, col2) VALUES (val1, val2)` fragment from an object, filtering out undefined
+ * values. Do not pass untrusted properties to this method, as it will insert every column given to it.
+ */
+export const insertValues = (o: Record<string, unknown>): SqlToken => {
+  const entries = Object.entries(snakecaseKeys(withoutUndefined(o), { deep: false }));
+
+  if (entries.length === 0) {
     throw new NoColumnsError('No valid columns given');
   }
 
-  return sql(obj);
+  const columns = sql.join(entries.map(([column]) => sql.identifier([column])), sql.fragment`, `);
+  const values = sql.join(
+    entries.map(([, value]) => getValueAsSql(value)),
+    sql.fragment`, `
+  );
+
+  return sql.fragment`(${columns}) VALUES (${values})`;
+};
+
+/**
+ * Builds a `col1 = val1, col2 = val2` SET fragment from an object, filtering out undefined values.
+ * Do not pass untrusted properties to this method, as it will update every column given to it.
+ */
+export const updateSet = (o: Record<string, unknown>): SqlToken => {
+  const entries = Object.entries(snakecaseKeys(withoutUndefined(o), { deep: false }));
+
+  if (entries.length === 0) {
+    throw new NoColumnsError('No valid columns given');
+  }
+
+  return sql.join(
+    entries.map(([column, value]) => sql.fragment`${sql.identifier([column])} = ${getValueAsSql(value)}`),
+    sql.fragment`, `
+  );
 };
 
 export function handleError(err: unknown, res: Response, msgOverrides: Record<string, string> = {}) {
@@ -45,28 +91,33 @@ export function handleError(err: unknown, res: Response, msgOverrides: Record<st
     return;
   }
 
-
-  if (err instanceof PostgresError) {
-    const msg = msgOverrides[err.code];
-
-    if (err.code === INVALID_TEXT_REPRESENTATION) {
-      dbLogger.debug(err.message);
-      res.status(400).json({ error: msg || 'Invalid data type given' });
-    } else if (err.code === NUMERIC_VALUE_OUT_OF_RANGE) {
-      res.status(400).json({ error: msg || 'Number value out of range' });
-    } else if (err.code === UNIQUE_VIOLATION) {
-      res.status(422).json({ error: msg || 'Resource already exists' });
-    } else if (err.code === FOREIGN_KEY_VIOLATION) {
-      res.status(404).json({ error: msg || 'Foreign key violation' });
-    } else if (err.code === NOT_NULL_VIOLATION) {
-      res.status(400).json({ error: msg || 'Not null value was null' });
-    } else {
-      dbLogger.error(err, 'Unknown database error');
-      res.status(500).json({ error: msg || 'Internal server error' });
-    }
-
+  if (err instanceof UniqueIntegrityConstraintViolationError) {
+    res.status(422).json({ error: msgOverrides.uniqueViolation || 'Resource already exists' });
     return;
   }
 
+  if (err instanceof ForeignKeyIntegrityConstraintViolationError) {
+    res.status(404).json({ error: msgOverrides.foreignKeyViolation || 'Foreign key violation' });
+    return;
+  }
+
+  if (err instanceof NotNullIntegrityConstraintViolationError) {
+    res.status(400).json({ error: msgOverrides.notNullViolation || 'Not null value was null' });
+    return;
+  }
+
+  if (err instanceof InvalidInputError) {
+    dbLogger.debug(err.message);
+    res.status(400).json({ error: msgOverrides.invalidInput || 'Invalid data type given' });
+    return;
+  }
+
+  if (err instanceof SlonikError) {
+    dbLogger.error(err, 'Unknown database error');
+    res.status(500).json({ error: msgOverrides.unknown || 'Internal server error' });
+    return;
+  }
+
+  expressLogger.error(err, 'Unknown error');
   res.status(500).json({ error: 'Internal server error' });
 }

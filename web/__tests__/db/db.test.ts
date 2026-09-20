@@ -7,7 +7,7 @@ describe('getLatestReleases()', () => {
   const serviceId = 1;
   const mangaId = 1;
 
-  const expectValidOutput = (res: unknown[]) => {
+  const expectValidOutput = (res: readonly unknown[]) => {
     expect(res).toBeDefined();
     expect(res).toBeArray();
   };

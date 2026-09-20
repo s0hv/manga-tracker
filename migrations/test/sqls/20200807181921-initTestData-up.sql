@@ -56,7 +56,7 @@ INSERT INTO users (user_id, username, email, pwhash, user_uuid, joined_at, admin
 VALUES (5, 'test oauth', 'test@oauth.com', NULL, 'd1e3395a-37fa-4df7-8441-46d2b2689788', '2020-07-08 12:00:00.344806',
         FALSE, 'dark'::THEME);
 
-INSERT INTO account (provider, provider_account_id, user_id) VALUES ('test', 'test', 5);
+INSERT INTO account (provider, provider_account_id, user_id) VALUES ('discord', 'test', 5);
 
 SELECT setval(pg_get_serial_sequence('users', 'user_id'), MAX(user_id)) FROM users;
 

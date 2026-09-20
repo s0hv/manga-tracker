@@ -5,6 +5,7 @@ import type {
   Request,
   Response,
 } from 'express-serve-static-core';
+import * as z from 'zod';
 
 import {
   clearUserSessions,
@@ -35,23 +36,25 @@ import {
   hashSecret,
   uint8ArrayToBase64,
 } from '@/serverUtils/utilities';
-import type { AuthToken } from '@/types/db/auth';
-import type { User } from '@/types/db/user';
 import type { SafeSession } from '@/types/session';
 
-import { db } from './helpers';
+import { db, sql, voidSql } from './index';
+
+import { AuthTokenRow } from './schemas/auth';
+import { AuthUserRow } from './schemas/user';
+import { insertValues } from './utils';
 
 const AUTH_TOKEN_LENGTH = 32;
 const LOOKUP_TOKEN_LENGTH = 10;
 
 
-export const authenticateUser = async (email: string, password: string): Promise<User> => {
+export const authenticateUser = async (email: string, password: string): Promise<AuthUserRow> => {
   if (password.length > 72) {
     throw new Unauthorized('Invalid login');
   }
 
-  const user = await db.oneOrNone<User>`
-    SELECT   
+  const user = await db.maybeOne(sql.type(AuthUserRow)`
+    SELECT
       u.email,
       u.username,
       u.user_uuid,
@@ -59,7 +62,7 @@ export const authenticateUser = async (email: string, password: string): Promise
       u.theme,
       u.admin
     FROM users u
-    WHERE email=${email} AND pwhash IS NOT NULL AND pwhash=crypt(${password}, pwhash)`;
+    WHERE email=${email} AND pwhash IS NOT NULL AND pwhash=crypt(${password}, pwhash)`);
 
   if (!user) {
     throw new Unauthorized('Invalid login');
@@ -99,12 +102,12 @@ export const useSessionAndUser = async (req: Request, res: Response, next: NextF
   next();
 };
 
-const getAuthToken = (userUUID: string, lookup: string): Promise<AuthToken | null> => {
-  return db.oneOrNone<AuthToken>`
-    SELECT token.user_id, token_hash, lookup, expires_at 
+const getAuthToken = (userUUID: string, lookup: string): Promise<AuthTokenRow | null> => {
+  return db.maybeOne(sql.type(AuthTokenRow)`
+    SELECT token.user_id, token_hash, lookup, expires_at
     FROM auth_token token
       INNER JOIN users u ON token.user_id = u.user_id
-    WHERE u.user_uuid=${userUUID} AND lookup=${lookup}`;
+    WHERE u.user_uuid=${userUUID} AND lookup=${lookup}`);
 };
 
 export type AuthTokenResponse = {
@@ -117,14 +120,14 @@ export const generateAuthToken = async (userId: number, userUUID: string): Promi
   const token = generateSecureRandomBytes(AUTH_TOKEN_LENGTH);
   const expiresAt = addDays(new Date(), 30);
 
-  const data: AuthToken = {
+  const tokenHash = await hashSecret(token);
+
+  await db.query(voidSql`INSERT INTO auth_token ${insertValues({
     userId,
     lookup,
-    tokenHash: await hashSecret(token),
+    tokenHash: sql.binary(Buffer.from(tokenHash)),
     expiresAt,
-  };
-
-  await db.none`INSERT INTO auth_token ${db.sql(data)}`;
+  })}`);
 
   return {
     token: formatAuthToken(lookup, token, userUUID),
@@ -141,15 +144,11 @@ export const regenerateAuthToken = async (
   const token = generateSecureRandomBytes(AUTH_TOKEN_LENGTH);
   const tokenHash = await hashSecret(token);
 
-  const row = await db.one<Pick<AuthToken, 'expiresAt'>>`
-    UPDATE auth_token 
-    SET token_hash=${tokenHash}, lookup=${newLookup} 
-    WHERE user_id=${userId} AND lookup=${lookup} 
-    RETURNING expires_at`;
-
-  if (!row) {
-    throw new Unauthorized('Invalid token');
-  }
+  const row = await db.one(sql.type(z.object({ expiresAt: z.date() }))`
+    UPDATE auth_token
+    SET token_hash=${sql.binary(Buffer.from(tokenHash))}, lookup=${newLookup}
+    WHERE user_id=${userId} AND lookup=${lookup}
+    RETURNING expires_at`);
 
   return {
     token: formatAuthToken(newLookup, token, userUUID),
@@ -246,7 +245,7 @@ export async function authenticateByAuthCookie(authCookie: string, req: Request,
 }
 
 export function clearUserAuthTokens(userId: number) {
-  return db.none`DELETE FROM auth_token WHERE user_id=${userId}`;
+  return db.query(voidSql`DELETE FROM auth_token WHERE user_id=${userId}`);
 }
 
 export function parseAuthCookie(authCookie: string): null | { lookup: string; token: Uint8Array<ArrayBuffer>; userUUID: string } {

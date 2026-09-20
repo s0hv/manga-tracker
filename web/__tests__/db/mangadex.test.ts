@@ -46,7 +46,7 @@ describe('mangadex API works correctly', () => {
 
 
   it('Does a database update on success', async () => {
-    const dbSpy = spyOnDb('none');
+    const dbSpy = spyOnDb('query');
 
     await fetchExtraInfo('1', 2);
 
@@ -54,7 +54,7 @@ describe('mangadex API works correctly', () => {
   });
 
   it('Does nothing when ratelimited', async () => {
-    const dbSpy = spyOnDb('none');
+    const dbSpy = spyOnDb('query');
     await expect(mangadexLimiter.consume('mangadex', 10))
       .rejects
       .toHaveProperty('msBeforeNext');
@@ -70,7 +70,7 @@ describe('mangadex API works correctly', () => {
       // Mock needs to return a promise
       // eslint-disable-next-line @typescript-eslint/require-await
       .mockImplementation(async () => { throw err });
-    const dbSpy = spyOnDb('none');
+    const dbSpy = spyOnDb('query');
 
     await fetchExtraInfo('1', 2);
 

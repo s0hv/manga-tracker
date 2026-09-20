@@ -1,11 +1,16 @@
 import { LRUCache } from 'lru-cache';
+import type { CommonQueryMethods } from 'slonik';
+import * as z from 'zod';
 
 import type { OAuthProvider } from '@/common/auth/providers';
-import { type DbHelpers, type DbHelpersFull, db } from '@/db/helpers';
 import { createSingleton } from '@/serverUtils/utilities';
-import type { User } from '@/types/db/user';
 
-const userCache = createSingleton('userCache', () => new LRUCache<number, User>({
+import { db, sql, voidSql } from './index';
+
+import { UserRow } from './schemas/user';
+import { insertValues } from './utils';
+
+const userCache = createSingleton('userCache', () => new LRUCache<number, UserRow>({
   max: 50,
   ttl: 7200000, // 2 h in ms
   noDisposeOnSet: true,
@@ -13,8 +18,8 @@ const userCache = createSingleton('userCache', () => new LRUCache<number, User>(
 }));
 
 type GetUser = {
-  (userId: number, options: { expectExists: true; noCache?: boolean; conn?: DbHelpers | DbHelpersFull }): Promise<User>;
-  (userId: number, options?: { expectExists?: false; noCache?: boolean; conn?: DbHelpers | DbHelpersFull }): Promise<User | null>;
+  (userId: number, options: { expectExists: true; noCache?: boolean; conn?: CommonQueryMethods }): Promise<UserRow>;
+  (userId: number, options?: { expectExists?: false; noCache?: boolean; conn?: CommonQueryMethods }): Promise<UserRow | null>;
 };
 
 export const getUser: GetUser = (async (userId, options = {}) => {
@@ -33,9 +38,9 @@ export const getUser: GetUser = (async (userId, options = {}) => {
 
   const method = expectExists
     ? conn.one
-    : conn.oneOrNone;
+    : conn.maybeOne;
 
-  return method<User>`
+  return method(sql.type(UserRow)`
       SELECT
         u.user_id,
         u.username,
@@ -44,8 +49,8 @@ export const getUser: GetUser = (async (userId, options = {}) => {
         u.admin,
         u.theme,
         (u.pwhash IS NOT NULL) AS is_credentials_account
-      FROM users u 
-      WHERE user_id=${userId}`
+      FROM users u
+      WHERE user_id=${userId}`)
     .then(user => {
       if (user) {
         userCache.set(userId, user);
@@ -57,10 +62,10 @@ export const getUser: GetUser = (async (userId, options = {}) => {
 
 
 export const getUserByProviderAccountId = async (provider: OAuthProvider, providerAccountId: string) => {
-  const user = await db.oneOrNone<Pick<User, 'userId'>>`
-    SELECT user_id 
+  const user = await db.maybeOne(sql.type(z.object({ userId: z.int() }))`
+    SELECT user_id
     FROM account
-    WHERE provider=${provider} AND provider_account_id=${providerAccountId}`;
+    WHERE provider=${provider} AND provider_account_id=${providerAccountId}`);
 
   if (!user) return null;
 
@@ -82,7 +87,7 @@ export const createOAuthUser = async ({
   return db.transaction(async tran => {
     const user = await createUser({ username, email, password: null, conn: tran });
 
-    await tran.none`INSERT INTO account ${tran.sql({ provider, accountId, userId: user.userId })}`;
+    await tran.query(voidSql`INSERT INTO account ${insertValues({ provider, accountId, userId: user.userId })}`);
 
     return user;
   });
@@ -98,11 +103,9 @@ export const createUser = async ({
   username: string;
   email: string;
   password: string | null;
-  conn?: DbHelpers | DbHelpersFull;
+  conn?: CommonQueryMethods;
 }) => {
-  const { userId } = await conn.one<{
-    userId: number;
-  }>`INSERT INTO users (username, email, pwhash) VALUES (${username}, ${email}, crypt(${password}, gen_salt('bf'))) RETURNING user_id`;
+  const { userId } = await conn.one(sql.type(z.object({ userId: z.int() }))`INSERT INTO users (username, email, pwhash) VALUES (${username}, ${email}, crypt(${password}, gen_salt('bf'))) RETURNING user_id`);
 
   return getUser(userId, { expectExists: true, conn });
 };

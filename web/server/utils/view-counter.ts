@@ -1,6 +1,6 @@
-import type { PendingQuery, Row } from 'postgres';
+import type { QueryResult } from 'slonik';
 
-import { db } from '#server/db/helpers';
+import { db, sql, voidSql } from '#server/db/index';
 import type { SafeSession } from '@/types/session';
 
 
@@ -32,12 +32,12 @@ export const addMangaView = (session: Pick<SafeSession, 'data'> | null, mangaIdS
 /**
  * Reads manga views from session and adds them to the database
  */
-export const onSessionExpire = (session: Pick<SafeSession, 'data'> | null): PendingQuery<Row[]> | Promise<void> => {
+export const onSessionExpire = (session: Pick<SafeSession, 'data'> | null): Promise<QueryResult<unknown>> | Promise<void> => {
   const mangaViews = session?.data?.mangaViews;
   if (!session || !mangaViews || Object.keys(mangaViews).length === 0) {
     return Promise.resolve();
   }
 
   // Increment views for each manga that was found by one
-  return db.sql`UPDATE manga SET views=views+1 WHERE manga_id IN ${db.sql(Object.keys(mangaViews))}`.execute();
+  return db.query(voidSql`UPDATE manga SET views=views+1 WHERE manga_id = ANY(${sql.array(Object.keys(mangaViews).map(Number), 'int4')})`);
 };

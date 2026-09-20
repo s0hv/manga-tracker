@@ -3,6 +3,7 @@ import viteReact from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 import { analyzer } from 'vite-bundle-analyzer';
 import istanbul from 'vite-plugin-istanbul';
+import zodCompiler from 'zod-compiler/vite';
 
 // Base url must be defined in production
 const baseUrl = process.env.NODE_ENV === 'production'
@@ -28,6 +29,7 @@ export default defineConfig({
     sourcemap: isCypress,
   },
   plugins: [
+    zodCompiler({ output: 'compact', parallel: true }),
     isCypress
       ? istanbul({
         forceBuildInstrument: true,

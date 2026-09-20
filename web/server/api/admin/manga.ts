@@ -1,4 +1,5 @@
 import express from 'express';
+import { NotFoundError } from 'slonik';
 import * as z from 'zod';
 
 import {
@@ -19,7 +20,6 @@ import {
   updateMangaTitle,
 } from '@/db/admin/manga';
 import { updateManga } from '@/db/elasticsearch/manga';
-import { NoResultsError } from '@/db/errors';
 import { getMangaForElastic } from '@/db/manga';
 import { handleError } from '@/db/utils';
 import { MangaStatus } from '@/types/dbTypes';
@@ -70,7 +70,7 @@ export default () => {
       (req, res) => {
         deleteScheduledRun(req.params.mangaId, req.params.serviceId)
           .then(rows => {
-            if (rows.count > 0) {
+            if (rows.rowCount > 0) {
               res.status(200).end();
             } else {
               res.status(404).end();
@@ -100,7 +100,7 @@ export default () => {
             });
         })
         .catch((err: unknown) => {
-          if (err instanceof NoResultsError) {
+          if (err instanceof NotFoundError) {
             res.status(404).json({ error: 'Manga not found' });
             return;
           }
@@ -121,7 +121,7 @@ export default () => {
         mangaId: req.params.mangaId,
       })
         .then(r => {
-          if (r.count === 0) return res.sendStatus(404);
+          if (r.rowCount === 0) return res.sendStatus(404);
 
           res.sendStatus(200);
         })
@@ -155,7 +155,7 @@ export default () => {
     (req, res) => {
       updateMangaService(req.params.mangaId, req.params.serviceId, req.body.mangaService)
         .then(r => {
-          if (r.count === 0) return res.sendStatus(404);
+          if (r.rowCount === 0) return res.sendStatus(404);
 
           res.sendStatus(200);
         })
@@ -175,7 +175,7 @@ export default () => {
     (req, res) => {
       createMangaService(req.params.mangaId, req.params.serviceId, req.body.mangaService)
         .then(r => {
-          if (r.count === 0) {
+          if (r.rowCount === 0) {
             return res.sendStatus(404);
           }
 

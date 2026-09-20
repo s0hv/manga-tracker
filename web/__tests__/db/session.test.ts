@@ -6,10 +6,12 @@ import {
   it,
   vi,
 } from 'vitest';
+import * as z from 'zod';
 
+import { insertValues } from '#server/db/utils';
 import { createTestSession, spyOnDb } from '../dbutils';
 import { getIncrementalStringGenerator } from '@/tests/utils';
-import { db } from '#server/db/helpers';
+import { db, sql, voidSql } from '#server/db/index';
 import {
   clearOldSessions,
   createSession,
@@ -42,7 +44,7 @@ describe('Getting sessions', () => {
   });
 
   it('Returns session when found from database and saves it to cache', async () => {
-    const spy = spyOnDb('oneOrNone');
+    const spy = spyOnDb('maybeOne');
     const sid = Date.now().toString();
 
     await createTestSession(sid);
@@ -56,7 +58,7 @@ describe('Getting sessions', () => {
   });
 
   it('Returns session without database calls when it is in cache', async () => {
-    const spy = spyOnDb('oneOrNone');
+    const spy = spyOnDb('maybeOne');
     const sid = Date.now().toString();
 
     await createTestSession(sid);
@@ -74,9 +76,9 @@ describe('Getting sessions', () => {
 
     await createTestSession(sid);
     // Make the session expire now
-    await db.none`UPDATE sessions SET expires_at = ${new Date()} WHERE session_id = ${sid}`;
+    await db.query(voidSql`UPDATE sessions SET expires_at = ${sql.timestamp(new Date())} WHERE session_id = ${sid}`);
 
-    const spy = spyOnDb('oneOrNone');
+    const spy = spyOnDb('maybeOne');
 
     await expect(getSession(sid)).resolves.toBeNull();
     expect(sessionCache.get(sid)).toBeUndefined();
@@ -88,8 +90,8 @@ describe('Getting sessions', () => {
 
 describe('Setting sessions', () => {
   it('Saves new session to database', async () => {
-    const oneOrNoneSpy = spyOnDb('oneOrNone');
-    const noneSpy = spyOnDb('none');
+    const maybeOneSpy = spyOnDb('maybeOne');
+    const querySpy = spyOnDb('query');
 
     const { sessionId, token } = await createSession(null);
 
@@ -97,9 +99,9 @@ describe('Setting sessions', () => {
     expect(token.length).toBeGreaterThan(30);
     await expect(getSession(sessionId)).resolves.not.toBeNull();
 
-    expect(noneSpy).toHaveBeenCalledTimes(1);
+    expect(querySpy).toHaveBeenCalledTimes(1);
     // createSession does not set anything to cache se we expect a fetch here
-    expect(oneOrNoneSpy).toHaveBeenCalledTimes(1);
+    expect(maybeOneSpy).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -116,7 +118,7 @@ describe('Deleting sessions', () => {
     await getSession(sid);
 
     await deleteSession(sid);
-    const spy = spyOnDb('oneOrNone');
+    const spy = spyOnDb('maybeOne');
 
     expect(sessionCache.get(sid)).toBeUndefined();
     await expect(getSession(sid)).resolves.toBeNull();
@@ -133,7 +135,7 @@ describe('Deleting sessions', () => {
     await expect(getSession(sid)).resolves.not.toBeNull();
 
     // Make the session expire now
-    await db.none`UPDATE sessions SET expires_at = ${new Date()} WHERE session_id = ${sid}`;
+    await db.query(voidSql`UPDATE sessions SET expires_at = ${sql.timestamp(new Date())} WHERE session_id = ${sid}`);
 
     const mangaViews = await import('#server/utils/view-counter');
     const spy = vi.spyOn(mangaViews, 'onSessionExpire');
@@ -152,7 +154,7 @@ describe('Deleting sessions', () => {
     // Populate cache by fetching the session
     await getSession(sid);
     // Make the session expire now
-    await db.none`UPDATE sessions SET expires_at = ${new Date()} WHERE session_id = ${sid}`;
+    await db.query(voidSql`UPDATE sessions SET expires_at = ${sql.timestamp(new Date())} WHERE session_id = ${sid}`);
     const clearSessionsSpy = vi.fn<typeof clearOldSessions>(() => clearOldSessions());
 
     vi.useFakeTimers();
@@ -209,14 +211,17 @@ describe('clearOldSessions and manga views', () => {
       sessionSecret: await hashSecret(sessionSecret),
     };
 
-    await db.none`INSERT INTO sessions ${db.sql(sessionData)}`;
+    await db.query(voidSql`INSERT INTO sessions ${insertValues({
+      ...sessionData,
+      sessionSecret: sql.binary(Buffer.from(sessionData.sessionSecret)),
+    })}`);
   }
 
   it('mergeSessionViews merges sessions correctly', async () => {
     // First, clear all other old sessions leftover by earlier tests
     await clearOldSessions();
     // Reset manga views
-    await db.none`UPDATE manga SET views = 0`;
+    await db.query(voidSql`UPDATE manga SET views = 0`);
 
     const rowDatas: Session['data'][] = [
       createData(1, 2),
@@ -254,7 +259,7 @@ describe('clearOldSessions and manga views', () => {
 
     const mangaViews = await import('#server/utils/view-counter');
     const viewsSpy = mangaViews.onSessionExpire as Mock<typeof mangaViews.onSessionExpire>;
-    const dbSpy = spyOnDb('manyOrNone');
+    const dbSpy = spyOnDb('any');
     const sessionClearIntervalMs = 1000;
 
     vi.useFakeTimers();
@@ -273,11 +278,11 @@ describe('clearOldSessions and manga views', () => {
     // Wait until views updating is completed
     await vi.waitFor(() => expect(viewsSpy).toHaveBeenCalledTimes(rowDatas.length));
 
-    type MangaResult = {
-      mangaId: number;
-      views: number;
-    };
-    const modifiedManga = await db.many<MangaResult>`SELECT manga_id, views FROM manga WHERE manga_id IN ${db.sql(Object.keys(expectedMangaViews))}`;
+    const MangaResult = z.object({
+      mangaId: z.int(),
+      views: z.int(),
+    });
+    const modifiedManga = await db.any(sql.type(MangaResult)`SELECT manga_id, views FROM manga WHERE manga_id = ANY(${sql.array(Object.keys(expectedMangaViews).map(Number), 'int4')})`);
     const actualMangaViews = Object.fromEntries(
       modifiedManga.map(({ mangaId, views }) => [mangaId, views])
     );

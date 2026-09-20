@@ -1,5 +1,7 @@
 import * as crypto from 'node:crypto';
 
+import { logger } from '@/serverUtils/logging';
+
 export const getOptionalNumberParam = (value: any, defaultValue: number, paramName = 'Value') => {
   if (value === undefined) {
     return defaultValue;
@@ -11,13 +13,33 @@ export const getOptionalNumberParam = (value: any, defaultValue: number, paramNa
   return val;
 };
 
+// A singleton promise that also exposes its resolved value synchronously via `current` once
+// settled, so repeat access can skip awaiting an already-settled promise.
+export type AsyncSingleton<T> = Promise<T> & { readonly current: T | undefined };
+
+type SingletonValue<T> = T extends Promise<infer U> ? AsyncSingleton<U> : T;
+
 // https://stackoverflow.com/a/34427278/6046713
-export const createSingleton = <T>(key: string, createValue: () => T): T => {
+export const createSingleton = <T>(key: string, createValue: () => T): SingletonValue<T> => {
   const s: unique symbol = Symbol.for(key);
   // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-  let scope: T | undefined = (global as unknown as any)[s] as T | undefined;
+  let scope: SingletonValue<T> | undefined = (global as unknown as any)[s] as SingletonValue<T> | undefined;
   if (!scope) {
-    scope = createValue();
+    const value = createValue();
+    if (value instanceof Promise) {
+      let current: unknown;
+
+      void value
+        .then(resolved => { current = resolved })
+        .catch(logger.error);
+
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      Object.defineProperty(value, 'current', {
+        get: () => current,
+        enumerable: true,
+      });
+    }
+    scope = value as SingletonValue<T>;
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     (global as unknown as any)[s] = scope;
   }

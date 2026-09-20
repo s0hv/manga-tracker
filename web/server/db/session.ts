@@ -6,8 +6,6 @@ import type {
 } from 'express-serve-static-core';
 import { LRUCache } from 'lru-cache';
 
-import { db } from '@/db/helpers';
-import { generateUpdate } from '@/db/utils';
 import { serverCookieNames } from '@/serverUtils/constants';
 import { dbLogger, logger, sessionLogger } from '@/serverUtils/logging';
 import { setSessionCookie } from '@/serverUtils/requestHelpers';
@@ -22,6 +20,11 @@ import {
 import { onSessionExpire } from '@/serverUtils/view-counter';
 import type { SafeSession, Session, SessionWithToken } from '@/types/session';
 import type { PartialExcept } from '@/types/utility';
+
+import { db, sql, voidSql } from './index';
+
+import { ClearedSessionRow, SafeSessionRow, SessionRow } from './schemas/session';
+import { insertValues, updateSet } from './utils';
 
 const SESSION_AGE_HOURS = 2;
 
@@ -77,9 +80,7 @@ export function setSessionClearInterval(clearIntervalMs: number | null, clearSes
 }
 
 export async function clearOldSessions() {
-  const data = await db.manyOrNone<
-    { data: Session['data']; sessionId: string }
-  >`DELETE FROM sessions WHERE expires_at < CURRENT_TIMESTAMP RETURNING data, session_id`;
+  const data = await db.any(sql.type(ClearedSessionRow)`DELETE FROM sessions WHERE expires_at < CURRENT_TIMESTAMP RETURNING data, session_id`);
 
   data.forEach(({ sessionId }) => sessionCache.delete(sessionId));
 
@@ -103,15 +104,13 @@ export async function createSession(userId: number | null): Promise<Pick<Session
 
   const expiresAt = addHours(now, SESSION_AGE_HOURS);
 
-  const sessionData: Session = {
+  await db.query(voidSql`INSERT INTO sessions ${insertValues({
     userId,
     sessionId: id,
     expiresAt,
     data: null,
-    sessionSecret: secretHash,
-  } as const;
-
-  await db.none`INSERT INTO sessions ${db.sql(sessionData)}`;
+    sessionSecret: sql.binary(Buffer.from(secretHash)),
+  })}`);
 
   return { token, expiresAt, sessionId: id };
 }
@@ -149,10 +148,10 @@ export async function getSession(sessionId: string, useCache = true): Promise<Se
     : null;
 
   if (!session) {
-    session = await db.oneOrNone<Session>`
+    session = await db.maybeOne(sql.type(SessionRow)`
       SELECT session_id, user_id, expires_at, data, session_secret
-      FROM sessions 
-      WHERE session_id = ${sessionId}`;
+      FROM sessions
+      WHERE session_id = ${sessionId}`);
 
     logger.trace('Setting session %s', sessionId);
 
@@ -180,7 +179,12 @@ type UpdateSessionParams = PartialExcept<
 >;
 
 export async function updateSession({ sessionId, expiresAt, data }: UpdateSessionParams) {
-  await db.none`UPDATE sessions SET ${generateUpdate({ expiresAt, data }, db.sql)} WHERE session_id=${sessionId}`;
+  await db.query(voidSql`UPDATE sessions SET ${updateSet({
+    expiresAt,
+    data: data === undefined
+      ? undefined
+      : data === null ? null : sql.jsonb(data),
+  })} WHERE session_id=${sessionId}`);
   sessionCache.delete(sessionId);
 }
 
@@ -208,16 +212,16 @@ export async function touchSessionOnRequest(req: Request, res: Response, next: N
 }
 
 export async function deleteSession(sessionId: string): Promise<void> {
-  const session = await db.oneOrNone<SafeSession>`
+  const session = await db.maybeOne(sql.type(SafeSessionRow)`
       DELETE FROM sessions
       WHERE session_id = ${sessionId}
-      RETURNING session_id, expires_at, user_id, data`;
+      RETURNING session_id, expires_at, user_id, data`);
 
   sessionCache.delete(sessionId);
 
   if (!session) return;
 
-  void onSessionExpire(session)
+  void onSessionExpire(session as SafeSession)
     .catch((err: unknown) => dbLogger.error(err, 'Failed to count manga views'));
 }
 
@@ -235,16 +239,16 @@ export async function regenerateSession(sessionId: string | undefined, userId: n
 export async function extendSessionDuration(sessionId: string) {
   const expiresAt = addHours(new Date(), SESSION_AGE_HOURS);
 
-  await db.none`UPDATE sessions
-                SET expires_at=${expiresAt}
-                WHERE session_id = ${sessionId}`;
+  await db.query(voidSql`UPDATE sessions
+                SET expires_at=${sql.timestamp(expiresAt)}
+                WHERE session_id = ${sessionId}`);
 
   // Invalidate cache as the session has changed
   sessionCache.delete(sessionId);
 }
 
 export async function clearUserSessions(userId: number) {
-  await db.none`DELETE FROM sessions WHERE user_id = ${userId}`;
+  await db.query(voidSql`DELETE FROM sessions WHERE user_id = ${userId}`);
 
   sessionCache.forEach(session => {
     if (session.userId === userId) {

@@ -10,10 +10,10 @@ import {
 } from '#server/utils/validators';
 import { getChapters } from '@/db/chapter';
 import { deleteManga, updateManga } from '@/db/elasticsearch/manga';
-import { db } from '@/db/helpers';
+import { db, sql } from '@/db/index';
 import { getFullManga, getMangaForElastic } from '@/db/manga';
+import { MergeMangaResultRow } from '@/db/schemas/manga';
 import { handleError } from '@/db/utils';
-import type { MergeMangaResult } from '@/types/api/manga';
 import type { SortBy } from '@/types/db/common';
 
 
@@ -41,7 +41,7 @@ export default (app: Application) => {
         service = null,
       } = req.query;
 
-      db.oneOrNone<MergeMangaResult>`SELECT * FROM merge_manga(${base}, ${toMerge}, ${service})`
+      db.maybeOne(sql.type(MergeMangaResultRow)`SELECT * FROM merge_manga(${base}, ${toMerge}, ${service})`)
         .then(row => {
           if (!row) {
             res.status(500).json({ error: 'No modifications done' });

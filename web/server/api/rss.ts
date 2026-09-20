@@ -6,7 +6,7 @@ import { getLatestReleases, LatestRelease } from '@/db/db';
 import { formatChapterTitle } from '@/webUtils/formatting';
 
 
-function createFeed(rows: LatestRelease[]) {
+function createFeed(rows: readonly LatestRelease[]) {
   const feed = new RSS({
     title: 'Manga releases',
     description: 'Latest manga releases',
