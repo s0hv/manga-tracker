@@ -1,7 +1,7 @@
 import type { Express } from 'express-serve-static-core';
 import * as z from 'zod';
 
-import { db } from '#server/db/helpers';
+import { db, voidSql } from '#server/db/index';
 import { removeUserFromCache } from '#server/db/user';
 import { handleError } from '#server/db/utils';
 import {
@@ -18,8 +18,7 @@ export default (app: Express) => {
     }, validateUser),
     (req, res) => {
       const { userId } = req.getUser();
-      db.sql`UPDATE users SET theme=${req.query.value}::theme WHERE user_id=${userId}`
-        .execute()
+      db.query(voidSql`UPDATE users SET theme=${req.query.value}::theme WHERE user_id=${userId}`)
         .then(() => {
           removeUserFromCache(userId);
           res.status(200).end();

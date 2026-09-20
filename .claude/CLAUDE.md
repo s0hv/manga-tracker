@@ -17,21 +17,22 @@ The scraper runs on Python >=3.13 and uses `uv` for managing packages and the Py
 `mypy` is used for type checking and `ruff` for formatting. `uv` should be used to run all Python code and related tools.
 
 ## Web app specifics
-The web app runs on Node and uses pnpm for package management.
-It consists of a Node server, which serves the API, and a React
-app using tanstack-start, which uses the Node server to serve the
-frontend files.
+The web app runs on Node and uses pnpm for package management.  It consists of a Node server,
+which serves the API, and a React app using tanstack-start, which uses the Node server to serve the
+frontend files. All commands related to the web app should be run from the `web` directory instead 
+of the repository root.
 
 Cypress tests exist, but you should never run them unless explicitly asked to run them. Just because you create or 
 modify the Cypress tests does not mean to run them.
 
 Here are some relevant commands for different tasks:
 - `pnpm run tsc` - Runs type checking for the frontend, node server, 
-frontend tests, and cypress tests
-- `pnpm run test` - Runs the frontend tests
+frontend tests, and cypress tests. For running type checking for only one of them, 
+you can use `tsc:ui`, `tsc:server`, `tsc:tests`, or `tsc:cypress`
+- `pnpm run test` - Runs the frontend tests using vitest
 - `pnpm run lint` - Runs eslint
 - `pnpm run build` - Builds the frontend. This command is not that fast,
-so it should only be used at the end of large changes.
+so it should only be used at the end of large changes, if at all.
 
 ### Web app file structure
 The most important files and folders are as follows

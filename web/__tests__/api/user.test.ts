@@ -1,5 +1,6 @@
 import type { Server } from 'http';
 
+import { NotFoundError } from 'slonik';
 import request, { type Agent } from 'supertest';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
@@ -26,7 +27,9 @@ import {
   spyOnDb,
 } from '@/tests/dbutils';
 import { insertFollow } from '@/db/follows';
-import { db } from '@/db/helpers';
+import { db, sql, voidSql } from '@/db/index';
+import { SessionRow } from '@/db/schemas/session';
+import { UserRow } from '@/db/schemas/user';
 import { createUser } from '@/db/user';
 import { csrfMissing, serverCookieNames } from '@/serverUtils/constants';
 import { redis } from '@/serverUtils/ratelimits';
@@ -586,7 +589,7 @@ describe('POST /api/user/delete', () => {
       email: 'delete-user-test@email.com',
     };
     // First, delete the user if it exists
-    await db.none`DELETE FROM users WHERE email = ${deleteTestUser.email}`;
+    await db.query(voidSql`DELETE FROM users WHERE email = ${deleteTestUser.email}`);
     const createdUser = await createUser(deleteTestUser);
     const agent = await login(httpServer, deleteTestUser);
 
@@ -594,11 +597,11 @@ describe('POST /api/user/delete', () => {
       .csrf()
       .expect(200);
 
-    await expect(db.one`SELECT * FROM users WHERE user_id = ${createdUser.userId}`)
-      .rejects.toThrowErrorMatchingInlineSnapshot(`[Error: No rows found]`);
+    await expect(db.one(sql.type(UserRow)`SELECT user_id, username, email, user_uuid, admin, theme, (pwhash IS NOT NULL) AS is_credentials_account FROM users WHERE user_id = ${createdUser.userId}`))
+      .rejects.toThrow(NotFoundError);
 
-    await expect(db.many`SELECT * FROM sessions WHERE user_id = ${createdUser.userId}`)
-      .rejects.toThrowErrorMatchingInlineSnapshot(`[Error: No rows found]`);
+    await expect(db.many(sql.type(SessionRow)`SELECT session_id, user_id, expires_at, data, session_secret FROM sessions WHERE user_id = ${createdUser.userId}`))
+      .rejects.toThrow(NotFoundError);
 
     await expect(login(httpServer, deleteTestUser)).rejects
       .toThrowErrorMatchingInlineSnapshot(`[Error: expected 302 "Found", got 401 "Unauthorized"]`);

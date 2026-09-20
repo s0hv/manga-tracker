@@ -32,6 +32,7 @@ import {
 } from 'msw';
 import { type SetupServer, setupServer } from 'msw/node';
 import { SnackbarProvider } from 'notistack';
+import type { DatabasePool } from 'slonik';
 import type { Response } from 'supertest';
 import request from 'supertest';
 import { setGlobalOrigin } from 'undici';
@@ -47,7 +48,6 @@ import {
 
 import { createTestSession } from '@/tests/dbutils';
 import { type FrontendUser, UserStoreProvider } from '#web/store/userStore';
-import type { DbHelpersFull } from '@/db/helpers';
 import { serverCookieNames } from '@/serverUtils/constants';
 import type { ZodErrorPath } from '@/serverUtils/validators';
 import { ServiceForApi } from '@/types/api/services';
@@ -80,10 +80,10 @@ vi.mock('notistack', async () => {
 
 // eslint-disable-next-line no-var
 var dbMock: {
-  db: DbHelpersFull;
+  db: DatabasePool;
 };
-vi.mock('@/db/helpers', async () => {
-  const db = await vi.importActual<typeof import('@/db/helpers')>('@/db/helpers');
+vi.mock('@/db/index', async () => {
+  const db = await vi.importActual<typeof import('@/db/index')>('@/db/index');
   dbMock = {
     ...db,
   };
@@ -506,31 +506,19 @@ export const getRowByColumnValue = (
   }
 };
 
+// slonik's `CommonQueryMethods` (the query-executing members of `DatabasePool`).
+const QUERY_METHOD_NAMES = [
+  'any', 'anyFirst', 'exists', 'many', 'manyFirst', 'maybeOne', 'maybeOneFirst',
+  'one', 'oneFirst', 'query', 'record', 'stream', 'transaction',
+] as const satisfies readonly (keyof DatabasePool)[];
+
 export const mockDbForErrors = <T, >(fn: () => Promise<T>): Promise<T> => {
   const originalDb = dbMock.db;
-  const sql = originalDb.sql;
+  const errorMock = vi.fn().mockImplementation(() => Promise.reject('Mocked error'));
 
-  dbMock.db = Object.keys(originalDb).reduce((prev, curr) => ({
-    ...prev,
-    [curr]: vi.fn().mockImplementation(async () => Promise.reject('Mocked error')),
-  }), {}) as DbHelpersFull;
-  // Leave `sql` as is since it's an object
-  const sqlMock = vi.fn().mockImplementation(() => {
-    const response = Promise.reject('Mocked error');
-
-    // Execute is available on the returned promise, so mock it here
-    // @ts-ignore
-    response.execute = () => Promise.reject('Mocked error');
-
-    return response;
-  });
-
-  Object.entries(sql).forEach(([key, value]) => {
-    // @ts-ignore
-    sqlMock[key as any] = value;
-  });
-
-  dbMock.db.sql = sqlMock as unknown as typeof dbMock.db.sql;
+  dbMock.db = Object.fromEntries(
+    QUERY_METHOD_NAMES.map(method => [method, errorMock])
+  ) as unknown as DatabasePool;
 
   return fn()
     .finally(() => {

@@ -26,7 +26,7 @@ import {
   apiRequiresUserGetTests,
   apiRequiresUserPostTests,
 } from './api-test-utilities';
-import { db } from '@/db/helpers';
+import { db, voidSql } from '@/db/index';
 import {
   type DbNotificationData,
   type UpsertNotificationOverride,
@@ -56,7 +56,7 @@ afterAll(async () => {
 const notFoundMessage = /No notification found for user with notification id/i;
 
 const truncateNotifications = async () => {
-  await silenceConsole(db.none`TRUNCATE user_notifications CASCADE`);
+  await silenceConsole(db.query(voidSql`TRUNCATE user_notifications CASCADE`));
 };
 
 const createNotifications = async (n = 1, userId = normalUser.userId): Promise<number[]> => Promise.all(

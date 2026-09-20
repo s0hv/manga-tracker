@@ -1,4 +1,5 @@
 import type { Express } from 'express-serve-static-core';
+import { type SqlToken } from 'slonik';
 import * as z from 'zod';
 
 import {
@@ -9,8 +10,14 @@ import {
 } from '#server/utils/validators';
 import { clearUserAuthTokens, generateAuthToken } from '@/db/auth';
 import { deleteFollow, insertFollow } from '@/db/follows';
-import { db } from '@/db/helpers';
+import { db, sql, voidSql } from '@/db/index';
 import { getUserNotifications } from '@/db/notifications';
+import {
+  AccountRow,
+  UserDataExportRow,
+  UserFollowExportRow,
+  UserSessionExportRow,
+} from '@/db/schemas/user';
 import { clearUserSessions, createSession } from '@/db/session';
 import { getUser, removeUserFromCache } from '@/db/user';
 import { handleError } from '@/db/utils';
@@ -52,7 +59,7 @@ export default (app: Express) => {
       ]),
     }, validateUser),
     (req, res) => {
-      const cols = [];
+      const cols: SqlToken[] = [];
       const {
         newPassword: newPass,
         username,
@@ -67,11 +74,11 @@ export default (app: Express) => {
         }
 
         pw = true;
-        cols.push(db.sql`pwhash=crypt(${newPass}, gen_salt('bf'))`);
+        cols.push(sql.fragment`pwhash=crypt(${newPass}, gen_salt('bf'))`);
       }
 
       if (username) {
-        cols.push(db.sql`username=${username}`);
+        cols.push(sql.fragment`username=${username}`);
       }
 
       if (cols.length === 0) {
@@ -81,12 +88,13 @@ export default (app: Express) => {
 
       const userId = user.userId;
 
-      const pwCheck = db.sql` AND pwhash IS NOT NULL AND pwhash=crypt(${password}, pwhash)`;
-      db.any`UPDATE users
-                 SET ${cols.reduce((acc, col) => db.sql`${acc}, ${col}`)}
-                 WHERE user_id=${userId} ${pw ? pwCheck : db.sql``}`
-        .then(async rows => {
-          if (rows.count === 0) {
+      const pwCheck = sql.fragment` AND pwhash IS NOT NULL AND pwhash=crypt(${password ?? null}, pwhash)`;
+
+      db.query(voidSql`UPDATE users
+                 SET ${sql.join(cols, sql.fragment`, `)}
+                 WHERE user_id=${userId} ${pw ? pwCheck : sql.fragment``}`)
+        .then(async result => {
+          if (result.rowCount === 0) {
             res.status(401).json({ error: 'Invalid password' });
             return;
           }
@@ -138,8 +146,8 @@ export default (app: Express) => {
     }, validateUser),
     (req, res) => {
       deleteFollow(req.getUser().userId, req.query.mangaId, req.query.serviceId ?? null)
-        .then(rows => {
-          if (rows.count === 0) return res.status(404).end();
+        .then(result => {
+          if (result.rowCount === 0) return res.status(404).end();
           res.status(200).end();
         })
         .catch((err: unknown) => handleError(err, res));
@@ -158,7 +166,7 @@ export default (app: Express) => {
         // TODO validate that username matches
 
         removeUserFromCache(user.userId);
-        await db.none`DELETE FROM users WHERE user_id=${user.userId}`;
+        await db.query(voidSql`DELETE FROM users WHERE user_id=${user.userId}`);
         await clearUserSessions(user.userId);
         clearSecureCookie(res, serverCookieNames.authToken);
         clearSecureCookie(res, serverCookieNames.session);
@@ -176,14 +184,15 @@ export default (app: Express) => {
 
       Promise.all([
         getUserNotifications(user.userId),
-        db.one`SELECT user_id, username, email, user_uuid, joined_at, theme, admin, last_active FROM users WHERE user_id=${user.userId}`,
-        db.any`SELECT provider, provider_account_id, user_id FROM account WHERE user_id=${user.userId}`,
-        db.any`
-        SELECT uf.*, m.title, COALESCE(s.service_name, 'All services') as service_name FROM user_follows uf 
-        INNER JOIN manga m ON uf.manga_id=m.manga_id
-        LEFT JOIN services s ON uf.service_id = s.service_id
-        WHERE user_id=${user.userId}`,
-        db.any`SELECT expires_at, data FROM sessions WHERE user_id=${user.userId}`,
+        db.one(sql.type(UserDataExportRow)`SELECT user_id, username, email, user_uuid, joined_at, theme, admin, last_active FROM users WHERE user_id=${user.userId}`),
+        db.any(sql.type(AccountRow)`SELECT provider, provider_account_id, user_id FROM account WHERE user_id=${user.userId}`),
+        db.any(sql.type(UserFollowExportRow)`
+          SELECT uf.*, m.title, COALESCE(s.service_name, 'All services') as service_name FROM user_follows uf
+          INNER JOIN manga m ON uf.manga_id=m.manga_id
+          LEFT JOIN services s ON uf.service_id = s.service_id
+          WHERE user_id=${user.userId}`
+        ),
+        db.any(sql.type(UserSessionExportRow)`SELECT expires_at, data FROM sessions WHERE user_id=${user.userId}`),
       ])
         .then(([notifications, userData, accounts, follows, sessions]) => {
           res.setHeader('Content-Disposition', 'attachment; filename="manga-tracker-user-data.json"');
@@ -202,5 +211,5 @@ export default (app: Express) => {
 };
 
 export function updateUserLastActivity(userId: number) {
-  return db.none`UPDATE users SET last_active=CURRENT_TIMESTAMP WHERE user_id=${userId}`;
+  return db.query(voidSql`UPDATE users SET last_active=CURRENT_TIMESTAMP WHERE user_id=${userId}`);
 }

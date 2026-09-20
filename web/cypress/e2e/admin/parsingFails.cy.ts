@@ -110,7 +110,7 @@ function insertTestData() {
         ('${emptyFail.chapterIdentifier}', ${emptyFail.serviceId}, NULL,
          '${emptyFail.errors}', NULL, NULL,
          NULL, NULL, NULL, NULL,
-         NULL, '2021-03-04 11:00:00+00');
+         NULL, '2021-03-04 11:00:00+00')
     `,
   });
 }
@@ -121,17 +121,17 @@ function insertTestData() {
 // `emptyFailFix.group`.
 function cleanupTestData() {
   return cy.task('runSql', {
-    sql: `
-      DELETE FROM chapters WHERE (service_id, chapter_identifier) IN (
+    sql: [
+      `DELETE FROM chapters WHERE (service_id, chapter_identifier) IN (
         (${fullFail.serviceId}, '${fullFail.chapterIdentifier}'),
         (${emptyFail.serviceId}, '${emptyFail.chapterIdentifier}')
-      );
-      DELETE FROM groups WHERE name IN ('${fullFail.group}', '${emptyFailFix.group}');
-      DELETE FROM chapters_failed WHERE (service_id, chapter_identifier) IN (
+      )`,
+      `DELETE FROM groups WHERE name IN ('${fullFail.group}', '${emptyFailFix.group}')`,
+      `DELETE FROM chapters_failed WHERE (service_id, chapter_identifier) IN (
         (${fullFail.serviceId}, '${fullFail.chapterIdentifier}'),
         (${emptyFail.serviceId}, '${emptyFail.chapterIdentifier}')
-      );
-    `,
+      )`,
+    ],
   });
 }
 

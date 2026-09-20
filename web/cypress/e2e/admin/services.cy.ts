@@ -17,8 +17,10 @@ function validateEditNotPersisted() {
 describe('Services page', () => {
   beforeEach(() => {
     cy.task('runSql', {
-      sql: 'UPDATE services SET disabled = FALSE WHERE service_id=1;'
-        + 'UPDATE service_whole SET next_update = NULL WHERE service_id=1',
+      sql: [
+        'UPDATE services SET disabled = FALSE WHERE service_id=1',
+        'UPDATE service_whole SET next_update = NULL WHERE service_id=1',
+      ],
     });
   });
 

@@ -1,5 +1,10 @@
 import { build } from 'rolldown';
 import { replacePlugin } from 'rolldown/plugins';
+import zodCompiler from 'zod-compiler/rolldown';
+
+// zodCompiler runs the code so we must treat this process the same as pre-render.
+// Otherwise, the code will try to connect to the db
+process.env.IS_PRERENDER = '1';
 
 await build({
   input: 'server.ts',
@@ -32,13 +37,19 @@ await build({
   ],
   logLevel: 'debug',
   transform: {
-    target: 'node24',
+    target: 'node26',
   },
   // No side effects, so unused imports can be removed
   treeshake: {
     moduleSideEffects: false,
   },
   plugins: [
+    zodCompiler({
+      parallel: true,
+      // https://github.com/gajus/zod-compiler#bundle-size--cross-file-dedup
+      // Without this, virtual imports will survive into the dist and fail at runtime
+      codegenMode: 'inline',
+    }),
     replacePlugin(
       {
         ...(process.env.NODE_ENV

@@ -2,15 +2,20 @@ import type { Service, ServiceConfig, ServiceWhole } from '@/types/db/services';
 import type { DatabaseId } from '@/types/dbTypes';
 import type { PartialExcept } from '@/types/utility';
 
-import { db } from '../helpers';
-import { generateUpdate } from '../utils';
+import { db, sql, voidSql } from '../index';
+import {
+  ServiceConfigRow,
+  ServiceRow,
+  ServiceWholeRow,
+} from '../schemas/services';
+import { updateSet } from '../utils';
 
 
-export const getService = (serviceId: DatabaseId) => db.oneOrNone<Service>`SELECT * FROM services WHERE service_id=${serviceId}`;
+export const getService = (serviceId: DatabaseId) => db.maybeOne(sql.type(ServiceRow)`SELECT * FROM services WHERE service_id=${serviceId}`);
 
-export const getServiceWhole = (serviceId: DatabaseId) => db.oneOrNone<ServiceWhole>`SELECT * FROM service_whole WHERE service_id=${serviceId}`;
+export const getServiceWhole = (serviceId: DatabaseId) => db.maybeOne(sql.type(ServiceWholeRow)`SELECT * FROM service_whole WHERE service_id=${serviceId}`);
 
-export const getServiceConfig = (serviceId: DatabaseId) => db.oneOrNone<ServiceConfig>`SELECT * FROM service_config WHERE service_id=${serviceId}`;
+export const getServiceConfig = (serviceId: DatabaseId) => db.maybeOne(sql.type(ServiceConfigRow)`SELECT * FROM service_config WHERE service_id=${serviceId}`);
 
 export const getServiceFull = (serviceId: DatabaseId) => {
   const retVal: {
@@ -39,17 +44,14 @@ export const updateService = ({
   disabled,
   disabledUntil,
 }: PartialExcept<Service, 'serviceId'>) => {
-  const service = {
-    service_name: serviceName,
+  return db.query(voidSql`UPDATE services SET ${updateSet({
+    serviceName,
     url,
-    chapter_url_format: chapterUrlFormat,
-    manga_url_format: mangaUrlFormat,
+    chapterUrlFormat,
+    mangaUrlFormat,
     disabled,
-    disabled_until: disabledUntil,
-  };
-
-  return db.sql`UPDATE services SET ${generateUpdate(service, db.sql)} WHERE service_id=${serviceId}`
-    .execute();
+    disabledUntil,
+  })} WHERE service_id=${serviceId}`);
 };
 
 /**
@@ -61,14 +63,8 @@ export const updateServiceWhole = ({
   nextUpdate,
   lastId,
 }: PartialExcept<ServiceWhole, 'serviceId'>) => {
-  const serviceWhole = {
-    feed_url: feedUrl,
-    next_update: nextUpdate,
-    last_id: lastId,
-  };
-
-  return db.sql`UPDATE service_whole SET ${generateUpdate(serviceWhole, db.sql)} WHERE service_id=${serviceId}`
-    .execute();
+  const updates = updateSet({ feedUrl, nextUpdate, lastId });
+  return db.query(voidSql`UPDATE service_whole SET ${updates} WHERE service_id=${serviceId}`);
 };
 
 
@@ -92,20 +88,17 @@ export const updateServiceConfig = ({
   scheduledRunLimit,
   scheduledRunsEnabled,
 }: UpdateServiceConfig) => {
-  const serviceConfig = {
+  return db.query(voidSql`UPDATE service_config SET ${updateSet({
     checkInterval,
     scheduledRunInterval,
     scheduledRunLimit,
     scheduledRunsEnabled,
-  };
-  return db.sql`UPDATE service_config SET ${generateUpdate(serviceConfig, db.sql)} WHERE service_id=${serviceId}`
-    .execute();
+  })} WHERE service_id=${serviceId}`);
 };
 
 /**
  * Get all service configs
  */
 export const getServiceConfigs = () => {
-  return db.many<ServiceConfig>`SELECT * FROM service_config`;
+  return db.many(sql.type(ServiceConfigRow)`SELECT * FROM service_config`);
 };
-

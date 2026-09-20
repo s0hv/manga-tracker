@@ -31,7 +31,7 @@ describe('getFollows(userId)', () => {
     expect.assertions(1);
     return expect(getFollows('x'))
       .rejects
-      .toEqual(HttpError(400, 'Integer out of range'));
+      .toEqual(HttpError(400, 'Invalid integer'));
   });
 });
 

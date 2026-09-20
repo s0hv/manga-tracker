@@ -9,6 +9,7 @@ import {
   it,
   onTestFinished,
 } from 'vitest';
+import * as z from 'zod';
 
 import {
   type HttpServerReference,
@@ -25,7 +26,7 @@ import {
 import initServer from '@/tests/initServer';
 import stopServer from '@/tests/stopServer';
 import { adminUser, getErrorMessage, withUser } from '@/tests/utils';
-import { db } from '@/db/helpers';
+import { db, sql, voidSql } from '@/db/index';
 import { TEST_GROUP } from '@/tests/constants';
 import {
   ChapterCreateSchema,
@@ -348,10 +349,10 @@ describe('POST /api/admin/chapters-failed/fix', () => {
 
     onTestFinished(async () => {
       await deleteChapterFail(serviceId, chapterIdentifier);
-      await db.any`DELETE
+      await db.query(voidSql`DELETE
                    FROM chapters
                    WHERE service_id = ${serviceId}
-                     AND chapter_identifier = ${chapterIdentifier}`;
+                     AND chapter_identifier = ${chapterIdentifier}`);
     });
 
     const fixedChapter = {
@@ -376,13 +377,13 @@ describe('POST /api/admin/chapters-failed/fix', () => {
     await expect(chapterFailExists(serviceId, chapterIdentifier)).resolves.toBeFalse();
 
     // A new chapter should exist
-    const chapterRow = await db.oneOrNone`
+    const chapterExists = await db.exists(sql.unsafe`
         SELECT 1
         FROM chapters
         WHERE service_id = ${serviceId}
-          AND chapter_identifier = ${chapterIdentifier}`;
+          AND chapter_identifier = ${chapterIdentifier}`);
 
-    expect(chapterRow).not.toBeNull();
+    expect(chapterExists).toBeTrue();
   });
 
   it('uses same named group when groupId missing', async () => {
@@ -393,10 +394,10 @@ describe('POST /api/admin/chapters-failed/fix', () => {
 
     onTestFinished(async () => {
       await deleteChapterFail(serviceId, chapterIdentifier);
-      await db.any`DELETE
+      await db.query(voidSql`DELETE
                    FROM chapters
                    WHERE service_id = ${serviceId}
-                     AND chapter_identifier = ${chapterIdentifier}`;
+                     AND chapter_identifier = ${chapterIdentifier}`);
     });
 
     const fixedChapter = {
@@ -421,14 +422,14 @@ describe('POST /api/admin/chapters-failed/fix', () => {
     await expect(chapterFailExists(serviceId, chapterIdentifier)).resolves.toBeFalse();
 
     // A new chapter should exist
-    const chapterRow = await db.oneOrNone`
+    const chapterExists = await db.exists(sql.unsafe`
         SELECT 1
         FROM chapters
         WHERE service_id = ${serviceId}
           AND chapter_identifier = ${chapterIdentifier}
-          AND group_id=${TEST_GROUP.groupId};`;
+          AND group_id=${TEST_GROUP.groupId}`);
 
-    expect(chapterRow).not.toBeNull();
+    expect(chapterExists).toBeTrue();
   });
 
   it('creates new group when one does not exist with the name', async () => {
@@ -441,11 +442,11 @@ describe('POST /api/admin/chapters-failed/fix', () => {
 
     onTestFinished(async () => {
       await deleteChapterFail(serviceId, chapterIdentifier);
-      await db.none`DELETE
+      await db.query(voidSql`DELETE
                    FROM chapters
                    WHERE service_id = ${serviceId}
-                     AND chapter_identifier = ${chapterIdentifier}`;
-      await db.none`DELETE FROM groups WHERE name=${groupName}`;
+                     AND chapter_identifier = ${chapterIdentifier}`);
+      await db.query(voidSql`DELETE FROM groups WHERE name=${groupName}`);
     });
 
     const fixedChapter = {
@@ -470,19 +471,19 @@ describe('POST /api/admin/chapters-failed/fix', () => {
     await expect(chapterFailExists(serviceId, chapterIdentifier)).resolves.toBeFalse();
 
     // A new chapter should exist
-    const chapterRow = await db.oneOrNone<{ groupId: number }>`
+    const chapterRow = await db.maybeOne(sql.type(z.object({ groupId: z.int() }))`
         SELECT group_id
         FROM chapters
         WHERE service_id = ${serviceId}
-          AND chapter_identifier = ${chapterIdentifier}`;
+          AND chapter_identifier = ${chapterIdentifier}`);
 
     expect(chapterRow).not.toBeNull();
     expect(chapterRow).toHaveProperty('groupId');
 
-    const group = await db.one`
+    const group = await db.one(sql.type(z.object({ name: z.string() }))`
         SELECT name
         FROM groups
-        WHERE group_id = ${chapterRow!.groupId}`;
+        WHERE group_id = ${chapterRow!.groupId}`);
 
     expect(group).toHaveProperty('name', groupName);
   });

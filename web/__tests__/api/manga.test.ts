@@ -1,5 +1,6 @@
 import type { Server } from 'http';
 
+import { NotFoundError } from 'slonik';
 import request from 'supertest';
 import {
   type Mock,
@@ -29,7 +30,6 @@ import {
   withUser,
 } from '../utils';
 import { deleteManga, updateManga } from '@/db/elasticsearch/manga';
-import { NoResultsError } from '@/db/errors';
 import { getMangaPartial } from '@/db/manga';
 import type { DatabaseId, MangaId } from '@/types/dbTypes';
 
@@ -516,7 +516,7 @@ describe('POST /api/manga/merge', () => {
     // Make sure the other manga is gone from the db
     await expect(getMangaPartial(m2))
       .rejects
-      .toThrow(NoResultsError);
+      .toThrow(NotFoundError);
   });
 
   it('Returns 200 when manga is found with specific service', async () => {

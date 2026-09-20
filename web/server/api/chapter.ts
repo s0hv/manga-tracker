@@ -54,7 +54,7 @@ export default (app: Express) => {
 
       editChapter(chapter)
         .then(r => {
-          if (r.count > 0) {
+          if (r.rowCount > 0) {
             res.status(200).json({ message: `Successfully updated chapter ${chapterId}` });
           } else {
             res.status(404).json({ error: `Chapter with id ${chapterId} not found` });
