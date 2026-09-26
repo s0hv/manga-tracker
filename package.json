@@ -8,22 +8,26 @@
     "pnpm": "^12"
   },
   "dependencies": {
-    "db-migrate": "^0.11.14",
-    "db-migrate-pg": "^1.5.2"
+    "dotenv": "^18.0.3",
+    "node-pg-migrate": "^9.0.0",
+    "pg": "^8.23.0"
   },
   "scripts": {
     "deploy": "cd web && pnpm run deploy",
     "server-dev": "cd web && pnpm server-dev",
-    "create-migration": "db-migrate --config migrations-config.json create",
-    "create-migration:test": "db-migrate --config migrations-config.json create:test",
-    "migrate:up": "db-migrate --config migrations-config.json up",
-    "migrate:test": "db-migrate --config migrations-config.json up:test",
-    "migrate:up:test": "pnpm migrate:up -e test && pnpm migrate:test -e test",
-    "migrate:reset:test": "db-migrate --config migrations-config.json -e test reset:test && pnpm migrate:up:test",
-    "migrate:down": "db-migrate --config migrations-config.json down"
+    "create-migration": "node scripts/migrate.mjs create",
+    "create-migration:test": "node scripts/migrate.mjs create --test",
+    "migrate:up": "node scripts/migrate.mjs up",
+    "migrate:test": "node scripts/migrate.mjs up --test --test-db",
+    "migrate:up:test": "node scripts/migrate.mjs up --test-db && pnpm migrate:test",
+    "migrate:reset:test": "node scripts/migrate.mjs down --test --test-db && pnpm migrate:up:test",
+    "migrate:down": "node scripts/migrate.mjs down"
   },
   "cacheDirectories": [
     "node_modules/"
   ],
-  "packageManager": "pnpm@12.6.0"
+  "packageManager": "pnpm@12.6.0",
+  "devDependencies": {
+    "@types/pg": "^8.23.1"
+  }
 }

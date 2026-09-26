@@ -55,6 +55,7 @@ def run_migrations(conn: Connection[DictRow]) -> None:
     env['PGPASSWORD'] = conn.info.password
     env['DB_HOST'] = conn.info.host
     env['DB_NAME'] = conn.info.dbname
+    env['DB_NAME_TEST'] = conn.info.dbname
     env['DB_PORT'] = str(conn.info.port)
 
     if extra_path := os.environ.get('EXTRA_TEST_PATH'):

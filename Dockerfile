@@ -38,7 +38,8 @@ COPY --from=build-stage /bin/sh /bin/sh
 
 WORKDIR /app
 
-COPY package.json migrations-config.json Procfile ./
+COPY package.json Procfile ./
+COPY scripts/migrate.mjs ./scripts/migrate.mjs
 COPY ./migrations ./migrations
 
 COPY --from=build-stage /app/web/node_modules /app/web/node_modules
