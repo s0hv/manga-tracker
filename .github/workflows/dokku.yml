@@ -7,6 +7,12 @@ on:
     types:
       - completed
   workflow_dispatch:
+    inputs:
+      no_build:
+        type: boolean
+        description: 'Skip the build. Use when the image is already pushed to docker'
+        required: false
+        default: false
 
 jobs:
   check-dokku:
@@ -61,10 +67,15 @@ jobs:
 
       - name: Build and push
         uses: docker/build-push-action@v7
+        if: ${{ inputs.no_build == false }}
         with:
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/manga-tracker:${{ github.sha }}
           build-args: HOST=${{ secrets.HOST_URL }}
+
+      - name: Pull image
+        run: docker pull ${{ secrets.DOCKERHUB_USERNAME }}/manga-tracker:${{ github.sha }}
+        if: ${{ inputs.no_build == true }}
 
       - name: Push to dokku
         uses: dokku/github-action@v1

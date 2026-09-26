@@ -4,5 +4,6 @@ DROP TABLE chapters, chapters_failed, manga, manga_alias, manga_info, manga_serv
     notification_fields, notification_manga, notification_options,
     notification_types, user_notifications, user_notification_fields CASCADE;
 
-TRUNCATE TABLE migrations;
+TRUNCATE TABLE pgmigrations;
 DROP TYPE theme;
+SELECT setval(pg_get_serial_sequence('pgmigrations', 'id'), 1);
