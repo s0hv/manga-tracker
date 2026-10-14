@@ -1,4 +1,6 @@
-import { MangaStatus, PostgresInterval } from '../dbTypes';
+import type { MangaStatus } from '@/common/mangaStatus';
+
+import type { PostgresInterval } from '../dbTypes';
 
 export type MangaData = {
   mangaId: number;

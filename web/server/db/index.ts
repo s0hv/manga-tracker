@@ -129,8 +129,11 @@ export const db: DatabasePool = dbSingleton.current!;
 export const sql = createSqlTag({
   typeAliases: {
     void: z.strictObject({}),
+    count: z.strictObject({ count: z.int() }),
+    id: z.strictObject({ id: z.int() }),
   },
 });
 
 export const voidSql: ReturnType<typeof sql.typeAlias<'void'>> = sql.typeAlias('void');
-
+export const countSql: ReturnType<typeof sql.typeAlias<'count'>> = sql.typeAlias('count');
+export const idSql: ReturnType<typeof sql.typeAlias<'id'>> = sql.typeAlias('id');

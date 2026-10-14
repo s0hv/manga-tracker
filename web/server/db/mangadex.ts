@@ -26,7 +26,12 @@ export function fetchExtraInfo(mangadexMangaId: string, mangaId: number | string
 
       // Might sometimes result in the update not being done due to missing manga_info row.
       // This should be rare and the scheduled run should fix the cover when it is run.
-      await db.query(voidSql`UPDATE manga_info SET cover=${coverUrl}, last_updated=CURRENT_TIMESTAMP WHERE manga_id=${mangaId}`);
+      const result = await db.query(voidSql`UPDATE manga_info SET cover=${coverUrl}, last_updated=CURRENT_TIMESTAMP WHERE manga_id=${mangaId}`);
+
+      if (result.rowCount === 0) {
+        dbLogger.info(`Manga ${mangaId} has no manga_info row. Creating one`);
+        await db.query(voidSql`INSERT INTO manga_info (manga_id, cover) VALUES (${mangaId}, ${coverUrl})`);
+      }
     })
     .catch(() => undefined);
 

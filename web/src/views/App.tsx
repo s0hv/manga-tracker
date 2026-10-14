@@ -10,7 +10,6 @@ import {
   Typography,
 } from '@mui/material';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
-import { last } from 'es-toolkit';
 
 import type { PageParams } from '#web/api/types';
 import {
@@ -19,8 +18,8 @@ import {
   GroupedChapterList,
   useGroupedChapters,
 } from '@/components/chapter/GroupedChapterList';
+import { useIsLastPage } from '@/components/hooks/useIsLastPage';
 import type { ChapterRelease } from '@/types/api/chapter';
-import { MAX_OFFSET } from '@/webUtils/constants';
 
 import { getLatestChaptersQueryOptions } from '../api/chapter';
 import { servicesQueryOptions } from '../api/services';
@@ -46,15 +45,10 @@ function App() {
     fetchNextPage,
   } = useInfiniteQuery(getLatestChaptersQueryOptions(pageSize, useFollows));
 
-  const isLastPage = useMemo(
-    () => {
-      const lastPage = last(pageParams as PageParams[]);
-      if (!lastPage) return false;
-
-      return lastPage.offset >= MAX_OFFSET
-        || (last(pages) ?? []).length < pageSize;
-    },
-    [pageParams, pages]
+  const isLastPage = useIsLastPage(
+    pageParams as PageParams[],
+    pages,
+    pageSize
   );
 
   const {

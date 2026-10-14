@@ -7,6 +7,7 @@ import {
   validateAdminUser,
   validateRequest,
 } from '#server/utils/validators';
+import { MangaStatusSchema } from '@/common/schemas/common';
 import {
   deleteScheduledRun,
   getScheduledRuns,
@@ -22,7 +23,6 @@ import {
 import { updateManga } from '@/db/elasticsearch/manga';
 import { getMangaForElastic } from '@/db/manga';
 import { handleError } from '@/db/utils';
-import { MangaStatus } from '@/types/dbTypes';
 
 
 export default () => {
@@ -112,7 +112,7 @@ export default () => {
     validateRequest({
       params: z.object({ mangaId: databaseIdStr }),
       body: z.strictObject({
-        status: z.enum(MangaStatus),
+        status: MangaStatusSchema,
       }),
     }),
     (req, res) => {

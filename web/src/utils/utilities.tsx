@@ -8,6 +8,7 @@ import { format, formatDistanceToNowStrict } from 'date-fns';
 import { enGB } from 'date-fns/locale';
 import { throttle } from 'es-toolkit';
 
+import { MangaStatus } from '@/common/mangaStatus';
 import type { FormValues } from '@/components/notifications/types';
 import type { NotificationField } from '@/types/api/notifications';
 import type { DatabaseId, MangaId } from '@/types/dbTypes';
@@ -150,19 +151,33 @@ export const groupByYear = (data: GroupedYearData[] | undefined): GroupedYears =
   return grouped;
 };
 
-export const statusToString = (status: number | string) => {
+export const statusToString = (status: number | string | null) => {
   switch (Number(status)) {
-    case 1:
+    case MangaStatus.COMPLETED:
       return 'Completed';
-    case 2:
+    case MangaStatus.DROPPED:
       return 'Dropped';
-    case 3:
+    case MangaStatus.HIATUS:
       return 'Hiatus';
-    case 0:
+    case MangaStatus.ONGOING:
     default:
       return 'Ongoing';
   }
 };
+
+export function statusToColor(status: number | string | null) {
+  switch (Number(status)) {
+    case MangaStatus.COMPLETED:
+      return 'success.main';
+    case MangaStatus.DROPPED:
+      return 'error.main';
+    case MangaStatus.HIATUS:
+      return 'warning.main';
+    case MangaStatus.ONGOING:
+    default:
+      return 'primary.main';
+  }
+}
 
 export const isInteger = (s: unknown): s is number | string => (
   Number.isInteger(s)
@@ -222,12 +237,6 @@ export const mapNotificationFields = <
   }), {} as MappedNotificationField<NotificationField[K], T>);
 };
 
-
-export const enumValues = (enumObj: object): string[] => {
-  return Object
-    .keys(enumObj)
-    .filter(key => !Number.isNaN(Number(key)));
-};
 
 function getQueryKey(
   queryKey: QueryKey | ((variables: unknown) => QueryKey),

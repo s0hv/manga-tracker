@@ -20,7 +20,6 @@ const footerLinkSx = { mr: 1, color: 'inherit' } as const satisfies SxProps;
 
 const Root = styled('div')({
   width: '100%',
-  overflow: 'auto',
   minWidth: '300px',
   minHeight: '100vh',
   position: 'relative',

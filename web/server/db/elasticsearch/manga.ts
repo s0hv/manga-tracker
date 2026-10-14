@@ -35,19 +35,37 @@ export type MangaSearchResult<TWithService extends boolean> = {
   };
 };
 
-const getMultiMatchForField = (query: string, field: string) => ({
-  multi_match: {
-    query,
-    type: 'most_fields',
-    fields: [
-      `${field}^3`,
-      `${field}.ngram`,
+// For queries of more than 3 trigrams, half of them must match. A single typo breaks up to 3 trigrams.
+const NGRAM_MINIMUM_SHOULD_MATCH = '3<50%';
+
+const getQueryForField = (query: string, field: string) => ({
+  bool: {
+    should: [
+      {
+        match_bool_prefix: {
+          [field]: {
+            query,
+            operator: 'and',
+            fuzziness: 'AUTO',
+            boost: 3,
+          },
+        },
+      },
+      {
+        match: {
+          [`${field}.ngram`]: {
+            query,
+            minimum_should_match: NGRAM_MINIMUM_SHOULD_MATCH,
+          },
+        },
+      },
     ],
+    minimum_should_match: 1,
   },
 });
 
-const getMultiMatchesForFields = (query: string, ...fields: [string, ...string[]]) => {
-  return fields.map(field => getMultiMatchForField(query, field));
+const getQueriesForFields = (query: string, ...fields: [string, ...string[]]) => {
+  return fields.map(field => getQueryForField(query, field));
 };
 
 export const mangaSearch = <TWithServices extends boolean = false>(
@@ -63,7 +81,7 @@ export const mangaSearch = <TWithServices extends boolean = false>(
   }
 
   const dis_max = {
-    queries: getMultiMatchesForFields(query, 'title', 'aliases.title'),
+    queries: getQueriesForFields(query, 'title', 'aliases.title'),
   };
 
   const queryDefinition = serviceId !== undefined

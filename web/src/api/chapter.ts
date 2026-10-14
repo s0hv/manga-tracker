@@ -1,4 +1,8 @@
-import { infiniteQueryOptions, queryOptions } from '@tanstack/react-query';
+import {
+  type InfiniteData,
+  infiniteQueryOptions,
+  queryOptions,
+} from '@tanstack/react-query';
 import type { PaginationState } from '@tanstack/react-table';
 
 import type { PageParams } from '#web/api/types';
@@ -96,9 +100,9 @@ export const getLatestChaptersQueryOptions = (
     queryKey[2]
   ),
   initialData: {
-    pageParams: [] satisfies PageParams[],
+    pageParams: [],
     pages: [],
-  },
+  } satisfies InfiniteData<ChapterRelease[], PageParams>,
   initialPageParam: { limit, offset: 0 } satisfies PageParams,
   getNextPageParam: (_, __, lastPageParam) => {
     const newOffset = lastPageParam.offset + limit;

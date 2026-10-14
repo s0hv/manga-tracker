@@ -1,12 +1,13 @@
 import { mutationOptions, queryOptions } from '@tanstack/react-query';
 
+import type { MangaStatus } from '@/common/mangaStatus';
 import type {
   MangaService,
   MangaServiceCreateData,
   MangaServiceUpdateData,
   ScheduledRun,
 } from '@/types/api/manga';
-import type { DatabaseId, MangaId, MangaStatus } from '@/types/dbTypes';
+import type { DatabaseId, MangaId } from '@/types/dbTypes';
 
 import { handleError, handleResponse } from '../utilities';
 

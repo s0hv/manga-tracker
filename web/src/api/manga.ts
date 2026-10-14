@@ -1,8 +1,16 @@
 import {
+  type InfiniteData,
+  infiniteQueryOptions,
   keepPreviousData,
   queryOptions,
 } from '@tanstack/react-query';
+import { minutesToMilliseconds } from 'date-fns';
 
+import type { PageParams } from '#web/api/types';
+import {
+  type SearchMangaParams,
+  MangaSearchResponse,
+} from '#web/schemas/manga';
 import type {
   FullMangaData,
   MergeMangaResult,
@@ -10,12 +18,14 @@ import type {
   SearchedMangaWithService,
 } from '@/types/api/manga';
 import type { DatabaseId } from '@/types/dbTypes';
+import { MAX_OFFSET } from '@/webUtils/constants';
 
 import { baseKy, handleError, handleResponse } from './utilities';
 
 export const mangaUrls = {
   manga: (mangaId: DatabaseId | null) => `/api/manga/${mangaId}`,
   merge: '/api/manga/merge',
+  search: '/manga/search',
   quickSearch: 'quicksearch',
 } as const;
 
@@ -60,6 +70,65 @@ export const postMergeManga = (
     .catch(handleError);
 };
 
+export const DEFAULT_MANGA_LIMIT = 20;
+
+export function searchManga({
+  query,
+  serviceIds,
+  status,
+  limit = DEFAULT_MANGA_LIMIT,
+  offset,
+}: SearchMangaParams & { limit?: number; offset?: number }) {
+  return baseKy.get(mangaUrls.search, {
+    searchParams: {
+      query,
+      serviceIds: serviceIds?.join(','),
+      status: status?.join(','),
+      limit,
+      offset,
+    },
+  })
+    .json()
+    .then(MangaSearchResponse.parseAsync)
+    .catch(handleError);
+}
+
+export const searchMangaQueryOptions = (params: SearchMangaParams, limit = DEFAULT_MANGA_LIMIT) => {
+  const queryKey = [mangaUrls.search, params] as const;
+
+  return infiniteQueryOptions<MangaSearchResponse, unknown, InfiniteData<MangaSearchResponse, PageParams>, typeof queryKey, PageParams>({
+    queryKey,
+    queryFn: ({ queryKey: [_, searchParams], pageParam }) => searchManga({
+      ...searchParams,
+      ...pageParam,
+    }),
+    // Keeps the previous service ids in view while loading new data.
+    // Initial data must not be set because it will override this.
+    placeholderData: keepPreviousData,
+    initialPageParam: { limit, offset: 0 } satisfies PageParams,
+    // We can assume search results are stable for a short while.
+    staleTime: minutesToMilliseconds(10),
+    getNextPageParam: (lastPage, _, lastPageParam) => {
+      const newOffset = lastPageParam.offset + limit;
+
+      if (newOffset > MAX_OFFSET || lastPage.count <= newOffset) {
+        return null;
+      }
+
+      const isLastPage = lastPageParam.offset >= MAX_OFFSET
+        || lastPage.data.searchResults.length < lastPageParam.limit;
+
+      if (isLastPage) {
+        return null;
+      }
+
+      return {
+        limit,
+        offset: newOffset,
+      };
+    },
+  });
+};
 
 export type SearchResultBasedOnServices<TWithServices extends boolean> =
   TWithServices extends true

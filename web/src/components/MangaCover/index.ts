@@ -1,0 +1,1 @@
+export { MangaCover } from './MangaCover';

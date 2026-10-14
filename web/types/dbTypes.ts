@@ -1,5 +1,7 @@
 import * as z from 'zod';
 
+import type { MangaStatus } from '@/common/mangaStatus';
+
 export const Theme = z.literal(['system', 'light', 'dark']);
 export type Theme = z.infer<typeof Theme>;
 
@@ -28,13 +30,6 @@ export interface PostgresInterval {
   minutes?: number;
   seconds?: number;
   milliseconds?: number;
-}
-
-export enum MangaStatus {
-  ONGOING = 0,
-  COMPLETED = 1,
-  DROPPED = 2,
-  HIATUS = 3
 }
 
 export enum NotificationType {

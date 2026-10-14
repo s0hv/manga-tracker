@@ -2,6 +2,7 @@ import camelcaseKeys from 'camelcase-keys';
 import type { Application } from 'express-serve-static-core';
 import * as z from 'zod';
 
+import { SearchQuerySchema } from '#server/api/schemas';
 import {
   booleanString,
   databaseIdStr,
@@ -15,11 +16,6 @@ import {
 } from '@/db/elasticsearch/utils';
 import { getFullManga } from '@/db/manga';
 import { handleError } from '@/db/utils';
-
-
-const SearchQuerySchema = z.string('No search query specified')
-  .min(2, { error: 'Query must be between 2 and 500 characters' })
-  .max(500, { error: 'Query must be between 2 and 500 characters' });
 
 
 export default (app: Application) => {

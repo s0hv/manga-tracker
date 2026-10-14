@@ -11,9 +11,6 @@ export const HttpError = (statusCode: number, message?: string) => {
 
 /**
  * Base class for errors that define an HTTP status code.
- * Does not inherit the Error class as the express-validators library
- * only gives the error message if the error is an instance of Error.
- * This allows us to pass the whole error as the error parameter.
  */
 export class StatusError extends Error {
   public message: string;
