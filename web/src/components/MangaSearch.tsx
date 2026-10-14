@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import SearchIcon from '@mui/icons-material/Search';
 import {
   type AutocompleteFreeSoloValueMapping,
@@ -85,6 +85,7 @@ export type MangaSearchProps<TWithServices extends boolean = false> = {
   id?: string;
   searchThrottleTimeout?: number;
   withServices?: TWithServices;
+  redirectToSearch?: boolean;
 };
 const MangaSearch = <TWithServices extends boolean = false>(props: MangaSearchProps<TWithServices>) => {
   const {
@@ -98,10 +99,12 @@ const MangaSearch = <TWithServices extends boolean = false>(props: MangaSearchPr
     onChange: onChangeFunc,
     searchThrottleTimeout = 300,
     withServices = false,
+    redirectToSearch = false,
   } = props;
 
   const navigate = useNavigate();
   const [fieldValue, setFieldValue] = useState('');
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const onChangeDefault = useCallback(
     (newValue: SearchedManga) => navigate({ to: `/manga/$mangaId`, params: { mangaId: newValue.mangaId.toString() }}),
@@ -156,11 +159,33 @@ const MangaSearch = <TWithServices extends boolean = false>(props: MangaSearchPr
     popper: BottomEndPopper,
   }), [BottomEndPopper]);
 
+  const navigateToSearch = useCallback((query: string) => {
+    void navigate({
+      to: '/manga/search',
+      search: { query },
+    });
+
+    setFieldValue(query);
+    inputRef.current?.blur();
+  }, [navigate]);
+
   const renderInput = useCallback((params: AutocompleteRenderInputParams) => (
     <InputBase
       inputProps={{
         'aria-label': ariaLabel,
         ...params.slotProps.htmlInput,
+        // We must handle both our own and the parent refs
+        ref: (ref: HTMLInputElement | null) => {
+          const refParam = params.slotProps.htmlInput.ref;
+
+          if (typeof refParam === 'function') {
+            refParam(ref);
+          } else if (refParam) {
+            refParam.current = ref;
+          }
+
+          inputRef.current = ref;
+        },
       }}
       id={params.id}
       onMouseDown={params.slotProps.input.onMouseDown}
@@ -171,12 +196,19 @@ const MangaSearch = <TWithServices extends boolean = false>(props: MangaSearchPr
         ...inputClasses,
       }}
       endAdornment={(
-        <IconButton size='large'>
+        <IconButton
+          size='large'
+          onClick={() => {
+            if (!redirectToSearch || (inputRef.current?.value ?? '').trim().length > 1) return;
+
+            navigateToSearch(inputRef.current!.value);
+          }}
+        >
           <SearchIcon />
         </IconButton>
       )}
     />
-  ), [ariaLabel, inputClasses, placeholder]);
+  ), [ariaLabel, placeholder, inputClasses, redirectToSearch, navigateToSearch]);
 
   return (
     <StyledAutocomplete
@@ -196,6 +228,15 @@ const MangaSearch = <TWithServices extends boolean = false>(props: MangaSearchPr
       fullWidth
       classes={autocompleteClasses}
       renderInput={renderInput}
+      onKeyDown={event => {
+        const currentValue = inputRef.current?.value ?? '';
+        if (event.key === 'Enter' && redirectToSearch && currentValue.trim().length > 1) {
+          // Prevent's default 'Enter' behavior.
+          event.defaultMuiPrevented = true;
+
+          navigateToSearch(currentValue);
+        }
+      }}
     />
   );
 };

@@ -10,6 +10,7 @@ import {
   defaultDateDistanceFormat,
   defaultDateFormatRegex,
 } from '../constants';
+import { MangaStatus } from '@/common/mangaStatus';
 
 describe('MangaInfo should render correctly', () => {
   mockUTCDates();
@@ -21,13 +22,13 @@ describe('MangaInfo should render correctly', () => {
     latestRelease: '2020-07-05T16:00:00.000Z',
     estimatedRelease: '2020-07-12T16:00:00.000Z',
     latestChapter: 157,
-    status: 0,
+    status: MangaStatus.ONGOING,
     title: '',
   };
 
   const nullData = {
     mangaId: 1,
-    status: 0,
+    status: MangaStatus.ONGOING,
     title: '',
   };
 

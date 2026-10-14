@@ -190,8 +190,7 @@ export default (app: Express) => {
           SELECT uf.*, m.title, COALESCE(s.service_name, 'All services') as service_name FROM user_follows uf
           INNER JOIN manga m ON uf.manga_id=m.manga_id
           LEFT JOIN services s ON uf.service_id = s.service_id
-          WHERE user_id=${user.userId}`
-        ),
+          WHERE user_id=${user.userId}`),
         db.any(sql.type(UserSessionExportRow)`SELECT expires_at, data FROM sessions WHERE user_id=${user.userId}`),
       ])
         .then(([notifications, userData, accounts, follows, sessions]) => {

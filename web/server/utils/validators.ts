@@ -198,6 +198,9 @@ export const coercedIntStr = z.string()
     // Fall back to the default error message
     return undefined;
   } }));
+export const coercedIntStrArray = z.string()
+  .transform(val => val.split(','))
+  .pipe(z.array(coercedIntStr));
 
 export const databaseIdStr = coercedIntStr.pipe(databaseId);
 export const passwordSchema = z.string('Password must be a string')

@@ -1,5 +1,6 @@
 import { notFound } from '@tanstack/react-router';
-import ky from 'ky';
+import ky, { HTTPError } from 'ky';
+import { ZodError } from 'zod';
 
 export const baseKy = ky.extend({
   prefix: '/api',
@@ -86,12 +87,18 @@ export const handleResponse: HandleResponse = async <T = any>(res: Response): Pr
     .then(data => getResponseData<T>(data, res.status));
 };
 
-export const handleError = (err: any): never => {
-  if (!(err instanceof APIException) && !(err instanceof HTTPException)) {
-    console.error('Unhandled error', err);
-    throw new Error('Unexpected error occurred');
+export const handleError = (err: unknown): never => {
+  if (err instanceof ZodError) {
+    console.error('Zod error', err.message);
+    throw err;
   }
-  throw err;
+
+  if (err instanceof APIException || err instanceof HTTPException || err instanceof HTTPError) {
+    throw err;
+  }
+
+  console.error('Unhandled error', err);
+  throw new Error('Unexpected error occurred');
 };
 
 export function handleErrorInRoute(err: unknown): never {

@@ -1,5 +1,6 @@
+import babel from '@rolldown/plugin-babel';
 import { tanstackStart } from '@tanstack/react-start/plugin/vite';
-import viteReact from '@vitejs/plugin-react';
+import viteReact, { reactCompilerPreset } from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 import { analyzer } from 'vite-bundle-analyzer';
 import istanbul from 'vite-plugin-istanbul';
@@ -58,5 +59,8 @@ export default defineConfig({
     isAnalyze ? analyzer() : undefined,
 
     viteReact(),
+    babel({
+      presets: [reactCompilerPreset()],
+    }),
   ],
 });

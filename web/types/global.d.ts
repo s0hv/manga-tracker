@@ -1,6 +1,3 @@
-import type { Request as ExpressRequest } from 'express-serve-static-core';
-import type { Location } from 'express-validator';
-
 import type { SafeSession } from '@/types/session';
 
 import type { SessionData, SessionUser } from './dbTypes';
@@ -30,14 +27,6 @@ declare module 'express-serve-static-core' {
     isStaticResource?: boolean;
     _nonce?: string;
     getNonce(): string;
-  }
-}
-
-declare module 'express-validator' {
-  interface Meta {
-    req: ExpressRequest;
-    location: Location;
-    path: string;
   }
 }
 

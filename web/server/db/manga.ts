@@ -3,6 +3,8 @@ import camelcaseKeys from 'camelcase-keys';
 import { InvalidInputError } from 'slonik';
 import * as z from 'zod';
 
+import type { MangaStatus } from '@/common/mangaStatus';
+import { SearchedManga } from '@/common/schemas/manga';
 import { NUMERIC_VALUE_OUT_OF_RANGE } from '@/db/errorCodes';
 import type {
   FullMangaData,
@@ -12,7 +14,7 @@ import type {
 import type { Follow } from '@/types/db/follows';
 import type { DatabaseId, MangaId, PostgresInterval } from '@/types/dbTypes';
 
-import { db, sql } from './index';
+import { countSql, db, idSql, sql } from './index';
 import { HttpError } from '../utils/errors';
 import { mangadexLogger } from '../utils/logging';
 
@@ -234,3 +236,90 @@ export const getMangaForElastic = (mangaId: MangaId): Promise<MangaForElastic> =
       services: camelcaseKeys(services, { deep: true }),
     }));
 };
+
+interface GetMangasForSearchParams {
+  mangaIds: number[];
+  serviceIds?: number[];
+  mangaStatus?: MangaStatus[];
+  limit: number;
+  offset?: number;
+}
+
+export async function getMangasForSearch({
+  mangaIds,
+  serviceIds,
+  mangaStatus,
+  limit,
+  offset,
+}: GetMangasForSearchParams) {
+  const { serviceFilter, serviceJoin } = (serviceIds && serviceIds.length > 0)
+    ? {
+      serviceFilter: sql.fragment`AND ms.service_id = ANY(${sql.array(serviceIds, 'int4')})`,
+      serviceJoin: sql.fragment`INNER JOIN manga_service ms ON m.manga_id = ms.manga_id`,
+    }
+    : {
+      serviceFilter: sql.fragment``,
+      serviceJoin: sql.fragment``,
+    };
+
+  const { mangaStatusFilter, mangaInfoJoin } = (mangaStatus && mangaStatus.length > 0)
+    ? {
+      mangaStatusFilter: sql.fragment`AND mi.status = ANY(${sql.array(mangaStatus, 'int4')})`,
+      mangaInfoJoin: sql.fragment`LEFT JOIN manga_info mi ON m.manga_id = mi.manga_id`,
+    }
+    : {
+      mangaStatusFilter: sql.fragment``,
+      mangaInfoJoin: sql.fragment``,
+    };
+
+  const countQuery = db.oneFirst(countSql`SELECT COUNT(*) 
+      FROM manga m
+        ${mangaInfoJoin}
+        ${serviceJoin}
+      WHERE
+        m.manga_id = ANY(${sql.array(mangaIds, 'int4')})
+        ${serviceFilter}
+        ${mangaStatusFilter}`);
+
+  // Optimization idea: Only fetch service ids for the first page of results
+  const servicesQuery = db.any(idSql`
+      SELECT DISTINCT ms.service_id AS id
+      FROM manga m 
+        INNER JOIN manga_service ms ON m.manga_id = ms.manga_id
+      WHERE
+        m.manga_id = ANY (${sql.array(mangaIds, 'int4')})`);
+
+
+  const searchQuery = db.any(sql.type(SearchedManga)`
+      SELECT 
+        m.manga_id,
+        m.title,
+        m.latest_release,
+        m.latest_chapter,
+        mi.cover AS cover_url,
+        mi.status,
+        array_agg(ms.service_id) AS service_ids
+      FROM manga m
+        LEFT JOIN manga_info mi ON m.manga_id = mi.manga_id
+        INNER JOIN manga_service ms ON m.manga_id = ms.manga_id
+      WHERE
+        m.manga_id = ANY(${sql.array(mangaIds, 'int4')})
+        ${serviceFilter}
+        ${mangaStatusFilter}
+      GROUP BY m.manga_id, mi.manga_id
+      ORDER BY array_position(${sql.array(mangaIds, 'int4')}, m.manga_id)
+      LIMIT ${limit} ${offset ? sql.fragment`OFFSET ${offset}` : sql.fragment``}
+  `);
+
+  const [
+    count,
+    foundServiceIds,
+    mangas,
+  ] = await Promise.all([countQuery, servicesQuery, searchQuery]);
+
+  return {
+    count,
+    foundServiceIds: foundServiceIds.map(({ id }) => id),
+    mangas,
+  };
+}

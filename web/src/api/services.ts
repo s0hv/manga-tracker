@@ -25,4 +25,5 @@ export const servicesQueryOptions = queryOptions({
     }),
     {}
   ),
+  staleTime: Infinity,
 });

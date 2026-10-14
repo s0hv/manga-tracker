@@ -109,6 +109,7 @@ function TopBar() {
           <MangaSearch
             id='title-search'
             placeholder='Search manga'
+            redirectToSearch
           />
 
           {user

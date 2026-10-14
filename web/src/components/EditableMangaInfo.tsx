@@ -5,15 +5,14 @@ import { useSnackbar } from 'notistack';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { SelectElement } from 'react-hook-form-mui';
 
+import { MangaStatus } from '@/common/mangaStatus';
 import type { MangaData, MangaInfoData } from '@/types/api/manga';
-import { MangaStatus } from '@/types/dbTypes';
 
 import { updateMangaInfo } from '../api/admin/manga';
 import { asNumber } from '../utils/formUtils';
 import {
   defaultDateDistanceToNow,
   defaultDateFormat,
-  enumValues,
   statusToString,
 } from '../utils/utilities';
 
@@ -45,7 +44,7 @@ interface FormData {
   status: MangaStatus;
 }
 
-const statusOptions = enumValues(MangaStatus)
+const statusOptions = Object.values(MangaStatus)
   .map(value => ({
     value,
     label: statusToString(value),
@@ -146,7 +145,7 @@ const EditableMangaInfo: FunctionComponent<MangaInfoProps> = ({ mangaData }) => 
               fullWidth
               variant='standard'
               transform={{
-                output: e => asNumber(e.target.value),
+                output: e => asNumber(e.target.value) as MangaStatus,
               }}
               control={control}
               sx={{ ml: 0.5 }}

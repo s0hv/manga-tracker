@@ -20,6 +20,7 @@ import { Route as staticThird_party_noticesRouteImport } from './routes/(static)
 import { Route as AdminParsingFailsRouteImport } from './routes/admin/parsing-fails'
 import { Route as AdminServicesRouteImport } from './routes/admin/services'
 import { Route as MangaMangaIdRouteImport } from './routes/manga/$mangaId'
+import { Route as MangaSearchRouteImport } from './routes/manga/search'
 import { Route as AdminMangaMangaIdRouteImport } from './routes/admin/manga.$mangaId'
 import { Route as AdminMangaMergeRouteImport } from './routes/admin/manga.merge'
 
@@ -79,6 +80,11 @@ const MangaMangaIdRoute = MangaMangaIdRouteImport.update({
   path: '/manga/$mangaId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MangaSearchRoute = MangaSearchRouteImport.update({
+  id: '/manga/search',
+  path: '/manga/search',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminMangaMangaIdRoute = AdminMangaMangaIdRouteImport.update({
   id: '/admin/manga/$mangaId',
   path: '/admin/manga/$mangaId',
@@ -102,6 +108,7 @@ export interface FileRoutesByFullPath {
   '/admin/parsing-fails': typeof AdminParsingFailsRoute
   '/admin/services': typeof AdminServicesRoute
   '/manga/$mangaId': typeof MangaMangaIdRoute
+  '/manga/search': typeof MangaSearchRoute
   '/admin/manga/$mangaId': typeof AdminMangaMangaIdRoute
   '/admin/manga/merge': typeof AdminMangaMergeRoute
 }
@@ -117,6 +124,7 @@ export interface FileRoutesByTo {
   '/admin/parsing-fails': typeof AdminParsingFailsRoute
   '/admin/services': typeof AdminServicesRoute
   '/manga/$mangaId': typeof MangaMangaIdRoute
+  '/manga/search': typeof MangaSearchRoute
   '/admin/manga/$mangaId': typeof AdminMangaMangaIdRoute
   '/admin/manga/merge': typeof AdminMangaMergeRoute
 }
@@ -133,6 +141,7 @@ export interface FileRoutesById {
   '/admin/parsing-fails': typeof AdminParsingFailsRoute
   '/admin/services': typeof AdminServicesRoute
   '/manga/$mangaId': typeof MangaMangaIdRoute
+  '/manga/search': typeof MangaSearchRoute
   '/admin/manga/$mangaId': typeof AdminMangaMangaIdRoute
   '/admin/manga/merge': typeof AdminMangaMergeRoute
 }
@@ -150,6 +159,7 @@ export interface FileRouteTypes {
     | '/admin/parsing-fails'
     | '/admin/services'
     | '/manga/$mangaId'
+    | '/manga/search'
     | '/admin/manga/$mangaId'
     | '/admin/manga/merge'
   fileRoutesByTo: FileRoutesByTo
@@ -165,6 +175,7 @@ export interface FileRouteTypes {
     | '/admin/parsing-fails'
     | '/admin/services'
     | '/manga/$mangaId'
+    | '/manga/search'
     | '/admin/manga/$mangaId'
     | '/admin/manga/merge'
   id:
@@ -180,6 +191,7 @@ export interface FileRouteTypes {
     | '/admin/parsing-fails'
     | '/admin/services'
     | '/manga/$mangaId'
+    | '/manga/search'
     | '/admin/manga/$mangaId'
     | '/admin/manga/merge'
   fileRoutesById: FileRoutesById
@@ -196,6 +208,7 @@ export interface RootRouteChildren {
   AdminParsingFailsRoute: typeof AdminParsingFailsRoute
   AdminServicesRoute: typeof AdminServicesRoute
   MangaMangaIdRoute: typeof MangaMangaIdRoute
+  MangaSearchRoute: typeof MangaSearchRoute
   AdminMangaMangaIdRoute: typeof AdminMangaMangaIdRoute
   AdminMangaMergeRoute: typeof AdminMangaMergeRoute
 }
@@ -279,6 +292,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MangaMangaIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/manga/search': {
+      id: '/manga/search'
+      path: '/manga/search'
+      fullPath: '/manga/search'
+      preLoaderRoute: typeof MangaSearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/manga/$mangaId': {
       id: '/admin/manga/$mangaId'
       path: '/admin/manga/$mangaId'
@@ -308,6 +328,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminParsingFailsRoute: AdminParsingFailsRoute,
   AdminServicesRoute: AdminServicesRoute,
   MangaMangaIdRoute: MangaMangaIdRoute,
+  MangaSearchRoute: MangaSearchRoute,
   AdminMangaMangaIdRoute: AdminMangaMangaIdRoute,
   AdminMangaMergeRoute: AdminMangaMergeRoute,
 }

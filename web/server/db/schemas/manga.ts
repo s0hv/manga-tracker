@@ -1,6 +1,6 @@
 import * as z from 'zod';
 
-import { MangaStatus } from '@/types/dbTypes';
+import { MangaStatusSchema } from '@/common/schemas/common';
 
 import { IntervalValue } from './common';
 
@@ -49,7 +49,7 @@ export const FullMangaRawRow = z.strictObject({
     url: z.string(),
   })),
   cover: z.string().nullable(),
-  status: z.enum(MangaStatus).nullable(),
+  status: MangaStatusSchema.nullable(),
   lastUpdated: z.date().nullable(),
   bw: z.string().nullable(),
   mu: z.string().nullable(),
