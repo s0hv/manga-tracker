@@ -272,7 +272,7 @@ export async function getMangasForSearch({
       mangaInfoJoin: sql.fragment``,
     };
 
-  const countQuery = db.oneFirst(countSql`SELECT COUNT(*) 
+  const countQuery = db.oneFirst(countSql`SELECT COUNT(DISTINCT m.manga_id) 
       FROM manga m
         ${mangaInfoJoin}
         ${serviceJoin}

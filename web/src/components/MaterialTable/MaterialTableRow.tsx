@@ -31,6 +31,11 @@ const MaterialTableCell = <
   TFeatures extends TableFeatures,
   TData extends RowData
 > ({ cell, renderable }: MaterialTableCellProps<TFeatures, TData>) => {
+  // defaultOnSaveRow writes the edited values into the existing row, so the cell and
+  // renderable stay the same after a save. With React Compiler memoization the cell
+  // would keep rendering the old value.
+  'use no memo';
+
   return (
     <TableCell
       key={cell.id}
@@ -64,6 +69,10 @@ export const MaterialTableRow = <
   TFeatures extends TableFeatures,
   TData extends RowData
 >({ row }: MaterialTableRowProps<TFeatures, TData>) => {
+  // TanStack Table keeps the same row object when the columns change, so with
+  // React Compiler memoization the row would keep rendering the old cells.
+  'use no memo';
+
   return (
     <TableRow key={row.id}>
       {doIfRowFeatureExists(

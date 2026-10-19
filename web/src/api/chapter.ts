@@ -104,10 +104,17 @@ export const getLatestChaptersQueryOptions = (
     pages: [],
   } satisfies InfiniteData<ChapterRelease[], PageParams>,
   initialPageParam: { limit, offset: 0 } satisfies PageParams,
-  getNextPageParam: (_, __, lastPageParam) => {
+  getNextPageParam: (lastPage, __, lastPageParam) => {
     const newOffset = lastPageParam.offset + limit;
 
     if (newOffset > MAX_OFFSET) {
+      return null;
+    }
+
+    const isLastPage = lastPageParam.offset >= MAX_OFFSET
+      || lastPage.length < lastPageParam.limit;
+
+    if (isLastPage) {
       return null;
     }
 

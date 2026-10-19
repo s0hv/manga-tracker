@@ -63,6 +63,19 @@ describe('Smoke tests', () => {
       tableName: 'Manga chapters',
       expectedRows: 'one',
     });
+
+    // Search page
+    Selector.getMangaSearchInput().click().type(`${mangaTitle}{enter}`);
+
+    cy.location('pathname').should('equal', '/manga/search');
+    Selector.getSearchPageHeading().should('exist');
+    Selector.getSearchResultCountText(mangaTitle).should('exist');
+    Selector.getMangaCoverImage(mangaTitle).should('exist');
+
+    Selector.getSearchResultLinks(mangaTitle).last().click();
+
+    cy.location('pathname').should('equal', '/manga/1');
+    cy.findByRole('heading', { name: mangaTitle }).should('exist');
   });
 
   it('Pages load for logged in users', () => {
