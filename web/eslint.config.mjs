@@ -251,8 +251,7 @@ export default defineConfig(
       'import-x/newline-after-import': 'error',
       'import-x/no-named-as-default-member': 'off',
 
-      // No plans on using the compiler in the near future
-      'react-hooks/incompatible-library': 'off',
+      'react-hooks/incompatible-library': 'error',
     },
   },
 

@@ -99,6 +99,8 @@ export const MangaSearchResultPage = ({
       }}
     >
       <MangaSearchFilters
+        // Reset filters when search query changes
+        key={searchQuery}
         serviceIds={data?.pages[0].data.serviceIds}
         onSubmit={onSubmit}
       />

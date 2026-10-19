@@ -9,21 +9,41 @@ import {
   setupMockServer,
   TestRoot,
 } from '../utils';
-import MangaSearch from '@/components/MangaSearch';
+import MangaSearch, { type MangaSearchProps } from '@/components/MangaSearch';
 import type { SearchedManga } from '@/types/api/manga';
 
-vi.mock('@tanstack/react-router');
+const { navigateMock } = vi.hoisted(() => ({ navigateMock: vi.fn() }));
+
+vi.mock('@tanstack/react-router', async () => ({
+  ...await vi.importActual<typeof import('@tanstack/react-router')>('@tanstack/react-router'),
+  useNavigate: () => navigateMock,
+}));
 
 const server = setupMockServer();
 
 // Fix MUI warning spam https://github.com/mui/material-ui/issues/47792#issuecomment-3924961278
 (globalThis as any).MUI_TEST_ENV = true;
 
-const doRender = () => render(
+const doRender = (props: MangaSearchProps = {}) => render(
   <TestRoot>
-    <MangaSearch />
+    <MangaSearch {...props} />
   </TestRoot>
 );
+
+const searchResults: SearchedManga[] = [
+  { mangaId: 1, title: 'Test 1', score: 1 },
+  { mangaId: 2, title: 'Test 2', score: 1 },
+];
+
+const searchPageNavigation = (query: string) => ({
+  to: '/manga/search',
+  search: { query },
+});
+
+const mangaPageNavigation = (mangaId: number) => ({
+  to: '/manga/$mangaId',
+  params: { mangaId: mangaId.toString() },
+});
 
 describe('Search should render correctly', () => {
   it('without input', () => {
@@ -134,5 +154,104 @@ describe('Search should behave correctly with user input', () => {
         withServices: 'false',
       },
     });
+  });
+});
+
+describe('Search should navigate correctly', () => {
+  const typeAndWaitForOptions = async (user: ReturnType<typeof userEvent.setup>, text: string) => {
+    await user.type(screen.getByRole('combobox'), text);
+    await waitFor(() => expect(screen.getAllByRole('option')).toHaveLength(searchResults.length));
+  };
+
+  it('Navigates to the clicked manga', async () => {
+    mockRequestJson(server, '/api/quicksearch', searchResults);
+    doRender({ redirectToSearch: true });
+    const user = userEvent.setup();
+
+    await typeAndWaitForOptions(user, 'test');
+    await user.click(screen.getByRole('option', { name: 'Test 2' }));
+
+    expect(navigateMock).toHaveBeenCalledExactlyOnceWith(mangaPageNavigation(2));
+  });
+
+  it('Selects the first option on enter without redirectToSearch', async () => {
+    mockRequestJson(server, '/api/quicksearch', searchResults);
+    doRender();
+    const user = userEvent.setup();
+
+    await typeAndWaitForOptions(user, 'test');
+    await user.keyboard('{Enter}');
+
+    expect(navigateMock).toHaveBeenCalledExactlyOnceWith(mangaPageNavigation(1));
+  });
+
+  it('Redirects to the search page on enter with redirectToSearch', async () => {
+    mockRequestJson(server, '/api/quicksearch', searchResults);
+    doRender({ redirectToSearch: true });
+    const user = userEvent.setup();
+
+    await typeAndWaitForOptions(user, 'test search');
+    await user.keyboard('{Enter}');
+
+    expect(navigateMock).toHaveBeenCalledExactlyOnceWith(searchPageNavigation('test search'));
+
+    // The query stays in the input, but the input loses focus to close the options
+    const input = screen.getByRole('combobox');
+    expect(input).toHaveValue('test search');
+    expect(input).not.toHaveFocus();
+  });
+
+  it('Navigates to the option highlighted with the keyboard on enter with redirectToSearch', async () => {
+    mockRequestJson(server, '/api/quicksearch', searchResults);
+    doRender({ redirectToSearch: true });
+    const user = userEvent.setup();
+
+    await typeAndWaitForOptions(user, 'test search');
+    await user.keyboard('{ArrowDown}{ArrowDown}{Enter}');
+
+    expect(navigateMock).toHaveBeenCalledExactlyOnceWith(mangaPageNavigation(2));
+  });
+
+  it('Does not redirect to the search page on enter with less than 2 characters', async () => {
+    mockRequestJson(server, '/api/quicksearch', []);
+    doRender({ redirectToSearch: true });
+    const user = userEvent.setup();
+
+    await user.type(screen.getByRole('combobox'), ' a {Enter}');
+
+    expect(navigateMock).not.toHaveBeenCalled();
+  });
+
+  it('Redirects to the search page when clicking the search button with redirectToSearch', async () => {
+    mockRequestJson(server, '/api/quicksearch', searchResults);
+    doRender({ redirectToSearch: true });
+    const user = userEvent.setup();
+
+    await typeAndWaitForOptions(user, 'test search');
+    await user.click(screen.getByRole('button'));
+
+    expect(navigateMock).toHaveBeenCalledExactlyOnceWith(searchPageNavigation('test search'));
+  });
+
+  it('Does nothing when clicking the search button with a too short query', async () => {
+    mockRequestJson(server, '/api/quicksearch', []);
+    doRender({ redirectToSearch: true });
+    const user = userEvent.setup();
+
+    await user.type(screen.getByRole('combobox'), 'a');
+    await user.click(screen.getByRole('button'));
+
+    expect(navigateMock).not.toHaveBeenCalled();
+  });
+
+  it('Does nothing when clicking the search button without redirectToSearch', async () => {
+    mockRequestJson(server, '/api/quicksearch', searchResults);
+    doRender();
+    const user = userEvent.setup();
+
+    await typeAndWaitForOptions(user, 'test search');
+    await user.click(screen.getByRole('button'));
+
+    expect(navigateMock).not.toHaveBeenCalled();
   });
 });

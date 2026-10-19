@@ -1,15 +1,23 @@
-import react from '@vitejs/plugin-react';
+import babel from '@rolldown/plugin-babel';
+import react, { reactCompilerPreset } from '@vitejs/plugin-react';
 import { defineConfig } from 'vitest/config';
 
 const noParallelTestsFiles = [
   '__tests__/api/auth.test.ts',
+  '__tests__/db/session.test.ts',
 ];
 
 export default defineConfig({
   resolve: {
     tsconfigPaths: true,
   },
-  plugins: [react()],
+  plugins: [
+    react(),
+    // Must match vite.config.ts so tests run the same compiled components as the app
+    babel({
+      presets: [reactCompilerPreset()],
+    }),
+  ],
   test: {
     projects: [
       {

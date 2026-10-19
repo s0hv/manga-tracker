@@ -11,14 +11,12 @@ import {
 } from '@mui/material';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 
-import type { PageParams } from '#web/api/types';
 import {
   ChapterGroupWithCover,
   ChapterWithLink,
   GroupedChapterList,
   useGroupedChapters,
 } from '@/components/chapter/GroupedChapterList';
-import { useIsLastPage } from '@/components/hooks/useIsLastPage';
 import type { ChapterRelease } from '@/types/api/chapter';
 
 import { getLatestChaptersQueryOptions } from '../api/chapter';
@@ -39,17 +37,14 @@ function App() {
   const useFollows = isUserAuthenticated && showFollows;
 
   const {
-    data: { pages, pageParams },
+    data: { pages },
     isFetching: isChaptersFetching,
     isFetchedAfterMount,
+    hasNextPage,
     fetchNextPage,
   } = useInfiniteQuery(getLatestChaptersQueryOptions(pageSize, useFollows));
 
-  const isLastPage = useIsLastPage(
-    pageParams as PageParams[],
-    pages,
-    pageSize
-  );
+  const isLastPage = !hasNextPage;
 
   const {
     data: services,

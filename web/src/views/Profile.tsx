@@ -74,15 +74,14 @@ const Profile: FC<ProfileProps> = props => {
     email: user.email,
   }), [user]);
 
-  const {
-    formState,
-    control,
-    ...methods
-  } = useForm<ProfileFormValues>({
+  const methods = useForm<ProfileFormValues>({
     resolver,
     defaultValues: initialValues,
     mode: 'onBlur',
   });
+  // useForm() returns the same object on every render with formState replaced in place.
+  // Copying it with a rest destructure would let React Compiler cache the copy with the initial formState.
+  const { formState, control } = methods;
 
   const onSubmit = useCallback<SubmitHandler<ProfileFormValues>>(values => updateUserProfile(values)
     .then(() => {
@@ -157,11 +156,7 @@ const Profile: FC<ProfileProps> = props => {
     <Container maxWidth='lg'>
       <Paper sx={{ minWidth: '300px', minHeight: '400px', p: 2 }}>
         <Container maxWidth='xs'>
-          <FormProvider
-            formState={formState}
-            control={control}
-            {...methods}
-          >
+          <FormProvider {...methods}>
             <Box
               component='form'
               noValidate

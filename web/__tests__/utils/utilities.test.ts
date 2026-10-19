@@ -1,31 +1,53 @@
 import { describe, expect, it } from 'vitest';
 
+import { MangaStatus } from '@/common/mangaStatus';
 import { groupBy } from '@/common/utilities';
-import { isInteger, statusToString } from '@/webUtils/utilities';
+import { isInteger, statusToColor, statusToString } from '@/webUtils/utilities';
 
 
 describe('statusToString', () => {
-  it('Returns Ongoing for 0', () => {
-    expect(statusToString(0)).toBe('Ongoing');
+  it('Returns Ongoing for ONGOING', () => {
+    expect(statusToString(MangaStatus.ONGOING)).toBe('Ongoing');
   });
 
-  it('Returns Completed for 1', () => {
-    expect(statusToString(1)).toBe('Completed');
+  it('Returns Completed for COMPLETED', () => {
+    expect(statusToString(MangaStatus.COMPLETED)).toBe('Completed');
   });
 
-  it('Returns Dropped for 2', () => {
-    expect(statusToString(2)).toBe('Dropped');
+  it('Returns Dropped for DROPPED', () => {
+    expect(statusToString(MangaStatus.DROPPED)).toBe('Dropped');
   });
 
-  it('Returns Hiatus for 3', () => {
-    expect(statusToString(3)).toBe('Hiatus');
+  it('Returns Hiatus for HIATUS', () => {
+    expect(statusToString(MangaStatus.HIATUS)).toBe('Hiatus');
+  });
+
+  it('Accepts the status as a string', () => {
+    expect(statusToString(String(MangaStatus.COMPLETED))).toBe('Completed');
   });
 
   it('Returns Ongoing for other values', () => {
     // @ts-expect-error
     expect(statusToString()).toBe('Ongoing');
+    expect(statusToString(null)).toBe('Ongoing');
     expect(statusToString(10)).toBe('Ongoing');
     expect(statusToString('a')).toBe('Ongoing');
+  });
+});
+
+describe('statusToColor', () => {
+  it('Returns a distinct theme color for each status', () => {
+    expect(statusToColor(MangaStatus.ONGOING)).toBe('primary.main');
+    expect(statusToColor(MangaStatus.COMPLETED)).toBe('success.main');
+    expect(statusToColor(MangaStatus.DROPPED)).toBe('error.main');
+    expect(statusToColor(MangaStatus.HIATUS)).toBe('warning.main');
+    expect(statusToColor(String(MangaStatus.HIATUS))).toBe('warning.main');
+  });
+
+  it('Uses the ongoing color for unknown values', () => {
+    expect(statusToColor(null)).toBe('primary.main');
+    expect(statusToColor(10)).toBe('primary.main');
+    expect(statusToColor('a')).toBe('primary.main');
   });
 });
 

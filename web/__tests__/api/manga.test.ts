@@ -27,10 +27,14 @@ import {
   expectErrorMessage,
   getErrorMessage,
   getErrorMessages,
+  silenceConsole,
   withUser,
 } from '../utils';
-import { deleteManga, updateManga } from '@/db/elasticsearch/manga';
+import { MangaStatus } from '@/common/mangaStatus';
+import { deleteManga, mangaSearch, updateManga } from '@/db/elasticsearch/manga';
+import { db, voidSql } from '@/db/index';
 import { getMangaPartial } from '@/db/manga';
+import { ISE } from '@/tests/constants';
 import type { DatabaseId, MangaId } from '@/types/dbTypes';
 
 
@@ -45,6 +49,7 @@ vi.mock('@/db/elasticsearch/manga', async () => {
     ...original,
     updateManga: vi.fn().mockImplementation(original.updateManga),
     deleteManga: vi.fn().mockImplementation(original.deleteManga),
+    mangaSearch: vi.fn().mockImplementation(original.mangaSearch),
   };
 });
 
@@ -330,6 +335,226 @@ describe('GET /api/manga/:mangaId/chapters', () => {
           expect(res.body.data.chapters).toHaveLength(10);
         }),
     ]);
+  });
+});
+
+describe('GET /api/manga/search', () => {
+  const searchUrl = '/api/manga/search';
+
+  // completedManga: services 1 and 3, completed
+  // noInfoManga: service 2, no manga_info row
+  let completedManga: number;
+  let noInfoManga: number;
+
+  const mockElasticResults = (mangaIds: number[]) => {
+    vi.mocked(mangaSearch).mockImplementationOnce(() => Promise.resolve({
+      body: {
+        hits: {
+          hits: mangaIds.map(mangaId => ({
+            _id: mangaId.toString(),
+            _score: 1,
+            fields: { manga_id: [mangaId]},
+          })),
+        },
+      },
+    }) as unknown as ReturnType<typeof mangaSearch>);
+  };
+
+  const getResultIds = (body: any) => (body.data.searchResults as { mangaId: number }[])
+    .map(manga => manga.mangaId);
+
+  beforeAll(async () => {
+    completedManga = await createMangaService(1);
+    await createMangaService(3, completedManga);
+    await db.query(voidSql`INSERT INTO manga_info (manga_id, status) VALUES (${completedManga}, ${MangaStatus.COMPLETED})`);
+
+    noInfoManga = await createMangaService(2);
+  });
+
+  expectISEOnDbError(serverReference, `${searchUrl}?query=test`);
+
+  it('Returns 400 with an invalid query', async () => {
+    await request(httpServer)
+      .get(searchUrl)
+      .expect(400)
+      .expect(expectErrorMessage('query', 'No search query specified'));
+
+    await request(httpServer)
+      .get(`${searchUrl}?query=a`)
+      .expect(400)
+      .expect(expectErrorMessage('query', 'Query must be between 2 and 500 characters'));
+
+    await request(httpServer)
+      .get(`${searchUrl}?query=${'a'.repeat(501)}`)
+      .expect(400)
+      .expect(expectErrorMessage('query', 'Query must be between 2 and 500 characters'));
+  });
+
+  it('Returns 400 with invalid filters', async () => {
+    await Promise.all([
+      request(httpServer)
+        .get(`${searchUrl}?query=test&serviceIds=abc`)
+        .expect(400)
+        .expect(res => expect(getErrorMessage(res, 'serviceIds.0'))
+          .toMatchInlineSnapshot(`"Value must contain only numbers"`)),
+
+      request(httpServer)
+        .get(`${searchUrl}?query=test&serviceIds=1,`)
+        .expect(400)
+        .expect(res => expect(getErrorMessage(res, 'serviceIds.1'))
+          .toMatchInlineSnapshot(`"Value must contain only numbers"`)),
+
+      request(httpServer)
+        .get(`${searchUrl}?query=test&status=abc`)
+        .expect(400)
+        .expect(res => expect(getErrorMessage(res, 'status.0'))
+          .toMatchInlineSnapshot(`"Value must contain only numbers"`)),
+
+      // Not a valid manga status
+      request(httpServer)
+        .get(`${searchUrl}?query=test&status=0,10`)
+        .expect(400)
+        .expect(res => expect(getErrorMessage(res, 'status.1'))
+          .toMatchInlineSnapshot(`"Invalid option: expected one of 0|1|2|3"`)),
+    ]);
+  });
+
+  it('Returns 400 with invalid limit or offset', async () => {
+    await Promise.all([
+      request(httpServer)
+        .get(`${searchUrl}?query=test&limit=-1`)
+        .expect(400)
+        .expect(res => expect(getErrorMessage(res, 'limit'))
+          .toMatchInlineSnapshot(`"Limit must be between 0 and 50"`)),
+
+      request(httpServer)
+        .get(`${searchUrl}?query=test&limit=51`)
+        .expect(400)
+        .expect(res => expect(getErrorMessage(res, 'limit'))
+          .toMatchInlineSnapshot(`"Limit must be between 0 and 50"`)),
+
+      request(httpServer)
+        .get(`${searchUrl}?query=test&offset=-1`)
+        .expect(400)
+        .expect(res => expect(getErrorMessage(res, 'offset'))
+          .toMatchInlineSnapshot(`"Too small: expected number to be >=0"`)),
+
+      request(httpServer)
+        .get(`${searchUrl}?query=test&offset=226`)
+        .expect(400)
+        .expect(res => expect(getErrorMessage(res, 'offset'))
+          .toMatchInlineSnapshot(`"Too big: expected number to be <=225"`)),
+
+      request(httpServer)
+        .get(`${searchUrl}?query=test&offset=abc`)
+        .expect(400)
+        .expect(res => expect(getErrorMessage(res, 'offset'))
+          .toMatchInlineSnapshot(`"Value must contain only numbers"`)),
+    ]);
+  });
+
+  it('Returns the results in elasticsearch order with all found service ids', async () => {
+    mockElasticResults([noInfoManga, completedManga]);
+
+    await request(httpServer)
+      .get(`${searchUrl}?query=test`)
+      .expect(200)
+      .expect(res => {
+        expect(res.body.count).toBe(2);
+        expect(res.body.data.serviceIds).toIncludeSameMembers([1, 2, 3]);
+        expect(res.body.data.searchResults).toEqual([
+          {
+            mangaId: noInfoManga,
+            title: 'test',
+            coverUrl: null,
+            latestChapter: null,
+            latestRelease: null,
+            status: null,
+            serviceIds: [2],
+          },
+          {
+            mangaId: completedManga,
+            title: 'test',
+            coverUrl: null,
+            latestChapter: null,
+            latestRelease: null,
+            status: MangaStatus.COMPLETED,
+            serviceIds: expect.toIncludeSameMembers([1, 3]),
+          },
+        ]);
+      });
+
+    expect(mangaSearch).toHaveBeenCalledWith('test', 250);
+  });
+
+  it('Filters the results by services and status', async () => {
+    mockElasticResults([noInfoManga, completedManga]);
+    await request(httpServer)
+      .get(`${searchUrl}?query=test&serviceIds=2,4`)
+      .expect(200)
+      .expect(res => {
+        expect(res.body.count).toBe(1);
+        expect(getResultIds(res.body)).toEqual([noInfoManga]);
+        // Service ids are not affected by the filters so the filter options stay visible
+        expect(res.body.data.serviceIds).toIncludeSameMembers([1, 2, 3]);
+      });
+
+    mockElasticResults([noInfoManga, completedManga]);
+    await request(httpServer)
+      .get(`${searchUrl}?query=test&status=${MangaStatus.COMPLETED},${MangaStatus.HIATUS}`)
+      .expect(200)
+      .expect(res => {
+        expect(res.body.count).toBe(1);
+        expect(getResultIds(res.body)).toEqual([completedManga]);
+      });
+
+    mockElasticResults([noInfoManga, completedManga]);
+    await request(httpServer)
+      .get(`${searchUrl}?query=test&serviceIds=2&status=${MangaStatus.COMPLETED}`)
+      .expect(200)
+      .expect(res => {
+        expect(res.body.count).toBe(0);
+        expect(res.body.data.searchResults).toEqual([]);
+      });
+  });
+
+  it('Paginates the results using limit and offset', async () => {
+    mockElasticResults([noInfoManga, completedManga]);
+    await request(httpServer)
+      .get(`${searchUrl}?query=test&limit=1`)
+      .expect(200)
+      .expect(res => {
+        expect(res.body.count).toBe(2);
+        expect(getResultIds(res.body)).toEqual([noInfoManga]);
+      });
+
+    mockElasticResults([noInfoManga, completedManga]);
+    await request(httpServer)
+      .get(`${searchUrl}?query=test&limit=1&offset=1`)
+      .expect(200)
+      .expect(res => {
+        expect(res.body.count).toBe(2);
+        expect(getResultIds(res.body)).toEqual([completedManga]);
+      });
+  });
+
+  it('Accepts the maximum limit and offset', async () => {
+    await request(httpServer)
+      .get(`${searchUrl}?query=test&limit=50&offset=225`)
+      .expect(200);
+  });
+
+  it('Returns 500 when elasticsearch fails', async () => {
+    vi.mocked(mangaSearch).mockImplementationOnce(
+      () => Promise.reject(new Error('Elasticsearch error')) as unknown as ReturnType<typeof mangaSearch>
+    );
+
+    await silenceConsole((async () => {
+      await request(httpServer)
+        .get(`${searchUrl}?query=test`)
+        .expect(500)
+        .expect(expectErrorMessage(ISE));
+    })());
   });
 });
 

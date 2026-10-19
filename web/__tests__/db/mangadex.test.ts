@@ -8,12 +8,20 @@ import {
   it,
   vi,
 } from 'vitest';
+import * as z from 'zod';
 
-import { spyOnDb } from '../dbutils';
+import { createManga, spyOnDb } from '../dbutils';
+import { db, sql, voidSql } from '@/db/index';
 import { mangadexLimiter, redis } from '@/serverUtils/ratelimits';
 
 
 const { fetchExtraInfo } = await vi.importActual<typeof import('@/db/mangadex')>('@/db/mangadex');
+
+const expectedCoverUrl = 'https://uploads.mangadex.org/covers/test/test';
+
+const getCover = (mangaId: number) => db.maybeOneFirst(
+  sql.type(z.object({ cover: z.string().nullable() }))`SELECT cover FROM manga_info WHERE manga_id=${mangaId}`
+);
 
 afterAll(() => {
   redis.disconnect();
@@ -45,12 +53,28 @@ describe('mangadex API works correctly', () => {
   });
 
 
-  it('Does a database update on success', async () => {
+  it('Updates the cover of an existing manga_info row on success', async () => {
+    const mangaId = await createManga();
+    await db.query(voidSql`INSERT INTO manga_info (manga_id) VALUES (${mangaId})`);
     const dbSpy = spyOnDb('query');
 
-    await fetchExtraInfo('1', 2);
+    await fetchExtraInfo('1', mangaId);
 
+    // Scheduled run insert + manga_info update
     expect(dbSpy).toHaveBeenCalledTimes(2);
+    expect(await getCover(mangaId)).toBe(expectedCoverUrl);
+  });
+
+  it('Creates the manga_info row with the cover when it does not exist', async () => {
+    const mangaId = await createManga();
+    expect(await getCover(mangaId)).toBeNull();
+    const dbSpy = spyOnDb('query');
+
+    await fetchExtraInfo('1', mangaId);
+
+    // Scheduled run insert + manga_info update + manga_info insert
+    expect(dbSpy).toHaveBeenCalledTimes(3);
+    expect(await getCover(mangaId)).toBe(expectedCoverUrl);
   });
 
   it('Does nothing when ratelimited', async () => {

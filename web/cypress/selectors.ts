@@ -87,6 +87,40 @@ export const Selector = {
     return cy.findByRole('combobox', { name: 'manga search' });
   },
 
+  getMangaSearchBtn() {
+    return Selector.getMangaSearchInput()
+      .parent()
+      .findByRole('button');
+  },
+
+  // region Search page
+
+  getSearchPageHeading() {
+    return cy.findByRole('heading', { name: 'Search' });
+  },
+
+  getSearchPageInput() {
+    return cy.findByRole('textbox');
+  },
+
+  getSearchResultCountText(query: string) {
+    return cy.findByText(new RegExp(`^\\d+ results for "${Cypress._.escapeRegExp(query)}"$`));
+  },
+
+  getSearchResultLinks(mangaTitle: string) {
+    return cy.findAllByRole('link', { name: mangaTitle });
+  },
+
+  getSearchFilterCheckbox(name: string) {
+    return cy.findByRole('checkbox', { name });
+  },
+
+  getSearchEndText() {
+    return cy.findByText('Reached the end');
+  },
+
+  // endregion Search page
+
   getMangaCoverImage(mangaTitle: string) {
     return cy.findByRole('img', { name: mangaTitle });
   },

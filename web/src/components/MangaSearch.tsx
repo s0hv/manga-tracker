@@ -105,6 +105,7 @@ const MangaSearch = <TWithServices extends boolean = false>(props: MangaSearchPr
   const navigate = useNavigate();
   const [fieldValue, setFieldValue] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
+  const highlightedOptionRef = useRef<SearchResultBasedOnServices<TWithServices> | null>(null);
 
   const onChangeDefault = useCallback(
     (newValue: SearchedManga) => navigate({ to: `/manga/$mangaId`, params: { mangaId: newValue.mangaId.toString() }}),
@@ -199,7 +200,7 @@ const MangaSearch = <TWithServices extends boolean = false>(props: MangaSearchPr
         <IconButton
           size='large'
           onClick={() => {
-            if (!redirectToSearch || (inputRef.current?.value ?? '').trim().length > 1) return;
+            if (!redirectToSearch || (inputRef.current?.value ?? '').trim().length < 2) return;
 
             navigateToSearch(inputRef.current!.value);
           }}
@@ -228,9 +229,16 @@ const MangaSearch = <TWithServices extends boolean = false>(props: MangaSearchPr
       fullWidth
       classes={autocompleteClasses}
       renderInput={renderInput}
+      onHighlightChange={(_, option) => {
+        highlightedOptionRef.current = option;
+      }}
+      onClose={() => {
+        highlightedOptionRef.current = null;
+      }}
       onKeyDown={event => {
         const currentValue = inputRef.current?.value ?? '';
-        if (event.key === 'Enter' && redirectToSearch && currentValue.trim().length > 1) {
+        // A highlighted option is selected with the default 'Enter' behavior instead.
+        if (event.key === 'Enter' && redirectToSearch && !highlightedOptionRef.current && currentValue.trim().length > 1) {
           // Prevent's default 'Enter' behavior.
           event.defaultMuiPrevented = true;
 

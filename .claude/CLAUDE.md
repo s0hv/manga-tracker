@@ -34,6 +34,9 @@ you can use `tsc:ui`, `tsc:server`, `tsc:tests`, or `tsc:cypress`
 - `pnpm run build` - Builds the frontend. This command is not that fast,
 so it should only be used at the end of large changes, if at all.
 
+If your working directory is not the `web` directory, you should change to it before running any of the above commands.
+If you are unable to do that, ask the user to run the `/cd web` command.
+
 ### Web app file structure
 The most important files and folders are as follows
 
