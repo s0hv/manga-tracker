@@ -15,7 +15,10 @@ COPY ./migrations ./migrations
 
 # Not perfect as the script does assume sh shell, which is not installed
 # The installed shell should be Busybox ash
-RUN wget -qO- https://get.pnpm.io/install.sh | env ENV="$HOME/.shrc" SHELL="$(which sh)" sh -
+# Without PNPM_VERSION the script installs the latest pnpm instead of the packageManager version
+RUN wget -qO- https://get.pnpm.io/install.sh | env \
+    PNPM_VERSION="$(node -p "require('./package.json').packageManager.split('@')[1].split('+')[0]")" \
+    ENV="$HOME/.shrc" SHELL="$(which sh)" sh -
 
 COPY ./web ./web
 
