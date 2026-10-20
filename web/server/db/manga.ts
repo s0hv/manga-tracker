@@ -1,3 +1,6 @@
+// @types/pg must stay a devDependency of web: @slonik/pg-driver's types import pg,
+// and without it DatabaseError is typed as any. Local builds still resolve the
+// repository root's copy, but the Docker build installs the root with --prod.
 import { DatabaseError } from '@slonik/pg-driver';
 import camelcaseKeys from 'camelcase-keys';
 import { InvalidInputError } from 'slonik';
