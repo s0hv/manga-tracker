@@ -413,10 +413,19 @@ class MangaPlus(BaseScraperWhole):
             return None
 
         # If manga has been removed and returns not found disabled it.
-        if parsed.error_result and parsed.error_result.english_popup.subject.lower() == 'not found':
-            logger.info(f'MANGA Plus API returned not found for {title_id}. Disabling it.')
-            self.dbutil.disable_manga_service(service_id, title_id)
-            return set()
+        if parsed.error_result:
+            if parsed.error_result.english_popup.subject.lower() == 'not found':
+                logger.info(f'MANGA Plus API returned not found for {title_id}. Disabling it.')
+                self.dbutil.disable_manga_service(service_id, title_id)
+                return set()
+
+            elif parsed.error_result.action == mangaplus_pb2.Action.MAINTENANCE:
+                logger.info(f'MANGA Plus currently under maintenance. Delaying check of {title_id}.')
+                # We assume most maintenances last under 2 hours
+                maintenance_break_until = utcnow() + timedelta(hours=2)
+                self.dbutil.update_manga_next_update(service_id, manga_id, maintenance_break_until)
+                self.dbutil.set_service_disabled_until(service_id, maintenance_break_until)
+                return set()
 
         series = parsed.title_detail_view
         if not isinstance(series, TitleDetailViewWrapper):
