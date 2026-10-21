@@ -1,11 +1,13 @@
 import unittest
 from datetime import timedelta
+from pathlib import Path
 from typing import cast, override
 from unittest import mock
 from unittest.mock import MagicMock, patch
 
 import psycopg
 import pytest
+import responses
 from psycopg.rows import class_row
 
 from src.db.models.manga import MangaServiceWithId
@@ -406,6 +408,39 @@ class SchedulerScrapeServiceTest(BaseTestClasses.DatabaseTestCase):
         found_ms1 = self.dbutil.get_manga_service(ms1.service_id, ms1.title_id)
         assert found_ms1 is not None
         assert found_ms1.next_update is None
+
+    @responses.activate
+    def test_scrape_series_keeps_mangaplus_maintenance_delay(self):
+        self.addCleanup(self.dbutil.execute, 'UPDATE services SET disabled_until=NULL WHERE service_id=%s', (MangaPlus.ID,))
+        ms = self.create_manga_service(MangaPlus)
+        # The scheduler disables a manga without a release interval when it reschedules it,
+        # so the manga getting disabled would mean the maintenance delay was overridden.
+        assert ms.release_interval is None
+
+        maintenance_data = Path(__file__).parent.joinpath('scrapers', 'mangaplus', 'test_data', 'error_maintenance.dat').read_bytes()
+        responses.add(responses.GET, MangaPlus.API.format(ms.title_id), body=maintenance_data)
+        mangaplus = MangaPlus(self.conn, self.dbutil)
+
+        # A check interval shorter than the maintenance break would end the break early if set_checked overrode it
+        with patch.object(MangaPlus.CONFIG, 'check_interval', timedelta(hours=1)):
+            manga_ids, chapter_ids = self.scheduler.scrape_series(
+                MangaPlus.ID,
+                lambda *_, **__: mangaplus,  # type: ignore[arg-type]
+                [self.create_manga_info(ms)]
+            )
+
+        assert manga_ids == set()
+        assert chapter_ids == []
+        assert len(responses.calls) == 1
+
+        found = self.dbutil.get_manga_service(ms.service_id, ms.title_id)
+        assert found is not None
+        assert found.disabled is False
+        self.assertDatesAlmostEqual(found.next_update, utcnow() + timedelta(hours=2), timedelta(minutes=1))
+
+        service = self.dbutil.get_service(MangaPlus.ID)
+        assert service is not None
+        self.assertDatesAlmostEqual(service.disabled_until, utcnow() + timedelta(hours=2), timedelta(minutes=1))
 
 
 if __name__ == '__main__':

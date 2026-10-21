@@ -310,8 +310,9 @@ class BaseScraper(abc.ABC):
         with self.conn.cursor() as cursor:
             now = utcnow()
             disabled_until = now + self.min_update_interval()
+            # GREATEST keeps a longer pause set with set_service_disabled_until, such as a maintenance break
             sql: LiteralString = (
-                'UPDATE services SET last_check = %s, disabled_until = %s WHERE service_id=%s'
+                'UPDATE services SET last_check = %s, disabled_until = GREATEST(disabled_until, %s) WHERE service_id=%s'
             )
             try:
                 cursor.execute(sql, (utcnow(), disabled_until, service_id))

@@ -40,19 +40,27 @@ class TestMangaPlusParser(BaseTestClasses.DatabaseTestCase):
     request_data_hiatus: bytes
     request_data_all: bytes
     request_data_otherschedule: bytes
+    request_data_maintenance: bytes
 
     @staticmethod
     def read_title_detail_data(status: str) -> bytes:
         file = Path(__file__).parent
 
-        with file.joinpath(f'title_detailV3-{status}.dat').open('rb') as f:
+        with file.joinpath('test_data', f'title_detailV3-{status}.dat').open('rb') as f:
+            return f.read()
+
+    @staticmethod
+    def read_maintenance_data() -> bytes:
+        file = Path(__file__).parent
+
+        with file.joinpath('test_data', 'error_maintenance.dat').open('rb') as f:
             return f.read()
 
     @staticmethod
     def read_all_titles_data() -> bytes:
         file = Path(__file__).parent
 
-        with file.joinpath('allV2.dat').open('rb') as f:
+        with file.joinpath('test_data', 'allV2.dat').open('rb') as f:
             return f.read()
 
     @override
@@ -68,6 +76,7 @@ class TestMangaPlusParser(BaseTestClasses.DatabaseTestCase):
         cls.request_data_creators = cls.read_title_detail_data('creators')
         cls.request_data_hiatus = cls.read_title_detail_data('hiatus')
         cls.request_data_otherschedule = cls.read_title_detail_data('otherschedule')
+        cls.request_data_maintenance = cls.read_maintenance_data()
         cls.request_data_all = cls.read_all_titles_data()
 
     @override
@@ -428,6 +437,26 @@ class TestMangaPlusParser(BaseTestClasses.DatabaseTestCase):
         assert len(responses.calls) == 1
 
         self.assertMangaServiceDisabled(ms.service_id, ms.title_id)
+
+    @responses.activate
+    def test_scrapes_correctly_for_maintenance(self):
+        self.addCleanup(self.reset_service, MangaPlus.ID)
+        self.reset_service(MangaPlus.ID)
+        ms, chapter_ids = self.setup_with_data(self.request_data_maintenance)
+
+        # An empty set instead of None so the scheduler does not count maintenance as an error
+        assert chapter_ids == set()
+        assert len(responses.calls) == 1
+
+        self.assertMangaServiceEnabled(ms.service_id, ms.title_id)
+
+        found = self.dbutil.get_manga_service(MangaPlus.ID, ms.title_id)
+        assert found is not None
+        self.assertDatesAlmostEqual(found.next_update, utcnow() + timedelta(hours=2), timedelta(minutes=1))
+
+        service = self.dbutil.get_service(MangaPlus.ID)
+        assert service is not None
+        self.assertDatesAlmostEqual(service.disabled_until, utcnow() + timedelta(hours=2), timedelta(minutes=1))
 
     @responses.activate
     def test_scrape_service(self):
