@@ -23,7 +23,7 @@ class BirthdayCookie(TypedDict):
 
 hour_in_seconds = 3600
 year_in_seconds = 31536000
-birthday_cookie: BirthdayCookie = {'value': '1992-06', 'expires': 1793814475}
+birthday_cookie: BirthdayCookie = {'value': '1992-06', 'expires': 1824298271}
 kmanga_timezone = ZoneInfo('Etc/GMT+5')
 kodansha_url = 'https://kmanga.kodansha.com'
 
@@ -104,6 +104,7 @@ def get_headers(params: dict | None) -> dict[str, str]:
         'x-kmanga-hash': hash_params(params),
         'x-kmanga-is-crawler': 'false',
         'x-kmanga-platform': '3',
+        'x-kmanga-client-id': '0',
         'accept': '*/*',
         'referer': f'{kodansha_url}/',
     }
@@ -179,7 +180,7 @@ class KMangaAPI:
             headers['Origin'] = kodansha_url
             headers['Content-Type'] = 'application/x-www-form-urlencoded'
             headers['Accept'] = 'application/json'
-            path = 'episode/list'
+            path = '/episode/list'
 
             with requests_session() as session:
                 r = session.request('POST', f'{self.base_url}/{path}', headers=headers, data=params)
