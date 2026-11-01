@@ -75,6 +75,7 @@
     "@tanstack/table-core": "^9.3.1",
     "@uiw/react-codemirror": "4.25.8",
     "arctic": "^3.7.0",
+    "body-parser": "^2.4.0",
     "camelcase-keys": "^10.0.3",
     "cookie-parser": "^1.4.7",
     "date-fns": "^4.4.0",
