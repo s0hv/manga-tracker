@@ -1,4 +1,5 @@
 import { pino } from 'pino';
+import pinoPretty from 'pino-pretty';
 
 import { IS_NON_PROD } from './constants';
 
@@ -10,22 +11,18 @@ const pretty = process.env.PRETTY
   ? /^(y|yes|true|on)$/i.test(process.env.PRETTY)
   : IS_NON_PROD;
 
+const stream = pinoPretty({
+  colorize: true,
+  translateTime: 'UTC:yyyy-mm-dd HH:MM:ss.l',
+  ignore: 'hostname,ns',
+});
+
 export const logger = pino(
   {
     level: level ?? 'debug',
-    transport: pretty
-      ? {
-        target: 'pino-pretty',
-        options:
-          {
-            colorize: true,
-            translateTime: 'UTC:yyyy-mm-dd HH:MM:ss.l',
-            ignore: 'hostname,ns',
-          },
-      }
-      : undefined,
     name: 'logger',
-  }
+  },
+  pretty ? stream : undefined
 );
 
 export const mangadexLogger = logger.child({ name: 'mangadex' }, { level: level ?? 'debug' });
