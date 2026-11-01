@@ -1,6 +1,7 @@
 import { Readable } from 'node:stream';
 import type * as streamWeb from 'node:stream/web';
 
+import { pick } from 'es-toolkit';
 import express from 'express';
 import type { Application } from 'express-serve-static-core';
 import * as z from 'zod';
@@ -16,12 +17,14 @@ declare global {
   }
 }
 
-const BANNED_HTTP1_HEADERS = [
-  'connection',
-  'keep-alive',
-  'proxy-connection',
-  'transfer-encoding',
-  'upgrade',
+const CACHE_HEADERS = [
+  'date',
+  'etag',
+  'expires',
+  'last-modified',
+  'cache-control',
+  'content-type',
+  'content-length',
 ];
 
 const router = express.Router();
@@ -60,21 +63,15 @@ router.get('/mangadex/:mangaId/:coverId', async (req, res) => {
     : '';
   const url = `https://uploads.mangadex.org/covers/${options.mangaId}/${options.coverId}.${options.extension}${suffix}`;
 
-  // MangaDex uses HTTP2 or newer, which disallows the use of some HTTP1 headers.
-  // If they are used, the fetch will throw `ERR_HTTP2_INVALID_CONNECTION_HEADERS`.
-  for (const header of BANNED_HTTP1_HEADERS) {
-    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-    delete req.headers[header];
-  }
-
-  const coverRes = await fetch(url, {
-    // Copy request headers, as they are used to validate the cache
-    headers: req.headers as Record<string, string>,
-  });
+  // Do not use headers from browser as that leads to bot challenges
+  const coverRes = await fetch(url);
 
   const copyHeaders = () => {
-    // Copy headers and status
-    res.setHeaders(coverRes.headers);
+    // Copy only caching related headers and status
+    res.setHeaders(new Headers(pick(
+      Object.fromEntries(coverRes.headers.entries()),
+      CACHE_HEADERS
+    )));
     res.status(coverRes.status);
   };
 
@@ -84,8 +81,18 @@ router.get('/mangadex/:mangaId/:coverId', async (req, res) => {
     return res.end();
   }
 
+  if (coverRes.status === 404) {
+    res.status(404).end();
+    return;
+  }
+
   if (!coverRes.ok || !coverRes.body) {
-    logger.warn('Failed to fetch mangadex cover. %s: %o', coverRes.status, coverRes.headers);
+    logger.warn('Failed to fetch mangadex cover. %s: %o', coverRes.status, Object.fromEntries(coverRes.headers.entries()));
+
+    if (coverRes.body) {
+      const bodyText = await coverRes.text();
+      logger.info('Response body: %s', bodyText);
+    }
     res.status(500).end();
     return;
   }
