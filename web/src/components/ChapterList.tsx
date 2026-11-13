@@ -296,7 +296,7 @@ function ChapterList(props: ChapterListProps): ReactElement {
         return (
           <TextField
             defaultValue={`${chapterNumber}${typeof chapterDecimal === 'number' ? `.${chapterDecimal}` : ''}`}
-            aria-label='Chapter number'
+            slotProps={{ htmlInput: { 'aria-label': 'Chapter number' }}}
             variant='standard'
             sx={{ width: '100%', minWidth: '100px' }}
             onChange={event => {

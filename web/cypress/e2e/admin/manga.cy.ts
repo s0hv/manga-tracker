@@ -102,6 +102,7 @@ describe('Manga admin page', () => {
     cy.selectComboboxValue('Service', serviceName);
     cy.findByRole('textbox', { name: 'Title id' })
       .type(testTitleId);
+    cy.findByRole('checkbox', { name: /^disabled$/i }).click();
     Selector.getCreateRowBtn().click();
     Selector.assertAlertExists('Successfully create a new manga service');
 
@@ -121,7 +122,7 @@ describe('Manga admin page', () => {
         'Title id': testTitleId,
         'Last check': 'Unknown',
         'Next update': 'Unknown',
-        Disabled: row => cy.wrap(row).findByRole('checkbox').should('not.be.checked'),
+        Disabled: row => cy.wrap(row).findByRole('checkbox').should('be.checked'),
       } as const,
       'Service'
     );

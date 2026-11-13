@@ -169,6 +169,7 @@ export default () => {
         mangaService: z.strictObject({
           titleId: z.string(),
           feedUrl: z.string().nullable().optional(),
+          disabled: z.boolean().optional(),
         }),
       }),
     }),

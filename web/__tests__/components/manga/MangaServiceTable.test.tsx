@@ -2,19 +2,22 @@ import React, { FunctionComponent } from 'react';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import fetchMock from 'fetch-mock';
+import { http, HttpResponse } from 'msw';
 import { SnackbarProvider } from 'notistack';
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import {
   expectErrorSnackbar,
   expectNoSnackbar,
-  expectRequestCalledWithBody,
   expectSuccessSnackbar,
   mockNotistackHooks,
+  mockRequestJson,
+  mockRequestWithBody,
   mockUTCDates,
+  muiSelectValue,
   queryClient,
   restoreMocks,
+  setupMockServer,
   silenceConsole,
   withRoot,
 } from '../../utils';
@@ -30,7 +33,10 @@ import {
   setupFaker,
 } from '../../schemas';
 
+const server = setupMockServer();
+
 const mangaId = 1;
+const mangaServicesUrl = `/api/admin/manga/${mangaId}/services`;
 
 const Root: FunctionComponent<any> = ({ children }: React.PropsWithChildren) => (
   <QueryClientProvider client={queryClient}>
@@ -50,14 +56,12 @@ mangaServices.forEach((ms, idx) => {
   ms.serviceId = services[idx].serviceId;
 });
 
-
 const waitForRender = (length = mangaServices.length + 1) => waitFor(() => {
   expect(screen.getAllByRole('row')).toHaveLength(length);
 });
 
 beforeEach(() => {
   queryClient.clear();
-  fetchMock.reset();
 });
 
 
@@ -73,8 +77,8 @@ describe('MangaServiceTable should render correctly', () => {
   };
 
   it('Should render correctly with data', async () => {
-    fetchMock.get(`/api/admin/manga/${mangaId}/services`, mangaServices);
-    fetchMock.get('/api/services', services);
+    const mangaServicesMock = mockRequestJson(server, mangaServicesUrl, mangaServices);
+    const servicesMock = mockRequestJson(server, '/api/services', services);
 
     act(() => {
       render(<Component />);
@@ -82,10 +86,10 @@ describe('MangaServiceTable should render correctly', () => {
 
     expectHeadersExist();
 
-    expect(fetchMock.calls(`/api/services`)).toHaveLength(1);
-    expect(fetchMock.calls(`/api/admin/manga/${mangaId}/services`)).toHaveLength(1);
-
     await waitForRender();
+
+    expect(servicesMock).toHaveBeenCalledOnce();
+    expect(mangaServicesMock).toHaveBeenCalledOnce();
 
     const sorted = [...mangaServices].sort((a, b) => (a.serviceId > b.serviceId ? 1 : -1));
 
@@ -119,17 +123,21 @@ describe('MangaServiceTable should render correctly', () => {
       });
   });
 
-  it('Should render correctly with failed request', () => {
-    fetchMock.get(`/api/admin/manga/${mangaId}/services`, 500);
-    fetchMock.get('/api/services', 500);
+  it('Should render correctly with failed request', async () => {
+    server.use(
+      http.get(mangaServicesUrl, () => new HttpResponse(null, { status: 500 })),
+      http.get('/api/services', () => new HttpResponse(null, { status: 500 }))
+    );
 
     const spies = silenceConsole();
     act(() => {
       render(<Component />);
     });
-    restoreMocks(spies);
 
     expectHeadersExist();
+
+    await waitFor(() => expect(screen.queryByRole('progressbar')).not.toBeInTheDocument());
+    restoreMocks(spies);
 
     expect(screen.getAllByRole('row')).toHaveLength(1);
   });
@@ -139,15 +147,16 @@ describe('MangaServiceTable should allow editing', () => {
   mockUTCDates();
   const length = 2;
   const mangaService = mangaServices[0];
+  const updateUrl = `/api/admin/manga/${mangaId}/services/:serviceId`;
 
   beforeEach(async () => {
     await mockNotistackHooks();
-    fetchMock.reset();
-    fetchMock.get(`/api/admin/manga/${mangaId}/services`, [mangaService]);
-    fetchMock.get('/api/services', services);
+    mockRequestJson(server, mangaServicesUrl, [mangaService]);
+    mockRequestJson(server, '/api/services', services);
   });
 
   it('Shows nothing when no changes made', async () => {
+    const updateMock = mockRequestWithBody(server, updateUrl, {});
     render(<Component />);
 
     await waitForRender(length);
@@ -157,10 +166,11 @@ describe('MangaServiceTable should allow editing', () => {
     await user.click(screen.getByRole('button', { name: /save row/i }));
 
     expectNoSnackbar();
+    expect(updateMock).not.toHaveBeenCalled();
   });
 
   it('Shows success snackbar when edit is successful with new value', async () => {
-    fetchMock.post(`express:/api/admin/manga/${mangaId}/services/:serviceId`, 200);
+    const updateMock = mockRequestWithBody(server, updateUrl, {});
 
     render(<Component />);
     await waitForRender(length);
@@ -170,17 +180,15 @@ describe('MangaServiceTable should allow editing', () => {
     await user.click(screen.getByRole('checkbox', { name: /^disabled$/i }));
     await user.click(screen.getByRole('button', { name: /save row/i }));
 
-    expectSuccessSnackbar();
+    await waitFor(() => expectSuccessSnackbar());
 
-    const lastCall = fetchMock.lastCall(undefined, { method: 'POST' });
-
-    expectRequestCalledWithBody(lastCall, { mangaService: {
+    expect(updateMock).toHaveBeenLastCalledWith({ mangaService: {
       disabled: !mangaService.disabled,
     }});
   });
 
   it('Shows error snackbar when edit is not successful', async () => {
-    fetchMock.post(`express:/api/admin/manga/${mangaId}/services/:serviceId`, 500);
+    server.use(http.post(updateUrl, () => new HttpResponse(null, { status: 500 })));
 
     render(<Component />);
     await waitForRender(length);
@@ -190,6 +198,54 @@ describe('MangaServiceTable should allow editing', () => {
     await user.click(screen.getByRole('checkbox', { name: /^disabled$/i }));
     await user.click(screen.getByRole('button', { name: /save row/i }));
 
-    expectErrorSnackbar();
+    await waitFor(() => expectErrorSnackbar());
+  });
+});
+
+describe('MangaServiceTable should allow creating', () => {
+  const mangaService = mangaServices[0];
+  const newService = services[1];
+  const createUrl = `/api/admin/manga/${mangaId}/services/${newService.serviceId}/create`;
+
+  beforeEach(async () => {
+    await mockNotistackHooks();
+    mockRequestJson(server, mangaServicesUrl, [mangaService]);
+    mockRequestJson(server, '/api/services', services);
+  });
+
+  const fillCreateForm = async (disabled: boolean) => {
+    render(<Component />);
+    await waitForRender(2);
+
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: /create manga service/i }));
+    await muiSelectValue(user, screen, /^service/i, newService.name);
+    await user.type(screen.getByRole('textbox', { name: /^title id/i }), 'new-title-id');
+    if (disabled) {
+      await user.click(screen.getByRole('checkbox', { name: /^disabled$/i }));
+    }
+    await user.click(screen.getByRole('button', { name: /^create row$/i }));
+  };
+
+  it.each([true, false])('Sends disabled=%s when creating a manga service', async disabled => {
+    const createMock = mockRequestWithBody(server, createUrl, {});
+
+    await fillCreateForm(disabled);
+
+    await waitFor(() => expectSuccessSnackbar());
+
+    expect(createMock).toHaveBeenCalledOnce();
+    const body = createMock.mock.lastCall![0] as { mangaService: Record<string, unknown> };
+    expect(body.mangaService).toMatchObject({ titleId: 'new-title-id' });
+    expect(body.mangaService.disabled ?? false).toBe(disabled);
+    expect(body.mangaService).not.toHaveProperty('serviceId');
+  });
+
+  it('Shows error snackbar when creation fails', async () => {
+    mockRequestWithBody(server, createUrl, { error: 'Resource already exists' }, { status: 422 });
+
+    await fillCreateForm(false);
+
+    await waitFor(() => expectErrorSnackbar('Resource already exists'));
   });
 });
