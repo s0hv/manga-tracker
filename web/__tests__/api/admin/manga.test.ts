@@ -752,7 +752,6 @@ describe('POST /api/admin/manga/:mangaId/services/:serviceId/create', () => {
           mangaId: 1,
           serviceId: 1,
           lastCheck: new Date(),
-          disabled: 'aaa',
           latestChapter: 1,
           latestDecimal: 1,
           titleId: 'aaa',
@@ -760,7 +759,18 @@ describe('POST /api/admin/manga/:mangaId/services/:serviceId/create', () => {
         }})
         .csrf()
         .expect(400)
-        .expect(expectErrorMessage('Unrecognized keys: "mangaId", "serviceId", "lastCheck", "disabled", "latestChapter", "latestDecimal", "nextUpdate"'));
+        .expect(expectErrorMessage('Unrecognized keys: "mangaId", "serviceId", "lastCheck", "latestChapter", "latestDecimal", "nextUpdate"'));
+    });
+  });
+
+  it('Returns 400 with invalid disabled value', async () => {
+    await withUser(adminUser, async () => {
+      await request(httpServer)
+        .post(url)
+        .send({ mangaService: { titleId: 'aaa', disabled: 'aaa' }})
+        .csrf()
+        .expect(400)
+        .expect(expectErrorMessage('mangaService.disabled', 'Invalid input: expected boolean, received string', 'body'));
     });
   });
 
@@ -788,9 +798,36 @@ describe('POST /api/admin/manga/:mangaId/services/:serviceId/create', () => {
   it('Returns 200 with valid data', async () => {
     const mangaId = await createManga();
 
+    // feed_url must be unique per service, and the test database is not reset between runs
+    const uniqueId = Date.now().toString();
+    const createData = {
+      titleId: uniqueId,
+      feedUrl: `test url ${uniqueId}`,
+    };
+
+    await withUser(adminUser, async () => {
+      await request(httpServer)
+        .post(getUrl(mangaId))
+        .send({ mangaService: createData })
+        .csrf()
+        .expect(200);
+    });
+
+    const mangaServiceNew = await getMangaService(mangaId);
+    expect(mangaServiceNew).toEqual(expect.objectContaining({
+      ...createData,
+      mangaId,
+      serviceId,
+      disabled: false,
+    }));
+  });
+
+  it('Returns 200 and creates a disabled manga service', async () => {
+    const mangaId = await createManga();
+
     const createData = {
       titleId: Date.now().toString(),
-      feedUrl: 'test url',
+      disabled: true,
     };
 
     await withUser(adminUser, async () => {

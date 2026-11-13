@@ -127,7 +127,8 @@ describe('Smoke tests', () => {
       .click()
       .closest('tr')
       .within(() => {
-        cy.findByRole('textbox').should('have.value', 'Z=143: Ryusui vs. Senku');
+        cy.findByLabelText(/title input/i).should('have.value', 'Z=143: Ryusui vs. Senku');
+        cy.findByRole('textbox', { name: /^chapter number$/i }).should('exist');
       });
 
     cy.findByRole('button', { name: /^save row$/i }).should('exist');

@@ -43,8 +43,8 @@ export const updateMangaService = async (
 
 export const createMangaService = (
   mangaId: MangaId, serviceId: DatabaseId,
-  { titleId, feedUrl }: MangaServiceCreateData
+  { titleId, feedUrl, disabled }: MangaServiceCreateData
 ) => {
-  return db.query(voidSql`INSERT INTO manga_service (manga_id, service_id, title_id, feed_url)
-                VALUES (${mangaId}, ${serviceId}, ${titleId ?? null}, ${feedUrl ?? null})`);
+  return db.query(voidSql`INSERT INTO manga_service (manga_id, service_id, title_id, feed_url, disabled)
+                VALUES (${mangaId}, ${serviceId}, ${titleId ?? null}, ${feedUrl ?? null}, ${disabled ?? false})`);
 };

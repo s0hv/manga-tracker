@@ -626,6 +626,33 @@ export function mockRequestJson(
   return mockFn;
 }
 
+/**
+ * Mocks an endpoint to respond with the given json and status code.
+ * The returned mock is called with the parsed json body of each request, or undefined when the body is empty.
+ */
+export function mockRequestWithBody(
+  server: SetupServer,
+  url: string,
+  responseJson: JsonBodyType,
+  {
+    method = 'post',
+    status = 200,
+  }: { method?: keyof typeof http; status?: number } = {}
+) {
+  const bodyFn = vi.fn<(body: unknown) => void>();
+
+  server.use(
+    http[method](url, async ({ request }) => {
+      const text = await request.text();
+      bodyFn(text ? JSON.parse(text) : undefined);
+
+      return HttpResponse.json(responseJson, { status });
+    })
+  );
+
+  return bodyFn;
+}
+
 export function handleMockRequest<TBody extends DefaultBodyType>(fn: Mock) {
   return ({ request }: ResponseResolverInfo<Record<string, unknown>, TBody>) => {
     const url = new URL(request.url);

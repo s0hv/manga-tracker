@@ -73,6 +73,7 @@ export type MangaServiceCreateData = Partial<Pick<
   MangaService,
   | 'titleId'
   | 'feedUrl'
+  | 'disabled'
 >>;
 
 export interface SearchedManga {

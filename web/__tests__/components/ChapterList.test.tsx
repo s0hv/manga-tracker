@@ -1,12 +1,20 @@
 import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import fetchMock from 'fetch-mock';
-import { describe, expect, it, MockInstance, vi } from 'vitest';
+import { describe, expect, it, MockInstance } from 'vitest';
 
-import { mockServicesEndpoint, TestRoot } from '@/tests/utils';
+import {
+  expectErrorSnackbar,
+  expectSuccessSnackbar,
+  mockNotistackHooks,
+  mockRequestJson,
+  mockRequestWithBody,
+  setupMockServer,
+  TestRoot,
+} from '@/tests/utils';
 import ChapterList, { type MangaChapterWithUrl } from '@/components/ChapterList';
 import { testServices } from '@/tests/constants';
 
+const server = setupMockServer();
 
 describe('Chapter list should allow editing', () => {
   const testChapter: MangaChapterWithUrl = {
@@ -28,20 +36,18 @@ describe('Chapter list should allow editing', () => {
   };
 
   const mangaId = 1;
+  const chapterUrl = `/api/chapter/${testChapter.chapterId}`;
 
   const mockChapters = (chapters: MangaChapterWithUrl[]) => {
-    const chaptersMock = vi.fn();
-    chaptersMock.mockImplementation(
-      () => Promise.resolve({ count: chapters?.length, chapters: chapters })
+    const chaptersMock = mockRequestJson(
+      server,
+      `/api/manga/${mangaId}/chapters`,
+      {
+        count: chapters.length,
+        chapters: chapters.map(chapter => ({ ...chapter, releaseDate: chapter.releaseDate.toISOString() })),
+      }
     );
-
-    fetchMock.get(
-      `path:/api/manga/${mangaId}/chapters`,
-      chaptersMock,
-      { overwriteRoutes: true }
-    );
-
-    const servicesMock = mockServicesEndpoint();
+    const servicesMock = mockRequestJson(server, '/api/services', testServices);
 
     return [chaptersMock, servicesMock];
   };
@@ -50,17 +56,8 @@ describe('Chapter list should allow editing', () => {
     await waitFor(() => expect(chaptersMock).toHaveBeenCalledTimes(1));
   };
 
-  it('Should post correctly', async () => {
-    const postMock = vi.fn();
-    postMock.mockImplementation(() => Promise.resolve({}));
-    fetchMock.post('path:/api/chapter/1', postMock);
-    const chapters = [testChapter];
-    const [chaptersMock] = mockChapters(chapters);
-
-    const addedCharacters = 'test';
-    const updatedChapter = {
-      title: chapters[0].title + addedCharacters,
-    };
+  const renderAndStartEditing = async () => {
+    const [chaptersMock] = mockChapters([testChapter]);
 
     act(() => {
       render(
@@ -78,6 +75,15 @@ describe('Chapter list should allow editing', () => {
     const user = userEvent.setup();
     await user.click(await screen.findByRole('button', { name: /edit row/i }));
 
+    return user;
+  };
+
+  it('Should post correctly', async () => {
+    const postMock = mockRequestWithBody(server, chapterUrl, {});
+    const addedCharacters = 'test';
+
+    const user = await renderAndStartEditing();
+
     await user.type(
       await screen.findByLabelText(/title input/i),
       addedCharacters
@@ -85,19 +91,58 @@ describe('Chapter list should allow editing', () => {
 
     await user.click(screen.getByRole('button', { name: /save row/i }));
 
-    expect(postMock).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(postMock).toHaveBeenCalledOnce());
     // Make sure body contains all edited values
-    const callArgs = postMock.mock.calls[0];
-    expect(JSON.parse(callArgs[1].body as string)).toMatchObject(updatedChapter);
+    expect(postMock).toHaveBeenCalledWith(expect.objectContaining({
+      title: testChapter.title + addedCharacters,
+    }));
+  });
+
+  it.each([
+    ['12.5', { chapterNumber: 12, chapterDecimal: 5 }],
+    ['12', { chapterNumber: 12, chapterDecimal: null }],
+  ])('Should post chapter number %s correctly', async (input, expectedBody) => {
+    await mockNotistackHooks();
+    const postMock = mockRequestWithBody(server, chapterUrl, { message: 'Updated' });
+
+    const user = await renderAndStartEditing();
+
+    const chapterInput = screen.getByRole('textbox', { name: /chapter number/i });
+    expect(chapterInput).toHaveValue(testChapter.chapterNumber.toString());
+
+    await user.clear(chapterInput);
+    await user.type(chapterInput, input);
+    await user.click(screen.getByRole('button', { name: /save row/i }));
+
+    await waitFor(() => expectSuccessSnackbar());
+    expect(postMock).toHaveBeenCalledExactlyOnceWith(expectedBody);
+    expect(screen.queryByRole('textbox', { name: /chapter number/i })).not.toBeInTheDocument();
+  });
+
+  it('Should keep the row in edit mode when saving fails', async () => {
+    await mockNotistackHooks();
+    mockRequestWithBody(
+      server,
+      chapterUrl,
+      { error: { 'body.chapterNumber': ['Invalid chapter number']}},
+      { status: 400 }
+    );
+
+    const user = await renderAndStartEditing();
+
+    const chapterInput = screen.getByRole('textbox', { name: /chapter number/i });
+    await user.clear(chapterInput);
+    await user.type(chapterInput, '2');
+    await user.click(screen.getByRole('button', { name: /save row/i }));
+
+    await waitFor(() => expectErrorSnackbar('body.chapterNumber: Invalid chapter number'));
+    expect(screen.getByRole('textbox', { name: /chapter number/i })).toBeInTheDocument();
   });
 
   it('Should delete correctly', async () => {
-    const deleteMock = vi.fn();
-    deleteMock.mockImplementation(() => Promise.resolve({}));
-    fetchMock.delete(`path:/api/chapter/${testChapter.chapterId}`, deleteMock);
+    const deleteMock = mockRequestWithBody(server, chapterUrl, {}, { method: 'delete' });
 
-    const chapters = [testChapter];
-    const [chaptersMock] = mockChapters(chapters);
+    const [chaptersMock] = mockChapters([testChapter]);
 
     // Async required, or test will fail
     // eslint-disable-next-line @typescript-eslint/require-await
@@ -122,13 +167,12 @@ describe('Chapter list should allow editing', () => {
 
     await user.click(screen.getByRole('button', { name: /confirm delete row/i }));
 
-    expect(deleteMock).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(deleteMock).toHaveBeenCalledOnce());
     await waitFor(() => expect(chaptersMock).toHaveBeenCalledTimes(2));
   });
 
   it('Should try to fetch chapters', async () => {
-    const chapters = [testChapter];
-    const [chaptersMock, servicesMock] = mockChapters(chapters);
+    const [chaptersMock, servicesMock] = mockChapters([testChapter]);
 
     act(() => {
       render(
@@ -143,7 +187,7 @@ describe('Chapter list should allow editing', () => {
 
     await waitFor(() => expect(chaptersMock).toHaveBeenCalledTimes(1));
     await waitFor(() => expect(servicesMock).toHaveBeenCalledTimes(1));
-    expect(screen.queryByRole('cell', { name: chapters[0].title })).toBeInTheDocument();
+    expect(await screen.findByRole('cell', { name: testChapter.title })).toBeInTheDocument();
     expect(screen.queryByRole('cell', { name: testService.name })).toBeInTheDocument();
   });
 });
