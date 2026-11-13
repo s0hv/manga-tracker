@@ -135,7 +135,7 @@ class TitleDetailViewWrapper:
         return self._title_detail.non_appearance_info
 
     @property
-    def chapters(self) -> list['ChapterWrapper']:
+    def chapters(self) -> list[ChapterWrapper]:
         title_name = self.title.name
 
         def flatten(chapters_view: mangaplus_pb2.ChaptersView):

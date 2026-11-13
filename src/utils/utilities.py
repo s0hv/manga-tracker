@@ -124,7 +124,7 @@ def get_latest_chapters(rows: Iterable[dict | DictRow]) -> dict[str, tuple[int, 
     return chapter_data
 
 
-def inject_service_values(dbutil: 'DbUtil') -> None:
+def inject_service_values(dbutil: DbUtil) -> None:
     """
     Injects configs and other possible values into scraper class variables.
     Must be run before instantiating any scraper

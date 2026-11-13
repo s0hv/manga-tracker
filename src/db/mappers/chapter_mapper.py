@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 class ChapterMapper:
     @staticmethod
     def base_chapter_to_db(
-        base: 'BaseChapter',
+        base: BaseChapter,
         manga_id: int | None,
         service_id: int,
         strip_chapter_prefix: bool = False,

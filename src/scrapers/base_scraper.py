@@ -6,7 +6,7 @@ from datetime import datetime, timedelta, timezone
 from inspect import isabstract
 from itertools import groupby
 from operator import attrgetter
-from typing import TYPE_CHECKING, ClassVar, LiteralString, Optional, TypeVar, override
+from typing import TYPE_CHECKING, ClassVar, LiteralString, TypeVar, override
 
 import psycopg
 import pydantic
@@ -277,7 +277,7 @@ class BaseScraper(abc.ABC):
         if cls.URL is NotImplemented:
             raise NotImplementedError("Service doesn't have the URL class property")
 
-    def __init__(self, conn: Connection[DictRow], dbutil: Optional['DbUtil'] = None):
+    def __init__(self, conn: Connection[DictRow], dbutil: DbUtil | None = None):
         if self.CONFIG is NotImplemented:
             raise NotImplementedError(f'Service config value not set for {type(self).__name__}')
 
@@ -299,7 +299,7 @@ class BaseScraper(abc.ABC):
         return self._conn
 
     @property
-    def dbutil(self) -> 'DbUtil':
+    def dbutil(self) -> DbUtil:
         return self._dbutil
 
     @property

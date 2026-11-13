@@ -11,7 +11,7 @@ from src.scrapers.reddit import Reddit
 if TYPE_CHECKING:
     from src.scrapers.base_scraper import BaseScraper
 
-SCRAPERS: dict[str, type['BaseScraper']] = {
+SCRAPERS: dict[str, type[BaseScraper]] = {
     MangaDex.URL:  MangaDex,
     MangaPlus.URL: MangaPlus,
     Reddit.URL:    Reddit,
@@ -21,6 +21,6 @@ SCRAPERS: dict[str, type['BaseScraper']] = {
     KManga.URL:    KManga,
 }
 
-SCRAPERS_ID: dict[int, type['BaseScraper']] = {
+SCRAPERS_ID: dict[int, type[BaseScraper]] = {
     s.ID: s for s in SCRAPERS.values()
 }
