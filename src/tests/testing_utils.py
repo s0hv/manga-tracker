@@ -7,7 +7,7 @@ import unittest
 from collections.abc import Callable, Iterable
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any, Union, override
+from typing import Any, override
 from unittest import mock
 
 import feedparser
@@ -159,7 +159,7 @@ class BaseTestClasses:
 
     class DatabaseTestCase(unittest.TestCase):
         _conn: Connection[DictRow] = NotImplemented
-        _generator: 'BaseTestClasses.TitleIdGenerator' = NotImplemented
+        _generator: BaseTestClasses.TitleIdGenerator = NotImplemented
 
         @pytest.fixture(autouse=True, scope='class')
         def _setup_class(self, request: pytest.FixtureRequest, conn: Connection[DictRow]) -> None:
@@ -188,18 +188,18 @@ class BaseTestClasses:
         def get_str_id(self) -> str:
             return self._generator.generate(type(self).__name__)
 
-        def get_manga_service(self, scraper: type['BaseScraper'] = DummyScraper) -> MangaService:
+        def get_manga_service(self, scraper: type[BaseScraper] = DummyScraper) -> MangaService:
             id_ = self.get_str_id()
             return MangaService(service_id=scraper.ID, title_id=id_,
                                 title=f'{id_}_manga')
 
-        def create_manga_service(self, scraper: type['BaseScraper'] = DummyScraper) -> MangaServiceWithId:
+        def create_manga_service(self, scraper: type[BaseScraper] = DummyScraper) -> MangaServiceWithId:
             id_ = self.get_str_id()
             ms = MangaServiceWithId(service_id=scraper.ID, title_id=id_,
                                     title=f'{id_}_manga', manga_id=0)
             return self.dbutil.add_manga_service(ms, add_manga=True)
 
-        def create_db_chapter_objects(self, manga: MangaService, n: int) -> list['DbChapter']:
+        def create_db_chapter_objects(self, manga: MangaService, n: int) -> list[DbChapter]:
             return [
                 DbChapter(
                     manga_id=manga.manga_id, service_id=manga.service_id,
@@ -239,7 +239,7 @@ class BaseTestClasses:
 
         # endregion
 
-        def assertChapterEqualsRow(self, chapter: 'Chapter', row: DictRow) -> None:
+        def assertChapterEqualsRow(self, chapter: Chapter, row: DictRow) -> None:
             pairs: list[tuple[str, str] | tuple[str, str, Any]] = [
                 ('chapter_title', 'title'),
                 ('chapter_number', 'chapter_number'),
@@ -341,10 +341,10 @@ class BaseTestClasses:
             return utcnow()
 
         @staticmethod
-        def dbChapterSortKey(chapter: 'DbChapter') -> str:
+        def dbChapterSortKey(chapter: DbChapter) -> str:
             return chapter.chapter_identifier
 
-        def assertDbChaptersEqual(self, a: 'DbChapter', expected: 'DbChapter', include_id: bool = False):
+        def assertDbChaptersEqual(self, a: DbChapter, expected: DbChapter, include_id: bool = False):
             assert a.chapter_number == expected.chapter_number, f'Chapter numbers not equal for {a.chapter_identifier}'
             assert a.chapter_decimal == expected.chapter_decimal, f'Chapter decimal numbers not equal for {a.chapter_identifier}'
             self.assertDatesEqual(a.release_date, expected.release_date)
@@ -358,7 +358,7 @@ class BaseTestClasses:
             if include_id:
                 assert a.chapter_id == expected.chapter_id, f'Chapter ids not equal for {a.chapter_identifier}'
 
-        def assertAllDbChaptersEqual(self, chapters: list['DbChapter'], expected: list['DbChapter'],
+        def assertAllDbChaptersEqual(self, chapters: list[DbChapter], expected: list[DbChapter],
                                      include_id: bool = False):
             assert len(chapters) == len(expected), 'Different amount of chapters passed'
 
@@ -379,8 +379,8 @@ class BaseTestClasses:
             assert self._get_manga_service(service_id, title_id).disabled
 
     class ModelAssertions(unittest.TestCase):
-        def assertChaptersEqual(self, a: Union[BaseChapter, 'ChapterTestModel', DbChapter],
-                                b: Union[BaseChapter, 'ChapterTestModel'], ignore_date: bool = False):
+        def assertChaptersEqual(self, a: BaseChapter | ChapterTestModel | DbChapter,
+                                b: BaseChapter | ChapterTestModel, ignore_date: bool = False):
 
             if isinstance(a, DbChapter):
                 assert a.chapter_number == b.chapter_number, f'Chapter numbers not equal for {a.chapter_identifier}'
@@ -407,13 +407,13 @@ class BaseTestClasses:
             assert a.group_id == b.group_id, f'Group ids are not equal for {a.chapter_identifier}'
 
         @staticmethod
-        def chapterSortKey(chapter: Union[BaseChapter, 'ChapterTestModel', DbChapter, ChapterFailed]) -> str:
+        def chapterSortKey(chapter: BaseChapter | ChapterTestModel | DbChapter | ChapterFailed) -> str:
             return chapter.chapter_identifier
 
         def assertAllChaptersEqual[C: 'BaseChapter | ChapterTestModel'](
             self,
             chapters: list[C],
-            expected: list[BaseChapter] | list['ChapterTestModel'],
+            expected: list[BaseChapter] | list[ChapterTestModel],
             ignore_date: bool = False,
         ):
             assert len(chapters) == len(expected), 'Different amount of chapters passed'
@@ -469,7 +469,7 @@ class ChapterTestModel(BaseModel):
     group_id: int
 
     @classmethod
-    def from_chapter(cls, c: BaseChapter) -> 'ChapterTestModel':
+    def from_chapter(cls, c: BaseChapter) -> ChapterTestModel:
         return cls(
             chapter_title=c.chapter_title,
             chapter_number=c.chapter_number,

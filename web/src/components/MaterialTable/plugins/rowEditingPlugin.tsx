@@ -46,6 +46,8 @@ export interface TableOptions_RowEditing<
   rowEditColumnClass?: string;
   onSaveRowEdit?: (row: Row<TFeatures, TData>) => unknown;
   onCancelRowEdit?: (row: Row<TFeatures, TData>) => unknown;
+  // If true, you must manually update the row edit state so the edit mode is closed
+  isManualRowEditStateChange?: boolean;
 }
 
 // Define types for our new feature's table APIs
@@ -161,6 +163,7 @@ export const rowEditingPlugin: TableFeature = {
     ),
     onCancelRowEdit: noop,
     rowEditColumnClass: CSS_CLASSES.editCell,
+    isManualRowEditStateChange: false,
   }),
 
   getDefaultColumnDef<
@@ -192,10 +195,13 @@ export const rowEditingPlugin: TableFeature = {
           const { table } = row;
           const {
             onSaveRowEdit = (defaultOnSaveRow as unknown as (row: Row<TFeatures, TData>) => unknown),
+            isManualRowEditStateChange,
           } = table.options as TableOptions_RowEditing<TFeatures, TData>;
 
           // First, run the callback that handles reading values from the editing state
           onSaveRowEdit(row);
+          if (isManualRowEditStateChange) return;
+
           // Then, we can disable the row editing and clear its state
           defaultSetEditingRow(row, false);
         },

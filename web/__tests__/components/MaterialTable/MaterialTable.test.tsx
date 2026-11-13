@@ -34,6 +34,7 @@ import type {
 } from '@/components/MaterialTable/MaterialTable';
 import {
   defaultOnSaveRow,
+  defaultSetEditingRow,
   getDeleteColumnDef,
   getEditColumnDef,
   rowDeletingPlugin,
@@ -459,5 +460,64 @@ describe('Should handle editing', () => {
     expect(onSave).toHaveBeenCalledTimes(1);
     expect(row.getByRole('checkbox')).toBeChecked();
     expect(row.getByRole('checkbox')).toBeDisabled();
+  });
+
+  it('should keep the row in edit mode after save when edit state is changed manually', async () => {
+    const onSave = vi.fn();
+
+    createWrapper({
+      data: getData(),
+      features: tableFeatures({
+        rowEditingPlugin,
+      }),
+      columns: testColumnsWithEdit as any,
+      tableOptions: {
+        onSaveRowEdit: onSave,
+        isManualRowEditStateChange: true,
+      },
+    });
+
+    const row = within(screen.getAllByRole('row')[1]);
+    const user = userEvent.setup();
+    await user.click(row.getByRole('button', { name: /edit row/i }));
+    await user.click(row.getByRole('button', { name: /save row/i }));
+
+    expect(onSave).toHaveBeenCalledTimes(1);
+    expect(row.getByRole('button', { name: /save row/i })).toBeInTheDocument();
+    expect(row.getByLabelText(/editable string input/i)).toBeInTheDocument();
+  });
+
+  it('should close edit mode when the save callback closes it manually', async () => {
+    // Simulates a save that only closes the row after an asynchronous request succeeds
+    const onSave = vi.fn().mockImplementation((row: Parameters<typeof defaultOnSaveRow>[0]) => Promise.resolve().then(() => {
+      defaultOnSaveRow(row);
+      defaultSetEditingRow(row, false);
+    }));
+
+    createWrapper({
+      data: getData(),
+      features: tableFeatures({
+        rowEditingPlugin,
+      }),
+      columns: testColumnsWithEdit as any,
+      tableOptions: {
+        onSaveRowEdit: onSave,
+        isManualRowEditStateChange: true,
+      },
+    });
+
+    const row = within(screen.getAllByRole('row')[1]);
+    const user = userEvent.setup();
+    await user.click(row.getByRole('button', { name: /edit row/i }));
+
+    const newVal = 'manually saved value';
+    const input = row.getByLabelText(/editable string input/i);
+    await user.clear(input);
+    await user.type(input, newVal);
+    await user.click(row.getByRole('button', { name: /save row/i }));
+
+    expect(onSave).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(row.queryByRole('button', { name: /save row/i })).not.toBeInTheDocument());
+    expect(row.getByText(newVal)).toBeInTheDocument();
   });
 });

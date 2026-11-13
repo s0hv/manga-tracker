@@ -48,15 +48,22 @@ export const getResponseData = <T = any>(json: any, status: number): T => {
     return json.data ?? json;
   }
 
-  if (error instanceof String) {
-    throw new APIException(error as string, status);
+  if (typeof error === 'string') {
+    throw new APIException(error, status);
   }
 
   if (error instanceof Array) {
     error = error[0];
   }
 
-  throw new APIException(error.msg || error, status);
+  const errorStr = Object.keys(error).map(key => {
+    const errors = error[key];
+    if (Array.isArray(errors)) {
+      return `${key}: ${errors.join('\n')}`;
+    }
+  }).join('\n');
+
+  throw new APIException(errorStr, status);
   /* eslint-enable @typescript-eslint/no-unsafe-argument,@typescript-eslint/no-unsafe-member-access,@typescript-eslint/no-unsafe-assignment */
 };
 

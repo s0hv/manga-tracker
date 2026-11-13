@@ -15,7 +15,11 @@ import {
   useTable,
 } from '@tanstack/react-table';
 import { useSnackbar } from 'notistack';
-import { SelectElement, TextFieldElement } from 'react-hook-form-mui';
+import {
+  CheckboxElement,
+  SelectElement,
+  TextFieldElement,
+} from 'react-hook-form-mui';
 
 import {
   createMangaServiceMutationOptions,
@@ -29,7 +33,7 @@ import {
   getRowEditStateFromRow,
   rowEditingPlugin,
 } from '@/components/MaterialTable/plugins';
-import type { MangaService, MangaServiceCreateData } from '@/types/api/manga';
+import type { MangaService } from '@/types/api/manga';
 import type { MangaId } from '@/types/dbTypes';
 import type { SelectOption } from '@/types/utility';
 import { noRows } from '@/webUtils/constants';
@@ -49,8 +53,11 @@ export type MangaServiceTableProps = {
   sx?: SxProps;
 };
 
-type MangaServiceForm = MangaServiceCreateData & {
+interface MangaServiceForm {
+  titleId: string;
+  feedUrl: string;
   serviceId: string;
+  disabled?: boolean;
 };
 
 const features = tableFeatures({
@@ -190,6 +197,12 @@ export const MangaServiceTable: FunctionComponent<MangaServiceTableProps> = prop
         key='feedUrl'
         label='Feed URL'
         fullWidth
+      />,
+      <CheckboxElement
+        name='disabled'
+        key='disabled'
+        label='Disabled'
+        sx={{ width: '100%' }}
       />,
     ];
   }, [services, mangaServices]);

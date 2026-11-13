@@ -1,6 +1,6 @@
 [project]
 name = "manga-tracker"
-requires-python = ">=3.13"
+requires-python = ">=3.14.0, <3.15"
 version = "1.0.0"
 description = ""
 authors = [{ name = "s0hv", email =  "s0hvaperuna@gachimuchi.men" }]
@@ -43,4 +43,4 @@ cypress = [
 
 [tool.uv]
 no-binary-package = ["psycopg"]
-required-version = "~=0.10.7"
+required-version = "~=0.13.6"

@@ -127,7 +127,11 @@ export const getLatestChaptersQueryOptions = (
 
 export type UpdateChapterParams = {
   chapterId: number | string;
-  data: object;
+  data: {
+    title?: string;
+    chapterNumber?: number;
+    chapterDecimal?: number | null;
+  };
 };
 
 /**

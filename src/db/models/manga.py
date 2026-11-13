@@ -66,18 +66,18 @@ class MangaServicePartial(BaseModel):
     latest_decimal: int | None = None
 
     @classmethod
-    def from_manga_service(cls, manga_service: 'MangaService') -> Self:
+    def from_manga_service(cls, manga_service: MangaService) -> Self:
         return cls.model_validate(manga_service.model_dump())
 
     # Returns a class initializer so it is named as a class would
     # noinspection PyPep8Naming
     @property
-    def Scraper(self) -> type['BaseScraper']:
+    def Scraper(self) -> type[BaseScraper]:
         from src.scrapers import SCRAPERS_ID
 
         return SCRAPERS_ID[self.service_id]
 
-    def scrape_series(self, conn: Connection[DictRow], dbutil: 'DbUtil') -> set[int] | None:
+    def scrape_series(self, conn: Connection[DictRow], dbutil: DbUtil) -> set[int] | None:
         if self.manga_id is None or self.feed_url is None:
             raise ValueError('Manga id or feed url was None')
         scraper = self.Scraper(conn, dbutil)

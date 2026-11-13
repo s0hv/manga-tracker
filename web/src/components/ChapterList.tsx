@@ -35,6 +35,7 @@ import { useSnackbar } from 'notistack';
 import { DEFAULT_PAGE_SIZE } from '@/components/MaterialTable/constants';
 import {
   defaultOnSaveRow,
+  defaultSetEditingRow,
   getDeleteColumnDef,
   getEditColumnDef,
   getRowEditStateFromRow,
@@ -229,10 +230,19 @@ function ChapterList(props: ChapterListProps): ReactElement {
     const keys = Object.keys(state);
     if (keys.length === 0) return;
 
-    defaultOnSaveRow(row);
-
-    updateChapter({ chapterId: row.original.chapterId, data: state })
-      .then(handleResponse)
+    updateChapter({
+      chapterId: row.original.chapterId,
+      data: {
+        title: state.title,
+        chapterNumber: state.chapterNumber,
+        chapterDecimal: state.chapterDecimal,
+      },
+    })
+      .then(res => {
+        defaultOnSaveRow(row);
+        defaultSetEditingRow(row, false);
+        handleResponse(res);
+      })
       .catch((err: unknown) => {
         enqueueSnackbar(
           err instanceof Error
@@ -264,9 +274,8 @@ function ChapterList(props: ChapterListProps): ReactElement {
       ? [editColumnDef]
       : []),
 
-    columnHelper.accessor('chapterNumber', {
+    columnHelper.display({
       header: 'Ch.',
-      enableEditing: false,
       meta: {
         width: '50px',
       },
@@ -277,6 +286,32 @@ function ChapterList(props: ChapterListProps): ReactElement {
         } = row.original;
 
         return `${chapterNumber}${typeof chapterDecimal === 'number' ? `.${chapterDecimal}` : ''}`;
+      },
+      EditCell: props => {
+        const {
+          chapterNumber,
+          chapterDecimal,
+        } = props.row.original;
+
+        return (
+          <TextField
+            defaultValue={`${chapterNumber}${typeof chapterDecimal === 'number' ? `.${chapterDecimal}` : ''}`}
+            slotProps={{ htmlInput: { 'aria-label': 'Chapter number' }}}
+            variant='standard'
+            sx={{ width: '100%', minWidth: '100px' }}
+            onChange={event => {
+              const rowStates = props.table.atoms.rowEditState.get();
+              const rowState = rowStates[props.row.id];
+
+              if (!rowState) return;
+
+              const [chapterNumber, chapterDecimal] = event.target.value.split('.');
+
+              rowState.chapterNumber = Number.parseInt(chapterNumber);
+              rowState.chapterDecimal = chapterDecimal ? Number.parseInt(chapterDecimal) : null;
+            }}
+          />
+        );
       },
     }),
 
@@ -327,6 +362,7 @@ function ChapterList(props: ChapterListProps): ReactElement {
     onSortingChange: setSorting,
     manualSorting: true,
     manualPagination: true,
+    isManualRowEditStateChange: true,
     getRowId,
   },
   state => ({

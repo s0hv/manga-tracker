@@ -169,20 +169,12 @@ describe('POST /api/chapter/:chapterId', () => {
         .expect(400)
         .expect(expectErrorMessage('chapterDecimal', 'Invalid input: expected number, received array', 'body'));
 
-      // Group
       await request(httpServer)
         .post('/api/chapter/99999999')
         .csrf()
-        .send({ group: []})
+        .send({ group: '' })
         .expect(400)
-        .expect(expectErrorMessage('group', 'Invalid input: expected string, received array', 'body'));
-
-      await request(httpServer)
-        .post('/api/chapter/99999999')
-        .csrf()
-        .send({ group: null })
-        .expect(400)
-        .expect(expectErrorMessage('group', 'Invalid input: expected string, received null', 'body'));
+        .expect(expectErrorMessage('Unrecognized key: "group"'));
 
       await request(httpServer)
         .post('/api/chapter/99999999')
@@ -202,7 +194,6 @@ describe('POST /api/chapter/:chapterId', () => {
           title: 'edited title',
           chapterNumber: 1,
           chapterDecimal: 5,
-          group: 'test group',
         })
         .expect(200);
 

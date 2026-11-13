@@ -20,6 +20,7 @@ import { formatChapterTitle, formatChapterUrl } from '@/webUtils/formatting';
 import { testChapterUrlFormat } from '../constants';
 import { generateNSchemas, LatestChapter, setupFaker } from '../schemas';
 
+vi.mock('@tanstack/react-router');
 
 describe('ChapterGroupWithCover', () => {
   const mangaToCover = {

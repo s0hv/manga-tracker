@@ -53,7 +53,7 @@ class KMangaChapter(BaseChapterSimple):
         *,
         prev_chapter_number: int,
         prev_chapter_decimal: int,
-    ) -> 'KMangaChapter':
+    ) -> KMangaChapter:
         match = chapter_regex.match(episode.episode_name)
 
         chapter_title: str
