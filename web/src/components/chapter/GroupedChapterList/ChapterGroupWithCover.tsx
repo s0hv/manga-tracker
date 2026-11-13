@@ -1,6 +1,7 @@
 import React, { type FC } from 'react';
 import { Box, Typography } from '@mui/material';
 
+import { RouteLink } from '@/components/common/RouteLink';
 import { MangaCover } from '@/components/MangaCover';
 import type { DatabaseId } from '@/types/dbTypes';
 
@@ -27,10 +28,9 @@ export const ChapterGroupWithCover: FC<ChapterGroupWithCoverProps> = ({
         pb: 2,
       }}
     >
-      <Box
-        component='a'
-        href={`/manga/${mangaId}`}
-        target='_blank'
+      <RouteLink
+        to='/manga/$mangaId'
+        params={{ mangaId: mangaId.toString() }}
         rel='noopener noreferrer'
         sx={{
           gridRow: {
@@ -45,7 +45,7 @@ export const ChapterGroupWithCover: FC<ChapterGroupWithCoverProps> = ({
           minWidth='96px'
           maxWidth={128}
         />
-      </Box>
+      </RouteLink>
 
       <Box
         sx={{

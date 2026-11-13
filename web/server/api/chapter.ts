@@ -29,7 +29,6 @@ export default (app: Express) => {
         title: z.string().optional(),
         chapterNumber: z.int().optional(),
         chapterDecimal: z.int().nullable().optional(),
-        group: z.string().optional(),
       }),
     },
     validateAdminUser),

@@ -16,6 +16,8 @@ import {
   setupFaker,
 } from '../schemas';
 
+vi.mock('@tanstack/react-router');
+
 setupFaker();
 
 describe('Chapter list should allow editing', () => {
