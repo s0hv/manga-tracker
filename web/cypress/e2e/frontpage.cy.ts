@@ -37,8 +37,6 @@ describe('Frontpage', () => {
     });
 
     it('can switch between the All releases and My follows tabs', () => {
-      // Wait for scripts to load
-      cy.wait(100);
       Selector.getMyFollowsTab().should('have.attr', 'aria-selected', 'true');
 
       Selector.getAllReleasesTab().click();

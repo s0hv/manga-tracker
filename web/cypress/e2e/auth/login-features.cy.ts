@@ -22,13 +22,10 @@ describe('Login features', () => {
     it('Redirects back to /manga/1 after logging in', () => {
       cy.visit('/manga/1');
 
-      cy.wait(500);
-
       cy.findByRole('link', { name: /login/i }).click();
 
       cy.getAllCookies().should('have.length', 1);
 
-      cy.wait(300);
       cy.findByRole('textbox', { name: /email address/i }).focus().type(normalUser.email);
       cy.findByLabelText(/password/i).type(normalUser.password);
       cy.findByRole('button', { name: /^sign in$/i }).click();

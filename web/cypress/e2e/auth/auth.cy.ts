@@ -16,8 +16,6 @@ describe('Test authentication', () => {
 
     cy.findByRole('link', { name: /login/i }).click();
 
-    cy.wait(300);
-
     cy.findByRole('textbox', { name: /email address/i }).focus().type(normalUser.email);
     cy.findByLabelText(/password/i).type(normalUser.password);
     cy.findByRole('button', { name: /^sign in$/i }).click();
@@ -27,7 +25,6 @@ describe('Test authentication', () => {
   it('Ratelimits after 3 failed login attempts', () => {
     const login = () => {
       cy.visit('/login');
-      cy.wait(300);
       cy.findByRole('textbox', { name: /email address/i }).focus().clear().type(normalUser.email);
       cy.findByLabelText(/password/i).type('aaaaaaaaa');
       cy.findByRole('button', { name: /^sign in$/i }).click();

@@ -1,5 +1,5 @@
 /// <reference types="vite/client" />
-import React, { type PropsWithChildren } from 'react';
+import React, { type PropsWithChildren, useEffect } from 'react';
 import { CssBaseline } from '@mui/material';
 import InitColorSchemeScript from '@mui/material/InitColorSchemeScript';
 import { ThemeProvider } from '@mui/material/styles';
@@ -91,6 +91,11 @@ const RootDocument = ({ children }: PropsWithChildren) => {
   });
 
   const nonce = Route.useLoaderData();
+
+  // The Cypress waitForHydration command relies on this attribute to know when event handlers are attached
+  useEffect(() => {
+    document.documentElement.dataset.hydrated = 'true';
+  }, []);
 
   // noinspection HtmlRequiredTitleElement
   return (
