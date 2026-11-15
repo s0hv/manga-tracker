@@ -183,7 +183,7 @@ class KMangaAPI:
             path = '/episode/list'
 
             with requests_session() as session:
-                r = session.request('POST', f'{self.base_url}/{path}', headers=headers, data=params)
+                r = session.request('POST', f'{self.base_url}{path}', headers=headers, data=params)
 
                 self._validate_response(r, path, params)
 
