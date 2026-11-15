@@ -49,6 +49,12 @@ declare global {
       expectLightTheme(): Chainable<void>;
       expectDarkTheme(): Chainable<void>;
       selectComboboxValue(name: string | RegExp, option: string | RegExp): Chainable<void>;
+      /**
+       * Waits until React has hydrated the server rendered page,
+       * as clicks on server rendered elements are ignored until hydration completes.
+       * cy.visit and cy.reload already call this, so it is only needed after other full page loads.
+       */
+      waitForHydration(): Chainable<void>;
     }
   }
 }
@@ -56,8 +62,6 @@ declare global {
 Cypress.Commands.add('login', (user, expectFail = false, rememberMe = false) => {
   cy.getCookie(sessionCookieName).should('be.null');
   cy.visit('/login');
-
-  cy.wait(350);
 
   cy.findByRole('textbox', { name: /email address/i }).focus().type(user.email);
   cy.findByLabelText(/password/i).focus().type(user.password);
@@ -72,10 +76,11 @@ Cypress.Commands.add('login', (user, expectFail = false, rememberMe = false) => 
     return;
   }
 
+  // Signing in reloads the document, and the user menu only exists after that reload.
+  // The hydration wait must come after the menu check so it cannot pass on the old login page.
   cy.findByRole('button', { name: /account of current user/i }).should('exist');
+  cy.waitForHydration();
   cy.getCookie(sessionCookieName).should('not.be.null');
-
-  cy.wait(400);
 });
 
 Cypress.Commands.add('logout', () => {
@@ -93,6 +98,24 @@ Cypress.Commands.add('expectLightTheme', () => {
 Cypress.Commands.add('expectDarkTheme', () => {
   cy.get('body').should('have.css', 'background-color', 'rgb(18, 18, 18)');
 });
+
+Cypress.Commands.add('waitForHydration', () => {
+  cy.log('Waiting for hydration');
+  cy.get('html[data-hydrated="true"]');
+});
+
+// The original visit and reload return a promise instead of a chainable, and Cypress forbids
+// queueing cy commands inside a returned promise, so it must be wrapped before chaining.
+// The wrap timeout must be at least pageLoadTimeout so it does not fail before the page load does.
+const waitForHydrationAfterPageLoad = (pageLoad: Cypress.Chainable<Cypress.AUTWindow>) =>
+  cy.wrap(pageLoad, { log: false, timeout: Cypress.config('pageLoadTimeout') })
+    .then(win => cy.waitForHydration().then(() => win));
+
+Cypress.Commands.overwrite('visit', (originalFn, ...args) =>
+  waitForHydrationAfterPageLoad(originalFn(...args)));
+
+Cypress.Commands.overwrite('reload', (originalFn, ...args) =>
+  waitForHydrationAfterPageLoad(originalFn(...args)));
 
 Cypress.Commands.add('selectComboboxValue', (name, option) => {
   cy.findByRole('combobox', { name: name }).click();

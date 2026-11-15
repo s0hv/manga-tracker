@@ -30,7 +30,6 @@ describe('Manga admin page', () => {
     cy.login(adminUser);
 
     cy.visit('/manga/1');
-    cy.wait(200);
     Selector.getMangaAdminPageBtn().click();
   });
 

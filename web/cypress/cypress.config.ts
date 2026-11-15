@@ -27,7 +27,6 @@ const rawQuery = (rawSql: string, params: PrimitiveValueExpression[] = []) => {
 export default defineConfig({
   video: false,
   watchForFileChanges: false,
-  allowCypressEnv: false,
   e2e: {
     supportFile: 'support/e2e.{js,jsx,ts,tsx}',
     specPattern: 'e2e/**/*.cy.{js,jsx,ts,tsx}',
