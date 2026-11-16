@@ -95,9 +95,29 @@ describe('Chapter editing', () => {
   });
 
   it('should keep the row in edit mode when the update fails', () => {
-    editChapterNumber('abc');
+    // The input rejects invalid chapter numbers before sending them, so the failure must come from the server
+    cy.intercept(
+      { pathname: '/api/chapter/*', method: 'POST' },
+      {
+        statusCode: 400,
+        body: { error: { 'body.chapterNumber': ['Invalid chapter number']}},
+      }
+    ).as('updateChapter');
 
+    editChapterNumber('9003');
+
+    cy.wait('@updateChapter');
     Selector.assertAlertExists(/chapterNumber/i);
     cy.findByRole('textbox', { name: /^chapter number$/i }).should('exist');
+  });
+
+  it('should not send an invalid chapter number', () => {
+    cy.intercept({ pathname: '/api/chapter/*', method: 'POST' }, cy.spy().as('updateChapter'));
+
+    editChapterNumber('abc');
+
+    Selector.assertAlertExists(/^Invalid chapter number$/i);
+    cy.findByRole('textbox', { name: /^chapter number$/i }).should('have.attr', 'aria-invalid', 'true');
+    cy.get('@updateChapter').should('not.have.been.called');
   });
 });
