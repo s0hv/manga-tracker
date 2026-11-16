@@ -1,6 +1,7 @@
 import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it, MockInstance } from 'vitest';
+import { http, HttpResponse } from 'msw';
+import { describe, expect, it, MockInstance, vi } from 'vitest';
 
 import {
   expectErrorSnackbar,
@@ -137,6 +138,55 @@ describe('Chapter list should allow editing', () => {
 
     await waitFor(() => expectErrorSnackbar('body.chapterNumber: Invalid chapter number'));
     expect(screen.getByRole('textbox', { name: /chapter number/i })).toBeInTheDocument();
+  });
+
+  it('Should not save an invalid chapter number', async () => {
+    await mockNotistackHooks();
+    const postMock = mockRequestWithBody(server, chapterUrl, { message: 'Updated' });
+
+    const user = await renderAndStartEditing();
+
+    const chapterInput = screen.getByRole('textbox', { name: /chapter number/i });
+    await user.clear(chapterInput);
+    await user.type(chapterInput, '12abc');
+    await user.click(screen.getByRole('button', { name: /save row/i }));
+
+    await waitFor(() => expectErrorSnackbar('Invalid chapter number'));
+    expect(postMock).not.toHaveBeenCalled();
+    expect(screen.getByRole('textbox', { name: /chapter number/i })).toBeInTheDocument();
+  });
+
+  it('Should send only one request when save is clicked again while saving', async () => {
+    await mockNotistackHooks();
+
+    let respond!: () => void;
+    const responseReleased = new Promise<void>(resolve => {
+      respond = resolve;
+    });
+    const postMock = vi.fn();
+    server.use(
+      http.post(chapterUrl, async () => {
+        postMock();
+        await responseReleased;
+        return HttpResponse.json({ message: 'Updated' });
+      })
+    );
+
+    const user = await renderAndStartEditing();
+
+    const chapterInput = screen.getByRole('textbox', { name: /chapter number/i });
+    await user.clear(chapterInput);
+    await user.type(chapterInput, '2');
+
+    const saveButton = screen.getByRole('button', { name: /save row/i });
+    await user.click(saveButton);
+    await user.click(saveButton);
+
+    await waitFor(() => expect(postMock).toHaveBeenCalled());
+    respond();
+
+    await waitFor(() => expectSuccessSnackbar());
+    expect(postMock).toHaveBeenCalledOnce();
   });
 
   it('Should delete correctly', async () => {

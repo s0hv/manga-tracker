@@ -5,6 +5,7 @@ import React, {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react';
 import {
@@ -55,6 +56,7 @@ import { servicesQueryOptions } from '../api/services';
 import { formatChapterUrl } from '../utils/formatting';
 import { defaultDateFormat } from '../utils/utilities';
 
+import { ChapterNumberInput } from './chapter/ChapterNumberInput';
 import { MaterialTable } from './MaterialTable';
 
 type ServiceOption = {
@@ -225,11 +227,24 @@ function ChapterList(props: ChapterListProps): ReactElement {
     enqueueSnackbar(json.message, { variant: 'success' });
   }, [enqueueSnackbar]);
 
+  const savingRowIds = useRef(new Set<string>());
+
   const onSaveRow = useCallback((row: Row<Features, MangaChapterWithUrl>) => {
+    if (savingRowIds.current.has(row.id)) return;
+
     const state = getRowEditStateFromRow(row);
     const keys = Object.keys(state);
-    if (keys.length === 0) return;
+    if (keys.length === 0) {
+      defaultSetEditingRow(row, false);
+      return;
+    }
 
+    if (Number.isNaN(state.chapterNumber)) {
+      enqueueSnackbar('Invalid chapter number', { variant: 'error' });
+      return;
+    }
+
+    savingRowIds.current.add(row.id);
     updateChapter({
       chapterId: row.original.chapterId,
       data: {
@@ -250,7 +265,8 @@ function ChapterList(props: ChapterListProps): ReactElement {
             : 'Failed to update chapter',
           { variant: 'error' }
         );
-      });
+      })
+      .finally(() => savingRowIds.current.delete(row.id));
   }, [handleResponse, enqueueSnackbar]);
 
   const onRowDelete = useCallback((row: Row<Features, MangaChapterWithUrl>) => {
@@ -274,7 +290,7 @@ function ChapterList(props: ChapterListProps): ReactElement {
       ? [editColumnDef]
       : []),
 
-    columnHelper.display({
+    columnHelper.accessor('chapterNumber', {
       header: 'Ch.',
       meta: {
         width: '50px',
@@ -294,21 +310,22 @@ function ChapterList(props: ChapterListProps): ReactElement {
         } = props.row.original;
 
         return (
-          <TextField
+          <ChapterNumberInput
             defaultValue={`${chapterNumber}${typeof chapterDecimal === 'number' ? `.${chapterDecimal}` : ''}`}
-            slotProps={{ htmlInput: { 'aria-label': 'Chapter number' }}}
-            variant='standard'
-            sx={{ width: '100%', minWidth: '100px' }}
-            onChange={event => {
+            onChange={parsed => {
               const rowStates = props.table.atoms.rowEditState.get();
               const rowState = rowStates[props.row.id];
 
               if (!rowState) return;
 
-              const [chapterNumber, chapterDecimal] = event.target.value.split('.');
+              if (!parsed) {
+                // onSaveRow refuses to save while chapterNumber is NaN
+                rowState.chapterNumber = Number.NaN;
+                return;
+              }
 
-              rowState.chapterNumber = Number.parseInt(chapterNumber);
-              rowState.chapterDecimal = chapterDecimal ? Number.parseInt(chapterDecimal) : null;
+              rowState.chapterNumber = parsed.chapterNumber;
+              rowState.chapterDecimal = parsed.chapterDecimal;
             }}
           />
         );

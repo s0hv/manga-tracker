@@ -56,6 +56,10 @@ export const getResponseData = <T = any>(json: any, status: number): T => {
     error = error[0];
   }
 
+  if ('error' in error) {
+    throw new APIException(error.error, status);
+  }
+
   const errorStr = Object.keys(error).map(key => {
     const errors = error[key];
     if (Array.isArray(errors)) {

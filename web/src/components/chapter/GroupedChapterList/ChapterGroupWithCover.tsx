@@ -31,7 +31,6 @@ export const ChapterGroupWithCover: FC<ChapterGroupWithCoverProps> = ({
       <RouteLink
         to='/manga/$mangaId'
         params={{ mangaId: mangaId.toString() }}
-        rel='noopener noreferrer'
         sx={{
           gridRow: {
             xs: undefined,
